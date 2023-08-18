@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -30,6 +31,7 @@ class ProductService with ListenableServiceMixin {
       .toList();
   set products(List<Product> value) {
     _products.value = value;
+    log(value.toString(), name: 'load product on adding one');
     notifyListeners();
   }
 
@@ -53,9 +55,10 @@ class ProductService with ListenableServiceMixin {
 
   setCurrentProduct({required Product product}) {
     _product.value = product;
+    notifyListeners();
   }
 
-  final _variants = ReactiveValue<dynamic>(null);
+  final _variants = ReactiveValue<List<Variant>?>(null);
   List<Variant>? get variants => _variants.value;
 
   Future<void> variantsProduct({required String productId}) async {
@@ -66,12 +69,13 @@ class ProductService with ListenableServiceMixin {
 
   /// discount streams
   Stream<List<Discount>> discountStream({required int branchId}) async* {
-    yield* ProxyService.isar.discountStreams(branchId: branchId);
+    yield* Stream.fromFuture(
+        ProxyService.isar.getDiscounts(branchId: branchId));
   }
 
   /// products streams
   Stream<List<Product>> productStream({required int branchId}) async* {
-    yield* ProxyService.isar.productStreams(branchId: branchId);
+    yield* ProxyService.isar.productStreams();
   }
 
   StreamTransformer<List<Product>, List<Product>> searchTransformer(

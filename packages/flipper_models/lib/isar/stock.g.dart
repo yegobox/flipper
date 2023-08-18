@@ -14,16 +14,102 @@ extension GetStockCollection on Isar {
   IsarCollection<String, Stock> get stocks => this.collection();
 }
 
-const StockSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Stock","idName":"id","properties":[{"name":"id","type":"String"},{"name":"branchId","type":"Long"},{"name":"variantId","type":"String"},{"name":"lowStock","type":"Double"},{"name":"currentStock","type":"Double"},{"name":"canTrackingStock","type":"Bool"},{"name":"showLowStockAlert","type":"Bool"},{"name":"productId","type":"String"},{"name":"active","type":"Bool"},{"name":"value","type":"Double"},{"name":"rsdQty","type":"Double"},{"name":"supplyPrice","type":"Double"},{"name":"retailPrice","type":"Double"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const StockSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Stock',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'variantId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lowStock',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'currentStock',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'canTrackingStock',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'showLowStockAlert',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'productId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'value',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'rsdQty',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'supplyPrice',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'retailPrice',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'productId',
+        properties: [
+          "productId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Stock>(
     serialize: serializeStock,
     deserialize: deserializeStock,
     deserializeProperty: deserializeStockProp,
   ),
   embeddedSchemas: [],
-  //hash: -684542501497510509,
 );
 
 @isarProtected
@@ -513,6 +599,62 @@ extension StockQueryUpdate on IsarQuery<Stock> {
   _StockQueryUpdate get updateFirst => _StockQueryUpdateImpl(this, limit: 1);
 
   _StockQueryUpdate get updateAll => _StockQueryUpdateImpl(this);
+}
+
+class _StockQueryBuilderUpdateImpl implements _StockQueryUpdate {
+  const _StockQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Stock, Stock, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? branchId = ignore,
+    Object? variantId = ignore,
+    Object? lowStock = ignore,
+    Object? currentStock = ignore,
+    Object? canTrackingStock = ignore,
+    Object? showLowStockAlert = ignore,
+    Object? productId = ignore,
+    Object? active = ignore,
+    Object? value = ignore,
+    Object? rsdQty = ignore,
+    Object? supplyPrice = ignore,
+    Object? retailPrice = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (branchId != ignore) 2: branchId as int?,
+        if (variantId != ignore) 3: variantId as String?,
+        if (lowStock != ignore) 4: lowStock as double?,
+        if (currentStock != ignore) 5: currentStock as double?,
+        if (canTrackingStock != ignore) 6: canTrackingStock as bool?,
+        if (showLowStockAlert != ignore) 7: showLowStockAlert as bool?,
+        if (productId != ignore) 8: productId as String?,
+        if (active != ignore) 9: active as bool?,
+        if (value != ignore) 10: value as double?,
+        if (rsdQty != ignore) 11: rsdQty as double?,
+        if (supplyPrice != ignore) 12: supplyPrice as double?,
+        if (retailPrice != ignore) 13: retailPrice as double?,
+        if (lastTouched != ignore) 14: lastTouched as DateTime?,
+        if (action != ignore) 15: action as String?,
+        if (deletedAt != ignore) 16: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension StockQueryBuilderUpdate on QueryBuilder<Stock, Stock, QOperations> {
+  _StockQueryUpdate get updateFirst =>
+      _StockQueryBuilderUpdateImpl(this, limit: 1);
+
+  _StockQueryUpdate get updateAll => _StockQueryBuilderUpdateImpl(this);
 }
 
 extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {

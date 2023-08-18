@@ -35,7 +35,12 @@ class _AddCustomerState extends State<AddCustomer> {
         .hasMatch(s);
     return emailValid;
   }
-
+  bool isNumeric(String? s) {
+  if (s == null) {
+    return false;
+  }
+  return double.tryParse(s) != null;
+}
   @override
   void initState() {
     if (isNumeric(widget.searchedKey)) {

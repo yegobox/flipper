@@ -14,16 +14,29 @@ extension GetFeatureCollection on Isar {
   IsarCollection<String, Feature> get features => this.collection();
 }
 
-const FeatureSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Feature","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"}]}',
+const FeatureSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Feature',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Feature>(
     serialize: serializeFeature,
     deserialize: deserializeFeature,
     deserializeProperty: deserializeFeatureProp,
   ),
   embeddedSchemas: [],
-  //hash: -7305444894947994782,
 );
 
 @isarProtected
@@ -140,6 +153,35 @@ extension FeatureQueryUpdate on IsarQuery<Feature> {
       _FeatureQueryUpdateImpl(this, limit: 1);
 
   _FeatureQueryUpdate get updateAll => _FeatureQueryUpdateImpl(this);
+}
+
+class _FeatureQueryBuilderUpdateImpl implements _FeatureQueryUpdate {
+  const _FeatureQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Feature, Feature, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension FeatureQueryBuilderUpdate
+    on QueryBuilder<Feature, Feature, QOperations> {
+  _FeatureQueryUpdate get updateFirst =>
+      _FeatureQueryBuilderUpdateImpl(this, limit: 1);
+
+  _FeatureQueryUpdate get updateAll => _FeatureQueryBuilderUpdateImpl(this);
 }
 
 extension FeatureQueryFilter

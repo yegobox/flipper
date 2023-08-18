@@ -23,8 +23,8 @@ dependencies:
   flipper_services: ^1.0.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^4.0.1
-  isar: ^4.0.0-dev.9
-  isar_flutter_libs: ^4.0.0-dev.9
+  isar: ^4.0.0-dev.10
+  isar_flutter_libs: ^4.0.0-dev.10
   pocketbase: ^0.10.0
   stock: ^1.0.1
   sentry_flutter: ^7.8.0

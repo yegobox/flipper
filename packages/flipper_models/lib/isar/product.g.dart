@@ -14,16 +14,134 @@ extension GetProductCollection on Isar {
   IsarCollection<String, Product> get products => this.collection();
 }
 
-const ProductSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Product","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"description","type":"String"},{"name":"taxId","type":"String"},{"name":"color","type":"String"},{"name":"businessId","type":"Long"},{"name":"branchId","type":"Long"},{"name":"supplierId","type":"String"},{"name":"categoryId","type":"String"},{"name":"createdAt","type":"String"},{"name":"unit","type":"String"},{"name":"imageUrl","type":"String"},{"name":"expiryDate","type":"String"},{"name":"barCode","type":"String"},{"name":"nfcEnabled","type":"Bool"},{"name":"bindedToTenantId","type":"Long"},{"name":"isFavorite","type":"Bool"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const ProductSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Product',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'description',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'taxId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'color',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'supplierId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'categoryId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'unit',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'imageUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'expiryDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'barCode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'nfcEnabled',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'bindedToTenantId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'isFavorite',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'name',
+        properties: [
+          "name",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'branchId',
+        properties: [
+          "branchId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'barCode',
+        properties: [
+          "barCode",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'bindedToTenantId',
+        properties: [
+          "bindedToTenantId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Product>(
     serialize: serializeProduct,
     deserialize: deserializeProduct,
     deserializeProperty: deserializeProductProp,
   ),
   embeddedSchemas: [],
-  //hash: 3261619422676161299,
 );
 
 @isarProtected
@@ -563,6 +681,71 @@ extension ProductQueryUpdate on IsarQuery<Product> {
       _ProductQueryUpdateImpl(this, limit: 1);
 
   _ProductQueryUpdate get updateAll => _ProductQueryUpdateImpl(this);
+}
+
+class _ProductQueryBuilderUpdateImpl implements _ProductQueryUpdate {
+  const _ProductQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Product, Product, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? description = ignore,
+    Object? taxId = ignore,
+    Object? color = ignore,
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? supplierId = ignore,
+    Object? categoryId = ignore,
+    Object? createdAt = ignore,
+    Object? unit = ignore,
+    Object? imageUrl = ignore,
+    Object? expiryDate = ignore,
+    Object? barCode = ignore,
+    Object? nfcEnabled = ignore,
+    Object? bindedToTenantId = ignore,
+    Object? isFavorite = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (description != ignore) 3: description as String?,
+        if (taxId != ignore) 4: taxId as String?,
+        if (color != ignore) 5: color as String?,
+        if (businessId != ignore) 6: businessId as int?,
+        if (branchId != ignore) 7: branchId as int?,
+        if (supplierId != ignore) 8: supplierId as String?,
+        if (categoryId != ignore) 9: categoryId as String?,
+        if (createdAt != ignore) 10: createdAt as String?,
+        if (unit != ignore) 11: unit as String?,
+        if (imageUrl != ignore) 12: imageUrl as String?,
+        if (expiryDate != ignore) 13: expiryDate as String?,
+        if (barCode != ignore) 14: barCode as String?,
+        if (nfcEnabled != ignore) 15: nfcEnabled as bool?,
+        if (bindedToTenantId != ignore) 16: bindedToTenantId as int?,
+        if (isFavorite != ignore) 17: isFavorite as bool?,
+        if (lastTouched != ignore) 18: lastTouched as DateTime?,
+        if (action != ignore) 19: action as String?,
+        if (deletedAt != ignore) 20: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ProductQueryBuilderUpdate
+    on QueryBuilder<Product, Product, QOperations> {
+  _ProductQueryUpdate get updateFirst =>
+      _ProductQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ProductQueryUpdate get updateAll => _ProductQueryBuilderUpdateImpl(this);
 }
 
 extension ProductQueryFilter

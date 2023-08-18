@@ -14,16 +14,66 @@ extension GetTokenCollection on Isar {
   IsarCollection<String, Token> get tokens => this.collection();
 }
 
-const TokenSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Token","idName":"id","properties":[{"name":"id","type":"String"},{"name":"type","type":"String"},{"name":"token","type":"String"},{"name":"validFrom","type":"DateTime"},{"name":"validUntil","type":"DateTime"},{"name":"businessId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const TokenSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Token',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'type',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'token',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'validFrom',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'validUntil',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'businessId',
+        properties: [
+          "businessId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Token>(
     serialize: serializeToken,
     deserialize: deserializeToken,
     deserializeProperty: deserializeTokenProp,
   ),
   embeddedSchemas: [],
-  //hash: 5010015765867257739,
 );
 
 @isarProtected
@@ -313,6 +363,48 @@ extension TokenQueryUpdate on IsarQuery<Token> {
   _TokenQueryUpdate get updateFirst => _TokenQueryUpdateImpl(this, limit: 1);
 
   _TokenQueryUpdate get updateAll => _TokenQueryUpdateImpl(this);
+}
+
+class _TokenQueryBuilderUpdateImpl implements _TokenQueryUpdate {
+  const _TokenQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Token, Token, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? type = ignore,
+    Object? token = ignore,
+    Object? validFrom = ignore,
+    Object? validUntil = ignore,
+    Object? businessId = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (type != ignore) 2: type as String?,
+        if (token != ignore) 3: token as String?,
+        if (validFrom != ignore) 4: validFrom as DateTime?,
+        if (validUntil != ignore) 5: validUntil as DateTime?,
+        if (businessId != ignore) 6: businessId as int?,
+        if (lastTouched != ignore) 7: lastTouched as DateTime?,
+        if (deletedAt != ignore) 8: deletedAt as DateTime?,
+        if (action != ignore) 9: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension TokenQueryBuilderUpdate on QueryBuilder<Token, Token, QOperations> {
+  _TokenQueryUpdate get updateFirst =>
+      _TokenQueryBuilderUpdateImpl(this, limit: 1);
+
+  _TokenQueryUpdate get updateAll => _TokenQueryBuilderUpdateImpl(this);
 }
 
 extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {

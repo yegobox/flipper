@@ -14,16 +14,45 @@ extension GetHistoryCollection on Isar {
   IsarCollection<String, History> get historys => this.collection();
 }
 
-const HistorySchema = IsarCollectionSchema(
-  schema:
-      '{"name":"History","idName":"id","properties":[{"name":"id","type":"String"},{"name":"modelId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"createdAt","type":"DateTime"},{"name":"deletedAt","type":"DateTime"}]}',
+const HistorySchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'History',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modelId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, History>(
     serialize: serializeHistory,
     deserialize: deserializeHistory,
     deserializeProperty: deserializeHistoryProp,
   ),
   embeddedSchemas: [],
-  //hash: 7708500418701726985,
 );
 
 @isarProtected
@@ -251,6 +280,43 @@ extension HistoryQueryUpdate on IsarQuery<History> {
       _HistoryQueryUpdateImpl(this, limit: 1);
 
   _HistoryQueryUpdate get updateAll => _HistoryQueryUpdateImpl(this);
+}
+
+class _HistoryQueryBuilderUpdateImpl implements _HistoryQueryUpdate {
+  const _HistoryQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<History, History, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? modelId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? createdAt = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (modelId != ignore) 2: modelId as int?,
+        if (lastTouched != ignore) 3: lastTouched as DateTime?,
+        if (action != ignore) 4: action as String?,
+        if (createdAt != ignore) 5: createdAt as DateTime?,
+        if (deletedAt != ignore) 6: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension HistoryQueryBuilderUpdate
+    on QueryBuilder<History, History, QOperations> {
+  _HistoryQueryUpdate get updateFirst =>
+      _HistoryQueryBuilderUpdateImpl(this, limit: 1);
+
+  _HistoryQueryUpdate get updateAll => _HistoryQueryBuilderUpdateImpl(this);
 }
 
 extension HistoryQueryFilter

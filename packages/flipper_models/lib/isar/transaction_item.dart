@@ -11,7 +11,6 @@ class TransactionItem extends IJsonSerializable {
   late String name;
   @Index()
   late String transactionId;
-  @Index(composite: ['transactionId'])
   late String variantId;
   // quantity
   late double qty;
@@ -171,5 +170,5 @@ class TransactionItem extends IJsonSerializable {
   }
 
   @override
-  Map<String, dynamic> toJson() =>_$TransactionItemToJson(this);
+  Map<String, dynamic> toJson() => _$TransactionItemToJson(this);
 }

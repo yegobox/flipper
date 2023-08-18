@@ -60,9 +60,11 @@ class PayableView extends StatelessWidget {
                   final int tickets = transactions.length;
 
                   return StreamBuilder<List<Transaction>>(
-                    stream: ProxyService.isar.pendingTransactionStreams(),
+                    stream:
+                        ProxyService.isar.transactionsStreams(status: PENDING),
                     builder: (context, snapshot) {
-                      final List<Transaction> pendingTransactions = snapshot.data ?? [];
+                      final List<Transaction> pendingTransactions =
+                          snapshot.data ?? [];
                       final int transactionsCount = pendingTransactions.length;
 
                       return Ticket(

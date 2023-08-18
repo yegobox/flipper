@@ -14,16 +14,198 @@ extension GetBusinessCollection on Isar {
   IsarCollection<int, Business> get business => this.collection();
 }
 
-const BusinessSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Business","idName":"id","properties":[{"name":"name","type":"String"},{"name":"currency","type":"String"},{"name":"categoryId","type":"String"},{"name":"latitude","type":"String"},{"name":"longitude","type":"String"},{"name":"userId","type":"Long"},{"name":"timeZone","type":"String"},{"name":"channels","type":"StringList"},{"name":"country","type":"String"},{"name":"businessUrl","type":"String"},{"name":"hexColor","type":"String"},{"name":"imageUrl","type":"String"},{"name":"type","type":"String"},{"name":"active","type":"Bool"},{"name":"chatUid","type":"String"},{"name":"metadata","type":"String"},{"name":"role","type":"String"},{"name":"lastSeen","type":"Long"},{"name":"firstName","type":"String"},{"name":"lastName","type":"String"},{"name":"createdAt","type":"String"},{"name":"deviceToken","type":"String"},{"name":"backUpEnabled","type":"Bool"},{"name":"subscriptionPlan","type":"String"},{"name":"nextBillingDate","type":"String"},{"name":"previousBillingDate","type":"String"},{"name":"isLastSubscriptionPaymentSucceeded","type":"Bool"},{"name":"backupFileId","type":"String"},{"name":"email","type":"String"},{"name":"lastDbBackup","type":"String"},{"name":"fullName","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"bhfId","type":"String"},{"name":"dvcSrlNo","type":"String"},{"name":"adrs","type":"String"},{"name":"taxEnabled","type":"Bool"},{"name":"taxServerUrl","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"businessTypeId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const BusinessSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Business',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'currency',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'categoryId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'latitude',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'longitude',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'timeZone',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'channels',
+        type: IsarType.stringList,
+      ),
+      IsarPropertySchema(
+        name: 'country',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'hexColor',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'imageUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'type',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'chatUid',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'metadata',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'role',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastSeen',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'firstName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deviceToken',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'backUpEnabled',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'subscriptionPlan',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'nextBillingDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'previousBillingDate',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isLastSubscriptionPaymentSucceeded',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'backupFileId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'email',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastDbBackup',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'fullName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'tinNumber',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'bhfId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'dvcSrlNo',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'adrs',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'taxEnabled',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'taxServerUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isDefault',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'businessTypeId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'userId',
+        properties: [
+          "userId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<int, Business>(
     serialize: serializeBusiness,
     deserialize: deserializeBusiness,
     deserializeProperty: deserializeBusinessProp,
   ),
   embeddedSchemas: [],
-  //hash: -3842499089421071628,
 );
 
 @isarProtected
@@ -1152,6 +1334,116 @@ extension BusinessQueryUpdate on IsarQuery<Business> {
       _BusinessQueryUpdateImpl(this, limit: 1);
 
   _BusinessQueryUpdate get updateAll => _BusinessQueryUpdateImpl(this);
+}
+
+class _BusinessQueryBuilderUpdateImpl implements _BusinessQueryUpdate {
+  const _BusinessQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Business, Business, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? currency = ignore,
+    Object? categoryId = ignore,
+    Object? latitude = ignore,
+    Object? longitude = ignore,
+    Object? userId = ignore,
+    Object? timeZone = ignore,
+    Object? country = ignore,
+    Object? businessUrl = ignore,
+    Object? hexColor = ignore,
+    Object? imageUrl = ignore,
+    Object? type = ignore,
+    Object? active = ignore,
+    Object? chatUid = ignore,
+    Object? metadata = ignore,
+    Object? role = ignore,
+    Object? lastSeen = ignore,
+    Object? firstName = ignore,
+    Object? lastName = ignore,
+    Object? createdAt = ignore,
+    Object? deviceToken = ignore,
+    Object? backUpEnabled = ignore,
+    Object? subscriptionPlan = ignore,
+    Object? nextBillingDate = ignore,
+    Object? previousBillingDate = ignore,
+    Object? isLastSubscriptionPaymentSucceeded = ignore,
+    Object? backupFileId = ignore,
+    Object? email = ignore,
+    Object? lastDbBackup = ignore,
+    Object? fullName = ignore,
+    Object? tinNumber = ignore,
+    Object? bhfId = ignore,
+    Object? dvcSrlNo = ignore,
+    Object? adrs = ignore,
+    Object? taxEnabled = ignore,
+    Object? taxServerUrl = ignore,
+    Object? isDefault = ignore,
+    Object? businessTypeId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 1: name as String?,
+        if (currency != ignore) 2: currency as String?,
+        if (categoryId != ignore) 3: categoryId as String?,
+        if (latitude != ignore) 4: latitude as String?,
+        if (longitude != ignore) 5: longitude as String?,
+        if (userId != ignore) 6: userId as int?,
+        if (timeZone != ignore) 7: timeZone as String?,
+        if (country != ignore) 9: country as String?,
+        if (businessUrl != ignore) 10: businessUrl as String?,
+        if (hexColor != ignore) 11: hexColor as String?,
+        if (imageUrl != ignore) 12: imageUrl as String?,
+        if (type != ignore) 13: type as String?,
+        if (active != ignore) 14: active as bool?,
+        if (chatUid != ignore) 15: chatUid as String?,
+        if (metadata != ignore) 16: metadata as String?,
+        if (role != ignore) 17: role as String?,
+        if (lastSeen != ignore) 18: lastSeen as int?,
+        if (firstName != ignore) 19: firstName as String?,
+        if (lastName != ignore) 20: lastName as String?,
+        if (createdAt != ignore) 21: createdAt as String?,
+        if (deviceToken != ignore) 22: deviceToken as String?,
+        if (backUpEnabled != ignore) 23: backUpEnabled as bool?,
+        if (subscriptionPlan != ignore) 24: subscriptionPlan as String?,
+        if (nextBillingDate != ignore) 25: nextBillingDate as String?,
+        if (previousBillingDate != ignore) 26: previousBillingDate as String?,
+        if (isLastSubscriptionPaymentSucceeded != ignore)
+          27: isLastSubscriptionPaymentSucceeded as bool?,
+        if (backupFileId != ignore) 28: backupFileId as String?,
+        if (email != ignore) 29: email as String?,
+        if (lastDbBackup != ignore) 30: lastDbBackup as String?,
+        if (fullName != ignore) 31: fullName as String?,
+        if (tinNumber != ignore) 32: tinNumber as int?,
+        if (bhfId != ignore) 33: bhfId as String?,
+        if (dvcSrlNo != ignore) 34: dvcSrlNo as String?,
+        if (adrs != ignore) 35: adrs as String?,
+        if (taxEnabled != ignore) 36: taxEnabled as bool?,
+        if (taxServerUrl != ignore) 37: taxServerUrl as String?,
+        if (isDefault != ignore) 38: isDefault as bool?,
+        if (businessTypeId != ignore) 39: businessTypeId as int?,
+        if (lastTouched != ignore) 40: lastTouched as DateTime?,
+        if (action != ignore) 41: action as String?,
+        if (deletedAt != ignore) 42: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension BusinessQueryBuilderUpdate
+    on QueryBuilder<Business, Business, QOperations> {
+  _BusinessQueryUpdate get updateFirst =>
+      _BusinessQueryBuilderUpdateImpl(this, limit: 1);
+
+  _BusinessQueryUpdate get updateAll => _BusinessQueryBuilderUpdateImpl(this);
 }
 
 extension BusinessQueryFilter

@@ -14,16 +14,118 @@ extension GetConversationCollection on Isar {
   IsarCollection<String, Conversation> get conversations => this.collection();
 }
 
-const ConversationSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Conversation","idName":"id","properties":[{"name":"id","type":"String"},{"name":"userName","type":"String"},{"name":"body","type":"String"},{"name":"avatar","type":"String"},{"name":"channelType","type":"String"},{"name":"fromNumber","type":"String"},{"name":"toNumber","type":"String"},{"name":"createdAt","type":"String"},{"name":"messageType","type":"String"},{"name":"phoneNumberId","type":"String"},{"name":"messageId","type":"String"},{"name":"respondedBy","type":"String"},{"name":"conversationId","type":"String"},{"name":"businessPhoneNumber","type":"String"},{"name":"businessId","type":"Long"},{"name":"scheduledAt","type":"DateTime"},{"name":"delivered","type":"Bool"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const ConversationSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Conversation',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'body',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'avatar',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'channelType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'fromNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'toNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'messageType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phoneNumberId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'messageId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'respondedBy',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'conversationId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessPhoneNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'scheduledAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'delivered',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'createdAt',
+        properties: [
+          "createdAt",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'messageId',
+        properties: [
+          "messageId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Conversation>(
     serialize: serializeConversation,
     deserialize: deserializeConversation,
     deserializeProperty: deserializeConversationProp,
   ),
   embeddedSchemas: [],
-  //hash: 6969148545051592318,
 );
 
 @isarProtected
@@ -529,6 +631,72 @@ extension ConversationQueryUpdate on IsarQuery<Conversation> {
       _ConversationQueryUpdateImpl(this, limit: 1);
 
   _ConversationQueryUpdate get updateAll => _ConversationQueryUpdateImpl(this);
+}
+
+class _ConversationQueryBuilderUpdateImpl implements _ConversationQueryUpdate {
+  const _ConversationQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Conversation, Conversation, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? userName = ignore,
+    Object? body = ignore,
+    Object? avatar = ignore,
+    Object? channelType = ignore,
+    Object? fromNumber = ignore,
+    Object? toNumber = ignore,
+    Object? createdAt = ignore,
+    Object? messageType = ignore,
+    Object? phoneNumberId = ignore,
+    Object? messageId = ignore,
+    Object? respondedBy = ignore,
+    Object? conversationId = ignore,
+    Object? businessPhoneNumber = ignore,
+    Object? businessId = ignore,
+    Object? scheduledAt = ignore,
+    Object? delivered = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (userName != ignore) 2: userName as String?,
+        if (body != ignore) 3: body as String?,
+        if (avatar != ignore) 4: avatar as String?,
+        if (channelType != ignore) 5: channelType as String?,
+        if (fromNumber != ignore) 6: fromNumber as String?,
+        if (toNumber != ignore) 7: toNumber as String?,
+        if (createdAt != ignore) 8: createdAt as String?,
+        if (messageType != ignore) 9: messageType as String?,
+        if (phoneNumberId != ignore) 10: phoneNumberId as String?,
+        if (messageId != ignore) 11: messageId as String?,
+        if (respondedBy != ignore) 12: respondedBy as String?,
+        if (conversationId != ignore) 13: conversationId as String?,
+        if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
+        if (businessId != ignore) 15: businessId as int?,
+        if (scheduledAt != ignore) 16: scheduledAt as DateTime?,
+        if (delivered != ignore) 17: delivered as bool?,
+        if (lastTouched != ignore) 18: lastTouched as DateTime?,
+        if (deletedAt != ignore) 19: deletedAt as DateTime?,
+        if (action != ignore) 20: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ConversationQueryBuilderUpdate
+    on QueryBuilder<Conversation, Conversation, QOperations> {
+  _ConversationQueryUpdate get updateFirst =>
+      _ConversationQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ConversationQueryUpdate get updateAll =>
+      _ConversationQueryBuilderUpdateImpl(this);
 }
 
 extension ConversationQueryFilter

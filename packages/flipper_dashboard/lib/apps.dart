@@ -241,7 +241,7 @@ class _AppsState extends State<Apps> {
   Widget _buildGauge(BuildContext context, HomeViewModel model) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
-      stream: ProxyService.isar.getCompletedTransactions(),
+      stream: ProxyService.isar.transactionsStreams(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return SemiCircleGauge(

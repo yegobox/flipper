@@ -14,16 +14,114 @@ extension GetProfileCollection on Isar {
   IsarCollection<String, Profile> get profiles => this.collection();
 }
 
-const ProfileSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Profile","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"email","type":"String"},{"name":"phone","type":"String"},{"name":"address","type":"String"},{"name":"city","type":"String"},{"name":"state","type":"String"},{"name":"country","type":"String"},{"name":"pincode","type":"String"},{"name":"profilePic","type":"String"},{"name":"coverPic","type":"String"},{"name":"about","type":"String"},{"name":"vaccinationCode","type":"String"},{"name":"livingAt","type":"String"},{"name":"cell","type":"String"},{"name":"district","type":"String"},{"name":"businessId","type":"Long"},{"name":"nationalId","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const ProfileSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Profile',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'email',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'phone',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'address',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'city',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'state',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'country',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pincode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'profilePic',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'coverPic',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'about',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'vaccinationCode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'livingAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'cell',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'district',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'nationalId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'businessId',
+        properties: [
+          "businessId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Profile>(
     serialize: serializeProfile,
     deserialize: deserializeProfile,
     deserializeProperty: deserializeProfileProp,
   ),
   embeddedSchemas: [],
-  //hash: 8768369018183773753,
 );
 
 @isarProtected
@@ -535,6 +633,73 @@ extension ProfileQueryUpdate on IsarQuery<Profile> {
       _ProfileQueryUpdateImpl(this, limit: 1);
 
   _ProfileQueryUpdate get updateAll => _ProfileQueryUpdateImpl(this);
+}
+
+class _ProfileQueryBuilderUpdateImpl implements _ProfileQueryUpdate {
+  const _ProfileQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Profile, Profile, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? email = ignore,
+    Object? phone = ignore,
+    Object? address = ignore,
+    Object? city = ignore,
+    Object? state = ignore,
+    Object? country = ignore,
+    Object? pincode = ignore,
+    Object? profilePic = ignore,
+    Object? coverPic = ignore,
+    Object? about = ignore,
+    Object? vaccinationCode = ignore,
+    Object? livingAt = ignore,
+    Object? cell = ignore,
+    Object? district = ignore,
+    Object? businessId = ignore,
+    Object? nationalId = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (email != ignore) 3: email as String?,
+        if (phone != ignore) 4: phone as String?,
+        if (address != ignore) 5: address as String?,
+        if (city != ignore) 6: city as String?,
+        if (state != ignore) 7: state as String?,
+        if (country != ignore) 8: country as String?,
+        if (pincode != ignore) 9: pincode as String?,
+        if (profilePic != ignore) 10: profilePic as String?,
+        if (coverPic != ignore) 11: coverPic as String?,
+        if (about != ignore) 12: about as String?,
+        if (vaccinationCode != ignore) 13: vaccinationCode as String?,
+        if (livingAt != ignore) 14: livingAt as String?,
+        if (cell != ignore) 15: cell as String?,
+        if (district != ignore) 16: district as String?,
+        if (businessId != ignore) 17: businessId as int?,
+        if (nationalId != ignore) 18: nationalId as String?,
+        if (lastTouched != ignore) 19: lastTouched as DateTime?,
+        if (deletedAt != ignore) 20: deletedAt as DateTime?,
+        if (action != ignore) 21: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension ProfileQueryBuilderUpdate
+    on QueryBuilder<Profile, Profile, QOperations> {
+  _ProfileQueryUpdate get updateFirst =>
+      _ProfileQueryBuilderUpdateImpl(this, limit: 1);
+
+  _ProfileQueryUpdate get updateAll => _ProfileQueryBuilderUpdateImpl(this);
 }
 
 extension ProfileQueryFilter

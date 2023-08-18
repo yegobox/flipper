@@ -14,16 +14,111 @@ extension GetDrawersCollection on Isar {
   IsarCollection<String, Drawers> get drawers => this.collection();
 }
 
-const DrawersSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Drawers","idName":"id","properties":[{"name":"id","type":"String"},{"name":"openingBalance","type":"Double"},{"name":"closingBalance","type":"Double"},{"name":"openingDateTime","type":"String"},{"name":"closingDateTime","type":"String"},{"name":"csSaleCount","type":"Long"},{"name":"tradeName","type":"String"},{"name":"totalNsSaleIncome","type":"Double"},{"name":"totalCsSaleIncome","type":"Double"},{"name":"nrSaleCount","type":"Long"},{"name":"nsSaleCount","type":"Long"},{"name":"trSaleCount","type":"Long"},{"name":"psSaleCount","type":"Long"},{"name":"incompleteSale","type":"Long"},{"name":"otherTransactions","type":"Long"},{"name":"paymentMode","type":"String"},{"name":"cashierId","type":"Long"},{"name":"open","type":"Bool"}]}',
+const DrawersSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Drawers',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'openingBalance',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'closingBalance',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'openingDateTime',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'closingDateTime',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'csSaleCount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'tradeName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'totalNsSaleIncome',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'totalCsSaleIncome',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'nrSaleCount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'nsSaleCount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'trSaleCount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'psSaleCount',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'incompleteSale',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'otherTransactions',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'paymentMode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'cashierId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'open',
+        type: IsarType.bool,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'cashierId',
+        properties: [
+          "cashierId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'open_cashierId',
+        properties: [
+          "open",
+          "cashierId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Drawers>(
     serialize: serializeDrawers,
     deserialize: deserializeDrawers,
     deserializeProperty: deserializeDrawersProp,
   ),
   embeddedSchemas: [],
-  //hash: -8548495023505891527,
 );
 
 @isarProtected
@@ -498,6 +593,67 @@ extension DrawersQueryUpdate on IsarQuery<Drawers> {
       _DrawersQueryUpdateImpl(this, limit: 1);
 
   _DrawersQueryUpdate get updateAll => _DrawersQueryUpdateImpl(this);
+}
+
+class _DrawersQueryBuilderUpdateImpl implements _DrawersQueryUpdate {
+  const _DrawersQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Drawers, Drawers, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? openingBalance = ignore,
+    Object? closingBalance = ignore,
+    Object? openingDateTime = ignore,
+    Object? closingDateTime = ignore,
+    Object? csSaleCount = ignore,
+    Object? tradeName = ignore,
+    Object? totalNsSaleIncome = ignore,
+    Object? totalCsSaleIncome = ignore,
+    Object? nrSaleCount = ignore,
+    Object? nsSaleCount = ignore,
+    Object? trSaleCount = ignore,
+    Object? psSaleCount = ignore,
+    Object? incompleteSale = ignore,
+    Object? otherTransactions = ignore,
+    Object? paymentMode = ignore,
+    Object? cashierId = ignore,
+    Object? open = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (openingBalance != ignore) 2: openingBalance as double?,
+        if (closingBalance != ignore) 3: closingBalance as double?,
+        if (openingDateTime != ignore) 4: openingDateTime as String?,
+        if (closingDateTime != ignore) 5: closingDateTime as String?,
+        if (csSaleCount != ignore) 6: csSaleCount as int?,
+        if (tradeName != ignore) 7: tradeName as String?,
+        if (totalNsSaleIncome != ignore) 8: totalNsSaleIncome as double?,
+        if (totalCsSaleIncome != ignore) 9: totalCsSaleIncome as double?,
+        if (nrSaleCount != ignore) 10: nrSaleCount as int?,
+        if (nsSaleCount != ignore) 11: nsSaleCount as int?,
+        if (trSaleCount != ignore) 12: trSaleCount as int?,
+        if (psSaleCount != ignore) 13: psSaleCount as int?,
+        if (incompleteSale != ignore) 14: incompleteSale as int?,
+        if (otherTransactions != ignore) 15: otherTransactions as int?,
+        if (paymentMode != ignore) 16: paymentMode as String?,
+        if (cashierId != ignore) 17: cashierId as int?,
+        if (open != ignore) 18: open as bool?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension DrawersQueryBuilderUpdate
+    on QueryBuilder<Drawers, Drawers, QOperations> {
+  _DrawersQueryUpdate get updateFirst =>
+      _DrawersQueryBuilderUpdateImpl(this, limit: 1);
+
+  _DrawersQueryUpdate get updateAll => _DrawersQueryBuilderUpdateImpl(this);
 }
 
 extension DrawersQueryFilter

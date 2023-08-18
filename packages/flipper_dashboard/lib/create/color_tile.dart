@@ -24,7 +24,7 @@ class ColorTile extends StatelessWidget {
               _routerService.pop();
             },
             title: 'Edit product Tiles',
-            icon: Icons.keyboard_backspace,
+            icon: Icons.close,
             multi: 3,
             bottomSpacer: 52,
           ),
@@ -47,8 +47,8 @@ class ColorTile extends StatelessWidget {
                             child: Theme(
                               data: Theme.of(context)
                                   .copyWith(splashColor: Colors.transparent),
-                              child: model.product == null ||
-                                      model.product.imageUrl == null
+                              child: (model.product?.imageUrl == null ||
+                                      model.product!.imageUrl!.isEmpty)
                                   ? TextField(
                                       maxLines: 4,
                                       autofocus: false,

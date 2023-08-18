@@ -79,9 +79,9 @@ class ListCategories extends StatelessWidget {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: StreamBuilder<List<Category>>(
-              stream: ProxyService.isar
-                  .categoriesStream(branchId: ProxyService.box.getBranchId()!),
+          body: FutureBuilder<List<Category>>(
+              future: ProxyService.isar
+                  .categories(branchId: ProxyService.box.getBranchId()!),
               builder: (context, snapshot) {
                 return Column(
                   children: <Widget>[

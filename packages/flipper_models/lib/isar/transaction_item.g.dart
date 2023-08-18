@@ -15,16 +15,234 @@ extension GetTransactionItemCollection on Isar {
       this.collection();
 }
 
-const TransactionItemSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"TransactionItem","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"transactionId","type":"String"},{"name":"variantId","type":"String"},{"name":"qty","type":"Double"},{"name":"price","type":"Double"},{"name":"discount","type":"Double"},{"name":"type","type":"String"},{"name":"remainingStock","type":"Double"},{"name":"createdAt","type":"String"},{"name":"updatedAt","type":"String"},{"name":"isTaxExempted","type":"Bool"},{"name":"isRefunded","type":"Bool"},{"name":"doneWithTransaction","type":"Bool"},{"name":"dcRt","type":"Double"},{"name":"dcAmt","type":"Double"},{"name":"taxblAmt","type":"Double"},{"name":"taxAmt","type":"Double"},{"name":"totAmt","type":"Double"},{"name":"itemSeq","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrcAmt","type":"String"},{"name":"taxTyCd","type":"String"},{"name":"bcd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"itemCd","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"qtyUnitCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"prc","type":"Double"},{"name":"splyAmt","type":"Double"},{"name":"tin","type":"Long"},{"name":"bhfId","type":"String"},{"name":"dftPrc","type":"Double"},{"name":"addInfo","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"useYn","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"},{"name":"branchId","type":"Long"}]}',
+const TransactionItemSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'TransactionItem',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'transactionId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'variantId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'qty',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'price',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'discount',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'type',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'remainingStock',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'updatedAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isTaxExempted',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'isRefunded',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'doneWithTransaction',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'dcRt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'dcAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'taxblAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'taxAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'totAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'itemSeq',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrccCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrccNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcRt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcAmt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'taxTyCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'bcd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemClsCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemTyCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemStdNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'orgnNatCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pkg',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pkgUnitCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'qtyUnitCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'prc',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'splyAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'tin',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'bhfId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'dftPrc',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'addInfo',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcAplcbYn',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'useYn',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'regrId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'regrNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modrId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modrNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'transactionId',
+        properties: [
+          "transactionId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, TransactionItem>(
     serialize: serializeTransactionItem,
     deserialize: deserializeTransactionItem,
     deserializeProperty: deserializeTransactionItemProp,
   ),
   embeddedSchemas: [],
-  //hash: 917622845286526293,
 );
 
 @isarProtected
@@ -1268,6 +1486,135 @@ extension TransactionItemQueryUpdate on IsarQuery<TransactionItem> {
 
   _TransactionItemQueryUpdate get updateAll =>
       _TransactionItemQueryUpdateImpl(this);
+}
+
+class _TransactionItemQueryBuilderUpdateImpl
+    implements _TransactionItemQueryUpdate {
+  const _TransactionItemQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<TransactionItem, TransactionItem, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? transactionId = ignore,
+    Object? variantId = ignore,
+    Object? qty = ignore,
+    Object? price = ignore,
+    Object? discount = ignore,
+    Object? type = ignore,
+    Object? remainingStock = ignore,
+    Object? createdAt = ignore,
+    Object? updatedAt = ignore,
+    Object? isTaxExempted = ignore,
+    Object? isRefunded = ignore,
+    Object? doneWithTransaction = ignore,
+    Object? dcRt = ignore,
+    Object? dcAmt = ignore,
+    Object? taxblAmt = ignore,
+    Object? taxAmt = ignore,
+    Object? totAmt = ignore,
+    Object? itemSeq = ignore,
+    Object? isrccCd = ignore,
+    Object? isrccNm = ignore,
+    Object? isrcRt = ignore,
+    Object? isrcAmt = ignore,
+    Object? taxTyCd = ignore,
+    Object? bcd = ignore,
+    Object? itemClsCd = ignore,
+    Object? itemTyCd = ignore,
+    Object? itemStdNm = ignore,
+    Object? orgnNatCd = ignore,
+    Object? pkg = ignore,
+    Object? itemCd = ignore,
+    Object? pkgUnitCd = ignore,
+    Object? qtyUnitCd = ignore,
+    Object? itemNm = ignore,
+    Object? prc = ignore,
+    Object? splyAmt = ignore,
+    Object? tin = ignore,
+    Object? bhfId = ignore,
+    Object? dftPrc = ignore,
+    Object? addInfo = ignore,
+    Object? isrcAplcbYn = ignore,
+    Object? useYn = ignore,
+    Object? regrId = ignore,
+    Object? regrNm = ignore,
+    Object? modrId = ignore,
+    Object? modrNm = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+    Object? branchId = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (transactionId != ignore) 3: transactionId as String?,
+        if (variantId != ignore) 4: variantId as String?,
+        if (qty != ignore) 5: qty as double?,
+        if (price != ignore) 6: price as double?,
+        if (discount != ignore) 7: discount as double?,
+        if (type != ignore) 8: type as String?,
+        if (remainingStock != ignore) 9: remainingStock as double?,
+        if (createdAt != ignore) 10: createdAt as String?,
+        if (updatedAt != ignore) 11: updatedAt as String?,
+        if (isTaxExempted != ignore) 12: isTaxExempted as bool?,
+        if (isRefunded != ignore) 13: isRefunded as bool?,
+        if (doneWithTransaction != ignore) 14: doneWithTransaction as bool?,
+        if (dcRt != ignore) 15: dcRt as double?,
+        if (dcAmt != ignore) 16: dcAmt as double?,
+        if (taxblAmt != ignore) 17: taxblAmt as double?,
+        if (taxAmt != ignore) 18: taxAmt as double?,
+        if (totAmt != ignore) 19: totAmt as double?,
+        if (itemSeq != ignore) 20: itemSeq as String?,
+        if (isrccCd != ignore) 21: isrccCd as String?,
+        if (isrccNm != ignore) 22: isrccNm as String?,
+        if (isrcRt != ignore) 23: isrcRt as String?,
+        if (isrcAmt != ignore) 24: isrcAmt as String?,
+        if (taxTyCd != ignore) 25: taxTyCd as String?,
+        if (bcd != ignore) 26: bcd as String?,
+        if (itemClsCd != ignore) 27: itemClsCd as String?,
+        if (itemTyCd != ignore) 28: itemTyCd as String?,
+        if (itemStdNm != ignore) 29: itemStdNm as String?,
+        if (orgnNatCd != ignore) 30: orgnNatCd as String?,
+        if (pkg != ignore) 31: pkg as String?,
+        if (itemCd != ignore) 32: itemCd as String?,
+        if (pkgUnitCd != ignore) 33: pkgUnitCd as String?,
+        if (qtyUnitCd != ignore) 34: qtyUnitCd as String?,
+        if (itemNm != ignore) 35: itemNm as String?,
+        if (prc != ignore) 36: prc as double?,
+        if (splyAmt != ignore) 37: splyAmt as double?,
+        if (tin != ignore) 38: tin as int?,
+        if (bhfId != ignore) 39: bhfId as String?,
+        if (dftPrc != ignore) 40: dftPrc as double?,
+        if (addInfo != ignore) 41: addInfo as String?,
+        if (isrcAplcbYn != ignore) 42: isrcAplcbYn as String?,
+        if (useYn != ignore) 43: useYn as String?,
+        if (regrId != ignore) 44: regrId as String?,
+        if (regrNm != ignore) 45: regrNm as String?,
+        if (modrId != ignore) 46: modrId as String?,
+        if (modrNm != ignore) 47: modrNm as String?,
+        if (lastTouched != ignore) 48: lastTouched as DateTime?,
+        if (deletedAt != ignore) 49: deletedAt as DateTime?,
+        if (action != ignore) 50: action as String?,
+        if (branchId != ignore) 51: branchId as int?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension TransactionItemQueryBuilderUpdate
+    on QueryBuilder<TransactionItem, TransactionItem, QOperations> {
+  _TransactionItemQueryUpdate get updateFirst =>
+      _TransactionItemQueryBuilderUpdateImpl(this, limit: 1);
+
+  _TransactionItemQueryUpdate get updateAll =>
+      _TransactionItemQueryBuilderUpdateImpl(this);
 }
 
 extension TransactionItemQueryFilter

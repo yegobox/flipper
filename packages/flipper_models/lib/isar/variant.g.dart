@@ -14,16 +14,218 @@ extension GetVariantCollection on Isar {
   IsarCollection<String, Variant> get variants => this.collection();
 }
 
-const VariantSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Variant","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"sku","type":"String"},{"name":"productId","type":"String"},{"name":"unit","type":"String"},{"name":"productName","type":"String"},{"name":"branchId","type":"Long"},{"name":"taxName","type":"String"},{"name":"taxPercentage","type":"Double"},{"name":"isTaxExempted","type":"Bool"},{"name":"itemSeq","type":"String"},{"name":"isrccCd","type":"String"},{"name":"isrccNm","type":"String"},{"name":"isrcRt","type":"String"},{"name":"isrcAmt","type":"String"},{"name":"taxTyCd","type":"String"},{"name":"bcd","type":"String"},{"name":"itemClsCd","type":"String"},{"name":"itemTyCd","type":"String"},{"name":"itemStdNm","type":"String"},{"name":"orgnNatCd","type":"String"},{"name":"pkg","type":"String"},{"name":"itemCd","type":"String"},{"name":"pkgUnitCd","type":"String"},{"name":"qtyUnitCd","type":"String"},{"name":"itemNm","type":"String"},{"name":"qty","type":"Double"},{"name":"prc","type":"Double"},{"name":"splyAmt","type":"Double"},{"name":"tin","type":"Long"},{"name":"bhfId","type":"String"},{"name":"dftPrc","type":"Double"},{"name":"addInfo","type":"String"},{"name":"isrcAplcbYn","type":"String"},{"name":"useYn","type":"String"},{"name":"regrId","type":"String"},{"name":"regrNm","type":"String"},{"name":"modrId","type":"String"},{"name":"modrNm","type":"String"},{"name":"rsdQty","type":"Double"},{"name":"lastTouched","type":"DateTime"},{"name":"supplyPrice","type":"Double"},{"name":"retailPrice","type":"Double"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const VariantSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Variant',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'sku',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'productId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'unit',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'productName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'taxName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'taxPercentage',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'isTaxExempted',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'itemSeq',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrccCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrccNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcRt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcAmt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'taxTyCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'bcd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemClsCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemTyCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemStdNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'orgnNatCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pkg',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pkgUnitCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'qtyUnitCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'itemNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'qty',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'prc',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'splyAmt',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'tin',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'bhfId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'dftPrc',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'addInfo',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isrcAplcbYn',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'useYn',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'regrId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'regrNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modrId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'modrNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'rsdQty',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'supplyPrice',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'retailPrice',
+        type: IsarType.double,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'name',
+        properties: [
+          "name",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'productId',
+        properties: [
+          "productId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Variant>(
     serialize: serializeVariant,
     deserialize: deserializeVariant,
     deserializeProperty: deserializeVariantProp,
   ),
   embeddedSchemas: [],
-  //hash: -7571599357389996804,
 );
 
 @isarProtected
@@ -1095,6 +1297,121 @@ extension VariantQueryUpdate on IsarQuery<Variant> {
       _VariantQueryUpdateImpl(this, limit: 1);
 
   _VariantQueryUpdate get updateAll => _VariantQueryUpdateImpl(this);
+}
+
+class _VariantQueryBuilderUpdateImpl implements _VariantQueryUpdate {
+  const _VariantQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Variant, Variant, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? sku = ignore,
+    Object? productId = ignore,
+    Object? unit = ignore,
+    Object? productName = ignore,
+    Object? branchId = ignore,
+    Object? taxName = ignore,
+    Object? taxPercentage = ignore,
+    Object? isTaxExempted = ignore,
+    Object? itemSeq = ignore,
+    Object? isrccCd = ignore,
+    Object? isrccNm = ignore,
+    Object? isrcRt = ignore,
+    Object? isrcAmt = ignore,
+    Object? taxTyCd = ignore,
+    Object? bcd = ignore,
+    Object? itemClsCd = ignore,
+    Object? itemTyCd = ignore,
+    Object? itemStdNm = ignore,
+    Object? orgnNatCd = ignore,
+    Object? pkg = ignore,
+    Object? itemCd = ignore,
+    Object? pkgUnitCd = ignore,
+    Object? qtyUnitCd = ignore,
+    Object? itemNm = ignore,
+    Object? qty = ignore,
+    Object? prc = ignore,
+    Object? splyAmt = ignore,
+    Object? tin = ignore,
+    Object? bhfId = ignore,
+    Object? dftPrc = ignore,
+    Object? addInfo = ignore,
+    Object? isrcAplcbYn = ignore,
+    Object? useYn = ignore,
+    Object? regrId = ignore,
+    Object? regrNm = ignore,
+    Object? modrId = ignore,
+    Object? modrNm = ignore,
+    Object? rsdQty = ignore,
+    Object? lastTouched = ignore,
+    Object? supplyPrice = ignore,
+    Object? retailPrice = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (sku != ignore) 3: sku as String?,
+        if (productId != ignore) 4: productId as String?,
+        if (unit != ignore) 5: unit as String?,
+        if (productName != ignore) 6: productName as String?,
+        if (branchId != ignore) 7: branchId as int?,
+        if (taxName != ignore) 8: taxName as String?,
+        if (taxPercentage != ignore) 9: taxPercentage as double?,
+        if (isTaxExempted != ignore) 10: isTaxExempted as bool?,
+        if (itemSeq != ignore) 11: itemSeq as String?,
+        if (isrccCd != ignore) 12: isrccCd as String?,
+        if (isrccNm != ignore) 13: isrccNm as String?,
+        if (isrcRt != ignore) 14: isrcRt as String?,
+        if (isrcAmt != ignore) 15: isrcAmt as String?,
+        if (taxTyCd != ignore) 16: taxTyCd as String?,
+        if (bcd != ignore) 17: bcd as String?,
+        if (itemClsCd != ignore) 18: itemClsCd as String?,
+        if (itemTyCd != ignore) 19: itemTyCd as String?,
+        if (itemStdNm != ignore) 20: itemStdNm as String?,
+        if (orgnNatCd != ignore) 21: orgnNatCd as String?,
+        if (pkg != ignore) 22: pkg as String?,
+        if (itemCd != ignore) 23: itemCd as String?,
+        if (pkgUnitCd != ignore) 24: pkgUnitCd as String?,
+        if (qtyUnitCd != ignore) 25: qtyUnitCd as String?,
+        if (itemNm != ignore) 26: itemNm as String?,
+        if (qty != ignore) 27: qty as double?,
+        if (prc != ignore) 28: prc as double?,
+        if (splyAmt != ignore) 29: splyAmt as double?,
+        if (tin != ignore) 30: tin as int?,
+        if (bhfId != ignore) 31: bhfId as String?,
+        if (dftPrc != ignore) 32: dftPrc as double?,
+        if (addInfo != ignore) 33: addInfo as String?,
+        if (isrcAplcbYn != ignore) 34: isrcAplcbYn as String?,
+        if (useYn != ignore) 35: useYn as String?,
+        if (regrId != ignore) 36: regrId as String?,
+        if (regrNm != ignore) 37: regrNm as String?,
+        if (modrId != ignore) 38: modrId as String?,
+        if (modrNm != ignore) 39: modrNm as String?,
+        if (rsdQty != ignore) 40: rsdQty as double?,
+        if (lastTouched != ignore) 41: lastTouched as DateTime?,
+        if (supplyPrice != ignore) 42: supplyPrice as double?,
+        if (retailPrice != ignore) 43: retailPrice as double?,
+        if (action != ignore) 44: action as String?,
+        if (deletedAt != ignore) 45: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension VariantQueryBuilderUpdate
+    on QueryBuilder<Variant, Variant, QOperations> {
+  _VariantQueryUpdate get updateFirst =>
+      _VariantQueryBuilderUpdateImpl(this, limit: 1);
+
+  _VariantQueryUpdate get updateAll => _VariantQueryBuilderUpdateImpl(this);
 }
 
 extension VariantQueryFilter

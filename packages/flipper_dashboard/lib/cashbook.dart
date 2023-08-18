@@ -293,7 +293,7 @@ class _CashbookState extends State<Cashbook> {
       required String widgetType}) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
-      stream: ProxyService.isar.getCompletedTransactions(),
+      stream: ProxyService.isar.transactionsStreams(),
       builder: (context, snapshot) {
         if (model.transactions.isEmpty) {
           if (widgetType == 'gauge') {

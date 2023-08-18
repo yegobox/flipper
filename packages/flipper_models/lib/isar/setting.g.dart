@@ -14,16 +14,122 @@ extension GetSettingCollection on Isar {
   IsarCollection<String, Setting> get settings => this.collection();
 }
 
-const SettingSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Setting","idName":"id","properties":[{"name":"id","type":"String"},{"name":"email","type":"String"},{"name":"hasPin","type":"String"},{"name":"userId","type":"Long"},{"name":"openReceiptFileOSaleComplete","type":"Bool"},{"name":"autoPrint","type":"Bool"},{"name":"sendDailyReport","type":"Bool"},{"name":"defaultLanguage","type":"String"},{"name":"attendnaceDocCreated","type":"Bool"},{"name":"isAttendanceEnabled","type":"Bool"},{"name":"type","type":"String"},{"name":"enrolledInBot","type":"Bool"},{"name":"deviceToken","type":"String"},{"name":"businessPhoneNumber","type":"String"},{"name":"autoRespond","type":"Bool"},{"name":"token","type":"String"},{"name":"businessId","type":"Long"},{"name":"createdAt","type":"String"},{"name":"lastTouched","type":"DateTime"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const SettingSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Setting',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'email',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'hasPin',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'openReceiptFileOSaleComplete',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'autoPrint',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'sendDailyReport',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'defaultLanguage',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'attendnaceDocCreated',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'isAttendanceEnabled',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'type',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'enrolledInBot',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'deviceToken',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessPhoneNumber',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'autoRespond',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'token',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'userId',
+        properties: [
+          "userId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+      IsarIndexSchema(
+        name: 'businessId',
+        properties: [
+          "businessId",
+        ],
+        unique: false,
+        hash: false,
+      ),
+    ],
+  ),
   converter: IsarObjectConverter<String, Setting>(
     serialize: serializeSetting,
     deserialize: deserializeSetting,
     deserializeProperty: deserializeSettingProp,
   ),
   embeddedSchemas: [],
-  //hash: 4282663638654925835,
 );
 
 @isarProtected
@@ -678,6 +784,74 @@ extension SettingQueryUpdate on IsarQuery<Setting> {
       _SettingQueryUpdateImpl(this, limit: 1);
 
   _SettingQueryUpdate get updateAll => _SettingQueryUpdateImpl(this);
+}
+
+class _SettingQueryBuilderUpdateImpl implements _SettingQueryUpdate {
+  const _SettingQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Setting, Setting, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? email = ignore,
+    Object? hasPin = ignore,
+    Object? userId = ignore,
+    Object? openReceiptFileOSaleComplete = ignore,
+    Object? autoPrint = ignore,
+    Object? sendDailyReport = ignore,
+    Object? defaultLanguage = ignore,
+    Object? attendnaceDocCreated = ignore,
+    Object? isAttendanceEnabled = ignore,
+    Object? type = ignore,
+    Object? enrolledInBot = ignore,
+    Object? deviceToken = ignore,
+    Object? businessPhoneNumber = ignore,
+    Object? autoRespond = ignore,
+    Object? token = ignore,
+    Object? businessId = ignore,
+    Object? createdAt = ignore,
+    Object? lastTouched = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (email != ignore) 2: email as String?,
+        if (hasPin != ignore) 3: hasPin as String?,
+        if (userId != ignore) 4: userId as int?,
+        if (openReceiptFileOSaleComplete != ignore)
+          5: openReceiptFileOSaleComplete as bool?,
+        if (autoPrint != ignore) 6: autoPrint as bool?,
+        if (sendDailyReport != ignore) 7: sendDailyReport as bool?,
+        if (defaultLanguage != ignore) 8: defaultLanguage as String?,
+        if (attendnaceDocCreated != ignore) 9: attendnaceDocCreated as bool?,
+        if (isAttendanceEnabled != ignore) 10: isAttendanceEnabled as bool?,
+        if (type != ignore) 11: type as String?,
+        if (enrolledInBot != ignore) 12: enrolledInBot as bool?,
+        if (deviceToken != ignore) 13: deviceToken as String?,
+        if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
+        if (autoRespond != ignore) 15: autoRespond as bool?,
+        if (token != ignore) 16: token as String?,
+        if (businessId != ignore) 17: businessId as int?,
+        if (createdAt != ignore) 18: createdAt as String?,
+        if (lastTouched != ignore) 19: lastTouched as DateTime?,
+        if (deletedAt != ignore) 20: deletedAt as DateTime?,
+        if (action != ignore) 21: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension SettingQueryBuilderUpdate
+    on QueryBuilder<Setting, Setting, QOperations> {
+  _SettingQueryUpdate get updateFirst =>
+      _SettingQueryBuilderUpdateImpl(this, limit: 1);
+
+  _SettingQueryUpdate get updateAll => _SettingQueryBuilderUpdateImpl(this);
 }
 
 extension SettingQueryFilter

@@ -124,9 +124,9 @@ class PDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Business>(
-      stream: ProxyService.isar
-          .businessStream(businessId: widget.tenant.businessId),
+    return FutureBuilder<Business?>(
+      future:
+          ProxyService.isar.getBusiness(businessId: widget.tenant.businessId),
       builder: (context, snapshot) {
         // final data = snapshot.data;
         // final hasImage = data?.imageUrl != null;
@@ -216,9 +216,9 @@ class PMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<Business>(
-      stream: ProxyService.isar
-          .businessStream(businessId: widget.tenant.businessId),
+    return FutureBuilder<Business?>(
+      future:
+          ProxyService.isar.getBusiness(businessId: widget.tenant.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
         final hasImage = data?.imageUrl != null;

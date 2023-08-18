@@ -14,16 +14,25 @@ extension GetPermissionCollection on Isar {
   IsarCollection<int, Permission> get permissions => this.collection();
 }
 
-const PermissionSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Permission","idName":"id","properties":[{"name":"name","type":"String"}]}',
+const PermissionSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Permission',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, Permission>(
     serialize: serializePermission,
     deserialize: deserializePermission,
     deserializeProperty: deserializePermissionProp,
   ),
   embeddedSchemas: [],
-  //hash: 2300501100308215144,
 );
 
 @isarProtected
@@ -139,6 +148,36 @@ extension PermissionQueryUpdate on IsarQuery<Permission> {
       _PermissionQueryUpdateImpl(this, limit: 1);
 
   _PermissionQueryUpdate get updateAll => _PermissionQueryUpdateImpl(this);
+}
+
+class _PermissionQueryBuilderUpdateImpl implements _PermissionQueryUpdate {
+  const _PermissionQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Permission, Permission, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 1: name as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension PermissionQueryBuilderUpdate
+    on QueryBuilder<Permission, Permission, QOperations> {
+  _PermissionQueryUpdate get updateFirst =>
+      _PermissionQueryBuilderUpdateImpl(this, limit: 1);
+
+  _PermissionQueryUpdate get updateAll =>
+      _PermissionQueryBuilderUpdateImpl(this);
 }
 
 extension PermissionQueryFilter

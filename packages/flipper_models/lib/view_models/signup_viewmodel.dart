@@ -104,7 +104,7 @@ class SignupViewModel extends ReactiveViewModel {
                   ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
         Business? business = await ProxyService.isar
-            .getBusinessById(id: tenants.first.businesses.first.id);
+            .getBusiness(businessId: tenants.first.businesses.first.id);
 
         List<Branch> branches =
             await ProxyService.isar.branches(businessId: business!.id);

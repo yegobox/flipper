@@ -14,16 +14,53 @@ extension GetPColorCollection on Isar {
   IsarCollection<String, PColor> get pColors => this.collection();
 }
 
-const PColorSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"PColor","idName":"id","properties":[{"name":"id","type":"String"},{"name":"name","type":"String"},{"name":"colors","type":"StringList"},{"name":"branchId","type":"Long"},{"name":"active","type":"Bool"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const PColorSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'PColor',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'colors',
+        type: IsarType.stringList,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, PColor>(
     serialize: serializePColor,
     deserialize: deserializePColor,
     deserializeProperty: deserializePColorProp,
   ),
   embeddedSchemas: [],
-  //hash: 4884149714652516558,
 );
 
 @isarProtected
@@ -319,6 +356,45 @@ extension PColorQueryUpdate on IsarQuery<PColor> {
   _PColorQueryUpdate get updateFirst => _PColorQueryUpdateImpl(this, limit: 1);
 
   _PColorQueryUpdate get updateAll => _PColorQueryUpdateImpl(this);
+}
+
+class _PColorQueryBuilderUpdateImpl implements _PColorQueryUpdate {
+  const _PColorQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<PColor, PColor, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? name = ignore,
+    Object? branchId = ignore,
+    Object? active = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (name != ignore) 2: name as String?,
+        if (branchId != ignore) 4: branchId as int?,
+        if (active != ignore) 5: active as bool?,
+        if (lastTouched != ignore) 6: lastTouched as DateTime?,
+        if (action != ignore) 7: action as String?,
+        if (deletedAt != ignore) 8: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension PColorQueryBuilderUpdate
+    on QueryBuilder<PColor, PColor, QOperations> {
+  _PColorQueryUpdate get updateFirst =>
+      _PColorQueryBuilderUpdateImpl(this, limit: 1);
+
+  _PColorQueryUpdate get updateAll => _PColorQueryBuilderUpdateImpl(this);
 }
 
 extension PColorQueryFilter on QueryBuilder<PColor, PColor, QFilterCondition> {

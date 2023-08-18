@@ -12,7 +12,6 @@ class Stock extends IJsonSerializable {
   late String id;
   @Index()
   late int branchId;
-  @Index(composite: ['branchId'])
   late String variantId;
   double? lowStock;
   late double currentStock;

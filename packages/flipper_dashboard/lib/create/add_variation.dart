@@ -237,6 +237,13 @@ class _AddVariationState extends State<AddVariation> {
         viewModelBuilder: () => ProductViewModel());
   }
 
+  bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
+  }
+
   Widget buildCostPriceWidget({required BuildContext context}) {
     return Padding(
       padding: const EdgeInsets.only(left: 18, right: 18),

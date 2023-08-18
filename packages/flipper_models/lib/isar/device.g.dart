@@ -14,16 +14,73 @@ extension GetDeviceCollection on Isar {
   IsarCollection<String, Device> get devices => this.collection();
 }
 
-const DeviceSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Device","idName":"id","properties":[{"name":"id","type":"String"},{"name":"linkingCode","type":"String"},{"name":"deviceName","type":"String"},{"name":"deviceVersion","type":"String"},{"name":"pubNubPublished","type":"Bool"},{"name":"phone","type":"String"},{"name":"branchId","type":"Long"},{"name":"businessId","type":"Long"},{"name":"userId","type":"Long"},{"name":"defaultApp","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const DeviceSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Device',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'linkingCode',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deviceName',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deviceVersion',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'pubNubPublished',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'phone',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'defaultApp',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Device>(
     serialize: serializeDevice,
     deserialize: deserializeDevice,
     deserializeProperty: deserializeDeviceProp,
   ),
   embeddedSchemas: [],
-  //hash: 3857078179160351052,
 );
 
 @isarProtected
@@ -337,6 +394,57 @@ extension DeviceQueryUpdate on IsarQuery<Device> {
   _DeviceQueryUpdate get updateFirst => _DeviceQueryUpdateImpl(this, limit: 1);
 
   _DeviceQueryUpdate get updateAll => _DeviceQueryUpdateImpl(this);
+}
+
+class _DeviceQueryBuilderUpdateImpl implements _DeviceQueryUpdate {
+  const _DeviceQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Device, Device, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? linkingCode = ignore,
+    Object? deviceName = ignore,
+    Object? deviceVersion = ignore,
+    Object? pubNubPublished = ignore,
+    Object? phone = ignore,
+    Object? branchId = ignore,
+    Object? businessId = ignore,
+    Object? userId = ignore,
+    Object? defaultApp = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (linkingCode != ignore) 2: linkingCode as String?,
+        if (deviceName != ignore) 3: deviceName as String?,
+        if (deviceVersion != ignore) 4: deviceVersion as String?,
+        if (pubNubPublished != ignore) 5: pubNubPublished as bool?,
+        if (phone != ignore) 6: phone as String?,
+        if (branchId != ignore) 7: branchId as int?,
+        if (businessId != ignore) 8: businessId as int?,
+        if (userId != ignore) 9: userId as int?,
+        if (defaultApp != ignore) 10: defaultApp as int?,
+        if (lastTouched != ignore) 11: lastTouched as DateTime?,
+        if (action != ignore) 12: action as String?,
+        if (deletedAt != ignore) 13: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension DeviceQueryBuilderUpdate
+    on QueryBuilder<Device, Device, QOperations> {
+  _DeviceQueryUpdate get updateFirst =>
+      _DeviceQueryBuilderUpdateImpl(this, limit: 1);
+
+  _DeviceQueryUpdate get updateAll => _DeviceQueryBuilderUpdateImpl(this);
 }
 
 extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {

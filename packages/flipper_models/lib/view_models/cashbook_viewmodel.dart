@@ -16,25 +16,26 @@ class CashbookViewModel extends ProductViewModel {
   bool inUpdateProcess = false;
 
   Stream<List<Transaction>> getTransactions() async* {
-    Stream<List<Transaction>> res = await ProxyService.isar.getTransactions();
+    Stream<List<Transaction>> res =
+        await ProxyService.isar.transactionsStreams();
     yield* res;
   }
 
   Stream<List<Transaction>> getLocalTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getLocalTransactionsStream();
+        await ProxyService.isar.transactionsStreams();
     yield* res;
   }
 
   Stream<List<Transaction>> getCashInTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getCashInTransactions();
+        await ProxyService.isar.transactionsStreams(isCashOut: false);
     yield* res;
   }
 
   Stream<List<Transaction>> getCashOutTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getCashOutTransactions();
+        await ProxyService.isar.transactionsStreams(isCashOut: true);
     yield* res;
   }
 

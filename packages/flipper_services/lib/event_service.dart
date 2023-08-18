@@ -18,7 +18,7 @@ LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
 
 /// list of channels and their purposes
-/// [login] this channel is used to send login details to other end
+/// [LOGIN] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
 class EventService implements EventInterface {

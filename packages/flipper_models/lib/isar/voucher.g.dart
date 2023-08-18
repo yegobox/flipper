@@ -14,16 +14,49 @@ extension GetVoucherCollection on Isar {
   IsarCollection<String, Voucher> get vouchers => this.collection();
 }
 
-const VoucherSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Voucher","idName":"id","properties":[{"name":"id","type":"String"},{"name":"value","type":"Long"},{"name":"interval","type":"Long"},{"name":"used","type":"Bool"},{"name":"createdAt","type":"Long"},{"name":"usedAt","type":"Long"},{"name":"descriptor","type":"String"}]}',
+const VoucherSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Voucher',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'value',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'interval',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'used',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'createdAt',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'usedAt',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'descriptor',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Voucher>(
     serialize: serializeVoucher,
     deserialize: deserializeVoucher,
     deserializeProperty: deserializeVoucherProp,
   ),
   embeddedSchemas: [],
-  //hash: -6907812471301707409,
 );
 
 @isarProtected
@@ -297,6 +330,45 @@ extension VoucherQueryUpdate on IsarQuery<Voucher> {
       _VoucherQueryUpdateImpl(this, limit: 1);
 
   _VoucherQueryUpdate get updateAll => _VoucherQueryUpdateImpl(this);
+}
+
+class _VoucherQueryBuilderUpdateImpl implements _VoucherQueryUpdate {
+  const _VoucherQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Voucher, Voucher, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? value = ignore,
+    Object? interval = ignore,
+    Object? used = ignore,
+    Object? createdAt = ignore,
+    Object? usedAt = ignore,
+    Object? descriptor = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (value != ignore) 2: value as int?,
+        if (interval != ignore) 3: interval as int?,
+        if (used != ignore) 4: used as bool?,
+        if (createdAt != ignore) 5: createdAt as int?,
+        if (usedAt != ignore) 6: usedAt as int?,
+        if (descriptor != ignore) 7: descriptor as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension VoucherQueryBuilderUpdate
+    on QueryBuilder<Voucher, Voucher, QOperations> {
+  _VoucherQueryUpdate get updateFirst =>
+      _VoucherQueryBuilderUpdateImpl(this, limit: 1);
+
+  _VoucherQueryUpdate get updateAll => _VoucherQueryBuilderUpdateImpl(this);
 }
 
 extension VoucherQueryFilter

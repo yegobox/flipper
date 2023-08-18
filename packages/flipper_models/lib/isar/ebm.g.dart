@@ -14,16 +14,65 @@ extension GetEBMCollection on Isar {
   IsarCollection<String, EBM> get eBMs => this.collection();
 }
 
-const EBMSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"EBM","idName":"id","properties":[{"name":"id","type":"String"},{"name":"bhfId","type":"String"},{"name":"tinNumber","type":"Long"},{"name":"dvcSrlNo","type":"String"},{"name":"userId","type":"Long"},{"name":"taxServerUrl","type":"String"},{"name":"businessId","type":"Long"},{"name":"branchId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const EBMSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'EBM',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'bhfId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'tinNumber',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'dvcSrlNo',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'taxServerUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, EBM>(
     serialize: serializeEBM,
     deserialize: deserializeEBM,
     deserializeProperty: deserializeEBMProp,
   ),
   embeddedSchemas: [],
-  //hash: -1411968510719464074,
 );
 
 @isarProtected
@@ -312,6 +361,51 @@ extension EBMQueryUpdate on IsarQuery<EBM> {
   _EBMQueryUpdate get updateFirst => _EBMQueryUpdateImpl(this, limit: 1);
 
   _EBMQueryUpdate get updateAll => _EBMQueryUpdateImpl(this);
+}
+
+class _EBMQueryBuilderUpdateImpl implements _EBMQueryUpdate {
+  const _EBMQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<EBM, EBM, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? bhfId = ignore,
+    Object? tinNumber = ignore,
+    Object? dvcSrlNo = ignore,
+    Object? userId = ignore,
+    Object? taxServerUrl = ignore,
+    Object? businessId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (bhfId != ignore) 2: bhfId as String?,
+        if (tinNumber != ignore) 3: tinNumber as int?,
+        if (dvcSrlNo != ignore) 4: dvcSrlNo as String?,
+        if (userId != ignore) 5: userId as int?,
+        if (taxServerUrl != ignore) 6: taxServerUrl as String?,
+        if (businessId != ignore) 7: businessId as int?,
+        if (branchId != ignore) 8: branchId as int?,
+        if (lastTouched != ignore) 9: lastTouched as DateTime?,
+        if (action != ignore) 10: action as String?,
+        if (deletedAt != ignore) 11: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension EBMQueryBuilderUpdate on QueryBuilder<EBM, EBM, QOperations> {
+  _EBMQueryUpdate get updateFirst => _EBMQueryBuilderUpdateImpl(this, limit: 1);
+
+  _EBMQueryUpdate get updateAll => _EBMQueryBuilderUpdateImpl(this);
 }
 
 extension EBMQueryFilter on QueryBuilder<EBM, EBM, QFilterCondition> {

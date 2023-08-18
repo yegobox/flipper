@@ -624,7 +624,7 @@ class HomeViewModel extends ReactiveViewModel {
       {required String ticketName,
       required String ticketNote,
       required Transaction transaction}) async {
-    transaction.status = parkedStatus;
+    transaction.status = PARKED;
     transaction.note = ticketNote;
     transaction.ticketName = ticketName;
     transaction.updatedAt = DateTime.now().toIso8601String();
@@ -635,7 +635,7 @@ class HomeViewModel extends ReactiveViewModel {
     Transaction? _transaction =
         await ProxyService.isar.getTransactionById(id: ticketId);
 
-    _transaction!.status = pendingStatus;
+    _transaction!.status = PENDING;
     await ProxyService.isar.update(data: _transaction);
     await keypad.getPendingTransaction(
         branchId: ProxyService.box.getBranchId()!);
@@ -994,7 +994,7 @@ class HomeViewModel extends ReactiveViewModel {
 //Transaction functions
   Stream<List<Transaction>> getTransactions(
       {required String transactionStatus}) {
-    Stream<List<Transaction>> res = ProxyService.isar.getTransactions();
+    Stream<List<Transaction>> res = ProxyService.isar.transactionsStreams();
     return res;
   }
 
@@ -1007,18 +1007,19 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   Stream<List<Transaction>> getLocalTransactions() {
-    Stream<List<Transaction>> res =
-        ProxyService.isar.getLocalTransactionsStream();
+    Stream<List<Transaction>> res = ProxyService.isar.transactionsStreams();
     return res;
   }
 
   Stream<List<Transaction>> getCashInTransactions() {
-    Stream<List<Transaction>> res = ProxyService.isar.getCashInTransactions();
+    Stream<List<Transaction>> res =
+        ProxyService.isar.transactionsStreams(isCashOut: false);
     return res;
   }
 
   Stream<List<Transaction>> getCashOutTransactions() {
-    Stream<List<Transaction>> res = ProxyService.isar.getCashOutTransactions();
+    Stream<List<Transaction>> res =
+        ProxyService.isar.transactionsStreams(isCashOut: true);
     return res;
   }
 

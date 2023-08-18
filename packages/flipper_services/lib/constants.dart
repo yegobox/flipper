@@ -13,21 +13,13 @@ class AppActions {
 }
 
 const String defaultApp = 'defaultApp';
-String parkedStatus = 'parked';
-const String pendingStatus = 'pending';
-const String postPonedStatus = 'postponed';
-String addBarCode = 'addBarCode';
-
-String attendance = 'attendance';
-String login = 'login';
-String selling = 'selling';
-const String completeStatus = 'completed';
-bool isNumeric(String? s) {
-  if (s == null) {
-    return false;
-  }
-  return double.tryParse(s) != null;
-}
+const String PARKED = 'parked';
+const String PENDING = 'pending';
+const String BARCODE = 'addBarCode';
+const String ATTENDANCE = 'attendance';
+const String LOGIN = 'login';
+const String SELLING = 'selling';
+const String COMPLETE = 'completed';
 
 const Color primary = Color(0xFF399df8);
 bool isMacOs = UniversalPlatform.isMacOS;

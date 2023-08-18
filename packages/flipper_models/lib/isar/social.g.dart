@@ -14,16 +14,57 @@ extension GetSocialCollection on Isar {
   IsarCollection<String, Social> get socials => this.collection();
 }
 
-const SocialSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Social","idName":"id","properties":[{"name":"id","type":"String"},{"name":"isAccountSet","type":"Bool"},{"name":"socialType","type":"String"},{"name":"socialUrl","type":"String"},{"name":"branchId","type":"Long"},{"name":"lastTouched","type":"DateTime"},{"name":"message","type":"String"},{"name":"deletedAt","type":"DateTime"},{"name":"action","type":"String"}]}',
+const SocialSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Social',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'id',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isAccountSet',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'socialType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'socialUrl',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'message',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<String, Social>(
     serialize: serializeSocial,
     deserialize: deserializeSocial,
     deserializeProperty: deserializeSocialProp,
   ),
   embeddedSchemas: [],
-  //hash: 4596670663676603394,
 );
 
 @isarProtected
@@ -286,6 +327,49 @@ extension SocialQueryUpdate on IsarQuery<Social> {
   _SocialQueryUpdate get updateFirst => _SocialQueryUpdateImpl(this, limit: 1);
 
   _SocialQueryUpdate get updateAll => _SocialQueryUpdateImpl(this);
+}
+
+class _SocialQueryBuilderUpdateImpl implements _SocialQueryUpdate {
+  const _SocialQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Social, Social, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? isAccountSet = ignore,
+    Object? socialType = ignore,
+    Object? socialUrl = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? message = ignore,
+    Object? deletedAt = ignore,
+    Object? action = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (isAccountSet != ignore) 2: isAccountSet as bool?,
+        if (socialType != ignore) 3: socialType as String?,
+        if (socialUrl != ignore) 4: socialUrl as String?,
+        if (branchId != ignore) 5: branchId as int?,
+        if (lastTouched != ignore) 6: lastTouched as DateTime?,
+        if (message != ignore) 7: message as String?,
+        if (deletedAt != ignore) 8: deletedAt as DateTime?,
+        if (action != ignore) 9: action as String?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension SocialQueryBuilderUpdate
+    on QueryBuilder<Social, Social, QOperations> {
+  _SocialQueryUpdate get updateFirst =>
+      _SocialQueryBuilderUpdateImpl(this, limit: 1);
+
+  _SocialQueryUpdate get updateAll => _SocialQueryBuilderUpdateImpl(this);
 }
 
 extension SocialQueryFilter on QueryBuilder<Social, Social, QFilterCondition> {

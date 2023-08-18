@@ -142,11 +142,8 @@ class AppService with ListenableServiceMixin {
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    Stream<List<Business>> contacts =
-        ProxyService.isar.contacts().asBroadcastStream();
-    contacts.listen((event) {
-      _contacts.value = event;
-    });
+    List<Business> contacts = await ProxyService.isar.getContacts();
+    _contacts.value = contacts;
   }
 
   /// check the default business/branch

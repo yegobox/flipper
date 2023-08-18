@@ -14,16 +14,65 @@ extension GetBranchCollection on Isar {
   IsarCollection<int, Branch> get branchs => this.collection();
 }
 
-const BranchSchema = IsarCollectionSchema(
-  schema:
-      '{"name":"Branch","idName":"id","properties":[{"name":"active","type":"Bool"},{"name":"description","type":"String"},{"name":"name","type":"String"},{"name":"businessId","type":"Long"},{"name":"longitude","type":"String"},{"name":"latitude","type":"String"},{"name":"table","type":"String"},{"name":"isDefault","type":"Bool"},{"name":"lastTouched","type":"DateTime"},{"name":"action","type":"String"},{"name":"deletedAt","type":"DateTime"}]}',
+const BranchSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Branch',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'active',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'description',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'name',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'businessId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'longitude',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'latitude',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'table',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'isDefault',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [],
+  ),
   converter: IsarObjectConverter<int, Branch>(
     serialize: serializeBranch,
     deserialize: deserializeBranch,
     deserializeProperty: deserializeBranchProp,
   ),
   embeddedSchemas: [],
-  //hash: -5987942834065575353,
 );
 
 @isarProtected
@@ -391,6 +440,55 @@ extension BranchQueryUpdate on IsarQuery<Branch> {
   _BranchQueryUpdate get updateFirst => _BranchQueryUpdateImpl(this, limit: 1);
 
   _BranchQueryUpdate get updateAll => _BranchQueryUpdateImpl(this);
+}
+
+class _BranchQueryBuilderUpdateImpl implements _BranchQueryUpdate {
+  const _BranchQueryBuilderUpdateImpl(this.query, {this.limit});
+
+  final QueryBuilder<Branch, Branch, QOperations> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? active = ignore,
+    Object? description = ignore,
+    Object? name = ignore,
+    Object? businessId = ignore,
+    Object? longitude = ignore,
+    Object? latitude = ignore,
+    Object? table = ignore,
+    Object? isDefault = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (active != ignore) 1: active as bool?,
+        if (description != ignore) 2: description as String?,
+        if (name != ignore) 3: name as String?,
+        if (businessId != ignore) 4: businessId as int?,
+        if (longitude != ignore) 5: longitude as String?,
+        if (latitude != ignore) 6: latitude as String?,
+        if (table != ignore) 7: table as String?,
+        if (isDefault != ignore) 8: isDefault as bool?,
+        if (lastTouched != ignore) 9: lastTouched as DateTime?,
+        if (action != ignore) 10: action as String?,
+        if (deletedAt != ignore) 11: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
+  }
+}
+
+extension BranchQueryBuilderUpdate
+    on QueryBuilder<Branch, Branch, QOperations> {
+  _BranchQueryUpdate get updateFirst =>
+      _BranchQueryBuilderUpdateImpl(this, limit: 1);
+
+  _BranchQueryUpdate get updateAll => _BranchQueryBuilderUpdateImpl(this);
 }
 
 extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
