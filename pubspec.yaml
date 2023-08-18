@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.488985491885+1692338781
+version: 1.170.490677830667+1692352469
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -34,7 +34,7 @@ dependencies:
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.6.0
   firebase_auth: ^4.7.0
-  google_fonts: ^4.0.3
+  google_fonts: ^5.1.0
   stacked: ^3.4.0
   firebase_messaging: ^14.6.2
   overlay_support: ^2.1.0
@@ -100,6 +100,8 @@ dev_dependencies:
   # rules and activating additional ones.
   build_runner: ^2.4.4
   flutter_assets_generator: ^0.0.8
+dependency_overrides:
+  http: ^1.1.0
 flutter_launcher_icons:
   android: true
   ios: true
@@ -143,12 +145,6 @@ msix_config:
   capabilities: internetClient
 
 flutter:
-  # deferred-components:
-  #   - name: finance
-  #     libraries:
-  #       # Only one library from the loading unit is necessary.
-  #       - package:flipper_finance/app.dart
-  # flutter pub run flutter_launcher_icons
   uses-material-design: true
   assets:
     - assets/logo.png

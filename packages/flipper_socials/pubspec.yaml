@@ -16,7 +16,7 @@ dependencies:
   responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
 
-  google_fonts: ^4.0.3
+  google_fonts: ^5.1.0
   flipper_services: ^1.0.0
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
@@ -34,6 +34,8 @@ dependencies:
   # in all packages or use flipper_ui package
   flipper_dashboard: ^0.0.1-dev.5
   url_launcher: ^6.1.11
+dependency_overrides:
+  http: ^1.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
