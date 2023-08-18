@@ -59,7 +59,7 @@ class _ProductViewState extends State<ProductView> {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         model.loadTenants();
-        model.productService.products = await ProxyService.isar
+        model.products = await ProxyService.isar
             .products(branchId: ProxyService.box.getBranchId()!);
       },
       viewModelBuilder: () => ProductViewModel(),
@@ -117,7 +117,7 @@ class _ProductViewState extends State<ProductView> {
                   ),
                 ),
                 StreamBuilder<List<Product>>(
-                  initialData: model.productService.products,
+                  initialData: model.products,
                   stream: model.productService
                       .productStream(
                           branchId: ProxyService.box.getBranchId() ?? 0)

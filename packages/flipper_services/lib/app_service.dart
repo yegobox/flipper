@@ -45,17 +45,10 @@ class AppService with ListenableServiceMixin {
   final _colors = ReactiveValue<List<PColor>>([]);
   List<PColor> get colors => _colors.value;
 
-  final _currentColor = ReactiveValue<String>('#0984e3');
-  String get currentColor => _currentColor.value;
-
   final _customer = ReactiveValue<Customer?>(null);
   Customer? get customer => _customer.value;
   void setCustomer(Customer? customer) {
     _customer.value = customer;
-  }
-
-  setCurrentColor({required String color}) {
-    _currentColor.value = color;
   }
 
   void loadCategories() async {
@@ -74,19 +67,6 @@ class AppService with ListenableServiceMixin {
         await ProxyService.isar.units(branchId: branchId!);
 
     _units.value = result;
-  }
-
-  Future<void> loadColors() async {
-    int? branchId = ProxyService.box.getBranchId();
-
-    List<PColor> result = await ProxyService.isar.colors(branchId: branchId!);
-    _colors.value = result;
-
-    for (PColor color in result) {
-      if (color.active) {
-        setCurrentColor(color: color.name!);
-      }
-    }
   }
 
   /// we fist log in to the business portal
@@ -249,7 +229,7 @@ class AppService with ListenableServiceMixin {
 
   AppService() {
     listenToReactiveValues(
-        [_categories, _units, _colors, _currentColor, _business, _contacts]);
+        [_categories, _units, _colors, _business, _contacts]);
   }
 
   Future<bool> isSocialLoggedin() async {

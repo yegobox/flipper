@@ -20,51 +20,11 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  final _product = ReactiveValue<dynamic>(null);
-  Product? get product => _product.value;
-
-  final _products = ReactiveValue<List<Product>>([]);
-
-  List<Product> get products => _products.value
-      .where((element) =>
-          element.name != 'temp' && element.name != 'Custom Amount')
-      .toList();
-  set products(List<Product> value) {
-    _products.value = value;
-    log(value.toString(), name: 'load product on adding one');
-    notifyListeners();
-  }
-
-  List<Product> get nonFavoriteProducts => _products.value
-      .where((element) =>
-          element.name != 'temp' &&
-          element.name != 'Custom Amount' &&
-          element.id != 1)
-      .toList();
-  set nonFavoriteProducts(List<Product> value) {
-    _products.value = value;
-    notifyListeners();
-  }
-
   int? get userId => ProxyService.box.getUserId();
   int? get branchId => ProxyService.box.getBranchId()!;
 
   setProductUnit({required String unit}) {
     _currentUnit = unit;
-  }
-
-  setCurrentProduct({required Product product}) {
-    _product.value = product;
-    notifyListeners();
-  }
-
-  final _variants = ReactiveValue<List<Variant>?>(null);
-  List<Variant>? get variants => _variants.value;
-
-  Future<void> variantsProduct({required String productId}) async {
-    _variants.value = await ProxyService.isar
-        .variants(branchId: branchId!, productId: productId);
-    notifyListeners();
   }
 
   /// discount streams
@@ -106,6 +66,6 @@ class ProductService with ListenableServiceMixin {
   }
 
   ProductService() {
-    listenToReactiveValues([_product, _variants, _products, _barCode, _stocks]);
+    listenToReactiveValues([_barCode, _stocks]);
   }
 }

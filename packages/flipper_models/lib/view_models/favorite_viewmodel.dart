@@ -18,13 +18,6 @@ class FavoriteViewModel extends ProductViewModel {
 
   get categories => app.categories;
 
-  get product => productService.product;
-
-  String? _productName;
-  get productName => _productName;
-
-  List<Variant>? get variants => productService.variants;
-
   Stream<String> getBarCode() async* {
     yield productService.barCode;
   }
