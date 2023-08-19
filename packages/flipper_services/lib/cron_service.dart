@@ -28,7 +28,7 @@ class CronService {
     Business? business = await ProxyService.isar.getBusiness();
     String? token;
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
-      //// get a list of local copy of product to sync
+      /// get a list of local copy of product to sync
       // ProxyService.sync.push();
       // ProxyService.sync.pull();
 
