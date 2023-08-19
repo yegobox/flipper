@@ -8,6 +8,7 @@ part 'ebm.g.dart';
 @Collection()
 class EBM extends IJsonSerializable {
   EBM({
+    required this.action,
     required this.bhfId,
     required this.tinNumber,
     required this.dvcSrlNo,
@@ -16,43 +17,43 @@ class EBM extends IJsonSerializable {
     required this.branchId,
     this.taxServerUrl,
   });
-  Id? id = Isar.autoIncrement;
+  late String id;
   String bhfId;
   int tinNumber;
   String dvcSrlNo;
-  String userId;
+  int userId;
   String? taxServerUrl;
   int businessId;
   int branchId;
 
-  @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
-  String? action;
-  int? localId;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+
+  String action;
+
   @Index()
   DateTime? deletedAt;
   factory EBM.fromRecord(RecordModel record) => EBM.fromJson(record.toJson());
 
   factory EBM.fromJson(Map<String, dynamic> json) {
-    /// assign remoteID to the value of id because this method is used to encode
-    /// data from remote server and id from remote server is considered remoteID on local
-    if (json['id'] is int) {
-      json['remoteID'] = json['id'].toString();
-    } else {
-      json['remoteID'] = json['id'];
-    }
-    json.remove('id');
+    /// assign remoteId to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteId on local
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+
     return _$EBMFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$EBMToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
+    return _$EBMToJson(this);
   }
 }

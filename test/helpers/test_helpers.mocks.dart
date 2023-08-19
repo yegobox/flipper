@@ -328,9 +328,9 @@ class MockRemote extends _i1.Mock implements _i11.Remote {
         returnValueForMissingStub: false,
       ) as bool);
   @override
-  bool isTransactionAvailable() => (super.noSuchMethod(
+  bool isOrderAvailable() => (super.noSuchMethod(
         Invocation.method(
-          #isTransactionAvailable,
+          #isOrderAvailable,
           [],
         ),
         returnValue: false,
@@ -787,7 +787,7 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<void> variantsProduct({required int? productId}) =>
+  _i5.Future<void> variantsProduct({required String? productId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #variantsProduct,
@@ -857,7 +857,7 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
       ) as _i5.Future<_i9.Product?>);
   @override
   _i5.Future<List<_i9.Stock?>> loadStockByProductId(
-          {required int? productId}) =>
+          {required String? productId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #loadStockByProductId,
@@ -946,11 +946,11 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: 0.0,
       ) as double);
   @override
-  int get check => (super.noSuchMethod(
+  String get check => (super.noSuchMethod(
         Invocation.getter(#check),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
+        returnValue: '',
+        returnValueForMissingStub: '',
+      ) as String);
   @override
   double get totalPayable => (super.noSuchMethod(
         Invocation.getter(#totalPayable),
@@ -996,7 +996,7 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  void toggleCheckbox({required int? variantId}) => super.noSuchMethod(
+  void toggleCheckbox({required String? variantId}) => super.noSuchMethod(
         Invocation.method(
           #toggleCheckbox,
           [],
@@ -1031,7 +1031,8 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<_i9.Transaction?> getPendingTransaction({required int? branchId}) =>
+  _i5.Future<_i9.Transaction?> getPendingTransaction(
+          {required int? branchId}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getPendingTransaction,
@@ -1042,7 +1043,7 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: _i5.Future<_i9.Transaction?>.value(),
       ) as _i5.Future<_i9.Transaction?>);
   @override
-  _i5.Future<_i9.Transaction?> getTransactionById({required int? id}) =>
+  _i5.Future<_i9.Transaction?> getTransactionById({required String? id}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTransactionById,
@@ -1624,24 +1625,6 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         Invocation.method(
           #loadCounters,
           [business],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> pushTransactions(_i9.Transaction? transaction) => (super.noSuchMethod(
-        Invocation.method(
-          #pushTransactions,
-          [transaction],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> pushDataToServer() => (super.noSuchMethod(
-        Invocation.method(
-          #pushDataToServer,
-          [],
         ),
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),

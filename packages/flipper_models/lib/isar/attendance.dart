@@ -18,7 +18,7 @@ library flipper_models;
 
 class AttendanceSync {
   AttendanceSync({
-    this.id = 0,
+    required this.id,
     required this.businessId,
     required this.businessName,
     required this.fullName,
@@ -31,7 +31,7 @@ class AttendanceSync {
     required this.district,
   });
 
-  int id;
+  late String id;
 
   int businessId;
   String businessName;

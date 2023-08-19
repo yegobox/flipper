@@ -1,6 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget quantityWidget({
@@ -44,7 +43,7 @@ Widget quantityWidget({
                 child: model.quantity <= 1
                     ? IconButton(
                         icon: const Icon(
-                          AntDesign.minus,
+                          Icons.remove,
                           color: Colors.grey,
                           size: 25,
                         ),
@@ -57,7 +56,7 @@ Widget quantityWidget({
                       )
                     : IconButton(
                         icon: const Icon(
-                          AntDesign.minus,
+                          Icons.remove,
                           color: Color(0xC9000000),
                           size: 25,
                         ),

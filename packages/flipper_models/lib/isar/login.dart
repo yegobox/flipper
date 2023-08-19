@@ -28,7 +28,7 @@ class Login {
   String name;
   bool newUser;
   dynamic avatar;
-  int id;
+  late String id;
   dynamic subscription;
   dynamic expiresAt;
 

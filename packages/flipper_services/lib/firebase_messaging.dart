@@ -55,9 +55,9 @@ class FirebaseMessagingService implements Messaging {
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
 
-    int businessId = ProxyService.box.getBusinessId() ?? 0;
+    int branchId = ProxyService.box.getBranchId() ?? 0;
     List<Social> activeSocialAccount =
-        await ProxyService.isar.activesocialAccounts(businessId: businessId);
+        await ProxyService.isar.activesocialAccounts(branchId: branchId);
 
     if (ProxyService.box.getDefaultApp() == 2 &&
         activeSocialAccount.isNotEmpty &&
@@ -80,7 +80,7 @@ class FirebaseMessagingService implements Messaging {
         await ProxyService.remote.create(
           collection: {
             "deviceToken": _token,
-            "businessId": businessId,
+            "businessId": branchId,
           },
           collectionName: 'messagings',
         );

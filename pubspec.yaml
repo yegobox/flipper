@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.389182073714+1690889979
+version: 1.170.516063751251+1692462890
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -25,7 +25,7 @@ dependencies:
     sdk: flutter
   universal_platform: ^1.0.0+1
   animations: ^2.0.0
-  sentry_flutter: ^7.8.0
+  sentry_flutter: ^7.9.0
   # fluent_ui:
   system_theme: ^2.0.0
   # flutter_acrylic: ^0.1.0
@@ -34,7 +34,7 @@ dependencies:
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.6.0
   firebase_auth: ^4.7.0
-  google_fonts: ^4.0.3
+  google_fonts: ^5.1.0
   stacked: ^3.4.0
   firebase_messaging: ^14.6.2
   overlay_support: ^2.1.0
@@ -99,6 +99,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   build_runner: ^2.4.4
+  flutter_assets_generator: ^0.0.8
+dependency_overrides:
+  http: ^1.1.0
 flutter_launcher_icons:
   android: true
   ios: true
@@ -142,12 +145,6 @@ msix_config:
   capabilities: internetClient
 
 flutter:
-  # deferred-components:
-  #   - name: finance
-  #     libraries:
-  #       # Only one library from the loading unit is necessary.
-  #       - package:flipper_finance/app.dart
-  # flutter pub run flutter_launcher_icons
   uses-material-design: true
   assets:
     - assets/logo.png

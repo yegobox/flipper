@@ -9,10 +9,10 @@ part 'permission.g.dart';
 @Collection()
 class Permission {
   Permission({
-    this.id = 0,
+    required this.id,
     required this.name,
   });
-  Id id = Isar.autoIncrement;
+  late int id;
   late String name;
 
   factory Permission.fromRecord(RecordModel record) =>

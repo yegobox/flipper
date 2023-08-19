@@ -36,11 +36,11 @@ class ListCategories extends StatelessWidget {
                   categories[i].name,
                   style: const TextStyle(color: Colors.black),
                 ),
-                trailing: Radio<int>(
-                  value: categories[i].id!,
+                trailing: Radio<String>(
+                  value: categories[i].id,
                   //This radio button is considered selected if its value matches the groupValue.
                   groupValue:
-                      categories[i].focused == true ? categories[i].id : 0,
+                      categories[i].focused == true ? categories[i].id : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
                   },
@@ -79,9 +79,9 @@ class ListCategories extends StatelessWidget {
             multi: 3,
             bottomSpacer: 52,
           ),
-          body: StreamBuilder<List<Category>>(
-              stream: ProxyService.isar
-                  .categoriesStream(branchId: ProxyService.box.getBranchId()!),
+          body: FutureBuilder<List<Category>>(
+              future: ProxyService.isar
+                  .categories(branchId: ProxyService.box.getBranchId()!),
               builder: (context, snapshot) {
                 return Column(
                   children: <Widget>[

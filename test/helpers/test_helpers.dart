@@ -13,7 +13,7 @@ import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import '../view_models/common.dart';
+// import '../view_models/common.dart';
 import 'test_helpers.mocks.dart';
 import 'package:flipper_services/locator.dart';
 
@@ -44,36 +44,36 @@ BillingService getAndRegisterBillingService() {
   return service;
 }
 
-Future<IsarApiInterface> getAndRegisterApiService() async {
-  _removeRegistrationIfExists<IsarApiInterface>();
-  Isar isar = await openTempIsar([
-    TransactionSchema,
-    BusinessSchema,
-    BranchSchema,
-    TransactionItemSchema,
-    ProductSchema,
-    VariantSchema,
-    ProfileSchema,
-    SubscriptionSchema,
-    PointssSchema,
-    StockSchema,
-    FeatureSchema,
-    VoucherSchema,
-    PColorSchema,
-    CategorySchema,
-    IUnitSchema,
-    SettingSchema,
-    DiscountSchema,
-    CustomerSchema,
-    PinSchema,
-    ReceiptSchema,
-  ]);
+// Future<IsarApiInterface> getAndRegisterApiService() async {
+//   _removeRegistrationIfExists<IsarApiInterface>();
+//   Isar isar = await openTempIsar([
+//     TransactionSchema,
+//     BusinessSchema,
+//     BranchSchema,
+//     TransactionItemSchema,
+//     ProductSchema,
+//     VariantSchema,
+//     ProfileSchema,
+//     SubscriptionSchema,
+//     PointssSchema,
+//     StockSchema,
+//     FeatureSchema,
+//     VoucherSchema,
+//     PColorSchema,
+//     CategorySchema,
+//     IUnitSchema,
+//     SettingSchema,
+//     DiscountSchema,
+//     CustomerSchema,
+//     PinSchema,
+//     ReceiptSchema,
+//   ]);
 
-  final service = await IsarAPI().getInstance(iisar: isar);
-  locator.registerSingleton<IsarApiInterface>(service);
+//   final service = await IsarAPI().getInstance(iisar: isar);
+//   locator.registerSingleton<IsarApiInterface>(service);
 
-  return service;
-}
+//   return service;
+// }
 
 AppService getAndRegisterAppService(
     {bool hasLoggedInUser = false,
@@ -192,7 +192,7 @@ void registerServices() {
   getAndRegisterRemoteConfig();
   getAndRegisterLanguageService();
   getAndRegisterBillingService();
-  getAndRegisterApiService();
+  // getAndRegisterApiService();
 }
 
 void unregisterServices() {

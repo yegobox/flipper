@@ -79,7 +79,7 @@ class SignupViewModel extends ReactiveViewModel {
 
       String? referralCode = ProxyService.box.read(key: 'referralCode');
 
-      List<JTenant> jTenants = await ProxyService.isar.signup(business: {
+      List<Tenant> tenants = await ProxyService.isar.signup(business: {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
@@ -94,7 +94,7 @@ class SignupViewModel extends ReactiveViewModel {
         'fullName': kFullName,
         'country': kCountry
       });
-      if (jTenants.isNotEmpty) {
+      if (tenants.isNotEmpty) {
         /// we have socials as choosen app then register on social
         if (businessType.id == 2) {
           // it is customer support then register on socials as well
@@ -104,18 +104,19 @@ class SignupViewModel extends ReactiveViewModel {
                   ProxyService.box.getUserPhone()!.replaceAll("+", ""));
         }
         Business? business = await ProxyService.isar
-            .getBusinessById(id: jTenants.first.businesses.first.id!);
+            .getBusiness(businessId: tenants.first.businesses.first.id);
 
         List<Branch> branches =
-            await ProxyService.isar.branches(businessId: business!.id!);
-        ProxyService.box.write(key: 'branchId', value: branches[0].id!);
+            await ProxyService.isar.branches(businessId: business!.id);
+        ProxyService.box.write(key: 'branchId', value: branches[0].id);
 
         appService.appInit();
         final Category category = Category(
             active: true,
             focused: true,
             name: "NONE",
-            branchId: branches[0].id!);
+            id: randomString(),
+            branchId: branches[0].id);
         await ProxyService.isar.create<Category>(data: category);
         //get default colors for this branch
         final List<String> colors = [
@@ -130,22 +131,18 @@ class SignupViewModel extends ReactiveViewModel {
         ];
 
         final PColor color = PColor(
-            id: syncIdInt(),
+            id: randomString(),
             colors: colors,
             active: false,
+            lastTouched: DateTime.now(),
+            action: AppActions.create,
             branchId: branches[0].id,
             name: 'sample');
 
         await ProxyService.isar.create<PColor>(data: color);
         //now create default units for this branch
-        final units = IUnit()
-          ..name = 'Per Kilogram (kg)'
-          ..value = 'kg'
-          ..active = false
-          ..id = DateTime.now().millisecondsSinceEpoch
-          ..units = mockUnits
-          ..branchId = branches[0].id!;
-        await ProxyService.isar.addUnits(data: units);
+
+        await ProxyService.isar.addUnits(units: mockUnits);
 
         //now create a default custom product
         ProxyService.forceDateEntry.dataBootstrapper();

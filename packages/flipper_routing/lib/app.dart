@@ -149,3 +149,8 @@ class App {}
 // https://codepush.dev/
 //TODO: adapt to new FIGMA things https://uxplanet.org/whats-new-in-figma-10-updates-from-config-2023-c1651012835
 // https://codelabs.developers.google.com/design-android-launcher#4
+
+// TODO: remove these deprecated fields from remote db
+// active
+// reported
+// draft

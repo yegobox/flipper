@@ -23,10 +23,10 @@ class AboutIconButton extends StatelessWidget {
 // that exist(ed) in the Flutter Gallery App.
 void showAppAboutDialog(BuildContext context) {
   final ThemeData themeData = Theme.of(context);
-  final TextStyle aboutTextStyle = themeData.textTheme.bodyText1!;
-  final TextStyle footerStyle = themeData.textTheme.caption!;
+  final TextStyle aboutTextStyle = themeData.textTheme.bodyLarge!;
+  final TextStyle footerStyle = themeData.textTheme.bodySmall!;
   final TextStyle linkStyle =
-      themeData.textTheme.bodyText1!.copyWith(color: themeData.primaryColor);
+      themeData.textTheme.bodyLarge!.copyWith(color: themeData.primaryColor);
 
   showAboutDialog(
     context: context,
@@ -41,9 +41,9 @@ void showAppAboutDialog(BuildContext context) {
           height: 30,
           flexSchemeColor: FlexSchemeColor(
             primary: themeData.colorScheme.primary,
-            primaryVariant: themeData.colorScheme.primaryVariant,
+            primaryVariant: themeData.colorScheme.outlineVariant,
             secondary: themeData.colorScheme.secondary,
-            secondaryVariant: themeData.colorScheme.secondaryVariant,
+            secondaryVariant: themeData.colorScheme.outlineVariant,
           ),
         ),
       ],

@@ -17,7 +17,7 @@ class HttpUpload implements UploadT {
 
   @override
   Future browsePictureFromGallery({
-    required int productId,
+    required dynamic productId,
     required URLTYPE urlType,
     required FlutterUploader uploader,
   }) async {
@@ -32,7 +32,7 @@ class HttpUpload implements UploadT {
 
   @override
   Future takePicture({
-    required int id,
+    required dynamic id,
     required URLTYPE urlType,
     required FlutterUploader uploader,
   }) async {
@@ -42,7 +42,7 @@ class HttpUpload implements UploadT {
   @override
   Future upload({
     required List<String?> paths,
-    required int id,
+    required String id,
     required FlutterUploader uploader,
     required URLTYPE urlType,
   }) {
@@ -58,7 +58,7 @@ class MobileUpload implements UploadT {
   @override
   Future upload({
     required List<String?> paths,
-    required int id,
+    required String id,
     required URLTYPE urlType,
     required FlutterUploader uploader,
   }) async {
@@ -97,7 +97,7 @@ class MobileUpload implements UploadT {
 
   @override
   Future browsePictureFromGallery({
-    required int productId,
+    required dynamic productId,
     required URLTYPE urlType,
     required FlutterUploader uploader,
   }) async {
@@ -134,7 +134,7 @@ class MobileUpload implements UploadT {
 
   @override
   Future takePicture(
-      {required int id,
+      {required dynamic id,
       required URLTYPE urlType,
       required FlutterUploader uploader}) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);

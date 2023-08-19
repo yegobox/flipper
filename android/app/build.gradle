@@ -52,7 +52,7 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "rw.flipper"
-        minSdkVersion 21
+        minSdkVersion 23
         // minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         // targetSdkVersion 33

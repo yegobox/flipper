@@ -8,17 +8,19 @@ jobs:
     if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
         with:
-          java-version: "12.x"
-      - uses: subosito/flutter-action@v1
+          distribution: "zulu"
+          java-version: "11" #defines the java version
+      - uses: subosito/flutter-action@v2
         with:
-          # flutter-version: '1.22.3'
-          channel: "stable"
+          # issue with latest flutter 3.13 https://github.com/flutter/flutter/issues/132711
+          flutter-version: '3.13.0' #firebase_auth_desktop is broken with  3.10.6
+          channel: stable
       - run: git submodule update --init
 
-      - run: dart pub global activate melos
+      - run: dart pub global activate melos 2.9.0
       - name: "Run Melos bootstrap"
         run: melos bootstrap
       - name: Configure Missing files
@@ -34,6 +36,6 @@ jobs:
         run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}"
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
           projectId: yegobox-2ee43

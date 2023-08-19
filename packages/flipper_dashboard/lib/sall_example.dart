@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+// import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -72,7 +72,7 @@ class Sell extends StatelessWidget {
                     child: model.quantity <= 1
                         ? IconButton(
                             icon: const Icon(
-                              AntDesign.minus,
+                              Icons.remove,
                               color: Colors.grey,
                               size: 25,
                             ),
@@ -85,7 +85,7 @@ class Sell extends StatelessWidget {
                           )
                         : IconButton(
                             icon: const Icon(
-                              AntDesign.minus,
+                              Icons.remove,
                               color: Color(0xC9000000),
                               size: 25,
                             ),

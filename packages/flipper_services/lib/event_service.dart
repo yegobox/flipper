@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
 import 'package:flipper_services/proxy.dart';
@@ -17,7 +18,7 @@ LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 String loginDataToMap(LoginData data) => json.encode(data.toMap());
 
 /// list of channels and their purposes
-/// [login] this channel is used to send login details to other end
+/// [LOGIN] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
 class EventService implements EventInterface {
@@ -114,6 +115,7 @@ class EventService implements EventInterface {
                   pubNubPublished: false,
                   branchId: loginData.branchId,
                   businessId: loginData.businessId,
+                  action: AppActions.create,
                   defaultApp: loginData.defaultApp,
                   phone: loginData.phone,
                   userId: loginData.userId,
@@ -173,6 +175,7 @@ class EventService implements EventInterface {
         await ProxyService.isar.create(
             data: Device(
                 pubNubPublished: true,
+                action: AppActions.create,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,
                 defaultApp: deviceEvent.defaultApp,

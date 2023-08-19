@@ -25,7 +25,7 @@ class _FavoritesState extends State<Favorites> {
 
   // Define a boolean to know if we have pressed.
 
-  List<int> favoriteProdIds = [];
+  List<String> favoriteProdIds = [];
 
   @override
   void initState() {
@@ -223,7 +223,7 @@ class _FavoritesState extends State<Favorites> {
   Widget _favoritePopulated(
       int favIndex, Product favProd, FavoriteViewModel model) {
     if (!favoriteProdIds.contains(favProd.id)) {
-      favoriteProdIds.add(favProd.id!);
+      favoriteProdIds.add(favProd.id);
     }
 
     return GestureDetector(
@@ -323,15 +323,15 @@ class _FavoritesState extends State<Favorites> {
           return _favoriteEmpty(adjustedIndex);
         } else {
           final favorite = snapshot.data!;
-          int prodId = favorite.productId!;
+          String prodId = favorite.productId!;
 
-          return StreamBuilder<Product?>(
-            stream: ProxyService.isar.getProductStream(prodIndex: prodId),
+          return StreamBuilder<List<Product>>(
+            stream: ProxyService.isar.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');
               } else if (snapshot.hasData) {
-                Product favProduct = snapshot.data!;
+                Product favProduct = snapshot.data!.first;
                 return _favoritePopulated(adjustedIndex, favProduct, model);
               } else {
                 return SizedBox.shrink();

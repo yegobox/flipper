@@ -68,7 +68,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                             physics: const ClampingScrollPhysics(),
                             children: [
                               AddCustomerButton(
-                                  transactionId: model.kTransaction!.id!),
+                                  transactionId: model.kTransaction!.id),
                               ...buildItems(
                                 context: context,
                                 callback: (item) async {

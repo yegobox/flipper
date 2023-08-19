@@ -196,7 +196,7 @@ class _ScannViewState extends State<ScannView> {
           'defaultApp': defaultApp,
           'deviceName': Platform.operatingSystem,
           'deviceVersion': Platform.operatingSystemVersion,
-          'linkingCode': syncIdInt().toString()
+          'linkingCode': randomNumber().toString()
         });
       }
     }
@@ -252,13 +252,13 @@ class _ScannViewState extends State<ScannView> {
   void performIntent(Barcode scanData, HomeViewModel model) {
     return setState(() async {
       result = scanData;
-      if (widget.intent == addBarCode) {
+      if (widget.intent == BARCODE) {
         model.productService.setBarcode(scanData.code);
       }
       // split result on - if first part is login then
       // it is a login request
       scanToLogin(result: scanData.code);
-      if (widget.intent == attendance) {
+      if (widget.intent == ATTENDANCE) {
         // pull my bio data and asign them to the scan business.
         bool isCheckInDone =
             await ProxyService.isar.checkIn(checkInCode: scanData.code);
@@ -277,11 +277,11 @@ class _ScannViewState extends State<ScannView> {
   }
 
   void navigate(String? code, HomeViewModel model) async {
-    if (widget.intent == addBarCode) {
+    if (widget.intent == BARCODE) {
       _routerService.pop();
       return;
     }
-    if (widget.intent == selling) {
+    if (widget.intent == SELLING) {
       Product? product =
           await model.productService.getProductByBarCode(code: code);
       if (product != null) {
@@ -296,10 +296,10 @@ class _ScannViewState extends State<ScannView> {
       _routerService.pop();
       return;
     }
-    if (widget.intent == attendance) {
+    if (widget.intent == ATTENDANCE) {
       return;
     }
-    if (widget.intent == login) {
+    if (widget.intent == LOGIN) {
       return;
     }
   }

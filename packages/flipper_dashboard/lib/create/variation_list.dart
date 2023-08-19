@@ -28,7 +28,7 @@ class VariationList extends StatelessWidget {
         list.add(
           StreamBuilder<Stock>(
             stream: ProxyService.isar.stockByVariantIdStream(
-              variantId: variations[i].id!,
+              variantId: variations[i].id,
             ),
             builder: (context, snapshot) {
               final Stock? stock = snapshot.data;
@@ -64,7 +64,7 @@ class VariationList extends StatelessWidget {
                               ),
                               onPressed: () {
                                 _routerService.navigateTo(ReceiveStockRoute(
-                                    variantId: variations[i].id!,
+                                    variantId: variations[i].id,
                                     existingStock: stock!.currentStock
                                         .toInt()
                                         .toString()));

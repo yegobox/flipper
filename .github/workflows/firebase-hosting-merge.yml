@@ -2,21 +2,26 @@
 # https://github.com/firebase/firebase-tools
 
 name: Deploy to Firebase Hosting on merge
-"on":
+'on':
   push:
     branches:
-      - dev
+      - main
 jobs:
-  build_and_deploy:
+  build_and_preview:
+    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v2
         with:
-          java-version: "12.x"
-      - uses: subosito/flutter-action@v1
+          distribution: "zulu"
+          java-version: "11" #defines the java version
+      - uses: subosito/flutter-action@v2
         with:
-          channel: "stable"
+          # 3.10.6
+          # issue with latest flutter 3.13 https://github.com/flutter/flutter/issues/132711
+          flutter-version: '3.13.0' #firebase_auth_desktop is broken with  3.10.6
+          channel: stable
       - run: git submodule update --init
 
       - run: dart pub global activate melos 2.9.0
@@ -35,7 +40,7 @@ jobs:
         run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: "${{ secrets.GITHUB_TOKEN }}"
-          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}"
-          channelId: live
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_YEGOBOX_2EE43 }}'
           projectId: yegobox-2ee43
+          channelId: live

@@ -18,7 +18,7 @@ class SettingViewModel extends HomeViewModel {
   Business? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isar
-        .getBusinessById(id: ProxyService.box.getBusinessId()!);
+        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
 
@@ -148,7 +148,7 @@ class SettingViewModel extends HomeViewModel {
         /// the
         Business? business = await ProxyService.isar.getBusiness();
         ProxyService.isar
-            .enableAttendance(businessId: business!.id!, email: setting.email!);
+            .enableAttendance(businessId: business!.id, email: setting.email!);
       }
     } else {
       callback(2);
@@ -174,11 +174,11 @@ class SettingViewModel extends HomeViewModel {
         ProxyService.billing.addPoints(points: voucher.value, userId: userId);
         List<Feature> features = [];
         ProxyService.billing.updateSubscription(
-          descriptor: voucher.descriptor,
+          descriptor: voucher.descriptor!,
           userId: userId,
           features: features,
-          interval: voucher.interval,
-          amount: voucher.value.toDouble(),
+          interval: voucher.interval!,
+          amount: voucher.value!.toDouble(),
         );
         _isProceeding = false;
         notifyListeners();

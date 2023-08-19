@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -19,7 +21,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class ProductView extends StatefulWidget {
   final int? favIndex;
-  final List<int> existingFavs;
+  final List<String> existingFavs;
 
   ProductView.normalMode({Key? key})
       : favIndex = null,
@@ -57,7 +59,7 @@ class _ProductViewState extends State<ProductView> {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         model.loadTenants();
-        model.productService.products = await ProxyService.isar
+        model.products = await ProxyService.isar
             .products(branchId: ProxyService.box.getBranchId()!);
       },
       viewModelBuilder: () => ProductViewModel(),
@@ -115,7 +117,7 @@ class _ProductViewState extends State<ProductView> {
                   ),
                 ),
                 StreamBuilder<List<Product>>(
-                  initialData: model.productService.products,
+                  initialData: model.products,
                   stream: model.productService
                       .productStream(
                           branchId: ProxyService.box.getBranchId() ?? 0)
@@ -153,7 +155,7 @@ class _ProductViewState extends State<ProductView> {
                         return Container(
                           child: FutureBuilder<List<Stock?>>(
                               future: model.productService
-                                  .loadStockByProductId(productId: product.id!),
+                                  .loadStockByProductId(productId: product.id),
                               builder: (BuildContext context, stocks) {
                                 return ProductRow(
                                   color: product.color,
@@ -172,6 +174,8 @@ class _ProductViewState extends State<ProductView> {
                                   },
                                   addToMenu: (productId) {},
                                   delete: (productId) {
+                                    log("about deleting product ${productId}",
+                                        name: 'delete');
                                     model.deleteProduct(productId: productId);
                                   },
                                   enableNfc: (product) {

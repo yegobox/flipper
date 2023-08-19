@@ -8,25 +8,21 @@ class AppActions {
   static const String delete = "delete";
   static const String deleted = "deleted";
   static const String create = "create";
+  static const String remote = "remote";
   static const String created = "created";
 }
 
 const String defaultApp = 'defaultApp';
-String parkedStatus = 'parked';
-const String pendingStatus = 'pending';
-const String postPonedStatus = 'postponed';
-String addBarCode = 'addBarCode';
-
-String attendance = 'attendance';
-String login = 'login';
-String selling = 'selling';
-const String completeStatus = 'completed';
-bool isNumeric(String? s) {
-  if (s == null) {
-    return false;
-  }
-  return double.tryParse(s) != null;
-}
+const String PARKED = 'parked';
+const String PENDING = 'pending';
+const String BARCODE = 'addBarCode';
+const String CUSTOM_PRODUCT = "Custom Amount";
+const String TEMP_PRODUCT = "temp";
+const String COLOR = "#e74c3c";
+const String ATTENDANCE = 'attendance';
+const String LOGIN = 'login';
+const String SELLING = 'selling';
+const String COMPLETE = 'completed';
 
 const Color primary = Color(0xFF399df8);
 bool isMacOs = UniversalPlatform.isMacOS;

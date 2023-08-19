@@ -1,7 +1,5 @@
 import 'package:sentry_flutter/sentry_flutter.dart';
 
-// import 'package:newrelic_mobile/newrelic_mobile.dart';
-
 abstract class SentryServiceInterface {
   Future<SentryId> debug({required String event});
 }

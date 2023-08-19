@@ -7,18 +7,16 @@ part 'transaction_item.g.dart';
 @JsonSerializable()
 @Collection()
 class TransactionItem extends IJsonSerializable {
-  Id? id;
+  late String id;
   late String name;
   @Index()
-  late int transactionId;
-  @Index(composite: [CompositeIndex('transactionId')])
-  late int variantId;
+  late String transactionId;
+  late String variantId;
   // quantity
   late double qty;
   late double price;
   double? discount;
   String? type;
-  bool? reported;
   late double remainingStock;
   late String createdAt;
   late String updatedAt;
@@ -90,20 +88,22 @@ class TransactionItem extends IJsonSerializable {
   String? regrNm;
   String? modrId;
   String? modrNm;
-  @Index()
-  String? lastTouched;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
   TransactionItem({
-    this.id,
+    required this.id,
+    required this.action,
     required this.name,
     required this.transactionId,
     required this.variantId,
     required this.qty,
     required this.price,
+    required this.branchId,
     this.discount,
     this.type,
-    this.reported,
     required this.remainingStock,
     required this.createdAt,
     required this.updatedAt,
@@ -143,27 +143,32 @@ class TransactionItem extends IJsonSerializable {
     this.regrNm,
     this.modrId,
     this.modrNm,
-    this.lastTouched,
+    required this.lastTouched,
     this.deletedAt,
   });
-  //sync String? remoteID;
-  String? action;
-  int? localId;
+
+  String action;
+
+  int branchId;
 
   factory TransactionItem.fromRecord(RecordModel record) =>
       TransactionItem.fromJson(record.toJson());
 
   factory TransactionItem.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+
     return _$TransactionItemFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$TransactionItemToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$TransactionItemToJson(this);
 }

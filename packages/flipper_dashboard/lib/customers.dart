@@ -12,7 +12,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatelessWidget {
   Customers({Key? key, this.transactionId}) : super(key: key);
-  final int? transactionId;
+  final String? transactionId;
   final TextEditingController _seach = TextEditingController();
   final _routerService = locator<RouterService>();
   @override
@@ -63,8 +63,8 @@ class Customers extends StatelessWidget {
                                   child: GestureDetector(
                                     onTap: () async {
                                       await model.assignToSale(
-                                        customerId: snapshot.data!.id!,
-                                        transactionId: transactionId ?? 0,
+                                        customerId: snapshot.data!.id,
+                                        transactionId: transactionId ?? '0',
                                       );
                                       model.app.setCustomer(snapshot.data!);
                                       model.getTransactionById();
@@ -108,7 +108,7 @@ class Customers extends StatelessWidget {
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id!, (message) {
+                                              snapshot.data!.id, (message) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -133,7 +133,7 @@ class Customers extends StatelessWidget {
                                       SlidableAction(
                                         onPressed: (_) {
                                           model.deleteCustomer(
-                                              snapshot.data!.id!, (message) {
+                                              snapshot.data!.id, (message) {
                                             ScaffoldMessenger.of(context)
                                                 .showSnackBar(
                                               SnackBar(
@@ -166,7 +166,7 @@ class Customers extends StatelessWidget {
                               '"'
                           : 'Add Customer',
                       onTap: () {
-                        _showModalBottomSheet(context, transactionId ?? 0,
+                        _showModalBottomSheet(context, transactionId ?? '0',
                             model.searchCustomerkey);
                       },
                     ),
@@ -179,7 +179,7 @@ class Customers extends StatelessWidget {
   }
 
   void _showModalBottomSheet(
-      BuildContext context, int transactionId, searchedKey) {
+      BuildContext context, String transactionId, searchedKey) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(

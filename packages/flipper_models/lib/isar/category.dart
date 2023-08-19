@@ -7,7 +7,7 @@ part 'category.g.dart';
 @JsonSerializable()
 @Collection()
 class Category extends IJsonSerializable {
-  Id? id;
+  late String id;
   late bool active;
   late bool focused;
   late String name;
@@ -17,9 +17,10 @@ class Category extends IJsonSerializable {
   DateTime? deletedAt;
 
   @override
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   Category({
-    this.id,
+    required this.id,
     required this.active,
     required this.focused,
     required this.name,
@@ -29,16 +30,9 @@ class Category extends IJsonSerializable {
   factory Category.fromRecord(RecordModel record) =>
       Category.fromJson(record.toJson());
   factory Category.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
     return _$CategoryFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$CategoryToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$CategoryToJson(this);
 }

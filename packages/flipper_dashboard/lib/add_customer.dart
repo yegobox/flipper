@@ -13,7 +13,7 @@ class AddCustomer extends StatefulWidget {
   const AddCustomer({Key? key, required this.transactionId, this.searchedKey})
       : super(key: key);
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final int transactionId;
+  final String transactionId;
   final String? searchedKey;
 
   @override
@@ -35,7 +35,12 @@ class _AddCustomerState extends State<AddCustomer> {
         .hasMatch(s);
     return emailValid;
   }
-
+  bool isNumeric(String? s) {
+  if (s == null) {
+    return false;
+  }
+  return double.tryParse(s) != null;
+}
   @override
   void initState() {
     if (isNumeric(widget.searchedKey)) {

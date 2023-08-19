@@ -11,7 +11,7 @@ part 'device.g.dart';
 @JsonSerializable()
 @Collection()
 class Device extends IJsonSerializable {
-  Id? id;
+  late String id;
   String linkingCode;
   String deviceName;
   String deviceVersion;
@@ -23,16 +23,17 @@ class Device extends IJsonSerializable {
   int defaultApp;
 
   /// for sync
-  @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
-  String? action;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+
+  String action;
   // only for accor when fetching from remove
-  int? localId;
+
   @Index()
   DateTime? deletedAt;
   Device({
+    required this.action,
     required this.linkingCode,
     required this.deviceName,
     required this.deviceVersion,
@@ -48,16 +49,18 @@ class Device extends IJsonSerializable {
       Device.fromJson(record.toJson());
 
   factory Device.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
-    json.remove('id');
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+
     return _$DeviceFromJson(json);
   }
   @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = _$DeviceToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
+    if (id != null) {}
     return data;
   }
 }

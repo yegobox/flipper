@@ -1,41 +1,44 @@
-library flipper_models;
-
-import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/sync_service.dart';
-import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:pocketbase/pocketbase.dart';
+import 'dart:convert';
+import 'package:flipper_models/isar_models.dart';
+
 part 'tenant.g.dart';
 
 @JsonSerializable()
-@Collection()
-class ITenant extends IJsonSerializable {
-  ITenant(
-      {this.id,
-      required this.name,
-      required this.phoneNumber,
-      required this.email,
-      required this.nfcEnabled,
-      required this.businessId,
-      required this.userId,this.deletedAt,});
-  Id? id = Isar.autoIncrement;
+class Tenant {
+  Tenant({
+    required this.id,
+    required this.name,
+    required this.phoneNumber,
+    this.email, // Allow nullable email
+    required this.permissions,
+    required this.branches,
+    required this.businesses,
+    required this.businessId,
+    required this.nfcEnabled,
+    required this.userId,
+  });
+
+  late int id;
   String name;
   String phoneNumber;
-  String email;
-  bool nfcEnabled;
+  String? email; // Make email nullable
+  List<Permission> permissions;
+  List<Branch> branches;
+  List<Business> businesses;
   int businessId;
+  bool nfcEnabled;
+
   int userId;
-  String? imageUrl;
 
-  @Index()
-  String? lastTouched;
-   @Index()
-  DateTime? deletedAt;
-  factory ITenant.fromRecord(RecordModel record) =>
-      ITenant.fromJson(record.toJson());
+  factory Tenant.fromRawJson(String str) => Tenant.fromJson(json.decode(str));
 
-  factory ITenant.fromJson(Map<String, dynamic> json) =>
-      _$ITenantFromJson(json);
-  @override
-  Map<String, dynamic> toJson() => _$ITenantToJson(this);
+  factory Tenant.fromJson(Map<String, dynamic> json) => _$TenantFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TenantToJson(this);
+
+  static List<Tenant> fromJsonList(String str) {
+    final List<Map<String, dynamic>> jsonData = json.decode(str);
+    return jsonData.map((item) => Tenant.fromJson(item)).toList();
+  }
 }

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -22,8 +22,11 @@ class AppService with ListenableServiceMixin {
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
 
-  final _business =
-      ReactiveValue<isar.Business>(isar.Business(isDefault: false));
+  final _business = ReactiveValue<isar.Business>(isar.Business(
+    id: randomNumber(),
+    isDefault: false,
+    action: AppActions.create,
+  ));
   isar.Business get business => _business.value;
   setBusiness({required isar.Business business}) {
     _business.value = business;
@@ -39,20 +42,11 @@ class AppService with ListenableServiceMixin {
   final _units = ReactiveValue<List<IUnit>>([]);
   List<IUnit> get units => _units.value;
 
-  final _colors = ReactiveValue<List<PColor>>([]);
-  List<PColor> get colors => _colors.value;
-
-  final _currentColor = ReactiveValue<String>('#0984e3');
-  String get currentColor => _currentColor.value;
 
   final _customer = ReactiveValue<Customer?>(null);
   Customer? get customer => _customer.value;
   void setCustomer(Customer? customer) {
     _customer.value = customer;
-  }
-
-  setCurrentColor({required String color}) {
-    _currentColor.value = color;
   }
 
   void loadCategories() async {
@@ -71,19 +65,6 @@ class AppService with ListenableServiceMixin {
         await ProxyService.isar.units(branchId: branchId!);
 
     _units.value = result;
-  }
-
-  Future<void> loadColors() async {
-    int? branchId = ProxyService.box.getBranchId();
-
-    List<PColor> result = await ProxyService.isar.colors(branchId: branchId!);
-    _colors.value = result;
-
-    for (PColor color in result) {
-      if (color.active) {
-        setCurrentColor(color: color.name!);
-      }
-    }
   }
 
   /// we fist log in to the business portal
@@ -123,6 +104,7 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
+      id: randomString(),
       businessId: businessId,
       token: token.body.token,
       validFrom: token.body.validFrom,
@@ -138,11 +120,8 @@ class AppService with ListenableServiceMixin {
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    Stream<List<Business>> contacts =
-        ProxyService.isar.contacts().asBroadcastStream();
-    contacts.listen((event) {
-      _contacts.value = event;
-    });
+    List<Business> contacts = await ProxyService.isar.getContacts();
+    _contacts.value = contacts;
   }
 
   /// check the default business/branch
@@ -155,8 +134,7 @@ class AppService with ListenableServiceMixin {
         await ProxyService.isar.businesses(userId: userId);
     if (businesses.isEmpty) {
       try {
-        Business b = await ProxyService.isar
-            .getOnlineBusiness(userId: userId.toString());
+        Business b = await ProxyService.isar.getOnlineBusiness(userId: userId);
         businesses.add(b);
       } catch (e) {
         rethrow;
@@ -197,13 +175,13 @@ class AppService with ListenableServiceMixin {
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     if (tenants.isEmpty) {
       await ProxyService.isar
-          .tenantsFromOnline(businessId: businesses.first.id!);
+          .tenantsFromOnline(businessId: businesses.first.id);
     }
   }
 
   Future<bool> setActiveBranch({required isar.Business businesses}) async {
     List<isar.Branch> branches =
-        await ProxyService.isar.branches(businessId: businesses.id!);
+        await ProxyService.isar.branches(businessId: businesses.id);
 
     bool defaultBranch = false;
     for (Branch branch in branches) {
@@ -226,8 +204,9 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadCounters(isar.Business business) async {
-    if (await ProxyService.isar.size(object: Counter()) == 0) {
-      await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
+    if (await ProxyService.isar.size(object: Counter(id: randomNumber())) ==
+        0) {
+      await ProxyService.isar.loadCounterFromOnline(businessId: business.id);
     }
   }
 
@@ -248,7 +227,7 @@ class AppService with ListenableServiceMixin {
 
   AppService() {
     listenToReactiveValues(
-        [_categories, _units, _colors, _currentColor, _business, _contacts]);
+        [_categories, _units, _business, _contacts]);
   }
 
   Future<bool> isSocialLoggedin() async {

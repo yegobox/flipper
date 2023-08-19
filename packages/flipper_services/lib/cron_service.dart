@@ -28,9 +28,9 @@ class CronService {
     Business? business = await ProxyService.isar.getBusiness();
     String? token;
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
-      /// get a list of local copy of product to sync
-      ProxyService.sync.push();
-      ProxyService.sync.pull();
+      // get a list of local copy of product to sync
+      // ProxyService.sync.push();
+      // ProxyService.sync.pull();
 
       ProxyService.messaging
           .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
@@ -60,11 +60,12 @@ class CronService {
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
       if (ProxyService.box.getBranchId() != null) {
-        List<Counter> counters = await ProxyService.isar
-            .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
-        for (Counter counter in counters) {
-          ProxyService.isar.update(data: counter..backed = true);
-        }
+        // TODO: counters...
+        // List<Counter> counters = await ProxyService.isar
+        // .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
+        // for (Counter counter in counters) {
+        //   ProxyService.isar.update(data: counter..backed = true);
+        // }
       }
     });
   }

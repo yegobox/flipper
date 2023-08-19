@@ -1,7 +1,6 @@
 library flipper_models;
 
-import 'dart:convert';
-
+import 'package:flipper_services/constants.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
@@ -23,6 +22,7 @@ part 'business.g.dart';
 @Collection()
 class Business extends IJsonSerializable {
   Business({
+    required this.action,
     this.name,
     this.currency,
     this.categoryId = "1",
@@ -60,18 +60,18 @@ class Business extends IJsonSerializable {
     this.taxEnabled,
     this.taxServerUrl,
     this.isDefault,
-    this.id,
+    required this.id,
     this.businessTypeId,
     this.deletedAt,
   });
-  Id? id;
+  late int id;
   String? name;
   String? currency;
   String? categoryId;
   String? latitude;
   String? longitude;
   @Index()
-  String? userId;
+  int? userId;
   String? timeZone;
   List<String>? channels;
   String? country;
@@ -106,34 +106,32 @@ class Business extends IJsonSerializable {
   String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
-  @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
-  String? action;
-  int? localId;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+
+  String action;
+
   @Index()
   DateTime? deletedAt;
   factory Business.fromRecord(RecordModel record) =>
       Business.fromJson(record.toJson());
 
   factory Business.fromJson(Map<String, dynamic> json) {
-    /// assign remoteID to the value of id because this method is used to encode
-    /// data from remote server and id from remote server is considered remoteID on local
-    if (json['id'] is int) {
-      json['remoteID'] = json['id'].toString();
-    } else {
-      json['remoteID'] = json['id'];
+    /// assign remoteId to the value of id because this method is used to encode
+    /// data from remote server and id from remote server is considered remoteId on local
+    json['lastTouched'] ??= json['lastTouched'].toString().isEmpty
+        ? DateTime.now()
+        : json['lastTouched'];
+    // this line ony added in both business and branch as they are not part of sync schemd
+    json['action'] = AppActions.create;
+    if (json['userId'] is String) {
+      json['userId'] = int.tryParse(json['userId']) ?? json['userId'];
     }
+
     return _$BusinessFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$BusinessToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$BusinessToJson(this);
 }

@@ -1,4 +1,5 @@
-import 'package:flipper_models/isar/tenant.dart';
+import 'package:flipper_models/isar_models.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 

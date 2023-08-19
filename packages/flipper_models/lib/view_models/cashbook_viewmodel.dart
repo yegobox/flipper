@@ -16,41 +16,42 @@ class CashbookViewModel extends ProductViewModel {
   bool inUpdateProcess = false;
 
   Stream<List<Transaction>> getTransactions() async* {
-    Stream<List<Transaction>> res = await ProxyService.isar.getTransactions();
+    Stream<List<Transaction>> res =
+        await ProxyService.isar.transactionsStreams();
     yield* res;
   }
 
   Stream<List<Transaction>> getLocalTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getLocalTransactionsStream();
+        await ProxyService.isar.transactionsStreams();
     yield* res;
   }
 
   Stream<List<Transaction>> getCashInTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getCashInTransactions();
+        await ProxyService.isar.transactionsStreams(isCashOut: false);
     yield* res;
   }
 
   Stream<List<Transaction>> getCashOutTransactions() async* {
     Stream<List<Transaction>> res =
-        await ProxyService.isar.getCashOutTransactions();
+        await ProxyService.isar.transactionsStreams(isCashOut: true);
     yield* res;
   }
 
-  Future<int> deleteTransactionByIndex(int transactionIndex) async {
+  Future<String> deleteTransactionByIndex(String transactionIndex) async {
     Transaction? target = await getTransactionByIndex(transactionIndex);
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
     ProxyService.sync.push();
     if (target != null) {
-      return target.id!;
+      return target.id;
     }
-    return 403;
+    return '403';
   }
 
-  Future<Transaction?> getTransactionByIndex(int transactionIndex) async {
+  Future<Transaction?> getTransactionByIndex(String transactionIndex) async {
     Transaction? res =
         await ProxyService.isar.getTransactionById(id: transactionIndex);
     return res;

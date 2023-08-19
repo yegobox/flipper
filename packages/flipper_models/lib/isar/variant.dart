@@ -1,6 +1,3 @@
-// To parse this JSON data, do
-//
-//     final variation = variationFromJson(jsonString);
 library flipper_models;
 
 import 'package:flipper_models/sync_service.dart';
@@ -13,12 +10,12 @@ part 'variant.g.dart';
 @JsonSerializable()
 @Collection()
 class Variant extends IJsonSerializable {
-  Id? id;
-  @Index(caseSensitive: true)
+  late String id;
+  @Index()
   late String name;
   late String sku;
   @Index()
-  late int productId;
+  late String productId;
   late String unit;
   late String productName;
   late int branchId;
@@ -77,82 +74,86 @@ class Variant extends IJsonSerializable {
 
   /// property for stock but presented here for easy
   double? rsdQty;
-  @Index()
-  String? lastTouched;
-  @Index()
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+
   late double supplyPrice;
-  @Index()
+
   late double retailPrice;
-  @Index()
-  String? remoteID;
-  String? action;
+
+  String action;
 
   // only for accor when fetching from remove
-  int? localId;
- @Index()
+
+  @Index()
   DateTime? deletedAt;
-  Variant(
-      {required this.name,
-      required this.sku,
-      required this.productId,
-      required this.unit,
-      required this.productName,
-      required this.branchId,
-      required this.supplyPrice,
-      required this.retailPrice,
-      required this.isTaxExempted,
-      required this.action,
-      this.id,
-      this.taxName,
-      this.taxPercentage,
-      this.itemSeq,
-      this.isrccCd,
-      this.isrccNm,
-      this.isrcRt,
-      this.isrcAmt,
-      this.taxTyCd,
-      this.bcd,
-      this.itemClsCd,
-      this.itemTyCd,
-      this.itemStdNm,
-      this.orgnNatCd,
-      this.pkg,
-      this.itemCd,
-      this.pkgUnitCd,
-      this.qtyUnitCd,
-      this.itemNm,
-      this.qty,
-      this.prc,
-      this.splyAmt,
-      this.tin,
-      this.bhfId,
-      this.dftPrc,
-      this.addInfo,
-      this.isrcAplcbYn,
-      this.useYn,
-      this.regrId,
-      this.regrNm,
-      this.modrId,
-      this.modrNm,
-      this.rsdQty,
-      this.lastTouched,
-      this.remoteID,this.deletedAt,});
+  Variant({
+    required this.name,
+    required this.sku,
+    required this.productId,
+    required this.unit,
+    required this.productName,
+    required this.branchId,
+    required this.supplyPrice,
+    required this.retailPrice,
+    required this.isTaxExempted,
+    required this.action,
+    required this.id,
+    this.taxName = 'N/A',
+    this.taxPercentage = 0,
+    this.itemSeq,
+    this.isrccCd,
+    this.isrccNm,
+    this.isrcRt,
+    this.isrcAmt,
+    this.taxTyCd,
+    this.bcd,
+    this.itemClsCd = 'itemClsCd',
+    this.itemTyCd,
+    this.itemStdNm,
+    this.orgnNatCd,
+    this.pkg,
+     this.itemCd,
+    this.pkgUnitCd,
+    this.qtyUnitCd,
+    this.itemNm,
+    this.qty,
+    this.prc = 0.0,
+    this.splyAmt,
+    this.tin,
+     this.bhfId,
+    this.dftPrc,
+    this.addInfo,
+    this.isrcAplcbYn,
+    this.useYn,
+    this.regrId,
+    this.regrNm,
+    this.modrId,
+    this.modrNm,
+    this.rsdQty,
+    required this.lastTouched,
+    this.deletedAt,
+  });
 
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());
 
   factory Variant.fromJson(Map<String, dynamic> json) {
-    json['remoteID'] = json['id'];
-    json.remove('id');
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+
     return _$VariantFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$VariantToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$VariantToJson(this);
 }

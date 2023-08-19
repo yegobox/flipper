@@ -153,11 +153,11 @@ class _LoginChoicesState extends State<LoginChoices> {
       print(business.id);
 
       model.branchesList(
-          await ProxyService.isar.branches(businessId: business.id!));
+          await ProxyService.isar.branches(businessId: business.id));
       List<ITenant> tenants =
-          await ProxyService.isar.tenants(businessId: business.id!);
+          await ProxyService.isar.tenants(businessId: business.id);
       if (tenants.isEmpty) {
-        await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
+        await ProxyService.isar.tenantsFromOnline(businessId: business.id);
       }
       await model.app.loadCounters(business);
       setState(() {
@@ -170,8 +170,7 @@ class _LoginChoicesState extends State<LoginChoices> {
       bool? value, HomeViewModel model, Branch branch) async {
     model.setDefaultBranch(branch: branch);
     if (await ProxyService.isar
-            .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!) ==
-        null) {
+        .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
       _routerService.navigateTo(DrawerScreenRoute(open: "open"));
     }
     LoginInfo().isLoggedIn = true;

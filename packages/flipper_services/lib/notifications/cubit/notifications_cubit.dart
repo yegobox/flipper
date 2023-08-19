@@ -5,7 +5,6 @@ import 'dart:math';
 import 'package:flipper_models/isar/conversation.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
     hide RepeatInterval;
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -169,7 +168,7 @@ class NotificationsCubit {
     dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
     final notification = Notification(
-      id: conversation.id!,
+      id: conversation.id.codeUnitAt(0),
       title: conversation.body,
       body: dueDateFormatted,
       payload: jsonEncode(conversation.toJson()),
@@ -218,9 +217,9 @@ class NotificationsCubit {
   /// Snooze a task's notification.
   Future<void> snoozeTask(Conversation task) async {
     // log.v('Snoozing notification for task: ${task.id}');
-    await cancelNotification(task.id!);
-    const snoozeDuration = Duration(minutes: 10);
-    final snoozeTime = DateTime.now().add(snoozeDuration);
+    await cancelNotification(task.id.codeUnitAt(0));
+    // const snoozeDuration = Duration(minutes: 10);
+    // final snoozeTime = DateTime.now().add(snoozeDuration);
     // final updatedTask = task.copyWith(dueDate: snoozeTime);
     // await scheduleNotification(updatedTask);
   }
@@ -321,7 +320,7 @@ class NotificationsCubit {
       },
     );
 
-    _timers[task.id!.toString()] = timer;
+    _timers[task.id.toString()] = timer;
     // log.v('Scheduled notification for task: ${task.id}');
   }
 
@@ -424,7 +423,7 @@ class NotificationsCubit {
     }
 
     final localNotification = LocalNotification(
-      identifier: conversation.id!.toString(),
+      identifier: conversation.id.toString(),
       title: conversation.body,
       body: conversation.body,
     );
@@ -432,7 +431,7 @@ class NotificationsCubit {
     localNotification.onClick = () {
       _notificationCallback(NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
-        id: conversation.id,
+        id: conversation.id.codeUnitAt(0),
         payload: jsonEncode(conversation.toJson()),
       ));
     };
@@ -452,7 +451,7 @@ class NotificationsCubit {
       },
     );
 
-    _timers[conversation.id!.toString()] = timer;
+    _timers[conversation.id.toString()] = timer;
     // log.v('Scheduled notification for task: ${task.id}');
   }
 

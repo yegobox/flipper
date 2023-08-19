@@ -7,15 +7,15 @@ void main() {
     test(
         'isFutureDateCompareTo should return true when current date is greater',
         () {
-      const currentDate = '2023-06-15';
-      const futureDate = '2023-06-12';
+      final currentDate = DateTime.now();
+      final futureDate = DateTime.now().add(const Duration(days: 1));
 
       expect(currentDate.isFutureDateCompareTo(futureDate), isTrue);
     });
 
     test('isFutureDateCompareTo should return true when current date is equal',
         () {
-      const currentDate = '2023-06-12';
+      final currentDate = DateTime.now();
 
       expect(currentDate.isFutureDateCompareTo(currentDate), isFalse);
     });
@@ -23,15 +23,15 @@ void main() {
     test(
         'isFutureDateCompareTo should return false when current date is smaller',
         () {
-      const currentDate = '2023-06-10';
-      const pastDate = '2023-06-12';
+      final currentDate = DateTime.now();
+      final pastDate = DateTime.now().subtract(const Duration(days: 1));
 
       expect(currentDate.isFutureDateCompareTo(pastDate), isFalse);
     });
 
     test('isFutureDateCompareTo should return false when comparing with null',
         () {
-      const currentDate = '2023-06-12';
+      final currentDate = DateTime.now();
 
       expect(currentDate.isFutureDateCompareTo(null), isFalse);
     });

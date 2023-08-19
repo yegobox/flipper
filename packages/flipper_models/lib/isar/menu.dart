@@ -1,9 +1,9 @@
 library flipper_models;
 
 class Menu {
-  Menu({this.id = 1, required this.name, required this.branchId});
+  Menu({required this.id, required this.name, required this.branchId});
 
-  int id;
+  late String id;
   String name;
   int branchId;
 }

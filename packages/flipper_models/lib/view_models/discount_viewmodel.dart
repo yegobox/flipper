@@ -10,7 +10,7 @@ class DiscountViewModel extends ProductViewModel {
         .saveDiscount(branchId: branchId, name: name, amount: amount);
   }
 
-  update({required String name, required double amount, required int id}) {
+  update({required String name, required double amount, required String id}) {
     ProxyService.isar.update(
       data: {'name': name, "amount": amount, "id": id},
     );

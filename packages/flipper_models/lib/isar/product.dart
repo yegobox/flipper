@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/variant.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -10,8 +9,8 @@ part 'product.g.dart';
 @JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
-  Id? id;
-  @Index(caseSensitive: true)
+  late String id;
+  @Index()
   late String name;
   String? description;
   String? taxId;
@@ -36,15 +35,14 @@ class Product extends IJsonSerializable {
   /// as multiple devices can touch the same product, we need to track the device
   /// the onlne generated ID will be the ID other device need to use in updating so
   /// the ID of the product in all devices should be similar and other IDs.
-  @Index()
-  String? lastTouched;
-  @Index()
-  String? remoteID;
-  String? action;
-  int? localId;
+
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
+
+  String action;
+
   @Index()
   DateTime? deletedAt;
-  final variants = IsarLinks<Variant>();
 
   Product({
     required this.name,
@@ -52,7 +50,7 @@ class Product extends IJsonSerializable {
     required this.businessId,
     required this.branchId,
     required this.action,
-    this.id,
+    required this.id,
     this.description,
     this.taxId,
     this.supplierId,
@@ -65,24 +63,27 @@ class Product extends IJsonSerializable {
     this.nfcEnabled,
     this.bindedToTenantId,
     this.isFavorite,
-    this.lastTouched,
-    this.remoteID,
+    required this.lastTouched,
     this.deletedAt,
   });
 
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
   factory Product.fromJson(Map<String, dynamic> json) {
-    json.remove('id');
+    json['deletedAt'] = json['deletedAt'] == null ||
+            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
+        ? null
+        : json['deletedAt'];
+
+    json['lastTouched'] =
+        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
+            ? DateTime.now().toIso8601String()
+            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
+                .toIso8601String();
+   
     return _$ProductFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$ProductToJson(this);
-    if (id != null) {
-      data['localId'] = id;
-    }
-    return data;
-  }
+  Map<String, dynamic> toJson() =>_$ProductToJson(this);
 }

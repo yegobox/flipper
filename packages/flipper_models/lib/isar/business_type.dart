@@ -6,9 +6,10 @@ part 'business_type.g.dart';
 
 @JsonSerializable()
 class BusinessType extends IJsonSerializable {
-  int id;
+  late String id;
   String typeName;
-  String? lastTouched;
+  @JsonKey(includeIfNull: true)
+  DateTime? lastTouched;
   DateTime? deletedAt;
   BusinessType({
     required this.id,

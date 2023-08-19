@@ -16,8 +16,8 @@ class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<Social>(
-            stream: ProxyService.isar.socialsStream(
-                businessId: ProxyService.box.getBusinessId() ?? 0),
+            stream: ProxyService.isar
+                .socialsStream(branchId: ProxyService.box.getBranchId() ?? 0),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return const ChatListView();

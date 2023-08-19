@@ -8,5 +8,6 @@ final Map<Type, String> serverDefinitions = {
   Social: "socials",
   Favorite: "favorites",
   Device: 'devices',
-  EBM: 'rra'
+  EBM: 'rra',
+  TransactionItem: 'transactionItems'
 };

@@ -4,7 +4,7 @@ part 'drawer.g.dart';
 
 @Collection()
 class Drawers {
-  Id id = Isar.autoIncrement;
+  late String id;
   late double openingBalance;
   late double closingBalance;
   String? openingDateTime;
@@ -22,6 +22,6 @@ class Drawers {
   String? paymentMode;
   @Index()
   late int cashierId;
-  @Index(composite: [CompositeIndex('cashierId')])
+  @Index(composite: ['cashierId'])
   late bool open;
 }

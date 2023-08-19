@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -19,29 +20,6 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  final _product = ReactiveValue<dynamic>(null);
-  Product? get product => _product.value;
-
-  final _products = ReactiveValue<List<Product>>([]);
-
-  List<Product> get products => _products.value
-      .where((element) =>
-          element.name != 'temp' && element.name != 'Custom Amount')
-      .toList();
-  set products(List<Product> value) {
-    _products.value = value;
-    notifyListeners();
-  }
-
-  List<Product> get nonFavoriteProducts => _products.value
-      .where((element) =>
-          element.name != 'temp' && element.name != 'Custom Amount' && element.id != 1)
-      .toList();
-  set nonFavoriteProducts(List<Product> value) {
-    _products.value = value;
-    notifyListeners();
-  }
-
   int? get userId => ProxyService.box.getUserId();
   int? get branchId => ProxyService.box.getBranchId()!;
 
@@ -49,27 +27,15 @@ class ProductService with ListenableServiceMixin {
     _currentUnit = unit;
   }
 
-  setCurrentProduct({required Product product}) {
-    _product.value = product;
-  }
-
-  final _variants = ReactiveValue<dynamic>(null);
-  List<Variant>? get variants => _variants.value;
-
-  Future<void> variantsProduct({required int productId}) async {
-    _variants.value = await ProxyService.isar
-        .variants(branchId: branchId!, productId: productId);
-    notifyListeners();
-  }
-
   /// discount streams
   Stream<List<Discount>> discountStream({required int branchId}) async* {
-    yield* ProxyService.isar.discountStreams(branchId: branchId);
+    yield* Stream.fromFuture(
+        ProxyService.isar.getDiscounts(branchId: branchId));
   }
 
   /// products streams
   Stream<List<Product>> productStream({required int branchId}) async* {
-    yield* ProxyService.isar.productStreams(branchId: branchId);
+    yield* ProxyService.isar.productStreams();
   }
 
   StreamTransformer<List<Product>, List<Product>> searchTransformer(
@@ -94,12 +60,12 @@ class ProductService with ListenableServiceMixin {
 
   List<Stock?> _stocks = [];
   List<Stock?> get stocks => _stocks;
-  Future<List<Stock?>> loadStockByProductId({required int productId}) async {
+  Future<List<Stock?>> loadStockByProductId({required String productId}) async {
     _stocks = await ProxyService.isar.stocks(productId: productId);
     return stocks;
   }
 
   ProductService() {
-    listenToReactiveValues([_product, _variants, _products, _barCode, _stocks]);
+    listenToReactiveValues([_barCode, _stocks]);
   }
 }

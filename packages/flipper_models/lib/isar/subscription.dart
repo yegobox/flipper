@@ -2,13 +2,15 @@ library flipper_models;
 
 import 'package:isar/isar.dart';
 
-import 'feature.dart';
-part 'subscription.g.dart';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'subscription.g.dart'; // This will be generated
+
+@JsonSerializable()
 @Collection()
 class Subscription {
   Subscription({
-    this.id = 0,
+    required this.id,
     required this.interval,
     required this.lastBillingDate,
     required this.nextBillingDate,
@@ -17,7 +19,7 @@ class Subscription {
     required this.descriptor,
   });
 
-  Id id = Isar.autoIncrement;
+  late String id;
   late int interval;
   late String lastBillingDate;
   late String nextBillingDate;
@@ -26,25 +28,9 @@ class Subscription {
   late double recurring;
 
   late String descriptor;
-  final features = IsarLink<Feature>();
 
-  factory Subscription.fromJson(Map<String, dynamic> json) => Subscription(
-        id: json["id"],
-        interval: json["interval"],
-        lastBillingDate: json["lastBillingDate"],
-        nextBillingDate: json["nextBillingDate"],
-        userId: json["userId"],
-        recurring: json["recurring"],
-        descriptor: json["descriptor"],
-      );
+  factory Subscription.fromJson(Map<String, dynamic> json) =>
+      _$SubscriptionFromJson(json);
 
-  Map<String, dynamic> toJson() => {
-        "id": id.toString(),
-        "interval": interval.toString(),
-        "lastBillingDate": lastBillingDate,
-        "nextBillingDate": nextBillingDate,
-        "userId": userId.toString(),
-        "recurringAmount": recurring.toString(),
-        "descriptor": descriptor,
-      };
+  Map<String, dynamic> toJson() => _$SubscriptionToJson(this);
 }

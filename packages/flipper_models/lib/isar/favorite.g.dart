@@ -3,804 +3,1007 @@
 part of 'favorite.dart';
 
 // **************************************************************************
-// IsarCollectionGenerator
+// _IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
+// ignore_for_file: type=lint
 
 extension GetFavoriteCollection on Isar {
-  IsarCollection<Favorite> get favorites => this.collection();
+  IsarCollection<int, Favorite> get favorites => this.collection();
 }
 
-const FavoriteSchema = CollectionSchema(
-  name: r'Favorite',
-  id: 5577971995748139032,
-  properties: {
-    r'action': PropertySchema(
-      id: 0,
-      name: r'action',
-      type: IsarType.string,
-    ),
-    r'branchId': PropertySchema(
-      id: 1,
-      name: r'branchId',
-      type: IsarType.long,
-    ),
-    r'deletedAt': PropertySchema(
-      id: 2,
-      name: r'deletedAt',
-      type: IsarType.dateTime,
-    ),
-    r'favIndex': PropertySchema(
-      id: 3,
-      name: r'favIndex',
-      type: IsarType.long,
-    ),
-    r'lastTouched': PropertySchema(
-      id: 4,
-      name: r'lastTouched',
-      type: IsarType.string,
-    ),
-    r'localId': PropertySchema(
-      id: 5,
-      name: r'localId',
-      type: IsarType.long,
-    ),
-    r'productId': PropertySchema(
-      id: 6,
-      name: r'productId',
-      type: IsarType.long,
-    ),
-    r'remoteID': PropertySchema(
-      id: 7,
-      name: r'remoteID',
-      type: IsarType.string,
-    )
-  },
-  estimateSize: _favoriteEstimateSize,
-  serialize: _favoriteSerialize,
-  deserialize: _favoriteDeserialize,
-  deserializeProp: _favoriteDeserializeProp,
-  idName: r'id',
-  indexes: {
-    r'favIndex': IndexSchema(
-      id: 6770521250567016133,
-      name: r'favIndex',
-      unique: true,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'favIndex',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    ),
-    r'lastTouched': IndexSchema(
-      id: -1197289422054722944,
-      name: r'lastTouched',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'lastTouched',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'remoteID': IndexSchema(
-      id: 8280972950722306723,
-      name: r'remoteID',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'remoteID',
-          type: IndexType.hash,
-          caseSensitive: true,
-        )
-      ],
-    ),
-    r'deletedAt': IndexSchema(
-      id: -8969437169173379604,
-      name: r'deletedAt',
-      unique: false,
-      replace: false,
-      properties: [
-        IndexPropertySchema(
-          name: r'deletedAt',
-          type: IndexType.value,
-          caseSensitive: false,
-        )
-      ],
-    )
-  },
-  links: {},
-  embeddedSchemas: {},
-  getId: _favoriteGetId,
-  getLinks: _favoriteGetLinks,
-  attach: _favoriteAttach,
-  version: '3.1.0+1',
+const FavoriteSchema = IsarGeneratedSchema(
+  schema: IsarSchema(
+    name: 'Favorite',
+    idName: 'id',
+    embedded: false,
+    properties: [
+      IsarPropertySchema(
+        name: 'favIndex',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'productId',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'branchId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
+        name: 'lastTouched',
+        type: IsarType.dateTime,
+      ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
+    ],
+    indexes: [
+      IsarIndexSchema(
+        name: 'favIndex',
+        properties: [
+          "favIndex",
+        ],
+        unique: true,
+        hash: false,
+      ),
+    ],
+  ),
+  converter: IsarObjectConverter<int, Favorite>(
+    serialize: serializeFavorite,
+    deserialize: deserializeFavorite,
+    deserializeProperty: deserializeFavoriteProp,
+  ),
+  embeddedSchemas: [],
 );
 
-int _favoriteEstimateSize(
-  Favorite object,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  var bytesCount = offsets.last;
+@isarProtected
+int serializeFavorite(IsarWriter writer, Favorite object) {
+  IsarCore.writeLong(writer, 1, object.favIndex ?? -9223372036854775808);
   {
-    final value = object.action;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
+    final value = object.productId;
+    if (value == null) {
+      IsarCore.writeNull(writer, 2);
+    } else {
+      IsarCore.writeString(writer, 2, value);
     }
   }
-  {
-    final value = object.lastTouched;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
-    final value = object.remoteID;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  return bytesCount;
+  IsarCore.writeLong(writer, 3, object.branchId ?? -9223372036854775808);
+  IsarCore.writeLong(
+      writer,
+      4,
+      object.lastTouched?.toUtc().microsecondsSinceEpoch ??
+          -9223372036854775808);
+  IsarCore.writeString(writer, 5, object.action);
+  IsarCore.writeLong(writer, 6,
+      object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
+  return object.id;
 }
 
-void _favoriteSerialize(
-  Favorite object,
-  IsarWriter writer,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
-  writer.writeString(offsets[0], object.action);
-  writer.writeLong(offsets[1], object.branchId);
-  writer.writeDateTime(offsets[2], object.deletedAt);
-  writer.writeLong(offsets[3], object.favIndex);
-  writer.writeString(offsets[4], object.lastTouched);
-  writer.writeLong(offsets[5], object.localId);
-  writer.writeLong(offsets[6], object.productId);
-  writer.writeString(offsets[7], object.remoteID);
-}
-
-Favorite _favoriteDeserialize(
-  Id id,
-  IsarReader reader,
-  List<int> offsets,
-  Map<Type, List<int>> allOffsets,
-) {
+@isarProtected
+Favorite deserializeFavorite(IsarReader reader) {
+  final int? _favIndex;
+  {
+    final value = IsarCore.readLong(reader, 1);
+    if (value == -9223372036854775808) {
+      _favIndex = null;
+    } else {
+      _favIndex = value;
+    }
+  }
+  final String? _productId;
+  _productId = IsarCore.readString(reader, 2);
+  final int? _branchId;
+  {
+    final value = IsarCore.readLong(reader, 3);
+    if (value == -9223372036854775808) {
+      _branchId = null;
+    } else {
+      _branchId = value;
+    }
+  }
+  final String _action;
+  _action = IsarCore.readString(reader, 5) ?? '';
   final object = Favorite(
-    reader.readLongOrNull(offsets[3]),
-    reader.readLongOrNull(offsets[6]),
-    reader.readLongOrNull(offsets[1]),
+    favIndex: _favIndex,
+    productId: _productId,
+    branchId: _branchId,
+    action: _action,
   );
-  object.action = reader.readStringOrNull(offsets[0]);
-  object.deletedAt = reader.readDateTimeOrNull(offsets[2]);
-  object.id = id;
-  object.lastTouched = reader.readStringOrNull(offsets[4]);
-  object.localId = reader.readLongOrNull(offsets[5]);
-  object.remoteID = reader.readStringOrNull(offsets[7]);
+  object.id = IsarCore.readId(reader);
+  {
+    final value = IsarCore.readLong(reader, 4);
+    if (value == -9223372036854775808) {
+      object.lastTouched = null;
+    } else {
+      object.lastTouched =
+          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
+    }
+  }
+  {
+    final value = IsarCore.readLong(reader, 6);
+    if (value == -9223372036854775808) {
+      object.deletedAt = null;
+    } else {
+      object.deletedAt =
+          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
+    }
+  }
   return object;
 }
 
-P _favoriteDeserializeProp<P>(
-  IsarReader reader,
-  int propertyId,
-  int offset,
-  Map<Type, List<int>> allOffsets,
-) {
-  switch (propertyId) {
+@isarProtected
+dynamic deserializeFavoriteProp(IsarReader reader, int property) {
+  switch (property) {
     case 0:
-      return (reader.readStringOrNull(offset)) as P;
+      return IsarCore.readId(reader);
     case 1:
-      return (reader.readLongOrNull(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 1);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return IsarCore.readString(reader, 2);
     case 3:
-      return (reader.readLongOrNull(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 3);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
     case 4:
-      return (reader.readStringOrNull(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 4);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
+              .toLocal();
+        }
+      }
     case 5:
-      return (reader.readLongOrNull(offset)) as P;
+      return IsarCore.readString(reader, 5) ?? '';
     case 6:
-      return (reader.readLongOrNull(offset)) as P;
-    case 7:
-      return (reader.readStringOrNull(offset)) as P;
+      {
+        final value = IsarCore.readLong(reader, 6);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
+              .toLocal();
+        }
+      }
     default:
-      throw IsarError('Unknown property with id $propertyId');
+      throw ArgumentError('Unknown property: $property');
   }
 }
 
-Id _favoriteGetId(Favorite object) {
-  return object.id ?? Isar.autoIncrement;
+sealed class _FavoriteUpdate {
+  bool call({
+    required int id,
+    int? favIndex,
+    String? productId,
+    int? branchId,
+    DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
+  });
 }
 
-List<IsarLinkBase<dynamic>> _favoriteGetLinks(Favorite object) {
-  return [];
-}
+class _FavoriteUpdateImpl implements _FavoriteUpdate {
+  const _FavoriteUpdateImpl(this.collection);
 
-void _favoriteAttach(IsarCollection<dynamic> col, Id id, Favorite object) {
-  object.id = id;
-}
+  final IsarCollection<int, Favorite> collection;
 
-extension FavoriteByIndex on IsarCollection<Favorite> {
-  Future<Favorite?> getByFavIndex(int? favIndex) {
-    return getByIndex(r'favIndex', [favIndex]);
-  }
-
-  Favorite? getByFavIndexSync(int? favIndex) {
-    return getByIndexSync(r'favIndex', [favIndex]);
-  }
-
-  Future<bool> deleteByFavIndex(int? favIndex) {
-    return deleteByIndex(r'favIndex', [favIndex]);
-  }
-
-  bool deleteByFavIndexSync(int? favIndex) {
-    return deleteByIndexSync(r'favIndex', [favIndex]);
-  }
-
-  Future<List<Favorite?>> getAllByFavIndex(List<int?> favIndexValues) {
-    final values = favIndexValues.map((e) => [e]).toList();
-    return getAllByIndex(r'favIndex', values);
-  }
-
-  List<Favorite?> getAllByFavIndexSync(List<int?> favIndexValues) {
-    final values = favIndexValues.map((e) => [e]).toList();
-    return getAllByIndexSync(r'favIndex', values);
-  }
-
-  Future<int> deleteAllByFavIndex(List<int?> favIndexValues) {
-    final values = favIndexValues.map((e) => [e]).toList();
-    return deleteAllByIndex(r'favIndex', values);
-  }
-
-  int deleteAllByFavIndexSync(List<int?> favIndexValues) {
-    final values = favIndexValues.map((e) => [e]).toList();
-    return deleteAllByIndexSync(r'favIndex', values);
-  }
-
-  Future<Id> putByFavIndex(Favorite object) {
-    return putByIndex(r'favIndex', object);
-  }
-
-  Id putByFavIndexSync(Favorite object, {bool saveLinks = true}) {
-    return putByIndexSync(r'favIndex', object, saveLinks: saveLinks);
-  }
-
-  Future<List<Id>> putAllByFavIndex(List<Favorite> objects) {
-    return putAllByIndex(r'favIndex', objects);
-  }
-
-  List<Id> putAllByFavIndexSync(List<Favorite> objects,
-      {bool saveLinks = true}) {
-    return putAllByIndexSync(r'favIndex', objects, saveLinks: saveLinks);
+  @override
+  bool call({
+    required int id,
+    Object? favIndex = ignore,
+    Object? productId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    return collection.updateProperties([
+          id
+        ], {
+          if (favIndex != ignore) 1: favIndex as int?,
+          if (productId != ignore) 2: productId as String?,
+          if (branchId != ignore) 3: branchId as int?,
+          if (lastTouched != ignore) 4: lastTouched as DateTime?,
+          if (action != ignore) 5: action as String?,
+          if (deletedAt != ignore) 6: deletedAt as DateTime?,
+        }) >
+        0;
   }
 }
 
-extension FavoriteQueryWhereSort on QueryBuilder<Favorite, Favorite, QWhere> {
-  QueryBuilder<Favorite, Favorite, QAfterWhere> anyId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(const IdWhereClause.any());
-    });
-  }
+sealed class _FavoriteUpdateAll {
+  int call({
+    required List<int> id,
+    int? favIndex,
+    String? productId,
+    int? branchId,
+    DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
+  });
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhere> anyFavIndex() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'favIndex'),
-      );
-    });
-  }
+class _FavoriteUpdateAllImpl implements _FavoriteUpdateAll {
+  const _FavoriteUpdateAllImpl(this.collection);
 
-  QueryBuilder<Favorite, Favorite, QAfterWhere> anyDeletedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        const IndexWhereClause.any(indexName: r'deletedAt'),
-      );
+  final IsarCollection<int, Favorite> collection;
+
+  @override
+  int call({
+    required List<int> id,
+    Object? favIndex = ignore,
+    Object? productId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
+  }) {
+    return collection.updateProperties(id, {
+      if (favIndex != ignore) 1: favIndex as int?,
+      if (productId != ignore) 2: productId as String?,
+      if (branchId != ignore) 3: branchId as int?,
+      if (lastTouched != ignore) 4: lastTouched as DateTime?,
+      if (action != ignore) 5: action as String?,
+      if (deletedAt != ignore) 6: deletedAt as DateTime?,
     });
   }
 }
 
-extension FavoriteQueryWhere on QueryBuilder<Favorite, Favorite, QWhereClause> {
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
-    });
-  }
+extension FavoriteUpdate on IsarCollection<int, Favorite> {
+  _FavoriteUpdate get update => _FavoriteUpdateImpl(this);
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idNotEqualTo(Id id) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            )
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            );
-      } else {
-        return query
-            .addWhereClause(
-              IdWhereClause.greaterThan(lower: id, includeLower: false),
-            )
-            .addWhereClause(
-              IdWhereClause.lessThan(upper: id, includeUpper: false),
-            );
-      }
-    });
-  }
+  _FavoriteUpdateAll get updateAll => _FavoriteUpdateAllImpl(this);
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idGreaterThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.greaterThan(lower: id, includeLower: include),
-      );
-    });
-  }
+sealed class _FavoriteQueryUpdate {
+  int call({
+    int? favIndex,
+    String? productId,
+    int? branchId,
+    DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
+  });
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idLessThan(Id id,
-      {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(
-        IdWhereClause.lessThan(upper: id, includeUpper: include),
-      );
-    });
-  }
+class _FavoriteQueryUpdateImpl implements _FavoriteQueryUpdate {
+  const _FavoriteQueryUpdateImpl(this.query, {this.limit});
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> idBetween(
-    Id lowerId,
-    Id upperId, {
-    bool includeLower = true,
-    bool includeUpper = true,
+  final IsarQuery<Favorite> query;
+  final int? limit;
+
+  @override
+  int call({
+    Object? favIndex = ignore,
+    Object? productId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+    return query.updateProperties(limit: limit, {
+      if (favIndex != ignore) 1: favIndex as int?,
+      if (productId != ignore) 2: productId as String?,
+      if (branchId != ignore) 3: branchId as int?,
+      if (lastTouched != ignore) 4: lastTouched as DateTime?,
+      if (action != ignore) 5: action as String?,
+      if (deletedAt != ignore) 6: deletedAt as DateTime?,
     });
   }
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'favIndex',
-        value: [null],
-      ));
-    });
-  }
+extension FavoriteQueryUpdate on IsarQuery<Favorite> {
+  _FavoriteQueryUpdate get updateFirst =>
+      _FavoriteQueryUpdateImpl(this, limit: 1);
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'favIndex',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
+  _FavoriteQueryUpdate get updateAll => _FavoriteQueryUpdateImpl(this);
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexEqualTo(
-      int? favIndex) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'favIndex',
-        value: [favIndex],
-      ));
-    });
-  }
+class _FavoriteQueryBuilderUpdateImpl implements _FavoriteQueryUpdate {
+  const _FavoriteQueryBuilderUpdateImpl(this.query, {this.limit});
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexNotEqualTo(
-      int? favIndex) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'favIndex',
-              lower: [],
-              upper: [favIndex],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'favIndex',
-              lower: [favIndex],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'favIndex',
-              lower: [favIndex],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'favIndex',
-              lower: [],
-              upper: [favIndex],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
+  final QueryBuilder<Favorite, Favorite, QOperations> query;
+  final int? limit;
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexGreaterThan(
-    int? favIndex, {
-    bool include = false,
+  @override
+  int call({
+    Object? favIndex = ignore,
+    Object? productId = ignore,
+    Object? branchId = ignore,
+    Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'favIndex',
-        lower: [favIndex],
-        includeLower: include,
-        upper: [],
-      ));
-    });
+    final q = query.build();
+    try {
+      return q.updateProperties(limit: limit, {
+        if (favIndex != ignore) 1: favIndex as int?,
+        if (productId != ignore) 2: productId as String?,
+        if (branchId != ignore) 3: branchId as int?,
+        if (lastTouched != ignore) 4: lastTouched as DateTime?,
+        if (action != ignore) 5: action as String?,
+        if (deletedAt != ignore) 6: deletedAt as DateTime?,
+      });
+    } finally {
+      q.close();
+    }
   }
+}
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexLessThan(
-    int? favIndex, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'favIndex',
-        lower: [],
-        upper: [favIndex],
-        includeUpper: include,
-      ));
-    });
-  }
+extension FavoriteQueryBuilderUpdate
+    on QueryBuilder<Favorite, Favorite, QOperations> {
+  _FavoriteQueryUpdate get updateFirst =>
+      _FavoriteQueryBuilderUpdateImpl(this, limit: 1);
 
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> favIndexBetween(
-    int? lowerFavIndex,
-    int? upperFavIndex, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'favIndex',
-        lower: [lowerFavIndex],
-        includeLower: includeLower,
-        upper: [upperFavIndex],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> lastTouchedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> lastTouchedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'lastTouched',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> lastTouchedEqualTo(
-      String? lastTouched) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'lastTouched',
-        value: [lastTouched],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> lastTouchedNotEqualTo(
-      String? lastTouched) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [lastTouched],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'lastTouched',
-              lower: [],
-              upper: [lastTouched],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> remoteIDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> remoteIDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'remoteID',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> remoteIDEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'remoteID',
-        value: [remoteID],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> remoteIDNotEqualTo(
-      String? remoteID) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [remoteID],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'remoteID',
-              lower: [],
-              upper: [remoteID],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'deletedAt',
-        value: [null],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'deletedAt',
-        lower: [null],
-        includeLower: false,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtEqualTo(
-      DateTime? deletedAt) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'deletedAt',
-        value: [deletedAt],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtNotEqualTo(
-      DateTime? deletedAt) {
-    return QueryBuilder.apply(this, (query) {
-      if (query.whereSort == Sort.asc) {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'deletedAt',
-              lower: [],
-              upper: [deletedAt],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'deletedAt',
-              lower: [deletedAt],
-              includeLower: false,
-              upper: [],
-            ));
-      } else {
-        return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'deletedAt',
-              lower: [deletedAt],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'deletedAt',
-              lower: [],
-              upper: [deletedAt],
-              includeUpper: false,
-            ));
-      }
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtGreaterThan(
-    DateTime? deletedAt, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'deletedAt',
-        lower: [deletedAt],
-        includeLower: include,
-        upper: [],
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtLessThan(
-    DateTime? deletedAt, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'deletedAt',
-        lower: [],
-        upper: [deletedAt],
-        includeUpper: include,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterWhereClause> deletedAtBetween(
-    DateTime? lowerDeletedAt,
-    DateTime? upperDeletedAt, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.between(
-        indexName: r'deletedAt',
-        lower: [lowerDeletedAt],
-        includeLower: includeLower,
-        upper: [upperDeletedAt],
-        includeUpper: includeUpper,
-      ));
-    });
-  }
+  _FavoriteQueryUpdate get updateAll => _FavoriteQueryBuilderUpdateImpl(this);
 }
 
 extension FavoriteQueryFilter
     on QueryBuilder<Favorite, Favorite, QFilterCondition> {
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsNull() {
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'action',
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsNotNull() {
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idGreaterThan(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'action',
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      idGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 0,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 0,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 1));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 1));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 1,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexGreaterThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 1,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      favIndexGreaterThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 1,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexLessThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 1,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      favIndexLessThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 1,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexBetween(
+    int? lower,
+    int? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 1,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 2));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 2));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      productIdGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      productIdLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 2,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 2,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 2,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 2,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      productIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 2,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdGreaterThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      branchIdGreaterThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdLessThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      branchIdLessThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 3,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdBetween(
+    int? lower,
+    int? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 3,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      lastTouchedIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      lastTouchedGreaterThan(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      lastTouchedGreaterThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedLessThan(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      lastTouchedLessThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedBetween(
+    DateTime? lower,
+    DateTime? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 4,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionGreaterThan(
-    String? value, {
-    bool include = false,
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      actionGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionLessThan(
-    String? value, {
-    bool include = false,
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      actionLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
+    String lower,
+    String upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'action',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 5,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -809,11 +1012,13 @@ extension FavoriteQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -822,11 +1027,13 @@ extension FavoriteQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -834,11 +1041,13 @@ extension FavoriteQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'action',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 5,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
@@ -846,737 +1055,129 @@ extension FavoriteQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'action',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 5,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'action',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 5,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'action',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'branchId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'branchId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdEqualTo(
-      int? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'branchId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> branchIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'branchId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 5,
+          value: '',
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'deletedAt',
-      ));
+      return query.addFilterCondition(const IsNullCondition(property: 6));
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'deletedAt',
-      ));
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 6));
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtEqualTo(
-      DateTime? value) {
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'deletedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtGreaterThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'deletedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      deletedAtGreaterThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtLessThan(
-    DateTime? value, {
-    bool include = false,
-  }) {
+    DateTime? value,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'deletedAt',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        LessCondition(
+          property: 6,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
+      deletedAtLessThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 6,
+          value: value,
+        ),
+      );
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterFilterCondition> deletedAtBetween(
     DateTime? lower,
-    DateTime? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
+    DateTime? upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'deletedAt',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'favIndex',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'favIndex',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexEqualTo(
-      int? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'favIndex',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'favIndex',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'favIndex',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> favIndexBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'favIndex',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'id',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idEqualTo(Id? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idGreaterThan(
-    Id? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idLessThan(
-    Id? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> idBetween(
-    Id? lower,
-    Id? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'lastTouched',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
-      lastTouchedIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'lastTouched',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
-      lastTouchedGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'lastTouched',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastTouched',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastTouched',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> lastTouchedIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition>
-      lastTouchedIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastTouched',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'localId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'localId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdEqualTo(
-      int? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'localId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'localId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'localId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> localIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'localId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'productId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'productId',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdEqualTo(
-      int? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'productId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdGreaterThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'productId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdLessThan(
-    int? value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'productId',
-        value: value,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> productIdBetween(
-    int? lower,
-    int? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'productId',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'remoteID',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'remoteID',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'remoteID',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'remoteID',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'remoteID',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'remoteID',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterFilterCondition> remoteIDIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'remoteID',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 6,
+          lower: lower,
+          upper: upper,
+        ),
+      );
     });
   }
 }
@@ -1584,325 +1185,374 @@ extension FavoriteQueryFilter
 extension FavoriteQueryObject
     on QueryBuilder<Favorite, Favorite, QFilterCondition> {}
 
-extension FavoriteQueryLinks
-    on QueryBuilder<Favorite, Favorite, QFilterCondition> {}
-
 extension FavoriteQuerySortBy on QueryBuilder<Favorite, Favorite, QSortBy> {
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByAction() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'action', Sort.asc);
+      return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByActionDesc() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'action', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByBranchIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'deletedAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'deletedAt', Sort.desc);
+      return query.addSortBy(0, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByFavIndex() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'favIndex', Sort.asc);
+      return query.addSortBy(1);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByFavIndexDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'favIndex', Sort.desc);
+      return query.addSortBy(1, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        2,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductIdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        2,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(3);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastTouched', Sort.asc);
+      return query.addSortBy(4);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastTouched', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByLocalId() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByAction(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.asc);
+      return query.addSortBy(
+        5,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByLocalIdDesc() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByActionDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.desc);
+      return query.addSortBy(
+        5,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductId() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'productId', Sort.asc);
+      return query.addSortBy(6);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByProductIdDesc() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'productId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByRemoteID() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> sortByRemoteIDDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(6, sort: Sort.desc);
     });
   }
 }
 
 extension FavoriteQuerySortThenBy
     on QueryBuilder<Favorite, Favorite, QSortThenBy> {
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByAction() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'action', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByActionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'action', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByBranchIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'branchId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'deletedAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'deletedAt', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByFavIndex() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'favIndex', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByFavIndexDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'favIndex', Sort.desc);
-    });
-  }
-
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.asc);
+      return query.addSortBy(0);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'id', Sort.desc);
+      return query.addSortBy(0, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByFavIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByFavIndexDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(1, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductId(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductIdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(3);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByBranchIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastTouched', Sort.asc);
+      return query.addSortBy(4);
     });
   }
 
   QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastTouched', Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByLocalId() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByAction(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.asc);
+      return query.addSortBy(5, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByLocalIdDesc() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByActionDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'localId', Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductId() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'productId', Sort.asc);
+      return query.addSortBy(6);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByProductIdDesc() {
+  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'productId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByRemoteID() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QAfterSortBy> thenByRemoteIDDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'remoteID', Sort.desc);
+      return query.addSortBy(6, sort: Sort.desc);
     });
   }
 }
 
 extension FavoriteQueryWhereDistinct
     on QueryBuilder<Favorite, Favorite, QDistinct> {
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByAction(
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByFavIndex() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(1);
+    });
+  }
+
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByProductId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
+      return query.addDistinctBy(2, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByBranchId() {
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'branchId');
+      return query.addDistinctBy(3);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByDeletedAt() {
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'deletedAt');
+      return query.addDistinctBy(4);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByFavIndex() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'favIndex');
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByLastTouched(
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastTouched', caseSensitive: caseSensitive);
+      return query.addDistinctBy(5, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByLocalId() {
+  QueryBuilder<Favorite, Favorite, QAfterDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'localId');
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByProductId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'productId');
-    });
-  }
-
-  QueryBuilder<Favorite, Favorite, QDistinct> distinctByRemoteID(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'remoteID', caseSensitive: caseSensitive);
+      return query.addDistinctBy(6);
     });
   }
 }
 
-extension FavoriteQueryProperty
-    on QueryBuilder<Favorite, Favorite, QQueryProperty> {
-  QueryBuilder<Favorite, int, QQueryOperations> idProperty() {
+extension FavoriteQueryProperty1
+    on QueryBuilder<Favorite, Favorite, QProperty> {
+  QueryBuilder<Favorite, int, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'id');
+      return query.addProperty(0);
     });
   }
 
-  QueryBuilder<Favorite, String?, QQueryOperations> actionProperty() {
+  QueryBuilder<Favorite, int?, QAfterProperty> favIndexProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'action');
+      return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Favorite, int?, QQueryOperations> branchIdProperty() {
+  QueryBuilder<Favorite, String?, QAfterProperty> productIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'branchId');
+      return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Favorite, DateTime?, QQueryOperations> deletedAtProperty() {
+  QueryBuilder<Favorite, int?, QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'deletedAt');
+      return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Favorite, int?, QQueryOperations> favIndexProperty() {
+  QueryBuilder<Favorite, DateTime?, QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'favIndex');
+      return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Favorite, String?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<Favorite, String, QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lastTouched');
+      return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Favorite, int?, QQueryOperations> localIdProperty() {
+  QueryBuilder<Favorite, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'localId');
+      return query.addProperty(6);
+    });
+  }
+}
+
+extension FavoriteQueryProperty2<R>
+    on QueryBuilder<Favorite, R, QAfterProperty> {
+  QueryBuilder<Favorite, (R, int), QAfterProperty> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
     });
   }
 
-  QueryBuilder<Favorite, int?, QQueryOperations> productIdProperty() {
+  QueryBuilder<Favorite, (R, int?), QAfterProperty> favIndexProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'productId');
+      return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Favorite, String?, QQueryOperations> remoteIDProperty() {
+  QueryBuilder<Favorite, (R, String?), QAfterProperty> productIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'remoteID');
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<Favorite, (R, int?), QAfterProperty> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<Favorite, (R, DateTime?), QAfterProperty> lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<Favorite, (R, String), QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<Favorite, (R, DateTime?), QAfterProperty> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
+    });
+  }
+}
+
+extension FavoriteQueryProperty3<R1, R2>
+    on QueryBuilder<Favorite, (R1, R2), QAfterProperty> {
+  QueryBuilder<Favorite, (R1, R2, int), QOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(0);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, int?), QOperations> favIndexProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, String?), QOperations> productIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, int?), QOperations> branchIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(3);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, DateTime?), QOperations>
+      lastTouchedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, String), QOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<Favorite, (R1, R2, DateTime?), QOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
     });
   }
 }
@@ -1912,15 +1562,15 @@ extension FavoriteQueryProperty
 // **************************************************************************
 
 Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
-      json['favIndex'] as int?,
-      json['productId'] as int?,
-      json['branchId'] as int?,
+      favIndex: json['favIndex'] as int?,
+      productId: json['productId'] as String?,
+      branchId: json['branchId'] as int?,
+      action: json['action'] as String,
     )
-      ..id = json['id'] as int?
-      ..lastTouched = json['lastTouched'] as String?
-      ..remoteID = json['remoteID'] as String?
-      ..action = json['action'] as String?
-      ..localId = json['localId'] as int?
+      ..id = json['id'] as int
+      ..lastTouched = json['lastTouched'] == null
+          ? null
+          : DateTime.parse(json['lastTouched'] as String)
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String);
@@ -1930,9 +1580,7 @@ Map<String, dynamic> _$FavoriteToJson(Favorite instance) => <String, dynamic>{
       'favIndex': instance.favIndex,
       'productId': instance.productId,
       'branchId': instance.branchId,
-      'lastTouched': instance.lastTouched,
-      'remoteID': instance.remoteID,
+      'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,
-      'localId': instance.localId,
       'deletedAt': instance.deletedAt?.toIso8601String(),
     };

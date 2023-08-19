@@ -83,8 +83,8 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                                   color: Color(0xff006AFE))),
                           onPressed: () {
                             if (widget.transaction != null) {
-                              _routerService.navigateTo(
-                                  NewTicketRoute(transaction: widget.transaction!));
+                              _routerService.navigateTo(NewTicketRoute(
+                                  transaction: widget.transaction!));
                             }
                           },
                         ),
@@ -110,7 +110,8 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                                 children: data.map((e) {
                                   return GestureDetector(
                                     onTap: () async {
-                                      await model.resumeTransaction(ticketId: e.id!);
+                                      await model.resumeTransaction(
+                                          ticketId: e.id);
                                       _routerService
                                           .clearStackAndShow(FlipperAppRoute());
                                     },

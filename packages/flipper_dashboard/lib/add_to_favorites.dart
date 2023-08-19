@@ -4,8 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AddToFavorites extends StatelessWidget {
   final int favoriteIndex;
-  List<int> existingFavs = [];
-  AddToFavorites({Key? key, required this.favoriteIndex, required this.existingFavs}) : super(key: key);
+  List<String> existingFavs = [];
+  AddToFavorites(
+      {Key? key, required this.favoriteIndex, required this.existingFavs})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +24,8 @@ class AddToFavorites extends StatelessWidget {
             SizedBox(height: 16.0),
             Expanded(
                 child: ProductView.favoriteMode(
-              favIndex: favoriteIndex, existingFavs: existingFavs,
+              favIndex: favoriteIndex,
+              existingFavs: existingFavs,
             )),
             ElevatedButton(
               child: Text('Close'),

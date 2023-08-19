@@ -1,3 +1,3 @@
-import 'package:stacked/stacked.dart';
+import 'package:flipper_models/box_models.dart';
 
-class LogoutModel extends BaseViewModel {}
+class LogoutModel extends StartupViewModel {}

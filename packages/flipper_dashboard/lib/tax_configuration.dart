@@ -19,6 +19,7 @@ class TaxConfiguration extends StatefulWidget {
 }
 
 class _TaxConfigurationState extends State<TaxConfiguration> {
+  // ignore: unused_field
   String _supportLine = "";
   bool isTaxEnabled = false;
   final _routerService = locator<RouterService>();

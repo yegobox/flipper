@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_dashboard/create/category_selector.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;

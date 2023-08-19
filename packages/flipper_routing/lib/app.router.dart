@@ -517,8 +517,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.Cashbook(
           key: args.key,
           isBigScreen: args.isBigScreen,
-          newTransactionPressed: args.newTransactionPressed,
-          newTransactionType: args.newTransactionType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -986,7 +984,7 @@ class PhoneInputScreenArgs {
 class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
   AddProductViewRoute({
     _i4.Key? key,
-    int? productId,
+    String? productId,
   }) : super(
           AddProductViewRoute.name,
           path: '/add-product-view',
@@ -1007,7 +1005,7 @@ class AddProductViewArgs {
 
   final _i4.Key? key;
 
-  final int? productId;
+  final String? productId;
 
   @override
   String toString() {
@@ -1021,7 +1019,7 @@ class AddToFavoritesRoute extends _i3.PageRouteInfo<AddToFavoritesArgs> {
   AddToFavoritesRoute({
     _i4.Key? key,
     required int favoriteIndex,
-    required List<int> existingFavs,
+    required List<String> existingFavs,
   }) : super(
           AddToFavoritesRoute.name,
           path: '/add-to-favorites',
@@ -1046,7 +1044,7 @@ class AddToFavoritesArgs {
 
   final int favoriteIndex;
 
-  final List<int> existingFavs;
+  final List<String> existingFavs;
 
   @override
   String toString() {
@@ -1151,7 +1149,7 @@ class ColorTileArgs {
 class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
     _i4.Key? key,
-    required int variantId,
+    required String variantId,
     String? existingStock,
   }) : super(
           ReceiveStockRoute.name,
@@ -1175,7 +1173,7 @@ class ReceiveStockArgs {
 
   final _i4.Key? key;
 
-  final int variantId;
+  final String variantId;
 
   final String? existingStock;
 
@@ -1190,7 +1188,7 @@ class ReceiveStockArgs {
 class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
   AddVariationRoute({
     _i4.Key? key,
-    required int productId,
+    required String productId,
   }) : super(
           AddVariationRoute.name,
           path: '/add-variation',
@@ -1211,7 +1209,7 @@ class AddVariationArgs {
 
   final _i4.Key? key;
 
-  final int productId;
+  final String productId;
 
   @override
   String toString() {
@@ -1545,7 +1543,7 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
     _i4.Key? key,
-    int? transactionId,
+    String? transactionId,
   }) : super(
           CustomersRoute.name,
           path: '/Customers',
@@ -1566,7 +1564,7 @@ class CustomersArgs {
 
   final _i4.Key? key;
 
-  final int? transactionId;
+  final String? transactionId;
 
   @override
   String toString() {
@@ -1966,16 +1964,12 @@ class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
   CashbookRoute({
     _i4.Key? key,
     required bool isBigScreen,
-    bool newTransactionPressed = false,
-    String newTransactionType = 'none',
   }) : super(
           CashbookRoute.name,
           path: '/Cashbook',
           args: CashbookArgs(
             key: key,
             isBigScreen: isBigScreen,
-            newTransactionPressed: newTransactionPressed,
-            newTransactionType: newTransactionType,
           ),
         );
 
@@ -1986,21 +1980,15 @@ class CashbookArgs {
   const CashbookArgs({
     this.key,
     required this.isBigScreen,
-    this.newTransactionPressed = false,
-    this.newTransactionType = 'none',
   });
 
   final _i4.Key? key;
 
   final bool isBigScreen;
 
-  final bool newTransactionPressed;
-
-  final String newTransactionType;
-
   @override
   String toString() {
-    return 'CashbookArgs{key: $key, isBigScreen: $isBigScreen, newTransactionPressed: $newTransactionPressed, newTransactionType: $newTransactionType}';
+    return 'CashbookArgs{key: $key, isBigScreen: $isBigScreen}';
   }
 }
 
