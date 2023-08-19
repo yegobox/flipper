@@ -129,10 +129,10 @@ jobs:
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
-        uses:  ruby/setup-ruby@250fcd6a742febb1123a77a841497ccaa8b9e939 
+        uses:  ruby/setup-ruby@1 
         with:
           ruby-version: "3.0"
-          bundler-cache: false
+          bundler-cache: true
           # cache-version: 1
           working-directory: android
       - name: Configure Keystore
