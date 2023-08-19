@@ -42,8 +42,6 @@ class AppService with ListenableServiceMixin {
   final _units = ReactiveValue<List<IUnit>>([]);
   List<IUnit> get units => _units.value;
 
-  final _colors = ReactiveValue<List<PColor>>([]);
-  List<PColor> get colors => _colors.value;
 
   final _customer = ReactiveValue<Customer?>(null);
   Customer? get customer => _customer.value;
@@ -229,7 +227,7 @@ class AppService with ListenableServiceMixin {
 
   AppService() {
     listenToReactiveValues(
-        [_categories, _units, _colors, _business, _contacts]);
+        [_categories, _units, _business, _contacts]);
   }
 
   Future<bool> isSocialLoggedin() async {

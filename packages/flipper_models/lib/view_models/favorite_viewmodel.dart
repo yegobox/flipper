@@ -12,8 +12,6 @@ class FavoriteViewModel extends ProductViewModel {
   final ProductService productService = loc.locator<ProductService>();
   // final _routerService = locator<RouterService>();
 
-  List<PColor> get colors => app.colors;
-
   List<IUnit> get units => app.units;
 
   get categories => app.categories;

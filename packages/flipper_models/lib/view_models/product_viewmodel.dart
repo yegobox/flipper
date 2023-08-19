@@ -18,14 +18,12 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 
-// class ProductViewModel extends BusinessHomeViewModel {
 class ProductViewModel extends TenantViewModel {
   // extends ReactiveViewModel
   final AppService app = loc.locator<AppService>();
   // ignore: annotate_overrides, overridden_fields
   final ProductService productService = loc.locator<ProductService>();
   final _routerService = locator<RouterService>();
-  List<PColor> get colors => app.colors;
 
   List<IUnit> get units => app.units;
 
@@ -69,12 +67,14 @@ class ProductViewModel extends TenantViewModel {
     currentColor = color;
   }
 
+  List<PColor> colors = [];
+
   Future<void> loadColors() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    List<PColor> result = await ProxyService.isar.colors(branchId: branchId!);
-
-    for (PColor color in result) {
+    colors = await ProxyService.isar.colors(branchId: branchId!);
+    notifyListeners();
+    for (PColor color in colors) {
       if (color.active) {
         setCurrentColor(color: color.name!);
       }
@@ -101,7 +101,7 @@ class ProductViewModel extends TenantViewModel {
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
   String kProductName = 'null';
-  Future<Product> getTempOrCreateProduct({String? productId}) async {
+  Future<Product> getProduct({String? productId}) async {
     if (productId != null) {
       inUpdateProcess = true;
       Product? product = await ProxyService.isar.getProduct(id: productId);
@@ -256,7 +256,7 @@ class ProductViewModel extends TenantViewModel {
     if (variant!.name != 'Regular') {
       ProxyService.isar.delete(id: id, endPoint: 'variation');
       //this will reload the variations remain
-      getTempOrCreateProduct();
+      getProduct();
     }
   }
 
@@ -360,7 +360,7 @@ class ProductViewModel extends TenantViewModel {
   }
 
   /// Add a product into the system
-  Future<bool> addProduct({required Product mproduct}) async {
+  Future<bool> saveProduct({required Product mproduct}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
     // String mproductName =

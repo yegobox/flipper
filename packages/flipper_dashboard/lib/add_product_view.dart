@@ -127,7 +127,7 @@ class _AddProductViewState extends State<AddProductView> {
             model.productService.setBarcode('');
           });
         }
-        await model.getTempOrCreateProduct(productId: widget.productId);
+        await model.getProduct(productId: widget.productId);
         model.loadCategories();
         await model.loadColors();
         model.loadUnits();
@@ -176,9 +176,9 @@ class _AddProductViewState extends State<AddProductView> {
                   showToast(context, 'Provide name for the product');
                   return;
                 }
-                Product product = await model.getTempOrCreateProduct(
-                    productId: widget.productId);
-                await model.addProduct(mproduct: product);
+                Product product =
+                    await model.getProduct(productId: widget.productId);
+                await model.saveProduct(mproduct: product);
                 // then re-update the product default variant with retail price
                 // retailPriceController this is to present missing out key stroke.
                 await model.updateRegularVariant(
