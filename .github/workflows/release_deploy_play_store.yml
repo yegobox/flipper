@@ -133,6 +133,7 @@ jobs:
         with:
           ruby-version: "3.0"
           bundler-cache: true
+          cache-version: 1
           working-directory: android
       - name: Configure Keystore
         run: |
