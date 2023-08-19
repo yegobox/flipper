@@ -699,127 +699,92 @@ class IsarAPI<M> implements IsarApiInterface {
     return null;
   }
 
-  Future<Product?> isCustomProductExist({required int businessId}) async {
+  Future<Product?> _isCustomProductExist(
+      {required int businessId, required String name}) async {
     return db.read((isar) => isar.products
         .where()
         .businessIdEqualTo(businessId)
         .and()
-        .nameEqualTo('Custom Amount')
+        .nameEqualTo(name)
         .findFirst());
   }
 
   @override
   Future<Product> createProduct({required Product product}) async {
-    String id = randomString();
     Business? business = await getBusiness();
-    String itemPrefix = "flip-";
-    String clip = itemPrefix +
-        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-
-    product.description = 'description';
-    product.color = '#5A2328';
-    product.id = id;
-    product.businessId = ProxyService.box.getBusinessId()!;
-    product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
     // check if the product created custom amount exist and do not re-create
-    if (product.name == "Custom Amount") {
-      Product? existingProduct = await isCustomProductExist(
-          businessId: ProxyService.box.getBusinessId()!);
+    if (product.name == CUSTOM_PRODUCT) {
+      Product? existingProduct = await _isCustomProductExist(
+          businessId: ProxyService.box.getBusinessId()!, name: CUSTOM_PRODUCT);
       if (existingProduct != null) {
         return existingProduct;
       }
     }
-    await db.writeAsync((isar) {
-      isar.products.put(product);
-    });
-    Product? kProduct = await db.readAsync((isar) => isar.products.get(id));
-    // save variants in isar Db with the above productId
-    await db.writeAsync((isar) {
-      isar.variants.put(
-        Variant(
-            lastTouched: DateTime.now(),
-            name: 'Regular',
-            sku: 'sku',
-            action: 'create',
-            productId: kProduct!.id,
-            unit: 'Per Item',
-            productName: product.name,
-            branchId: ProxyService.box.getBranchId()!,
-            supplyPrice: 0.0,
-            retailPrice: 0.0,
-            id: randomString(),
-            isTaxExempted: false)
-          ..name = 'Regular'
-          ..productId = kProduct.id
-          ..unit = 'Per Item'
-          ..productName = product.name
-          ..branchId = branchId
-          ..taxName = 'N/A'
-          ..isTaxExempted = false
-          ..taxPercentage = 0
-          ..retailPrice = 0
-          // RRA fields
-          ..bhfId = business?.bhfId
-          ..prc = 0.0
-          ..sku = 'sku'
-          ..tin = business?.tinNumber
-          ..itemCd = clip
-          // TODOask about item clasification code, it seems to be static
-          ..itemClsCd = "5020230602"
-          ..itemTyCd = "1"
-          ..itemNm = "Regular"
-          ..itemStdNm = "Regular"
-          ..orgnNatCd = "RW"
-          ..pkgUnitCd = "NT"
-          ..qtyUnitCd = "U"
-          ..taxTyCd = "B"
-          ..dftPrc = 0.0
-          ..addInfo = "A"
-          ..isrcAplcbYn = "N"
-          ..useYn = "N"
-          ..regrId = clip
-          ..regrNm = "Regular"
-          ..modrId = clip
-          ..modrNm = "Regular"
-          ..pkg = "1"
-          ..itemSeq = "1"
-          ..splyAmt = 0.0
-          // RRA fields ends
-          ..supplyPrice = 0.0,
-      );
-    });
-
-    Variant? variant = await db.readAsync((isar) =>
-        isar.variants.where().productIdEqualTo(kProduct!.id).findFirst());
-
-    Stock stock = Stock(
-        lastTouched: DateTime.now(),
-        id: randomString(),
-        action: 'create',
-        branchId: branchId,
-        variantId: variant!.id,
-        currentStock: 0.0,
-        productId: kProduct!.id)
-      ..canTrackingStock = false
-      ..showLowStockAlert = false
-      ..currentStock = 0.0
-      ..branchId = branchId
-      ..variantId = variant.id
-      ..supplyPrice = 0.0
-      ..retailPrice = 0.0
-      ..lowStock = 10.0 // default static
-      ..canTrackingStock = true
-      ..showLowStockAlert = true
-      ..active = false
-      ..productId = kProduct.id
-      ..rsdQty = 0.0;
-
+    if (product.name == TEMP_PRODUCT) {
+      Product? existingProduct = await _isCustomProductExist(
+          businessId: ProxyService.box.getBusinessId()!, name: TEMP_PRODUCT);
+      if (existingProduct != null) {
+        return existingProduct;
+      }
+    }
     db.write((isar) {
+      isar.products.put(product);
+      String variantId = randomString();
+      Product? kProduct = isar.products.get(product.id);
+      Variant newVariant = Variant(
+          lastTouched: DateTime.now(),
+          name: 'Regular',
+          sku: 'sku',
+          action: 'create',
+          productId: kProduct!.id,
+          unit: 'Per Item',
+          productName: product.name,
+          branchId: branchId,
+          supplyPrice: 0.0,
+          retailPrice: 0.0,
+          id: variantId,
+          isTaxExempted: false,
+          bhfId: business?.bhfId ?? '',
+          itemCd: randomString())
+
+        // TODOask about item clasification code, it seems to be static
+        ..itemClsCd = "5020230602"
+        ..itemTyCd = "1"
+        ..itemNm = "Regular"
+        ..itemStdNm = "Regular"
+        ..orgnNatCd = "RW"
+        ..pkgUnitCd = "NT"
+        ..qtyUnitCd = "U"
+        ..taxTyCd = "B"
+        ..dftPrc = 0.0
+        ..addInfo = "A"
+        ..isrcAplcbYn = "N"
+        ..useYn = "N"
+        ..regrId = randomString()
+        ..regrNm = "Regular"
+        ..modrId = randomString()
+        ..modrNm = "Regular"
+        ..pkg = "1"
+        ..itemSeq = "1"
+        ..splyAmt = 0.0
+        // RRA fields ends
+        ..supplyPrice = 0.0;
+      isar.variants.put(newVariant);
+      Variant? variant = isar.variants.get(variantId);
+
+      Stock stock = Stock(
+          lastTouched: DateTime.now(),
+          id: randomString(),
+          action: 'create',
+          branchId: branchId,
+          variantId: variant!.id,
+          currentStock: 0.0,
+          productId: kProduct.id);
       isar.stocks.put(stock);
     });
-    return kProduct;
+    return db.read((isar) => isar.products.get(product.id))!;
   }
 
   @override
@@ -1126,6 +1091,8 @@ class IsarAPI<M> implements IsarApiInterface {
               branchId: ProxyService.box.getBranchId()!,
               supplyPrice: 0.0,
               retailPrice: 0.0,
+              itemCd: clip,
+              bhfId: business?.bhfId ?? '',
               isTaxExempted: false)
             ..name = 'Regular'
             ..productId = product.id
@@ -1137,7 +1104,7 @@ class IsarAPI<M> implements IsarApiInterface {
             ..taxPercentage = 0
             ..retailPrice = 0
             // RRA fields
-            ..bhfId = business?.bhfId
+
             ..prc = 0.0
             ..sku = 'sku'
             ..tin = business?.tinNumber

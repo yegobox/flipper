@@ -31,7 +31,7 @@ class UploadViewModel extends ProductViewModel {
           product!.imageUrl = uploadResponse.url;
           ProxyService.isar.update(data: product);
           Product? kProduct = await ProxyService.isar.getProduct(id: id);
-          setCurrentProduct(product: kProduct!);
+          setCurrentProduct(currentProduct: kProduct!);
           callBack(uploadResponse.url);
         }
         if (urlType == URLTYPE.BUSINESS) {

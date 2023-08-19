@@ -45,7 +45,7 @@ class ProductViewModel extends TenantViewModel {
     log(value.toString(), name: 'load product on adding one');
   }
 
-  Product? get product => _product;
+  Product? product = null;
 
   List<Product> get nonFavoriteProducts => _products
       .where((element) =>
@@ -58,8 +58,8 @@ class ProductViewModel extends TenantViewModel {
     notifyListeners();
   }
 
-  setCurrentProduct({required Product product}) {
-    _product = product;
+  setCurrentProduct({required Product currentProduct}) {
+    product = currentProduct;
     notifyListeners();
   }
 
@@ -105,8 +105,8 @@ class ProductViewModel extends TenantViewModel {
     if (productId != null) {
       inUpdateProcess = true;
       Product? product = await ProxyService.isar.getProduct(id: productId);
-      setCurrentProduct(product: product!);
-      setCurrentProduct(product: product!);
+      setCurrentProduct(currentProduct: product!);
+      setCurrentProduct(currentProduct: product);
       kProductName = product.name;
 
       variantsProduct(productId: product.id);
@@ -127,7 +127,7 @@ class ProductViewModel extends TenantViewModel {
             branchId: ProxyService.box.getBranchId()!));
     await variantsProduct(productId: product.id);
 
-    setCurrentProduct(product: product);
+    setCurrentProduct(currentProduct: product);
     kProductName = product.name;
     rebuildUi();
     return product;
@@ -216,7 +216,7 @@ class ProductViewModel extends TenantViewModel {
       ProxyService.isar.update(data: _product);
       final Product? uProduct =
           await ProxyService.isar.getProduct(id: _product!.id);
-      setCurrentProduct(product: uProduct!);
+      setCurrentProduct(currentProduct: uProduct!);
     }
     if (type == 'variant') {
       // final Map data = product.toJson();
@@ -432,7 +432,7 @@ class ProductViewModel extends TenantViewModel {
     _product!.expiryDate = date.toIso8601String();
     ProxyService.isar.update(data: _product);
     Product? cProduct = await ProxyService.isar.getProduct(id: _product!.id);
-    setCurrentProduct(product: cProduct!);
+    setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }
 
