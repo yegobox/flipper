@@ -699,13 +699,12 @@ class IsarAPI<M> implements IsarApiInterface {
     return null;
   }
 
-  Future<Product?> _getProductWithName(
-      {required int businessId, required String name}) async {
+  Future<Product?> isCustomProductExist({required int businessId}) async {
     return db.read((isar) => isar.products
         .where()
         .businessIdEqualTo(businessId)
         .and()
-        .nameEqualTo(name)
+        .nameEqualTo('Custom Amount')
         .findFirst());
   }
 
@@ -718,23 +717,16 @@ class IsarAPI<M> implements IsarApiInterface {
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
     product.description = 'description';
-    product.color = COLOR;
+    product.color = '#5A2328';
     product.id = id;
     product.businessId = ProxyService.box.getBusinessId()!;
     product.branchId = ProxyService.box.getBranchId()!;
 
     final int branchId = ProxyService.box.getBranchId()!;
     // check if the product created custom amount exist and do not re-create
-    if (product.name == CUSTOM_PRODUCT) {
-      Product? existingProduct = await _getProductWithName(
-          businessId: ProxyService.box.getBusinessId()!, name: CUSTOM_PRODUCT);
-      if (existingProduct != null) {
-        return existingProduct;
-      }
-    }
-    if (product.name == TEMP_PRODUCT) {
-      Product? existingProduct = await _getProductWithName(
-          businessId: ProxyService.box.getBusinessId()!, name: TEMP_PRODUCT);
+    if (product.name == "Custom Amount") {
+      Product? existingProduct = await isCustomProductExist(
+          businessId: ProxyService.box.getBusinessId()!);
       if (existingProduct != null) {
         return existingProduct;
       }

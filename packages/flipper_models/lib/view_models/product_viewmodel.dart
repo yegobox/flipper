@@ -106,8 +106,10 @@ class ProductViewModel extends TenantViewModel {
       inUpdateProcess = true;
       Product? product = await ProxyService.isar.getProduct(id: productId);
       setCurrentProduct(product: product!);
+      setCurrentProduct(product: product!);
       kProductName = product.name;
 
+      variantsProduct(productId: product.id);
       variantsProduct(productId: product.id);
       notifyListeners();
       return product;
