@@ -132,8 +132,8 @@ jobs:
         uses:  ruby/setup-ruby@250fcd6a742febb1123a77a841497ccaa8b9e939 
         with:
           ruby-version: "3.0"
-          bundler-cache: true
-          cache-version: 1
+          bundler-cache: false
+          # cache-version: 1
           working-directory: android
       - name: Configure Keystore
         run: |
