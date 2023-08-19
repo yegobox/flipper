@@ -93,7 +93,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [testing]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
@@ -131,7 +131,7 @@ jobs:
       - name: Setup Fastlane
         uses:  ruby/setup-ruby@250fcd6a742febb1123a77a841497ccaa8b9e939 
         with:
-          ruby-version: "2.6"
+          ruby-version: "3.0"
           bundler-cache: true
           working-directory: android
       - name: Configure Keystore
