@@ -129,7 +129,7 @@ jobs:
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
-        uses:  ruby/setup-ruby@1 
+        uses:  ruby/setup-ruby@v1 
         with:
           ruby-version: "3.0"
           bundler-cache: true
