@@ -95,6 +95,7 @@ jobs:
     # needs: [testing]
     runs-on: ubuntu-22.04
     steps:
+      - run: git config --global core.autocrlf false
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
@@ -120,7 +121,7 @@ jobs:
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-          git config core.autocrlf false
+          git config --global core.autocrlf false
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
