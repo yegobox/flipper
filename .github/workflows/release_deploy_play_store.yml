@@ -2,21 +2,11 @@ name: Deploy to Play Store
 on:
   # Enable manual run
   workflow_dispatch:
-     inputs:
+    inputs:
       lane:
-        description: "Fastlane lane"
+        description: "Fastlane lane to use (beta OR promote_to_production OR production)"
         required: true
         default: "internal"
-        type: choice
-        options:
-          - beta
-          - promote_to_production
-          - production
-    # inputs:
-    #   lane:
-    #     description: "Fastlane lane to use (beta OR promote_to_production OR production)"
-    #     required: true
-    #     default: "internal"
         # default: "beta"
   # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
@@ -31,13 +21,13 @@ jobs:
   #   name: Integration Testing
   #   runs-on: windows-latest
   #   steps:
-  #     - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+  #     - uses: actions/checkout@v3
   #     - uses: actions/setup-java@v1
   #       with:
   #         java-version: "8.x"
   #     - uses: subosito/flutter-action@v2
   #       with:
-  #         flutter-version: '3.13.0' #firebase_auth_desktop is broken with  3.10.6
+  #         flutter-version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
   #         channel: "stable"
           
   #     - run: git submodule update --init
@@ -64,7 +54,7 @@ jobs:
 
       #   steps:
       #     - name: "Checkout repository"
-      #       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      #       uses: actions/checkout@v3
       #     - name: "Install Flutter"
       #       run: ./.github/workflows/scripts/install-flutter.sh stable
       #     - name: "Install Tools"
@@ -93,19 +83,19 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [testing]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.0' #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: '3.10.5' #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
       # Checkout gallery code and get packages.
       - name: Checkout flipper code
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        uses: actions/checkout@v3
       - uses: actions/setup-java@v2 #plugin for setting up the java
         with:
           distribution: "zulu"
@@ -129,11 +119,10 @@ jobs:
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
-        uses:  ruby/setup-ruby@v1 
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.0"
+          ruby-version: "2.6"
           bundler-cache: true
-          # cache-version: 1
           working-directory: android
       - name: Configure Keystore
         run: |
@@ -165,7 +154,7 @@ jobs:
     needs: [fastlane-deploy]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/checkout@v3
       - name: Slack Notification
         uses: rtCamp/action-slack-notify@v2
         env:
