@@ -34,7 +34,7 @@ if (keystorePropertiesFile.exists()) {
 }
 android {
     // compileSdkVersion flutter.compileSdkVersion
-    compileSdkVersion 30
+    compileSdkVersion 33
 
     compileOptions {
           sourceCompatibility JavaVersion.VERSION_1_8
@@ -54,8 +54,7 @@ android {
         applicationId "rw.flipper"
         minSdkVersion 23
         // minSdkVersion flutter.minSdkVersion
-        // targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 30
+        targetSdkVersion flutter.targetSdkVersion
         // targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
