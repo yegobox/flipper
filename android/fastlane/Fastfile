@@ -13,4 +13,13 @@ platform :android do
       json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
       )
   end
+  desc "Promote beta track to prod"
+  lane :promote_to_production do
+    upload_to_play_store(
+      track: 'beta',
+      track_promote_to: 'production',
+      skip_upload_changelogs: true,
+      json_key_data: ENV['PLAY_STORE_CONFIG_JSON'],
+      )
+  end
 end
