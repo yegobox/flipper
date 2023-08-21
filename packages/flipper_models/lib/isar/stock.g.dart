@@ -171,7 +171,7 @@ Stock deserializeStock(IsarReader reader) {
   {
     final value = IsarCore.readDouble(reader, 4);
     if (value.isNaN) {
-      _lowStock = null;
+      _lowStock = 10.0;
     } else {
       _lowStock = value;
     }
@@ -181,7 +181,7 @@ Stock deserializeStock(IsarReader reader) {
   final bool? _canTrackingStock;
   {
     if (IsarCore.readNull(reader, 6)) {
-      _canTrackingStock = null;
+      _canTrackingStock = true;
     } else {
       _canTrackingStock = IsarCore.readBool(reader, 6);
     }
@@ -189,7 +189,7 @@ Stock deserializeStock(IsarReader reader) {
   final bool? _showLowStockAlert;
   {
     if (IsarCore.readNull(reader, 7)) {
-      _showLowStockAlert = null;
+      _showLowStockAlert = true;
     } else {
       _showLowStockAlert = IsarCore.readBool(reader, 7);
     }
@@ -217,7 +217,7 @@ Stock deserializeStock(IsarReader reader) {
   {
     final value = IsarCore.readDouble(reader, 11);
     if (value.isNaN) {
-      _rsdQty = null;
+      _rsdQty = 0.0;
     } else {
       _rsdQty = value;
     }
@@ -226,7 +226,7 @@ Stock deserializeStock(IsarReader reader) {
   {
     final value = IsarCore.readDouble(reader, 12);
     if (value.isNaN) {
-      _supplyPrice = null;
+      _supplyPrice = 0.0;
     } else {
       _supplyPrice = value;
     }
@@ -235,7 +235,7 @@ Stock deserializeStock(IsarReader reader) {
   {
     final value = IsarCore.readDouble(reader, 13);
     if (value.isNaN) {
-      _retailPrice = null;
+      _retailPrice = 0.0;
     } else {
       _retailPrice = value;
     }
@@ -296,7 +296,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readDouble(reader, 4);
         if (value.isNaN) {
-          return null;
+          return 10.0;
         } else {
           return value;
         }
@@ -306,7 +306,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
     case 6:
       {
         if (IsarCore.readNull(reader, 6)) {
-          return null;
+          return true;
         } else {
           return IsarCore.readBool(reader, 6);
         }
@@ -314,7 +314,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
     case 7:
       {
         if (IsarCore.readNull(reader, 7)) {
-          return null;
+          return true;
         } else {
           return IsarCore.readBool(reader, 7);
         }
@@ -342,7 +342,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readDouble(reader, 11);
         if (value.isNaN) {
-          return null;
+          return 0.0;
         } else {
           return value;
         }
@@ -351,7 +351,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readDouble(reader, 12);
         if (value.isNaN) {
-          return null;
+          return 0.0;
         } else {
           return value;
         }
@@ -360,7 +360,7 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readDouble(reader, 13);
         if (value.isNaN) {
-          return null;
+          return 0.0;
         } else {
           return value;
         }
@@ -3146,14 +3146,14 @@ Stock _$StockFromJson(Map<String, dynamic> json) => Stock(
       productId: json['productId'] as String,
       action: json['action'] as String,
       id: json['id'] as String,
-      lowStock: (json['lowStock'] as num?)?.toDouble(),
-      supplyPrice: (json['supplyPrice'] as num?)?.toDouble(),
-      retailPrice: (json['retailPrice'] as num?)?.toDouble(),
-      canTrackingStock: json['canTrackingStock'] as bool?,
-      showLowStockAlert: json['showLowStockAlert'] as bool?,
+      lowStock: (json['lowStock'] as num?)?.toDouble() ?? 10.0,
+      supplyPrice: (json['supplyPrice'] as num?)?.toDouble() ?? 0.0,
+      retailPrice: (json['retailPrice'] as num?)?.toDouble() ?? 0.0,
+      canTrackingStock: json['canTrackingStock'] as bool? ?? true,
+      showLowStockAlert: json['showLowStockAlert'] as bool? ?? true,
       active: json['active'] as bool?,
       value: (json['value'] as num?)?.toDouble(),
-      rsdQty: (json['rsdQty'] as num?)?.toDouble(),
+      rsdQty: (json['rsdQty'] as num?)?.toDouble() ?? 0.0,
       lastTouched: json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String),
