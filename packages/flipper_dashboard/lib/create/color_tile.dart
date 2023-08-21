@@ -221,6 +221,9 @@ class ColorTile extends StatelessWidget {
         );
       },
       viewModelBuilder: () => UploadViewModel(),
+      onViewModelReady: (model) async {
+        await model.loadColors();
+      },
     );
   }
 

@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
