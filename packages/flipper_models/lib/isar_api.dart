@@ -75,7 +75,10 @@ class IsarAPI<M> implements IsarApiInterface {
           EBMSchema
         ],
         directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir.path,
-        engine: foundation.kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
+        engine: foundation.kIsWeb || Platform.isLinux
+            ? IsarEngine.sqlite
+            : IsarEngine.isar,
+        name: 'flipper-db',
       );
     } else {
       db = isa;
@@ -3075,6 +3078,15 @@ class IsarAPI<M> implements IsarApiInterface {
           .watch(fireImmediately: true)
           .asyncMap((event) => event.first));
     }
+  }
+
+  @override
+  Stream<({bool authState, ITenant tenant})> authState(
+      {required int branchId}) async* {
+    String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    ITenant? tenant = db.read((isar) =>
+        isar.iTenants.where().phoneNumberEqualTo(phoneNumber).findFirst());
+    yield (authState: true, tenant: tenant!);
   }
 
   /// End of streams

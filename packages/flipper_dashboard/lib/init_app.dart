@@ -38,7 +38,8 @@ class InitApp {
     }
 
     if (!isDesktopOrWeb) {
-      ProxyService.event.subscribeToDeviceEvent(channel: 'device');
+      ProxyService.event.subscribeToDeviceEvent(
+          channel: ProxyService.box.getUserPhone()!.replaceAll("+", ""));
     }
 
     ProxyService.messaging

@@ -6,7 +6,7 @@ import 'custom_phone.dart';
 
 class AuthPageDesktop extends StatefulWidget {
   AuthPageDesktop({Key? key, required this.startUpPage}) : super(key: key);
-  Widget startUpPage;
+  final Widget startUpPage;
 
   @override
   State<AuthPageDesktop> createState() => _AuthPageDesktopState();
@@ -24,7 +24,7 @@ class _AuthPageDesktopState extends State<AuthPageDesktop> {
     return AuthFlowBuilder(
       listener: (oldState, state, controller) {
         if (state is SignedIn) {
-          Navigator.of(context).pushReplacementNamed('/profile');
+          //Navigator.of(context).pushReplacementNamed('/profile');
         }
       },
       builder: (context, state, controller, _) {
