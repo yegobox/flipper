@@ -75,7 +75,10 @@ class IsarAPI<M> implements IsarApiInterface {
           EBMSchema
         ],
         directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir.path,
-        engine: foundation.kIsWeb ? IsarEngine.sqlite : IsarEngine.isar,
+        engine: foundation.kIsWeb || Platform.isLinux
+            ? IsarEngine.sqlite
+            : IsarEngine.isar,
+        name: 'flipper-db',
       );
     } else {
       db = isa;

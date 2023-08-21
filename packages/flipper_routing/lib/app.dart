@@ -149,7 +149,9 @@ class App {}
 // https://codepush.dev/
 //TODO: adapt to new FIGMA things https://uxplanet.org/whats-new-in-figma-10-updates-from-config-2023-c1651012835
 // https://codelabs.developers.google.com/design-android-launcher#4
-
+/// there was a time I used this frag in CMAKELists.txt and this was when
+///TODO: firebase core was not friendy and for now it seem to be fixed.
+// set(CMAKE_BUILD_TYPE "Release")
 // TODO: remove these deprecated fields from remote db
 // active
 // reported
