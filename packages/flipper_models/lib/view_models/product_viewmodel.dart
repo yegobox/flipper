@@ -200,7 +200,8 @@ class ProductViewModel extends TenantViewModel {
     if (type == 'product') {
       product?.unit = newUnit.name;
       await ProxyService.isar.update(data: product);
-      setCurrentProduct(currentProduct: product!);
+      // get updated product
+      product = await ProxyService.isar.getProduct(id: product!.id);
     }
     log('updating unit 3', name: 'saveFocusedUnit');
 
