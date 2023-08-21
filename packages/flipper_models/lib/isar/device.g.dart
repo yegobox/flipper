@@ -108,6 +108,8 @@ int serializeDevice(IsarWriter writer, Device object) {
 
 @isarProtected
 Device deserializeDevice(IsarReader reader) {
+  final String _id;
+  _id = IsarCore.readString(reader, 1) ?? '';
   final String _linkingCode;
   _linkingCode = IsarCore.readString(reader, 2) ?? '';
   final String _deviceName;
@@ -139,6 +141,7 @@ Device deserializeDevice(IsarReader reader) {
     }
   }
   final object = Device(
+    id: _id,
     linkingCode: _linkingCode,
     deviceName: _deviceName,
     deviceVersion: _deviceVersion,
@@ -151,7 +154,6 @@ Device deserializeDevice(IsarReader reader) {
     action: _action,
     deletedAt: _deletedAt,
   );
-  object.id = IsarCore.readString(reader, 1) ?? '';
   {
     final value = IsarCore.readLong(reader, 11);
     if (value == -9223372036854775808) {
@@ -2723,6 +2725,7 @@ extension DeviceQueryProperty3<R1, R2>
 // **************************************************************************
 
 Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
+      id: json['id'] as String,
       action: json['action'] as String,
       linkingCode: json['linkingCode'] as String,
       deviceName: json['deviceName'] as String,
@@ -2736,11 +2739,9 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-    )
-      ..id = json['id'] as String
-      ..lastTouched = json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String);
+    )..lastTouched = json['lastTouched'] == null
+        ? null
+        : DateTime.parse(json['lastTouched'] as String);
 
 Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'id': instance.id,
