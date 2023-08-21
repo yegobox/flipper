@@ -3023,11 +3023,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Variant>> geVariantStreamByProductId(
       {required String productId}) {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.variants
         .where()
         .productIdEqualTo(productId)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }

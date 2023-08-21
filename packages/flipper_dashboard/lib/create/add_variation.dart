@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
@@ -38,6 +37,9 @@ class _AddVariationState extends State<AddVariation> {
   Widget build(BuildContext context) {
     // ignore: always_specify_types
     return ViewModelBuilder<ProductViewModel>.reactive(
+        onViewModelReady: (model) async {
+          await model.getProduct(productId: widget.productId);
+        },
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
@@ -122,7 +124,6 @@ class _AddVariationState extends State<AddVariation> {
                       costController.text,
                     ),
                   );
-                  model.variantsProduct(productId: model.product!.id);
                   _routerService.pop();
                 }
               },

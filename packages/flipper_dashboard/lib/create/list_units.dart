@@ -1,4 +1,6 @@
+import 'package:flipper_dashboard/add_product_view.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -11,34 +13,27 @@ class ListUnits extends StatelessWidget {
   final String type;
   final _routerService = locator<RouterService>();
   List<Widget> _getUnitsWidgets(ProductViewModel model) {
-    final List<Widget> list = <Widget>[];
-    for (var i = 0; i < model.units.length; i++) {
-      list.add(
-        GestureDetector(
-          onTap: () {
-            model.saveFocusedUnit(
-                newUnit: model.units[i], id: model.product!.id, type: type);
-          },
-          child: ListTile(
-            title: Text(
-              model.units[i].name,
-              style: const TextStyle(color: Colors.black),
-            ),
-            trailing: Radio<String>(
-              value: model.units[i].id,
-              groupValue: model.units[i].active ? model.units[i].id : '0',
-              onChanged: (value) {
-                model.saveFocusedUnit(
-                    newUnit: model.units[i],
-                    id: model.product?.id!,
-                    type: type);
-              },
-            ),
+    return List.generate(model.units.length, (index) {
+      final unit = model.units[index];
+      return GestureDetector(
+        onTap: () => _onUnitTapped(model, unit),
+        child: ListTile(
+          title: Text(
+            unit.name,
+            style: const TextStyle(color: Colors.black),
+          ),
+          trailing: Radio<String>(
+            value: unit.id,
+            groupValue: unit.active ? unit.id : '0',
+            onChanged: (_) => _onUnitTapped(model, unit),
           ),
         ),
       );
-    }
-    return list;
+    });
+  }
+
+  void _onUnitTapped(ProductViewModel model, IUnit unit) {
+    model.saveFocusedUnit(newUnit: unit, id: model.product?.id, type: type);
   }
 
   @override
@@ -48,13 +43,17 @@ class ListUnits extends StatelessWidget {
         return Scaffold(
           appBar: CustomAppBar(
             onPop: () {
-              _routerService.pop();
+              _routerService.navigateTo(AddProductViewRoute(
+                productId: model.product!.id,
+              ));
             },
             title: 'Unit Type',
             showActionButton: false,
             disableButton: false,
             onActionButtonClicked: () {
-              _routerService.pop();
+              _routerService.navigateTo(AddProductViewRoute(
+                productId: model.product!.id,
+              ));
             },
             icon: Icons.close,
             multi: 3,
@@ -74,7 +73,8 @@ class ListUnits extends StatelessWidget {
           ),
         );
       },
-      onViewModelReady: (ProductViewModel model) {
+      onViewModelReady: (ProductViewModel model) async {
+        await model.getProduct();
         model.loadUnits();
       },
       viewModelBuilder: () => ProductViewModel(),
