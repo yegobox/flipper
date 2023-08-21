@@ -153,6 +153,7 @@ class App {}
 ///TODO: firebase core was not friendy and for now it seem to be fixed.
 // set(CMAKE_BUILD_TYPE "Release")
 // TODO: remove these deprecated fields from remote db
+// https://pub.dev/packages/pinput
 // active
 // reported
 // draft
