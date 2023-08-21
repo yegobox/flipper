@@ -166,7 +166,9 @@ class _AddProductViewState extends State<AddProductView> {
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () async {
-                _routerService.back();
+                _routerService.navigateTo(CheckOutRoute(
+                  isBigScreen: false,
+                ));
               },
               title: 'Create Product',
               disableButton: model.lock,
@@ -191,7 +193,9 @@ class _AddProductViewState extends State<AddProductView> {
                         0.0,
                     productId: model.product?.id);
 
-                _routerService.clearStackAndShow(FlipperAppRoute());
+                _routerService.clearStackAndShow(CheckOutRoute(
+                  isBigScreen: false,
+                ));
               },
               rightActionButtonName: 'Save',
               icon: Icons.close,
@@ -349,19 +353,34 @@ class _AddProductViewState extends State<AddProductView> {
                       ),
                       verticalSpaceSmall,
                       verticalSpaceSmall,
-                      model.variants == null
-                          ? const SizedBox.shrink()
-                          : Padding(
-                              padding:
-                                  const EdgeInsets.only(left: 18, right: 18),
-                              child: VariationList(
-                                variations: model.variants!,
-                                model: model,
-                                deleteVariant: (id) {
-                                  model.deleteVariant(id: id);
-                                },
-                              ),
-                            ),
+                      StreamBuilder<List<Variant>>(
+                        stream: ProxyService.isar.geVariantStreamByProductId(
+                            productId: model.product?.id ?? '0'),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return CircularProgressIndicator();
+                          } else {
+                            final List<Variant> variations =
+                                snapshot.data ?? [];
+                            if (variations.isEmpty) {
+                              return const SizedBox.shrink();
+                            } else {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 18, right: 18),
+                                child: VariationList(
+                                  variations: variations,
+                                  model: model,
+                                  deleteVariant: (id) {
+                                    model.deleteVariant(id: id);
+                                  },
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
                       Padding(
                         padding:
                             const EdgeInsets.only(left: 18, right: 18, top: 2),

@@ -39,10 +39,6 @@ class AppService with ListenableServiceMixin {
     _tenant.value = tenant;
   }
 
-  final _units = ReactiveValue<List<IUnit>>([]);
-  List<IUnit> get units => _units.value;
-
-
   final _customer = ReactiveValue<Customer?>(null);
   Customer? get customer => _customer.value;
   void setCustomer(Customer? customer) {
@@ -57,14 +53,6 @@ class AppService with ListenableServiceMixin {
 
     _categories.value = result;
     notifyListeners();
-  }
-
-  Future<void> loadUnits() async {
-    int? branchId = ProxyService.box.getBranchId();
-    final List<IUnit> result =
-        await ProxyService.isar.units(branchId: branchId!);
-
-    _units.value = result;
   }
 
   /// we fist log in to the business portal
@@ -226,8 +214,7 @@ class AppService with ListenableServiceMixin {
   }
 
   AppService() {
-    listenToReactiveValues(
-        [_categories, _units, _business, _contacts]);
+    listenToReactiveValues([_categories, _business, _contacts]);
   }
 
   Future<bool> isSocialLoggedin() async {

@@ -25,11 +25,13 @@ class ProductViewModel extends TenantViewModel {
   final ProductService productService = loc.locator<ProductService>();
   final _routerService = locator<RouterService>();
 
-  List<IUnit> get units => app.units;
+  List<IUnit> units = [];
+  Future<void> loadUnits() async {
+    int? branchId = ProxyService.box.getBranchId();
+    units = await ProxyService.isar.units(branchId: branchId!);
+  }
 
   get categories => app.categories;
-
-  Product? _product = null;
 
   List<Product> _products = [];
 
@@ -84,14 +86,6 @@ class ProductViewModel extends TenantViewModel {
   String? _productName;
   get productName => _productName;
 
-  List<Variant> _variants = [];
-  List<Variant>? get variants => _variants;
-
-  Future<void> variantsProduct({required String productId}) async {
-    _variants = await ProxyService.isar.variants(
-        branchId: ProxyService.box.getBranchId()!, productId: productId);
-  }
-
   Stream<String> getBarCode() async* {
     yield productService.barCode;
   }
@@ -109,8 +103,6 @@ class ProductViewModel extends TenantViewModel {
       setCurrentProduct(currentProduct: product);
       kProductName = product.name;
 
-      variantsProduct(productId: product.id);
-      variantsProduct(productId: product.id);
       notifyListeners();
       return product;
     }
@@ -125,7 +117,6 @@ class ProductViewModel extends TenantViewModel {
             businessId: ProxyService.box.getBusinessId()!,
             color: COLOR,
             branchId: ProxyService.box.getBranchId()!));
-    await variantsProduct(productId: product.id);
 
     setCurrentProduct(currentProduct: product);
     kProductName = product.name;
@@ -147,10 +138,6 @@ class ProductViewModel extends TenantViewModel {
 
   void loadCategories() {
     app.loadCategories();
-  }
-
-  void loadUnits() {
-    app.loadUnits();
   }
 
   ///create a new category and refresh list of categories
@@ -196,35 +183,38 @@ class ProductViewModel extends TenantViewModel {
   /// the Id can be ID of product or variant
   void saveFocusedUnit(
       {required IUnit newUnit, String? id, required String type}) async {
+    final int branchId = ProxyService.box.getBranchId()!;
+    log('updating unit', name: 'saveFocusedUnit');
     for (IUnit unit in units) {
       if (unit.active) {
-        unit.active = !unit.active;
-        unit.branchId = ProxyService.box.getBranchId()!;
-        await ProxyService.isar.update(
-          data: unit,
-        );
+        unit.active = false;
+        unit.branchId = branchId;
+        await ProxyService.isar.update(data: unit);
       }
     }
-    IUnit unit = newUnit;
-    unit.active = !unit.active;
-    unit.branchId = ProxyService.box.getBranchId()!;
-    await ProxyService.isar.update(
-      data: unit,
-    );
+    log('updating unit 1', name: 'saveFocusedUnit');
+    newUnit.active = true;
+    newUnit.branchId = branchId;
+    await ProxyService.isar.update(data: newUnit);
+    log('updating unit 2', name: 'saveFocusedUnit');
     if (type == 'product') {
-      _product?.unit = unit.name;
-      ProxyService.isar.update(data: _product);
-      final Product? uProduct =
-          await ProxyService.isar.getProduct(id: _product!.id);
-      setCurrentProduct(currentProduct: uProduct!);
+      product?.unit = newUnit.name;
+      await ProxyService.isar.update(data: product);
+      // get updated product
+      product = await ProxyService.isar.getProduct(id: product!.id);
     }
+    log('updating unit 3', name: 'saveFocusedUnit');
+
     if (type == 'variant') {
+      // Update variants if needed
       // final Map data = product.toJson();
       // data['unit'] = unit.name;
-      // ProxyService.isar.update(data: data, endPoint: 'variant');
+      // ProxyService.isar.update(data: data);
     }
+
+    loadUnits();
+    log('updating unit 4', name: 'saveFocusedUnit');
     notifyListeners();
-    app.loadUnits();
   }
 
   void updateStock({required String variantId}) async {
@@ -238,9 +228,7 @@ class ProductViewModel extends TenantViewModel {
       if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveStock(stock: stock);
       }
-      variantsProduct(productId: _product!.id);
     }
-    variantsProduct(productId: _product!.id);
   }
 
   double? _stockValue;
@@ -312,8 +300,10 @@ class ProductViewModel extends TenantViewModel {
   Future<void> updateRegularVariant(
       {double? supplyPrice, double? retailPrice, String? productId}) async {
     Product? product = await ProxyService.isar.getProduct(id: productId!);
+    List<Variant> variants = await ProxyService.isar.variants(
+        branchId: ProxyService.box.getBranchId()!, productId: productId);
     if (supplyPrice != null) {
-      for (Variant variation in variants!) {
+      for (Variant variation in variants) {
         if (variation.name == "Regular") {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
@@ -335,7 +325,7 @@ class ProductViewModel extends TenantViewModel {
     }
 
     if (retailPrice != null) {
-      for (Variant variation in variants!) {
+      for (Variant variation in variants) {
         if (variation.name == "Regular") {
           variation.retailPrice = retailPrice;
           variation.productId = variation.productId;
@@ -356,7 +346,6 @@ class ProductViewModel extends TenantViewModel {
         }
       }
     }
-    variantsProduct(productId: product!.id);
   }
 
   /// Add a product into the system
@@ -429,15 +418,15 @@ class ProductViewModel extends TenantViewModel {
   }
 
   void updateExpiryDate(DateTime date) async {
-    _product!.expiryDate = date.toIso8601String();
-    ProxyService.isar.update(data: _product);
-    Product? cProduct = await ProxyService.isar.getProduct(id: _product!.id);
+    product!.expiryDate = date.toIso8601String();
+    ProxyService.isar.update(data: product);
+    Product? cProduct = await ProxyService.isar.getProduct(id: product!.id);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }
 
   Stream<String> getProductName() async* {
-    yield _product != null ? _product!.name : '';
+    yield product != null ? product!.name : '';
   }
 
   void deleteDiscount({id}) {

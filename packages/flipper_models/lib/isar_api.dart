@@ -1322,12 +1322,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Product?> isTempProductExist({required int branchId}) async {
-    return await db.readAsync(
-        (isar) => isar.products.where().nameContains("temp").findFirst());
-  }
-
-  @override
   int lifeTimeCustomersForbranch({required String branchId}) {
     // TODO: implement lifeTimeCustomersForbranch
     throw UnimplementedError();
@@ -2883,11 +2877,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<TransactionItem>> transactionItemsStream() {
-    return transactionsStreams().asyncMap((transactions) async {
+    return transactionsStreams(status: PENDING).asyncMap((transactions) async {
       final List<TransactionItem> allItems = [];
 
       for (final transaction in transactions) {
-        final items = await db.read((isar) => db.transactionItems
+        log(transaction.id, name: "transactionItemsStream");
+        final items = await db.read((isar) => isar.transactionItems
             .where()
             .transactionIdEqualTo(transaction.id)
             .findAll());
@@ -3023,11 +3018,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<Variant>> geVariantStreamByProductId(
       {required String productId}) {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.variants
         .where()
         .productIdEqualTo(productId)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .sortByLastTouchedDesc()
         .watch(fireImmediately: true);
   }
