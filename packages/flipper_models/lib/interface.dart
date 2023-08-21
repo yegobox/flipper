@@ -269,4 +269,8 @@ abstract class IsarApiInterface {
   Future<Conversation> sendMessage(
       {required String message, required Conversation latestConversation});
   Future<EBM?> getEbmByBranchId({required int branchId});
+
+  // Future<ITenant> authState({required int branchId});
+
+  Stream<({ITenant tenant, bool authState})> authState({required int branchId});
 }

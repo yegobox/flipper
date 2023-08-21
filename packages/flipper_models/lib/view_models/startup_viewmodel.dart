@@ -2,6 +2,7 @@ library flipper_models;
 
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
@@ -30,10 +31,12 @@ class StartupViewModel extends BaseViewModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
-      log("User rrr" + ProxyService.box.getUserId().toString());
+      log("User" + ProxyService.box.getUserId().toString(),
+          name: 'runStartupLogic');
+      int businessId = ProxyService.box.getBusinessId()!;
+      FirebaseAuth.instance.tenantId = businessId.toString();
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (await ProxyService.isar
-          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
+      if (await ProxyService.isar.isDrawerOpen(cashierId: businessId)) {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {

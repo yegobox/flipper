@@ -128,6 +128,7 @@ class EventService implements EventInterface {
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         keepTryingPublishDevice();
         await FirebaseAuth.instance.signInAnonymously();
+        FirebaseAuth.instance.tenantId = loginData.businessId.toString();
       });
     } catch (e) {
       rethrow;

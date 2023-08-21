@@ -3080,5 +3080,14 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  @override
+  Stream<({bool authState, ITenant tenant})> authState(
+      {required int branchId}) async* {
+    String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
+    ITenant? tenant = db.read((isar) =>
+        isar.iTenants.where().phoneNumberEqualTo(phoneNumber).findFirst());
+    yield (authState: true, tenant: tenant!);
+  }
+
   /// End of streams
 }
