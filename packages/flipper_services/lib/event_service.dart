@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
@@ -112,6 +112,7 @@ class EventService implements EventInterface {
         if (device == null) {
           await ProxyService.isar.create(
               data: Device(
+                  id: randomString(),
                   pubNubPublished: false,
                   branchId: loginData.branchId,
                   businessId: loginData.businessId,
@@ -174,6 +175,7 @@ class EventService implements EventInterface {
       if (device == null) {
         await ProxyService.isar.create(
             data: Device(
+                id: randomString(),
                 pubNubPublished: true,
                 action: AppActions.create,
                 branchId: deviceEvent.branchId,
@@ -196,7 +198,7 @@ class EventService implements EventInterface {
     for (Device device in devices) {
       nub.PublishResult result = await publish(
         loginDetails: {
-          'channel': 'device',
+          'channel': ProxyService.box.getUserPhone()!.replaceAll("+", ""),
           'deviceName': device.deviceName,
           'deviceVersion': device.deviceVersion,
           'linkingCode': device.linkingCode,

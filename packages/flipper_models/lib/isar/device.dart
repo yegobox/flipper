@@ -1,6 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -33,6 +32,7 @@ class Device extends IJsonSerializable {
   @Index()
   DateTime? deletedAt;
   Device({
+    required this.id,
     required this.action,
     required this.linkingCode,
     required this.deviceName,
@@ -58,9 +58,5 @@ class Device extends IJsonSerializable {
     return _$DeviceFromJson(json);
   }
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$DeviceToJson(this);
-    if (id != null) {}
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$DeviceToJson(this);
 }
