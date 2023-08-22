@@ -7,7 +7,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -245,7 +244,8 @@ class ColorTile extends StatelessWidget {
                   ),
                   child: const Text(''),
                   onPressed: () {
-                    model.switchColor(color: colors[i]);
+                    model.switchColor(
+                        color: colors[i], product: model.product!);
                   },
                 ),
               ),
@@ -255,7 +255,8 @@ class ColorTile extends StatelessWidget {
                       icon: const Icon(Icons.check),
                       color: Colors.white,
                       onPressed: () {
-                        model.switchColor(color: colors[i]);
+                        model.switchColor(
+                            color: colors[i], product: model.product!);
                       },
                     )
                   : const Visibility(
