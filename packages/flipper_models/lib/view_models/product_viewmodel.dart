@@ -248,7 +248,8 @@ class ProductViewModel extends TenantViewModel {
     }
   }
 
-  Future<void> switchColor({required PColor color}) async {
+  Future<void> switchColor(
+      {required PColor color, required Product product}) async {
     int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
@@ -263,7 +264,8 @@ class ProductViewModel extends TenantViewModel {
 
     _color!.active = true;
     _color.branchId = branchId;
-
+    product.color = color.name!;
+    await ProxyService.isar.update(data: product);
     await ProxyService.isar.update(data: _color);
 
     setCurrentColor(color: color.name!);

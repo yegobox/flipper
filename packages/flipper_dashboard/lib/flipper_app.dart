@@ -150,78 +150,44 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         ? 25
                         : 0,
               ),
-              body: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                if (constraints.maxWidth < 600) {
-                  // this is a phone
-
-                  return PageSwitcher(
-                    controller: controller,
-                    model: model,
-                    currentPage: tabselected,
-                  );
-                } else {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        child: SizedBox.shrink(),
-                      ),
-                      // Left menu
-                      // ignore: todo
-                      // TODO: left menu will be essential when we add socials feature
-                      // by the time I implement it I will remove the above SizedBox as it is helping me
-                      // to keep the design consistent for now.
-                      // Container(
-                      //   width: 150,
-                      //   child: SideMenu(
-                      //     style: SideMenuStyle(
-                      //       showTooltip: false,
-                      //       displayMode: SideMenuDisplayMode.compact,
-                      //       compactSideMenuWidth: 60,
-                      //       openSideMenuWidth: 150,
-                      //     ),
-                      //     items: [
-                      //       SideMenuItem(
-                      //         // Priority of item to show on SideMenu, lower value is displayed at the top
-                      //         priority: 0,
-                      //         title: 'Dashboard',
-                      //         icon: Icon(Icons.home),
-                      //         badgeContent: Text(
-                      //           '3',
-                      //           style: TextStyle(color: Colors.white),
-                      //         ),
-                      //       )
-                      //     ],
-                      //     controller: sideMenu,
-                      //   ),
-                      // ),
-
-                      // Middle menu
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          child: ProductView.normalMode(),
+              body: StreamBuilder<({bool authState, ITenant? tenant})>(
+                  stream: ProxyService.isar
+                      .authState(branchId: ProxyService.box.getBranchId()!),
+                  builder: (context, snapshot) {
+                    if (snapshot.data!.authState == false) {
+                      return FutureBuilder(
+                        future: showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text("Not authenticated"),
+                              content: Text("Please authenticate to continue."),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    // Close the dialog.
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text("Ok"),
+                                ),
+                              ],
+                            );
+                          },
                         ),
-                      ),
-
-                      // Right menu
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                          child: PageSwitcher(
-                            isBigScreen: true,
-                            controller: controller,
-                            model: model,
-                            currentPage: tabselected,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              }),
+                        builder: (context, snapshot) {
+                          return Main(
+                              controller: controller,
+                              tabselected: tabselected,
+                              model: model);
+                        },
+                      );
+                    } else {
+                      return Main(
+                          controller: controller,
+                          tabselected: tabselected,
+                          model: model);
+                    }
+                  }),
             ),
           );
         });
@@ -304,5 +270,94 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     } else {
       return false;
     }
+  }
+}
+
+class Main extends StatelessWidget {
+  const Main({
+    super.key,
+    required this.controller,
+    required this.tabselected,
+    required this.model,
+  });
+
+  final TextEditingController controller;
+  final int tabselected;
+  final HomeViewModel model;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+      if (constraints.maxWidth < 600) {
+        // this is a phone
+
+        return PageSwitcher(
+          controller: controller,
+          model: model,
+          currentPage: tabselected,
+        );
+      } else {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 20,
+              child: SizedBox.shrink(),
+            ),
+            // Left menu
+            // ignore: todo
+            // TODO: left menu will be essential when we add socials feature
+            // by the time I implement it I will remove the above SizedBox as it is helping me
+            // to keep the design consistent for now.
+            // Container(
+            //   width: 150,
+            //   child: SideMenu(
+            //     style: SideMenuStyle(
+            //       showTooltip: false,
+            //       displayMode: SideMenuDisplayMode.compact,
+            //       compactSideMenuWidth: 60,
+            //       openSideMenuWidth: 150,
+            //     ),
+            //     items: [
+            //       SideMenuItem(
+            //         // Priority of item to show on SideMenu, lower value is displayed at the top
+            //         priority: 0,
+            //         title: 'Dashboard',
+            //         icon: Icon(Icons.home),
+            //         badgeContent: Text(
+            //           '3',
+            //           style: TextStyle(color: Colors.white),
+            //         ),
+            //       )
+            //     ],
+            //     controller: sideMenu,
+            //   ),
+            // ),
+
+            // Middle menu
+            Expanded(
+              flex: 2,
+              child: Container(
+                child: ProductView.normalMode(),
+              ),
+            ),
+
+            // Right menu
+            Expanded(
+              flex: 1,
+              child: Container(
+                child: PageSwitcher(
+                  isBigScreen: true,
+                  controller: controller,
+                  model: model,
+                  currentPage: tabselected,
+                ),
+              ),
+            ),
+          ],
+        );
+      }
+    });
   }
 }

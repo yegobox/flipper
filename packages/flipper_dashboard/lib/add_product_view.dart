@@ -211,9 +211,27 @@ class _AddProductViewState extends State<AddProductView> {
                       verticalSpaceSmall,
                       model.product == null
                           ? const SizedBox.shrink()
-                          : ColorAndImagePlaceHolder(
-                              currentColor: model.currentColor,
-                              product: model.product,
+                          : StreamBuilder<List<Product>>(
+                              stream: ProxyService.isar
+                                  .productStreams(prodIndex: model.product!.id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.waiting ||
+                                    !snapshot.hasData ||
+                                    snapshot.data!.isEmpty) {
+                                  return ColorAndImagePlaceHolder(
+                                    currentColor: '#0984e3',
+                                    product: model.product,
+                                  );
+                                } else {
+                                  String color = snapshot.data!.first.color;
+
+                                  return ColorAndImagePlaceHolder(
+                                    currentColor: color,
+                                    product: model.product,
+                                  );
+                                }
+                              },
                             ),
                       Text(
                         'Product',

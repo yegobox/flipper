@@ -19,6 +19,10 @@ class UploadViewModel extends ProductViewModel {
     uploader.clearUploads();
     ProxyService.upload.browsePictureFromGallery(
         productId: id, urlType: urlType, uploader: uploader);
+    handleUploaderResult(urlType, id, callBack);
+  }
+
+  void handleUploaderResult(URLTYPE urlType, id, Function(String) callBack) {
     uploader.result.listen((UploadTaskResponse result) async {
       log(result.status.toString(), name: "status");
       log(result.status!.description.toString(), name: "status description");
@@ -56,10 +60,12 @@ class UploadViewModel extends ProductViewModel {
 
   void takePicture(
       {required String productId,
-      required Function callBack,
+      required Function(String) callBack,
       required URLTYPE urlType}) {
+    uploader.clearUploads();
     ProxyService.upload
         .takePicture(urlType: urlType, id: productId, uploader: uploader);
+    handleUploaderResult(urlType, id, callBack);
   }
 
   void updateBusinessProfile({required String url}) async {
