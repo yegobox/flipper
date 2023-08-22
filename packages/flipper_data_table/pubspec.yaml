@@ -4,8 +4,7 @@ version: 1.0.0-dev.2
 
 repository: https://github.com/yegobox/packages
 
-environment:
-  sdk: ">=3.0.0 <4.0.0"
+sdk: ">=3.0.0"
 
 dependencies:
   flipper_models: ^0.0.1-dev.7

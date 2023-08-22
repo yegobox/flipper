@@ -72,7 +72,8 @@ class IsarAPI<M> implements IsarApiInterface {
           ConversationSchema,
           DeviceSchema,
           FavoriteSchema,
-          EBMSchema
+          EBMSchema,
+          UserActivitySchema
         ],
         directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir.path,
         engine: foundation.kIsWeb || Platform.isLinux
@@ -1469,32 +1470,32 @@ class IsarAPI<M> implements IsarApiInterface {
     );
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
-      IUser syncF = IUser.fromRawJson(response.body);
+      IUser user = IUser.fromRawJson(response.body);
       await ProxyService.box.write(
         key: 'userPhone',
         value: userPhone,
       );
       await ProxyService.box.write(
         key: 'bearerToken',
-        value: syncF.token,
+        value: user.token,
       );
       await ProxyService.box.write(
         key: 'userId',
-        value: syncF.id,
+        value: user.id,
       );
+      recordUserActivity(userId: user.id);
       await ProxyService.box.write(
         key: 'branchId',
         // check if branches is empty
-        value: syncF.tenants.isEmpty
-            ? null
-            : syncF.tenants.first.branches.first.id,
+        value:
+            user.tenants.isEmpty ? null : user.tenants.first.branches.first.id,
       );
       await ProxyService.box.write(
         key: 'businessId',
         // check if businesses is empty
-        value: syncF.tenants.isEmpty
+        value: user.tenants.isEmpty
             ? null
-            : syncF.tenants.first.businesses.first.id,
+            : user.tenants.first.businesses.first.id,
       );
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.write(
@@ -1503,27 +1504,27 @@ class IsarAPI<M> implements IsarApiInterface {
           /// because we don update default app from server
           /// because we want the ability of switching apps to be entirely offline
           /// then if we have a default app in the box we use it if it only different from 1
-          value: syncF.tenants.isEmpty
+          value: user.tenants.isEmpty
               ? null
               : ProxyService.box.getDefaultApp() != 1
                   ? ProxyService.box.getDefaultApp()
-                  : syncF.tenants.first.businesses.first.businessTypeId,
+                  : user.tenants.first.businesses.first.businessTypeId,
         );
       }
 
-      if (syncF.tenants.isEmpty) {
+      if (user.tenants.isEmpty) {
         throw BusinessNotFoundException(
             term:
                 "No tenant added to the user, if a business is added it should have one tenant");
       }
-      for (Tenant tenant in syncF.tenants) {
+      for (Tenant tenant in user.tenants) {
         ITenant iTenant = ITenant(
             id: tenant.id,
             name: tenant.name,
             businessId: tenant.businessId,
             nfcEnabled: tenant.nfcEnabled,
             email: tenant.email,
-            userId: syncF.id,
+            userId: user.id,
             phoneNumber: tenant.phoneNumber);
 
         db.write((isar) {
@@ -1539,7 +1540,7 @@ class IsarAPI<M> implements IsarApiInterface {
           isar.iTenants.put(iTenant);
         });
       }
-      return syncF;
+      return user;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
@@ -1676,6 +1677,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<T?> create<T>({required T data}) async {
+    /// update user activity model
+    int userId = ProxyService.box.getUserId()!;
+    recordUserActivity(userId: userId);
+
+    /// end with updating user activity
     if (data is Conversation) {
       Conversation conversation = data;
       db.write((isar) {
@@ -1785,6 +1791,11 @@ class IsarAPI<M> implements IsarApiInterface {
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
   Future<T?> update<T>({required T data}) async {
+    /// update user activity
+    int userId = ProxyService.box.getUserId()!;
+    recordUserActivity(userId: userId);
+
+    /// end updating user activity
     // int branchId = ProxyService.box.getBranchId()!;
     if (data is Device) {
       Device device = data;
@@ -3080,13 +3091,75 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
+  Future<bool> hasNoActivityInLast5Minutes({required int userId}) async {
+    // Get the current time
+    DateTime currentTime = DateTime.now();
+
+    // Calculate the time 5 minutes ago
+    DateTime fiveMinutesAgo = currentTime.subtract(Duration(minutes: 5));
+
+    // Retrieve the user activities
+    List<UserActivity> userActivities = await activities(userId: userId);
+
+    // Check if any activity was touched within the last 5 minutes
+    for (var activity in userActivities) {
+      if (activity.lastTouched!.isAfter(fiveMinutesAgo)) {
+        // The user has done an activity within the last 5 minutes
+        return false;
+      }
+    }
+
+    // No activity found within the last 5 minutes
+    return true;
+  }
+
   @override
-  Stream<({bool authState, ITenant tenant})> authState(
+  Stream<({bool authState, ITenant? tenant})> authState(
       {required int branchId}) async* {
-    String phoneNumber = ProxyService.box.getUserPhone()!.replaceAll("+", "");
-    ITenant? tenant = db.read((isar) =>
-        isar.iTenants.where().phoneNumberEqualTo(phoneNumber).findFirst());
-    yield (authState: true, tenant: tenant!);
+    while (true) {
+      try {
+        String phoneNumber =
+            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+        ITenant? tenant = db.read((isar) =>
+            isar.iTenants.where().phoneNumberEqualTo(phoneNumber).findFirst());
+        int userId = ProxyService.box.getUserId()!;
+        yield (
+          authState: await hasNoActivityInLast5Minutes(userId: userId),
+          tenant: tenant!
+        );
+      } catch (error) {
+        print('Error fetching tenant: $error');
+        yield (authState: false, tenant: null);
+      }
+
+      // Wait for a certain duration before yielding the next value
+      await Future.delayed(Duration(minutes: 5));
+    }
+  }
+
+  @override
+  Future<List<UserActivity>> activities({required int userId}) async {
+    // Get the current date
+    DateTime now = DateTime.now();
+
+    // Calculate the start and end of the current day
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = startOfDay.add(Duration(days: 1));
+
+    return db.read((isar) => isar.userActivitys
+        .where()
+        .lastTouchedBetween(startOfDay, endOfDay)
+        .findAll());
+  }
+
+  @override
+  Future<void> recordUserActivity({required int userId}) async {
+    db.write((isar) => isar.userActivitys.put(UserActivity(
+        userId: userId,
+        action: 'create',
+        id: randomString(),
+        timestamp: DateTime.now(),
+        lastTouched: DateTime.now())));
   }
 
   /// End of streams

@@ -12,13 +12,12 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.576995481765+1692689059
+version: 1.170.578688170825+1692695235
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
-environment:
-  sdk: ">=3.0.0 <4.0.0"
+sdk: ">=3.0.0"
 
 dependencies:
   flutter:
