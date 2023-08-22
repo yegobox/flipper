@@ -3,7 +3,10 @@ description: Flipper localization
 version: 1.0.0
 repository: https://github.com/yegobox/packages
 
-sdk: ">=3.0.0"
+
+environment:
+  sdk: ">=3.0.0"
+
 
 dependencies:
   flutter:

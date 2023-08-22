@@ -6,7 +6,9 @@ repository: https://github.com/yegobox/packages
 
 # publish_to: "none"
 
-sdk: ">=3.0.0"
+environment:
+  sdk: ">=3.0.0"
+
 
 dependencies:
   flutter:
