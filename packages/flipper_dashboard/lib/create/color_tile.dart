@@ -200,15 +200,7 @@ class ColorTile extends StatelessWidget {
                           model.takePicture(
                             urlType: URLTYPE.PRODUCT,
                             productId: model.product!.id,
-                            callBack: (int res) {
-                              if (res == 500) {
-                                showSimpleNotification(
-                                  const Text('Error try again'),
-                                  background: Colors.red,
-                                  position: NotificationPosition.bottom,
-                                );
-                              }
-                            },
+                            callBack: (e) {},
                           );
                         },
                       ),
@@ -222,6 +214,7 @@ class ColorTile extends StatelessWidget {
       },
       viewModelBuilder: () => UploadViewModel(),
       onViewModelReady: (model) async {
+        await model.getProduct();
         await model.loadColors();
       },
     );
