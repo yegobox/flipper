@@ -33,6 +33,10 @@ const UserActivitySchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
       IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
         name: 'action',
         type: IsarType.string,
       ),
@@ -61,8 +65,9 @@ int serializeUserActivity(IsarWriter writer, UserActivity object) {
       3,
       object.lastTouched?.toUtc().microsecondsSinceEpoch ??
           -9223372036854775808);
-  IsarCore.writeString(writer, 4, object.action);
-  IsarCore.writeLong(writer, 5,
+  IsarCore.writeLong(writer, 4, object.userId);
+  IsarCore.writeString(writer, 5, object.action);
+  IsarCore.writeLong(writer, 6,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
   return Isar.fastHash(object.id);
 }
@@ -92,16 +97,19 @@ UserActivity deserializeUserActivity(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
+  final int _userId;
+  _userId = IsarCore.readLong(reader, 4);
   final String _action;
-  _action = IsarCore.readString(reader, 4) ?? '';
+  _action = IsarCore.readString(reader, 5) ?? '';
   final object = UserActivity(
     timestamp: _timestamp,
     id: _id,
     lastTouched: _lastTouched,
+    userId: _userId,
     action: _action,
   );
   {
-    final value = IsarCore.readLong(reader, 5);
+    final value = IsarCore.readLong(reader, 6);
     if (value == -9223372036854775808) {
       object.deletedAt = null;
     } else {
@@ -138,10 +146,12 @@ dynamic deserializeUserActivityProp(IsarReader reader, int property) {
         }
       }
     case 4:
-      return IsarCore.readString(reader, 4) ?? '';
+      return IsarCore.readLong(reader, 4);
     case 5:
+      return IsarCore.readString(reader, 5) ?? '';
+    case 6:
       {
-        final value = IsarCore.readLong(reader, 5);
+        final value = IsarCore.readLong(reader, 6);
         if (value == -9223372036854775808) {
           return null;
         } else {
@@ -159,6 +169,7 @@ sealed class _UserActivityUpdate {
     required String id,
     DateTime? timestamp,
     DateTime? lastTouched,
+    int? userId,
     String? action,
     DateTime? deletedAt,
   });
@@ -174,6 +185,7 @@ class _UserActivityUpdateImpl implements _UserActivityUpdate {
     required String id,
     Object? timestamp = ignore,
     Object? lastTouched = ignore,
+    Object? userId = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
   }) {
@@ -182,8 +194,9 @@ class _UserActivityUpdateImpl implements _UserActivityUpdate {
         ], {
           if (timestamp != ignore) 1: timestamp as DateTime?,
           if (lastTouched != ignore) 3: lastTouched as DateTime?,
-          if (action != ignore) 4: action as String?,
-          if (deletedAt != ignore) 5: deletedAt as DateTime?,
+          if (userId != ignore) 4: userId as int?,
+          if (action != ignore) 5: action as String?,
+          if (deletedAt != ignore) 6: deletedAt as DateTime?,
         }) >
         0;
   }
@@ -194,6 +207,7 @@ sealed class _UserActivityUpdateAll {
     required List<String> id,
     DateTime? timestamp,
     DateTime? lastTouched,
+    int? userId,
     String? action,
     DateTime? deletedAt,
   });
@@ -209,14 +223,16 @@ class _UserActivityUpdateAllImpl implements _UserActivityUpdateAll {
     required List<String> id,
     Object? timestamp = ignore,
     Object? lastTouched = ignore,
+    Object? userId = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
   }) {
     return collection.updateProperties(id, {
       if (timestamp != ignore) 1: timestamp as DateTime?,
       if (lastTouched != ignore) 3: lastTouched as DateTime?,
-      if (action != ignore) 4: action as String?,
-      if (deletedAt != ignore) 5: deletedAt as DateTime?,
+      if (userId != ignore) 4: userId as int?,
+      if (action != ignore) 5: action as String?,
+      if (deletedAt != ignore) 6: deletedAt as DateTime?,
     });
   }
 }
@@ -231,6 +247,7 @@ sealed class _UserActivityQueryUpdate {
   int call({
     DateTime? timestamp,
     DateTime? lastTouched,
+    int? userId,
     String? action,
     DateTime? deletedAt,
   });
@@ -246,14 +263,16 @@ class _UserActivityQueryUpdateImpl implements _UserActivityQueryUpdate {
   int call({
     Object? timestamp = ignore,
     Object? lastTouched = ignore,
+    Object? userId = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (timestamp != ignore) 1: timestamp as DateTime?,
       if (lastTouched != ignore) 3: lastTouched as DateTime?,
-      if (action != ignore) 4: action as String?,
-      if (deletedAt != ignore) 5: deletedAt as DateTime?,
+      if (userId != ignore) 4: userId as int?,
+      if (action != ignore) 5: action as String?,
+      if (deletedAt != ignore) 6: deletedAt as DateTime?,
     });
   }
 }
@@ -275,6 +294,7 @@ class _UserActivityQueryBuilderUpdateImpl implements _UserActivityQueryUpdate {
   int call({
     Object? timestamp = ignore,
     Object? lastTouched = ignore,
+    Object? userId = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
   }) {
@@ -283,8 +303,9 @@ class _UserActivityQueryBuilderUpdateImpl implements _UserActivityQueryUpdate {
       return q.updateProperties(limit: limit, {
         if (timestamp != ignore) 1: timestamp as DateTime?,
         if (lastTouched != ignore) 3: lastTouched as DateTime?,
-        if (action != ignore) 4: action as String?,
-        if (deletedAt != ignore) 5: deletedAt as DateTime?,
+        if (userId != ignore) 4: userId as int?,
+        if (action != ignore) 5: action as String?,
+        if (deletedAt != ignore) 6: deletedAt as DateTime?,
       });
     } finally {
       q.close();
@@ -664,6 +685,90 @@ extension UserActivityQueryFilter
     });
   }
 
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition> userIdEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
+      userIdGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
+      userIdGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
+      userIdLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
+      userIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 4,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition> userIdBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 4,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition> actionEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -671,7 +776,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -687,7 +792,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -703,7 +808,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -719,7 +824,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -735,7 +840,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -751,7 +856,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 4,
+          property: 5,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -768,7 +873,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -784,7 +889,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -797,7 +902,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 4,
+          property: 5,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -811,7 +916,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 4,
+          property: 5,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -824,7 +929,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 4,
+          property: 5,
           value: '',
         ),
       );
@@ -836,7 +941,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 4,
+          property: 5,
           value: '',
         ),
       );
@@ -846,14 +951,14 @@ extension UserActivityQueryFilter
   QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
+      return query.addFilterCondition(const IsNullCondition(property: 6));
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterFilterCondition>
       deletedAtIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
+      return query.addFilterCondition(const IsNullCondition(property: 6));
     });
   }
 
@@ -864,7 +969,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 5,
+          property: 6,
           value: value,
         ),
       );
@@ -878,7 +983,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 5,
+          property: 6,
           value: value,
         ),
       );
@@ -892,7 +997,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 5,
+          property: 6,
           value: value,
         ),
       );
@@ -906,7 +1011,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 5,
+          property: 6,
           value: value,
         ),
       );
@@ -920,7 +1025,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 5,
+          property: 6,
           value: value,
         ),
       );
@@ -935,7 +1040,7 @@ extension UserActivityQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 5,
+          property: 6,
           lower: lower,
           upper: upper,
         ),
@@ -995,11 +1100,23 @@ extension UserActivityQuerySortBy
     });
   }
 
+  QueryBuilder<UserActivity, UserActivity, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(4);
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(4, sort: Sort.desc);
+    });
+  }
+
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> sortByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        4,
+        5,
         caseSensitive: caseSensitive,
       );
     });
@@ -1009,7 +1126,7 @@ extension UserActivityQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        4,
+        5,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -1018,13 +1135,13 @@ extension UserActivityQuerySortBy
 
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(6);
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(6, sort: Sort.desc);
     });
   }
 }
@@ -1070,29 +1187,41 @@ extension UserActivityQuerySortThenBy
     });
   }
 
+  QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(4);
+    });
+  }
+
+  QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(4, sort: Sort.desc);
+    });
+  }
+
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, caseSensitive: caseSensitive);
+      return query.addSortBy(5, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(5, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(6);
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(6, sort: Sort.desc);
     });
   }
 }
@@ -1113,17 +1242,23 @@ extension UserActivityQueryWhereDistinct
     });
   }
 
+  QueryBuilder<UserActivity, UserActivity, QAfterDistinct> distinctByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(4);
+    });
+  }
+
   QueryBuilder<UserActivity, UserActivity, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4, caseSensitive: caseSensitive);
+      return query.addDistinctBy(5, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<UserActivity, UserActivity, QAfterDistinct>
       distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(5);
+      return query.addDistinctBy(6);
     });
   }
 }
@@ -1148,15 +1283,21 @@ extension UserActivityQueryProperty1
     });
   }
 
-  QueryBuilder<UserActivity, String, QAfterProperty> actionProperty() {
+  QueryBuilder<UserActivity, int, QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<UserActivity, DateTime?, QAfterProperty> deletedAtProperty() {
+  QueryBuilder<UserActivity, String, QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
+    });
+  }
+
+  QueryBuilder<UserActivity, DateTime?, QAfterProperty> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(6);
     });
   }
 }
@@ -1183,16 +1324,22 @@ extension UserActivityQueryProperty2<R>
     });
   }
 
-  QueryBuilder<UserActivity, (R, String), QAfterProperty> actionProperty() {
+  QueryBuilder<UserActivity, (R, int), QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<UserActivity, (R, String), QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 
   QueryBuilder<UserActivity, (R, DateTime?), QAfterProperty>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addProperty(6);
     });
   }
 }
@@ -1219,16 +1366,22 @@ extension UserActivityQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<UserActivity, (R1, R2, String), QOperations> actionProperty() {
+  QueryBuilder<UserActivity, (R1, R2, int), QOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
+    });
+  }
+
+  QueryBuilder<UserActivity, (R1, R2, String), QOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(5);
     });
   }
 
   QueryBuilder<UserActivity, (R1, R2, DateTime?), QOperations>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addProperty(6);
     });
   }
 }
@@ -1240,6 +1393,7 @@ extension UserActivityQueryProperty3<R1, R2>
 UserActivity _$UserActivityFromJson(Map<String, dynamic> json) => UserActivity(
       id: json['id'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
+      userId: json['userId'] as int,
       action: json['action'] as String,
       lastTouched: json['lastTouched'] == null
           ? null
@@ -1254,5 +1408,6 @@ Map<String, dynamic> _$UserActivityToJson(UserActivity instance) =>
       'timestamp': instance.timestamp.toIso8601String(),
       'id': instance.id,
       'lastTouched': instance.lastTouched?.toIso8601String(),
+      'userId': instance.userId,
       'action': instance.action,
     };
