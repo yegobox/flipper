@@ -3,8 +3,8 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 
-class Main extends StatelessWidget {
-  const Main({
+class AppLayoutDraw extends StatelessWidget {
+  const AppLayoutDraw({
     super.key,
     required this.controller,
     required this.tabselected,

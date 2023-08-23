@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
+import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/functions.dart';
-import 'package:flipper_dashboard/main.dart';
+import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -15,7 +17,7 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:pinput/pinput.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 
 class FlipperApp extends StatefulWidget {
@@ -30,8 +32,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
   int tabselected = 0;
-  final pinController = TextEditingController();
-  final focusNode = FocusNode();
+
   final formKey = GlobalKey<FormState>();
 
   Future<void> _disableScreenshots() async {
@@ -50,8 +51,6 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    pinController.dispose();
-    focusNode.dispose();
     AppService.cleanedDataController.close();
     super.dispose();
   }
@@ -91,24 +90,35 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     }
   }
 
+  void _insertOverlay(BuildContext context) {
+    return Overlay.of(context).insert(OverlayEntry(builder: (context) {
+      final size = MediaQuery.of(context).size;
+      print(size.width);
+      return Stack(
+        children: [
+          Positioned(
+            child: Material(
+              color: Colors.black.withOpacity(0.5),
+              child: GestureDetector(
+                onTap: () => print('ON TAP OVERLAY!'),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }));
+  }
+
   @override
   Widget build(BuildContext context) {
-    const focusedBorderColor = Color.fromRGBO(23, 171, 144, 1);
-    const fillColor = Color.fromRGBO(243, 246, 249, 0);
-    const borderColor = Color.fromRGBO(23, 171, 144, 0.4);
-
-    final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 56,
-      textStyle: const TextStyle(
-        fontSize: 22,
-        color: Color.fromRGBO(30, 60, 87, 1),
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(19),
-        border: Border.all(color: borderColor),
-      ),
-    );
     return ViewModelBuilder<HomeViewModel>.reactive(
         fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => HomeViewModel(),
@@ -171,96 +181,22 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         : 0,
               ),
               body: StreamBuilder<({bool authState, ITenant? tenant})>(
-                  stream: ProxyService.isar
-                      .authState(branchId: ProxyService.box.getBranchId()!),
+                  stream: ProxyService.isar.authState(
+                      branchId: ProxyService.box.getBranchId()!,
+                      refreshRate: kDebugMode ? 1 : 5),
                   builder: (context, snapshot) {
-                    if (snapshot.data!.authState == false) {
-                      return FutureBuilder(
-                        future: showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text("Not authenticated"),
-                              content: Text("Please authenticate to continue."),
-                              actions: [
-                                Pinput(
-                                  controller: pinController,
-                                  focusNode: focusNode,
-                                  androidSmsAutofillMethod:
-                                      AndroidSmsAutofillMethod
-                                          .smsUserConsentApi,
-                                  listenForMultipleSmsOnAndroid: true,
-                                  defaultPinTheme: defaultPinTheme,
-                                  separatorBuilder: (index) =>
-                                      const SizedBox(width: 8),
-                                  validator: (value) {
-                                    return value == '2222'
-                                        ? null
-                                        : 'Pin is incorrect';
-                                  },
-                                  // onClipboardFound: (value) {
-                                  //   debugPrint('onClipboardFound: $value');
-                                  //   pinController.setText(value);
-                                  // },
-                                  hapticFeedbackType:
-                                      HapticFeedbackType.lightImpact,
-                                  onCompleted: (pin) {
-                                    debugPrint('onCompleted: $pin');
-                                  },
-                                  onChanged: (value) {
-                                    debugPrint('onChanged: $value');
-                                  },
-                                  cursor: Column(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Container(
-                                        margin:
-                                            const EdgeInsets.only(bottom: 9),
-                                        width: 22,
-                                        height: 1,
-                                        color: focusedBorderColor,
-                                      ),
-                                    ],
-                                  ),
-                                  focusedPinTheme: defaultPinTheme.copyWith(
-                                    decoration:
-                                        defaultPinTheme.decoration!.copyWith(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border:
-                                          Border.all(color: focusedBorderColor),
-                                    ),
-                                  ),
-                                  submittedPinTheme: defaultPinTheme.copyWith(
-                                    decoration:
-                                        defaultPinTheme.decoration!.copyWith(
-                                      color: fillColor,
-                                      borderRadius: BorderRadius.circular(19),
-                                      border:
-                                          Border.all(color: focusedBorderColor),
-                                    ),
-                                  ),
-                                  errorPinTheme: defaultPinTheme.copyBorderWith(
-                                    border: Border.all(color: Colors.redAccent),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        builder: (context, snapshot) {
-                          return Main(
-                              controller: controller,
-                              tabselected: tabselected,
-                              model: model);
-                        },
-                      );
-                    } else {
-                      return Main(
-                          controller: controller,
-                          tabselected: tabselected,
-                          model: model);
+                    //TODO:implement the session timeout dialog...see wiki
+                    log('user sessions has no activity for last 5 minute',
+                        name: 'session track');
+                    if (snapshot.hasData) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        _insertOverlay(context);
+                      });
                     }
+                    return AppLayoutDraw(
+                        controller: controller,
+                        tabselected: tabselected,
+                        model: model);
                   }),
             ),
           );
