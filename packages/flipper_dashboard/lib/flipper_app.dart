@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -94,25 +95,58 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     return Overlay.of(context).insert(OverlayEntry(builder: (context) {
       final size = MediaQuery.of(context).size;
       print(size.width);
-      return Stack(
-        children: [
-          Positioned(
-            child: Material(
-              color: Colors.black.withOpacity(0.5),
-              child: GestureDetector(
-                onTap: () => print('ON TAP OVERLAY!'),
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.redAccent,
+      return Material(
+        color: Colors.white.withOpacity(0.6),
+        child: Stack(
+          children: [
+            Positioned(
+              child: Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: () => print('ON TAP OVERLAY!'),
+                  child: Center(
+                    child: Wrap(
+                      children: [
+                        Container(
+                          child: FutureBuilder<ITenant?>(
+                              future: ProxyService.isar.getTenantBYUserId(
+                                  userId: ProxyService.box.getUserId()!),
+                              builder: (a, snapshoot) {
+                                if (snapshoot.connectionState ==
+                                        ConnectionState.waiting ||
+                                    !snapshoot.hasData) {
+                                  return const SizedBox.shrink();
+                                }
+                                final data = snapshoot.data;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 12.0),
+                                  child: SizedBox(
+                                      height: 40,
+                                      width: 40,
+                                      child: ProfileWidget(
+                                        tenant: data!,
+                                        size: 25,
+                                        showIcon: false,
+                                      )),
+                                );
+                              }),
+                        ),
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            color: Colors.redAccent,
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }));
   }
