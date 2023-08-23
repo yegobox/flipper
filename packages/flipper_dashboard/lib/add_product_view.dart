@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/create/retail_price.dart';
+import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/product_form.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -43,81 +44,6 @@ class _AddProductViewState extends State<AddProductView> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    Future<bool> _onWillPop() async {
-      final shouldPop = await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Confirm'),
-            content: Text('You have unsaved product, do you want to discard?'),
-            actions: <Widget>[
-              OutlinedButton(
-                child: Text('No',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    )),
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
-                      }
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
-                      }
-                      return null; // Defer to the widget's default.
-                    },
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pop(false),
-              ),
-              OutlinedButton(
-                child: Text('Yes',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
-                    )),
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
-                      }
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
-                      }
-                      return null; // Defer to the widget's default.
-                    },
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pop(true),
-              ),
-            ],
-          );
-        },
-      );
-
-      if (shouldPop == true) {
-        ProxyService.analytics.trackEvent(
-            "create_product", {'feature_name': 'create_product_discarded'});
-        //we return again false to be able to go to close a day page
-        return true;
-      } else {
-        // Handle staying on the current page
-        // ...
-        return false;
-      }
-    }
-
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         // start by reseting bar code.
@@ -162,7 +88,11 @@ class _AddProductViewState extends State<AddProductView> {
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         return WillPopScope(
-          onWillPop: _onWillPop,
+          onWillPop: () async {
+            return onWillPop(
+                context: context,
+                message: 'You have unsaved product, do you want to discard?');
+          },
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () async {

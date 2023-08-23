@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_dashboard/functions.dart';
+import 'package:flipper_dashboard/main.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -12,12 +13,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:move_to_background/move_to_background.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-import 'package:permission_handler/permission_handler.dart' as perm;
+import 'package:permission_handler/permission_handler.dart' as permission;
+import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
-
-import 'page_switcher.dart';
 
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);
@@ -31,6 +30,10 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
   int tabselected = 0;
+  final pinController = TextEditingController();
+  final focusNode = FocusNode();
+  final formKey = GlobalKey<FormState>();
+
   Future<void> _disableScreenshots() async {
     if (!kDebugMode && !isDesktopOrWeb) {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
@@ -47,8 +50,10 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    super.dispose();
+    pinController.dispose();
+    focusNode.dispose();
     AppService.cleanedDataController.close();
+    super.dispose();
   }
 
   Future<void> nfc() async {
@@ -88,6 +93,22 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    const focusedBorderColor = Color.fromRGBO(23, 171, 144, 1);
+    const fillColor = Color.fromRGBO(243, 246, 249, 0);
+    const borderColor = Color.fromRGBO(23, 171, 144, 0.4);
+
+    final defaultPinTheme = PinTheme(
+      width: 56,
+      height: 56,
+      textStyle: const TextStyle(
+        fontSize: 22,
+        color: Color.fromRGBO(30, 60, 87, 1),
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(19),
+        border: Border.all(color: borderColor),
+      ),
+    );
     return ViewModelBuilder<HomeViewModel>.reactive(
         fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => HomeViewModel(),
@@ -120,17 +141,16 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
           model.loadReport();
           if (!isWindows) {
             await [
-              perm.Permission.storage,
-              perm.Permission.manageExternalStorage
+              permission.Permission.storage,
+              permission.Permission.manageExternalStorage
             ].request();
           }
         },
         builder: (context, model, child) {
           return WillPopScope(
             onWillPop: () async {
-              return _onWillPop(
-                model,
-              );
+              return onWillPop(
+                  context: context, message: 'Do you want to leave this app?');
             },
             child: Scaffold(
               appBar: AppBar(
@@ -157,18 +177,72 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                     if (snapshot.data!.authState == false) {
                       return FutureBuilder(
                         future: showDialog(
+                          barrierDismissible: false,
                           context: context,
                           builder: (context) {
                             return AlertDialog(
                               title: Text("Not authenticated"),
                               content: Text("Please authenticate to continue."),
                               actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    // Close the dialog.
-                                    Navigator.pop(context);
+                                Pinput(
+                                  controller: pinController,
+                                  focusNode: focusNode,
+                                  androidSmsAutofillMethod:
+                                      AndroidSmsAutofillMethod
+                                          .smsUserConsentApi,
+                                  listenForMultipleSmsOnAndroid: true,
+                                  defaultPinTheme: defaultPinTheme,
+                                  separatorBuilder: (index) =>
+                                      const SizedBox(width: 8),
+                                  validator: (value) {
+                                    return value == '2222'
+                                        ? null
+                                        : 'Pin is incorrect';
                                   },
-                                  child: Text("Ok"),
+                                  // onClipboardFound: (value) {
+                                  //   debugPrint('onClipboardFound: $value');
+                                  //   pinController.setText(value);
+                                  // },
+                                  hapticFeedbackType:
+                                      HapticFeedbackType.lightImpact,
+                                  onCompleted: (pin) {
+                                    debugPrint('onCompleted: $pin');
+                                  },
+                                  onChanged: (value) {
+                                    debugPrint('onChanged: $value');
+                                  },
+                                  cursor: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        margin:
+                                            const EdgeInsets.only(bottom: 9),
+                                        width: 22,
+                                        height: 1,
+                                        color: focusedBorderColor,
+                                      ),
+                                    ],
+                                  ),
+                                  focusedPinTheme: defaultPinTheme.copyWith(
+                                    decoration:
+                                        defaultPinTheme.decoration!.copyWith(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border:
+                                          Border.all(color: focusedBorderColor),
+                                    ),
+                                  ),
+                                  submittedPinTheme: defaultPinTheme.copyWith(
+                                    decoration:
+                                        defaultPinTheme.decoration!.copyWith(
+                                      color: fillColor,
+                                      borderRadius: BorderRadius.circular(19),
+                                      border:
+                                          Border.all(color: focusedBorderColor),
+                                    ),
+                                  ),
+                                  errorPinTheme: defaultPinTheme.copyBorderWith(
+                                    border: Border.all(color: Colors.redAccent),
+                                  ),
                                 ),
                               ],
                             );
@@ -191,173 +265,5 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
             ),
           );
         });
-  }
-
-  Future<bool> _onWillPop(HomeViewModel model) async {
-    final shouldPop = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm'),
-          content: Text('Do you want to leave this app?'),
-          actions: <Widget>[
-            OutlinedButton(
-              child: Text('No',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  )),
-              style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered)) {
-                      return Colors.blue.withOpacity(0.04);
-                    }
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed)) {
-                      return Colors.blue.withOpacity(0.12);
-                    }
-                    return null; // Defer to the widget's default.
-                  },
-                ),
-              ),
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            OutlinedButton(
-              child: Text('Yes',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  )),
-              style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered)) {
-                      return Colors.blue.withOpacity(0.04);
-                    }
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed)) {
-                      return Colors.blue.withOpacity(0.12);
-                    }
-                    return null; // Defer to the widget's default.
-                  },
-                ),
-              ),
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldPop == true) {
-      /// @Decision: maybe a user does not want to close the day yet instead he want
-      /// to just send the app in background, hence why I have commented out
-      /// the code to trigger the closing drawer, for that
-      /// a user will have to be explicit
-      await MoveToBackground.moveTaskToBack();
-      // Drawers? drawer = await ProxyService.isar
-      //     .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
-      // _routerService
-      //     .replaceWith(DrawerScreenRoute(open: "close", drawer: drawer));
-      return false;
-    } else {
-      return false;
-    }
-  }
-}
-
-class Main extends StatelessWidget {
-  const Main({
-    super.key,
-    required this.controller,
-    required this.tabselected,
-    required this.model,
-  });
-
-  final TextEditingController controller;
-  final int tabselected;
-  final HomeViewModel model;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-      if (constraints.maxWidth < 600) {
-        // this is a phone
-
-        return PageSwitcher(
-          controller: controller,
-          model: model,
-          currentPage: tabselected,
-        );
-      } else {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 20,
-              child: SizedBox.shrink(),
-            ),
-            // Left menu
-            // ignore: todo
-            // TODO: left menu will be essential when we add socials feature
-            // by the time I implement it I will remove the above SizedBox as it is helping me
-            // to keep the design consistent for now.
-            // Container(
-            //   width: 150,
-            //   child: SideMenu(
-            //     style: SideMenuStyle(
-            //       showTooltip: false,
-            //       displayMode: SideMenuDisplayMode.compact,
-            //       compactSideMenuWidth: 60,
-            //       openSideMenuWidth: 150,
-            //     ),
-            //     items: [
-            //       SideMenuItem(
-            //         // Priority of item to show on SideMenu, lower value is displayed at the top
-            //         priority: 0,
-            //         title: 'Dashboard',
-            //         icon: Icon(Icons.home),
-            //         badgeContent: Text(
-            //           '3',
-            //           style: TextStyle(color: Colors.white),
-            //         ),
-            //       )
-            //     ],
-            //     controller: sideMenu,
-            //   ),
-            // ),
-
-            // Middle menu
-            Expanded(
-              flex: 2,
-              child: Container(
-                child: ProductView.normalMode(),
-              ),
-            ),
-
-            // Right menu
-            Expanded(
-              flex: 1,
-              child: Container(
-                child: PageSwitcher(
-                  isBigScreen: true,
-                  controller: controller,
-                  model: model,
-                  currentPage: tabselected,
-                ),
-              ),
-            ),
-          ],
-        );
-      }
-    });
   }
 }
