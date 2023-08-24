@@ -2,10 +2,9 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/layout.dart';
-import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/pininput.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
@@ -19,6 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:flutter/scheduler.dart';
+import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
 
 class FlipperApp extends StatefulWidget {
@@ -33,7 +33,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
   int tabselected = 0;
-
+  OverlayEntry? _overlayEntry;
   final formKey = GlobalKey<FormState>();
 
   Future<void> _disableScreenshots() async {
@@ -91,64 +91,84 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     }
   }
 
+  final defaultPinTheme = PinTheme(
+    width: 56,
+    height: 56,
+    textStyle: TextStyle(
+        fontSize: 20,
+        color: Color.fromRGBO(30, 60, 87, 1),
+        fontWeight: FontWeight.w600),
+    decoration: BoxDecoration(
+      border: Border.all(color: Color.fromRGBO(234, 239, 243, 1)),
+      borderRadius: BorderRadius.circular(20),
+    ),
+  );
+
   void _insertOverlay(BuildContext context) {
-    return Overlay.of(context).insert(OverlayEntry(builder: (context) {
+    _overlayEntry = OverlayEntry(builder: (context) {
       final size = MediaQuery.of(context).size;
       print(size.width);
       return Material(
-        color: Colors.white.withOpacity(0.6),
-        child: Stack(
-          children: [
-            Positioned(
-              child: Align(
-                alignment: Alignment.center,
-                child: GestureDetector(
-                  onTap: () => print('ON TAP OVERLAY!'),
-                  child: Center(
-                    child: Wrap(
+        color: Colors.transparent,
+        child: Scaffold(
+          // backgroundColor: Color(0xFF6F2F9).withOpacity(0.6),
+          resizeToAvoidBottomInset: true,
+          body: GestureDetector(
+            onTap: () {
+              // Handle tap on the overlay
+              print('ON TAP OVERLAY!');
+            },
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
-                          child: FutureBuilder<ITenant?>(
-                              future: ProxyService.isar.getTenantBYUserId(
-                                  userId: ProxyService.box.getUserId()!),
-                              builder: (a, snapshoot) {
-                                if (snapshoot.connectionState ==
-                                        ConnectionState.waiting ||
-                                    !snapshoot.hasData) {
-                                  return const SizedBox.shrink();
-                                }
-                                final data = snapshoot.data;
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 12.0),
-                                  child: SizedBox(
-                                      height: 40,
-                                      width: 40,
-                                      child: ProfileWidget(
-                                        tenant: data!,
-                                        size: 25,
-                                        showIcon: false,
-                                      )),
-                                );
-                              }),
+                        FutureBuilder<ITenant?>(
+                          future: ProxyService.isar.getTenantBYUserId(
+                            userId: ProxyService.box.getUserId()!,
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                    ConnectionState.waiting ||
+                                !snapshot.hasData) {
+                              return SizedBox.shrink();
+                            }
+                            final data = snapshot.data;
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 12.0), // Adjust spacing
+                              child: ProfileWidget(
+                                tenant: data!,
+                                size: 25,
+                                showIcon: false,
+                              ),
+                            );
+                          },
                         ),
                         Container(
-                          width: 50,
-                          height: 50,
                           decoration: BoxDecoration(
-                            shape: BoxShape.rectangle,
-                            color: Colors.redAccent,
-                          ),
-                        )
+                              color: Color.fromARGB(255, 230, 230, 230),
+                              borderRadius: BorderRadius.circular(10)),
+                          width: 320,
+                          height: 140,
+                          child: OnlyBottomCursor(),
+                        ),
                       ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       );
-    }));
+    });
+
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
   @override
@@ -219,11 +239,14 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                       branchId: ProxyService.box.getBranchId()!,
                       refreshRate: kDebugMode ? 1 : 5),
                   builder: (context, snapshot) {
-                    //TODO:implement the session timeout dialog...see wiki
                     log('user sessions has no activity for last 5 minute',
                         name: 'session track');
                     if (snapshot.hasData) {
                       SchedulerBinding.instance.addPostFrameCallback((_) {
+                        if (_overlayEntry != null) {
+                          _overlayEntry?.remove();
+                          _overlayEntry = null;
+                        }
                         _insertOverlay(context);
                       });
                     }
