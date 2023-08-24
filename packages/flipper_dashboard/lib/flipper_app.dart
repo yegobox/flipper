@@ -104,14 +104,15 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     ),
   );
 
-  void _insertOverlay(BuildContext context) {
+  void _insertOverlay(
+      {required BuildContext context, required HomeViewModel model}) {
     _overlayEntry = OverlayEntry(builder: (context) {
       final size = MediaQuery.of(context).size;
       print(size.width);
       return Material(
         color: Colors.transparent,
         child: Scaffold(
-          // backgroundColor: Color(0xFF6F2F9).withOpacity(0.6),
+          backgroundColor: Color(0xFF6F2F9).withOpacity(0.6),
           resizeToAvoidBottomInset: true,
           body: GestureDetector(
             onTap: () {
@@ -137,13 +138,14 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                                 !snapshot.hasData) {
                               return SizedBox.shrink();
                             }
-                            final data = snapshot.data;
+                            ITenant tenant = snapshot.data!;
                             return Padding(
                               padding: const EdgeInsets.only(
                                   bottom: 12.0), // Adjust spacing
                               child: ProfileWidget(
-                                tenant: data!,
+                                tenant: tenant,
                                 size: 25,
+                                sessionActive: tenant.sessionActive!,
                                 showIcon: false,
                               ),
                             );
@@ -155,7 +157,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                               borderRadius: BorderRadius.circular(10)),
                           width: 320,
                           height: 140,
-                          child: OnlyBottomCursor(),
+                          child: OnlyBottomCursor(model: model),
                         ),
                       ],
                     ),
@@ -179,6 +181,9 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
         onViewModelReady: (model) async {
           //get default tenant
           model.defaultTenant();
+          ProxyService.isar.refreshSession(
+              branchId: ProxyService.box.getBranchId()!,
+              refreshRate: kDebugMode ? 1 : 5);
 
           /// if there is current order ongoing show them when the app starts
           ProxyService.dynamicLink.handleDynamicLink(context);
@@ -234,21 +239,19 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         ? 25
                         : 0,
               ),
-              body: StreamBuilder<({bool authState, ITenant? tenant})>(
+              body: StreamBuilder<ITenant?>(
                   stream: ProxyService.isar.authState(
-                      branchId: ProxyService.box.getBranchId()!,
-                      refreshRate: kDebugMode ? 1 : 5),
+                    branchId: ProxyService.box.getBranchId()!,
+                  ),
                   builder: (context, snapshot) {
-                    log('user sessions has no activity for last 5 minute',
-                        name: 'session track');
-                    if (snapshot.hasData) {
+                    if (snapshot.hasData && !snapshot.data!.sessionActive!) {
                       SchedulerBinding.instance.addPostFrameCallback((_) {
-                        if (_overlayEntry != null) {
-                          _overlayEntry?.remove();
-                          _overlayEntry = null;
-                        }
-                        _insertOverlay(context);
+                        _removeOverlay();
+                        _insertOverlay(context: context, model: model);
                       });
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.sessionActive!) {
+                      _removeOverlay();
                     }
                     return AppLayoutDraw(
                         controller: controller,
@@ -258,5 +261,12 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
             ),
           );
         });
+  }
+
+  void _removeOverlay() {
+    if (_overlayEntry != null) {
+      _overlayEntry?.remove();
+      _overlayEntry = null;
+    }
   }
 }

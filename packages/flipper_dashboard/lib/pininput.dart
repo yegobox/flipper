@@ -1,9 +1,12 @@
+import 'package:flipper_models/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
 
 class OnlyBottomCursor extends StatefulWidget {
-  const OnlyBottomCursor({Key? key}) : super(key: key);
+  const OnlyBottomCursor({Key? key, required this.model}) : super(key: key);
+
+  final HomeViewModel model;
 
   @override
   _OnlyBottomCursorState createState() => _OnlyBottomCursorState();
@@ -64,6 +67,7 @@ class _OnlyBottomCursorState extends State<OnlyBottomCursor> {
       obscureText: true,
       cursor: cursor,
       preFilledWidget: preFilledWidget,
+      onCompleted: (value) => widget.model.weakUp(pin: value),
     );
   }
 }

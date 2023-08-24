@@ -272,9 +272,10 @@ abstract class IsarApiInterface {
 
   // Future<ITenant> authState({required int branchId});
 
-  Stream<({ITenant? tenant, bool authState})> authState(
-      {required int branchId, int? refreshRate=5});
+  Future<void> refreshSession({required int branchId, int? refreshRate = 5});
+  Stream<ITenant?> authState({required int branchId});
 
   Future<List<UserActivity>> activities({required int userId});
-  Future<void> recordUserActivity({required int userId});
+  Future<void> recordUserActivity(
+      {required int userId, required String activity});
 }
