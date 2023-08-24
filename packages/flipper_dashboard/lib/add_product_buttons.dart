@@ -1,15 +1,12 @@
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
-
-final isAndroid = UniversalPlatform.isAndroid;
-final isIos = UniversalPlatform.isIOS;
 
 class AddProductButtons extends StatefulWidget {
   const AddProductButtons({Key? key}) : super(key: key);

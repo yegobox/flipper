@@ -1483,13 +1483,15 @@ class IsarAPI<M> implements IsarApiInterface {
         key: 'userId',
         value: user.id,
       );
-      recordUserActivity(userId: user.id);
+      recordUserActivity(userId: user.id, activity: 'create');
       await ProxyService.box.write(
         key: 'branchId',
         // check if branches is empty
         value:
             user.tenants.isEmpty ? null : user.tenants.first.branches.first.id,
       );
+      log(user.tenants.first.businesses.first.id.toString(), name: 'login');
+      log(user.id.toString(), name: 'login');
       await ProxyService.box.write(
         key: 'businessId',
         // check if businesses is empty
@@ -1536,8 +1538,14 @@ class IsarAPI<M> implements IsarApiInterface {
         db.write((isar) {
           isar.permissions.putAll(tenant.permissions);
         });
+
         db.write((isar) {
-          isar.iTenants.put(iTenant);
+          if (user.id == iTenant.userId) {
+            iTenant.sessionActive = true;
+            isar.iTenants.put(iTenant);
+          } else {
+            isar.iTenants.put(iTenant);
+          }
         });
       }
       return user;
@@ -1679,7 +1687,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<T?> create<T>({required T data}) async {
     /// update user activity model
     int userId = ProxyService.box.getUserId()!;
-    recordUserActivity(userId: userId);
+    recordUserActivity(userId: userId, activity: 'create');
 
     /// end with updating user activity
     if (data is Conversation) {
@@ -1793,7 +1801,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<T?> update<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId()!;
-    recordUserActivity(userId: userId);
+    recordUserActivity(userId: userId, activity: 'create');
 
     /// end updating user activity
     // int branchId = ProxyService.box.getBranchId()!;
@@ -3091,12 +3099,14 @@ class IsarAPI<M> implements IsarApiInterface {
     }
   }
 
-  Future<bool> hasNoActivityInLast5Minutes({required int userId}) async {
+  Future<bool> hasNoActivityInLast5Minutes(
+      {required int userId, int? refreshRate = 5}) async {
     // Get the current time
     DateTime currentTime = DateTime.now();
 
-    // Calculate the time 5 minutes ago
-    DateTime fiveMinutesAgo = currentTime.subtract(Duration(minutes: 5));
+    // Calculate the time [timer] minutes ago
+    DateTime fiveMinutesAgo =
+        currentTime.subtract(Duration(minutes: refreshRate!));
 
     // Retrieve the user activities
     List<UserActivity> userActivities = await activities(userId: userId);
@@ -3114,26 +3124,37 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<({bool authState, ITenant? tenant})> authState(
-      {required int branchId}) async* {
+  Stream<ITenant?> authState({required int branchId}) {
+    int userId = ProxyService.box.getUserId()!;
+    return db.read((isar) => isar.iTenants
+        .where()
+        .userIdEqualTo(userId)
+        .deletedAtIsNull()
+        .sortByLastTouchedDesc()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first));
+  }
+
+  @override
+  Future<void> refreshSession(
+      {required int branchId, int? refreshRate = 5}) async {
     while (true) {
       try {
-        String phoneNumber =
-            ProxyService.box.getUserPhone()!.replaceAll("+", "");
-        ITenant? tenant = db.read((isar) =>
-            isar.iTenants.where().phoneNumberEqualTo(phoneNumber).findFirst());
         int userId = ProxyService.box.getUserId()!;
-        yield (
-          authState: await hasNoActivityInLast5Minutes(userId: userId),
-          tenant: tenant!
-        );
+        bool session = await hasNoActivityInLast5Minutes(
+            userId: userId, refreshRate: refreshRate);
+        log(session.toString(), name: 'session');
+        log(userId.toString(), name: 'session');
+        if (!session) {
+          ITenant? tenant = await ProxyService.isar
+              .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+          tenant?.sessionActive = session;
+          ProxyService.isar.update(data: tenant);
+        }
       } catch (error) {
         print('Error fetching tenant: $error');
-        yield (authState: false, tenant: null);
       }
-
-      // Wait for a certain duration before yielding the next value
-      await Future.delayed(Duration(minutes: 5));
+      await Future.delayed(Duration(minutes: refreshRate!));
     }
   }
 
@@ -3153,10 +3174,11 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<void> recordUserActivity({required int userId}) async {
+  Future<void> recordUserActivity(
+      {required int userId, required String activity}) async {
     db.write((isar) => isar.userActivitys.put(UserActivity(
         userId: userId,
-        action: 'create',
+        action: activity,
         id: randomString(),
         timestamp: DateTime.now(),
         lastTouched: DateTime.now())));

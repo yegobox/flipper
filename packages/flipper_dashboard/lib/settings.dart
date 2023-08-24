@@ -26,7 +26,8 @@ class SettingPage extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: ProfileWidget(tenant: model.tenant!),
+                  child:
+                      ProfileWidget(tenant: model.tenant!, sessionActive: true),
                 ),
                 SizedBox(height: 10),
                 Flexible(

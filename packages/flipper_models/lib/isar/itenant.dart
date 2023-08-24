@@ -10,16 +10,16 @@ part 'itenant.g.dart';
 @JsonSerializable()
 @Collection()
 class ITenant extends IJsonSerializable {
-  ITenant({
-    required this.id,
-    required this.name,
-    required this.phoneNumber,
-    required this.email,
-    required this.nfcEnabled,
-    required this.businessId,
-    required this.userId,
-    this.deletedAt,
-  });
+  ITenant(
+      {required this.id,
+      required this.name,
+      required this.phoneNumber,
+      required this.email,
+      required this.nfcEnabled,
+      required this.businessId,
+      required this.userId,
+      this.deletedAt,
+      this.sessionActive});
   late int id;
   String name;
   String phoneNumber;
@@ -34,6 +34,10 @@ class ITenant extends IJsonSerializable {
   DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
+
+  /// [sessionActive] is not comming from server, this is to check which
+  /// tenant is currently have active session but the main session will be still active
+  bool? sessionActive;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

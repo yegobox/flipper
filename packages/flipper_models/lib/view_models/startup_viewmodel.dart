@@ -33,10 +33,11 @@ class StartupViewModel extends BaseViewModel {
       await appService.appInit();
       log("User" + ProxyService.box.getUserId().toString(),
           name: 'runStartupLogic');
-      int businessId = ProxyService.box.getBusinessId()!;
-      FirebaseAuth.instance.tenantId = businessId.toString();
+
+      FirebaseAuth.instance.tenantId = ProxyService.box.getBusinessId().toString();
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (await ProxyService.isar.isDrawerOpen(cashierId: businessId)) {
+      if (await ProxyService.isar
+          .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {

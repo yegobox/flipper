@@ -126,6 +126,7 @@ class _AppsState extends State<Apps> {
                       width: 40,
                       child: ProfileWidget(
                         tenant: data!,
+                        sessionActive: true,
                         size: 25,
                         showIcon: false,
                       )),
@@ -144,9 +145,10 @@ class _AppsState extends State<Apps> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Column(
+      body: Align(
+        alignment: Alignment.center,
+        child: Wrap(
+          alignment: WrapAlignment.center,
           children: [
             ListTile(
               contentPadding: EdgeInsets.only(left: 30, right: 0),

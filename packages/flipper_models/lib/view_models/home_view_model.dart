@@ -1040,4 +1040,22 @@ class HomeViewModel extends ReactiveViewModel {
         await ProxyService.isar.getTransactionById(id: transactionIndex);
     return res;
   }
+
+  weakUp({required String pin}) async {
+    log(pin, name: 'weakUp');
+    // 91102
+    log(ProxyService.box.getUserId()!.toString(), name: 'weakUp');
+    if (pin.allMatches(ProxyService.box.getUserId()!.toString()).isNotEmpty) {
+      log('all matches', name: 'weakUp');
+      ProxyService.isar.recordUserActivity(
+        userId: ProxyService.box.getUserId()!,
+        activity: 'create',
+      );
+      ProxyService.box.write(key: 'userId', value: int.parse(pin));
+      ITenant? tenant = await ProxyService.isar
+          .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+      tenant?.sessionActive = true;
+      ProxyService.isar.update(data: tenant);
+    }
+  }
 }
