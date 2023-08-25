@@ -24,7 +24,7 @@ class Marketing implements WhatsApp, SMS {
         phoneNumberOrEmail: phoneNumber.replaceAll("+", ""));
     var headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ${token.body.token}'
+      'Authorization': 'Bearer ${token?.body.token}'
     };
     var request = http.Request(
         'POST',

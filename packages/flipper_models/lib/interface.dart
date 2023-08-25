@@ -231,7 +231,7 @@ abstract class IsarApiInterface {
   Future<Conversation?> getConversation({required String messageId});
   Future<List<Conversation>> getScheduleMessages();
   Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
-  Future<SocialToken> loginOnSocial(
+  Future<SocialToken?> loginOnSocial(
       {String phoneNumberOrEmail, String password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});

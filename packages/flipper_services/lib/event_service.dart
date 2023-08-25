@@ -4,6 +4,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
+import 'package:flutter/foundation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -128,7 +129,12 @@ class EventService implements EventInterface {
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         keepTryingPublishDevice();
         await FirebaseAuth.instance.signInAnonymously();
-        FirebaseAuth.instance.tenantId = loginData.businessId.toString();
+        // if (kDebugMode) {
+        //   FirebaseAuth.instance.tenantId = null;
+        // } else {
+        //   FirebaseAuth.instance.tenantId =
+        //       ProxyService.box.getBusinessId().toString();
+        // }
       });
     } catch (e) {
       rethrow;

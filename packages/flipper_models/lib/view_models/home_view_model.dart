@@ -1049,7 +1049,7 @@ class HomeViewModel extends ReactiveViewModel {
       log('all matches', name: 'weakUp');
       ProxyService.isar.recordUserActivity(
         userId: ProxyService.box.getUserId()!,
-        activity: 'create',
+        activity: 'session',
       );
       ProxyService.box.write(key: 'userId', value: int.parse(pin));
       ITenant? tenant = await ProxyService.isar

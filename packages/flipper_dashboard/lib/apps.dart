@@ -21,14 +21,11 @@ class Apps extends StatefulWidget {
 
   Apps({
     Key? key,
-    required final TextEditingController controller,
-    required final bool isBigScreen,
-    required final HomeViewModel model,
-  })  : controller = controller,
-        isBigScreen = isBigScreen,
-        model = model,
-        super(key: key);
-  List<double> cashInAndOut = [1, 1];
+    required this.controller,
+    required this.isBigScreen,
+    required this.model,
+  }) : super(key: key);
+  final List<double> cashInAndOut = [1, 1];
 
   @override
   State<Apps> createState() => _AppsState();

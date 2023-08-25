@@ -2448,8 +2448,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
     final now = DateTime.now();
 
-    if (now.isBefore(token.validFrom) || now.isAfter(token.validUntil)) {
-      db.write((isar) => isar.tokens.delete(token.id));
+    if (token.validFrom != null && token.validUntil != null) {
+      if (now.isBefore(token.validFrom!) || now.isAfter(token.validUntil!)) {
+        db.write((isar) => isar.tokens.delete(token.id));
+        return false;
+      }
+    } else {
       return false;
     }
     String? localToken = ProxyService.box.whatsAppToken();
@@ -2460,7 +2464,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<SocialToken> loginOnSocial(
+  Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await socialsHttpClient.post(
       Uri.parse("$commApi/login"),
@@ -2471,7 +2475,10 @@ class IsarAPI<M> implements IsarApiInterface {
       SocialToken responseBody = SocialToken.fromRawJson(response.body);
       return responseBody;
     } else {
-      throw Exception("Failed to get token");
+      //// TODO: this is not a stopper when performing app global login
+      /// instead implement global non fatal error reporting so it can be addressed separately
+      // throw Exception("Failed to get token");
+      return null;
     }
   }
 

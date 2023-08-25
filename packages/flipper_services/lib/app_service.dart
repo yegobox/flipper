@@ -87,16 +87,16 @@ class AppService with ListenableServiceMixin {
       phoneNumberOrEmail: phoneNumber,
     );
 
-    final socialBearerToken = "Bearer " + token.body.token;
-    ProxyService.box.write(key: 'whatsAppToken', value: socialBearerToken);
+    ProxyService.box
+        .write(key: 'whatsAppToken', value: "Bearer ${token?.body.token}");
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
       id: randomString(),
       businessId: businessId,
-      token: token.body.token,
-      validFrom: token.body.validFrom,
-      validUntil: token.body.validUntil,
+      token: token?.body.token,
+      validFrom: token?.body.validFrom,
+      validUntil: token?.body.validUntil,
       type: socialApp,
     );
 

@@ -13,6 +13,7 @@ import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_services/locator.dart';
@@ -62,6 +63,7 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    FirebaseAuth.instance.tenantId = null;
     if (!isWindows && !isWeb) {
       FlutterError.onError = (FlutterErrorDetails details) {
         // Log the error to the console.
