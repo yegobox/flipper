@@ -1,7 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart'
     hide PhoneAuthProvider, EmailAuthProvider;
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/all_routes.dart';
@@ -9,10 +8,8 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked/stacked.dart';
-import 'config.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -105,29 +102,6 @@ class _LoginViewState extends State<LoginView>
             : Scaffold(body: Landing());
       },
     );
-  }
-
-  List<AuthProvider> providers() {
-    if (ProxyService.remoteConfig.isGoogleLoginAvailable() &&
-        ProxyService.remoteConfig.isFacebookLoginAvailable() &&
-        ProxyService.remoteConfig.isTwitterLoginAvailable()) {
-      return [
-        PhoneAuthProvider(),
-        //add otherProviders
-      ];
-    } else if (ProxyService.remoteConfig.isGoogleLoginAvailable()) {
-      return [
-        PhoneAuthProvider(),
-        // EmailProviderConfiguration(),
-        GoogleProvider(clientId: GOOGLE_CLIENT_ID),
-      ];
-    } else {
-      return [
-        PhoneAuthProvider(),
-        // EmailProviderConfiguration(),
-        // GoogleProviderConfiguration(clientId: GOOGLE_CLIENT_ID),
-      ];
-    }
   }
 
   @override

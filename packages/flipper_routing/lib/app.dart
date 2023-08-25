@@ -157,3 +157,5 @@ class App {}
 // active
 // reported
 // draft
+// getting key hash key
+//  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
