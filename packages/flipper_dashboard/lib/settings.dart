@@ -44,9 +44,12 @@ class SettingPage extends StatelessWidget {
                                 FluentIcons.desktop_24_regular,
                               ),
                             ),
-                            onPressed: (BuildContext context) {
+                            onPressed: (BuildContext context) async {
+                              ITenant? tenant = await ProxyService.isar
+                                  .getTenantBYUserId(
+                                      userId: ProxyService.box.getUserId()!);
                               _routerService.navigateTo(
-                                  DevicesRoute(pin: model.pin!.pin));
+                                  DevicesRoute(pin: tenant?.userId));
                             },
                           ),
                           SettingsTile(
