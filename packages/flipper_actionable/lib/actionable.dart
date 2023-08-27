@@ -34,8 +34,8 @@ class Actionable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const containerWidth = 382.78;
-    ProxyService.box.write(key: "userId", value: 1);
-    log(ProxyService.box.read(key: 'userId'));
+    ProxyService.box.writeInt(key: "userId", value: 1);
+    log(ProxyService.box.readInt(key: 'userId').toString());
     return Scaffold(
       body: Stack(
         children: [

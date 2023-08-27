@@ -15,11 +15,11 @@ const platformWeb = Environment('platformWeb');
     // ExternalModule(AwesomePackageModule),
   ],
 )
-initDependencies({
+Future<void> initDependencies({
   String? env,
   EnvironmentFilter? environmentFilter,
 }) async {
-  return await locator.init(
+  await locator.init(
     environmentFilter: environmentFilter,
     environment: env,
   );

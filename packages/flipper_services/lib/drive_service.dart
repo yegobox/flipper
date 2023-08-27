@@ -68,7 +68,8 @@ class GoogleDrive {
       if (auth != null) {
         //we couldn't sign in the user using silent sign in, now use a prompt.
         await _googleSignIn.signIn();
-        ProxyService.box.write(key: 'hasSignedInForAutoBackup', value: true);
+        ProxyService.box
+            .writeBool(key: 'hasSignedInForAutoBackup', value: true);
       } else {
         return null;
       }
@@ -76,7 +77,8 @@ class GoogleDrive {
       //this is the first time sign in use prompt to sign in.
       GoogleSignInAccount? auth = await _googleSignIn.signIn();
       if (auth != null) {
-        ProxyService.box.write(key: 'hasSignedInForAutoBackup', value: true);
+        ProxyService.box
+            .writeBool(key: 'hasSignedInForAutoBackup', value: true);
       } else {
         return null;
       }
@@ -144,7 +146,7 @@ class GoogleDrive {
     business!.backupFileId = fileUploaded.id;
     await ProxyService.isar.update(data: business);
     ProxyService.isar.update(data: business);
-    ProxyService.box.write(key: 'gdID', value: fileUploaded.id);
+    ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
   }
 
   /// file stream will always be available if the dgId is not null

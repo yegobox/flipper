@@ -147,24 +147,25 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     };
     final response = http.Response(jsonEncode(jsonResponse), 200);
     if (response.statusCode == 200) {
-      await ProxyService.box.write(
+      await ProxyService.box.writeString(
         key: 'bearerToken',
         value: IUser.fromRawJson(response.body).token,
       );
-      await ProxyService.box.write(
+      await ProxyService.box.writeString(
         key: 'defaultApp',
         value: IUser.fromRawJson(response.body)
             .tenants
             .first
             .businesses
             .first
-            .businessTypeId,
+            .businessTypeId
+            .toString(),
       );
-      await ProxyService.box.write(
+      await ProxyService.box.writeInt(
         key: 'userId',
         value: IUser.fromRawJson(response.body).id,
       );
-      await ProxyService.box.write(
+      await ProxyService.box.writeString(
         key: 'userPhone',
         value: "+250783054874",
       );
@@ -419,7 +420,8 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     if (data is EBM) {
       final ebm = data;
       await db.write((isar) async {
-        ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
+        ProxyService.box
+            .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
         Business? business =
             await isar.business.where().userIdEqualTo(ebm.userId).findFirst();
         business

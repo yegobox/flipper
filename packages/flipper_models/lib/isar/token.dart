@@ -13,17 +13,17 @@ class Token extends IJsonSerializable {
   Token({
     required this.id,
     required this.type,
-    required this.token,
+    this.token,
     required this.businessId,
-    required this.validFrom,
-    required this.validUntil,
+    this.validFrom,
+    this.validUntil,
     this.deletedAt,
   });
   late String id;
   String type;
-  String token;
-  DateTime validFrom;
-  DateTime validUntil;
+  String? token;
+  DateTime? validFrom;
+  DateTime? validUntil;
   @Index()
   int businessId;
 

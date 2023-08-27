@@ -38,7 +38,9 @@ class Tenant {
   Map<String, dynamic> toJson() => _$TenantToJson(this);
 
   static List<Tenant> fromJsonList(String str) {
-    final List<Map<String, dynamic>> jsonData = json.decode(str);
-    return jsonData.map((item) => Tenant.fromJson(item)).toList();
+    final List<dynamic> jsonData = json.decode(str);
+    return jsonData
+        .map((item) => Tenant.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 }

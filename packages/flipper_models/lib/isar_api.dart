@@ -150,7 +150,7 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.transactions.put(transaction);
       });
       Transaction? createdTransaction = await db.transactions.get(id);
-      ProxyService.box.write(key: 'currentTransactionId', value: id);
+      ProxyService.box.writeString(key: 'currentTransactionId', value: id);
       return createdTransaction!;
     } else {
       return existTransaction;
@@ -189,7 +189,7 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.transactions.put(transaction);
       });
       Transaction? createdTransaction = db.transactions.get(id);
-      ProxyService.box.write(key: 'currentTransactionId', value: id);
+      ProxyService.box.writeString(key: 'currentTransactionId', value: id);
       return createdTransaction!;
     } else {
       return existTransaction;
@@ -677,7 +677,7 @@ class IsarAPI<M> implements IsarApiInterface {
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
-    int defaultApp = ProxyService.box.getDefaultApp();
+    String defaultApp = ProxyService.box.getDefaultApp();
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/pin"),
       body: jsonEncode(
@@ -1219,7 +1219,7 @@ class IsarAPI<M> implements IsarApiInterface {
         return isar.business.where().userIdEqualTo(userId).findFirst();
       });
     }
-    ProxyService.box.write(key: 'businessId', value: business!.id);
+    ProxyService.box.writeInt(key: 'businessId', value: business!.id);
 
     return business;
   }
@@ -1471,54 +1471,53 @@ class IsarAPI<M> implements IsarApiInterface {
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       IUser user = IUser.fromRawJson(response.body);
-      await ProxyService.box.write(
+      await ProxyService.box.writeString(
         key: 'userPhone',
         value: userPhone,
       );
-      await ProxyService.box.write(
+      await ProxyService.box.writeString(
         key: 'bearerToken',
         value: user.token,
       );
-      await ProxyService.box.write(
+      await ProxyService.box.writeInt(
         key: 'userId',
         value: user.id,
       );
-      recordUserActivity(userId: user.id, activity: 'create');
-      await ProxyService.box.write(
+      recordUserActivity(userId: user.id, activity: 'login');
+      if (user.tenants.isEmpty) {
+        throw BusinessNotFoundException(
+            term:
+                "No tenant added to the user, if a business is added it should have one tenant");
+      }
+      await ProxyService.box.writeInt(
         key: 'branchId',
         // check if branches is empty
-        value:
-            user.tenants.isEmpty ? null : user.tenants.first.branches.first.id,
+        value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id,
       );
-      log(user.tenants.first.businesses.first.id.toString(), name: 'login');
+
       log(user.id.toString(), name: 'login');
-      await ProxyService.box.write(
+      await ProxyService.box.writeInt(
         key: 'businessId',
         // check if businesses is empty
-        value: user.tenants.isEmpty
-            ? null
-            : user.tenants.first.businesses.first.id,
+        value:
+            user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id,
       );
       if (skipDefaultAppSetup == false) {
-        await ProxyService.box.write(
+        await ProxyService.box.writeString(
           key: 'defaultApp',
 
           /// because we don update default app from server
           /// because we want the ability of switching apps to be entirely offline
           /// then if we have a default app in the box we use it if it only different from 1
           value: user.tenants.isEmpty
-              ? null
-              : ProxyService.box.getDefaultApp() != 1
+              ? 'null'
+              : ProxyService.box.getDefaultApp() != "1"
                   ? ProxyService.box.getDefaultApp()
-                  : user.tenants.first.businesses.first.businessTypeId,
+                  : user.tenants.first.businesses.first.businessTypeId
+                      .toString(),
         );
       }
 
-      if (user.tenants.isEmpty) {
-        throw BusinessNotFoundException(
-            term:
-                "No tenant added to the user, if a business is added it should have one tenant");
-      }
       for (Tenant tenant in user.tenants) {
         ITenant iTenant = ITenant(
             id: tenant.id,
@@ -1876,7 +1875,8 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is EBM) {
       final ebm = data;
       db.write((isar) {
-        ProxyService.box.write(key: "serverUrl", value: ebm.taxServerUrl);
+        ProxyService.box
+            .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
         Business? business =
             isar.business.where().userIdEqualTo(ebm.userId).findFirst();
         business
@@ -2327,10 +2327,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
-      {"id": 1, "typeName": "Flipper Retailer"},
-      {"id": 2, "typeName": "Flipper Connecta"},
-      // {"id": 3, "typeName": "Retailer"},
-      // {"id": 4, "typeName": "Agent"}
+      {"id": "1", "typeName": "Flipper Retailer"},
+      {"id": "2", "typeName": "Flipper Connecta"},
     ];
     Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
@@ -2448,8 +2446,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
     final now = DateTime.now();
 
-    if (now.isBefore(token.validFrom) || now.isAfter(token.validUntil)) {
-      db.write((isar) => isar.tokens.delete(token.id));
+    if (token.validFrom != null && token.validUntil != null) {
+      if (now.isBefore(token.validFrom!) || now.isAfter(token.validUntil!)) {
+        db.write((isar) => isar.tokens.delete(token.id));
+        return false;
+      }
+    } else {
       return false;
     }
     String? localToken = ProxyService.box.whatsAppToken();
@@ -2460,7 +2462,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<SocialToken> loginOnSocial(
+  Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
     final http.Response response = await socialsHttpClient.post(
       Uri.parse("$commApi/login"),
@@ -2471,7 +2473,10 @@ class IsarAPI<M> implements IsarApiInterface {
       SocialToken responseBody = SocialToken.fromRawJson(response.body);
       return responseBody;
     } else {
-      throw Exception("Failed to get token");
+      //// TODO: this is not a stopper when performing app global login
+      /// instead implement global non fatal error reporting so it can be addressed separately
+      // throw Exception("Failed to get token");
+      return null;
     }
   }
 
@@ -2633,12 +2638,12 @@ class IsarAPI<M> implements IsarApiInterface {
       }
 
       if (jsonDecode(response.body)['lastEvaluatedKey'] != null) {
-        // Set lastKey to the value returned by the API
+        /// Set lastKey to the value returned by the API
         String createdAt = jsonDecode(response.body)['lastEvaluatedKey']
             ['createdAt'] as String;
         int id = jsonDecode(response.body)['lastEvaluatedKey']['id'] as int;
-        ProxyService.box.write(key: 'createdAt', value: createdAt);
-        ProxyService.box.write(key: 'id', value: id);
+        ProxyService.box.writeString(key: 'createdAt', value: createdAt);
+        ProxyService.box.writeInt(key: 'id', value: id);
       } else {
         log(jsonDecode(response.body).toString());
         log("there is no last key to use in query and that is fine!");
@@ -3182,6 +3187,20 @@ class IsarAPI<M> implements IsarApiInterface {
         id: randomString(),
         timestamp: DateTime.now(),
         lastTouched: DateTime.now())));
+  }
+
+  /// there is cases where singup fail and there is some variable saved
+  /// in this case for us to be clean better clean them for next attempt
+  @override
+  Future<void> logOutLight() async {
+    ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'getIsTokenRegistered');
+    ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'userPhone');
+    ProxyService.box.remove(key: 'UToken');
+    ProxyService.box.remove(key: 'businessId');
+    ProxyService.box.remove(key: 'defaultApp');
   }
 
   /// End of streams

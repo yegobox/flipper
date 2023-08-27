@@ -49,7 +49,7 @@ class DynamicLinkService implements DynamicLink {
         // FirebaseChatCore.instance.logDynamicLink(code!);
       }
       //save the code in localstorage to be used later
-      ProxyService.box.write(key: 'referralCode', value: code.toString());
+      ProxyService.box.writeString(key: 'referralCode', value: code.toString());
 
       _routerService.navigateTo(StartUpViewRoute());
     }

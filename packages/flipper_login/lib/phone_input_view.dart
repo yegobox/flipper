@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
@@ -96,10 +98,8 @@ class _PhoneInputViewState extends State<PhoneInputView> {
 
   @override
   Widget build(BuildContext context) {
-    final l = FirebaseUILocalizations.labelsOf(context);
-    final countryCode = Localizations.localeOf(context).countryCode ??
-        WidgetsBinding.instance.platformDispatcher.locale.countryCode;
-
+    final localization = FirebaseUILocalizations.labelsOf(context);
+   
     return AuthFlowBuilder<PhoneAuthController>(
       flowKey: widget.flowKey,
       action: widget.action,
@@ -130,7 +130,7 @@ class _PhoneInputViewState extends State<PhoneInputView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Title(text: l.phoneVerificationViewTitleText),
+            Title(text: localization.phoneVerificationViewTitleText),
             const SizedBox(height: 32),
             if (widget.subtitleBuilder != null)
               widget.subtitleBuilder!(context),
@@ -142,7 +142,7 @@ class _PhoneInputViewState extends State<PhoneInputView> {
               ),
               const SizedBox(height: 16),
               UniversalButton(
-                text: l.verifyPhoneNumberButtonText,
+                text: localization.verifyPhoneNumberButtonText,
                 onPressed: () => _next(ctrl),
               ),
             ],

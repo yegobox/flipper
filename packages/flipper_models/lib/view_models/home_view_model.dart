@@ -38,15 +38,16 @@ class HomeViewModel extends ReactiveViewModel {
   get categories => app.categories;
 
   String? getSetting() {
-    klocale = Locale(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
-    setLanguage(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
-    return ProxyService.box.read(key: 'defaultLanguage');
+    klocale =
+        Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
+    setLanguage(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
+    return ProxyService.box.readString(key: 'defaultLanguage');
   }
 
   void setLanguage(String lang) {
     defaultLanguage = null;
     klocale = Locale(lang);
-    ProxyService.box.write(key: 'defaultLanguage', value: lang);
+    ProxyService.box.writeString(key: 'defaultLanguage', value: lang);
     defaultLanguage = lang;
     languageService.setLocale(lang: defaultLanguage!);
   }
@@ -284,7 +285,7 @@ class HomeViewModel extends ReactiveViewModel {
   /// but this will be generic for this given transaction saved in a box it is very important to reach to collect cash screen
   /// for the initation of writing this transactionId in a box for later use!.
   Future<void> getTransactionById() async {
-    String? id = ProxyService.box.read(key: 'transactionId');
+    String? id = ProxyService.box.readString(key: 'transactionId');
     if (id != null) {
       log("id is: $id");
       await ProxyService.keypad.getTransactionById(id: id);
@@ -949,12 +950,12 @@ class HomeViewModel extends ReactiveViewModel {
   void setDefaultBusiness({required Business business}) {
     app.setBusiness(business: business);
     ProxyService.isar.update(data: business..isDefault = true);
-    ProxyService.box.write(key: 'businessId', value: business.id);
+    ProxyService.box.writeInt(key: 'businessId', value: business.id);
   }
 
   void setDefaultBranch({required Branch branch}) {
     ProxyService.isar.update(data: branch..isDefault = true);
-    ProxyService.box.write(key: 'branchId', value: branch.id);
+    ProxyService.box.writeInt(key: 'branchId', value: branch.id);
   }
 
   /// a method that listen on given tenantId and perform a sale to a POS
@@ -1049,9 +1050,9 @@ class HomeViewModel extends ReactiveViewModel {
       log('all matches', name: 'weakUp');
       ProxyService.isar.recordUserActivity(
         userId: ProxyService.box.getUserId()!,
-        activity: 'create',
+        activity: 'session',
       );
-      ProxyService.box.write(key: 'userId', value: int.parse(pin));
+      ProxyService.box.writeInt(key: 'userId', value: int.parse(pin));
       ITenant? tenant = await ProxyService.isar
           .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
       tenant?.sessionActive = true;

@@ -58,6 +58,7 @@ abstract class IsarApiInterface {
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});
   Future<void> logOut();
+  Future<void> logOutLight();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
@@ -231,7 +232,7 @@ abstract class IsarApiInterface {
   Future<Conversation?> getConversation({required String messageId});
   Future<List<Conversation>> getScheduleMessages();
   Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
-  Future<SocialToken> loginOnSocial(
+  Future<SocialToken?> loginOnSocial(
       {String phoneNumberOrEmail, String password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});

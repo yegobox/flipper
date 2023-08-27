@@ -20,7 +20,7 @@ class RWTax implements TaxApi {
     required String bhfId,
     required String dvcSrlNo,
   }) async {
-    String? token = ProxyService.box.read(key: 'bearerToken');
+    String? token = ProxyService.box.readString(key: 'bearerToken');
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request =
         http.Request('POST', Uri.parse(apihub + 'initializer/selectInitInfo'));
@@ -149,7 +149,6 @@ class RWTax implements TaxApi {
       itemsList.add(item.toJson());
     }
 
-  
     double totalMinusExemptedProducts = 0;
     for (var item in items) {
       if (!item.isTaxExempted) {

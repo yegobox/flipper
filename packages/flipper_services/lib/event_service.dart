@@ -4,6 +4,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
+import 'package:flutter/foundation.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -91,13 +92,14 @@ class EventService implements EventInterface {
         LoginData loginData = LoginData.fromMap(envelope.payload);
 
         await ProxyService.box
-            .write(key: 'businessId', value: loginData.businessId);
+            .writeInt(key: 'businessId', value: loginData.businessId);
         await ProxyService.box
-            .write(key: 'branchId', value: loginData.branchId);
-        await ProxyService.box.write(key: 'userId', value: loginData.userId);
-        await ProxyService.box.write(key: 'userPhone', value: loginData.phone);
+            .writeInt(key: 'branchId', value: loginData.branchId);
+        await ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
         await ProxyService.box
-            .write(key: 'defaultApp', value: loginData.defaultApp);
+            .writeString(key: 'userPhone', value: loginData.phone);
+        await ProxyService.box
+            .writeInt(key: 'defaultApp', value: loginData.defaultApp);
 
         // get the device name and version
         String deviceName = Platform.operatingSystem;
@@ -128,7 +130,12 @@ class EventService implements EventInterface {
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         keepTryingPublishDevice();
         await FirebaseAuth.instance.signInAnonymously();
-        FirebaseAuth.instance.tenantId = loginData.businessId.toString();
+        // if (kDebugMode) {
+        //   FirebaseAuth.instance.tenantId = null;
+        // } else {
+        //   FirebaseAuth.instance.tenantId =
+        //       ProxyService.box.getBusinessId().toString();
+        // }
       });
     } catch (e) {
       rethrow;

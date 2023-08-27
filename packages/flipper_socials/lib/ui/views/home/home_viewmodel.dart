@@ -34,7 +34,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void returnToApps() {
-    ProxyService.box.write(key: 'defaultApp', value: 1);
+    ProxyService.box.writeInt(key: 'defaultApp', value: 1);
     final _routerService = locator<RouterService>();
     _routerService.navigateTo(const FlipperAppRoute());
   }

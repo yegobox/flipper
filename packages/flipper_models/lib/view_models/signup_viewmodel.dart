@@ -75,9 +75,9 @@ class SignupViewModel extends ReactiveViewModel {
       registerStart = true;
       notifyListeners();
       //set the startup app.
-      ProxyService.box.write(key: defaultApp, value: businessType.id);
+      ProxyService.box.writeString(key: defaultApp, value: businessType.id);
 
-      String? referralCode = ProxyService.box.read(key: 'referralCode');
+      String? referralCode = ProxyService.box.readString(key: 'referralCode');
 
       List<Tenant> tenants = await ProxyService.isar.signup(business: {
         'name': kName,
@@ -96,7 +96,7 @@ class SignupViewModel extends ReactiveViewModel {
       });
       if (tenants.isNotEmpty) {
         /// we have socials as choosen app then register on social
-        if (businessType.id == 2) {
+        if (businessType.id == "2") {
           // it is customer support then register on socials as well
           await ProxyService.isar.registerOnSocial(
               password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
@@ -108,7 +108,7 @@ class SignupViewModel extends ReactiveViewModel {
 
         List<Branch> branches =
             await ProxyService.isar.branches(businessId: business!.id);
-        ProxyService.box.write(key: 'branchId', value: branches[0].id);
+        ProxyService.box.writeInt(key: 'branchId', value: branches[0].id);
 
         appService.appInit();
         final Category category = Category(
@@ -154,10 +154,11 @@ class SignupViewModel extends ReactiveViewModel {
         LoginInfo().needSignUp = false;
         _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      ProxyService.isar.logOutLight();
       registerStart = false;
       notifyListeners();
-      rethrow;
+      throw Exception(stackTrace);
     }
   }
 }
