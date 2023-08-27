@@ -1249,6 +1249,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll();
   }
 
+  /// since tennat has userId which is a pin, we need to think if
+  /// we still need to create & get pin
   @override
   Future<Pin?> getPin({required String pin}) async {
     final http.Response response =
