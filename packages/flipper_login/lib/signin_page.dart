@@ -95,10 +95,15 @@ class AuthOptionPage extends StatelessWidget {
                           log('microsoft');
                           final provider = MicrosoftAuthProvider();
                           provider.addScope('mail.read');
-                          await FirebaseAuth.instance.signInWithProvider(
+                          final user =
+                              await FirebaseAuth.instance.signInWithProvider(
                             provider,
                           );
-                          // UserCredential user = await auth.getRedirectResult();
+                          if (user.user != null) {
+                            final _routerService = locator<RouterService>();
+                            _routerService.clearStackAndShow(
+                                StartUpViewRoute(invokeLogin: true));
+                          }
                         },
                         icon: SvgPicture.asset(
                           'assets/microsoft.svg',

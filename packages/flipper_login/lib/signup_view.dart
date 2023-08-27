@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'dart:convert';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +32,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
       name: 'businessType',
-      items: [], // Initially empty
+      items: BusinessType.fromJsonList(jsonEncode([
+        {"id": "1", "typeName": "Flipper Retailer"},
+        {"id": "2", "typeName": "Flipper Connecta"},
+      ])),
       validators: [
         FieldBlocValidators.required,
       ]);
@@ -39,11 +44,11 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     countryName.updateInitialValue(country);
     ProxyService.isar.businessTypes().then((data) {
       // Update the items of the SelectFieldBloc
-      print(data);
+      log(data.toString(), name: 'AsyncFieldValidationFormBloc');
       businessTypes.updateItems(data);
     }).catchError((error) {
       // Handle the error
-      print(error);
+      log(error, name: 'AsyncFieldValidationFormBloc');
     });
 
     addFieldBlocs(fieldBlocs: [
@@ -97,6 +102,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       showSimpleNotification(
           const Text("Error while signing up try again later"),
           background: Colors.red,
+          duration: Duration(seconds: 10),
           position: NotificationPosition.bottom);
       emitFailure();
     }
@@ -190,7 +196,9 @@ class _SignUpViewState extends State<SignUpView> {
                                 prefixIcon: Icon(Icons.business),
                               ),
                               onChanged: (value) {
-                                if (value!.id != 2) {
+                                if (value != null && value.id != "2") {
+                                  log('setting choosen business type',
+                                      name: 'onChanged');
                                   setState(() {
                                     _showTinField = true;
                                   });

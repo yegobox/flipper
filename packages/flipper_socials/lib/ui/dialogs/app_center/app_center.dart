@@ -55,7 +55,8 @@ class AppCenter extends StackedView<AppCenterModel> {
                           child: Image.asset(logoAsset,
                               package: "flipper_socials"),
                           onTap: () {
-                            ProxyService.box.write(key: 'defaultApp', value: 1);
+                            ProxyService.box
+                                .writeInt(key: 'defaultApp', value: 1);
                             // navigate
                             _routerService.navigateTo(const FlipperAppRoute());
                           },

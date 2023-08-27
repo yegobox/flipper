@@ -191,17 +191,17 @@ abstract class ServicesModule {
 
   @preResolve
   Future<RemoteInterface> get remoteApi async {
-    return await RemoteService().getInstance();
+    try {
+      return await RemoteService().getInstance();
+    } catch (e) {
+      // Handle the error or retry logic here
+      return Future.error(e);
+    }
   }
 
-  // @LazySingleton()
   @preResolve
   Future<LocalStorage> get box async {
-    //late LocalStorage box;
-    log("loading a box");
     return await SharedPreferenceStorage().initializePreferences();
-    //box = LocalStorageImpl();
-    // return box;
   }
 
   @LazySingleton()

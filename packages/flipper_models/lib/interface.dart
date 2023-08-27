@@ -58,6 +58,7 @@ abstract class IsarApiInterface {
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct({required Product product});
   Future<void> logOut();
+  Future<void> logOutLight();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 

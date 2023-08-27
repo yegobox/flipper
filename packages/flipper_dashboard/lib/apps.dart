@@ -71,7 +71,7 @@ class _AppsState extends State<Apps> {
             }
             return;
           case "Connecta":
-            ProxyService.box.write(key: 'defaultApp', value: 2);
+            ProxyService.box.writeInt(key: 'defaultApp', value: 2);
             _routerService.navigateTo(SocialHomeViewRoute());
             return;
           case "Orders":

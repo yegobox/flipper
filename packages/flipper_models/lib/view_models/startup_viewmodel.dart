@@ -2,11 +2,9 @@ library flipper_models;
 
 import 'dart:developer';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
