@@ -5,7 +5,6 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -30,7 +29,10 @@ class StartupViewModel extends BaseViewModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
-      log("User rrr" + ProxyService.box.getUserId().toString());
+      log("User " + ProxyService.box.getUserId().toString(),
+          name: 'runStartupLogic');
+
+      log('hitting here', name: 'runStartupLogic');
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isar
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
@@ -51,11 +53,13 @@ class StartupViewModel extends BaseViewModel {
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
+        log(stackTrace.toString(), name: 'runStartupLogic');
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       } else {
-        print(stackTrace);
+        log(e.toString(), name: 'runStartupLogic');
+        log(stackTrace.toString(), name: 'runStartupLogic');
         ProxyService.isar.logOut();
         //remove startup view from the stack
         _routerService.clearStackAndShow(LoginViewRoute());

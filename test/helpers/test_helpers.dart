@@ -85,7 +85,7 @@ AppService getAndRegisterAppService(
   // when(service.hasLoggedInUser).thenReturn(hasLoggedInUser);
   when(service.branchId).thenReturn(branchId);
   when(service.businessId).thenReturn(businessId);
-  when(service.currentColor).thenReturn('#ee5253');
+  // when(service.currentColor).thenReturn('#ee5253');
   locator.registerSingleton<AppService>(service);
 
   return service;
@@ -160,10 +160,10 @@ MockLocalStorage getAndRegisterLocalStorage() {
   when(service.getUserId()).thenAnswer((_) => 300);
   when(service.getBusinessId()).thenAnswer((_) => 10);
   when(service.getBranchId()).thenAnswer((_) => 11);
-  when(service.read(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
-  when(service.read(key: 'branchId')).thenAnswer((_) => 11);
-  when(service.read(key: 'referralCode')).thenAnswer((_) => "11");
-  when(service.read(key: 'businessId')).thenAnswer((_) => 10);
+  when(service.readString(key: 'bearerToken')).thenAnswer((_) => 'TOKEN');
+  when(service.readInt(key: 'branchId')).thenAnswer((_) => 11);
+  when(service.readString(key: 'referralCode')).thenAnswer((_) => "11");
+  when(service.readInt(key: 'businessId')).thenAnswer((_) => 10);
 
   // when(service.write(key: pageKey, value: 'key')).thenAnswer((_) => true);
   // when(service.write(key: 'branchId', value: anyNamed("value")))

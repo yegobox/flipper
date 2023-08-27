@@ -7,16 +7,17 @@ repository: https://github.com/yegobox/packages
 # publish_to: "none"
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ">=3.0.0"
+
 
 dependencies:
   flutter:
     sdk: flutter
 
-  firebase_ui_auth: ^1.6.0
-  flutter_form_bloc: ^0.30.1
+  firebase_ui_auth: ^1.6.4
+  flutter_form_bloc: ^0.31.0
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.15.0
+  firebase_core: ^2.15.1
   firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^1.0.0
   flipper_dashboard: ^0.0.1-dev.5
@@ -28,7 +29,7 @@ dependencies:
   flutter_settings_ui: ^2.0.1
   stacked: ^3.4.0
   google_fonts: ^5.1.0
-  firebase_auth: ^4.7.0
+  firebase_auth: ^4.7.3
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^4.0.1
   firebase_ui_localizations: ^1.5.0

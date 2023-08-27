@@ -5,7 +5,8 @@ publish_to: "none"
 repository: https://github.com/yegobox
 
 environment:
-  sdk: ">=2.18.6 <3.0.0"
+  sdk: ">=3.0.0"
+
 
 dependencies:
   get: ^4.6.1
@@ -44,7 +45,7 @@ dependencies:
   google_fonts: ^5.1.0
   number_display: ^3.0.0
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.15.0
+  firebase_core: ^2.15.1
   firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^1.0.0
@@ -86,6 +87,7 @@ dependencies:
   move_to_background:
     git:
       url: https://github.com/ViliusP/move_to_background.git
+  pinput: ^3.0.0
 dependency_overrides:
   http: ^1.1.0
 flutter:

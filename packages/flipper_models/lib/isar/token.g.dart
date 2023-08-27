@@ -80,11 +80,21 @@ const TokenSchema = IsarGeneratedSchema(
 int serializeToken(IsarWriter writer, Token object) {
   IsarCore.writeString(writer, 1, object.id);
   IsarCore.writeString(writer, 2, object.type);
-  IsarCore.writeString(writer, 3, object.token);
+  {
+    final value = object.token;
+    if (value == null) {
+      IsarCore.writeNull(writer, 3);
+    } else {
+      IsarCore.writeString(writer, 3, value);
+    }
+  }
+  IsarCore.writeLong(writer, 4,
+      object.validFrom?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
   IsarCore.writeLong(
-      writer, 4, object.validFrom.toUtc().microsecondsSinceEpoch);
-  IsarCore.writeLong(
-      writer, 5, object.validUntil.toUtc().microsecondsSinceEpoch);
+      writer,
+      5,
+      object.validUntil?.toUtc().microsecondsSinceEpoch ??
+          -9223372036854775808);
   IsarCore.writeLong(writer, 6, object.businessId);
   IsarCore.writeLong(
       writer,
@@ -103,25 +113,23 @@ Token deserializeToken(IsarReader reader) {
   _id = IsarCore.readString(reader, 1) ?? '';
   final String _type;
   _type = IsarCore.readString(reader, 2) ?? '';
-  final String _token;
-  _token = IsarCore.readString(reader, 3) ?? '';
-  final DateTime _validFrom;
+  final String? _token;
+  _token = IsarCore.readString(reader, 3);
+  final DateTime? _validFrom;
   {
     final value = IsarCore.readLong(reader, 4);
     if (value == -9223372036854775808) {
-      _validFrom =
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+      _validFrom = null;
     } else {
       _validFrom =
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final DateTime _validUntil;
+  final DateTime? _validUntil;
   {
     final value = IsarCore.readLong(reader, 5);
     if (value == -9223372036854775808) {
-      _validUntil =
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+      _validUntil = null;
     } else {
       _validUntil =
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
@@ -169,12 +177,12 @@ dynamic deserializeTokenProp(IsarReader reader, int property) {
     case 2:
       return IsarCore.readString(reader, 2) ?? '';
     case 3:
-      return IsarCore.readString(reader, 3) ?? '';
+      return IsarCore.readString(reader, 3);
     case 4:
       {
         final value = IsarCore.readLong(reader, 4);
         if (value == -9223372036854775808) {
-          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+          return null;
         } else {
           return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
               .toLocal();
@@ -184,7 +192,7 @@ dynamic deserializeTokenProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readLong(reader, 5);
         if (value == -9223372036854775808) {
-          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
+          return null;
         } else {
           return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
               .toLocal();
@@ -748,8 +756,20 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Token, Token, QAfterFilterCondition> tokenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> tokenIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 3));
+    });
+  }
+
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -764,7 +784,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -779,7 +799,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -794,7 +814,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -809,7 +829,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -824,8 +844,8 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> tokenBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -918,8 +938,20 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Token, Token, QAfterFilterCondition> validFromIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> validFromIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
   QueryBuilder<Token, Token, QAfterFilterCondition> validFromEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -932,7 +964,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validFromGreaterThan(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -946,7 +978,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
 
   QueryBuilder<Token, Token, QAfterFilterCondition>
       validFromGreaterThanOrEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -959,7 +991,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validFromLessThan(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -972,7 +1004,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validFromLessThanOrEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -985,8 +1017,8 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validFromBetween(
-    DateTime lower,
-    DateTime upper,
+    DateTime? lower,
+    DateTime? upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -999,8 +1031,20 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Token, Token, QAfterFilterCondition> validUntilIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
+  QueryBuilder<Token, Token, QAfterFilterCondition> validUntilIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
   QueryBuilder<Token, Token, QAfterFilterCondition> validUntilEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1013,7 +1057,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validUntilGreaterThan(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1027,7 +1071,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
 
   QueryBuilder<Token, Token, QAfterFilterCondition>
       validUntilGreaterThanOrEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1040,7 +1084,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validUntilLessThan(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1053,7 +1097,7 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validUntilLessThanOrEqualTo(
-    DateTime value,
+    DateTime? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1066,8 +1110,8 @@ extension TokenQueryFilter on QueryBuilder<Token, Token, QFilterCondition> {
   }
 
   QueryBuilder<Token, Token, QAfterFilterCondition> validUntilBetween(
-    DateTime lower,
-    DateTime upper,
+    DateTime? lower,
+    DateTime? upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1852,19 +1896,19 @@ extension TokenQueryProperty1 on QueryBuilder<Token, Token, QProperty> {
     });
   }
 
-  QueryBuilder<Token, String, QAfterProperty> tokenProperty() {
+  QueryBuilder<Token, String?, QAfterProperty> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Token, DateTime, QAfterProperty> validFromProperty() {
+  QueryBuilder<Token, DateTime?, QAfterProperty> validFromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Token, DateTime, QAfterProperty> validUntilProperty() {
+  QueryBuilder<Token, DateTime?, QAfterProperty> validUntilProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1908,19 +1952,19 @@ extension TokenQueryProperty2<R> on QueryBuilder<Token, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<Token, (R, String), QAfterProperty> tokenProperty() {
+  QueryBuilder<Token, (R, String?), QAfterProperty> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Token, (R, DateTime), QAfterProperty> validFromProperty() {
+  QueryBuilder<Token, (R, DateTime?), QAfterProperty> validFromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Token, (R, DateTime), QAfterProperty> validUntilProperty() {
+  QueryBuilder<Token, (R, DateTime?), QAfterProperty> validUntilProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1965,19 +2009,19 @@ extension TokenQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Token, (R1, R2, String), QOperations> tokenProperty() {
+  QueryBuilder<Token, (R1, R2, String?), QOperations> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Token, (R1, R2, DateTime), QOperations> validFromProperty() {
+  QueryBuilder<Token, (R1, R2, DateTime?), QOperations> validFromProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Token, (R1, R2, DateTime), QOperations> validUntilProperty() {
+  QueryBuilder<Token, (R1, R2, DateTime?), QOperations> validUntilProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -2015,10 +2059,14 @@ extension TokenQueryProperty3<R1, R2>
 Token _$TokenFromJson(Map<String, dynamic> json) => Token(
       id: json['id'] as String,
       type: json['type'] as String,
-      token: json['token'] as String,
+      token: json['token'] as String?,
       businessId: json['businessId'] as int,
-      validFrom: DateTime.parse(json['validFrom'] as String),
-      validUntil: DateTime.parse(json['validUntil'] as String),
+      validFrom: json['validFrom'] == null
+          ? null
+          : DateTime.parse(json['validFrom'] as String),
+      validUntil: json['validUntil'] == null
+          ? null
+          : DateTime.parse(json['validUntil'] as String),
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
@@ -2033,8 +2081,8 @@ Map<String, dynamic> _$TokenToJson(Token instance) => <String, dynamic>{
       'id': instance.id,
       'type': instance.type,
       'token': instance.token,
-      'validFrom': instance.validFrom.toIso8601String(),
-      'validUntil': instance.validUntil.toIso8601String(),
+      'validFrom': instance.validFrom?.toIso8601String(),
+      'validUntil': instance.validUntil?.toIso8601String(),
       'businessId': instance.businessId,
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),

@@ -8,7 +8,6 @@ import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -22,12 +21,14 @@ class ProfileWidget extends StatefulWidget {
   const ProfileWidget({
     super.key,
     required this.tenant,
+    required this.sessionActive,
     this.showIcon = true,
     this.size = 50,
   });
   final ITenant tenant;
   final double? size;
   final bool showIcon;
+  final bool sessionActive;
   @override
   State<ProfileWidget> createState() => _ProfileWidgetState();
 }
@@ -57,7 +58,10 @@ class _ProfileWidgetState extends State<ProfileWidget>
           return Stack(
             children: [
               !isDesktopOrWeb
-                  ? PMobile(widget: widget, dialogService: _dialogService)
+                  ? PMobile(
+                      widget: widget,
+                      dialogService: _dialogService,
+                      sessionActive: widget.sessionActive)
                   : PDesktop(
                       widget: widget,
                       dialogService: _dialogService,
@@ -150,9 +154,9 @@ class PDesktop extends StatelessWidget {
                     ),
                   ],
               child: GmailLikeLetter(
-                tenant: widget.tenant,
-                size: widget.size,
-              )
+                  tenant: widget.tenant,
+                  size: widget.size,
+                  sessionActive: widget.sessionActive)
               // TODO: re-enable bellow coded once showing profile pic on client is fully supported
               // child: hasImage
               //     ? SizedBox(
@@ -205,14 +209,16 @@ class PDesktop extends StatelessWidget {
 }
 
 class PMobile extends StatelessWidget {
-  const PMobile({
-    super.key,
-    required this.widget,
-    required DialogService dialogService,
-  }) : _dialogService = dialogService;
+  const PMobile(
+      {super.key,
+      required this.widget,
+      required DialogService dialogService,
+      required this.sessionActive})
+      : _dialogService = dialogService;
 
   final DialogService _dialogService;
   final ProfileWidget widget;
+  final bool sessionActive;
 
   @override
   Widget build(BuildContext context) {
@@ -221,8 +227,10 @@ class PMobile extends StatelessWidget {
           ProxyService.isar.getBusiness(businessId: widget.tenant.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
+        // ignore: unused_local_variable
         final hasImage = data?.imageUrl != null;
         Widget buildContent() {
+          // ignore: unused_local_variable
           final borderRadius = BorderRadius.only(
             topLeft: Radius.circular(4),
             topRight: Radius.circular(4),
@@ -239,6 +247,7 @@ class PMobile extends StatelessWidget {
             // removed if from showing it because it need more work to follow ContinuousRectangleBorder specs
             child: GmailLikeLetter(
               tenant: widget.tenant,
+              sessionActive: sessionActive,
               size: widget.size,
             ),
             // child: !hasImage

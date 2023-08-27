@@ -108,7 +108,10 @@ class _ProductViewState extends State<ProductView> {
                                     }
                                     final data = snapshoot.data;
                                     return ProfileWidget(
-                                        tenant: data!, size: 25);
+                                      tenant: data!,
+                                      size: 25,
+                                      sessionActive: true,
+                                    );
                                   })
                               : SizedBox.shrink()
                         ]),

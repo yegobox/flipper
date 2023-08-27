@@ -33,15 +33,16 @@ class SettingViewModel extends HomeViewModel {
   get isProcessing => _isProceeding;
 
   String? getSetting() {
-    klocale = Locale(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
-    setLanguage(ProxyService.box.read(key: 'defaultLanguage') ?? 'en');
-    return ProxyService.box.read(key: 'defaultLanguage');
+    klocale =
+        Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
+    setLanguage(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
+    return ProxyService.box.readString(key: 'defaultLanguage');
   }
 
   void setLanguage(String lang) {
     defaultLanguage = null;
     klocale = Locale(lang);
-    ProxyService.box.write(key: 'defaultLanguage', value: lang);
+    ProxyService.box.writeString(key: 'defaultLanguage', value: lang);
     defaultLanguage = lang;
     languageService.setLocale(lang: defaultLanguage!);
     notifyListeners();
@@ -166,7 +167,7 @@ class SettingViewModel extends HomeViewModel {
     _isProceeding = true;
     notifyListeners();
     try {
-      int userId = int.parse(ProxyService.box.read(key: 'userId'));
+      int userId = ProxyService.box.readInt(key: 'userId')!;
 
       Voucher? voucher = await ProxyService.billing
           .useVoucher(voucher: int.parse(text), userId: userId);
@@ -208,7 +209,7 @@ class SettingViewModel extends HomeViewModel {
   bool get isProformaModeEnabled => ProxyService.box.isPoroformaMode();
   set isProformaModeEnabled(bool value) {
     if (!ProxyService.box.isTrainingMode()) {
-      ProxyService.box.write(key: 'isPoroformaMode', value: value);
+      ProxyService.box.writeBool(key: 'isPoroformaMode', value: value);
       notifyListeners();
     }
   }
@@ -216,20 +217,20 @@ class SettingViewModel extends HomeViewModel {
   bool get isTrainingModeEnabled => ProxyService.box.isTrainingMode();
   set isTrainingModeEnabled(bool value) {
     if (!ProxyService.box.isPoroformaMode()) {
-      ProxyService.box.write(key: 'isTrainingMode', value: value);
+      ProxyService.box.writeBool(key: 'isTrainingMode', value: value);
       notifyListeners();
     }
   }
 
   bool get isAutoPrintEnabled => ProxyService.box.isAutoPrintEnabled();
   set isAutoPrintEnabled(bool value) {
-    ProxyService.box.write(key: 'isAutoPrintEnabled', value: value);
+    ProxyService.box.writeBool(key: 'isAutoPrintEnabled', value: value);
     notifyListeners();
   }
 
   bool get isAutoBackupEnabled => ProxyService.box.isAutoBackupEnabled();
   set isAutoBackupEnabled(bool value) {
-    ProxyService.box.write(key: 'isAutoBackupEnabled', value: value);
+    ProxyService.box.writeBool(key: 'isAutoBackupEnabled', value: value);
     notifyListeners();
   }
 

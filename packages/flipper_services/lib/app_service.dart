@@ -87,16 +87,16 @@ class AppService with ListenableServiceMixin {
       phoneNumberOrEmail: phoneNumber,
     );
 
-    final socialBearerToken = "Bearer " + token.body.token;
-    ProxyService.box.write(key: 'whatsAppToken', value: socialBearerToken);
+    ProxyService.box.writeString(
+        key: 'whatsAppToken', value: "Bearer ${token?.body.token}");
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
       id: randomString(),
       businessId: businessId,
-      token: token.body.token,
-      validFrom: token.body.validFrom,
-      validUntil: token.body.validUntil,
+      token: token?.body.token,
+      validFrom: token?.body.validFrom,
+      validUntil: token?.body.validUntil,
       type: socialApp,
     );
 
@@ -133,7 +133,7 @@ class AppService with ListenableServiceMixin {
       await loadTenants(businesses);
       await loadCounters(businesses.first);
 
-      ProxyService.box.write(key: 'businessId', value: businesses.first.id);
+      ProxyService.box.writeInt(key: 'businessId', value: businesses.first.id);
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {
@@ -145,7 +145,7 @@ class AppService with ListenableServiceMixin {
       bool defaultBusiness = false;
       for (Business business in businesses) {
         if (business.isDefault != null && business.isDefault == true) {
-          ProxyService.box.write(key: 'businessId', value: business.id);
+          ProxyService.box.writeInt(key: 'businessId', value: business.id);
           await setActiveBusiness(businesses);
           await loadTenants(businesses);
           await loadCounters(businesses.first);
@@ -175,12 +175,12 @@ class AppService with ListenableServiceMixin {
     for (Branch branch in branches) {
       if (branch.isDefault) {
         defaultBranch = true;
-        ProxyService.box.write(key: 'branchId', value: branch.id);
+        ProxyService.box.writeInt(key: 'branchId', value: branch.id);
       }
     }
     if (branches.length == 1) {
       defaultBranch = true;
-      ProxyService.box.write(key: 'branchId', value: branches.first.id);
+      ProxyService.box.writeInt(key: 'branchId', value: branches.first.id);
     }
     return defaultBranch;
   }
@@ -188,7 +188,7 @@ class AppService with ListenableServiceMixin {
   Future<void> setActiveBusiness(List<isar.Business> businesses) async {
     ProxyService.app.setBusiness(business: businesses.first);
 
-    ProxyService.box.write(key: 'businessId', value: businesses.first.id);
+    ProxyService.box.writeInt(key: 'businessId', value: businesses.first.id);
   }
 
   Future<void> loadCounters(isar.Business business) async {
@@ -218,7 +218,7 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<bool> isSocialLoggedin() async {
-    if (ProxyService.box.getDefaultApp() == 2) {
+    if (ProxyService.box.getDefaultApp() == "2") {
       int businessId = ProxyService.box.getBusinessId()!;
       return await ProxyService.isar
           .isTokenValid(businessId: businessId, tokenType: socialApp);

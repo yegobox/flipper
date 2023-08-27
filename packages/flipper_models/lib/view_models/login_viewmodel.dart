@@ -30,7 +30,7 @@ class LoginViewModel extends FormViewModel {
   void setOtp({required String ot}) {
     otpStart = true;
     notifyListeners();
-    ProxyService.box.write(key: 'otp', value: ot);
+    ProxyService.box.writeString(key: 'otp', value: ot);
   }
 
   @override
@@ -45,11 +45,11 @@ class LoginViewModel extends FormViewModel {
     setIsprocessing(value: true);
     Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
     if (pin != null) {
-      ProxyService.box.write(key: 'businessId', value: pin.businessId);
-      ProxyService.box.write(key: 'branchId', value: pin.branchId);
-      ProxyService.box.write(key: 'userId', value: pin.userId);
-      ProxyService.box.write(key: 'userPhone', value: pin.phoneNumber);
-      ProxyService.box.write(key: 'isAnonymous', value: true);
+      ProxyService.box.writeInt(key: 'businessId', value: pin.businessId);
+      ProxyService.box.writeInt(key: 'branchId', value: pin.branchId);
+      ProxyService.box.writeString(key: 'userId', value: pin.userId);
+      ProxyService.box.writeString(key: 'userPhone', value: pin.phoneNumber);
+      ProxyService.box.writeBool(key: 'isAnonymous', value: true);
       await ProxyService.isar.login(
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,

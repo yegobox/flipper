@@ -720,34 +720,6 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
         returnValueForMissingStub: '',
       ) as String);
   @override
-  List<_i9.Product> get products => (super.noSuchMethod(
-        Invocation.getter(#products),
-        returnValue: <_i9.Product>[],
-        returnValueForMissingStub: <_i9.Product>[],
-      ) as List<_i9.Product>);
-  @override
-  set products(List<_i9.Product>? value) => super.noSuchMethod(
-        Invocation.setter(
-          #products,
-          value,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  List<_i9.Product> get nonFavoriteProducts => (super.noSuchMethod(
-        Invocation.getter(#nonFavoriteProducts),
-        returnValue: <_i9.Product>[],
-        returnValueForMissingStub: <_i9.Product>[],
-      ) as List<_i9.Product>);
-  @override
-  set nonFavoriteProducts(List<_i9.Product>? value) => super.noSuchMethod(
-        Invocation.setter(
-          #nonFavoriteProducts,
-          value,
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   List<_i9.Stock?> get stocks => (super.noSuchMethod(
         Invocation.getter(#stocks),
         returnValue: <_i9.Stock?>[],
@@ -776,27 +748,6 @@ class MockProductService extends _i1.Mock implements _i13.ProductService {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  dynamic setCurrentProduct({required _i9.Product? product}) =>
-      super.noSuchMethod(
-        Invocation.method(
-          #setCurrentProduct,
-          [],
-          {#product: product},
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
-  _i5.Future<void> variantsProduct({required String? productId}) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #variantsProduct,
-          [],
-          {#productId: productId},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
   @override
   _i5.Stream<List<_i9.Discount>> discountStream({required int? branchId}) =>
       (super.noSuchMethod(
@@ -1312,14 +1263,23 @@ class MockSettingsService extends _i1.Mock implements _i15.SettingsService {
 /// See the documentation for Mockito's code generation for more information.
 class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
   @override
-  dynamic read({required String? key}) => super.noSuchMethod(
+  int? readInt({required String? key}) => (super.noSuchMethod(
         Invocation.method(
-          #read,
+          #readInt,
           [],
           {#key: key},
         ),
         returnValueForMissingStub: null,
-      );
+      ) as int?);
+  @override
+  String? readString({required String? key}) => (super.noSuchMethod(
+        Invocation.method(
+          #readString,
+          [],
+          {#key: key},
+        ),
+        returnValueForMissingStub: null,
+      ) as String?);
   @override
   dynamic remove({required String? key}) => super.noSuchMethod(
         Invocation.method(
@@ -1330,13 +1290,47 @@ class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<bool> write({
+  _i5.Future<bool> writeInt({
     required String? key,
-    required dynamic value,
+    required int? value,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
-          #write,
+          #writeInt,
+          [],
+          {
+            #key: key,
+            #value: value,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+        returnValueForMissingStub: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+  @override
+  _i5.Future<bool> writeString({
+    required String? key,
+    required String? value,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #writeString,
+          [],
+          {
+            #key: key,
+            #value: value,
+          },
+        ),
+        returnValue: _i5.Future<bool>.value(false),
+        returnValueForMissingStub: _i5.Future<bool>.value(false),
+      ) as _i5.Future<bool>);
+  @override
+  _i5.Future<bool> writeBool({
+    required String? key,
+    required bool? value,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #writeBool,
           [],
           {
             #key: key,
@@ -1410,14 +1404,14 @@ class MockLocalStorage extends _i1.Mock implements _i17.LocalStorage {
         returnValueForMissingStub: false,
       ) as bool);
   @override
-  int getDefaultApp() => (super.noSuchMethod(
+  String getDefaultApp() => (super.noSuchMethod(
         Invocation.method(
           #getDefaultApp,
           [],
         ),
-        returnValue: 0,
-        returnValueForMissingStub: 0,
-      ) as int);
+        returnValue: '',
+        returnValueForMissingStub: '',
+      ) as String);
 }
 
 /// A class which mocks [AppService].
@@ -1463,24 +1457,6 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         ),
       ) as _i9.Business);
   @override
-  List<_i9.IUnit> get units => (super.noSuchMethod(
-        Invocation.getter(#units),
-        returnValue: <_i9.IUnit>[],
-        returnValueForMissingStub: <_i9.IUnit>[],
-      ) as List<_i9.IUnit>);
-  @override
-  List<_i9.PColor> get colors => (super.noSuchMethod(
-        Invocation.getter(#colors),
-        returnValue: <_i9.PColor>[],
-        returnValueForMissingStub: <_i9.PColor>[],
-      ) as List<_i9.PColor>);
-  @override
-  String get currentColor => (super.noSuchMethod(
-        Invocation.getter(#currentColor),
-        returnValue: '',
-        returnValueForMissingStub: '',
-      ) as String);
-  @override
   List<_i9.Business> get contacts => (super.noSuchMethod(
         Invocation.getter(#contacts),
         returnValue: <_i9.Business>[],
@@ -1519,15 +1495,6 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         returnValueForMissingStub: null,
       );
   @override
-  dynamic setCurrentColor({required String? color}) => super.noSuchMethod(
-        Invocation.method(
-          #setCurrentColor,
-          [],
-          {#color: color},
-        ),
-        returnValueForMissingStub: null,
-      );
-  @override
   void loadCategories() => super.noSuchMethod(
         Invocation.method(
           #loadCategories,
@@ -1535,24 +1502,6 @@ class MockAppService extends _i1.Mock implements _i18.AppService {
         ),
         returnValueForMissingStub: null,
       );
-  @override
-  _i5.Future<void> loadUnits() => (super.noSuchMethod(
-        Invocation.method(
-          #loadUnits,
-          [],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-  @override
-  _i5.Future<void> loadColors() => (super.noSuchMethod(
-        Invocation.method(
-          #loadColors,
-          [],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
   @override
   _i5.Future<bool> isLoggedIn() => (super.noSuchMethod(
         Invocation.method(

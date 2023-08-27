@@ -72,13 +72,15 @@ class MobileUpload implements UploadT {
     }
     log(paths.length.toString(), name: 'paths');
     uploader.clearUploads();
-    await uploader.enqueue(MultipartFormDataUpload(
-      url: url,
-      files: [FileItem(path: paths.first!, field: 'file')],
-      method: UploadMethod.POST,
-      tag: 'file',
-      headers: {'Authorization': token!},
-    ));
+    await uploader
+        .enqueue(MultipartFormDataUpload(
+          url: url,
+          files: [FileItem(path: paths.first!, field: 'file')],
+          method: UploadMethod.POST,
+          tag: 'file',
+          headers: {'Authorization': token!},
+        ))
+        .whenComplete(() => log('done uploading', name: 'upload'));
   }
 
   @override
@@ -126,7 +128,7 @@ class MobileUpload implements UploadT {
       });
     } catch (e) {
       //refresh to token
-      String? phone = ProxyService.box.read(key: 'userPhone');
+      String? phone = ProxyService.box.readString(key: 'userPhone');
       await ProxyService.isar
           .login(userPhone: phone!, skipDefaultAppSetup: false);
     }
@@ -137,26 +139,33 @@ class MobileUpload implements UploadT {
       {required dynamic id,
       required URLTYPE urlType,
       required FlutterUploader uploader}) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-    if (image == null) return;
-    final File file = File(image.path);
-    final tempDir = await getTemporaryDirectory();
-    CompressObject compressObject = CompressObject(
-      imageFile: file, //image
-      path: tempDir.path, //compress to path
-      quality: 85,
-      step: 9,
-      mode: CompressMode.LARGE2SMALL, //default AUTO
-    );
-    Luban.compressImage(compressObject).then((_path) {
-      upload(
-        id: id,
-        paths: [_path!],
-        urlType: urlType,
-        uploader: uploader,
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image == null) return;
+      final File file = File(image.path);
+      final tempDir = await getTemporaryDirectory();
+      CompressObject compressObject = CompressObject(
+        imageFile: file, //image
+        path: tempDir.path, //compress to path
+        quality: 85,
+        step: 9,
+        mode: CompressMode.LARGE2SMALL, //default AUTO
       );
-    }).onError((error, stackTrace) {
-      log(error.toString(), name: "error compressing image");
-    });
+      Luban.compressImage(compressObject).then((_path) {
+        upload(
+          id: id,
+          paths: [_path!],
+          urlType: urlType,
+          uploader: uploader,
+        );
+      }).onError((error, stackTrace) {
+        log(error.toString(), name: "error compressing image");
+      });
+    } catch (e) {
+      //refresh to token
+      String? phone = ProxyService.box.readString(key: 'userPhone');
+      await ProxyService.isar
+          .login(userPhone: phone!, skipDefaultAppSetup: false);
+    }
   }
 }

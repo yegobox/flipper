@@ -14,9 +14,14 @@ final List<Color> colors = [
 ];
 
 class GmailLikeLetter extends StatefulWidget {
-  const GmailLikeLetter({super.key, required this.tenant, this.size = 100});
+  const GmailLikeLetter(
+      {super.key,
+      required this.tenant,
+      this.size = 100,
+      required this.sessionActive});
   final ITenant tenant;
   final double? size;
+  final bool sessionActive;
 
   @override
   State<GmailLikeLetter> createState() => _GmailLikeLetterState();
@@ -57,9 +62,9 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
               shadows: []),
           child: Center(
             child: Text(
-              widget.tenant.name.length > 0
+              widget.sessionActive && widget.tenant.name.length > 0
                   ? widget.tenant.name.substring(0, 2).toUpperCase()
-                  : '',
+                  : 'O', // O stands for sessions time out
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.white,

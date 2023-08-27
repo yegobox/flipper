@@ -21,14 +21,11 @@ class Apps extends StatefulWidget {
 
   Apps({
     Key? key,
-    required final TextEditingController controller,
-    required final bool isBigScreen,
-    required final HomeViewModel model,
-  })  : controller = controller,
-        isBigScreen = isBigScreen,
-        model = model,
-        super(key: key);
-  List<double> cashInAndOut = [1, 1];
+    required this.controller,
+    required this.isBigScreen,
+    required this.model,
+  }) : super(key: key);
+  final List<double> cashInAndOut = [1, 1];
 
   @override
   State<Apps> createState() => _AppsState();
@@ -74,7 +71,7 @@ class _AppsState extends State<Apps> {
             }
             return;
           case "Connecta":
-            ProxyService.box.write(key: 'defaultApp', value: 2);
+            ProxyService.box.writeInt(key: 'defaultApp', value: 2);
             _routerService.navigateTo(SocialHomeViewRoute());
             return;
           case "Orders":
@@ -126,6 +123,7 @@ class _AppsState extends State<Apps> {
                       width: 40,
                       child: ProfileWidget(
                         tenant: data!,
+                        sessionActive: true,
                         size: 25,
                         showIcon: false,
                       )),
@@ -144,9 +142,10 @@ class _AppsState extends State<Apps> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Column(
+      body: Align(
+        alignment: Alignment.center,
+        child: Wrap(
+          alignment: WrapAlignment.center,
           children: [
             ListTile(
               contentPadding: EdgeInsets.only(left: 30, right: 0),

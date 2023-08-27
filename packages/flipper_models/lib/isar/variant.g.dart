@@ -475,12 +475,12 @@ Variant deserializeVariant(IsarReader reader) {
   final int _branchId;
   _branchId = IsarCore.readLong(reader, 7);
   final String? _taxName;
-  _taxName = IsarCore.readString(reader, 8);
+  _taxName = IsarCore.readString(reader, 8) ?? 'N/A';
   final double? _taxPercentage;
   {
     final value = IsarCore.readDouble(reader, 9);
     if (value.isNaN) {
-      _taxPercentage = null;
+      _taxPercentage = 0;
     } else {
       _taxPercentage = value;
     }
@@ -502,7 +502,7 @@ Variant deserializeVariant(IsarReader reader) {
   final String? _bcd;
   _bcd = IsarCore.readString(reader, 17);
   final String? _itemClsCd;
-  _itemClsCd = IsarCore.readString(reader, 18);
+  _itemClsCd = IsarCore.readString(reader, 18) ?? 'itemClsCd';
   final String? _itemTyCd;
   _itemTyCd = IsarCore.readString(reader, 19);
   final String? _itemStdNm;
@@ -532,7 +532,7 @@ Variant deserializeVariant(IsarReader reader) {
   {
     final value = IsarCore.readDouble(reader, 28);
     if (value.isNaN) {
-      _prc = null;
+      _prc = 0.0;
     } else {
       _prc = value;
     }
@@ -683,12 +683,12 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
     case 7:
       return IsarCore.readLong(reader, 7);
     case 8:
-      return IsarCore.readString(reader, 8);
+      return IsarCore.readString(reader, 8) ?? 'N/A';
     case 9:
       {
         final value = IsarCore.readDouble(reader, 9);
         if (value.isNaN) {
-          return null;
+          return 0;
         } else {
           return value;
         }
@@ -710,7 +710,7 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
     case 17:
       return IsarCore.readString(reader, 17);
     case 18:
-      return IsarCore.readString(reader, 18);
+      return IsarCore.readString(reader, 18) ?? 'itemClsCd';
     case 19:
       return IsarCore.readString(reader, 19);
     case 20:
@@ -740,7 +740,7 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
       {
         final value = IsarCore.readDouble(reader, 28);
         if (value.isNaN) {
-          return null;
+          return 0.0;
         } else {
           return value;
         }
@@ -11034,8 +11034,8 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       isTaxExempted: json['isTaxExempted'] as bool,
       action: json['action'] as String,
       id: json['id'] as String,
-      taxName: json['taxName'] as String?,
-      taxPercentage: (json['taxPercentage'] as num?)?.toDouble(),
+      taxName: json['taxName'] as String? ?? 'N/A',
+      taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0,
       itemSeq: json['itemSeq'] as String?,
       isrccCd: json['isrccCd'] as String?,
       isrccNm: json['isrccNm'] as String?,
@@ -11043,7 +11043,7 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       isrcAmt: json['isrcAmt'] as String?,
       taxTyCd: json['taxTyCd'] as String?,
       bcd: json['bcd'] as String?,
-      itemClsCd: json['itemClsCd'] as String?,
+      itemClsCd: json['itemClsCd'] as String? ?? 'itemClsCd',
       itemTyCd: json['itemTyCd'] as String?,
       itemStdNm: json['itemStdNm'] as String?,
       orgnNatCd: json['orgnNatCd'] as String?,
@@ -11053,7 +11053,7 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       qtyUnitCd: json['qtyUnitCd'] as String?,
       itemNm: json['itemNm'] as String?,
       qty: (json['qty'] as num?)?.toDouble(),
-      prc: (json['prc'] as num?)?.toDouble(),
+      prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
       splyAmt: (json['splyAmt'] as num?)?.toDouble(),
       tin: json['tin'] as int?,
       bhfId: json['bhfId'] as String?,

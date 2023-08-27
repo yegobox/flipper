@@ -10,22 +10,13 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  dynamic read({required String key}) {
-    return prefs.get(key);
+  int? readInt({required String key}) {
+    return prefs.getInt(key);
   }
 
   @override
-  Future<bool> write({required dynamic key, required dynamic value}) async {
-    if (value is String) {
-      return prefs.setString(key, value);
-    } else if (value is int) {
-      return prefs.setInt(key, value);
-    } else if (value is double) {
-      return prefs.setDouble(key, value);
-    } else if (value is bool) {
-      return prefs.setBool(key, value);
-    }
-    return false;
+  Future<bool> writeInt({required dynamic key, required int value}) async {
+    return prefs.setInt(key, value);
   }
 
   @override
@@ -129,8 +120,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  int getDefaultApp() {
-    return prefs.getInt('defaultApp') ?? 1;
+  String getDefaultApp() {
+    return prefs.getString('defaultApp') ?? "1";
   }
 
   @override
@@ -147,17 +138,37 @@ class SharedPreferenceStorage implements LocalStorage {
   int? paginationId() {
     return prefs.getInt('id') ?? 0;
   }
+
+  @override
+  String? readString({required String key}) {
+    return prefs.getString(key);
+  }
+
+  @override
+  Future<bool> writeString({required String key, required String value}) async {
+    return await prefs.setString(key, value);
+  }
+
+  @override
+  Future<bool> writeBool({required String key, required bool value}) async {
+    return await prefs.setBool(key, value);
+  }
+
+  @override
+  bool? readBool({required String key}) {
+    return prefs.getBool(key);
+  }
 }
 
 class LocalStorageImpl implements LocalStorage {
   final box = GetStorage();
   @override
-  dynamic read({required String key}) {
+  int readInt({required String key}) {
     return box.read(key);
   }
 
   @override
-  Future<bool> write({required dynamic key, required dynamic value}) async {
+  Future<bool> writeInt({required dynamic key, required dynamic value}) async {
     await box.write(key, value);
     return true;
   }
@@ -273,8 +284,8 @@ class LocalStorageImpl implements LocalStorage {
   }
 
   @override
-  int getDefaultApp() {
-    return box.read('defaultApp') ?? 1;
+  String getDefaultApp() {
+    return box.read('defaultApp') ?? "1";
   }
 
   @override
@@ -290,5 +301,27 @@ class LocalStorageImpl implements LocalStorage {
   @override
   int? paginationId() {
     return box.read('id') ?? 0;
+  }
+
+  @override
+  String readString({required String key}) {
+    return box.read('key');
+  }
+
+  @override
+  Future<bool> writeString({required String key, required String value}) async {
+    await box.write(key, value);
+    return true;
+  }
+
+  @override
+  Future<bool> writeBool({required String key, required bool value}) async {
+    await box.write(key, value);
+    return true;
+  }
+
+  @override
+  bool? readBool({required String key}) {
+    return box.read(key);
   }
 }
