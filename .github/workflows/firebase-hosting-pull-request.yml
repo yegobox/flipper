@@ -24,8 +24,8 @@ jobs:
       - name: "Run Melos bootstrap"
         run: melos bootstrap
       - name: Configure Missing files
+      # echo "$INDEX" >> web/index.html
         run: |
-          echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
         env:

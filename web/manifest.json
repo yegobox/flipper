@@ -1,6 +1,6 @@
 {
-    "name": "appbar",
-    "short_name": "appbar",
+    "name": "flipper",
+    "short_name": "flipper",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
