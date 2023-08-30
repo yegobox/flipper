@@ -253,9 +253,9 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         snapshot.data!.sessionActive!) {
                       _removeOverlay();
                     }
-                    return AppLayoutDraw(
+                    return AppLayoutDrawer(
                         controller: controller,
-                        tabselected: tabselected,
+                        tabSelected: tabselected,
                         model: model);
                   }),
             ),
