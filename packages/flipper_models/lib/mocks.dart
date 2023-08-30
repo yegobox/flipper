@@ -292,7 +292,7 @@ Transaction? TransactionFMock = Transaction(
   createdAt: DateTime.now().toIso8601String(),
 );
 
-final AppService _appService = locator<AppService>();
+final AppService _appService = getIt<AppService>();
 
 final customProductMock = Product(
     id: randomString(),

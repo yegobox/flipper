@@ -7,8 +7,8 @@ import 'package:flutter/material.dart';
 
 class SettingViewModel extends HomeViewModel {
   ThemeMode themeMode = ThemeMode.system;
-  final kSetting = locator<SettingsService>();
-  final languageService = locator<Language>();
+  final kSetting = getIt<SettingsService>();
+  final languageService = getIt<Language>();
   bool _updateStarted = false;
   Setting? _setting;
   Setting? get setting => _setting;

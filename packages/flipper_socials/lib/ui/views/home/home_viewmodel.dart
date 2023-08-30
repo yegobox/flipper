@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 class HomeViewModel extends BaseViewModel {
   final _dialogService = locator<DialogService>();
 
-  // final _bottomSheetService = locator<BottomSheetService>();
+  // final _bottomSheetService = getIt<BottomSheetService>();
 
   void showDialog() {
     _dialogService.showCustomDialog(

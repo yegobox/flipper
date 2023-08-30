@@ -11,7 +11,7 @@ import 'package:flipper_models/isar_models.dart';
 /// this is the class to help with that.
 
 class ForceDataEntryService {
-  final appService = locator<AppService>();
+  final appService = getIt<AppService>();
   void dataBootstrapper() {
     addData();
   }

@@ -21,11 +21,11 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
 
 class HomeViewModel extends ReactiveViewModel {
-  final settingService = locator<SettingsService>();
-  final languageService = locator<Language>();
-  final KeyPadService keypad = locator<KeyPadService>();
-  final ProductService productService = locator<ProductService>();
-  final AppService app = locator<AppService>();
+  final settingService = getIt<SettingsService>();
+  final languageService = getIt<Language>();
+  final KeyPadService keypad = getIt<KeyPadService>();
+  final ProductService productService = getIt<ProductService>();
+  final AppService app = getIt<AppService>();
   final bool _updateStarted = false;
   Setting? _setting;
   Setting? get setting => _setting;

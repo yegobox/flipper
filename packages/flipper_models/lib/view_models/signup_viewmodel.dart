@@ -15,7 +15,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
 
 class SignupViewModel extends ReactiveViewModel {
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   final _routerService = locator<RouterService>();
   bool registerStart = false;
 

@@ -29,7 +29,8 @@ Widget PaymentTicketManager(
       model: model,
       onClick: () {
         if (model.kTransaction != null) {
-          _routerService.navigateTo(PaymentsRoute(transaction: model.kTransaction!));
+          _routerService
+              .navigateTo(PaymentsRoute(transaction: model.kTransaction!));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),

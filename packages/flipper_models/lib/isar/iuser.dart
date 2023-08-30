@@ -1,6 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'dart:convert';
-
 import 'package:flipper_models/isar_models.dart';
 
 part 'iuser.g.dart';
@@ -21,11 +19,6 @@ class IUser {
   List<Tenant> tenants;
   List<String> channels;
 
-  factory IUser.fromRawJson(String str) => IUser.fromJson(json.decode(str));
-
-  String toRawJson() => json.encode(toJson());
-
   factory IUser.fromJson(Map<String, dynamic> json) => _$IUserFromJson(json);
-
   Map<String, dynamic> toJson() => _$IUserToJson(this);
 }

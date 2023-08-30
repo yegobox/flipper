@@ -1,9 +1,11 @@
+import 'dart:developer';
+
+import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -78,9 +80,9 @@ class _PinLoginState extends State<PinLogin> {
                                         onTap: () async {
                                           if (_form.currentState!.validate()) {
                                             try {
+                                              log(_pin.text);
                                               await model.desktopLogin(
                                                 pinCode: _pin.text,
-                                                context: context,
                                               );
                                             } catch (e) {
                                               if (e
@@ -88,6 +90,9 @@ class _PinLoginState extends State<PinLogin> {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
                                                   SnackBar(
+                                                    width: 250,
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
                                                     backgroundColor: Colors.red,
                                                     content: Text(
                                                       "Could not login with this pin.",
@@ -100,15 +105,27 @@ class _PinLoginState extends State<PinLogin> {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
                                                   const SnackBar(
+                                                    width: 250,
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
                                                     backgroundColor: Colors.red,
                                                     content: Text(
                                                         "Could not login with this pin."),
                                                   ),
                                                 );
                                               } else {
-                                                showToast(context,
-                                                    "Could not login with this pin.",
-                                                    color: Colors.red);
+                                                log(e.toString());
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    width: 250,
+                                                    behavior: SnackBarBehavior
+                                                        .floating,
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(
+                                                        "Could not login with this pin."),
+                                                  ),
+                                                );
                                               }
                                               model.setIsprocessing(
                                                   value: false);

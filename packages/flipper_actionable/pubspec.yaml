@@ -12,7 +12,7 @@ environment:
 
 dependencies:
   intl: ^0.18.0
-  injectable: ^2.1.1
+  injectable: ^2.3.0
   get_storage: ^2.1.1
   get_it: ^7.6.0
   stacked: ^3.3.0
@@ -23,7 +23,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-  injectable_generator: ^2.1.5
+  injectable_generator: ^2.4.0
   build_runner: ^2.4.4
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

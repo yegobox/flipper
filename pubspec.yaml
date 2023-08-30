@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.621011260059+1693236667
+version: 1.170.622704496727+1693398623
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -34,7 +34,7 @@ dependencies:
   firebase_auth_desktop: ^1.0.2-flipper
   firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.6.4
-  firebase_auth: ^4.7.3
+  firebase_auth: ^4.8.0
   google_fonts: ^5.1.0
   stacked: ^3.4.0
   firebase_messaging: ^14.6.2
@@ -46,7 +46,7 @@ dependencies:
   path: ^1.8.2
   flutter_riverpod: any
   meta: any
-  flutter_native_splash: ^2.3.0
+  flutter_native_splash: ^2.3.2
   firebase_ui_localizations: ^1.5.0
   timezone: ^0.9.2
   flutter_native_timezone: ^2.0.0
@@ -64,14 +64,12 @@ dependencies:
   cupertino_icons: ^1.0.2
   flipper_login:
     path: ./packages/flipper_login
-    # path: ./packages/flipper_actionable
   flipper_actionable:
     path: ./packages/flipper_actionable
   firebase_core: ^2.15.1
-  # firebase_auth: ^4.7.3
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
-  injectable: ^2.1.1
+  injectable: ^2.3.0
   get_storage: ^2.1.1
   get_it: ^7.6.0
   newrelic_mobile: ^1.0.1
@@ -92,7 +90,7 @@ dev_dependencies:
   msix: ^3.12.2
   flutter_lints: ^2.0.0
   melos: ^3.1.0
-  injectable_generator: ^2.1.5
+  injectable_generator: ^2.4.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

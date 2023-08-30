@@ -20,9 +20,9 @@ import 'package:stacked/stacked.dart';
 
 class ProductViewModel extends TenantViewModel {
   // extends ReactiveViewModel
-  final AppService app = loc.locator<AppService>();
+  final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields
-  final ProductService productService = loc.locator<ProductService>();
+  final ProductService productService = loc.getIt<ProductService>();
   final _routerService = locator<RouterService>();
 
   List<IUnit> units = [];

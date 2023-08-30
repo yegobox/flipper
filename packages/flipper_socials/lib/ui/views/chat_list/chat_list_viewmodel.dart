@@ -20,7 +20,6 @@ class ChatListViewModel extends StartupViewModel {
     notifyListeners();
   }
 
-  
   void navigateToAppCenter() {
     _dialogService.showCustomDialog(
       variant: DialogType.appCenter,

@@ -1,4 +1,3 @@
-
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/box_models.dart';
 import 'package:flipper_routing/app.router.dart';

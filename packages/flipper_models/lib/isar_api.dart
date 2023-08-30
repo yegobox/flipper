@@ -692,7 +692,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      String id = randomString();
+      int id = randomNumber();
       Pin pin = Pin.fromJson(json.decode(response.body));
       pin.id = id;
       db.write((isar) {
@@ -900,9 +900,7 @@ class IsarAPI<M> implements IsarApiInterface {
         db.write((isar) {
           Pin? pin = isar.pins.get(id);
           if (pin != null) {
-            pin.deletedAt = deletionTime;
-            pin.action = AppActions.deleted;
-            isar.pins.put(pin);
+            isar.pins.delete(pin.id);
             return true;
           }
           return false;
@@ -1256,6 +1254,7 @@ class IsarAPI<M> implements IsarApiInterface {
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
     if (response.statusCode == 200) {
+    
       return Pin.fromJson(json.decode(response.body));
     }
     if (response.statusCode == 404) {
@@ -1472,7 +1471,12 @@ class IsarAPI<M> implements IsarApiInterface {
     );
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
-      IUser user = IUser.fromRawJson(response.body);
+      
+      // Parse the JSON response
+      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+      // Create an IUser object using the fromJson constructor
+      IUser user = IUser.fromJson(jsonResponse);
       await ProxyService.box.writeString(
         key: 'userPhone',
         value: userPhone,
@@ -1510,7 +1514,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
           /// because we don update default app from server
           /// because we want the ability of switching apps to be entirely offline
-          /// then if we have a default app in the box we use it if it only different from 1
+          /// then if we have a default app in the box we use it if it only different from "1"
           value: user.tenants.isEmpty
               ? 'null'
               : ProxyService.box.getDefaultApp() != "1"
@@ -1520,7 +1524,7 @@ class IsarAPI<M> implements IsarApiInterface {
         );
       }
 
-      for (Tenant tenant in user.tenants) {
+      for (Tenant tenant in user.tenants as List<Tenant>) {
         ITenant iTenant = ITenant(
             id: tenant.id,
             name: tenant.name,
@@ -2358,7 +2362,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll());
   }
 
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   @override
   Future<List<Conversation>> getScheduleMessages() async {
     return db.read(

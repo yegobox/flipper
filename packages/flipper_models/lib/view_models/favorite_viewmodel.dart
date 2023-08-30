@@ -6,9 +6,9 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 
 class FavoriteViewModel extends ProductViewModel {
-  final AppService app = loc.locator<AppService>();
+  final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields
-  final ProductService productService = loc.locator<ProductService>();
+  final ProductService productService = loc.getIt<ProductService>();
 
   get categories => app.categories;
 

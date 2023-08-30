@@ -5,7 +5,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 
 class CashbookViewModel extends ProductViewModel {
-  final AppService app = loc.locator<AppService>();
+  final AppService app = loc.getIt<AppService>();
 
   get categories => app.categories;
 

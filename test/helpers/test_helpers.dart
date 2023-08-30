@@ -33,7 +33,7 @@ import 'package:flipper_services/locator.dart';
 BillingService getAndRegisterBillingService() {
   _removeRegistrationIfExists<BillingService>();
   final service = MockBillingService();
-  locator.registerSingleton<BillingService>(service);
+  getIt.registerSingleton<BillingService>(service);
 
   when(service.useVoucher(userId: 1, voucher: 2))
       .thenThrow(VoucherException(term: 'Voucher not found'));
@@ -70,7 +70,7 @@ BillingService getAndRegisterBillingService() {
 //   ]);
 
 //   final service = await IsarAPI().getInstance(iisar: isar);
-//   locator.registerSingleton<IsarApiInterface>(service);
+//   getIt.registerSingleton<IsarApiInterface>(service);
 
 //   return service;
 // }
@@ -86,7 +86,7 @@ AppService getAndRegisterAppService(
   when(service.branchId).thenReturn(branchId);
   when(service.businessId).thenReturn(businessId);
   // when(service.currentColor).thenReturn('#ee5253');
-  locator.registerSingleton<AppService>(service);
+  getIt.registerSingleton<AppService>(service);
 
   return service;
 }
@@ -94,7 +94,7 @@ AppService getAndRegisterAppService(
 KeyPadService getAndRegisterKeyPadService() {
   _removeRegistrationIfExists<KeyPadService>();
   final service = KeyPadService();
-  locator.registerSingleton<KeyPadService>(service);
+  getIt.registerSingleton<KeyPadService>(service);
   return service;
 }
 
@@ -104,14 +104,14 @@ ProductService getAndRegisterProductService() {
   when(service.currentUnit).thenReturn('kg');
   when(service.branchId).thenReturn(10);
   when(service.userId).thenReturn(300);
-  locator.registerSingleton<ProductService>(service);
+  getIt.registerSingleton<ProductService>(service);
   return service;
 }
 
 MockFirebaseMessaging getFirebaseMessaging() {
   _removeRegistrationIfExists<FirebaseMessaging>();
   final service = MockFirebaseMessaging();
-  locator.registerSingleton<FirebaseMessaging>(service);
+  getIt.registerSingleton<FirebaseMessaging>(service);
   when(service.getToken()).thenAnswer((_) async => 'token');
 
   return service;
@@ -123,14 +123,14 @@ MockFlipperLocation getAndRegisterLocationService() {
   // when(service.getLocation())
   //     .thenAnswer((_) async => {'longitude': "1.1", 'latitude': "1.1"});
   when(service.doWeHaveLocationPermission()).thenAnswer((_) async => false);
-  locator.registerSingleton<FlipperLocation>(service);
+  getIt.registerSingleton<FlipperLocation>(service);
   return service;
 }
 
 LanguageService getAndRegisterLanguageService() {
   _removeRegistrationIfExists<LanguageService>();
   final service = LanguageService();
-  locator.registerSingleton<LanguageService>(service);
+  getIt.registerSingleton<LanguageService>(service);
   return service;
 }
 
@@ -140,7 +140,7 @@ MockRemote getAndRegisterRemoteConfig() {
   //some mocking here
   when(service.isSubmitDeviceTokenEnabled()).thenAnswer((_) => false);
   when(service.isChatAvailable()).thenAnswer((_) => false);
-  locator.registerSingleton<Remote>(service);
+  getIt.registerSingleton<Remote>(service);
   return service;
 }
 
@@ -150,7 +150,7 @@ MockSettingsService getAndRegisterSettingsService() {
   //some mocking here
   when(service.updateSettings(map: anyNamed("map")))
       .thenAnswer((realInvocation) => Future<bool>.value(true));
-  locator.registerSingleton<SettingsService>(service);
+  getIt.registerSingleton<SettingsService>(service);
   return service;
 }
 
@@ -177,7 +177,7 @@ MockLocalStorage getAndRegisterLocalStorage() {
   // when(service.write(key: 'userName', value: anyNamed("value")))
   //     .thenAnswer((_) => true);
 
-  locator.registerSingleton<LocalStorage>(service);
+  getIt.registerSingleton<LocalStorage>(service);
   return service;
 }
 
@@ -196,15 +196,15 @@ void registerServices() {
 }
 
 void unregisterServices() {
-  locator.unregister<SettingsService>();
-  locator.unregister<LocalStorage>();
-  locator.unregister<LanguageService>();
-  locator.unregister<BillingService>();
-  locator.unregister<IsarApiInterface>();
+  getIt.unregister<SettingsService>();
+  getIt.unregister<LocalStorage>();
+  getIt.unregister<LanguageService>();
+  getIt.unregister<BillingService>();
+  getIt.unregister<IsarApiInterface>();
 }
 
 void _removeRegistrationIfExists<T extends Object>() {
-  if (locator.isRegistered<T>()) {
-    locator.unregister<T>();
+  if (getIt.isRegistered<T>()) {
+    getIt.unregister<T>();
   }
 }

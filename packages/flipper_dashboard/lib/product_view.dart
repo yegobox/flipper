@@ -99,7 +99,7 @@ class _ProductViewState extends State<ProductView> {
                           isDesktopOrWeb
                               ? FutureBuilder<ITenant?>(
                                   future: ProxyService.isar.getTenantBYUserId(
-                                      userId: ProxyService.box.getUserId()!),
+                                      userId: ProxyService.box.getUserId()??0),
                                   builder: (a, snapshoot) {
                                     if (snapshoot.connectionState ==
                                             ConnectionState.waiting ||

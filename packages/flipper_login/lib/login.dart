@@ -24,7 +24,7 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView>
     with AutomaticKeepAliveClientMixin {
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   final _routerService = locator<RouterService>();
   bool _isLogin = false;
   Future<void> isNetAvailable() async {

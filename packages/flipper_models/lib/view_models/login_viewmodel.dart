@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
@@ -6,13 +8,12 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
 class LoginViewModel extends FormViewModel {
   LoginViewModel();
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   final _routerService = locator<RouterService>();
   bool loginStart = false;
   bool otpStart = false;
@@ -40,10 +41,12 @@ class LoginViewModel extends FormViewModel {
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({
     required String pinCode,
-    required BuildContext context,
   }) async {
     setIsprocessing(value: true);
+
+   
     Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
+     setIsprocessing(value: false);
     if (pin != null) {
       ProxyService.box.writeInt(key: 'businessId', value: pin.businessId);
       ProxyService.box.writeInt(key: 'branchId', value: pin.branchId);
@@ -54,15 +57,23 @@ class LoginViewModel extends FormViewModel {
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
-      await FirebaseAuth.instance.signInAnonymously();
-      final auth = FirebaseAuth.instance;
-      if (auth.currentUser != null) {
-        if (ProxyService.box.getDefaultApp() == 2) {
+       log('getting instance');
+       /// FIXME:  FirebaseAuth.instance.signInAnonymously(); is broken will have to be fixed
+      try{
+        await FirebaseAuth.instance.signInAnonymously();
+      }catch(e,s){
+        log(s.toString());
+      }
+       log('getting instance');
+      // final auth = FirebaseAuth.instance;
+     
+      // if (auth.currentUser != null) {
+        if (ProxyService.box.getDefaultApp() == "2") {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));
         }
-      }
+      // }
     } else {
       setIsprocessing(value: false);
       // show stacked snackbar

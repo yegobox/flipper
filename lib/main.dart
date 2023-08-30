@@ -55,7 +55,6 @@ void main() async {
     ]);
 
     if (isWindows || isLinux) {
-      // TODO: implement when windows notifification is supported in localNotification plugin
       /// ref: https://github.com/Merrit/adventure_list
       // final systemTray = SystemTrayManager(appWindow);
       // await systemTray.initialize();
@@ -91,8 +90,7 @@ void main() async {
 
     if (!isWindows) {
       FirebaseMessaging.onBackgroundMessage(backgroundHandler);
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
+      FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
         badge: true,
       );
     } else if (isWindows) {}
@@ -101,7 +99,6 @@ void main() async {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
     await initDependencies();
-    // setPathUrlStrategy();
     loc.setupLocator(
       stackedRouter: stackedRouter,
     );

@@ -11,7 +11,7 @@ import 'package:flipper_services/app_service.dart';
 class UploadViewModel extends ProductViewModel {
   FlutterUploader uploader = FlutterUploader();
 
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   void browsePictureFromGallery(
       {required dynamic id,
       required Function(String) callBack,

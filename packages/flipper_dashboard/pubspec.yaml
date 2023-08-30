@@ -67,7 +67,7 @@ dependencies:
   flutter_datetime_picker: ^1.5.2
   receipt: ^1.0.0
   # Splash screen handle
-  flutter_native_splash: ^2.3.0
+  flutter_native_splash: ^2.3.2
   lecle_downloads_path_provider: ^0.0.2+7
   permission_handler: ^10.4.3
   flutter_svg: ^2.0.0

@@ -201,7 +201,12 @@ abstract class ServicesModule {
 
   @preResolve
   Future<LocalStorage> get box async {
-    return await SharedPreferenceStorage().initializePreferences();
+    // return await SharedPreferenceStorage().initializePreferences();
+    if (isWeb) {
+      return LocalStorageImpl();
+    } else {
+      return await SharedPreferenceStorage().initializePreferences();
+    }
   }
 
   @LazySingleton()

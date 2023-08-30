@@ -47,7 +47,7 @@ class FirebaseMessagingService implements Messaging {
     await _handleMessage(message: message, isNotificationClicked: false);
   }
 
-  final appService = loc.locator<AppService>();
+  final appService = loc.getIt<AppService>();
   @override
   Future<void>
       initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {

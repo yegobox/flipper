@@ -147,13 +147,17 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     };
     final response = http.Response(jsonEncode(jsonResponse), 200);
     if (response.statusCode == 200) {
+          final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+      // Create an IUser object using the fromJson constructor
+      IUser user = IUser.fromJson(jsonResponse);
       await ProxyService.box.writeString(
         key: 'bearerToken',
-        value: IUser.fromRawJson(response.body).token,
+        value: user.token,
       );
       await ProxyService.box.writeString(
         key: 'defaultApp',
-        value: IUser.fromRawJson(response.body)
+        value: user
             .tenants
             .first
             .businesses
@@ -163,25 +167,25 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       );
       await ProxyService.box.writeInt(
         key: 'userId',
-        value: IUser.fromRawJson(response.body).id,
+        value: user.id,
       );
       await ProxyService.box.writeString(
         key: 'userPhone',
         value: "+250783054874",
       );
-      if (IUser.fromRawJson(response.body).tenants.isEmpty) {
+      if (user.tenants.isEmpty) {
         throw TenantNotFoundException(term: "No tenant added to the user");
       }
       db.write((isar) async {
         isar.business
-            .putAll(IUser.fromRawJson(response.body).tenants.first.businesses);
+            .putAll(user.tenants.first.businesses);
       });
       await db.write((isar) async {
         isar.branchs
-            .putAll(IUser.fromRawJson(response.body).tenants.first.branches);
+            .putAll(user.tenants.first.branches);
       });
 
-      return IUser.fromRawJson(response.body);
+      return user;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
