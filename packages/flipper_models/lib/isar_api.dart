@@ -1254,7 +1254,6 @@ class IsarAPI<M> implements IsarApiInterface {
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
     if (response.statusCode == 200) {
-    
       return Pin.fromJson(json.decode(response.body));
     }
     if (response.statusCode == 404) {
@@ -1341,6 +1340,7 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.branchs.clear();
       isar.iTenants.clear();
       isar.permissions.clear();
+      isar.userActivitys.clear();
       isar.pins.clear();
     });
     if (ProxyService.box.getUserId() != null &&
@@ -1471,7 +1471,6 @@ class IsarAPI<M> implements IsarApiInterface {
     );
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
-      
       // Parse the JSON response
       final Map<String, dynamic> jsonResponse = json.decode(response.body);
 

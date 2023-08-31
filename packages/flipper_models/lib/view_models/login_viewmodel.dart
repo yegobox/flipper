@@ -44,9 +44,8 @@ class LoginViewModel extends FormViewModel {
   }) async {
     setIsprocessing(value: true);
 
-   
     Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
-     setIsprocessing(value: false);
+    setIsprocessing(value: false);
     if (pin != null) {
       ProxyService.box.writeInt(key: 'businessId', value: pin.businessId);
       ProxyService.box.writeInt(key: 'branchId', value: pin.branchId);
@@ -57,23 +56,27 @@ class LoginViewModel extends FormViewModel {
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
-       log('getting instance');
-       /// FIXME:  FirebaseAuth.instance.signInAnonymously(); is broken will have to be fixed
-      try{
+      try {
+        await FirebaseAuth.instance.signOut();
         await FirebaseAuth.instance.signInAnonymously();
-      }catch(e,s){
-        log(s.toString());
-      }
-       log('getting instance');
-      // final auth = FirebaseAuth.instance;
-     
-      // if (auth.currentUser != null) {
+        log('getting instance');
+        final auth = FirebaseAuth.instance;
+
+        if (auth.currentUser != null) {
+          if (ProxyService.box.getDefaultApp() == "2") {
+            _routerService.navigateTo(SocialHomeViewRoute());
+          } else {
+            _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+          }
+        }
+      } catch (e) {
+        // log(s.toString());
         if (ProxyService.box.getDefaultApp() == "2") {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           _routerService.navigateTo(DrawerScreenRoute(open: "open"));
         }
-      // }
+      }
     } else {
       setIsprocessing(value: false);
       // show stacked snackbar
