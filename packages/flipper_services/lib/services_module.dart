@@ -189,13 +189,13 @@ abstract class ServicesModule {
   @LazySingleton()
   KeyPadService get keypadService;
 
-  @preResolve
+  @LazySingleton()
   Future<RemoteInterface> get remoteApi async {
     try {
       return await RemoteService().getInstance();
     } catch (e) {
       // Handle the error or retry logic here
-      return Future.error(e);
+      return await Future.error(e);
     }
   }
 

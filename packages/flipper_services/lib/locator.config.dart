@@ -46,7 +46,7 @@ import 'setting_service.dart' as _i25;
 import 'status.dart' as _i27;
 
 extension GetItInjectableX on _i1.GetIt {
-  // initializes the registration of main-scope dependencies inside of GetIt
+// initializes the registration of main-scope dependencies inside of GetIt
   Future<_i1.GetIt> init({
     String? environment,
     _i2.EnvironmentFilter? environmentFilter,
@@ -84,10 +84,7 @@ extension GetItInjectableX on _i1.GetIt {
     gh.lazySingleton<_i20.ProductService>(
         () => servicesModule.productService());
     gh.lazySingleton<_i21.Remote>(() => servicesModule.remote);
-    await gh.factoryAsync<_i22.RemoteInterface>(
-      () => servicesModule.remoteApi,
-      preResolve: true,
-    );
+    gh.lazySingletonAsync<_i22.RemoteInterface>(() => servicesModule.remoteApi);
     gh.lazySingleton<_i23.Review>(() => servicesModule.review);
     gh.lazySingleton<_i24.SentryServiceInterface>(
         () => servicesModule.sentry());

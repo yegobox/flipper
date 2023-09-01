@@ -24,6 +24,7 @@ abstract class RemoteInterface {
 class RemoteService implements RemoteInterface {
   late PocketBase pb;
   late String url;
+  int _retryCount = 0;
 
   Future<RemoteInterface> getInstance() async {
     try {
@@ -33,7 +34,12 @@ class RemoteService implements RemoteInterface {
       await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
       return this;
     } catch (e) {
-      return retryConnect();
+      if (_retryCount < 2) {
+        _retryCount++;
+        return retryConnect();
+      } else {
+        throw Exception("Failed to initialize RemoteInterface after retries.");
+      }
     }
   }
 
