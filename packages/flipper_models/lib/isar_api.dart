@@ -3089,7 +3089,7 @@ class IsarAPI<M> implements IsarApiInterface {
       Transaction? tr = db.transactions.get(transactionId);
       return db.read((isar) => isar.customers
           .where()
-          .idEqualTo(tr!.customerId!)
+          .idEqualTo(tr!.customerId ?? 0)
           .deletedAtIsNull()
           .sortByLastTouchedDesc()
           .watch(fireImmediately: true)
