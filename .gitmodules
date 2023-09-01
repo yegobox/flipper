@@ -14,10 +14,6 @@
 [submodule "open-sources/flutter_datetime_picker"]
 	path = open-sources/flutter_datetime_picker
 	url = https://github.com/yegobox/flutter_datetime_picker.git
-[submodule "open-sources/flutter_slidable"]
-	path = open-sources/flutter_slidable
-	branch = dev
-	url = https://github.com/yegobox/flutter_slidable.git
 [submodule "open-sources/receipt"]
 	path = open-sources/receipt
 	url = https://github.com/yegobox/receipt.git
@@ -63,3 +59,6 @@
 [submodule "open-sources/form_bloc"]
 	path = open-sources/form_bloc
 	url = https://github.com/GiancarloCode/form_bloc.git
+[submodule "open-sources/flutter_slidable"]
+	path = open-sources/flutter_slidable
+	url = https://github.com/yegobox/flutter_slidable.git
