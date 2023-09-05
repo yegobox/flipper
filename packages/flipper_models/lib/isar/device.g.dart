@@ -58,7 +58,7 @@ const DeviceSchema = IsarGeneratedSchema(
       ),
       IsarPropertySchema(
         name: 'defaultApp',
-        type: IsarType.long,
+        type: IsarType.string,
       ),
       IsarPropertySchema(
         name: 'lastTouched',
@@ -94,7 +94,7 @@ int serializeDevice(IsarWriter writer, Device object) {
   IsarCore.writeLong(writer, 7, object.branchId);
   IsarCore.writeLong(writer, 8, object.businessId);
   IsarCore.writeLong(writer, 9, object.userId);
-  IsarCore.writeLong(writer, 10, object.defaultApp);
+  IsarCore.writeString(writer, 10, object.defaultApp);
   IsarCore.writeLong(
       writer,
       11,
@@ -126,8 +126,8 @@ Device deserializeDevice(IsarReader reader) {
   _businessId = IsarCore.readLong(reader, 8);
   final int _userId;
   _userId = IsarCore.readLong(reader, 9);
-  final int _defaultApp;
-  _defaultApp = IsarCore.readLong(reader, 10);
+  final String _defaultApp;
+  _defaultApp = IsarCore.readString(reader, 10) ?? '';
   final String _action;
   _action = IsarCore.readString(reader, 12) ?? '';
   final DateTime? _deletedAt;
@@ -188,7 +188,7 @@ dynamic deserializeDeviceProp(IsarReader reader, int property) {
     case 9:
       return IsarCore.readLong(reader, 9);
     case 10:
-      return IsarCore.readLong(reader, 10);
+      return IsarCore.readString(reader, 10) ?? '';
     case 11:
       {
         final value = IsarCore.readLong(reader, 11);
@@ -227,7 +227,7 @@ sealed class _DeviceUpdate {
     int? branchId,
     int? businessId,
     int? userId,
-    int? defaultApp,
+    String? defaultApp,
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
@@ -266,7 +266,7 @@ class _DeviceUpdateImpl implements _DeviceUpdate {
           if (branchId != ignore) 7: branchId as int?,
           if (businessId != ignore) 8: businessId as int?,
           if (userId != ignore) 9: userId as int?,
-          if (defaultApp != ignore) 10: defaultApp as int?,
+          if (defaultApp != ignore) 10: defaultApp as String?,
           if (lastTouched != ignore) 11: lastTouched as DateTime?,
           if (action != ignore) 12: action as String?,
           if (deletedAt != ignore) 13: deletedAt as DateTime?,
@@ -286,7 +286,7 @@ sealed class _DeviceUpdateAll {
     int? branchId,
     int? businessId,
     int? userId,
-    int? defaultApp,
+    String? defaultApp,
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
@@ -323,7 +323,7 @@ class _DeviceUpdateAllImpl implements _DeviceUpdateAll {
       if (branchId != ignore) 7: branchId as int?,
       if (businessId != ignore) 8: businessId as int?,
       if (userId != ignore) 9: userId as int?,
-      if (defaultApp != ignore) 10: defaultApp as int?,
+      if (defaultApp != ignore) 10: defaultApp as String?,
       if (lastTouched != ignore) 11: lastTouched as DateTime?,
       if (action != ignore) 12: action as String?,
       if (deletedAt != ignore) 13: deletedAt as DateTime?,
@@ -347,7 +347,7 @@ sealed class _DeviceQueryUpdate {
     int? branchId,
     int? businessId,
     int? userId,
-    int? defaultApp,
+    String? defaultApp,
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
@@ -384,7 +384,7 @@ class _DeviceQueryUpdateImpl implements _DeviceQueryUpdate {
       if (branchId != ignore) 7: branchId as int?,
       if (businessId != ignore) 8: businessId as int?,
       if (userId != ignore) 9: userId as int?,
-      if (defaultApp != ignore) 10: defaultApp as int?,
+      if (defaultApp != ignore) 10: defaultApp as String?,
       if (lastTouched != ignore) 11: lastTouched as DateTime?,
       if (action != ignore) 12: action as String?,
       if (deletedAt != ignore) 13: deletedAt as DateTime?,
@@ -430,7 +430,7 @@ class _DeviceQueryBuilderUpdateImpl implements _DeviceQueryUpdate {
         if (branchId != ignore) 7: branchId as int?,
         if (businessId != ignore) 8: businessId as int?,
         if (userId != ignore) 9: userId as int?,
-        if (defaultApp != ignore) 10: defaultApp as int?,
+        if (defaultApp != ignore) 10: defaultApp as String?,
         if (lastTouched != ignore) 11: lastTouched as DateTime?,
         if (action != ignore) 12: action as String?,
         if (deletedAt != ignore) 13: deletedAt as DateTime?,
@@ -1573,26 +1573,30 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppEqualTo(
-    int value,
-  ) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
           property: 10,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppGreaterThan(
-    int value,
-  ) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
           property: 10,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -1600,26 +1604,30 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
 
   QueryBuilder<Device, Device, QAfterFilterCondition>
       defaultAppGreaterThanOrEqualTo(
-    int value,
-  ) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
           property: 10,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppLessThan(
-    int value,
-  ) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
           property: 10,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -1627,28 +1635,112 @@ extension DeviceQueryFilter on QueryBuilder<Device, Device, QFilterCondition> {
 
   QueryBuilder<Device, Device, QAfterFilterCondition>
       defaultAppLessThanOrEqualTo(
-    int value,
-  ) {
+    String value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
           property: 10,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppBetween(
-    int lower,
-    int upper,
-  ) {
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
           property: 10,
           lower: lower,
           upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 10,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 10,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 10,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 10,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 10,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Device, Device, QAfterFilterCondition> defaultAppIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 10,
+          value: '',
         ),
       );
     });
@@ -2172,15 +2264,24 @@ extension DeviceQuerySortBy on QueryBuilder<Device, Device, QSortBy> {
     });
   }
 
-  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultApp() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultApp(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10);
+      return query.addSortBy(
+        10,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultAppDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> sortByDefaultAppDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc);
+      return query.addSortBy(
+        10,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -2349,15 +2450,17 @@ extension DeviceQuerySortThenBy on QueryBuilder<Device, Device, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultApp() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultApp(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10);
+      return query.addSortBy(10, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultAppDesc() {
+  QueryBuilder<Device, Device, QAfterSortBy> thenByDefaultAppDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc);
+      return query.addSortBy(10, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
@@ -2453,9 +2556,10 @@ extension DeviceQueryWhereDistinct on QueryBuilder<Device, Device, QDistinct> {
     });
   }
 
-  QueryBuilder<Device, Device, QAfterDistinct> distinctByDefaultApp() {
+  QueryBuilder<Device, Device, QAfterDistinct> distinctByDefaultApp(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(10);
+      return query.addDistinctBy(10, caseSensitive: caseSensitive);
     });
   }
 
@@ -2534,7 +2638,7 @@ extension DeviceQueryProperty1 on QueryBuilder<Device, Device, QProperty> {
     });
   }
 
-  QueryBuilder<Device, int, QAfterProperty> defaultAppProperty() {
+  QueryBuilder<Device, String, QAfterProperty> defaultAppProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
@@ -2614,7 +2718,7 @@ extension DeviceQueryProperty2<R> on QueryBuilder<Device, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<Device, (R, int), QAfterProperty> defaultAppProperty() {
+  QueryBuilder<Device, (R, String), QAfterProperty> defaultAppProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
@@ -2695,7 +2799,7 @@ extension DeviceQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Device, (R1, R2, int), QOperations> defaultAppProperty() {
+  QueryBuilder<Device, (R1, R2, String), QOperations> defaultAppProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
@@ -2735,7 +2839,7 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       branchId: json['branchId'] as int,
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
-      defaultApp: json['defaultApp'] as int,
+      defaultApp: json['defaultApp'] as String,
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),

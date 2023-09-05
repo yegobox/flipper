@@ -17,7 +17,7 @@ class LoginData {
   int businessId;
   int branchId;
   String phone;
-  int defaultApp;
+  String defaultApp;
   String linkingCode;
   String deviceName;
   String deviceVersion;
