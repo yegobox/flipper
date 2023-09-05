@@ -1444,7 +1444,7 @@ class IsarAPI<M> implements IsarApiInterface {
       }
       return Tenant.fromJsonList(response.body);
     } else {
-      throw InternalServerError(term: "internal server error");
+      throw InternalServerError(term: response.body.toString());
     }
   }
 

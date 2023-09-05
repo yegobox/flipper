@@ -241,7 +241,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
               ),
               body: StreamBuilder<ITenant?>(
                   stream: ProxyService.isar.authState(
-                    branchId: ProxyService.box.getBranchId()!,
+                    branchId: ProxyService.box.getBranchId() ?? 0,
                   ),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && !snapshot.data!.sessionActive!) {
