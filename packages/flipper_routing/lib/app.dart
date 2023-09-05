@@ -78,7 +78,7 @@ class App {}
 // TODO: https://developer.android.com/studio/preview/features#device-mirroring-giraffe
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
-//  dart run build_runner build --delete-conflicting-outputs
+// ` dart run build_runner build --delete-conflicting-outputs`
 // While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');

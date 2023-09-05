@@ -19,7 +19,7 @@ class Device extends IJsonSerializable {
   int branchId;
   int businessId;
   int userId;
-  int defaultApp;
+  String defaultApp;
 
   /// for sync
 

@@ -98,7 +98,7 @@ class EventService implements EventInterface {
         await ProxyService.box
             .writeString(key: 'userPhone', value: loginData.phone);
         await ProxyService.box
-            .writeInt(key: 'defaultApp', value: loginData.defaultApp);
+            .writeString(key: 'defaultApp', value: loginData.defaultApp);
 
         // get the device name and version
         String deviceName = Platform.operatingSystem;
