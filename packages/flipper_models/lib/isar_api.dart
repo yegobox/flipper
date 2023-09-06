@@ -40,8 +40,8 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (isa == null) {
       db = await Isar.open(
-        // compactOnLaunch:
-        // CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
+        compactOnLaunch:
+            CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
           TransactionSchema,
           BusinessSchema,
@@ -1335,6 +1335,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<void> logOut() async {
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
+
     db.write((isar) {
       isar.business.clear();
       isar.branchs.clear();
@@ -1357,7 +1358,8 @@ class IsarAPI<M> implements IsarApiInterface {
         'linkingCode': randomNumber().toString()
       });
     }
-
+    // for box clearing if we are using box then we need to be explicit
+    // of the keys
     ProxyService.box.remove(key: 'userId');
     ProxyService.box.remove(key: 'getIsTokenRegistered');
     ProxyService.box.remove(key: 'bearerToken');
@@ -1366,6 +1368,8 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
     ProxyService.box.remove(key: 'defaultApp');
+    // but for shared preference we can just clear them all
+    ProxyService.box.clear();
     await FirebaseAuth.instance.signOut();
   }
 

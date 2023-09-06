@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
 
   stacked: ^3.4.0
-  firebase_remote_config: ^4.2.2
+  firebase_remote_config: ^4.2.5
   share_plus: ^7.0.2
   # in_app_review: ^2.0.6
   firebase_messaging: ^14.6.2
@@ -57,7 +57,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   get_storage: ^2.1.1
   google_fonts: ^5.1.0
-  shared_preferences: ^2.1.1
+  shared_preferences: ^2.2.1
   newrelic_mobile: ^1.0.1
   flutter_local_notifications: ^14.1.1
   local_notifier: ^0.1.5
