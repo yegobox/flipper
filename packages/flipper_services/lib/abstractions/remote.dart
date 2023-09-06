@@ -27,4 +27,5 @@ abstract class Remote {
   bool isLinkedDeviceAvailable();
   bool isMarketingFeatureEnabled();
   String supportLine();
+  int sessionTimeOutMinutes();
 }

@@ -183,7 +183,9 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
           model.defaultTenant();
           ProxyService.isar.refreshSession(
               branchId: ProxyService.box.getBranchId()!,
-              refreshRate: kDebugMode ? 10 : 10);
+              refreshRate: kDebugMode
+                  ? 10
+                  : ProxyService.remoteConfig.sessionTimeOutMinutes());
 
           /// if there is current order ongoing show them when the app starts
           ProxyService.dynamicLink.handleDynamicLink(context);

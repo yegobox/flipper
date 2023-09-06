@@ -3125,16 +3125,17 @@ class IsarAPI<M> implements IsarApiInterface {
     // Retrieve the user activities
     List<UserActivity> userActivities = await activities(userId: userId);
 
-    // Check if any activity was touched within the last 5 minutes
+    // Assume no activity in the last 5 minutes by default
+    bool returnValue = true;
+
     for (var activity in userActivities) {
       if (activity.lastTouched!.isAfter(fiveMinutesAgo)) {
         // The user has done an activity within the last 5 minutes
-        return false;
+        returnValue = false;
+        break; // No need to continue checking, we found an activity
       }
     }
-
-    // No activity found within the last 5 minutes
-    return true;
+    return returnValue;
   }
 
   @override
@@ -3155,14 +3156,14 @@ class IsarAPI<M> implements IsarApiInterface {
     while (true) {
       try {
         int userId = ProxyService.box.getUserId()!;
-        bool session = await hasNoActivityInLast5Minutes(
+        bool noActivity = await hasNoActivityInLast5Minutes(
             userId: userId, refreshRate: refreshRate);
-        log(session.toString(), name: 'session');
+        log(noActivity.toString(), name: 'session');
         log(userId.toString(), name: 'session');
-        if (!session) {
+        if (noActivity) {
           ITenant? tenant = await ProxyService.isar
               .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-          tenant?.sessionActive = session;
+          tenant?.sessionActive = false;
           ProxyService.isar.update(data: tenant);
         }
       } catch (error) {

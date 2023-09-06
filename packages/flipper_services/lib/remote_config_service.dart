@@ -34,7 +34,8 @@ class RemoteConfigService implements Remote {
       'isTwitterLoginAvailable': false,
       'isFacebookLoginAvailable': false,
       'supportLine': "+250783054874",
-      'isMarketingFeatureEnabled': true
+      'isMarketingFeatureEnabled': true,
+      "sessionTimeOutMinutes": 10
     });
   }
 
@@ -221,6 +222,11 @@ class RemoteConfigService implements Remote {
   bool isMarketingFeatureEnabled() {
     return remoteConfig.getBool('isMarketingFeatureEnabled');
   }
+
+  @override
+  int sessionTimeOutMinutes() {
+    return remoteConfig.getInt('sessionTimeOutMinutes');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -368,5 +374,10 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isMarketingFeatureEnabled() {
     return false;
+  }
+
+  @override
+  int sessionTimeOutMinutes() {
+    return 10;
   }
 }
