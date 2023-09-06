@@ -25,6 +25,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
       this.multi,
       this.bottomSpacer,
       this.customLeadingWidget,
+      this.bottomWidget,
       this.customTrailingWidget,
       this.isDividerVisible});
 
@@ -43,6 +44,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
 
   final Widget? additionalText;
   final StatelessWidget? customLeadingWidget;
+  final StatelessWidget? bottomWidget;
   final StatelessWidget? customTrailingWidget;
   final bool? isDividerVisible;
 
@@ -61,7 +63,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
       top: true,
       child: SizedBox(
         height: widget.bottomSpacer,
-        child: Column(
+        child: Wrap(
           children: <Widget>[
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
@@ -82,6 +84,11 @@ class _CustomAppBarState extends State<CustomAppBar> {
             Container(
               child: widget.additionalText,
             ),
+            widget.bottomWidget != null
+                ? Container(
+                    padding: EdgeInsets.only(left: 30, right: 5),
+                    child: widget.bottomWidget)
+                : SizedBox.shrink(),
             Visibility(
                 visible: widget.isDividerVisible ?? true,
                 child: const Expanded(
