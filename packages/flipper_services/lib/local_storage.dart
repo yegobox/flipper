@@ -158,6 +158,11 @@ class SharedPreferenceStorage implements LocalStorage {
   bool? readBool({required String key}) {
     return prefs.getBool(key);
   }
+
+  @override
+  Future<bool> clear() async {
+    return await prefs.clear();
+  }
 }
 
 class LocalStorageImpl implements LocalStorage {
@@ -323,5 +328,10 @@ class LocalStorageImpl implements LocalStorage {
   @override
   bool? readBool({required String key}) {
     return box.read(key);
+  }
+
+  @override
+  Future<bool> clear() async {
+    return true;
   }
 }
