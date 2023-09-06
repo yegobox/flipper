@@ -86,7 +86,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             ),
             widget.bottomWidget != null
                 ? Container(
-                    padding: EdgeInsets.only(left: 30),
+                    padding: EdgeInsets.only(left: 30, right: 5),
                     child: widget.bottomWidget)
                 : SizedBox.shrink(),
             Visibility(
