@@ -189,7 +189,7 @@ abstract class ServicesModule {
   @LazySingleton()
   KeyPadService get keypadService;
 
-  @LazySingleton()
+  @factoryMethod
   Future<RemoteInterface> get remoteApi async {
     try {
       return await RemoteService().getInstance();

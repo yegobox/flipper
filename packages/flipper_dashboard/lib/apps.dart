@@ -141,15 +141,13 @@ class _AppsState extends State<Apps> {
             ),
           ),
         ),
-      ),
-      body: Align(
-        alignment: Alignment.center,
-        child: Wrap(
-          alignment: WrapAlignment.center,
+        bottomWidget: Container(
+            child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            ListTile(
-              contentPadding: EdgeInsets.only(left: 30, right: 0),
-              leading: ReusableDropdown(
+            Expanded(
+              flex: 0,
+              child: ReusableDropdown(
                 options: transactionPeriodOptions,
                 selectedOption: transactionPeriod,
                 onChanged: (String? newPeriod) {
@@ -158,7 +156,10 @@ class _AppsState extends State<Apps> {
                   });
                 },
               ),
-              trailing: ReusableDropdown(
+            ),
+            Expanded(
+              flex: 0,
+              child: ReusableDropdown(
                 options: profitTypeOptions,
                 selectedOption: profitType,
                 onChanged: (String? newProfitType) {
@@ -168,6 +169,14 @@ class _AppsState extends State<Apps> {
                 },
               ),
             ),
+          ],
+        )),
+      ),
+      body: Align(
+        alignment: Alignment.center,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          children: [
             Padding(
               padding: const EdgeInsets.only(top: 70.0),
               child: _buildGauge(context, widget.model),

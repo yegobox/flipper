@@ -145,7 +145,9 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                               child: ProfileWidget(
                                 tenant: tenant,
                                 size: 25,
-                                sessionActive: tenant.sessionActive!,
+                                sessionActive: tenant.sessionActive == null
+                                    ? false
+                                    : tenant.sessionActive!,
                                 showIcon: false,
                               ),
                             );
@@ -246,10 +248,13 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                     branchId: ProxyService.box.getBranchId() ?? 0,
                   ),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData && !snapshot.data!.sessionActive!) {
+                    if (snapshot.hasData &&
+                        !(snapshot.data!.sessionActive == null
+                            ? false
+                            : snapshot.data!.sessionActive!)) {
                       SchedulerBinding.instance.addPostFrameCallback((_) {
                         _removeOverlay();
-                        _insertOverlay(context: context, model: model);
+                        // _insertOverlay(context: context, model: model);
                       });
                     } else if (snapshot.hasData &&
                         snapshot.data!.sessionActive!) {
