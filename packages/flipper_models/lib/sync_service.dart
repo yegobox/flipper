@@ -1,10 +1,11 @@
 import 'dart:core';
+import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
-
+import 'package:flipper_services/locator.dart';
 import 'isar_models.dart';
 
 abstract class IJsonSerializable {

@@ -165,7 +165,7 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 }
 
-class LocalStorageImpl implements LocalStorage {
+class BoxStorage implements LocalStorage {
   final box = GetStorage();
   @override
   int readInt({required String key}) {

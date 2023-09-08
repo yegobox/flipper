@@ -101,6 +101,7 @@ class LogOut extends StackedView<LogoutModel> {
                             'deviceVersion': device.deviceVersion,
                             'linkingCode': device.linkingCode,
                           });
+
                           await ProxyService.remote
                               .hardDelete(
                                   id: device.id, collectionName: 'devices')

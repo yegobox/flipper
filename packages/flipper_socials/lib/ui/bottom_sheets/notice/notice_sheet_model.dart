@@ -22,6 +22,7 @@ class NoticeSheetModel extends BaseViewModel {
         socialType: 'whatapp',
         socialUrl:
             'https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api');
+
     await ProxyService.remote
         .create(collection: social.toJson(), collectionName: 'socials');
   }

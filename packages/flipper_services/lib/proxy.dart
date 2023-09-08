@@ -57,19 +57,20 @@ final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
 final IsarApiInterface _isar = getIt<IsarApiInterface>();
-final RemoteInterface _remote = getIt<RemoteInterface>();
 final TaxApi _tax = getIt<TaxApi>();
 final WhatsApp _whatsApp = getIt<WhatsApp>();
 final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
+final RemoteInterface _remote = getIt<RemoteInterface>();
 
 abstract class ProxyService {
+  static RemoteInterface get remote => _remote;
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
   static IsarApiInterface get isar => _isar;
-  static RemoteInterface get remote => _remote;
+
   static EventInterface get event => _event;
   static Crash get crash => _crash;
   static Shareable get share => _share;

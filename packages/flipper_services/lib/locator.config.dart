@@ -84,7 +84,10 @@ extension GetItInjectableX on _i1.GetIt {
     gh.lazySingleton<_i20.ProductService>(
         () => servicesModule.productService());
     gh.lazySingleton<_i21.Remote>(() => servicesModule.remote);
-    gh.factoryAsync<_i22.RemoteInterface>(() => servicesModule.remoteApi);
+    await gh.factoryAsync<_i22.RemoteInterface>(
+      () => servicesModule.remoteApi,
+      preResolve: true,
+    );
     gh.lazySingleton<_i23.Review>(() => servicesModule.review);
     gh.lazySingleton<_i24.SentryServiceInterface>(
         () => servicesModule.sentry());

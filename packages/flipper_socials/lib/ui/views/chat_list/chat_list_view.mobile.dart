@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/widgets/list_of_messages.dart';
@@ -45,7 +44,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
     return ViewModelBuilder<ChatListViewModel>.reactive(
         viewModelBuilder: () => ChatListViewModel(),
         onViewModelReady: (viewModel) async {
-          SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+          SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
             if (ProxyService.box.getBranchId() != null &&
                 ProxyService.box.getBusinessId() != null &&
                 ProxyService.box.getUserId() != null) {
