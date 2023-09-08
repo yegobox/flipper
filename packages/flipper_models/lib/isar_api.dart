@@ -40,8 +40,8 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (isa == null) {
       db = await Isar.open(
-        compactOnLaunch:
-            CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
+        // compactOnLaunch:
+        //     CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
           TransactionSchema,
           BusinessSchema,
