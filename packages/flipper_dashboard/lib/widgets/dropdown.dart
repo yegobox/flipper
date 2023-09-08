@@ -1,3 +1,4 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -49,10 +50,11 @@ class _ReusableDropdownState extends State<ReusableDropdown> {
           }
         },
         icon: Icon(
-          // Provide an empty icon to hide the default dropdown arrow
-          Icons.arrow_drop_down,
-          color: Colors.transparent,
+          FluentIcons.arrow_down_20_regular,
+          color: Colors.grey,
+          size: 20,
         ),
+        padding: EdgeInsets.zero,
       ),
     );
   }

@@ -74,6 +74,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
     return SizedBox(
       height: (widget.areValueColumnsVisible) ? radius * 1.6 : radius * 1.25,
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomPaint(
             painter: _GaugePainter(
@@ -154,11 +155,6 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge> {
                 ],
               ),
             ),
-          Expanded(
-            child: Divider(
-              thickness: 0.5,
-            ),
-          ),
         ],
       ),
     );

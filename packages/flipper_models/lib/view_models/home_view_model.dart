@@ -28,6 +28,12 @@ class HomeViewModel extends ReactiveViewModel {
   final AppService app = getIt<AppService>();
   final bool _updateStarted = false;
   Setting? _setting;
+
+  bool newTransactionPressed = false;
+
+  String newTransactionType = 'none';
+  String transactionPeriod = "Today";
+  String profitType = "Net Profit";
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
   String? defaultLanguage;

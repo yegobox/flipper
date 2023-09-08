@@ -5,7 +5,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
-
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 abstract class RemoteInterface {
@@ -18,11 +17,11 @@ abstract class RemoteInterface {
       {required Map<String, dynamic> data,
       required String collectionName,
       required String recordId});
-  void listenToChanges();
+  Future<void> listenToChanges();
 }
 
 class RemoteService implements RemoteInterface {
-  late PocketBase pb;
+  PocketBase? pb;
   late String url;
   int _retryCount = 0;
 
@@ -31,7 +30,10 @@ class RemoteService implements RemoteInterface {
       url =
           kDebugMode ? 'https://uat-db.yegobox.com' : 'https://db.yegobox.com';
       pb = PocketBase(url);
-      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+      String password = kDebugMode ? '@9irc2{660Nb' : '5nUeS5TjpArcSGd';
+      String email = kDebugMode ? 'uat-info@yegobox.com' : 'info@yegobox.com';
+      await pb!.admins.authWithPassword(email, password);
+
       return this;
     } catch (e) {
       if (_retryCount < 2) {
@@ -46,7 +48,7 @@ class RemoteService implements RemoteInterface {
   Future<RemoteInterface> retryConnect() async {
     await Future.delayed(Duration(seconds: 5));
     try {
-      await pb.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
+      await pb!.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
       return this;
     } catch (e) {
       throw Exception("Failed to initialize RemoteInterface.");
@@ -55,7 +57,7 @@ class RemoteService implements RemoteInterface {
 
   @override
   Future<List<RecordModel>> getCollection({required String collectionName}) {
-    return pb.collection(collectionName).getFullList();
+    return pb!.collection(collectionName).getFullList();
   }
 
   @override
@@ -63,8 +65,11 @@ class RemoteService implements RemoteInterface {
     required Map<String, dynamic> collection,
     required String collectionName,
   }) async {
+    if (pb == null) {
+      await getInstance();
+    }
     try {
-      return await pb.collection(collectionName).create(body: collection);
+      return await pb!.collection(collectionName).create(body: collection);
     } on SocketException catch (e) {
       log(e.toString());
       return null;
@@ -82,8 +87,11 @@ class RemoteService implements RemoteInterface {
     required String collectionName,
     required String recordId,
   }) async {
+    if (pb == null) {
+      await getInstance();
+    }
     try {
-      return await pb.collection(collectionName).update(recordId, body: data);
+      return await pb!.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
       log(e.toString());
       return null;
@@ -96,7 +104,10 @@ class RemoteService implements RemoteInterface {
   }
 
   @override
-  void listenToChanges() {
+  Future<void> listenToChanges() async {
+    if (pb == null) {
+      await getInstance();
+    }
     try {
       gettingDataFirstTime();
       gettingRealTimeData();
@@ -111,6 +122,9 @@ class RemoteService implements RemoteInterface {
   }
 
   Future<void> gettingDataFirstTime() async {
+    if (pb == null) {
+      await getInstance();
+    }
     try {
       int branchId = ProxyService.box.getBranchId() ?? 0;
       int businessId = ProxyService.box.getBusinessId() ?? 0;
@@ -135,7 +149,7 @@ class RemoteService implements RemoteInterface {
           int totalPages = 1; // Initialize totalPages to 1
 
           do {
-            final records = await pb.collection(collectionName).getList(
+            final records = await pb!.collection(collectionName).getList(
                   page: page,
                   perPage: perPage,
                   filter: 'branchId = $branchId',
@@ -206,7 +220,7 @@ class RemoteService implements RemoteInterface {
     int branchId = ProxyService.box.getBranchId() ?? 0;
     int businessId = ProxyService.box.getBusinessId() ?? 0;
     if (branchId != 0 || businessId != 0) {
-      pb.collection('socials').subscribe("*", (socialEvent) async {
+      pb!.collection('socials').subscribe("*", (socialEvent) async {
         if (socialEvent.action == "create" ||
             socialEvent.action == "update" ||
             socialEvent.action == "delete") {
@@ -215,7 +229,7 @@ class RemoteService implements RemoteInterface {
         }
       });
 
-      pb.collection('stocks').subscribe("*", (stockEvent) async {
+      pb!.collection('stocks').subscribe("*", (stockEvent) async {
         if (stockEvent.action == "create" ||
             stockEvent.action == "update" ||
             stockEvent.action == "delete") {
@@ -224,7 +238,7 @@ class RemoteService implements RemoteInterface {
         }
       });
 
-      pb.collection('variants').subscribe("*", (variantEvent) async {
+      pb!.collection('variants').subscribe("*", (variantEvent) async {
         if (variantEvent.action == "create" ||
             variantEvent.action == "update" ||
             variantEvent.action == "delete") {
@@ -233,7 +247,7 @@ class RemoteService implements RemoteInterface {
         }
       });
 
-      pb.collection('products').subscribe("*", (productEvent) async {
+      pb!.collection('products').subscribe("*", (productEvent) async {
         if (productEvent.action == "create" ||
             productEvent.action == "update" ||
             productEvent.action == "delete") {
@@ -242,7 +256,7 @@ class RemoteService implements RemoteInterface {
         }
       });
 
-      pb.collection('devices').subscribe("*", (deviceEvent) async {
+      pb!.collection('devices').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
             deviceEvent.action == "update" ||
             deviceEvent.action == "delete") {
@@ -250,7 +264,7 @@ class RemoteService implements RemoteInterface {
               deviceEvent.record!, branchId, businessId, 'devices');
         }
       });
-      pb.collection('rra').subscribe("*", (deviceEvent) async {
+      pb!.collection('rra').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
             deviceEvent.action == "update" ||
             deviceEvent.action == "delete") {
@@ -440,6 +454,6 @@ class RemoteService implements RemoteInterface {
   @override
   Future<void> hardDelete(
       {required String id, required String collectionName}) async {
-    await pb.collection(collectionName).delete(id);
+    await pb!.collection(collectionName).delete(id);
   }
 }

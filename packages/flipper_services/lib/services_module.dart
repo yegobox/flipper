@@ -52,6 +52,16 @@ import 'package:flipper_models/isar_api.dart';
 
 @module
 abstract class ServicesModule {
+  @preResolve
+  Future<RemoteInterface> get remoteApi async {
+    try {
+      return await RemoteService();
+    } catch (e) {
+      // Handle the error or retry logic here
+      return await Future.error(e);
+    }
+  }
+
   @LazySingleton()
   UploadT get upload {
     UploadT upload;
@@ -189,21 +199,11 @@ abstract class ServicesModule {
   @LazySingleton()
   KeyPadService get keypadService;
 
-  @factoryMethod
-  Future<RemoteInterface> get remoteApi async {
-    try {
-      return await RemoteService().getInstance();
-    } catch (e) {
-      // Handle the error or retry logic here
-      return await Future.error(e);
-    }
-  }
-
   @preResolve
   Future<LocalStorage> get box async {
     // return await SharedPreferenceStorage().initializePreferences();
     if (isWeb) {
-      return LocalStorageImpl();
+      return BoxStorage();
     } else {
       return await SharedPreferenceStorage().initializePreferences();
     }
