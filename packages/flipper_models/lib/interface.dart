@@ -279,4 +279,6 @@ abstract class IsarApiInterface {
   Future<List<UserActivity>> activities({required int userId});
   Future<void> recordUserActivity(
       {required int userId, required String activity});
+
+  // Future<double> todayTotalBalance
 }
