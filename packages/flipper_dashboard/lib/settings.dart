@@ -117,7 +117,7 @@ class SettingPage extends StatelessWidget {
                                       cashierId:
                                           ProxyService.box.getBusinessId()!);
                               _routerService.navigateTo(DrawerScreenRoute(
-                                  open: "close", drawer: drawer));
+                                  open: "close", drawer: drawer!));
                             },
                           ),
                         ],

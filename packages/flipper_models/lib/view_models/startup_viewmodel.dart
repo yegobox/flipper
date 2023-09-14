@@ -5,13 +5,12 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class StartupViewModel extends BaseViewModel {
+class StartupViewModel extends FlipperBaseModel {
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
   final _routerService = locator<RouterService>();
@@ -48,7 +47,7 @@ class StartupViewModel extends BaseViewModel {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
-          _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+          openDrawer();
         }
       }
     } catch (e, stackTrace) {

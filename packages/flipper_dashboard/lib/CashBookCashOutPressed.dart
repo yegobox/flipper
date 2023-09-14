@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -19,11 +20,11 @@ class CashBookCashOutPressed extends StatelessWidget {
           children: [
             SizedBox(width: 10),
             Icon(FluentIcons.tray_item_add_24_regular),
-            if (model.newTransactionType == 'Cash In')
+            if (model.newTransactionType == TransactionType.cashIn)
               Text(' Cash In',
                   style: GoogleFonts.poppins(
                       fontSize: 16, fontWeight: FontWeight.bold))
-            else if (model.newTransactionType == 'Cash Out')
+            else if (model.newTransactionType == TransactionType.cashOut)
               Text(' Cash Out',
                   style: GoogleFonts.poppins(
                       fontSize: 16, fontWeight: FontWeight.bold)),

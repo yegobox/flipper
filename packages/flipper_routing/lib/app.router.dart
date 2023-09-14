@@ -1732,7 +1732,7 @@ class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
     _i4.Key? key,
     required String open,
-    _i8.Drawers? drawer,
+    required _i8.Drawers drawer,
   }) : super(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
@@ -1750,14 +1750,14 @@ class DrawerScreenArgs {
   const DrawerScreenArgs({
     this.key,
     required this.open,
-    this.drawer,
+    required this.drawer,
   });
 
   final _i4.Key? key;
 
   final String open;
 
-  final _i8.Drawers? drawer;
+  final _i8.Drawers drawer;
 
   @override
   String toString() {

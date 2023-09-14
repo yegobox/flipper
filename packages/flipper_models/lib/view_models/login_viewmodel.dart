@@ -1,17 +1,17 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar/pin.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked/stacked.dart';
+
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
-class LoginViewModel extends FormViewModel {
+class LoginViewModel extends FlipperBaseModel {
   LoginViewModel();
   final appService = loc.getIt<AppService>();
   final _routerService = locator<RouterService>();
@@ -66,7 +66,7 @@ class LoginViewModel extends FormViewModel {
           if (ProxyService.box.getDefaultApp() == "2") {
             _routerService.navigateTo(SocialHomeViewRoute());
           } else {
-            _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+            openDrawer();
           }
         }
       } catch (e) {
@@ -74,7 +74,7 @@ class LoginViewModel extends FormViewModel {
         if (ProxyService.box.getDefaultApp() == "2") {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
-          _routerService.navigateTo(DrawerScreenRoute(open: "open"));
+          openDrawer();
         }
       }
     } else {
