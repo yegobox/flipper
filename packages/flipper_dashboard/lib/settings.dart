@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
@@ -111,11 +114,23 @@ class SettingPage extends StatelessWidget {
                               ),
                             ),
                             onPressed: (BuildContext context) async {
+                              log('here');
                               // get active drawer
-                              isar.Drawers? drawer = await ProxyService.isar
-                                  .getDrawer(
-                                      cashierId:
-                                          ProxyService.box.getBusinessId()!);
+                              List<double> sumDailyTrans = await ProxyService
+                                  .isar
+                                  .getTransactionsAmountsSum(
+                                      period: TransactionPeriod.today);
+                              isar.Drawers? drawer =
+                                  await ProxyService.isar.getDrawer(
+                                cashierId: ProxyService.box.getBusinessId()!,
+                              );
+                              if (drawer != null) {
+                                /// update the drawer with closing balance
+                                drawer.closingBalance = sumDailyTrans[0];
+                                log(drawer.closingBalance.toString(),
+                                    name: 'drawerBalance');
+                                ProxyService.isar.update(data: drawer);
+                              }
                               _routerService.navigateTo(DrawerScreenRoute(
                                   open: "close", drawer: drawer!));
                             },

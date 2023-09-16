@@ -19,6 +19,12 @@ class TransactionType {
   static String custom = 'custom';
 }
 
+class TransactionPeriod {
+  static String today = 'Today';
+  static String thisWeek = 'This Week';
+  static String thisMonth = 'This Month';
+}
+
 const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
 const String PENDING = 'pending';

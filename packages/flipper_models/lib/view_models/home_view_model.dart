@@ -1005,14 +1005,6 @@ class HomeViewModel extends ReactiveViewModel {
     return res;
   }
 
-  Future<List<double>> getTransactionsAmountsSum(
-      {required String period}) async {
-    List<double> res =
-        await ProxyService.isar.getTransactionsAmountsSum(period: period);
-
-    return res;
-  }
-
   Stream<List<Transaction>> getLocalTransactions() {
     Stream<List<Transaction>> res = ProxyService.isar.transactionsStreams();
     return res;

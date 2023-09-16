@@ -45,16 +45,31 @@ class _DrawerScreenState extends State<DrawerScreen> {
               child: Column(
                 children: [
                   const Spacer(),
-                  Text(
-                    widget.open == "close"
-                        ? "Close a Business  with ${widget.drawer.closingBalance} Balance"
-                        : "Open Business",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.open == "close"
+                            ? "Close a Business"
+                            : "Open Business",
+                        style: GoogleFonts.poppins(
+                          fontSize: 36.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                      if (widget.open == "close")
+                        Text(
+                          "with ${widget.drawer.closingBalance} RWF",
+                          style: GoogleFonts.poppins(
+                            fontSize: 38.0, // Adjust the font size as needed
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
+                          ),
+                        ),
+                    ],
                   ),
+                  Spacer(),
                   TextFormField(
                     controller: _controller,
                     keyboardType: TextInputType.number,
