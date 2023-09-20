@@ -35,6 +35,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   int tabselected = 0;
   OverlayEntry? _overlayEntry;
   final formKey = GlobalKey<FormState>();
+  FocusNode focusNode = FocusNode();
 
   Future<void> _disableScreenshots() async {
     if (!kDebugMode && !isDesktopOrWeb) {
@@ -220,52 +221,50 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
           }
         },
         builder: (context, model, child) {
-          return WillPopScope(
-            onWillPop: () async {
-              return onWillPop(
-                  context: context, message: 'Do you want to leave this app?');
-            },
-            child: Scaffold(
-              appBar: AppBar(
-                title: Center(
-                    child: Text(
-                  ProxyService.status.statusText.value ?? "",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                  ),
-                )),
-                backgroundColor: ProxyService.status.statusColor.value,
-                automaticallyImplyLeading: false,
-                toolbarHeight:
-                    ProxyService.status.statusText.value?.isNotEmpty == true
-                        ? 25
-                        : 0,
-              ),
-              body: StreamBuilder<ITenant?>(
-                  stream: ProxyService.isar.authState(
-                    branchId: ProxyService.box.getBranchId() ?? 0,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData &&
-                        !(snapshot.data!.sessionActive == null
-                            ? false
-                            : snapshot.data!.sessionActive!)) {
-                      SchedulerBinding.instance.addPostFrameCallback((_) {
-                        _removeOverlay();
-                        // _insertOverlay(context: context, model: model);
-                      });
-                    } else if (snapshot.hasData &&
-                        snapshot.data!.sessionActive!) {
-                      _removeOverlay();
-                    }
-                    return AppLayoutDrawer(
-                        controller: controller,
-                        tabSelected: tabselected,
-                        model: model);
-                  }),
+          return Scaffold(
+            appBar: AppBar(
+              title: Center(
+                  child: Text(
+                ProxyService.status.statusText.value ?? "",
+                style: GoogleFonts.poppins(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white,
+                ),
+              )),
+              backgroundColor: ProxyService.status.statusColor.value,
+              automaticallyImplyLeading: false,
+              toolbarHeight:
+                  ProxyService.status.statusText.value?.isNotEmpty == true
+                      ? 25
+                      : 0,
             ),
+            body: StreamBuilder<ITenant?>(
+                stream: ProxyService.isar.authState(
+                  branchId: ProxyService.box.getBranchId() ?? 0,
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData &&
+                      !(snapshot.data!.sessionActive == null
+                          ? false
+                          : snapshot.data!.sessionActive!)) {
+                    SchedulerBinding.instance.addPostFrameCallback((_) {
+                      _removeOverlay();
+                      if (!kDebugMode) {
+                        _insertOverlay(context: context, model: model);
+                      }
+                    });
+                  } else if (snapshot.hasData &&
+                      snapshot.data!.sessionActive!) {
+                    _removeOverlay();
+                  }
+                  return AppLayoutDrawer(
+                    controller: controller,
+                    tabSelected: tabselected,
+                    model: model,
+                    focusNode: focusNode,
+                  );
+                }),
           );
         });
   }
