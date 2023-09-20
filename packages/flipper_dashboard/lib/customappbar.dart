@@ -91,11 +91,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 : SizedBox.shrink(),
             Visibility(
                 visible: widget.isDividerVisible ?? true,
-                child: const Expanded(
-                  child: Divider(
-                    thickness: 0.5,
-                  ),
-                ))
+                child: Divider(
+                  thickness: 0.5,
+                )),
           ],
         ),
       ),

@@ -87,14 +87,15 @@ class _CashbookState extends State<Cashbook> {
                   ),
                 ),
                 Expanded(
-                    child: model.newTransactionPressed == false
-                        ? CashBookCashInPressed(
-                            model: model,
-                          )
-                        : CashBookCashOutPressed(
-                            isBigScreen: widget.isBigScreen,
-                            model: model,
-                          )),
+                  child: model.newTransactionPressed == false
+                      ? CashBookCashInPressed(
+                          model: model,
+                        )
+                      : CashBookCashOutPressed(
+                          isBigScreen: widget.isBigScreen,
+                          model: model,
+                        ),
+                ),
                 SizedBox(height: 31),
               ],
             ),

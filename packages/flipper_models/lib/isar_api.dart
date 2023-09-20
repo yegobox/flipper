@@ -232,12 +232,12 @@ class IsarAPI<M> implements IsarApiInterface {
     DateTime oldDate;
     DateTime temporaryDate;
 
-    if (period == 'Today') {
+    if (period == TransactionPeriod.today) {
       DateTime tempToday = DateTime.now();
       oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
-    } else if (period == 'This Week') {
+    } else if (period == TransactionPeriod.thisWeek) {
       oldDate = DateTime.now().subtract(Duration(days: 7));
-    } else if (period == 'This Month') {
+    } else if (period == TransactionPeriod.thisMonth) {
       oldDate = DateTime.now().subtract(Duration(days: 30));
     } else {
       oldDate = DateTime.now().subtract(Duration(days: 365));

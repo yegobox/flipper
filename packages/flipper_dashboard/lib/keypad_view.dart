@@ -482,8 +482,7 @@ class KeyPadView extends StatelessWidget {
     /// this will close the keypad
     model.newTransactionPressed = false;
 
-    /// set keypad to 0 as pressed C on keypad
-    model.keyboardKeyPressed(key: 'C');
+    model.keyboardKeyPressed(key: '+');
     model.saveCashBookTransaction(cbTransactionType: transactionType);
   }
 }

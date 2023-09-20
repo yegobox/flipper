@@ -39,87 +39,106 @@ class _DrawerScreenState extends State<DrawerScreen> {
           width: isDesktopOrWeb ? 380 : double.infinity,
           child: Form(
             key: _sub,
-            child: Column(
-              children: [
-                const Spacer(),
-                Text(
-                  widget.open == "close"
-                      ? "Close a Business  with ${widget.drawer.closingBalance} Balance"
-                      : "Open Business",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
+            child: Padding(
+              padding:
+                  EdgeInsets.symmetric(horizontal: isDesktopOrWeb ? 0 : 13),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.open == "close"
+                            ? "Close a Business"
+                            : "Open Business",
+                        style: GoogleFonts.poppins(
+                          fontSize: 36.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                        ),
+                      ),
+                      if (widget.open == "close")
+                        Text(
+                          "with ${widget.drawer.closingBalance} RWF",
+                          style: GoogleFonts.poppins(
+                            fontSize: 38.0, // Adjust the font size as needed
+                            fontWeight: FontWeight.normal,
+                            color: Colors.black,
+                          ),
+                        ),
+                    ],
                   ),
-                ),
-                TextFormField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "You need to enter the amount";
-                    }
-                    final numericValue = num.tryParse(value);
-                    if (numericValue == null) {
-                      return "Only numeric values are allowed";
-                    }
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    enabled: true,
-                    border: const OutlineInputBorder(),
-                    suffixIcon: const Icon(Icons.money),
-                    hintText: widget.open == "open"
-                        ? "Opening balance"
-                        : "Closing balance",
+                  Spacer(),
+                  TextFormField(
+                    controller: _controller,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "You need to enter the amount";
+                      }
+                      final numericValue = num.tryParse(value);
+                      if (numericValue == null) {
+                        return "Only numeric values are allowed";
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      enabled: true,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: const Icon(Icons.money),
+                      hintText: widget.open == "open"
+                          ? "Opening balance"
+                          : "Closing balance",
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
-                  child: Container(
-                    color: Colors.white70,
-                    width: double.infinity,
-                    height: 60,
-                    child: BoxButton(
-                        title: widget.open == "open"
-                            ? "Open Drawer"
-                            : "Close Drawer",
-                        onTap: () async {
-                          if (_sub.currentState!.validate()) {
-                            setState(() {
-                              isProcessing = true;
-                            });
-                            if (widget.open == "open") {
-                              ProxyService.isar.openDrawer(
-                                drawer: widget.drawer
-                                  ..openingBalance =
-                                      double.tryParse(_controller.text) ?? 0,
-                              );
-                              LoginInfo().isLoggedIn = true;
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
+                    child: Container(
+                      color: Colors.white70,
+                      width: double.infinity,
+                      height: 60,
+                      child: BoxButton(
+                          title: widget.open == "open"
+                              ? "Open Drawer"
+                              : "Close Drawer",
+                          onTap: () async {
+                            if (_sub.currentState!.validate()) {
+                              setState(() {
+                                isProcessing = true;
+                              });
+                              if (widget.open == "open") {
+                                ProxyService.isar.openDrawer(
+                                  drawer: widget.drawer
+                                    ..openingBalance =
+                                        double.tryParse(_controller.text) ?? 0,
+                                );
+                                LoginInfo().isLoggedIn = true;
 
-                              _routerService.navigateTo(FlipperAppRoute());
-                            } else {
-                              ProxyService.isar.update(
-                                  data: widget.drawer
-                                    ..closingBalance =
-                                        double.parse(_controller.text)
-                                    ..closingDateTime =
-                                        DateTime.now().toIso8601String()
-                                    ..open = false);
+                                _routerService.navigateTo(FlipperAppRoute());
+                              } else {
+                                ProxyService.isar.update(
+                                    data: widget.drawer
+                                      ..closingBalance =
+                                          double.parse(_controller.text)
+                                      ..closingDateTime =
+                                          DateTime.now().toIso8601String()
+                                      ..open = false);
 
-                              /// when you close a drawer we asume you also closed a business day
-                              /// therefore we log you out for next day log in.
-                              await ProxyService.isar.logOut();
-                              _routerService.navigateTo(LoginViewRoute());
+                                /// when you close a drawer we asume you also closed a business day
+                                /// therefore we log you out for next day log in.
+                                await ProxyService.isar.logOut();
+                                _routerService.navigateTo(LoginViewRoute());
+                              }
                             }
-                          }
-                        },
-                        busy: isProcessing),
+                          },
+                          busy: isProcessing),
+                    ),
                   ),
-                ),
-                const Spacer(),
-                const Spacer(),
-              ],
+                  const Spacer(),
+                  const Spacer(),
+                ],
+              ),
             ),
           ),
         ),
