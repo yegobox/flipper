@@ -15,7 +15,7 @@ dependencies:
   injectable: ^2.3.0
   get_storage: ^2.1.1
   get_it: ^7.6.0
-  stacked: ^3.3.0
+  stacked: ^3.4.1+1
   flipper_services: ^1.0.0
 dependency_overrides:
   http: ^1.1.0

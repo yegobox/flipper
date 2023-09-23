@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   cupertino_icons: ^1.0.2
-  stacked: ^3.4.0
+  stacked: ^3.4.1+1
   stacked_services: ^1.0.4
   url_strategy: ^0.2.0
   responsive_builder: ^0.7.0

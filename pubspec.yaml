@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.678604379771+1695216201
+version: 1.170.680299595973+1695486245
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -36,7 +36,7 @@ dependencies:
   firebase_ui_auth: ^1.6.4
   firebase_auth: 4.8.0
   google_fonts: ^5.1.0
-  stacked: ^3.4.0
+  stacked: ^3.4.1+1
   firebase_messaging: ^14.6.2
   overlay_support: ^2.1.0
   flex_color_scheme: ^4.2.0
