@@ -270,7 +270,6 @@ class HomeViewModel extends ReactiveViewModel {
     return TransactionItem(
       id: randomString(),
       qty: 1,
-      lastTouched: DateTime.now(),
       action: AppActions.create,
       price: amount / 1,
       variantId: variation.id,

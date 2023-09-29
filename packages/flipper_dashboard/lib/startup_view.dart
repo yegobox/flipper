@@ -20,7 +20,6 @@ class StartUpView extends StatefulWidget {
 
 class _StartUpViewState extends State<StartUpView> {
   List<LogicalKeyboardKey> keys = [];
-
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartupViewModel>.reactive(
@@ -34,7 +33,9 @@ class _StartUpViewState extends State<StartUpView> {
               ProxyService.box.getUserId() != null) {
             InitApp.init();
 
-            ProxyService.remote.listenToChanges();
+            // try {
+            //   ProxyService.remote.listenToChanges();
+            // } catch (e) {}
           }
         });
       },

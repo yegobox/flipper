@@ -28,7 +28,8 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
     final appDocDir = await getApplicationDocumentsDirectory();
     if (foundation.kDebugMode && !isAndroid) {
-      apihub = "https://uat-apihub.yegobox.com";
+      // apihub = "https://uat-apihub.yegobox.com";
+      apihub = "https://a52a-41-186-88-14.ngrok-free.app";
       commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
     } else if (foundation.kDebugMode && isAndroid) {
       // apihub = "http://10.0.2.2:8083";
@@ -2374,36 +2375,41 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> sendScheduleMessages() async {
-    await appService.isLoggedIn();
-    List<Conversation> scheduledMessages = await getScheduleMessages();
-    for (Conversation message in scheduledMessages) {
-      final http.Response response = await socialsHttpClient.post(
-        Uri.parse("$commApi/reply"),
-        body: json.encode(message.toJson()),
-      );
-      if (response.statusCode == 200) {
-        final responseJson = jsonDecode(response.body);
-        final conversation = Conversation.fromJson(responseJson);
-        message.delivered = true;
-        message.messageId = conversation.messageId;
+    try {
+      await appService.isLoggedIn();
+      List<Conversation> scheduledMessages = await getScheduleMessages();
+      for (Conversation message in scheduledMessages) {
+        final http.Response response = await socialsHttpClient.post(
+          Uri.parse("$commApi/reply"),
+          body: json.encode(message.toJson()),
+        );
+        if (response.statusCode == 200) {
+          final responseJson = jsonDecode(response.body);
+          final conversation = Conversation.fromJson(responseJson);
+          message.delivered = true;
+          message.messageId = conversation.messageId;
 
-        /// can not rely on remote server time using local, will fix remote later
-        /// to have same date format as here and use it
-        message.createdAt = DateTime.now().toString();
-        message.conversationId = conversation.conversationId;
-        message.userName = conversation.userName;
-        message.phoneNumberId = conversation.phoneNumberId;
-        message.businessPhoneNumber =
-            ProxyService.box.getUserPhone()!.replaceAll("+", "");
-        await db.writeAsync((isar) {
-          isar.conversations.put(message);
-        });
-      } else {
-        // this means there is no credit
-        throw Exception(
-            'Error sending scheduled message${response.body}${response.statusCode}');
+          /// can not rely on remote server time using local, will fix remote later
+          /// to have same date format as here and use it
+          message.createdAt = DateTime.now().toString();
+          message.conversationId = conversation.conversationId;
+          message.userName = conversation.userName;
+          message.phoneNumberId = conversation.phoneNumberId;
+          message.businessPhoneNumber =
+              ProxyService.box.getUserPhone()!.replaceAll("+", "");
+          await db.writeAsync((isar) {
+            isar.conversations.put(message);
+          });
+        } else {
+          // this means there is no credit
+          throw Exception(
+              'Error sending scheduled message${response.body}${response.statusCode}');
+        }
       }
-    }
+
+      /// silently avoid the app to hand in debug mode
+      /// because of the error found in   await appService.isLoggedIn(); firebase auth object
+    } catch (e) {}
   }
 
   @override
@@ -2852,6 +2858,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .or()
           .actionEqualTo(AppActions.deleted)
           .findAll();
+
       return (
         stocks: stocks,
         variants: variants,

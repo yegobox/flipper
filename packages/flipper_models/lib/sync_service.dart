@@ -1,11 +1,10 @@
 import 'dart:core';
-import 'package:flipper_models/remote_service.dart';
+import 'dart:developer';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:pocketbase/pocketbase.dart';
-import 'package:flipper_services/locator.dart';
 import 'isar_models.dart';
 
 abstract class IJsonSerializable {
@@ -26,6 +25,7 @@ class SynchronizationService<M extends IJsonSerializable>
 
   Future<Map<String, dynamic>?> _push(M model) async {
     Type modelType = model.runtimeType;
+
     // Use the model type to get the corresponding endpoint from the map
     String? endpoint = serverDefinitions[modelType];
 
@@ -55,9 +55,14 @@ class SynchronizationService<M extends IJsonSerializable>
 
       RecordModel? result = null;
 
-      if (json['action'] == 'update' || json['action'] == 'delete') {
-        result = await ProxyService.remote.update(
-            data: json, collectionName: endpoint, recordId: json['remoteId']);
+      if (json['action'] == 'update') {
+        result = await ProxyService.remote
+            .update(data: json, collectionName: endpoint, recordId: json['id']);
+      } else if (json['action'] == 'delete') {
+        result = await ProxyService.remote
+            .update(data: json, collectionName: endpoint, recordId: json['id']);
+        // await ProxyService.remote
+        //     .hardDelete(collectionName: endpoint, id: json['id']);
       } else if (json['action'] == 'create') {
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);

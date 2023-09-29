@@ -17,33 +17,30 @@ class InitApp {
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
 
-    ProxyService.sync.pull();
-
     ProxyService.cron.schedule();
 
     ProxyService.status.updateStatusColor();
 
-    ProxyService.event.connect();
-
     ProxyService.messaging.listenTapOnNotificationForeground();
 
-    if (isDesktopOrWeb) {
-      ProxyService.event.subscribeToLogoutEvent(
-          channel: "${ProxyService.box.getUserId()}-logout");
-    }
+    // ProxyService.event.connect();
 
-    if (ProxyService.box.getBusinessId() != null) {
-      ProxyService.event.subscribeToMessages(
-          channel: ProxyService.box.getBusinessId()!.toString());
-    }
+    // if (isDesktopOrWeb) {
+    //   ProxyService.event.subscribeToLogoutEvent(
+    //       channel: "${ProxyService.box.getUserId()}-logout");
+    // }
+    // if (!isDesktopOrWeb) {
+    //   ProxyService.event.subscribeToDeviceEvent(
+    //       channel: ProxyService.box.getUserPhone()!.replaceAll("+", ""));
+    // }
 
-    if (!isDesktopOrWeb) {
-      ProxyService.event.subscribeToDeviceEvent(
-          channel: ProxyService.box.getUserPhone()!.replaceAll("+", ""));
-    }
+    // if (ProxyService.box.getBusinessId() != null) {
+    //   ProxyService.event.subscribeToMessages(
+    //       channel: ProxyService.box.getBusinessId()!.toString());
+    // }
 
-    ProxyService.messaging
-        .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
+    // ProxyService.messaging
+    //     .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
 
     ProxyService.forceDateEntry.dataBootstrapper();
   }
