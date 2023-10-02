@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/secrets.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
@@ -27,17 +28,16 @@ class IsarAPI<M> implements IsarApiInterface {
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
     final appDocDir = await getApplicationDocumentsDirectory();
+
     if (foundation.kDebugMode && !isAndroid) {
-      apihub = "https://uat-apihub.yegobox.com";
-      // apihub = "https://a52a-41-186-88-14.ngrok-free.app";
-      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
+      apihub = AppSecrets.apihubUat;
+      commApi = AppSecrets.commApi;
     } else if (foundation.kDebugMode && isAndroid) {
-      // apihub = "http://10.0.2.2:8083";
-      apihub = "https://uat-apihub.yegobox.com";
-      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
+      apihub = AppSecrets.apihubUat;
+      commApi = AppSecrets.commApi;
     } else if (!foundation.kDebugMode) {
-      apihub = "https://apihub.yegobox.com";
-      commApi = "https://ers84w6ehl.execute-api.us-east-1.amazonaws.com/api";
+      apihub = AppSecrets.apihubProd;
+      commApi = AppSecrets.commApi;
     }
     if (isa == null) {
       db = await Isar.open(

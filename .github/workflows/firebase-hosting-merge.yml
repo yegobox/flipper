@@ -31,6 +31,7 @@ jobs:
       # echo "$INDEX" >> web/index.html
         run: |
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
         env:
           INDEX: ${{ secrets.INDEX }}

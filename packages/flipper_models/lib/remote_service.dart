@@ -1,8 +1,9 @@
 import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -27,11 +28,21 @@ class RemoteService implements RemoteInterface {
 
   Future<RemoteInterface?> getInstance() async {
     try {
-      url =
-          kDebugMode ? 'https://uat-db.yegobox.com' : 'https://db.yegobox.com';
+      String url;
+      String password;
+      String email;
+
+      if (foundation.kDebugMode) {
+        url = AppSecrets.apiUrlDebug;
+        password = AppSecrets.debugPassword;
+        email = AppSecrets.debugEmail;
+      } else {
+        url = AppSecrets.apiUrlProd;
+        password = AppSecrets.prodPassword;
+        email = AppSecrets.prodEmail;
+      }
+
       pb = PocketBase(url);
-      String password = kDebugMode ? '@9irc2{660Nb' : '5nUeS5TjpArcSGd';
-      String email = kDebugMode ? 'uat-info@yegobox.com' : 'info@yegobox.com';
       await pb!.admins.authWithPassword(email, password);
 
       return this;
