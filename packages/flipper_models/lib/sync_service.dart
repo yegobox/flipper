@@ -1,5 +1,4 @@
 import 'dart:core';
-import 'dart:developer';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/constants.dart';
@@ -40,6 +39,8 @@ class SynchronizationService<M extends IJsonSerializable>
         String namesString =
             itemOnTransaction.map((item) => item.name).join(',');
         json["itemName"] = namesString;
+        if (itemOnTransaction.isEmpty)
+          return null; // do not proceed if name is empty
       }
 
       if (endpoint == "stocks" && json["retailPrice"] == null) {
@@ -51,7 +52,8 @@ class SynchronizationService<M extends IJsonSerializable>
       }
 
       /// remove trailing dashes to sent lastTouched
-      json["lastTouched"] = DateTime.now().toIso8601String();
+      final lastTouched = DateTime.now().toIso8601String();
+      json["lastTouched"] = lastTouched;
 
       RecordModel? result = null;
 
@@ -61,8 +63,6 @@ class SynchronizationService<M extends IJsonSerializable>
       } else if (json['action'] == 'delete') {
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
-        // await ProxyService.remote
-        //     .hardDelete(collectionName: endpoint, id: json['id']);
       } else if (json['action'] == 'create') {
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
@@ -70,6 +70,7 @@ class SynchronizationService<M extends IJsonSerializable>
       if (result != null) {
         Map<String, dynamic> updatedJson = Map.from(result.toJson());
         updatedJson['action'] = AppActions.updated;
+        updatedJson['lastTouched'] = lastTouched;
         return updatedJson;
       }
     }

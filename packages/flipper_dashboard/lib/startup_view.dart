@@ -1,5 +1,7 @@
 library flipper_dashboard;
 
+import 'dart:developer';
+
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
