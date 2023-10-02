@@ -33,9 +33,9 @@ class _StartUpViewState extends State<StartUpView> {
               ProxyService.box.getUserId() != null) {
             InitApp.init();
 
-            // try {
-            //   ProxyService.remote.listenToChanges();
-            // } catch (e) {}
+            try {
+              ProxyService.remote.listenToChanges();
+            } catch (e) {}
           }
         });
       },
