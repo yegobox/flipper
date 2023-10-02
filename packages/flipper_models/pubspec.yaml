@@ -15,7 +15,7 @@ dependencies:
   firebase_auth_desktop: ^1.0.2-flipper
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.4
-  firebase_auth: ^4.10.0
+  firebase_auth: 4.8.0
   stacked: ^3.4.1+1
   built_value: ^8.1.4
   azlistview: ^2.0.0
@@ -27,7 +27,7 @@ dependencies:
   connectivity_plus: ^4.0.1
   isar: ^4.0.0-dev.13
   isar_flutter_libs: ^4.0.0-dev.13
-  pocketbase: ^0.15.0
+  pocketbase: ^0.15.1
   stock: ^1.0.1
   sentry_flutter: ^7.9.0
   path_provider: ^2.0.15

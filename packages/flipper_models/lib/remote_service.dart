@@ -25,7 +25,7 @@ class RemoteService implements RemoteInterface {
   late String url;
   int _retryCount = 0;
 
-  Future<RemoteInterface> getInstance() async {
+  Future<RemoteInterface?> getInstance() async {
     try {
       url =
           kDebugMode ? 'https://uat-db.yegobox.com' : 'https://db.yegobox.com';
@@ -40,7 +40,8 @@ class RemoteService implements RemoteInterface {
         _retryCount++;
         return retryConnect();
       } else {
-        throw Exception("Failed to initialize RemoteInterface after retries.");
+        print("Failed to initialize RemoteInterface after retries: $e");
+        return null; // Return null or another default value
       }
     }
   }

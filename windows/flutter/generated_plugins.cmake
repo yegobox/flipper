@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
   desktop_webview_auth
   file_selector_windows
-  firebase_auth
   firebase_core
   flutter_localization
   flutter_window_close
