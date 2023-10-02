@@ -52,10 +52,17 @@ class CronService {
     // we need to think when the devices change or app is uninstalled
     // for the case like that the token needs to be updated, but not covered now
     // this sill make more sence once we implement the sync that is when we will implement such solution
+    bool backOff = false;
     Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.
-      ProxyService.isar.sendScheduleMessages();
-      ProxyService.event.keepTryingPublishDevice();
+      try {
+        if (!backOff) {
+          ProxyService.isar.sendScheduleMessages();
+          ProxyService.event.keepTryingPublishDevice();
+        }
+      } catch (e) {
+        backOff = true;
+      }
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
       /// get unsynced counter and send them online for houseKeping.

@@ -280,7 +280,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
                                       // refresh transactions
                                       model.keyboardKeyPressed(key: 'C');
                                       _routerService
-                                          .clearStackAndShow(FlipperAppRoute());
+                                          .navigateTo(FlipperAppRoute());
                                     },
                                   ),
                                 ),

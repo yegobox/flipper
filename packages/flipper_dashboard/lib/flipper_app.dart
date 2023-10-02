@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_dashboard/pininput.dart';
 import 'package:flipper_dashboard/profile.dart';

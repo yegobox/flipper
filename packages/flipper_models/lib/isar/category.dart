@@ -11,6 +11,8 @@ class Category extends IJsonSerializable {
   late bool active;
   late bool focused;
   late String name;
+
+  // late String type; == expense, income, etc...
   @Index()
   late int branchId;
   @override

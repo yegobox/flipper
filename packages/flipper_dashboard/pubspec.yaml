@@ -18,14 +18,14 @@ dependencies:
   mime: ^1.0.1
   open_filex: ^4.1.1
   ant_icons: ^2.0.0-nullsafety.0
-  pubnub: ^4.2.3
+  pubnub: ^4.2.4
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   image_picker: ^0.8.7+5
   firebase_storage: ^11.0.2
   file_picker: ^5.2.11
 
-  stacked: ^3.4.0
+  stacked: ^3.4.1+1
   azlistview: ^2.0.0
   qr_code_scanner: ^1.0.1
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
@@ -42,10 +42,10 @@ dependencies:
   flutter_settings_ui: ^2.0.1
   flutter_inappwebview: ^5.4.3+7
   url_launcher: ^6.1.11
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
   number_display: ^3.0.0
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.15.1
+  firebase_core: ^2.16.0
   firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^1.0.0

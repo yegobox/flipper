@@ -17,7 +17,7 @@ dependencies:
   firebase_ui_auth: ^1.6.4
   flutter_form_bloc: ^0.31.0
   firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.15.1
+  firebase_core: ^2.16.0
   firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^1.0.0
   flipper_dashboard: ^0.0.1-dev.5
@@ -27,8 +27,8 @@ dependencies:
   country_code_picker: ^3.0.0
   overlay_support: ^2.1.0
   flutter_settings_ui: ^2.0.1
-  stacked: ^3.4.0
-  google_fonts: ^5.1.0
+  stacked: ^3.4.1+1
+  google_fonts: ^6.1.0
   firebase_auth: 4.8.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^4.0.1
