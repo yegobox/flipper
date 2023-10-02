@@ -37,6 +37,7 @@ jobs:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          SECRETS: ${{ secrets.SECRETS }}
       - name: "Build Web App"
         run: flutter build web
       - uses: FirebaseExtended/action-hosting-deploy@v0

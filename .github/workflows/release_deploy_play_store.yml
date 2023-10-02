@@ -126,6 +126,7 @@ jobs:
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
       - run: |
           dart pub global activate melos 2.9.0
