@@ -64,8 +64,7 @@ class _ProductViewState extends State<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        double searchFieldWidth = MediaQuery.of(context).size.width *
-            0.61; // set search field width to 90% of device width
+        double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
 
         return KeyboardVisibility(
             onChanged: (bool keyboardVisible) {
@@ -84,6 +83,7 @@ class _ProductViewState extends State<ProductView> {
                       child: Container(
                         height: kToolbarHeight,
                         child: Wrap(direction: Axis.horizontal, children: [
+                          //TODO:add shortcut if is big screen here
                           SizedBox(
                             width: isDesktopOrWeb
                                 ? searchFieldWidth
@@ -99,7 +99,8 @@ class _ProductViewState extends State<ProductView> {
                           isDesktopOrWeb
                               ? FutureBuilder<ITenant?>(
                                   future: ProxyService.isar.getTenantBYUserId(
-                                      userId: ProxyService.box.getUserId()??0),
+                                      userId:
+                                          ProxyService.box.getUserId() ?? 0),
                                   builder: (a, snapshoot) {
                                     if (snapshoot.connectionState ==
                                             ConnectionState.waiting ||

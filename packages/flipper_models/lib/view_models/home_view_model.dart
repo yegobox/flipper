@@ -20,7 +20,7 @@ import 'package:flipper_services/language_service.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:receipt/print.dart';
 
-class HomeViewModel extends ReactiveViewModel {
+class HomeViewModel extends FlipperBaseModel {
   final settingService = getIt<SettingsService>();
   final languageService = getIt<Language>();
   final KeyPadService keypad = getIt<KeyPadService>();

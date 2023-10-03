@@ -20,6 +20,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
 
+import 'package:flutter/services.dart';
+
 class FlipperApp extends StatefulWidget {
   const FlipperApp({Key? key}) : super(key: key);
 
@@ -175,6 +177,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     Overlay.of(context).insert(_overlayEntry!);
   }
 
+  List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<HomeViewModel>.reactive(
@@ -220,50 +223,68 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
           }
         },
         builder: (context, model, child) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Center(
-                  child: Text(
-                ProxyService.status.statusText.value ?? "",
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.white,
-                ),
-              )),
-              backgroundColor: ProxyService.status.statusColor.value,
-              automaticallyImplyLeading: false,
-              toolbarHeight:
-                  ProxyService.status.statusText.value?.isNotEmpty == true
-                      ? 25
-                      : 0,
-            ),
-            body: StreamBuilder<ITenant?>(
-                stream: ProxyService.isar.authState(
-                  branchId: ProxyService.box.getBranchId() ?? 0,
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData &&
-                      !(snapshot.data!.sessionActive == null
-                          ? false
-                          : snapshot.data!.sessionActive!)) {
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
+          return RawKeyboardListener(
+            focusNode: FocusNode(),
+            autofocus: true,
+            onKey: (event) {
+              final key = event.logicalKey;
+              if (event is RawKeyDownEvent) {
+                if (keys.contains(key)) return;
+                setState(() {
+                  keys.add(key);
+                });
+                return model.handleKeyBoardEvents(event: event);
+              } else {
+                setState(() {
+                  keys.remove(key);
+                });
+              }
+            },
+            child: Scaffold(
+              appBar: AppBar(
+                title: Center(
+                    child: Text(
+                  ProxyService.status.statusText.value ?? "",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  ),
+                )),
+                backgroundColor: ProxyService.status.statusColor.value,
+                automaticallyImplyLeading: false,
+                toolbarHeight:
+                    ProxyService.status.statusText.value?.isNotEmpty == true
+                        ? 25
+                        : 0,
+              ),
+              body: StreamBuilder<ITenant?>(
+                  stream: ProxyService.isar.authState(
+                    branchId: ProxyService.box.getBranchId() ?? 0,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData &&
+                        !(snapshot.data!.sessionActive == null
+                            ? false
+                            : snapshot.data!.sessionActive!)) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                        _removeOverlay();
+                        if (!kDebugMode) {
+                          _insertOverlay(context: context, model: model);
+                        }
+                      });
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.sessionActive!) {
                       _removeOverlay();
-                      if (!kDebugMode) {
-                        _insertOverlay(context: context, model: model);
-                      }
-                    });
-                  } else if (snapshot.hasData &&
-                      snapshot.data!.sessionActive!) {
-                    _removeOverlay();
-                  }
-                  return AppLayoutDrawer(
-                    controller: controller,
-                    tabSelected: tabselected,
-                    model: model,
-                    focusNode: focusNode,
-                  );
-                }),
+                    }
+                    return AppLayoutDrawer(
+                      controller: controller,
+                      tabSelected: tabselected,
+                      model: model,
+                      focusNode: focusNode,
+                    );
+                  }),
+            ),
           );
         });
   }
