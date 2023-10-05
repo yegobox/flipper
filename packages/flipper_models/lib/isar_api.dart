@@ -2049,6 +2049,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<Category?> activeCategory({required int branchId}) async {
+    // get all categories from isar db
+    return db.read(
+        (isar) => isar.categorys.where().branchIdEqualTo(branchId).and().activeEqualTo(true).and().focusedEqualTo(true).findFirst());
+  }
+
+  @override
   Future<Variant?> getVariantById({required String id}) async {
     return db.read((isar) => isar.variants.get(id));
   }
