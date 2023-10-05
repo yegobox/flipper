@@ -161,6 +161,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin lecle_downloads_path_provider, com.lecle.path.downloads.DownloadsPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new io.flutter.plugins.localauth.LocalAuthPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin local_auth_android, io.flutter.plugins.localauth.LocalAuthPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.lyokone.location.LocationPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin location_android, com.lyokone.location.LocationPlugin", e);

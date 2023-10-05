@@ -96,7 +96,6 @@ class KeyPadView extends StatelessWidget {
                       TextButton(
                         child: Text('Confirm'),
                         onPressed: () {
-                          // Perform confirm action here
                           HandleTransactionFromCashBook();
                           Navigator.of(context).pop();
                         },

@@ -160,9 +160,9 @@ class ProductViewModel extends FlipperBaseModel {
     for (Category category in categories) {
       if (category.focused) {
         Category cat = category;
-        cat.focused = !cat.focused;
+        cat.focused = false;
         cat.branchId = branchId;
-        cat.active = !cat.active;
+        cat.active = false;
         await ProxyService.isar.update(
           data: cat,
         );
@@ -170,8 +170,8 @@ class ProductViewModel extends FlipperBaseModel {
     }
 
     Category cat = category;
-    cat.focused = !cat.focused;
-    cat.active = !cat.active;
+    cat.focused = true;
+    cat.active = true;
     cat.branchId = branchId;
     await ProxyService.isar.update(
       data: cat,
@@ -358,6 +358,17 @@ class ProductViewModel extends FlipperBaseModel {
     mproduct.name = productName;
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = currentColor;
+
+    Category? activeCat = await ProxyService.isar
+        .activeCategory(branchId: ProxyService.box.getBranchId()!);
+
+    String activeCatName = activeCat!.name;
+
+    mproduct.categoryId = activeCatName;
+
+    activeCat.active = false;
+    activeCat.focused = false;
+    await ProxyService.isar.update(data: activeCat);
 
     mproduct.action = inUpdateProcess ? AppActions.update : AppActions.create;
 
