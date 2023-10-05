@@ -17,29 +17,26 @@ class InitApp {
     ProxyService.cron.connectBlueToothPrinter();
     ProxyService.cron.deleteReceivedMessageFromServer();
 
-    ProxyService.sync.pull();
-
     ProxyService.cron.schedule();
 
     ProxyService.status.updateStatusColor();
 
-    ProxyService.event.connect();
-
     ProxyService.messaging.listenTapOnNotificationForeground();
+
+    ProxyService.event.connect();
 
     if (isDesktopOrWeb) {
       ProxyService.event.subscribeToLogoutEvent(
           channel: "${ProxyService.box.getUserId()}-logout");
     }
+    if (!isDesktopOrWeb) {
+      ProxyService.event.subscribeToDeviceEvent(
+          channel: ProxyService.box.getUserPhone()!.replaceAll("+", ""));
+    }
 
     if (ProxyService.box.getBusinessId() != null) {
       ProxyService.event.subscribeToMessages(
           channel: ProxyService.box.getBusinessId()!.toString());
-    }
-
-    if (!isDesktopOrWeb) {
-      ProxyService.event.subscribeToDeviceEvent(
-          channel: ProxyService.box.getUserPhone()!.replaceAll("+", ""));
     }
 
     ProxyService.messaging

@@ -170,6 +170,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i2.ListCategories(
           key: args.key,
           categories: args.categories,
+          modeOfOperation: args.modeOfOperation,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1092,12 +1093,14 @@ class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
     _i4.Key? key,
     required List<_i8.Category>? categories,
+    required String? modeOfOperation,
   }) : super(
           ListCategoriesRoute.name,
           path: '/list-categories',
           args: ListCategoriesArgs(
             key: key,
             categories: categories,
+            modeOfOperation: modeOfOperation,
           ),
         );
 
@@ -1108,15 +1111,18 @@ class ListCategoriesArgs {
   const ListCategoriesArgs({
     this.key,
     required this.categories,
+    required this.modeOfOperation,
   });
 
   final _i4.Key? key;
 
   final List<_i8.Category>? categories;
 
+  final String? modeOfOperation;
+
   @override
   String toString() {
-    return 'ListCategoriesArgs{key: $key, categories: $categories}';
+    return 'ListCategoriesArgs{key: $key, categories: $categories, modeOfOperation: $modeOfOperation}';
   }
 }
 

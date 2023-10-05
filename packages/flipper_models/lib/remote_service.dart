@@ -1,8 +1,9 @@
 import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -25,13 +26,23 @@ class RemoteService implements RemoteInterface {
   late String url;
   int _retryCount = 0;
 
-  Future<RemoteInterface> getInstance() async {
+  Future<RemoteInterface?> getInstance() async {
     try {
-      url =
-          kDebugMode ? 'https://uat-db.yegobox.com' : 'https://db.yegobox.com';
+      String url;
+      String password;
+      String email;
+
+      if (foundation.kDebugMode) {
+        url = AppSecrets.apiUrlDebug;
+        password = AppSecrets.debugPassword;
+        email = AppSecrets.debugEmail;
+      } else {
+        url = AppSecrets.apiUrlProd;
+        password = AppSecrets.prodPassword;
+        email = AppSecrets.prodEmail;
+      }
+
       pb = PocketBase(url);
-      String password = kDebugMode ? '@9irc2{660Nb' : '5nUeS5TjpArcSGd';
-      String email = kDebugMode ? 'uat-info@yegobox.com' : 'info@yegobox.com';
       await pb!.admins.authWithPassword(email, password);
 
       return this;
@@ -40,7 +51,8 @@ class RemoteService implements RemoteInterface {
         _retryCount++;
         return retryConnect();
       } else {
-        throw Exception("Failed to initialize RemoteInterface after retries.");
+        print("Failed to initialize RemoteInterface after retries: $e");
+        return null; // Return null or another default value
       }
     }
   }
@@ -206,7 +218,8 @@ class RemoteService implements RemoteInterface {
             });
             page++; // Move to the next page for the next iteration
           } while (page <= totalPages);
-        } catch (e) {
+        } catch (e, s) {
+          log(s.toString());
           log(e.toString(), name: 'on Pull ${collectionName}');
           Sentry.captureException(e);
         }

@@ -41,6 +41,10 @@ class HomeViewModel extends ReactiveViewModel {
   Locale? klocale;
 
   Locale? get locale => klocale;
+
+  String? _categoryName;
+  get categoryName => _categoryName;
+
   get categories => app.categories;
 
   String? getSetting() {
@@ -96,6 +100,30 @@ class HomeViewModel extends ReactiveViewModel {
 
   setTab({required int tab}) {
     _tab = tab;
+  }
+
+  void updateCategory({required Category category}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    for (Category category in categories) {
+      if (category.focused) {
+        Category cat = category;
+        cat.focused = false;
+        cat.branchId = branchId;
+        cat.active = false;
+        await ProxyService.isar.update(
+          data: cat,
+        );
+      }
+    }
+
+    Category cat = category;
+    cat.focused = true;
+    cat.active = true;
+    cat.branchId = branchId;
+    await ProxyService.isar.update(
+      data: cat,
+    );
+    app.loadCategories();
   }
 
   void keyboardKeyPressed({required String key}) async {
@@ -181,7 +209,7 @@ class HomeViewModel extends ReactiveViewModel {
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
           amount, variation, name, pendingTransaction, stock!);
-      newItem.action = AppActions.created;
+      newItem.action = AppActions.create;
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
       items = await ProxyService.isar.transactionItems(
@@ -241,7 +269,7 @@ class HomeViewModel extends ReactiveViewModel {
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
         await ProxyService.isar.update(data: pendingTransaction);
-        newItem.action = AppActions.created;
+        newItem.action = AppActions.create;
         await ProxyService.isar
             .addTransactionItem(transaction: pendingTransaction, item: newItem);
 
@@ -270,7 +298,6 @@ class HomeViewModel extends ReactiveViewModel {
     return TransactionItem(
       id: randomString(),
       qty: 1,
-      lastTouched: DateTime.now(),
       action: AppActions.create,
       price: amount / 1,
       variantId: variation.id,
@@ -296,6 +323,30 @@ class HomeViewModel extends ReactiveViewModel {
       log("id is: $id");
       await ProxyService.keypad.getTransactionById(id: id);
     }
+  }
+
+  void setName({String? name}) {
+    _categoryName = name;
+    notifyListeners();
+  }
+
+  void loadCategories() {
+    app.loadCategories();
+  }
+
+  ///create a new category and refresh list of categories
+  Future<void> createCategory() async {
+    final int? branchId = ProxyService.box.getBranchId();
+    if (categoryName == null) return;
+    final Category category = Category(
+        name: categoryName!,
+        active: true,
+        focused: false,
+        branchId: branchId!,
+        id: randomString());
+
+    await ProxyService.isar.create(data: category);
+    app.loadCategories();
   }
 
   ///list products availabe for sell
@@ -391,6 +442,17 @@ class HomeViewModel extends ReactiveViewModel {
     cbTransaction.transactionType = cbTransactionType;
     cbTransaction.paymentType = "Cash";
     cbTransaction.status = 'completed';
+
+    Category? activeCat = await ProxyService.isar
+        .activeCategory(branchId: ProxyService.box.getBranchId()!);
+
+    String activeCatName = activeCat!.name;
+
+    cbTransaction.categoryId = activeCatName;
+
+    activeCat.active = false;
+    activeCat.focused = false;
+    await ProxyService.isar.update(data: activeCat);
 
     List<TransactionItem> cbTransactionItems = await ProxyService.isar
         .transactionItems(
@@ -537,7 +599,7 @@ class HomeViewModel extends ReactiveViewModel {
         items.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
     await ProxyService.isar.update(data: pendingTransaction);
-    newItem.action = AppActions.created;
+    newItem.action = AppActions.create;
     await ProxyService.isar
         .addTransactionItem(transaction: pendingTransaction, item: newItem);
   }

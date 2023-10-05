@@ -111,6 +111,9 @@ void main() async {
         flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
       );
     }
+
+    /// This is for testing in case the whole app has issues
+    /// runApp(const MyApp());
     runApp(
       OverlaySupport.global(
         child: MaterialApp.router(

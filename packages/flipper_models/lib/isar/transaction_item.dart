@@ -143,7 +143,7 @@ class TransactionItem extends IJsonSerializable {
     this.regrNm,
     this.modrId,
     this.modrNm,
-    required this.lastTouched,
+    this.lastTouched,
     this.deletedAt,
   });
 

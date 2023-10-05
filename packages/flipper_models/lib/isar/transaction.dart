@@ -10,6 +10,7 @@ part 'transaction.g.dart';
 class Transaction extends IJsonSerializable {
   late String id;
   late String reference;
+  String? categoryId;
   late String transactionNumber;
   @Index()
   late int branchId;
@@ -33,11 +34,14 @@ class Transaction extends IJsonSerializable {
 
   String action;
 
+  // int categoryId;
+
   String? ticketName;
   @Index()
   DateTime? deletedAt;
   Transaction({
     required this.reference,
+    this.categoryId,
     required this.transactionNumber,
     required this.branchId,
     required this.status,

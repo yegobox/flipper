@@ -10,13 +10,13 @@ environment:
 
 dependencies:
   cupertino_icons: ^1.0.2
-  stacked: ^3.4.0
+  stacked: ^3.4.1+1
   stacked_services: ^1.0.4
   url_strategy: ^0.2.0
   responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
 
-  google_fonts: ^5.1.0
+  google_fonts: ^6.1.0
   flipper_services: ^1.0.0
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3

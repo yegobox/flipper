@@ -1,21 +1,32 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class AppLayoutDrawer extends StatelessWidget {
-  const AppLayoutDrawer({
-    Key? key,
-    required this.controller,
-    required this.tabSelected,
-    required this.model,
-  }) : super(key: key);
+class AppLayoutDrawer extends StatefulWidget {
+  const AppLayoutDrawer(
+      {Key? key,
+      required this.controller,
+      required this.tabSelected,
+      required this.model,
+      required this.focusNode})
+      : super(key: key);
 
   final TextEditingController controller;
   final int tabSelected;
   final HomeViewModel model;
+  final FocusNode focusNode;
 
+  @override
+  State<AppLayoutDrawer> createState() => _AppLayoutDrawerState();
+}
+
+class _AppLayoutDrawerState extends State<AppLayoutDrawer> {
+  
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -23,8 +34,8 @@ class AppLayoutDrawer extends StatelessWidget {
         if (constraints.maxWidth < 600) {
           return Apps(
             isBigScreen: false,
-            controller: controller,
-            model: model,
+            controller: widget.controller,
+            model: widget.model,
           );
         } else {
           return Row(

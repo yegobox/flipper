@@ -72,7 +72,6 @@ class _PaymentsState extends State<Payments> {
                       child: StreamBuilder<List<TransactionItem>>(
                         stream: ProxyService.isar.transactionItemsStream(),
                         builder: (context, snapshot) {
-                          final transactionItems = snapshot.data ?? [];
                           final duePay = widget.transaction.subTotal;
 
                           return Column(
@@ -114,11 +113,13 @@ class _PaymentsState extends State<Payments> {
                                   ),
                                 ),
                               ),
+                              SizedBox(
+                                height: 10,
+                              ),
                               Visibility(
                                 visible: cashPayment,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 62, right: 62, top: 49),
+                                child: SizedBox(
+                                  width: 280,
                                   child: Form(
                                     key: _formKey,
                                     child: TextFormField(
@@ -164,11 +165,8 @@ class _PaymentsState extends State<Payments> {
                         },
                       ),
                     ),
-                    SizedBox(
-                      height: 47,
-                    ),
                     Positioned(
-                      bottom: 37,
+                      bottom: 0,
                       right: 0,
                       left: 0,
                       child: SizedBox(
@@ -179,7 +177,7 @@ class _PaymentsState extends State<Payments> {
                               children: [
                                 Expanded(
                                   child: Wrap(
-                                    alignment: WrapAlignment.start,
+                                    alignment: WrapAlignment.center,
                                     spacing: 0,
                                     runSpacing: 0,
                                     children: [

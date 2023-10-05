@@ -15,7 +15,7 @@ dependencies:
   flipper_login: ^0.0.1-dev.5
   flipper_models: ^0.0.1-dev.7
   stacked_services: ^1.0.4
-  stacked: ^3.4.0
+  stacked: ^3.4.1+1
   url_strategy: ^0.2.0
   flipper_finance: ^0.0.1
   logger: ^1.1.0

@@ -14,10 +14,13 @@ import 'package:stacked/stacked.dart';
 import 'divider.dart';
 
 class ListCategories extends StatelessWidget {
-  ListCategories({Key? key, required this.categories}) : super(key: key);
+  ListCategories(
+      {Key? key, required this.categories, required this.modeOfOperation})
+      : super(key: key);
   final List<Category>? categories;
+  final String? modeOfOperation;
   final _routerService = locator<RouterService>();
-  Wrap categoryList(
+  Wrap categoryListForProducts(
       {required List<Category> categories,
       required BuildContext context,
       required ProductViewModel model}) {
@@ -29,6 +32,7 @@ class ListCategories extends StatelessWidget {
           GestureDetector(
             onTap: () {
               model.updateCategory(category: categories[i]);
+              log("Category name: " + categories[i].name);
             },
             child: SingleChildScrollView(
               child: ListTile(
@@ -43,6 +47,54 @@ class ListCategories extends StatelessWidget {
                       categories[i].focused == true ? categories[i].id : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
+                    log("Category name: " + categories[i].name);
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+      list.add(const Center(
+        child: SizedBox(
+          width: double.infinity,
+          child: CenterDivider(
+            width: double.infinity,
+          ),
+        ),
+      ));
+    }
+    return Wrap(children: list);
+  }
+
+  Wrap categoryListForTransactions(
+      {required List<Category> categories,
+      required BuildContext context,
+      required HomeViewModel model}) {
+    final List<Widget> list = <Widget>[];
+
+    for (int i = 0; i < categories.length; i++) {
+      if (categories[i].name != 'custom') {
+        list.add(
+          GestureDetector(
+            onTap: () {
+              model.updateCategory(category: categories[i]);
+              log("Category name: " + categories[i].name);
+            },
+            child: SingleChildScrollView(
+              child: ListTile(
+                title: Text(
+                  categories[i].name,
+                  style: const TextStyle(color: Colors.black),
+                ),
+                trailing: Radio<String>(
+                  value: categories[i].id,
+                  //This radio button is considered selected if its value matches the groupValue.
+                  groupValue:
+                      categories[i].focused == true ? categories[i].id : '0',
+                  onChanged: (value) {
+                    model.updateCategory(category: categories[i]);
+                    log("Category name: " + categories[i].name);
                   },
                 ),
               ),
@@ -64,55 +116,108 @@ class ListCategories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
-      viewModelBuilder: () => ProductViewModel(),
-      builder: (context, model, child) {
-        return Scaffold(
-          appBar: CustomAppBar(
-            onPop: () {
-              log('back');
-              _routerService.back();
-            },
-            showActionButton: false,
-            title: 'Category',
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 52,
-          ),
-          body: FutureBuilder<List<Category>>(
-              future: ProxyService.isar
-                  .categories(branchId: ProxyService.box.getBranchId()!),
-              builder: (context, snapshot) {
-                return Column(
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: () {
-                        log("on tap");
-                        _routerService.navigateTo(AddCategoryRoute());
-                      },
-                      child: ListTile(
-                        title: Text('Create Category ',
-                            style: GoogleFonts.poppins(
-                                color: Colors.black,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w400)),
-                        trailing: Wrap(
-                          children: const <Widget>[
-                            Icon(FluentIcons.arrow_forward_20_regular),
-                          ],
+    if (modeOfOperation == 'product') {
+      return ViewModelBuilder<ProductViewModel>.reactive(
+        viewModelBuilder: () => ProductViewModel(),
+        builder: (context, model, child) {
+          return Scaffold(
+            appBar: CustomAppBar(
+              onPop: () {
+                log('back');
+                _routerService.back();
+              },
+              showActionButton: false,
+              title: 'Category',
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 52,
+            ),
+            body: FutureBuilder<List<Category>>(
+                future: ProxyService.isar
+                    .categories(branchId: ProxyService.box.getBranchId()!),
+                builder: (context, snapshot) {
+                  return Column(
+                    children: <Widget>[
+                      GestureDetector(
+                        onTap: () {
+                          log("on tap");
+                          _routerService.navigateTo(AddCategoryRoute());
+                        },
+                        child: ListTile(
+                          title: Text('Create Category ',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400)),
+                          trailing: Wrap(
+                            children: const <Widget>[
+                              Icon(FluentIcons.arrow_forward_20_regular),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    categoryList(
-                      categories: snapshot.data ?? [],
-                      context: context,
-                      model: model,
-                    ),
-                  ],
-                );
-              }),
-        );
-      },
-    );
+                      categoryListForProducts(
+                        categories: snapshot.data ?? [],
+                        context: context,
+                        model: model,
+                      ),
+                    ],
+                  );
+                }),
+          );
+        },
+      );
+    } else {
+      return ViewModelBuilder<HomeViewModel>.reactive(
+        viewModelBuilder: () => HomeViewModel(),
+        builder: (context, model, child) {
+          return Scaffold(
+            appBar: CustomAppBar(
+              onPop: () {
+                log('back');
+                _routerService.back();
+              },
+              showActionButton: false,
+              title: 'Category',
+              icon: Icons.close,
+              multi: 3,
+              bottomSpacer: 52,
+            ),
+            body: FutureBuilder<List<Category>>(
+                future: ProxyService.isar
+                    .categories(branchId: ProxyService.box.getBranchId()!),
+                builder: (context, snapshot) {
+                  return Column(
+                    children: <Widget>[
+                      GestureDetector(
+                        onTap: () {
+                          log("on tap");
+                          _routerService.navigateTo(AddCategoryRoute());
+                        },
+                        child: ListTile(
+                          title: Text('Create Category ',
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w400)),
+                          trailing: Wrap(
+                            children: const <Widget>[
+                              Icon(FluentIcons.arrow_forward_20_regular),
+                            ],
+                          ),
+                        ),
+                      ),
+                      categoryListForTransactions(
+                        categories: snapshot.data ?? [],
+                        context: context,
+                        model: model,
+                      ),
+                    ],
+                  );
+                }),
+          );
+        },
+      );
+    }
   }
 }
