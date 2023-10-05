@@ -26,6 +26,7 @@ abstract class Remote {
   bool isResetSettingEnabled();
   bool isLinkedDeviceAvailable();
   bool isMarketingFeatureEnabled();
+  bool isLocalAuthAvailable();
   String supportLine();
   int sessionTimeOutMinutes();
 }

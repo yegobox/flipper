@@ -1,7 +1,5 @@
 library flipper_dashboard;
 
-import 'dart:developer';
-
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -10,7 +8,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutter/services.dart';
 
 class StartUpView extends StatefulWidget {
   const StartUpView({Key? key, this.invokeLogin}) : super(key: key);

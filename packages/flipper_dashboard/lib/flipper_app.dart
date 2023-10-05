@@ -17,9 +17,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:flutter/scheduler.dart';
-import 'package:pinput/pinput.dart';
+// import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
-
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter/services.dart';
 
 class FlipperApp extends StatefulWidget {
@@ -92,19 +92,6 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
         break;
     }
   }
-
-  final defaultPinTheme = PinTheme(
-    width: 56,
-    height: 56,
-    textStyle: TextStyle(
-        fontSize: 20,
-        color: Color.fromRGBO(30, 60, 87, 1),
-        fontWeight: FontWeight.w600),
-    decoration: BoxDecoration(
-      border: Border.all(color: Color.fromRGBO(234, 239, 243, 1)),
-      borderRadius: BorderRadius.circular(20),
-    ),
-  );
 
   void _insertOverlay(
       {required BuildContext context, required HomeViewModel model}) {
@@ -269,8 +256,14 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                             : snapshot.data!.sessionActive!)) {
                       SchedulerBinding.instance.addPostFrameCallback((_) {
                         _removeOverlay();
-                        if (!kDebugMode) {
-                          _insertOverlay(context: context, model: model);
+                        if (ProxyService.remoteConfig.isLocalAuthAvailable()) {
+                          /// the bellow commented line worked before very well
+                          // _insertOverlay(context: context, model: model);
+                          screenLockCreate(
+                            context: context,
+                            onConfirmed: (value) => print(
+                                value), // store new passcode somewhere here
+                          );
                         }
                       });
                     } else if (snapshot.hasData &&
