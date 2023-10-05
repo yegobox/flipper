@@ -24,6 +24,7 @@ abstract class IsarApiInterface {
   Future<Stock?> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
+  Future<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   Future<T?> create<T>({required T data});
   Future<T?> update<T>({required T data});

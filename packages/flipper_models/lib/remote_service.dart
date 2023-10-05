@@ -218,7 +218,8 @@ class RemoteService implements RemoteInterface {
             });
             page++; // Move to the next page for the next iteration
           } while (page <= totalPages);
-        } catch (e) {
+        } catch (e, s) {
+          log(s.toString());
           log(e.toString(), name: 'on Pull ${collectionName}');
           Sentry.captureException(e);
         }
