@@ -755,7 +755,7 @@ class HomeViewModel extends FlipperBaseModel {
   /// this function also delete the transaction
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
-      {required int id, required BuildContext context}) async {
+      {required String id, required BuildContext context}) async {
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
     Transaction? pendingTransaction =
@@ -995,7 +995,7 @@ class HomeViewModel extends FlipperBaseModel {
   // transaction need to be deleted or completed first.
   void deleteCustomer(int id, Function callback) {
     if (kTransaction!.customerId == null) {
-      ProxyService.isar.delete(id: id, endPoint: 'customer');
+      ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {
       callback("Can't delete the customer");
     }

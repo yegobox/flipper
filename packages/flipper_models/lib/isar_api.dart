@@ -693,7 +693,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      int id = randomNumber();
+      String id = randomString();
       Pin pin = Pin.fromJson(json.decode(response.body));
       pin.id = id;
       db.write((isar) {
@@ -809,7 +809,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required dynamic id, String? endPoint}) async {
+  Future<bool> delete({required String id, String? endPoint}) async {
     final DateTime deletionTime = DateTime.now();
 
     switch (endPoint) {
@@ -909,12 +909,12 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'business':
         db.write((isar) {
-          isar.business.delete(id);
+          isar.business.delete(int.tryParse(id) ?? 0);
         });
         break;
       case 'branch':
         db.write((isar) {
-          isar.branchs.delete(id);
+          isar.branchs.delete(int.tryParse(id) ?? 0);
           return true;
         });
         break;
@@ -933,7 +933,7 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'customer':
         db.write((isar) {
-          Customer? customer = isar.customers.get(id);
+          Customer? customer = isar.customers.get(int.tryParse(id) ?? 0);
           if (customer != null) {
             customer.deletedAt = deletionTime;
             customer.action = AppActions.deleted;
