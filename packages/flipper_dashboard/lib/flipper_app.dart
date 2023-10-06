@@ -184,7 +184,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
 
                             /// this is to ensure that it will not prompt the pin for a user who did not set the pin
-                            (snapshot.data!.pin != null ||
+                            (snapshot.data!.pin != null &&
                                 snapshot.data!.pin != 0)) {
                           /// the bellow commented line worked before very well
                           // _overlayEntry = insertOverlay(context: context, model: model);
