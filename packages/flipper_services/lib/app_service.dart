@@ -9,7 +9,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 const socialApp = "socials";
 
@@ -59,7 +59,7 @@ class AppService with ListenableServiceMixin {
   /// before we log to other apps as the business portal
   /// is the mother of all apps
   Future<bool> isLoggedIn() async {
-    User? user = FirebaseAuth.instance.currentUser;
+    firebase.User? user = firebase.FirebaseAuth.instance.currentUser;
     int? businessId = ProxyService.box.getBusinessId();
 
     if (ProxyService.box.getUserId() == null &&

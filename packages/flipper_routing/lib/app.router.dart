@@ -541,6 +541,16 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    SecurityRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<SecurityArgs>(orElse: () => const SecurityArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.Security(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -728,6 +738,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           TransactionsRoute.name,
           path: '/Transactions',
+        ),
+        _i3.RouteConfig(
+          SecurityRoute.name,
+          path: '/Security',
         ),
       ];
 }
@@ -2032,4 +2046,28 @@ class TransactionsRoute extends _i3.PageRouteInfo<void> {
         );
 
   static const String name = 'Transactions';
+}
+
+/// generated route for
+/// [_i2.Security]
+class SecurityRoute extends _i3.PageRouteInfo<SecurityArgs> {
+  SecurityRoute({_i4.Key? key})
+      : super(
+          SecurityRoute.name,
+          path: '/Security',
+          args: SecurityArgs(key: key),
+        );
+
+  static const String name = 'Security';
+}
+
+class SecurityArgs {
+  const SecurityArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'SecurityArgs{key: $key}';
+  }
 }

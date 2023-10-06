@@ -58,6 +58,7 @@ class Conversation extends IJsonSerializable {
     this.delivered,
     this.messageId,
     this.deletedAt,
+    this.id="0"
   });
 
   factory Conversation.fromRecord(RecordModel record) =>

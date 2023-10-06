@@ -17,6 +17,7 @@ class Tenant {
     required this.businessId,
     required this.nfcEnabled,
     required this.userId,
+    this.pin
   });
 
   late int id;
@@ -31,6 +32,8 @@ class Tenant {
 
   int userId;
 
+  int? pin;
+  
   factory Tenant.fromRawJson(String str) => Tenant.fromJson(json.decode(str));
 
   factory Tenant.fromJson(Map<String, dynamic> json) => _$TenantFromJson(json);

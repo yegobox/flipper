@@ -3,7 +3,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/socials_http_client.dart';
@@ -1371,7 +1371,7 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'defaultApp');
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
-    await FirebaseAuth.instance.signOut();
+    await firebase.FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -1528,7 +1528,7 @@ class IsarAPI<M> implements IsarApiInterface {
         );
       }
 
-      for (Tenant tenant in user.tenants as List<Tenant>) {
+      for (Tenant tenant in user.tenants) {
         ITenant iTenant = ITenant(
             id: tenant.id,
             name: tenant.name,
@@ -1536,7 +1536,8 @@ class IsarAPI<M> implements IsarApiInterface {
             nfcEnabled: tenant.nfcEnabled,
             email: tenant.email,
             userId: user.id,
-            phoneNumber: tenant.phoneNumber);
+            phoneNumber: tenant.phoneNumber,
+            pin: tenant.pin);
 
         db.write((isar) {
           isar.business.putAll(tenant.businesses);
@@ -1807,7 +1808,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
-  Future<T?> update<T>({required T data}) async {
+  Future<int> update<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId()!;
     recordUserActivity(userId: userId, activity: 'create');
@@ -1975,6 +1976,13 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.drawers.put(drawer);
       });
     }
+    if (data is User) {
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/user"),
+        body: jsonEncode(data.toJson()),
+      );
+      return response.statusCode;
+    }
     if (data is ITenant) {
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
@@ -1985,9 +1993,9 @@ class IsarAPI<M> implements IsarApiInterface {
           isar.iTenants.put(data);
         });
       }
-      return null;
+      return response.statusCode;
     }
-    return null;
+    return 0;
   }
 
   @override
@@ -2051,8 +2059,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Category?> activeCategory({required int branchId}) async {
     // get all categories from isar db
-    return db.read(
-        (isar) => isar.categorys.where().branchIdEqualTo(branchId).and().activeEqualTo(true).and().focusedEqualTo(true).findFirst());
+    return db.read((isar) => isar.categorys
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .activeEqualTo(true)
+        .and()
+        .focusedEqualTo(true)
+        .findFirst());
   }
 
   @override
@@ -3227,5 +3241,15 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'defaultApp');
   }
 
-  /// End of streams
+  //  @override
+  ///TODO: @Richard add flag from backend to define if tenant is default
+  @override
+  Stream<ITenant?> getDefaultTenant({required int businessId}) {
+    return db.iTenants
+        .where()
+        .businessIdEqualTo(businessId)
+        .deletedAtIsNull()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
 }

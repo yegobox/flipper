@@ -19,7 +19,6 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:flutter/scheduler.dart';
 // import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter/services.dart';
 
 class FlipperApp extends StatefulWidget {
@@ -37,6 +36,8 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   OverlayEntry? _overlayEntry;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();
+
+  String? pin = null;
 
   Future<void> _disableScreenshots() async {
     if (!kDebugMode && !isDesktopOrWeb) {
@@ -254,20 +255,44 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                         !(snapshot.data!.sessionActive == null
                             ? false
                             : snapshot.data!.sessionActive!)) {
-                      SchedulerBinding.instance.addPostFrameCallback((_) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) async {
                         _removeOverlay();
                         if (ProxyService.remoteConfig.isLocalAuthAvailable()) {
                           /// the bellow commented line worked before very well
                           // _insertOverlay(context: context, model: model);
-                          screenLockCreate(
-                            context: context,
-                            onConfirmed: (value) => print(
-                                value), // store new passcode somewhere here
-                          );
+
+                          /// we have a returning user that want to login using the pin set
+                          List<ITenant> tenants = await ProxyService.isar
+                              .tenants(
+                                  businessId:
+                                      ProxyService.box.getBusinessId()!);
+                          // screenLock(
+                          //   context: context,
+                          //   correctString: pin == null ? 'null' : pin!,
+                          //   canCancel: false,
+                          //   onUnlocked: () => model.weakUp(
+                          //       pin: model.activeTenant!.pin.toString()),
+                          //   onValidate: (input) async {
+                          //     for (ITenant tenant in tenants) {
+                          //       if (tenant.pin == input) {
+                          //         setState(() {
+                          //           pin = input;
+                          //         });
+                          //         return true;
+                          //       }
+                          //     }
+                          //     return false;
+                          //   },
+                          // );
                         }
                       });
                     } else if (snapshot.hasData &&
                         snapshot.data!.sessionActive!) {
+                      log('We have valid session for current tenant');
+                      model.activeTenant = snapshot.data;
+                      setState(() {
+                        pin = snapshot.data!.pin.toString();
+                      });
                       _removeOverlay();
                     }
                     return AppLayoutDrawer(

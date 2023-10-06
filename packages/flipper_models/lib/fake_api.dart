@@ -147,7 +147,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
     };
     final response = http.Response(jsonEncode(jsonResponse), 200);
     if (response.statusCode == 200) {
-          final Map<String, dynamic> jsonResponse = json.decode(response.body);
+      final Map<String, dynamic> jsonResponse = json.decode(response.body);
 
       // Create an IUser object using the fromJson constructor
       IUser user = IUser.fromJson(jsonResponse);
@@ -157,13 +157,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       );
       await ProxyService.box.writeString(
         key: 'defaultApp',
-        value: user
-            .tenants
-            .first
-            .businesses
-            .first
-            .businessTypeId
-            .toString(),
+        value: user.tenants.first.businesses.first.businessTypeId.toString(),
       );
       await ProxyService.box.writeInt(
         key: 'userId',
@@ -177,12 +171,10 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
         throw TenantNotFoundException(term: "No tenant added to the user");
       }
       db.write((isar) async {
-        isar.business
-            .putAll(user.tenants.first.businesses);
+        isar.business.putAll(user.tenants.first.businesses);
       });
       await db.write((isar) async {
-        isar.branchs
-            .putAll(user.tenants.first.branches);
+        isar.branchs.putAll(user.tenants.first.branches);
       });
 
       return user;
@@ -371,7 +363,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<T?> update<T>({required T data}) async {
+  Future<int> update<T>({required T data}) async {
     // int branchId = ProxyService.box.getBranchId()!;
     if (data is Product) {
       Product product = data;
@@ -491,9 +483,9 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       });
     }
     if (data is ITenant) {
-      return null;
+      return 0;
     }
-    return null;
+    return 0;
   }
 
   @override

@@ -27,7 +27,7 @@ abstract class IsarApiInterface {
   Future<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   Future<T?> create<T>({required T data});
-  Future<T?> update<T>({required T data});
+  Future<int> update<T>({required T data});
 
   Future<bool> delete({required dynamic id, String? endPoint});
   Future<PColor?> getColor({required String id, String? endPoint});
@@ -51,6 +51,7 @@ abstract class IsarApiInterface {
   Future<Favorite?> getFavoriteByProdId({required String prodId});
   Future<Favorite?> getFavoriteByIndex({required int favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required int favIndex});
+  Stream<ITenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   Future<Product?> getProduct({required String id});

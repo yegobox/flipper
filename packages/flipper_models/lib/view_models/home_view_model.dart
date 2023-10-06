@@ -34,6 +34,9 @@ class HomeViewModel extends FlipperBaseModel {
   String newTransactionType = 'none';
   String transactionPeriod = "Today";
   String profitType = "Net Profit";
+
+  ITenant? activeTenant;
+
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
   String? defaultLanguage;
@@ -1103,8 +1106,6 @@ class HomeViewModel extends FlipperBaseModel {
   }
 
   weakUp({required String pin}) async {
-    log(pin, name: 'weakUp');
-    // 91102
     log(ProxyService.box.getUserId()!.toString(), name: 'weakUp');
     if (pin.allMatches(ProxyService.box.getUserId()!.toString()).isNotEmpty) {
       log('all matches', name: 'weakUp');
@@ -1118,5 +1119,40 @@ class HomeViewModel extends FlipperBaseModel {
       tenant?.sessionActive = true;
       ProxyService.isar.update(data: tenant);
     }
+  }
+
+  Future<int> updateUserWithPinCode({required String pin}) async {
+    Business? business = await ProxyService.isar
+        .getBusiness(businessId: ProxyService.box.getBusinessId());
+
+    /// set the pin for the current business default tenant
+    if (business != null) {
+      /// get the default tenant
+      ITenant? tenant = await ProxyService.isar.getTenantBYUserId(
+        userId: business.userId!,
+      );
+      final response = await ProxyService.isar.update(
+        data: User(
+          id: tenant!.userId,
+          phoneNumber: tenant.phoneNumber,
+          pin: pin,
+        ),
+      );
+      if (response == 200) {
+        ProxyService.notification.sendLocalNotification(
+            payload: Conversation(
+                userName: tenant.name,
+                body: 'Pin has been added to your account successfully',
+                avatar: "",
+                channelType: "",
+                messageId: randomString(),
+                createdAt: DateTime.now().toIso8601String(),
+                fromNumber: tenant.phoneNumber,
+                toNumber: tenant.phoneNumber,
+                businessId: tenant.businessId));
+      }
+      return response;
+    }
+    return 0;
   }
 }

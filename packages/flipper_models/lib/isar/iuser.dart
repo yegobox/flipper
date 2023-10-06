@@ -5,19 +5,20 @@ part 'iuser.g.dart';
 
 @JsonSerializable()
 class IUser {
-  IUser({
-    required this.id,
-    required this.phoneNumber,
-    required this.token,
-    required this.tenants,
-    required this.channels,
-  });
+  IUser(
+      {required this.id,
+      required this.phoneNumber,
+      required this.token,
+      required this.tenants,
+      required this.channels,
+      this.pin});
 
   late int id;
   String phoneNumber;
   String token;
   List<Tenant> tenants;
   List<String> channels;
+  int? pin;
 
   factory IUser.fromJson(Map<String, dynamic> json) => _$IUserFromJson(json);
   Map<String, dynamic> toJson() => _$IUserToJson(this);
