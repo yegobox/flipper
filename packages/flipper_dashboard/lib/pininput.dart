@@ -1,4 +1,5 @@
 import 'package:flipper_models/view_models/home_view_model.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
@@ -67,7 +68,8 @@ class _OnlyBottomCursorState extends State<OnlyBottomCursor> {
       obscureText: true,
       cursor: cursor,
       preFilledWidget: preFilledWidget,
-      onCompleted: (value) => widget.model.weakUp(pin: value),
+      onCompleted: (value) => widget.model
+          .weakUp(pin: value, userId: ProxyService.box.getUserId()!),
     );
   }
 }

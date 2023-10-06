@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -266,33 +267,39 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                               .tenants(
                                   businessId:
                                       ProxyService.box.getBusinessId()!);
-                          // screenLock(
-                          //   context: context,
-                          //   correctString: pin == null ? 'null' : pin!,
-                          //   canCancel: false,
-                          //   onUnlocked: () => model.weakUp(
-                          //       pin: model.activeTenant!.pin.toString()),
-                          //   onValidate: (input) async {
-                          //     for (ITenant tenant in tenants) {
-                          //       if (tenant.pin == input) {
-                          //         setState(() {
-                          //           pin = input;
-                          //         });
-                          //         return true;
-                          //       }
-                          //     }
-                          //     return false;
-                          //   },
-                          // );
+                          screenLock(
+                            context: context,
+                            correctString: model.passCode,
+                            canCancel: false,
+                            // inputController: ,
+                            onUnlocked: () async {
+                              log('onUnlocked');
+                              ITenant? tenant = await ProxyService.isar
+                                  .getTenantBYPin(
+                                      pin: int.tryParse(model.passCode) ?? 0);
+                              model.weakUp(
+                                  userId: tenant!.userId, pin: model.passCode);
+                              Navigator.of(context).maybePop();
+                            },
+                            onValidate: (input) async {
+                              for (ITenant tenant in tenants) {
+                                log(tenant.pin.toString(), name: 'given pins');
+                                if (input
+                                    .allMatches(tenant.pin.toString())
+                                    .isNotEmpty) {
+                                  model.passCode = input;
+                                  return true;
+                                }
+                                return false;
+                              }
+                              return true;
+                            },
+                          );
                         }
                       });
                     } else if (snapshot.hasData &&
                         snapshot.data!.sessionActive!) {
-                      log('We have valid session for current tenant');
-                      model.activeTenant = snapshot.data;
-                      setState(() {
-                        pin = snapshot.data!.pin.toString();
-                      });
+                      model.passCode = snapshot.data!.pin.toString();
                       _removeOverlay();
                     }
                     return AppLayoutDrawer(

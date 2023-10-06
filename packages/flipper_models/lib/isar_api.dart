@@ -2605,9 +2605,15 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll());
   }
 
+  //TODO: this code will be wrong when we have many tenants, need to fix it.
   @override
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
     return await db.iTenants.where().userIdEqualTo(userId).findFirst();
+  }
+
+  @override
+  Future<ITenant?> getTenantBYPin({required int pin}) async {
+    return await db.iTenants.where().pinEqualTo(pin).findFirst();
   }
 
   /// Loads conversations from the server for a given business ID.

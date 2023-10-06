@@ -54,12 +54,14 @@ class Security extends StatelessWidget {
                                     SettingsSection(
                                       tiles: [
                                         SettingsTile.switchTile(
-                                          enabled: snapshot.data != null &&
+                                          enabled: (snapshot.data != null &&
                                               snapshot.data!.pin != null &&
-                                              snapshot.data!.pin != 0,
+                                              snapshot.data!.pin != 0),
                                           title: 'Enable Passcode',
                                           leading: Icon(Icons.pin),
-                                          switchValue: true,
+                                          switchValue: (snapshot.data != null &&
+                                              snapshot.data!.pin != null &&
+                                              snapshot.data!.pin != 0),
                                           onToggle: (bool value) {
                                             ///check to see if on the existing
                                             if (value) {

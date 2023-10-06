@@ -148,6 +148,7 @@ abstract class IsarApiInterface {
 
   Future<List<ITenant>> tenants({required int businessId});
   Future<ITenant?> getTenantBYUserId({required int userId});
+  Future<ITenant?> getTenantBYPin({required int pin});
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
 

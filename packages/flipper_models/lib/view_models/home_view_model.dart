@@ -35,7 +35,7 @@ class HomeViewModel extends FlipperBaseModel {
   String transactionPeriod = "Today";
   String profitType = "Net Profit";
 
-  ITenant? activeTenant;
+  String passCode = "0";
 
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
@@ -1105,20 +1105,17 @@ class HomeViewModel extends FlipperBaseModel {
     return res;
   }
 
-  weakUp({required String pin}) async {
+  weakUp({required String pin, required int userId}) async {
     log(ProxyService.box.getUserId()!.toString(), name: 'weakUp');
-    if (pin.allMatches(ProxyService.box.getUserId()!.toString()).isNotEmpty) {
-      log('all matches', name: 'weakUp');
-      ProxyService.isar.recordUserActivity(
-        userId: ProxyService.box.getUserId()!,
-        activity: 'session',
-      );
-      ProxyService.box.writeInt(key: 'userId', value: int.parse(pin));
-      ITenant? tenant = await ProxyService.isar
-          .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-      tenant?.sessionActive = true;
-      ProxyService.isar.update(data: tenant);
-    }
+    log('all matches', name: 'weakUp');
+    ProxyService.isar.recordUserActivity(
+      userId: userId,
+      activity: 'session',
+    );
+    ProxyService.box.writeInt(key: 'userId', value: userId);
+    ITenant? tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
+    tenant?.sessionActive = true;
+    ProxyService.isar.update(data: tenant);
   }
 
   Future<int> updateUserWithPinCode({required String pin}) async {
@@ -1139,6 +1136,8 @@ class HomeViewModel extends FlipperBaseModel {
         ),
       );
       if (response == 200) {
+        tenant.pin = int.tryParse(pin);
+        ProxyService.isar.update(data: tenant);
         ProxyService.notification.sendLocalNotification(
             payload: Conversation(
                 userName: tenant.name,
