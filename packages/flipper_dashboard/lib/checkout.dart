@@ -60,8 +60,8 @@ class _CheckOutState extends State<CheckOut>
   @override
   Widget build(BuildContext context) {
     if (widget.isBigScreen) {
-      return ViewModelBuilder<HomeViewModel>.reactive(
-          viewModelBuilder: () => HomeViewModel(),
+      return ViewModelBuilder<CoreViewModel>.reactive(
+          viewModelBuilder: () => CoreViewModel(),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -94,8 +94,8 @@ class _CheckOutState extends State<CheckOut>
             );
           });
     } else {
-      return ViewModelBuilder<HomeViewModel>.reactive(
-          viewModelBuilder: () => HomeViewModel(),
+      return ViewModelBuilder<CoreViewModel>.reactive(
+          viewModelBuilder: () => CoreViewModel(),
           builder: (context, model, child) {
             return Stack(
               children: [
@@ -133,7 +133,7 @@ class MobileView extends StatelessWidget {
     required this.model,
     Key? key,
   }) : super(key: key);
-  final HomeViewModel model;
+  final CoreViewModel model;
   final CheckOut widget;
   final TabController tabController;
   final TextEditingController textEditController;

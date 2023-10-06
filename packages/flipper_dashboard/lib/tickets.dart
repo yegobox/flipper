@@ -35,7 +35,7 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             child: Scaffold(
@@ -155,6 +155,6 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
         onViewModelReady: (model) {
           model.updatePayable();
         },
-        viewModelBuilder: () => HomeViewModel());
+        viewModelBuilder: () => CoreViewModel());
   }
 }

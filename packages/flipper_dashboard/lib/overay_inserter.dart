@@ -9,7 +9,7 @@ void removeOverlay(OverlayEntry overlayEntry) {
 }
 
 OverlayEntry insertOverlay(
-    {required BuildContext context, required HomeViewModel model}) {
+    {required BuildContext context, required CoreViewModel model}) {
   OverlayEntry overlayEntry;
   overlayEntry = OverlayEntry(builder: (context) {
     final size = MediaQuery.of(context).size;

@@ -17,8 +17,8 @@ class Customers extends StatelessWidget {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
-        viewModelBuilder: () => HomeViewModel(),
+    return ViewModelBuilder<CoreViewModel>.reactive(
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return SafeArea(
             child: Scaffold(

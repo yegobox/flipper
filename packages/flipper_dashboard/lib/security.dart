@@ -29,8 +29,8 @@ class Security extends StatelessWidget {
               showActionButton: false,
             ),
             backgroundColor: Theme.of(context).canvasColor,
-            body: ViewModelBuilder<HomeViewModel>.reactive(
-                viewModelBuilder: () => HomeViewModel(),
+            body: ViewModelBuilder<CoreViewModel>.reactive(
+                viewModelBuilder: () => CoreViewModel(),
                 builder: (a, model, c) {
                   return SafeArea(
                     child: Column(

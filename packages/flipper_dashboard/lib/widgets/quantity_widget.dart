@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 Widget quantityWidget({
-  required HomeViewModel model,
+  required CoreViewModel model,
   required BuildContext context,
   required TextEditingController quantityController,
 }) {

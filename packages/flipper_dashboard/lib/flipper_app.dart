@@ -92,9 +92,9 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () => HomeViewModel(),
+        viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
           //get default tenant
           model.defaultTenant();

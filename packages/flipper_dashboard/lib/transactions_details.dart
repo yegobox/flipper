@@ -25,7 +25,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
   bool moreActionsIsPressed = false;
   String status = "pending";
   Widget _list(
-      {required List<TransactionItem> items, required HomeViewModel model}) {
+      {required List<TransactionItem> items, required CoreViewModel model}) {
     double total = 0;
     for (TransactionItem item in items) {
       total = (item.price * item.qty) + total;
@@ -177,8 +177,8 @@ class _TransactionDetailState extends State<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
-        viewModelBuilder: () => HomeViewModel(),
+    return ViewModelBuilder<CoreViewModel>.reactive(
+        viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(
@@ -383,7 +383,7 @@ class _TransactionDetailState extends State<TransactionDetail> {
         });
   }
 
-  Future<void> refund(String id, HomeViewModel model) async {
+  Future<void> refund(String id, CoreViewModel model) async {
     ProxyService.isar.refund(itemId: id);
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: widget.transaction.id, doneWithTransaction: false);

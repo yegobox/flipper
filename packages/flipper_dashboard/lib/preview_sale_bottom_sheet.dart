@@ -16,7 +16,7 @@ class PreviewSaleBottomSheet extends StatefulWidget {
   const PreviewSaleBottomSheet(
       {Key? key, this.reverse = false, required this.model})
       : super(key: key);
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   @override
   State<PreviewSaleBottomSheet> createState() => _PreviewSaleBottomSheetState();
@@ -50,8 +50,8 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
             trailing: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Icon(Icons.close))),
-        child: ViewModelBuilder<HomeViewModel>.reactive(
-            viewModelBuilder: () => HomeViewModel(),
+        child: ViewModelBuilder<CoreViewModel>.reactive(
+            viewModelBuilder: () => CoreViewModel(),
             builder: (a, model, c) {
               return SafeArea(
                 bottom: false,

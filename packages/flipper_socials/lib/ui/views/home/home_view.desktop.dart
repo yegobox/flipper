@@ -8,11 +8,11 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 
-class HomeViewDesktop extends ViewModelWidget<HomeViewModel> {
+class HomeViewDesktop extends ViewModelWidget<CoreViewModel> {
   const HomeViewDesktop({super.key});
 
   @override
-  Widget build(BuildContext context, HomeViewModel viewModel) {
+  Widget build(BuildContext context, CoreViewModel viewModel) {
     return Scaffold(
       body: SafeArea(
         child: StreamBuilder<Social>(

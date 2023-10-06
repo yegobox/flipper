@@ -21,14 +21,14 @@ class Sell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: '-1');
         await model.getVariants(productId: product.id);
       },
-      viewModelBuilder: () => HomeViewModel(),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Scaffold(
           backgroundColor: Colors.white,

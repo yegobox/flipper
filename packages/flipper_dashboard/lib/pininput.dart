@@ -1,4 +1,4 @@
-import 'package:flipper_models/view_models/home_view_model.dart';
+import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +7,7 @@ import 'package:pinput/pinput.dart';
 class OnlyBottomCursor extends StatefulWidget {
   const OnlyBottomCursor({Key? key, required this.model}) : super(key: key);
 
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   @override
   _OnlyBottomCursorState createState() => _OnlyBottomCursorState();

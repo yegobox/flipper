@@ -2,54 +2,22 @@ library flipper_models;
 
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/receipt_types.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
-import 'package:flipper_services/keypad_service.dart';
-import 'package:flipper_services/product_service.dart';
-import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
-import 'package:flipper_services/setting_service.dart';
-import 'package:flipper_services/language_service.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
+import 'package:stacked/stacked.dart';
 
-class HomeViewModel extends FlipperBaseModel {
-  final settingService = getIt<SettingsService>();
-  final languageService = getIt<Language>();
-  final KeyPadService keypad = getIt<KeyPadService>();
-  final ProductService productService = getIt<ProductService>();
-  final AppService app = getIt<AppService>();
-  final bool _updateStarted = false;
-  Setting? _setting;
+import 'mixins/propertiesCore.dart';
 
-  bool newTransactionPressed = false;
-
-  String newTransactionType = 'none';
-  String transactionPeriod = "Today";
-  String profitType = "Net Profit";
-
-  String passCode = "0";
-
-  Setting? get setting => _setting;
-  bool get updateStart => _updateStarted;
-  String? defaultLanguage;
-
-  Locale? klocale;
-
-  Locale? get locale => klocale;
-
-  String? _categoryName;
-  get categoryName => _categoryName;
-
-  get categories => app.categories;
-
+class CoreViewModel extends FlipperBaseModel with Properties {
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -329,7 +297,7 @@ class HomeViewModel extends FlipperBaseModel {
   }
 
   void setName({String? name}) {
-    _categoryName = name;
+    categoryName = name;
     notifyListeners();
   }
 

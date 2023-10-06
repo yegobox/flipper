@@ -1907,7 +1907,7 @@ class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
     _i4.Key? key,
     required _i4.TextEditingController controller,
     required bool isBigScreen,
-    required _i8.HomeViewModel model,
+    required _i8.CoreViewModel model,
   }) : super(
           AppsRoute.name,
           path: '/Apps',
@@ -1936,7 +1936,7 @@ class AppsArgs {
 
   final bool isBigScreen;
 
-  final _i8.HomeViewModel model;
+  final _i8.CoreViewModel model;
 
   @override
   String toString() {

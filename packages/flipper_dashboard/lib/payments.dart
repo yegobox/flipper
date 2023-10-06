@@ -46,7 +46,7 @@ class _PaymentsState extends State<Payments> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             child: Scaffold(
@@ -281,10 +281,10 @@ class _PaymentsState extends State<Payments> {
         onViewModelReady: (model) {
           model.updatePayable();
         },
-        viewModelBuilder: () => HomeViewModel());
+        viewModelBuilder: () => CoreViewModel());
   }
 
-  Future<void> confirmPayment(HomeViewModel model) async {
+  Future<void> confirmPayment(CoreViewModel model) async {
     await model.collectPayment(paymentType: paymentType!);
     double amount = _cash.text.isEmpty
         ? model.kTransaction!.subTotal

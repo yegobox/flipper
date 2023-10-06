@@ -82,7 +82,7 @@ void inviteMembers({required BuildContext context}) {
 }
 
 void preferences(
-    {required BuildContext context, required HomeViewModel model}) {
+    {required BuildContext context, required CoreViewModel model}) {
   final _routerService = locator<RouterService>();
   bottomSheetBuilder(
     header: header(title: 'Preferences', context: context),

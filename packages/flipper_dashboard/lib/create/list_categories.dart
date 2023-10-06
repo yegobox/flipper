@@ -70,7 +70,7 @@ class ListCategories extends StatelessWidget {
   Wrap categoryListForTransactions(
       {required List<Category> categories,
       required BuildContext context,
-      required HomeViewModel model}) {
+      required CoreViewModel model}) {
     final List<Widget> list = <Widget>[];
 
     for (int i = 0; i < categories.length; i++) {
@@ -168,8 +168,8 @@ class ListCategories extends StatelessWidget {
         },
       );
     } else {
-      return ViewModelBuilder<HomeViewModel>.reactive(
-        viewModelBuilder: () => HomeViewModel(),
+      return ViewModelBuilder<CoreViewModel>.reactive(
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
