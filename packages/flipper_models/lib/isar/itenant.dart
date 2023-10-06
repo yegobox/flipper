@@ -18,6 +18,7 @@ class ITenant extends IJsonSerializable {
       required this.nfcEnabled,
       required this.businessId,
       required this.userId,
+      required this.isDefault,
       this.deletedAt,
       this.sessionActive,
       this.pin});
@@ -41,6 +42,8 @@ class ITenant extends IJsonSerializable {
   /// [sessionActive] is not comming from server, this is to check which
   /// tenant is currently have active session but the main session will be still active
   bool? sessionActive;
+
+  bool isDefault;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

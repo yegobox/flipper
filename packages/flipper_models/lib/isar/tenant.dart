@@ -17,6 +17,7 @@ class Tenant {
     required this.businessId,
     required this.nfcEnabled,
     required this.userId,
+    required this.isDefault,
     this.pin
   });
 
@@ -33,6 +34,8 @@ class Tenant {
   int userId;
 
   int? pin;
+
+  bool isDefault;
   
   factory Tenant.fromRawJson(String str) => Tenant.fromJson(json.decode(str));
 

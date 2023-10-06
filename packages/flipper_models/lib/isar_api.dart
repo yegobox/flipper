@@ -1393,6 +1393,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (response.statusCode == 200) {
       Tenant jTenant = Tenant.fromRawJson(response.body);
       ITenant iTenant = ITenant(
+          isDefault: jTenant.isDefault,
           id: randomNumber(),
           name: jTenant.name,
           businessId: jTenant.businessId,
@@ -1426,6 +1427,7 @@ class IsarAPI<M> implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+            isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
@@ -1530,6 +1532,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
       for (Tenant tenant in user.tenants) {
         ITenant iTenant = ITenant(
+            isDefault: tenant.isDefault,
             id: tenant.id,
             name: tenant.name,
             businessId: tenant.businessId,
@@ -2181,6 +2184,7 @@ class IsarAPI<M> implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+            isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
@@ -2605,7 +2609,6 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll());
   }
 
-  //TODO: this code will be wrong when we have many tenants, need to fix it.
   @override
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
     return await db.iTenants.where().userIdEqualTo(userId).findFirst();
@@ -2613,7 +2616,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITenant?> getTenantBYPin({required int pin}) async {
-    return await db.iTenants.where().pinEqualTo(pin).findFirst();
+    return await db.iTenants
+        .where()
+        .pinEqualTo(pin)
+        .and()
+        .isDefaultEqualTo(true)
+        .findFirst();
   }
 
   /// Loads conversations from the server for a given business ID.

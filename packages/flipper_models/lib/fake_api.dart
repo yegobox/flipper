@@ -19,6 +19,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+          isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
@@ -275,6 +276,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+          isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
