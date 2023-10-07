@@ -34,6 +34,9 @@ class LoginViewModel extends FlipperBaseModel {
     ProxyService.box.writeString(key: 'otp', value: ot);
   }
 
+  bool _isProceeding = false;
+
+  get isProcessing => _isProceeding;
   Future<void> desktopLogin({
     required String pinCode,
   }) async {
@@ -80,6 +83,7 @@ class LoginViewModel extends FlipperBaseModel {
   }
 
   void setIsprocessing({required bool value}) {
+    _isProceeding = value;
     notifyListeners();
   }
 }
