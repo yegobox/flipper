@@ -13,7 +13,6 @@ import 'package:http/http.dart' as http;
 // import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 // import 'package:path';
-import 'package:flipper_routing/routes.logger.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:url_launcher/url_launcher.dart';
 // import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
@@ -65,7 +64,7 @@ final _scopes = [
 ];
 
 class GoogleDrive {
-  final log = getLogger('GoogleDrive');
+  // final log = getLogger('GoogleDrive');
 
   /// if the  var credentials = await storage.getCredentials();
   /// has some data i.e we authenticated and we have some token,
@@ -112,7 +111,7 @@ class GoogleDrive {
   Future<void> updateBusiness(Business business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
-    log.i(business.toJson());
+    // log.i(business.toJson());
 
     /// notify the online that user has enabled the backup
     /// also update the property locally.
@@ -134,7 +133,7 @@ class GoogleDrive {
     fileToUpload.parents = ["appDataFolder"];
     // fileToUpload.name = basename(file.absolute.path);
     fileToUpload.name = "flipper";
-    log.w("Uploading file");
+    // log.w("Uploading file");
 
     var response = await drive.files.create(
       fileToUpload,
@@ -144,7 +143,7 @@ class GoogleDrive {
       ),
     );
 
-    log.w("Result ${response.toJson()}");
+    // log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
     Business? business = await ProxyService.isar.getBusiness();
@@ -170,14 +169,14 @@ class GoogleDrive {
     List<int> dataStore = [];
 
     file.stream.listen((data) {
-      log.w("DataReceived: ${data.length}");
+      // log.w("DataReceived: ${data.length}");
       dataStore.insertAll(dataStore.length, data);
     }, onDone: () {
-      log.w("Task Done");
+      // log.w("Task Done");
       saveFile.writeAsBytes(dataStore);
-      log.w("File saved at ${saveFile.path}");
+      // log.w("File saved at ${saveFile.path}");
     }, onError: (error) {
-      log.e("Some Error");
+      // log.e("Some Error");
     });
   }
 }
