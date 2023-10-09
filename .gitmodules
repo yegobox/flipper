@@ -62,6 +62,7 @@
 [submodule "open-sources/flutter_slidable"]
 	path = open-sources/flutter_slidable
 	url = https://github.com/yegobox/flutter_slidable.git
-# [submodule "open-sources/flipper-turbo"]
-# 	path = open-sources/flipper-turbo
-# 	url = https://github.com/yegobox/flipper-turbo
+[submodule "open-sources/flipper-turbo"]
+	path = open-sources/flipper-turbo
+	url = https://github.com/yegobox/flipper-turbo
+	branch = uat
