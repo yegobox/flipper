@@ -18,6 +18,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'ribbon.dart';
 
 class ProductView extends StatefulWidget {
   final int? favIndex;
@@ -74,6 +75,13 @@ class _ProductViewState extends State<ProductView> {
             },
             child: CustomScrollView(
               slivers: [
+                // IconRow(),
+                // SliverList(
+                //   delegate: SliverChildListDelegate([
+                //     SliverPadding(
+                //         sliver: IconRow(), padding: EdgeInsets.only(top: 15))
+                //   ]),
+                // ),
                 SliverPadding(
                   padding: EdgeInsets.only(top: 15),
                   sliver: SliverPersistentHeader(
@@ -83,7 +91,6 @@ class _ProductViewState extends State<ProductView> {
                       child: Container(
                         height: kToolbarHeight,
                         child: Wrap(direction: Axis.horizontal, children: [
-                          //TODO:add shortcut if is big screen here
                           SizedBox(
                             width: isDesktopOrWeb
                                 ? searchFieldWidth
