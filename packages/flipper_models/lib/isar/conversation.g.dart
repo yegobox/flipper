@@ -220,6 +220,8 @@ int serializeConversation(IsarWriter writer, Conversation object) {
 
 @isarProtected
 Conversation deserializeConversation(IsarReader reader) {
+  final String _id;
+  _id = IsarCore.readString(reader, 1) ?? "0";
   final String _userName;
   _userName = IsarCore.readString(reader, 2) ?? '';
   final String _body;
@@ -277,6 +279,7 @@ Conversation deserializeConversation(IsarReader reader) {
     }
   }
   final object = Conversation(
+    id: _id,
     userName: _userName,
     body: _body,
     avatar: _avatar,
@@ -295,7 +298,6 @@ Conversation deserializeConversation(IsarReader reader) {
     delivered: _delivered,
     deletedAt: _deletedAt,
   );
-  object.id = IsarCore.readString(reader, 1) ?? '';
   {
     final value = IsarCore.readLong(reader, 18);
     if (value == -9223372036854775808) {
@@ -313,7 +315,7 @@ Conversation deserializeConversation(IsarReader reader) {
 dynamic deserializeConversationProp(IsarReader reader, int property) {
   switch (property) {
     case 1:
-      return IsarCore.readString(reader, 1) ?? '';
+      return IsarCore.readString(reader, 1) ?? "0";
     case 2:
       return IsarCore.readString(reader, 2) ?? '';
     case 3:
@@ -5118,9 +5120,9 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
+      id: json['id'] as String? ?? "0",
     )
       ..action = json['action'] as String
-      ..id = json['id'] as String
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String);

@@ -35,7 +35,8 @@ class RemoteConfigService implements Remote {
       'isFacebookLoginAvailable': false,
       'supportLine': "+250783054874",
       'isMarketingFeatureEnabled': true,
-      "sessionTimeOutMinutes": 10
+      "sessionTimeOutMinutes": 10,
+      "isLocalAuthAvailable": true
     });
   }
 
@@ -227,6 +228,11 @@ class RemoteConfigService implements Remote {
   int sessionTimeOutMinutes() {
     return remoteConfig.getInt('sessionTimeOutMinutes');
   }
+
+  @override
+  bool isLocalAuthAvailable() {
+    return remoteConfig.getBool('isLocalAuthAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -379,5 +385,10 @@ class RemoteConfigWindows implements Remote {
   @override
   int sessionTimeOutMinutes() {
     return 10;
+  }
+
+  @override
+  bool isLocalAuthAvailable() {
+    return true;
   }
 }

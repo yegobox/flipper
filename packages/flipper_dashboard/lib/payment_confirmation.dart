@@ -36,7 +36,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
             top: false,
@@ -328,6 +328,6 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
             }
           }
         },
-        viewModelBuilder: () => HomeViewModel());
+        viewModelBuilder: () => CoreViewModel());
   }
 }

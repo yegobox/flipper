@@ -88,6 +88,8 @@ dependencies:
     git:
       url: https://github.com/ViliusP/move_to_background.git
   pinput: ^3.0.0
+  flutter_screen_lock: ^9.0.1
+  local_auth: ^2.1.7
 dependency_overrides:
   http: ^1.1.0
 flutter:

@@ -35,12 +35,14 @@ class _AddCustomerState extends State<AddCustomer> {
         .hasMatch(s);
     return emailValid;
   }
+
   bool isNumeric(String? s) {
-  if (s == null) {
-    return false;
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
   }
-  return double.tryParse(s) != null;
-}
+
   @override
   void initState() {
     if (isNumeric(widget.searchedKey)) {
@@ -57,8 +59,8 @@ class _AddCustomerState extends State<AddCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
-      viewModelBuilder: () => HomeViewModel(),
+    return ViewModelBuilder<CoreViewModel>.reactive(
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Container(

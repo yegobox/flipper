@@ -27,11 +27,11 @@ class _TenantAddState extends State<TenantAdd> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<TenantViewModel>.reactive(
+    return ViewModelBuilder<FlipperBaseModel>.reactive(
         onViewModelReady: (model) async {
           await model.loadTenants();
         },
-        viewModelBuilder: () => TenantViewModel(),
+        viewModelBuilder: () => FlipperBaseModel(),
         builder: (context, model, widget) {
           return Scaffold(
             appBar: CustomAppBar(
@@ -55,7 +55,7 @@ class _TenantAddState extends State<TenantAdd> {
         });
   }
 
-  Form addTenantForm(TenantViewModel model, BuildContext context) {
+  Form addTenantForm(FlipperBaseModel model, BuildContext context) {
     return Form(
       key: _sub,
       child: Column(
@@ -166,7 +166,7 @@ class _TenantAddState extends State<TenantAdd> {
 class Tenants extends StatefulWidget {
   Tenants({Key? key, required this.model}) : super(key: key);
 
-  final TenantViewModel model;
+  final FlipperBaseModel model;
 
   @override
   State<Tenants> createState() => _TenantsState();

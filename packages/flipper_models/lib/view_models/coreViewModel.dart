@@ -2,51 +2,22 @@ library flipper_models;
 
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/receipt_types.dart';
-import 'package:flipper_services/locator.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
-import 'package:flipper_services/keypad_service.dart';
-import 'package:flipper_services/product_service.dart';
-import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
-import 'package:flipper_services/setting_service.dart';
-import 'package:flipper_services/language_service.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
+import 'package:stacked/stacked.dart';
 
-class HomeViewModel extends ReactiveViewModel {
-  final settingService = getIt<SettingsService>();
-  final languageService = getIt<Language>();
-  final KeyPadService keypad = getIt<KeyPadService>();
-  final ProductService productService = getIt<ProductService>();
-  final AppService app = getIt<AppService>();
-  final bool _updateStarted = false;
-  Setting? _setting;
+import 'mixins/propertiesCore.dart';
 
-  bool newTransactionPressed = false;
-
-  String newTransactionType = 'none';
-  String transactionPeriod = "Today";
-  String profitType = "Net Profit";
-  Setting? get setting => _setting;
-  bool get updateStart => _updateStarted;
-  String? defaultLanguage;
-
-  Locale? klocale;
-
-  Locale? get locale => klocale;
-
-  String? _categoryName;
-  get categoryName => _categoryName;
-
-  get categories => app.categories;
-
+class CoreViewModel extends FlipperBaseModel with Properties {
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -326,7 +297,7 @@ class HomeViewModel extends ReactiveViewModel {
   }
 
   void setName({String? name}) {
-    _categoryName = name;
+    categoryName = name;
     notifyListeners();
   }
 
@@ -752,7 +723,7 @@ class HomeViewModel extends ReactiveViewModel {
   /// this function also delete the transaction
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
-      {required int id, required BuildContext context}) async {
+      {required String id, required BuildContext context}) async {
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
     Transaction? pendingTransaction =
@@ -992,7 +963,7 @@ class HomeViewModel extends ReactiveViewModel {
   // transaction need to be deleted or completed first.
   void deleteCustomer(int id, Function callback) {
     if (kTransaction!.customerId == null) {
-      ProxyService.isar.delete(id: id, endPoint: 'customer');
+      ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {
       callback("Can't delete the customer");
     }
@@ -1102,21 +1073,53 @@ class HomeViewModel extends ReactiveViewModel {
     return res;
   }
 
-  weakUp({required String pin}) async {
-    log(pin, name: 'weakUp');
-    // 91102
+  weakUp({required String pin, required int userId}) async {
     log(ProxyService.box.getUserId()!.toString(), name: 'weakUp');
-    if (pin.allMatches(ProxyService.box.getUserId()!.toString()).isNotEmpty) {
-      log('all matches', name: 'weakUp');
-      ProxyService.isar.recordUserActivity(
-        userId: ProxyService.box.getUserId()!,
-        activity: 'session',
+    log('all matches', name: 'weakUp');
+    ProxyService.isar.recordUserActivity(
+      userId: userId,
+      activity: 'session',
+    );
+    ProxyService.box.writeInt(key: 'userId', value: userId);
+    ITenant? tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
+    tenant?.sessionActive = true;
+    ProxyService.isar.update(data: tenant);
+  }
+
+  Future<int> updateUserWithPinCode({required String pin}) async {
+    Business? business = await ProxyService.isar
+        .getBusiness(businessId: ProxyService.box.getBusinessId());
+
+    /// set the pin for the current business default tenant
+    if (business != null) {
+      /// get the default tenant
+      ITenant? tenant = await ProxyService.isar.getTenantBYUserId(
+        userId: business.userId!,
       );
-      ProxyService.box.writeInt(key: 'userId', value: int.parse(pin));
-      ITenant? tenant = await ProxyService.isar
-          .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-      tenant?.sessionActive = true;
-      ProxyService.isar.update(data: tenant);
+      final response = await ProxyService.isar.update(
+        data: User(
+          id: tenant!.userId,
+          phoneNumber: tenant.phoneNumber,
+          pin: pin,
+        ),
+      );
+      if (response == 200) {
+        tenant.pin = int.tryParse(pin);
+        ProxyService.isar.update(data: tenant);
+        ProxyService.notification.sendLocalNotification(
+            payload: Conversation(
+                userName: tenant.name,
+                body: 'Pin has been added to your account successfully',
+                avatar: "",
+                channelType: "",
+                messageId: randomString(),
+                createdAt: DateTime.now().toIso8601String(),
+                fromNumber: tenant.phoneNumber,
+                toNumber: tenant.phoneNumber,
+                businessId: tenant.businessId));
+      }
+      return response;
     }
+    return 0;
   }
 }

@@ -17,7 +17,7 @@ import 'widgets/analytics_gauge/flipper_analytic.dart';
 class Apps extends StatefulWidget {
   final TextEditingController controller;
   final bool isBigScreen;
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   Apps({
     Key? key,
@@ -242,7 +242,7 @@ class _AppsState extends State<Apps> {
     );
   }
 
-  Widget _buildGauge(BuildContext context, HomeViewModel model) {
+  Widget _buildGauge(BuildContext context, CoreViewModel model) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
       stream: ProxyService.isar.transactionsStreams(),

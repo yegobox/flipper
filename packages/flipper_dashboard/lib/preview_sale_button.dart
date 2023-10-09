@@ -15,7 +15,7 @@ class PreviewSaleButton extends StatelessWidget {
     Key? key,
     required this.model,
   }) : super(key: key);
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   @override
   Widget build(BuildContext context) {

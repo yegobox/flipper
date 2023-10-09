@@ -35,7 +35,7 @@ class KeyPadView extends StatelessWidget {
       required this.transactionMode,
       required this.transactionType})
       : super(key: key);
-  final HomeViewModel model;
+  final CoreViewModel model;
   final bool isBigScreen;
   final bool transactionMode;
   final String transactionType;
@@ -493,7 +493,7 @@ class KeyboardKey extends StatelessWidget {
     required this.value,
   }) : super(key: key);
   final String value;
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   @override
   Widget build(BuildContext context) {

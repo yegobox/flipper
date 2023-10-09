@@ -275,7 +275,7 @@ class _TransactionsState extends State<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           Drawers? drawer = await ProxyService.isar
               .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
@@ -285,7 +285,7 @@ class _TransactionsState extends State<Transactions> {
             zlist = _zTransactions(drawer: drawer!);
           });
         },
-        viewModelBuilder: () => HomeViewModel(),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
@@ -330,7 +330,7 @@ class _TransactionsState extends State<Transactions> {
         });
   }
 
-  Widget buildList(BuildContext context, HomeViewModel model) {
+  Widget buildList(BuildContext context, CoreViewModel model) {
     return StreamBuilder<List<Transaction>>(
       initialData: null,
       stream: ProxyService.isar.transactionsStreams(),

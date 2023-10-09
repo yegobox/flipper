@@ -7,7 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CashBookCashOutPressed extends StatelessWidget {
   const CashBookCashOutPressed(
       {super.key, required this.model, required this.isBigScreen});
-  final HomeViewModel model;
+  final CoreViewModel model;
   final bool isBigScreen;
 
   @override

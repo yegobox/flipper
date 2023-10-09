@@ -57,7 +57,15 @@ const ITenantSchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
       IsarPropertySchema(
+        name: 'pin',
+        type: IsarType.long,
+      ),
+      IsarPropertySchema(
         name: 'sessionActive',
+        type: IsarType.bool,
+      ),
+      IsarPropertySchema(
+        name: 'isDefault',
         type: IsarType.bool,
       ),
       IsarPropertySchema(
@@ -105,15 +113,17 @@ int serializeITenant(IsarWriter writer, ITenant object) {
           -9223372036854775808);
   IsarCore.writeLong(writer, 9,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
+  IsarCore.writeLong(writer, 10, object.pin ?? -9223372036854775808);
   {
     final value = object.sessionActive;
     if (value == null) {
-      IsarCore.writeNull(writer, 10);
+      IsarCore.writeNull(writer, 11);
     } else {
-      IsarCore.writeBool(writer, 10, value);
+      IsarCore.writeBool(writer, 11, value);
     }
   }
-  IsarCore.writeString(writer, 11, object.action);
+  IsarCore.writeBool(writer, 12, object.isDefault);
+  IsarCore.writeString(writer, 13, object.action);
   return object.id;
 }
 
@@ -143,14 +153,25 @@ ITenant deserializeITenant(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final bool? _sessionActive;
+  final int? _pin;
   {
-    if (IsarCore.readNull(reader, 10)) {
-      _sessionActive = null;
+    final value = IsarCore.readLong(reader, 10);
+    if (value == -9223372036854775808) {
+      _pin = null;
     } else {
-      _sessionActive = IsarCore.readBool(reader, 10);
+      _pin = value;
     }
   }
+  final bool? _sessionActive;
+  {
+    if (IsarCore.readNull(reader, 11)) {
+      _sessionActive = null;
+    } else {
+      _sessionActive = IsarCore.readBool(reader, 11);
+    }
+  }
+  final bool _isDefault;
+  _isDefault = IsarCore.readBool(reader, 12);
   final object = ITenant(
     id: _id,
     name: _name,
@@ -160,7 +181,9 @@ ITenant deserializeITenant(IsarReader reader) {
     businessId: _businessId,
     userId: _userId,
     deletedAt: _deletedAt,
+    pin: _pin,
     sessionActive: _sessionActive,
+    isDefault: _isDefault,
   );
   object.imageUrl = IsarCore.readString(reader, 7);
   {
@@ -172,7 +195,7 @@ ITenant deserializeITenant(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  object.action = IsarCore.readString(reader, 11) ?? '';
+  object.action = IsarCore.readString(reader, 13) ?? '';
   return object;
 }
 
@@ -217,14 +240,25 @@ dynamic deserializeITenantProp(IsarReader reader, int property) {
       }
     case 10:
       {
-        if (IsarCore.readNull(reader, 10)) {
+        final value = IsarCore.readLong(reader, 10);
+        if (value == -9223372036854775808) {
           return null;
         } else {
-          return IsarCore.readBool(reader, 10);
+          return value;
         }
       }
     case 11:
-      return IsarCore.readString(reader, 11) ?? '';
+      {
+        if (IsarCore.readNull(reader, 11)) {
+          return null;
+        } else {
+          return IsarCore.readBool(reader, 11);
+        }
+      }
+    case 12:
+      return IsarCore.readBool(reader, 12);
+    case 13:
+      return IsarCore.readString(reader, 13) ?? '';
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -242,7 +276,9 @@ sealed class _ITenantUpdate {
     String? imageUrl,
     DateTime? lastTouched,
     DateTime? deletedAt,
+    int? pin,
     bool? sessionActive,
+    bool? isDefault,
     String? action,
   });
 }
@@ -264,7 +300,9 @@ class _ITenantUpdateImpl implements _ITenantUpdate {
     Object? imageUrl = ignore,
     Object? lastTouched = ignore,
     Object? deletedAt = ignore,
+    Object? pin = ignore,
     Object? sessionActive = ignore,
+    Object? isDefault = ignore,
     Object? action = ignore,
   }) {
     return collection.updateProperties([
@@ -279,8 +317,10 @@ class _ITenantUpdateImpl implements _ITenantUpdate {
           if (imageUrl != ignore) 7: imageUrl as String?,
           if (lastTouched != ignore) 8: lastTouched as DateTime?,
           if (deletedAt != ignore) 9: deletedAt as DateTime?,
-          if (sessionActive != ignore) 10: sessionActive as bool?,
-          if (action != ignore) 11: action as String?,
+          if (pin != ignore) 10: pin as int?,
+          if (sessionActive != ignore) 11: sessionActive as bool?,
+          if (isDefault != ignore) 12: isDefault as bool?,
+          if (action != ignore) 13: action as String?,
         }) >
         0;
   }
@@ -298,7 +338,9 @@ sealed class _ITenantUpdateAll {
     String? imageUrl,
     DateTime? lastTouched,
     DateTime? deletedAt,
+    int? pin,
     bool? sessionActive,
+    bool? isDefault,
     String? action,
   });
 }
@@ -320,7 +362,9 @@ class _ITenantUpdateAllImpl implements _ITenantUpdateAll {
     Object? imageUrl = ignore,
     Object? lastTouched = ignore,
     Object? deletedAt = ignore,
+    Object? pin = ignore,
     Object? sessionActive = ignore,
+    Object? isDefault = ignore,
     Object? action = ignore,
   }) {
     return collection.updateProperties(id, {
@@ -333,8 +377,10 @@ class _ITenantUpdateAllImpl implements _ITenantUpdateAll {
       if (imageUrl != ignore) 7: imageUrl as String?,
       if (lastTouched != ignore) 8: lastTouched as DateTime?,
       if (deletedAt != ignore) 9: deletedAt as DateTime?,
-      if (sessionActive != ignore) 10: sessionActive as bool?,
-      if (action != ignore) 11: action as String?,
+      if (pin != ignore) 10: pin as int?,
+      if (sessionActive != ignore) 11: sessionActive as bool?,
+      if (isDefault != ignore) 12: isDefault as bool?,
+      if (action != ignore) 13: action as String?,
     });
   }
 }
@@ -356,7 +402,9 @@ sealed class _ITenantQueryUpdate {
     String? imageUrl,
     DateTime? lastTouched,
     DateTime? deletedAt,
+    int? pin,
     bool? sessionActive,
+    bool? isDefault,
     String? action,
   });
 }
@@ -378,7 +426,9 @@ class _ITenantQueryUpdateImpl implements _ITenantQueryUpdate {
     Object? imageUrl = ignore,
     Object? lastTouched = ignore,
     Object? deletedAt = ignore,
+    Object? pin = ignore,
     Object? sessionActive = ignore,
+    Object? isDefault = ignore,
     Object? action = ignore,
   }) {
     return query.updateProperties(limit: limit, {
@@ -391,8 +441,10 @@ class _ITenantQueryUpdateImpl implements _ITenantQueryUpdate {
       if (imageUrl != ignore) 7: imageUrl as String?,
       if (lastTouched != ignore) 8: lastTouched as DateTime?,
       if (deletedAt != ignore) 9: deletedAt as DateTime?,
-      if (sessionActive != ignore) 10: sessionActive as bool?,
-      if (action != ignore) 11: action as String?,
+      if (pin != ignore) 10: pin as int?,
+      if (sessionActive != ignore) 11: sessionActive as bool?,
+      if (isDefault != ignore) 12: isDefault as bool?,
+      if (action != ignore) 13: action as String?,
     });
   }
 }
@@ -421,7 +473,9 @@ class _ITenantQueryBuilderUpdateImpl implements _ITenantQueryUpdate {
     Object? imageUrl = ignore,
     Object? lastTouched = ignore,
     Object? deletedAt = ignore,
+    Object? pin = ignore,
     Object? sessionActive = ignore,
+    Object? isDefault = ignore,
     Object? action = ignore,
   }) {
     final q = query.build();
@@ -436,8 +490,10 @@ class _ITenantQueryBuilderUpdateImpl implements _ITenantQueryUpdate {
         if (imageUrl != ignore) 7: imageUrl as String?,
         if (lastTouched != ignore) 8: lastTouched as DateTime?,
         if (deletedAt != ignore) 9: deletedAt as DateTime?,
-        if (sessionActive != ignore) 10: sessionActive as bool?,
-        if (action != ignore) 11: action as String?,
+        if (pin != ignore) 10: pin as int?,
+        if (sessionActive != ignore) 11: sessionActive as bool?,
+        if (isDefault != ignore) 12: isDefault as bool?,
+        if (action != ignore) 13: action as String?,
       });
     } finally {
       q.close();
@@ -1618,16 +1674,108 @@ extension ITenantQueryFilter
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> sessionActiveIsNull() {
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 10));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 10));
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 10,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinGreaterThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 10,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinGreaterThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 10,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinLessThan(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 10,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinLessThanOrEqualTo(
+    int? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 10,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> pinBetween(
+    int? lower,
+    int? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 10,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> sessionActiveIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 11));
     });
   }
 
   QueryBuilder<ITenant, ITenant, QAfterFilterCondition>
       sessionActiveIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 10));
+      return query.addFilterCondition(const IsNullCondition(property: 11));
     });
   }
 
@@ -1637,7 +1785,20 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 10,
+          property: 11,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterFilterCondition> isDefaultEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 12,
           value: value,
         ),
       );
@@ -1651,7 +1812,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1666,7 +1827,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1682,7 +1843,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1697,7 +1858,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1712,7 +1873,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1728,7 +1889,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 11,
+          property: 13,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -1744,7 +1905,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1759,7 +1920,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1773,7 +1934,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 11,
+          property: 13,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1787,7 +1948,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 11,
+          property: 13,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -1799,7 +1960,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 11,
+          property: 13,
           value: '',
         ),
       );
@@ -1810,7 +1971,7 @@ extension ITenantQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 11,
+          property: 13,
           value: '',
         ),
       );
@@ -1978,15 +2139,39 @@ extension ITenantQuerySortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortBySessionActive() {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByPin() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10);
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortBySessionActiveDesc() {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByPinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortBySessionActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(11);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortBySessionActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(11, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(12);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> sortByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(12, sort: Sort.desc);
     });
   }
 
@@ -1994,7 +2179,7 @@ extension ITenantQuerySortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        11,
+        13,
         caseSensitive: caseSensitive,
       );
     });
@@ -2004,7 +2189,7 @@ extension ITenantQuerySortBy on QueryBuilder<ITenant, ITenant, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        11,
+        13,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -2142,29 +2327,53 @@ extension ITenantQuerySortThenBy
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenBySessionActive() {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByPin() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10);
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenBySessionActiveDesc() {
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByPinDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenBySessionActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(11);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenBySessionActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(11, sort: Sort.desc);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(12);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByIsDefaultDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(12, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, caseSensitive: caseSensitive);
+      return query.addSortBy(13, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITenant, ITenant, QAfterSortBy> thenByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(13, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 }
@@ -2229,16 +2438,28 @@ extension ITenantQueryWhereDistinct
     });
   }
 
-  QueryBuilder<ITenant, ITenant, QAfterDistinct> distinctBySessionActive() {
+  QueryBuilder<ITenant, ITenant, QAfterDistinct> distinctByPin() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(10);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterDistinct> distinctBySessionActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(11);
+    });
+  }
+
+  QueryBuilder<ITenant, ITenant, QAfterDistinct> distinctByIsDefault() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(12);
     });
   }
 
   QueryBuilder<ITenant, ITenant, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(11, caseSensitive: caseSensitive);
+      return query.addDistinctBy(13, caseSensitive: caseSensitive);
     });
   }
 }
@@ -2304,15 +2525,27 @@ extension ITenantQueryProperty1 on QueryBuilder<ITenant, ITenant, QProperty> {
     });
   }
 
-  QueryBuilder<ITenant, bool?, QAfterProperty> sessionActiveProperty() {
+  QueryBuilder<ITenant, int?, QAfterProperty> pinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<ITenant, String, QAfterProperty> actionProperty() {
+  QueryBuilder<ITenant, bool?, QAfterProperty> sessionActiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
+    });
+  }
+
+  QueryBuilder<ITenant, bool, QAfterProperty> isDefaultProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(12);
+    });
+  }
+
+  QueryBuilder<ITenant, String, QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(13);
     });
   }
 }
@@ -2378,15 +2611,27 @@ extension ITenantQueryProperty2<R> on QueryBuilder<ITenant, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<ITenant, (R, bool?), QAfterProperty> sessionActiveProperty() {
+  QueryBuilder<ITenant, (R, int?), QAfterProperty> pinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<ITenant, (R, String), QAfterProperty> actionProperty() {
+  QueryBuilder<ITenant, (R, bool?), QAfterProperty> sessionActiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
+    });
+  }
+
+  QueryBuilder<ITenant, (R, bool), QAfterProperty> isDefaultProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(12);
+    });
+  }
+
+  QueryBuilder<ITenant, (R, String), QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(13);
     });
   }
 }
@@ -2454,15 +2699,27 @@ extension ITenantQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITenant, (R1, R2, bool?), QOperations> sessionActiveProperty() {
+  QueryBuilder<ITenant, (R1, R2, int?), QOperations> pinProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<ITenant, (R1, R2, String), QOperations> actionProperty() {
+  QueryBuilder<ITenant, (R1, R2, bool?), QOperations> sessionActiveProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
+    });
+  }
+
+  QueryBuilder<ITenant, (R1, R2, bool), QOperations> isDefaultProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(12);
+    });
+  }
+
+  QueryBuilder<ITenant, (R1, R2, String), QOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(13);
     });
   }
 }
@@ -2479,10 +2736,12 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       nfcEnabled: json['nfcEnabled'] as bool,
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
+      isDefault: json['isDefault'] as bool,
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       sessionActive: json['sessionActive'] as bool?,
+      pin: json['pin'] as int?,
     )
       ..action = json['action'] as String
       ..imageUrl = json['imageUrl'] as String?
@@ -2502,5 +2761,7 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'imageUrl': instance.imageUrl,
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'pin': instance.pin,
       'sessionActive': instance.sessionActive,
+      'isDefault': instance.isDefault,
     };

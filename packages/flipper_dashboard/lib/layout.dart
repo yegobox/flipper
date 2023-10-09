@@ -18,7 +18,7 @@ class AppLayoutDrawer extends StatefulWidget {
 
   final TextEditingController controller;
   final int tabSelected;
-  final HomeViewModel model;
+  final CoreViewModel model;
   final FocusNode focusNode;
 
   @override
@@ -26,7 +26,6 @@ class AppLayoutDrawer extends StatefulWidget {
 }
 
 class _AppLayoutDrawerState extends State<AppLayoutDrawer> {
-  
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(

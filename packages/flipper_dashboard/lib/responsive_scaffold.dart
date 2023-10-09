@@ -109,7 +109,7 @@ class ResponsiveScaffold extends StatefulWidget {
 
   /// the primary app controller
   /// this is the controller that is used to toggle the menu
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   /// The widget displayed in the app bar on the menu as app title or a logo.
   ///
@@ -583,7 +583,7 @@ class _AppMenu extends StatefulWidget {
   final VoidCallback? onOperate;
   final ValueChanged<String>? onSelect;
   final double railWidth;
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   @override
   _AppMenuState createState() => _AppMenuState();
@@ -911,7 +911,7 @@ class _UserProfile extends StatefulWidget {
     required this.model,
   }) : super(key: key);
   final double railWidth;
-  final HomeViewModel model;
+  final CoreViewModel model;
   @override
   _UserProfileState createState() => _UserProfileState();
 }

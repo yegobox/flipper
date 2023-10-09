@@ -13,7 +13,7 @@ import 'package:flipper_services/proxy.dart';
 
 Widget BuildGaugeOrList(
     {required BuildContext context,
-    required HomeViewModel model,
+    required CoreViewModel model,
     required String widgetType}) {
   final _routerService = locator<RouterService>();
   return StreamBuilder<List<Transaction>>(

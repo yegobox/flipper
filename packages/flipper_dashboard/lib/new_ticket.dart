@@ -41,8 +41,8 @@ class _NewTicketState extends State<NewTicket>
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-        child: ViewModelBuilder<HomeViewModel>.reactive(
-            viewModelBuilder: () => HomeViewModel(),
+        child: ViewModelBuilder<CoreViewModel>.reactive(
+            viewModelBuilder: () => CoreViewModel(),
             onViewModelReady: (model) async {},
             builder: (context, model, child) {
               return Scaffold(

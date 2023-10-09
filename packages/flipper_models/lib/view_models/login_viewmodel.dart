@@ -34,8 +34,6 @@ class LoginViewModel extends FlipperBaseModel {
     ProxyService.box.writeString(key: 'otp', value: ot);
   }
 
-  @override
-  void setFormStatus() {}
   bool _isProceeding = false;
 
   get isProcessing => _isProceeding;

@@ -12,7 +12,7 @@ class ChargeButton extends StatelessWidget {
   ChargeButton({Key? key, required this.duePay, required this.model})
       : super(key: key);
   final double? duePay;
-  final HomeViewModel model;
+  final CoreViewModel model;
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {

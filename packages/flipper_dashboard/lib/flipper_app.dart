@@ -3,8 +3,6 @@ import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/layout.dart';
-import 'package:flipper_dashboard/pininput.dart';
-import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -12,12 +10,13 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:flutter/scheduler.dart';
-import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
 
 class FlipperApp extends StatefulWidget {
@@ -32,7 +31,6 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
   int tabselected = 0;
-  OverlayEntry? _overlayEntry;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();
 
@@ -91,95 +89,12 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
     }
   }
 
-  final defaultPinTheme = PinTheme(
-    width: 56,
-    height: 56,
-    textStyle: TextStyle(
-        fontSize: 20,
-        color: Color.fromRGBO(30, 60, 87, 1),
-        fontWeight: FontWeight.w600),
-    decoration: BoxDecoration(
-      border: Border.all(color: Color.fromRGBO(234, 239, 243, 1)),
-      borderRadius: BorderRadius.circular(20),
-    ),
-  );
-
-  void _insertOverlay(
-      {required BuildContext context, required HomeViewModel model}) {
-    _overlayEntry = OverlayEntry(builder: (context) {
-      final size = MediaQuery.of(context).size;
-      print(size.width);
-      return Material(
-        color: Colors.transparent,
-        child: Scaffold(
-          backgroundColor: Color(0xFF6F2F9).withOpacity(0.6),
-          resizeToAvoidBottomInset: true,
-          body: GestureDetector(
-            onTap: () {
-              // Handle tap on the overlay
-              print('ON TAP OVERLAY!');
-            },
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        FutureBuilder<ITenant?>(
-                          future: ProxyService.isar.getTenantBYUserId(
-                            userId: ProxyService.box.getUserId()!,
-                          ),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                    ConnectionState.waiting ||
-                                !snapshot.hasData) {
-                              return SizedBox.shrink();
-                            }
-                            ITenant tenant = snapshot.data!;
-                            return Padding(
-                              padding: const EdgeInsets.only(
-                                  bottom: 12.0), // Adjust spacing
-                              child: ProfileWidget(
-                                tenant: tenant,
-                                size: 25,
-                                sessionActive: tenant.sessionActive == null
-                                    ? false
-                                    : tenant.sessionActive!,
-                                showIcon: false,
-                              ),
-                            );
-                          },
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 230, 230, 230),
-                              borderRadius: BorderRadius.circular(10)),
-                          width: 320,
-                          height: 140,
-                          child: OnlyBottomCursor(model: model),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    });
-
-    Overlay.of(context).insert(_overlayEntry!);
-  }
-
+  List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
         fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () => HomeViewModel(),
+        viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
           //get default tenant
           model.defaultTenant();
@@ -220,58 +135,110 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
           }
         },
         builder: (context, model, child) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Center(
-                  child: Text(
-                ProxyService.status.statusText.value ?? "",
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.white,
-                ),
-              )),
-              backgroundColor: ProxyService.status.statusColor.value,
-              automaticallyImplyLeading: false,
-              toolbarHeight:
-                  ProxyService.status.statusText.value?.isNotEmpty == true
-                      ? 25
-                      : 0,
+          return RawKeyboardListener(
+            focusNode: FocusNode(),
+            autofocus: true,
+            onKey: (event) {
+              final key = event.logicalKey;
+              if (event is RawKeyDownEvent) {
+                if (keys.contains(key)) return;
+                setState(() {
+                  keys.add(key);
+                });
+                return model.handleKeyBoardEvents(event: event);
+              } else {
+                setState(() {
+                  keys.remove(key);
+                });
+              }
+            },
+            child: Scaffold(
+              appBar: AppBar(
+                title: Center(
+                    child: Text(
+                  ProxyService.status.statusText.value ?? "",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white,
+                  ),
+                )),
+                backgroundColor: ProxyService.status.statusColor.value,
+                automaticallyImplyLeading: false,
+                toolbarHeight:
+                    ProxyService.status.statusText.value?.isNotEmpty == true
+                        ? 25
+                        : 0,
+              ),
+              body: StreamBuilder<ITenant?>(
+                  stream: ProxyService.isar.authState(
+                    branchId: ProxyService.box.getBranchId() ?? 0,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData &&
+                        !(snapshot.data!.sessionActive == null
+                            ? false
+                            : snapshot.data!.sessionActive!)) {
+                      SchedulerBinding.instance.addPostFrameCallback((_) async {
+                        // removeOverlay(_overlayEntry!);
+                        if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
+
+                            /// this is to ensure that it will not prompt the pin for a user who did not set the pin
+                            (snapshot.data!.pin != null &&
+                                snapshot.data!.pin != 0)) {
+                          /// the bellow commented line worked before very well
+                          // _overlayEntry = insertOverlay(context: context, model: model);
+                          /// we have a returning user that want to login using the pin set
+                          List<ITenant> tenants = await ProxyService.isar
+                              .tenants(
+                                  businessId:
+                                      ProxyService.box.getBusinessId()!);
+                          screenLock(
+                            context: context,
+                            correctString: model.passCode,
+                            canCancel: false,
+                            // inputController: ,
+                            onUnlocked: () async {
+                              log('onUnlocked');
+                              ITenant? tenant = await ProxyService.isar
+                                  .getTenantBYPin(
+                                      pin: int.tryParse(model.passCode) ?? 0);
+                              model.weakUp(
+                                  userId: tenant!.userId, pin: model.passCode);
+                              Navigator.of(context).maybePop();
+                            },
+                            onValidate: (input) async {
+                              for (ITenant tenant in tenants) {
+                                log(tenant.pin.toString(), name: 'given pins');
+                                if (input
+                                    .allMatches(tenant.pin.toString())
+                                    .isNotEmpty) {
+                                  model.passCode = input;
+                                  return true;
+                                }
+                                return false;
+                              }
+                              return true;
+                            },
+                          );
+                        }
+                      });
+                    } else if (snapshot.hasData &&
+                        snapshot.data!.sessionActive!) {
+                      model.passCode = snapshot.data!.pin.toString();
+
+                      ///old code kept here for reference!
+                      // removeOverlay(_overlayEntry!);
+                    }
+                    return AppLayoutDrawer(
+                      controller: controller,
+                      tabSelected: tabselected,
+                      model: model,
+                      focusNode: focusNode,
+                    );
+                  }),
             ),
-            body: StreamBuilder<ITenant?>(
-                stream: ProxyService.isar.authState(
-                  branchId: ProxyService.box.getBranchId() ?? 0,
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData &&
-                      !(snapshot.data!.sessionActive == null
-                          ? false
-                          : snapshot.data!.sessionActive!)) {
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      _removeOverlay();
-                      if (!kDebugMode) {
-                        _insertOverlay(context: context, model: model);
-                      }
-                    });
-                  } else if (snapshot.hasData &&
-                      snapshot.data!.sessionActive!) {
-                    _removeOverlay();
-                  }
-                  return AppLayoutDrawer(
-                    controller: controller,
-                    tabSelected: tabselected,
-                    model: model,
-                    focusNode: focusNode,
-                  );
-                }),
           );
         });
-  }
-
-  void _removeOverlay() {
-    if (_overlayEntry != null) {
-      _overlayEntry?.remove();
-      _overlayEntry = null;
-    }
   }
 }

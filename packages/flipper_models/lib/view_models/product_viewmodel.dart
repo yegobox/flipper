@@ -18,7 +18,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 
-class ProductViewModel extends TenantViewModel {
+class ProductViewModel extends FlipperBaseModel {
   // extends ReactiveViewModel
   final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields

@@ -3,7 +3,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
 import 'dart:developer';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/socials_http_client.dart';
@@ -693,7 +693,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      int id = randomNumber();
+      String id = randomString();
       Pin pin = Pin.fromJson(json.decode(response.body));
       pin.id = id;
       db.write((isar) {
@@ -809,7 +809,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required dynamic id, String? endPoint}) async {
+  Future<bool> delete({required String id, String? endPoint}) async {
     final DateTime deletionTime = DateTime.now();
 
     switch (endPoint) {
@@ -909,12 +909,12 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'business':
         db.write((isar) {
-          isar.business.delete(id);
+          isar.business.delete(int.tryParse(id) ?? 0);
         });
         break;
       case 'branch':
         db.write((isar) {
-          isar.branchs.delete(id);
+          isar.branchs.delete(int.tryParse(id) ?? 0);
           return true;
         });
         break;
@@ -933,7 +933,7 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'customer':
         db.write((isar) {
-          Customer? customer = isar.customers.get(id);
+          Customer? customer = isar.customers.get(int.tryParse(id) ?? 0);
           if (customer != null) {
             customer.deletedAt = deletionTime;
             customer.action = AppActions.deleted;
@@ -1371,7 +1371,7 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'defaultApp');
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
-    await FirebaseAuth.instance.signOut();
+    await firebase.FirebaseAuth.instance.signOut();
   }
 
   @override
@@ -1393,6 +1393,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (response.statusCode == 200) {
       Tenant jTenant = Tenant.fromRawJson(response.body);
       ITenant iTenant = ITenant(
+          isDefault: jTenant.isDefault,
           id: randomNumber(),
           name: jTenant.name,
           businessId: jTenant.businessId,
@@ -1426,6 +1427,7 @@ class IsarAPI<M> implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+            isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
@@ -1528,15 +1530,17 @@ class IsarAPI<M> implements IsarApiInterface {
         );
       }
 
-      for (Tenant tenant in user.tenants as List<Tenant>) {
+      for (Tenant tenant in user.tenants) {
         ITenant iTenant = ITenant(
+            isDefault: tenant.isDefault,
             id: tenant.id,
             name: tenant.name,
             businessId: tenant.businessId,
             nfcEnabled: tenant.nfcEnabled,
             email: tenant.email,
             userId: user.id,
-            phoneNumber: tenant.phoneNumber);
+            phoneNumber: tenant.phoneNumber,
+            pin: tenant.pin);
 
         db.write((isar) {
           isar.business.putAll(tenant.businesses);
@@ -1807,7 +1811,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
-  Future<T?> update<T>({required T data}) async {
+  Future<int> update<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId()!;
     recordUserActivity(userId: userId, activity: 'create');
@@ -1975,6 +1979,13 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.drawers.put(drawer);
       });
     }
+    if (data is User) {
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/user"),
+        body: jsonEncode(data.toJson()),
+      );
+      return response.statusCode;
+    }
     if (data is ITenant) {
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
@@ -1985,9 +1996,9 @@ class IsarAPI<M> implements IsarApiInterface {
           isar.iTenants.put(data);
         });
       }
-      return null;
+      return response.statusCode;
     }
-    return null;
+    return 0;
   }
 
   @override
@@ -2051,8 +2062,14 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Category?> activeCategory({required int branchId}) async {
     // get all categories from isar db
-    return db.read(
-        (isar) => isar.categorys.where().branchIdEqualTo(branchId).and().activeEqualTo(true).and().focusedEqualTo(true).findFirst());
+    return db.read((isar) => isar.categorys
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .activeEqualTo(true)
+        .and()
+        .focusedEqualTo(true)
+        .findFirst());
   }
 
   @override
@@ -2167,6 +2184,7 @@ class IsarAPI<M> implements IsarApiInterface {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
         ITenant iTenant = ITenant(
+            isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
             userId: jTenant.userId,
@@ -2594,6 +2612,16 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<ITenant?> getTenantBYUserId({required int userId}) async {
     return await db.iTenants.where().userIdEqualTo(userId).findFirst();
+  }
+
+  @override
+  Future<ITenant?> getTenantBYPin({required int pin}) async {
+    return await db.iTenants
+        .where()
+        .pinEqualTo(pin)
+        .and()
+        .isDefaultEqualTo(true)
+        .findFirst();
   }
 
   /// Loads conversations from the server for a given business ID.
@@ -3227,5 +3255,15 @@ class IsarAPI<M> implements IsarApiInterface {
     ProxyService.box.remove(key: 'defaultApp');
   }
 
-  /// End of streams
+  //  @override
+  ///TODO: @Richard add flag from backend to define if tenant is default
+  @override
+  Stream<ITenant?> getDefaultTenant({required int businessId}) {
+    return db.iTenants
+        .where()
+        .businessIdEqualTo(businessId)
+        .deletedAtIsNull()
+        .watch(fireImmediately: true)
+        .asyncMap((event) => event.first);
+  }
 }

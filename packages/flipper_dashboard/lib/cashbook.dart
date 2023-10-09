@@ -38,9 +38,9 @@ class _CashbookState extends State<Cashbook> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<HomeViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
-      viewModelBuilder: () => HomeViewModel(),
+      viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
         List<Transaction> _transactions = await ProxyService.isar
             .completedTransactions(branchId: ProxyService.box.getBranchId()!);

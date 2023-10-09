@@ -7,7 +7,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
@@ -70,7 +70,13 @@ class AuthOptionPage extends StatelessWidget {
                   height: 68,
                   child: OAuthProviderButton(
                     variant: OAuthButtonVariant.icon,
-                    provider: GoogleProvider(clientId: _googleClientId),
+                    provider:
+                        GoogleProvider(clientId: _googleClientId, scopes: [
+                      ga.DriveApi.driveFileScope,
+                      ga.DriveApi.driveMetadataScope,
+                      ga.DriveApi.driveAppdataScope,
+                      ga.DriveApi.driveScope
+                    ]),
                   ),
                 ),
                 SizedBox(

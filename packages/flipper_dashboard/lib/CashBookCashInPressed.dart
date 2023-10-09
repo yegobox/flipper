@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_models/isar_models.dart';
 
 class CashBookCashInPressed extends StatelessWidget {
-  final HomeViewModel model;
+  final CoreViewModel model;
 
   const CashBookCashInPressed({
     super.key,

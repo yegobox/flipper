@@ -1,6 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    hide PhoneAuthProvider, EmailAuthProvider;
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/all_routes.dart';
@@ -83,7 +82,9 @@ class _LoginViewState extends State<LoginView>
     super.build(context);
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) {
-        FirebaseAuth.instance.userChanges().listen((User? user) {
+        firebase.FirebaseAuth.instance
+            .userChanges()
+            .listen((firebase.User? user) {
           if (user != null) {
             if (_isLogin == false) {
               setState(() {
