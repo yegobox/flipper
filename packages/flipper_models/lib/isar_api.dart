@@ -2886,6 +2886,8 @@ class IsarAPI<M> implements IsarApiInterface {
       final List<TransactionItem> transactionItems = isar.transactionItems
           .where()
           .lastTouchedIsNull()
+          .and()
+          .doneWithTransactionEqualTo(true)
           .or()
           .actionEqualTo(AppActions.update)
           .or()
