@@ -163,3 +163,4 @@ class App {}
 // TODO:learn more about bluetooth here https://github.com/TrackMyIndoorWorkout/TrackMyIndoorWorkout
 // TODO: resisable widget https://pub.dev/packages/resizable_widget, https://github.com/zamaniafshar/Flutter-Resizable-Widget
 // TODO: https://github.com/firebase/flutterfire/issues/11648 (this need to be fixed before updating to firebase_auth latest)
+// TODO: https://blog.mobile.dev/running-your-maestro-flows-on-github-actions-fe2e016b7338

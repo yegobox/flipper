@@ -3,6 +3,7 @@
     <!-- https://github.com/yamill/react-native-orientation/issues/115 -->
     <!-- <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
     tools:node="remove" />
+    
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" /> -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
@@ -48,6 +49,13 @@
         android:label="flipper"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Configure admob-->
+        <!-- Sample AdMob app ID: ca-app-pub-3940256099942544~3347511713 -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-2256315296357491~9455533288" />
+
+        <!-- end of admob configuration -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
