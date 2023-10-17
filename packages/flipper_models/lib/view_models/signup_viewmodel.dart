@@ -189,11 +189,23 @@ class SignupViewModel extends ReactiveViewModel {
       Uri.parse(AppSecrets.apiUrlDebug + '/api/collections/users/records'),
     );
 
+    String? userEmail = firebaseUser?.email;
+    String? userPhoneNumber = firebaseUser?.phoneNumber;
+
+    String? email;
+
+    if (userEmail != null) {
+      email = userEmail;
+    } else if (userPhoneNumber != null) {
+      email = userPhoneNumber.replaceAll(RegExp(r'[^0-9]'), '') + '@gmail.com';
+    } else {
+      email = null; // Handle this case as needed
+    }
     // Handle null cases and provide non-nullable values
     request.fields.addAll({
       'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
       'passwordConfirm': firebaseUser?.uid ?? '',
-      'email': (firebaseUser?.uid ?? '') + '@gmail.com',
+      'email': email!,
       'username': firebaseUser?.displayName ?? '',
       'verified': 'true', // Assuming 'verified' is expected to be a string
     });
