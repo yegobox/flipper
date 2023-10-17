@@ -204,7 +204,7 @@ class SignupViewModel extends ReactiveViewModel {
     // Handle null cases and provide non-nullable values
     request.fields.addAll({
       'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
-      'passwordConfirm': firebaseUser?.uid ?? '',
+      'passwordConfirm': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
       'email': email!,
       'username': firebaseUser?.displayName ?? '',
       'verified': 'true', // Assuming 'verified' is expected to be a string
