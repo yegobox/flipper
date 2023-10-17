@@ -1,8 +1,11 @@
 library flipper_models;
 
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flutter/foundation.dart' as found;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mocks.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
@@ -13,6 +16,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
+
+import 'package:http/http.dart' as http;
 
 class SignupViewModel extends ReactiveViewModel {
   final appService = loc.getIt<AppService>();
@@ -95,6 +100,9 @@ class SignupViewModel extends ReactiveViewModel {
         'country': kCountry
       });
       if (tenants.isNotEmpty) {
+        /// register the user to pocketbase db.
+        await pocketDbRegistration();
+
         /// we have socials as choosen app then register on social
         if (businessType.id == "2") {
           // it is customer support then register on socials as well
@@ -159,6 +167,57 @@ class SignupViewModel extends ReactiveViewModel {
       registerStart = false;
       notifyListeners();
       throw Exception(stackTrace);
+    }
+  }
+
+  Future<void> pocketDbRegistration() async {
+    String? pocketDbToken;
+    if (found.kDebugMode) {
+      pocketDbToken = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
+          AppSecrets.debugPassword, AppSecrets.debugEmail);
+    } else {
+      pocketDbToken = await ProxyService.remote.getToken(
+          AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
+    }
+    firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
+    var headers = {
+      'Authorization':
+          'Bearer ' + (pocketDbToken ?? ''), // Ensure pocketDbToken is not null
+    };
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse(AppSecrets.apiUrlDebug + '/api/collections/users/records'),
+    );
+
+    String? userEmail = firebaseUser?.email;
+    String? userPhoneNumber = firebaseUser?.phoneNumber;
+
+    String? email;
+
+    if (userEmail != null) {
+      email = userEmail;
+    } else if (userPhoneNumber != null) {
+      email = userPhoneNumber.replaceAll(RegExp(r'[^0-9]'), '') + '@gmail.com';
+    } else {
+      email = null; // Handle this case as needed
+    }
+    // Handle null cases and provide non-nullable values
+    request.fields.addAll({
+      'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
+      'passwordConfirm': firebaseUser?.uid ?? '',
+      'email': email!,
+      'username': firebaseUser?.displayName ?? '',
+      'verified': 'true', // Assuming 'verified' is expected to be a string
+    });
+
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      print(await response.stream.bytesToString());
+    } else {
+      print(response.reasonPhrase);
     }
   }
 }
