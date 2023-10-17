@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:pocketbase/pocketbase.dart';
 import 'dart:io';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 abstract class RemoteInterface {
   Future<List<RecordModel>> getCollection({required String collectionName});
@@ -19,6 +21,11 @@ abstract class RemoteInterface {
       required String collectionName,
       required String recordId});
   Future<void> listenToChanges();
+  Future<String?> getToken(
+    String pocketbaseUrl,
+    String pocketbasePassword,
+    String pocketbaseEmail,
+  );
 }
 
 class RemoteService implements RemoteInterface {
@@ -468,5 +475,31 @@ class RemoteService implements RemoteInterface {
   Future<void> hardDelete(
       {required String id, required String collectionName}) async {
     await pb!.collection(collectionName).delete(id);
+  }
+
+  @override
+  Future<String?> getToken(String pocketbaseUrl, String pocketbasePassword,
+      String pocketbaseEmail) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$pocketbaseUrl/api/admins/auth-with-password'),
+        body: {
+          'identity': pocketbaseEmail,
+          'password': pocketbasePassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final String token = data['token'] ?? '';
+        return token;
+      } else {
+        // Handle error response here if needed
+        return null;
+      }
+    } catch (e) {
+      // Handle network or other exceptions here
+      return null;
+    }
   }
 }
