@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.749861606404+1697554696
+version: 1.170.753256722515+1697591674
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -74,6 +74,8 @@ dependencies:
   get_it: ^7.6.0
   newrelic_mobile: ^1.0.1
   workmanager: ^0.5.1
+  google_mobile_ads: ^3.1.0
+  firebase_admob_config: ^1.3.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

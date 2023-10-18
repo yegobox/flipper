@@ -12,7 +12,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -64,6 +64,8 @@ void main() async {
     );
     FirebaseAuth.instance.tenantId = null;
     if (!isWindows && !isWeb) {
+      /// init admob
+      await MobileAds.instance.initialize();
       FlutterError.onError = (FlutterErrorDetails details) {
         // Log the error to the console.
         FlutterError.dumpErrorToConsole(details);

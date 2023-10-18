@@ -1,6 +1,8 @@
+import 'package:firebase_admob_config/firebase_admob_config.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'abstractions/remote.dart';
+import 'package:flutter/material.dart';
 
 class RemoteConfigService implements Remote {
   FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
@@ -233,6 +235,12 @@ class RemoteConfigService implements Remote {
   bool isLocalAuthAvailable() {
     return remoteConfig.getBool('isLocalAuthAvailable');
   }
+
+  @override
+  Widget bannerAd() {
+    return AppBannerAd.fromKey(configKey: 'banner_ad');
+    // return AppRewardedAd.fromKey(configKey: 'reward_ad');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -390,5 +398,10 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isLocalAuthAvailable() {
     return true;
+  }
+
+  @override
+  Widget bannerAd() {
+    return SizedBox.shrink();
   }
 }
