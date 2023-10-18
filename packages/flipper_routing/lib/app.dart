@@ -164,3 +164,4 @@ class App {}
 // TODO: resisable widget https://pub.dev/packages/resizable_widget, https://github.com/zamaniafshar/Flutter-Resizable-Widget
 // TODO: https://github.com/firebase/flutterfire/issues/11648 (this need to be fixed before updating to firebase_auth latest)
 // TODO: https://blog.mobile.dev/running-your-maestro-flows-on-github-actions-fe2e016b7338
+// TODO: https://github.com/hautvfami/firebase_admob_config/blob/main/example/lib/main.dart

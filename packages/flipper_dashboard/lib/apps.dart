@@ -142,102 +142,101 @@ class _AppsState extends State<Apps> {
           ),
         ),
       ),
-      body: Wrap(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
-            child: ListTile(
-              leading: ReusableDropdown(
-                options: transactionPeriodOptions,
-                selectedOption: transactionPeriod,
-                onChanged: (String? newPeriod) {
-                  setState(() {
-                    transactionPeriod = newPeriod!;
-                  });
-                },
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.0),
+              child: ListTile(
+                leading: ReusableDropdown(
+                  options: transactionPeriodOptions,
+                  selectedOption: transactionPeriod,
+                  onChanged: (String? newPeriod) {
+                    setState(() {
+                      transactionPeriod = newPeriod!;
+                    });
+                  },
+                ),
+                trailing: ReusableDropdown(
+                  options: profitTypeOptions,
+                  selectedOption: profitType,
+                  onChanged: (String? newProfitType) {
+                    setState(() {});
+                  },
+                ),
+                dense: true,
               ),
-              trailing: ReusableDropdown(
-                options: profitTypeOptions,
-                selectedOption: profitType,
-                onChanged: (String? newProfitType) {
-                  setState(() {});
-                },
-              ),
-              dense: true,
             ),
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Wrap(
+            Wrap(
               alignment: WrapAlignment.center,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 85.0),
                   child: _buildGauge(context, widget.model),
                 ),
-                Stack(
-                  children: [
-                    SizedBox(
-                      height: 340,
-                      width: 340,
-                      child: GridView.count(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 0,
-                        mainAxisSpacing: 1,
-                        padding: EdgeInsets.zero,
-                        children: [
-                          _buildCustomPaintWithIcon(
-                              iconData: "assets/flipper_keypad.svg",
-                              color: const Color(0xff006AFE),
-                              page: "POS"),
-                          _buildCustomPaintWithIcon(
-                              iconData: FluentIcons.calculator_24_regular,
-                              color: Color(0xFF66AAFF),
-                              page: "Cashbook"),
-                          _buildCustomPaintWithIcon(
-                              iconData: FluentIcons.arrow_swap_20_regular,
-                              color: Color(0xFFFF0331),
-                              page: "Transactions"),
-                          _buildCustomPaintWithIcon(
-                              iconData: FluentIcons.communication_20_regular,
-                              color: Colors.cyan,
-                              page: "Connecta"),
-                          _buildCustomPaintWithIcon(
-                              iconData: FluentIcons.settings_20_regular,
-                              color: Color(0xFFCC0F03),
-                              page: "Settings"),
-                          _buildCustomPaintWithIcon(
-                              iconData: FluentIcons.people_32_regular,
-                              color: Colors.cyan,
-                              page: "Contacts"),
-                          _buildCustomPaintWithIcon(
-                              iconData: Icons.call,
-                              color: Colors.lightBlue,
-                              page: "Support"),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Text(
-                          'FROM YEGOBOX',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.black.withOpacity(0.3100000023841858),
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                )
+                SizedBox(
+                  height: 340,
+                  width: 340,
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 0,
+                    mainAxisSpacing: 1,
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildCustomPaintWithIcon(
+                          iconData: "assets/flipper_keypad.svg",
+                          color: const Color(0xff006AFE),
+                          page: "POS"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.calculator_24_regular,
+                          color: Color(0xFF66AAFF),
+                          page: "Cashbook"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.arrow_swap_20_regular,
+                          color: Color(0xFFFF0331),
+                          page: "Transactions"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.communication_20_regular,
+                          color: Colors.cyan,
+                          page: "Connecta"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.settings_20_regular,
+                          color: Color(0xFFCC0F03),
+                          page: "Settings"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.people_32_regular,
+                          color: Colors.cyan,
+                          page: "Contacts"),
+                      _buildCustomPaintWithIcon(
+                          iconData: Icons.call,
+                          color: Colors.lightBlue,
+                          page: "Support"),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+            Container(
+              // color: Colors.red,
+              height: 200,
+              child: Column(
+                children: [
+                  ProxyService.remoteConfig.bannerAd(),
+                  Center(
+                    child: Text(
+                      'FROM YEGOBOX',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.black.withOpacity(0.3100000023841858),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

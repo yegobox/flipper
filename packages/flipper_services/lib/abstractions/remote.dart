@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 abstract class Remote {
   void setDefault();
   void fetch();
@@ -29,4 +31,5 @@ abstract class Remote {
   bool isLocalAuthAvailable();
   String supportLine();
   int sessionTimeOutMinutes();
+  Widget bannerAd();
 }
