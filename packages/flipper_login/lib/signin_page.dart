@@ -16,6 +16,7 @@ const _googleClientId =
     '455580464649-3nhpbm3bp02stjuh0g01ovfr0kemi00j.apps.googleusercontent.com';
 
 class AuthOptionPage extends StatelessWidget {
+   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -47,7 +48,7 @@ class AuthOptionPage extends StatelessWidget {
                     (states) => RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(4)))),
             onPressed: () async {
-              final _routerService = locator<RouterService>();
+             
               _routerService.clearStackAndShow(CountryPickerRoute());
             },
             child: Text(
@@ -106,7 +107,6 @@ class AuthOptionPage extends StatelessWidget {
                             provider,
                           );
                           if (user.user != null) {
-                            final _routerService = locator<RouterService>();
                             _routerService.clearStackAndShow(
                                 StartUpViewRoute(invokeLogin: true));
                           }
@@ -134,7 +134,6 @@ class AuthOptionPage extends StatelessWidget {
             ),
             listener: (oldState, newState, ctrl) {
               if (newState is SignedIn) {
-                final _routerService = locator<RouterService>();
                 _routerService
                     .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
               }

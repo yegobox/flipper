@@ -18,6 +18,7 @@ class Landing extends StatefulWidget {
 }
 
 class _LandingState extends State<Landing> {
+  final _routerService = locator<RouterService>();
   final List<Widget> _pages = [
     Image.asset("assets/main.png",
         height: 321, width: 321, package: 'flipper_login'),
@@ -164,7 +165,6 @@ class _LandingState extends State<Landing> {
                       ),
                     ),
                     onPressed: () async {
-                      final _routerService = locator<RouterService>();
                       _routerService.navigateTo(AuthOptionPageRoute());
                     },
                     child: Text(
@@ -189,8 +189,6 @@ class _LandingState extends State<Landing> {
                                 (states) => RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4)))),
                     onPressed: () async {
-                      //Navigate to signinpage.dart
-                      final _routerService = locator<RouterService>();
                       _routerService.clearStackAndShow(AuthOptionPageRoute());
                     },
                     child: Text(
