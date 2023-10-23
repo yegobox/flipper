@@ -12,10 +12,10 @@ dependencies:
   equatable: ^2.0.3
   json_serializable: ^6.7.1
   meta: ^1.3.0
-  firebase_auth_desktop: ^1.0.2-flipper
+  # firebase_auth_desktop: ^1.0.2-flipper
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.4
-  firebase_auth: 4.8.0
+  firebase_auth: ^4.11.1
   stacked: ^3.4.1+1
   built_value: ^8.1.4
   azlistview: ^2.0.0

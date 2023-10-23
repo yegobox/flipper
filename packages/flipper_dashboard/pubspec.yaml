@@ -44,9 +44,9 @@ dependencies:
   url_launcher: ^6.1.11
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.16.0
-  firebase_core_desktop: ^1.0.2-dev
+  # firebase_auth_desktop: ^1.0.2-flipper
+  firebase_core: ^2.19.0
+  # firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^1.0.0
   # causing issue on web https://github.com/pd4d10/flutter-vector-icons/issues/19
