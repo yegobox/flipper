@@ -1567,7 +1567,7 @@ class IsarAPI<M> implements IsarApiInterface {
     } else if (response.statusCode == 500) {
       throw ErrorReadingFromYBServer(term: "Not found");
     } else {
-      throw Exception(response);
+      throw Exception(response.body.toString());
     }
   }
 

@@ -113,6 +113,7 @@ class AuthOptionPage extends StatelessWidget {
                             ),
                       ),
                     )),
+                SizedBox(height: screenHeight * 0.02),
 
                 //NOTE: The old code for google auth was not opening browser but then the entire button was not clickable
                 // SizedBox(
