@@ -64,216 +64,188 @@ class _PaymentsState extends State<Payments> {
                 title: 'Confirm Payment',
               ),
               resizeToAvoidBottomInset: false,
-              body: SizedBox(
-                width: double.infinity,
-                child: Stack(
-                  children: [
-                    Center(
-                      child: StreamBuilder<List<TransactionItem>>(
-                        stream: ProxyService.isar.transactionItemsStream(),
-                        builder: (context, snapshot) {
-                          final duePay = widget.transaction.subTotal;
-
-                          return Column(
-                            children: [
-                              const SizedBox(height: 145),
-                              model.kTransaction != null
-                                  ? Text(
-                                      'FRw ' +
-                                          NumberFormat('#,###').format(duePay),
-                                      style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 20,
-                                          color: Colors.black),
-                                    )
-                                  : const Text('0.00'),
-                              const SizedBox(height: 40),
-                              SizedBox(
-                                width: 186,
-                                height: 70.63,
-                                child: OutlinedButton(
-                                  style: primary3ButtonStyle.copyWith(
-                                      shape: MaterialStateProperty.resolveWith<
-                                              OutlinedBorder>(
-                                          (states) => RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(4)))),
-                                  onPressed: () async {
-                                    final _routerService =
-                                        locator<RouterService>();
-                                    _routerService.clearStackAndShow(
-                                        CountryPickerRoute());
-                                  },
-                                  child: Text(
-                                    "Send Invoice",
-                                    style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 20,
-                                        color: Color(0xFF01B8E4)),
+              body: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 145),
+                  StreamBuilder<List<TransactionItem>>(
+                    stream: ProxyService.isar.transactionItemsStream(),
+                    builder: (context, snapshot) {
+                      final duePay = widget.transaction.subTotal;
+                      return Column(
+                        children: [
+                          model.kTransaction != null
+                              ? Text(
+                                  'FRw ' + NumberFormat('#,###').format(duePay),
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w400,
+                                    fontSize: 20,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : const Text('0.00'),
+                          const SizedBox(height: 40),
+                          SizedBox(
+                            width: 186,
+                            height: 70.63,
+                            child: OutlinedButton(
+                              style: primary3ButtonStyle.copyWith(
+                                shape: MaterialStateProperty.resolveWith<
+                                    OutlinedBorder>(
+                                  (states) => RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: 10,
+                              onPressed: () async {
+                                final _routerService = locator<RouterService>();
+                                _routerService
+                                    .clearStackAndShow(CountryPickerRoute());
+                              },
+                              child: Text(
+                                "Send Invoice",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 20,
+                                  color: Color(0xFF01B8E4),
+                                ),
                               ),
-                              Visibility(
-                                visible: cashPayment,
-                                child: SizedBox(
-                                  width: 280,
-                                  child: Form(
-                                    key: _formKey,
-                                    child: TextFormField(
-                                      keyboardType: TextInputType.number,
-                                      controller: _cash,
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter Cash Received';
-                                        }
-                                        double totalTransactionAmount =
-                                            model.totalPayable;
-                                        if (double.parse(value) <
-                                            totalTransactionAmount) {
-                                          return "Amount is less than amount payable";
-                                        }
-                                        return null;
-                                      },
-                                      onFieldSubmitted: (value) {
-                                        _cash.text = value;
-                                      },
-                                      onChanged: (value) {},
-                                      decoration: InputDecoration(
-                                        focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Colors.grey.shade400,
-                                                width: 1.0),
-                                            borderRadius:
-                                                BorderRadius.circular(4.0)),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.black.withOpacity(
-                                                  0.10000000149011612),
-                                              width: 0.5),
-                                        ),
-                                        hintText: 'Amount Received',
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Visibility(
+                            visible: cashPayment,
+                            child: SizedBox(
+                              width: 280,
+                              child: Form(
+                                key: _formKey,
+                                child: TextFormField(
+                                  keyboardType: TextInputType.number,
+                                  controller: _cash,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Please enter Cash Received';
+                                    }
+                                    double totalTransactionAmount =
+                                        model.totalPayable;
+                                    if (double.parse(value) <
+                                        totalTransactionAmount) {
+                                      return "Amount is less than amount payable";
+                                    }
+                                    return null;
+                                  },
+                                  onFieldSubmitted: (value) {
+                                    _cash.text = value;
+                                  },
+                                  onChanged: (value) {},
+                                  decoration: InputDecoration(
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.grey.shade400,
+                                        width: 1.0,
+                                      ),
+                                      borderRadius: BorderRadius.circular(4.0),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Colors.black.withOpacity(0.1),
+                                        width: 0.5,
                                       ),
                                     ),
+                                    hintText: 'Amount Received',
                                   ),
                                 ),
                               ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      left: 0,
-                      child: SizedBox(
-                        height: 240,
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Wrap(
-                                    alignment: WrapAlignment.center,
-                                    spacing: 0,
-                                    runSpacing: 0,
-                                    children: [
-                                      buildButton(
-                                          icon: FluentIcons
-                                              .money_calculator_24_regular,
-                                          type: "Cash"),
-                                      buildButton(
-                                          icon: Icons.payment, type: "Card"),
-                                      buildButton(
-                                          icon: FluentIcons.phone_28_regular,
-                                          type: "Mobile"),
-                                      //done first row
-                                      buildButton(
-                                          icon: FluentIcons.savings_24_regular,
-                                          type: "Bank"),
-                                      buildButton(
-                                          icon: FluentIcons
-                                              .checkmark_circle_24_regular,
-                                          type: "Cheque"),
-                                      buildButton(
-                                          icon: FluentIcons
-                                              .wallet_credit_card_20_regular,
-                                          type: "Credit"),
-                                    ],
-                                  ),
-                                ),
-                              ],
                             ),
-                          ],
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  Spacer(),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 0, // Adjust the spacing as needed
+                    children: [
+                      buildButton(
+                        icon: FluentIcons.money_calculator_24_regular,
+                        type: "Cash",
+                      ),
+                      buildButton(
+                        icon: Icons.payment,
+                        type: "Card",
+                      ),
+                      buildButton(
+                        icon: FluentIcons.phone_28_regular,
+                        type: "Mobile",
+                      ),
+                      buildButton(
+                        icon: FluentIcons.savings_24_regular,
+                        type: "Bank",
+                      ),
+                      buildButton(
+                        icon: FluentIcons.checkmark_circle_24_regular,
+                        type: "Cheque",
+                      ),
+                      buildButton(
+                        icon: FluentIcons.wallet_credit_card_20_regular,
+                        type: "Credit",
+                      ),
+                      // Add more buttons as needed
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 25.5),
+                    child: OutlinedButton(
+                      style: primaryButtonStyle.copyWith(
+                        shape:
+                            MaterialStateProperty.resolveWith<OutlinedBorder>(
+                          (states) => RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
                       ),
+                      onPressed: () async {
+                        if (paymentType == "Cash") {
+                          if (_formKey.currentState!.validate()) {
+                            await confirmPayment(model);
+                          }
+                        } else {
+                          if (paymentType == null) {
+                            showSimpleNotification(
+                              const Text("You need to choose a payment method"),
+                              background: Colors.red,
+                              position: NotificationPosition.bottom,
+                            );
+                            return;
+                          }
+                          await confirmPayment(model);
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Spacer(),
+                          Text(
+                            "Confirm Payment",
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Spacer(),
+                          Icon(
+                            FluentIcons.arrow_forward_24_regular,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ],
+                      ),
                     ),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Positioned(
-                        bottom: 10,
-                        right: 0,
-                        left: 0,
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                  left: 25.5, right: 25.5),
-                              child: SizedBox(
-                                width: double.infinity,
-                                height: 60,
-                                child: OutlinedButton(
-                                  style: primaryButtonStyle.copyWith(
-                                      shape: MaterialStateProperty.resolveWith<
-                                              OutlinedBorder>(
-                                          (states) => RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(4)))),
-                                  onPressed: () async {
-                                    if (paymentType == "Cash") {
-                                      if (_formKey.currentState!.validate()) {
-                                        await confirmPayment(model);
-                                      }
-                                    } else {
-                                      if (paymentType == null) {
-                                        showSimpleNotification(
-                                            const Text(
-                                                "You need to choose payment method"),
-                                            background: Colors.red,
-                                            position:
-                                                NotificationPosition.bottom);
-                                        return;
-                                      }
-                                      await confirmPayment(model);
-                                    }
-                                  },
-                                  child: Row(children: [
-                                    Spacer(),
-                                    Text(
-                                      "Confirm Payment",
-                                      style: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 20,
-                                          color: Colors.white),
-                                    ),
-                                    Spacer(),
-                                    Icon(
-                                      FluentIcons.arrow_forward_24_regular,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                  ]),
-                                ),
-                              ),
-                            )
-                          ],
-                        ))
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
