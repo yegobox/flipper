@@ -3,6 +3,7 @@ import 'dart:developer';
 // import 'dart:math' as math;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -97,8 +98,11 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      sendEmailNotification(
+          requestData: variation.toJson().toString(),
+          responseData: response.stream.bytesToString().toString());
       ProxyService.sentry.debug(event: variation.toJson().toString());
-      log(await response.stream.bytesToString());
+      // log(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       return Future.value(false);
@@ -126,6 +130,13 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
+      sendEmailNotification(
+          requestData: {
+            "tin": tinNumber,
+            "bhfId": bhfId,
+            "lastReqDt": lastReqDt
+          }.toString(),
+          responseData: response.stream.bytesToString().toString());
       // print(await response.stream.bytesToString());
       return Future.value(true);
     } else {
@@ -259,6 +270,10 @@ class RWTax implements TaxApi {
 
     if (response.statusCode == 200) {
       ProxyService.sentry.debug(event: request.body.toString());
+
+      sendEmailNotification(
+          requestData: request.body,
+          responseData: response.stream.bytesToString().toString());
       if (ProxyService.remoteConfig.isMarketingFeatureEnabled()) {
         SentryId sentryId = await Sentry.captureMessage("EBM-JSON");
 
