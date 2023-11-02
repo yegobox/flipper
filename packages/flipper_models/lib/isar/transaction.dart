@@ -26,7 +26,7 @@ class Transaction extends IJsonSerializable {
   String? receiptType;
   String? updatedAt;
 
-  int? customerId;
+  String? customerId;
   String? note;
 
   @JsonKey(includeIfNull: true)

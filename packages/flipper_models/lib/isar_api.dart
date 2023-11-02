@@ -94,7 +94,7 @@ class IsarAPI<M> implements IsarApiInterface {
     int branchId = ProxyService.box.getBranchId()!;
     Customer kCustomer = Customer(
         name: customer['name'],
-        id: randomNumber(),
+        id: randomString(),
         action: AppActions.create,
         tinNumber: customer['tinNumber'],
         email: customer['email'],
@@ -512,7 +512,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future assingTransactionToCustomer(
-      {required int customerId, required String transactionId}) async {
+      {required String customerId, required String transactionId}) async {
     // get transaction where id = transactionId from db
     Transaction? transaction =
         db.transactions.where().idEqualTo(transactionId).findFirst();
@@ -933,7 +933,7 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'customer':
         db.write((isar) {
-          Customer? customer = isar.customers.get(int.tryParse(id) ?? 0);
+          Customer? customer = isar.customers.get(id);
           if (customer != null) {
             customer.deletedAt = deletionTime;
             customer.action = AppActions.deleted;
@@ -1173,7 +1173,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (transaction == null) {
       return null;
     }
-    Customer? customer = db.customers.get(transaction.customerId!);
+    Customer? customer = db.customers.get(transaction.customerId ?? '0');
     return customer;
   }
 
@@ -2982,7 +2982,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Transaction>> getTransactionsByCustomerId(
-      {required int customerId}) async* {
+      {required String customerId}) async* {
     yield* db.read((isar) =>
         isar.transactions.where().customerIdEqualTo(customerId).watch());
   }
@@ -3144,7 +3144,7 @@ class IsarAPI<M> implements IsarApiInterface {
       Transaction? tr = db.transactions.get(transactionId);
       return db.read((isar) => isar.customers
           .where()
-          .idEqualTo(tr!.customerId ?? 0)
+          .idEqualTo(tr!.customerId ?? '0')
           .deletedAtIsNull()
           .sortByLastTouchedDesc()
           .watch(fireImmediately: true)

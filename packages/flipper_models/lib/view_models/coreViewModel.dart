@@ -18,6 +18,8 @@ import 'package:stacked/stacked.dart';
 import 'mixins/propertiesCore.dart';
 
 class CoreViewModel extends FlipperBaseModel with Properties {
+  bool handlingConfirm = false;
+
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -631,7 +633,7 @@ class CoreViewModel extends FlipperBaseModel with Properties {
   }
 
   Future<void> assignToSale(
-      {required int customerId, required String transactionId}) async {
+      {required String customerId, required String transactionId}) async {
     ProxyService.isar.assingTransactionToCustomer(
         customerId: customerId, transactionId: transactionId);
   }
@@ -961,7 +963,7 @@ class CoreViewModel extends FlipperBaseModel with Properties {
   Customer? get customer => app.customer;
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
-  void deleteCustomer(int id, Function callback) {
+  void deleteCustomer(String id, Function callback) {
     if (kTransaction!.customerId == null) {
       ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {

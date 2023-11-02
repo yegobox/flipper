@@ -294,10 +294,7 @@ abstract class ServicesModule {
   TaxApi get taxApiService {
     late TaxApi taxApiService;
 
-    /// TODOwhen we support more country we can switch
-    /// based on the business location.
-    String? serverUrl = ProxyService.box.getServerUrl();
-    taxApiService = RWTax(apihub: serverUrl ?? "https://turbo.yegobox.com");
+    taxApiService = RWTax();
     return taxApiService;
   }
 

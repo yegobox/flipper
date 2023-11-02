@@ -3,6 +3,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -198,53 +199,34 @@ class _PaymentsState extends State<Payments> {
                   const SizedBox(height: 10),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.5),
-                    child: OutlinedButton(
-                      style: primaryButtonStyle.copyWith(
-                        shape:
-                            MaterialStateProperty.resolveWith<OutlinedBorder>(
-                          (states) => RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                      onPressed: () async {
-                        if (paymentType == "Cash") {
-                          if (_formKey.currentState!.validate()) {
+                    child: SizedBox(
+                      height: 60,
+                      child: BoxButton(
+                        busy: model.handlingConfirm,
+                        borderRadius: 4,
+                        onTap: () async {
+                          if (paymentType == "Cash") {
+                            if (_formKey.currentState!.validate()) {
+                              await confirmPayment(model);
+                            }
+                          } else {
+                            if (paymentType == null) {
+                              showSimpleNotification(
+                                const Text(
+                                    "You need to choose a payment method"),
+                                background: Colors.red,
+                                position: NotificationPosition.bottom,
+                              );
+                              return;
+                            }
                             await confirmPayment(model);
                           }
-                        } else {
-                          if (paymentType == null) {
-                            showSimpleNotification(
-                              const Text("You need to choose a payment method"),
-                              background: Colors.red,
-                              position: NotificationPosition.bottom,
-                            );
-                            return;
-                          }
-                          await confirmPayment(model);
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Spacer(),
-                          Text(
-                            "Confirm Payment",
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Spacer(),
-                          Icon(
-                            FluentIcons.arrow_forward_24_regular,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ],
+                        },
+                        title: "Confirm Payment",
                       ),
                     ),
                   ),
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
@@ -257,6 +239,7 @@ class _PaymentsState extends State<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
+    model.handlingConfirm = true;
     await model.collectPayment(paymentType: paymentType!);
     double amount = _cash.text.isEmpty
         ? model.kTransaction!.subTotal

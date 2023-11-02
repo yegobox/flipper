@@ -107,7 +107,7 @@ abstract class IsarApiInterface {
   Future<Customer?> addCustomer(
       {required Map customer, required String transactionId});
   Future assingTransactionToCustomer(
-      {required int customerId, required String transactionId});
+      {required String customerId, required String transactionId});
   Stream<Customer?> getCustomer({String? key, String? transactionId});
 
   Future<Transaction?> getTransactionById({required String id});
@@ -116,7 +116,7 @@ abstract class IsarApiInterface {
   Future<List<double>> getTransactionsAmountsSum({required String period});
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<Transaction>> getTransactionsByCustomerId(
-      {required int customerId});
+      {required String customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({required String productId});

@@ -7,7 +7,7 @@ part 'customer.g.dart';
 @JsonSerializable()
 @Collection()
 class Customer extends IJsonSerializable {
-  late int id;
+  late String id;
   late String name;
   late String email;
   late String phone;

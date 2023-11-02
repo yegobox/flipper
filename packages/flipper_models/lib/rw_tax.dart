@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:math' as math;
+// import 'dart:math' as math;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -10,9 +10,8 @@ import 'package:sentry/sentry.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
-  late String apihub;
 
-  RWTax({required this.apihub});
+  RWTax();
 
   @override
   Future<bool> initApi({
@@ -21,9 +20,11 @@ class RWTax implements TaxApi {
     required String dvcSrlNo,
   }) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
+    EBM? ebm = await ProxyService.isar
+        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
-    var request =
-        http.Request('POST', Uri.parse(apihub + 'initializer/selectInitInfo'));
+    var request = http.Request(
+        'POST', Uri.parse(ebm!.taxServerUrl! + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
@@ -52,8 +53,10 @@ class RWTax implements TaxApi {
     var headers = {'Content-Type': 'application/json'};
     Variant? variant =
         await ProxyService.isar.getVariantById(id: stock.variantId);
+    EBM? ebm = await ProxyService.isar
+        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
     var request = http.Request(
-        'POST', Uri.parse(apihub + '/stockMaster/saveStockMaster'));
+        'POST', Uri.parse(ebm!.taxServerUrl! + '/stockMaster/saveStockMaster'));
     variant?.rsdQty = stock.rsdQty;
     request.body = json.encode(variant?.toJson());
     request.headers.addAll(headers);
@@ -82,7 +85,10 @@ class RWTax implements TaxApi {
   @override
   Future<bool> saveItem({required Variant variation}) async {
     var headers = {'Content-Type': 'application/json'};
-    var request = http.Request('POST', Uri.parse(apihub + '/items/saveItems'));
+    EBM? ebm = await ProxyService.isar
+        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+    var request = http.Request(
+        'POST', Uri.parse(ebm!.taxServerUrl! + '/items/saveItems'));
     // log(variation.toJson().toString());
     request.body = json.encode(variation.toJson());
 
@@ -109,8 +115,10 @@ class RWTax implements TaxApi {
     String lastReqDt = "20210523000000",
   }) async {
     var headers = {'Content-Type': 'application/json'};
-    var request =
-        http.Request('POST', Uri.parse(apihub + '/items/selectItems'));
+    EBM? ebm = await ProxyService.isar
+        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+    var request = http.Request(
+        'POST', Uri.parse(ebm!.taxServerUrl! + '/items/selectItems'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "lastReqDt": lastReqDt});
     request.headers.addAll(headers);
@@ -142,8 +150,11 @@ class RWTax implements TaxApi {
         .replaceAll(" ", "")
         .substring(0, 14);
     var headers = {'Content-Type': 'application/json'};
-    var request =
-        http.Request('POST', Uri.parse(apihub + '/trnsSales/saveSales'));
+    EBM? ebm = await ProxyService.isar
+        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+
+    var request = http.Request(
+        'POST', Uri.parse(ebm!.taxServerUrl! + '/trnsSales/saveSales'));
     List<Map<String, dynamic>> itemsList = [];
     for (var item in items) {
       itemsList.add(item.toJson());

@@ -78,7 +78,7 @@ const TransactionSchema = IsarGeneratedSchema(
       ),
       IsarPropertySchema(
         name: 'customerId',
-        type: IsarType.long,
+        type: IsarType.string,
       ),
       IsarPropertySchema(
         name: 'note',
@@ -157,7 +157,14 @@ int serializeTransaction(IsarWriter writer, Transaction object) {
       IsarCore.writeString(writer, 14, value);
     }
   }
-  IsarCore.writeLong(writer, 15, object.customerId ?? -9223372036854775808);
+  {
+    final value = object.customerId;
+    if (value == null) {
+      IsarCore.writeNull(writer, 15);
+    } else {
+      IsarCore.writeString(writer, 15, value);
+    }
+  }
   {
     final value = object.note;
     if (value == null) {
@@ -215,15 +222,8 @@ Transaction deserializeTransaction(IsarReader reader) {
   _receiptType = IsarCore.readString(reader, 13);
   final String? _updatedAt;
   _updatedAt = IsarCore.readString(reader, 14);
-  final int? _customerId;
-  {
-    final value = IsarCore.readLong(reader, 15);
-    if (value == -9223372036854775808) {
-      _customerId = null;
-    } else {
-      _customerId = value;
-    }
-  }
+  final String? _customerId;
+  _customerId = IsarCore.readString(reader, 15);
   final String? _note;
   _note = IsarCore.readString(reader, 16);
   final DateTime? _lastTouched;
@@ -307,14 +307,7 @@ dynamic deserializeTransactionProp(IsarReader reader, int property) {
     case 14:
       return IsarCore.readString(reader, 14);
     case 15:
-      {
-        final value = IsarCore.readLong(reader, 15);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readString(reader, 15);
     case 16:
       return IsarCore.readString(reader, 16);
     case 17:
@@ -362,7 +355,7 @@ sealed class _TransactionUpdate {
     String? createdAt,
     String? receiptType,
     String? updatedAt,
-    int? customerId,
+    String? customerId,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -415,7 +408,7 @@ class _TransactionUpdateImpl implements _TransactionUpdate {
           if (createdAt != ignore) 12: createdAt as String?,
           if (receiptType != ignore) 13: receiptType as String?,
           if (updatedAt != ignore) 14: updatedAt as String?,
-          if (customerId != ignore) 15: customerId as int?,
+          if (customerId != ignore) 15: customerId as String?,
           if (note != ignore) 16: note as String?,
           if (lastTouched != ignore) 17: lastTouched as DateTime?,
           if (action != ignore) 18: action as String?,
@@ -442,7 +435,7 @@ sealed class _TransactionUpdateAll {
     String? createdAt,
     String? receiptType,
     String? updatedAt,
-    int? customerId,
+    String? customerId,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -493,7 +486,7 @@ class _TransactionUpdateAllImpl implements _TransactionUpdateAll {
       if (createdAt != ignore) 12: createdAt as String?,
       if (receiptType != ignore) 13: receiptType as String?,
       if (updatedAt != ignore) 14: updatedAt as String?,
-      if (customerId != ignore) 15: customerId as int?,
+      if (customerId != ignore) 15: customerId as String?,
       if (note != ignore) 16: note as String?,
       if (lastTouched != ignore) 17: lastTouched as DateTime?,
       if (action != ignore) 18: action as String?,
@@ -524,7 +517,7 @@ sealed class _TransactionQueryUpdate {
     String? createdAt,
     String? receiptType,
     String? updatedAt,
-    int? customerId,
+    String? customerId,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -575,7 +568,7 @@ class _TransactionQueryUpdateImpl implements _TransactionQueryUpdate {
       if (createdAt != ignore) 12: createdAt as String?,
       if (receiptType != ignore) 13: receiptType as String?,
       if (updatedAt != ignore) 14: updatedAt as String?,
-      if (customerId != ignore) 15: customerId as int?,
+      if (customerId != ignore) 15: customerId as String?,
       if (note != ignore) 16: note as String?,
       if (lastTouched != ignore) 17: lastTouched as DateTime?,
       if (action != ignore) 18: action as String?,
@@ -636,7 +629,7 @@ class _TransactionQueryBuilderUpdateImpl implements _TransactionQueryUpdate {
         if (createdAt != ignore) 12: createdAt as String?,
         if (receiptType != ignore) 13: receiptType as String?,
         if (updatedAt != ignore) 14: updatedAt as String?,
-        if (customerId != ignore) 15: customerId as int?,
+        if (customerId != ignore) 15: customerId as String?,
         if (note != ignore) 16: note as String?,
         if (lastTouched != ignore) 17: lastTouched as DateTime?,
         if (action != ignore) 18: action as String?,
@@ -2886,13 +2879,15 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
           property: 15,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2900,13 +2895,15 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdGreaterThan(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
           property: 15,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2914,13 +2911,15 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdGreaterThanOrEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
           property: 15,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2928,13 +2927,15 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdLessThan(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
           property: 15,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2942,13 +2943,15 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdLessThanOrEqualTo(
-    int? value,
-  ) {
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
           property: 15,
           value: value,
+          caseSensitive: caseSensitive,
         ),
       );
     });
@@ -2956,15 +2959,99 @@ extension TransactionQueryFilter
 
   QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
       customerIdBetween(
-    int? lower,
-    int? upper,
-  ) {
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
           property: 15,
           lower: lower,
           upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 15,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 15,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 15,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 15,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 15,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+      customerIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 15,
+          value: '',
         ),
       );
     });
@@ -3997,15 +4084,24 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerId() {
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15);
+      return query.addSortBy(
+        15,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerIdDesc() {
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15, sort: Sort.desc);
+      return query.addSortBy(
+        15,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
     });
   }
 
@@ -4290,15 +4386,17 @@ extension TransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerId() {
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15);
+      return query.addSortBy(15, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerIdDesc() {
+  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerIdDesc(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15, sort: Sort.desc);
+      return query.addSortBy(15, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
@@ -4460,10 +4558,10 @@ extension TransactionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
-      distinctByCustomerId() {
+  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByCustomerId(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(15);
+      return query.addDistinctBy(15, caseSensitive: caseSensitive);
     });
   }
 
@@ -4590,7 +4688,7 @@ extension TransactionQueryProperty1
     });
   }
 
-  QueryBuilder<Transaction, int?, QAfterProperty> customerIdProperty() {
+  QueryBuilder<Transaction, String?, QAfterProperty> customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -4718,7 +4816,7 @@ extension TransactionQueryProperty2<R>
     });
   }
 
-  QueryBuilder<Transaction, (R, int?), QAfterProperty> customerIdProperty() {
+  QueryBuilder<Transaction, (R, String?), QAfterProperty> customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -4851,7 +4949,8 @@ extension TransactionQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, int?), QOperations> customerIdProperty() {
+  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+      customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -4909,7 +5008,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
       createdAt: json['createdAt'] as String,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
-      customerId: json['customerId'] as int?,
+      customerId: json['customerId'] as String?,
       note: json['note'] as String?,
       id: json['id'] as String,
       lastTouched: json['lastTouched'] == null
