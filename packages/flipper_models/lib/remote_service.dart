@@ -40,12 +40,9 @@ class RemoteService implements RemoteInterface {
       String email;
 
       if (foundation.kDebugMode) {
-        // url = AppSecrets.apiUrlDebug;
-        // password = AppSecrets.debugPassword;
-        // email = AppSecrets.debugEmail;
-        url = AppSecrets.apiUrlProd;
-        password = AppSecrets.prodPassword;
-        email = AppSecrets.prodEmail;
+        url = AppSecrets.apiUrlDebug;
+        password = AppSecrets.debugPassword;
+        email = AppSecrets.debugEmail;
       } else {
         url = AppSecrets.apiUrlProd;
         password = AppSecrets.prodPassword;
