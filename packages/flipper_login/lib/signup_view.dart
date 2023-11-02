@@ -179,16 +179,21 @@ class _SignUpViewState extends State<SignUpView> {
                               ),
                             ),
                           ),
-                          Padding(
+                          Container(
                             padding: EdgeInsets.zero,
                             child: DropdownFieldBlocBuilder<BusinessType>(
                               padding: EdgeInsets.zero,
+                              isExpanded: false,
                               selectFieldBloc: formBloc.businessTypes,
                               itemBuilder: (context, value) => FieldItem(
-                                alignment: AlignmentDirectional.topStart,
-                                child: Container(
-                                  padding: EdgeInsets.only(top: 0.0),
-                                  child: Text(value.typeName),
+                                // alignment: AlignmentDirectional.topStart,
+                                child: Text(
+                                  value.typeName,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                               decoration: InputDecoration(

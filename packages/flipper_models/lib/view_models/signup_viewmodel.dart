@@ -1,5 +1,7 @@
 library flipper_models;
 
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as found;
 import 'package:flipper_models/isar/random.dart';
@@ -81,14 +83,16 @@ class SignupViewModel extends ReactiveViewModel {
       notifyListeners();
       //set the startup app.
       ProxyService.box.writeString(key: defaultApp, value: businessType.id);
-
+      firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
       String? referralCode = ProxyService.box.readString(key: 'referralCode');
+      log("${firebaseUser?.phoneNumber ?? firebaseUser?.email}",
+          name: ProxyService.box.getUserId().toString());
 
       List<Tenant> tenants = await ProxyService.isar.signup(business: {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
-        'phoneNumber': ProxyService.box.getUserPhone(),
+        'phoneNumber': firebaseUser?.phoneNumber ?? firebaseUser?.email,
         'currency': 'RW',
         'createdAt': DateTime.now().toIso8601String(),
         'userId': ProxyService.box.getUserId(),
@@ -163,9 +167,9 @@ class SignupViewModel extends ReactiveViewModel {
         _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
       }
     } catch (e, stackTrace) {
-      ProxyService.isar.logOutLight();
       registerStart = false;
       notifyListeners();
+      log(e.toString());
       throw Exception(stackTrace);
     }
   }

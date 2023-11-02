@@ -3,11 +3,12 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
 
 part 'pin.g.dart';
+
 /// because this model will not be synced then there is no need to
 /// extends IJsonSerializable and have sync properties
 @JsonSerializable()
 @Collection()
-class Pin  {
+class Pin {
   Pin({
     required this.id,
     required this.userId,
@@ -16,7 +17,7 @@ class Pin  {
     required this.branchId,
     required this.businessId,
   });
-  late String id;
+  late int id;
   late String userId;
   late String phoneNumber;
   late int pin;

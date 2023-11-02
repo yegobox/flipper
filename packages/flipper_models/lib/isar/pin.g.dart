@@ -11,7 +11,7 @@ part of 'pin.dart';
 // ignore_for_file: type=lint
 
 extension GetPinCollection on Isar {
-  IsarCollection<String, Pin> get pins => this.collection();
+  IsarCollection<int, Pin> get pins => this.collection();
 }
 
 const PinSchema = IsarGeneratedSchema(
@@ -20,10 +20,6 @@ const PinSchema = IsarGeneratedSchema(
     idName: 'id',
     embedded: false,
     properties: [
-      IsarPropertySchema(
-        name: 'id',
-        type: IsarType.string,
-      ),
       IsarPropertySchema(
         name: 'userId',
         type: IsarType.string,
@@ -47,7 +43,7 @@ const PinSchema = IsarGeneratedSchema(
     ],
     indexes: [],
   ),
-  converter: IsarObjectConverter<String, Pin>(
+  converter: IsarObjectConverter<int, Pin>(
     serialize: serializePin,
     deserialize: deserializePin,
     deserializeProperty: deserializePinProp,
@@ -57,29 +53,28 @@ const PinSchema = IsarGeneratedSchema(
 
 @isarProtected
 int serializePin(IsarWriter writer, Pin object) {
-  IsarCore.writeString(writer, 1, object.id);
-  IsarCore.writeString(writer, 2, object.userId);
-  IsarCore.writeString(writer, 3, object.phoneNumber);
-  IsarCore.writeLong(writer, 4, object.pin);
-  IsarCore.writeLong(writer, 5, object.branchId);
-  IsarCore.writeLong(writer, 6, object.businessId);
-  return Isar.fastHash(object.id);
+  IsarCore.writeString(writer, 1, object.userId);
+  IsarCore.writeString(writer, 2, object.phoneNumber);
+  IsarCore.writeLong(writer, 3, object.pin);
+  IsarCore.writeLong(writer, 4, object.branchId);
+  IsarCore.writeLong(writer, 5, object.businessId);
+  return object.id;
 }
 
 @isarProtected
 Pin deserializePin(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
+  final int _id;
+  _id = IsarCore.readId(reader);
   final String _userId;
-  _userId = IsarCore.readString(reader, 2) ?? '';
+  _userId = IsarCore.readString(reader, 1) ?? '';
   final String _phoneNumber;
-  _phoneNumber = IsarCore.readString(reader, 3) ?? '';
+  _phoneNumber = IsarCore.readString(reader, 2) ?? '';
   final int _pin;
-  _pin = IsarCore.readLong(reader, 4);
+  _pin = IsarCore.readLong(reader, 3);
   final int _branchId;
-  _branchId = IsarCore.readLong(reader, 5);
+  _branchId = IsarCore.readLong(reader, 4);
   final int _businessId;
-  _businessId = IsarCore.readLong(reader, 6);
+  _businessId = IsarCore.readLong(reader, 5);
   final object = Pin(
     id: _id,
     userId: _userId,
@@ -94,18 +89,18 @@ Pin deserializePin(IsarReader reader) {
 @isarProtected
 dynamic deserializePinProp(IsarReader reader, int property) {
   switch (property) {
+    case 0:
+      return IsarCore.readId(reader);
     case 1:
       return IsarCore.readString(reader, 1) ?? '';
     case 2:
       return IsarCore.readString(reader, 2) ?? '';
     case 3:
-      return IsarCore.readString(reader, 3) ?? '';
+      return IsarCore.readLong(reader, 3);
     case 4:
       return IsarCore.readLong(reader, 4);
     case 5:
       return IsarCore.readLong(reader, 5);
-    case 6:
-      return IsarCore.readLong(reader, 6);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -113,7 +108,7 @@ dynamic deserializePinProp(IsarReader reader, int property) {
 
 sealed class _PinUpdate {
   bool call({
-    required String id,
+    required int id,
     String? userId,
     String? phoneNumber,
     int? pin,
@@ -125,11 +120,11 @@ sealed class _PinUpdate {
 class _PinUpdateImpl implements _PinUpdate {
   const _PinUpdateImpl(this.collection);
 
-  final IsarCollection<String, Pin> collection;
+  final IsarCollection<int, Pin> collection;
 
   @override
   bool call({
-    required String id,
+    required int id,
     Object? userId = ignore,
     Object? phoneNumber = ignore,
     Object? pin = ignore,
@@ -139,11 +134,11 @@ class _PinUpdateImpl implements _PinUpdate {
     return collection.updateProperties([
           id
         ], {
-          if (userId != ignore) 2: userId as String?,
-          if (phoneNumber != ignore) 3: phoneNumber as String?,
-          if (pin != ignore) 4: pin as int?,
-          if (branchId != ignore) 5: branchId as int?,
-          if (businessId != ignore) 6: businessId as int?,
+          if (userId != ignore) 1: userId as String?,
+          if (phoneNumber != ignore) 2: phoneNumber as String?,
+          if (pin != ignore) 3: pin as int?,
+          if (branchId != ignore) 4: branchId as int?,
+          if (businessId != ignore) 5: businessId as int?,
         }) >
         0;
   }
@@ -151,7 +146,7 @@ class _PinUpdateImpl implements _PinUpdate {
 
 sealed class _PinUpdateAll {
   int call({
-    required List<String> id,
+    required List<int> id,
     String? userId,
     String? phoneNumber,
     int? pin,
@@ -163,11 +158,11 @@ sealed class _PinUpdateAll {
 class _PinUpdateAllImpl implements _PinUpdateAll {
   const _PinUpdateAllImpl(this.collection);
 
-  final IsarCollection<String, Pin> collection;
+  final IsarCollection<int, Pin> collection;
 
   @override
   int call({
-    required List<String> id,
+    required List<int> id,
     Object? userId = ignore,
     Object? phoneNumber = ignore,
     Object? pin = ignore,
@@ -175,16 +170,16 @@ class _PinUpdateAllImpl implements _PinUpdateAll {
     Object? businessId = ignore,
   }) {
     return collection.updateProperties(id, {
-      if (userId != ignore) 2: userId as String?,
-      if (phoneNumber != ignore) 3: phoneNumber as String?,
-      if (pin != ignore) 4: pin as int?,
-      if (branchId != ignore) 5: branchId as int?,
-      if (businessId != ignore) 6: businessId as int?,
+      if (userId != ignore) 1: userId as String?,
+      if (phoneNumber != ignore) 2: phoneNumber as String?,
+      if (pin != ignore) 3: pin as int?,
+      if (branchId != ignore) 4: branchId as int?,
+      if (businessId != ignore) 5: businessId as int?,
     });
   }
 }
 
-extension PinUpdate on IsarCollection<String, Pin> {
+extension PinUpdate on IsarCollection<int, Pin> {
   _PinUpdate get update => _PinUpdateImpl(this);
 
   _PinUpdateAll get updateAll => _PinUpdateAllImpl(this);
@@ -215,11 +210,11 @@ class _PinQueryUpdateImpl implements _PinQueryUpdate {
     Object? businessId = ignore,
   }) {
     return query.updateProperties(limit: limit, {
-      if (userId != ignore) 2: userId as String?,
-      if (phoneNumber != ignore) 3: phoneNumber as String?,
-      if (pin != ignore) 4: pin as int?,
-      if (branchId != ignore) 5: branchId as int?,
-      if (businessId != ignore) 6: businessId as int?,
+      if (userId != ignore) 1: userId as String?,
+      if (phoneNumber != ignore) 2: phoneNumber as String?,
+      if (pin != ignore) 3: pin as int?,
+      if (branchId != ignore) 4: branchId as int?,
+      if (businessId != ignore) 5: businessId as int?,
     });
   }
 }
@@ -247,11 +242,11 @@ class _PinQueryBuilderUpdateImpl implements _PinQueryUpdate {
     final q = query.build();
     try {
       return q.updateProperties(limit: limit, {
-        if (userId != ignore) 2: userId as String?,
-        if (phoneNumber != ignore) 3: phoneNumber as String?,
-        if (pin != ignore) 4: pin as int?,
-        if (branchId != ignore) 5: branchId as int?,
-        if (businessId != ignore) 6: businessId as int?,
+        if (userId != ignore) 1: userId as String?,
+        if (phoneNumber != ignore) 2: phoneNumber as String?,
+        if (pin != ignore) 3: pin as int?,
+        if (branchId != ignore) 4: branchId as int?,
+        if (businessId != ignore) 5: businessId as int?,
       });
     } finally {
       q.close();
@@ -267,170 +262,80 @@ extension PinQueryBuilderUpdate on QueryBuilder<Pin, Pin, QOperations> {
 
 extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 1,
+          property: 0,
           value: value,
-          caseSensitive: caseSensitive,
         ),
       );
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterFilterCondition> idBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
+    int lower,
+    int upper,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 1,
+          property: 0,
           lower: lower,
           upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idMatches(String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Pin, Pin, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
         ),
       );
     });
@@ -443,7 +348,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -458,7 +363,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -473,7 +378,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -488,7 +393,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -503,7 +408,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -519,7 +424,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 2,
+          property: 1,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -535,7 +440,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -550,7 +455,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -563,7 +468,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 2,
+          property: 1,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -576,7 +481,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 2,
+          property: 1,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -588,7 +493,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 2,
+          property: 1,
           value: '',
         ),
       );
@@ -599,7 +504,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 2,
+          property: 1,
           value: '',
         ),
       );
@@ -613,7 +518,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -628,7 +533,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -643,7 +548,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -658,7 +563,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -673,7 +578,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -689,7 +594,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 3,
+          property: 2,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -705,7 +610,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -720,7 +625,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -734,7 +639,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 3,
+          property: 2,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -748,7 +653,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 3,
+          property: 2,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -760,7 +665,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 3,
+          property: 2,
           value: '',
         ),
       );
@@ -771,7 +676,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 3,
+          property: 2,
           value: '',
         ),
       );
@@ -784,7 +689,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 4,
+          property: 3,
           value: value,
         ),
       );
@@ -797,7 +702,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 4,
+          property: 3,
           value: value,
         ),
       );
@@ -810,7 +715,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 4,
+          property: 3,
           value: value,
         ),
       );
@@ -823,7 +728,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 4,
+          property: 3,
           value: value,
         ),
       );
@@ -836,7 +741,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 4,
+          property: 3,
           value: value,
         ),
       );
@@ -850,7 +755,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 4,
+          property: 3,
           lower: lower,
           upper: upper,
         ),
@@ -864,7 +769,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 5,
+          property: 4,
           value: value,
         ),
       );
@@ -877,7 +782,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 5,
+          property: 4,
           value: value,
         ),
       );
@@ -890,7 +795,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 5,
+          property: 4,
           value: value,
         ),
       );
@@ -903,7 +808,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 5,
+          property: 4,
           value: value,
         ),
       );
@@ -916,7 +821,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 5,
+          property: 4,
           value: value,
         ),
       );
@@ -930,7 +835,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 5,
+          property: 4,
           lower: lower,
           upper: upper,
         ),
@@ -944,7 +849,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 6,
+          property: 5,
           value: value,
         ),
       );
@@ -957,7 +862,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 6,
+          property: 5,
           value: value,
         ),
       );
@@ -970,7 +875,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 6,
+          property: 5,
           value: value,
         ),
       );
@@ -983,7 +888,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 6,
+          property: 5,
           value: value,
         ),
       );
@@ -996,7 +901,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 6,
+          property: 5,
           value: value,
         ),
       );
@@ -1010,7 +915,7 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 6,
+          property: 5,
           lower: lower,
           upper: upper,
         ),
@@ -1022,23 +927,15 @@ extension PinQueryFilter on QueryBuilder<Pin, Pin, QFilterCondition> {
 extension PinQueryObject on QueryBuilder<Pin, Pin, QFilterCondition> {}
 
 extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortById({bool caseSensitive = true}) {
+  QueryBuilder<Pin, Pin, QAfterSortBy> sortById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pin, Pin, QAfterSortBy> sortByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(0, sort: Sort.desc);
     });
   }
 
@@ -1046,7 +943,7 @@ extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        2,
+        1,
         caseSensitive: caseSensitive,
       );
     });
@@ -1056,7 +953,7 @@ extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        2,
+        1,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -1067,7 +964,7 @@ extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        3,
+        2,
         caseSensitive: caseSensitive,
       );
     });
@@ -1077,7 +974,7 @@ extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        3,
+        2,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -1086,116 +983,115 @@ extension PinQuerySortBy on QueryBuilder<Pin, Pin, QSortBy> {
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByPin() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(3);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByPinDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(4);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> sortByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
 
 extension PinQuerySortThenBy on QueryBuilder<Pin, Pin, QSortThenBy> {
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenById({bool caseSensitive = true}) {
+  QueryBuilder<Pin, Pin, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
+      return query.addSortBy(0);
     });
   }
 
-  QueryBuilder<Pin, Pin, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Pin, Pin, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(0, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByUserId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, caseSensitive: caseSensitive);
+      return query.addSortBy(1, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByUserIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByPhoneNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, caseSensitive: caseSensitive);
+      return query.addSortBy(2, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByPhoneNumberDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByPin() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(3);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByPinDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(3, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(4);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(4, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(5);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterSortBy> thenByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(5, sort: Sort.desc);
     });
   }
 }
@@ -1204,147 +1100,147 @@ extension PinQueryWhereDistinct on QueryBuilder<Pin, Pin, QDistinct> {
   QueryBuilder<Pin, Pin, QAfterDistinct> distinctByUserId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2, caseSensitive: caseSensitive);
+      return query.addDistinctBy(1, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterDistinct> distinctByPhoneNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(3, caseSensitive: caseSensitive);
+      return query.addDistinctBy(2, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterDistinct> distinctByPin() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4);
+      return query.addDistinctBy(3);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(5);
+      return query.addDistinctBy(4);
     });
   }
 
   QueryBuilder<Pin, Pin, QAfterDistinct> distinctByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(6);
+      return query.addDistinctBy(5);
     });
   }
 }
 
 extension PinQueryProperty1 on QueryBuilder<Pin, Pin, QProperty> {
-  QueryBuilder<Pin, String, QAfterProperty> idProperty() {
+  QueryBuilder<Pin, int, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Pin, String, QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 
   QueryBuilder<Pin, String, QAfterProperty> phoneNumberProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addProperty(2);
     });
   }
 
   QueryBuilder<Pin, int, QAfterProperty> pinProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addProperty(3);
     });
   }
 
   QueryBuilder<Pin, int, QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addProperty(4);
     });
   }
 
   QueryBuilder<Pin, int, QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addProperty(5);
     });
   }
 }
 
 extension PinQueryProperty2<R> on QueryBuilder<Pin, R, QAfterProperty> {
-  QueryBuilder<Pin, (R, String), QAfterProperty> idProperty() {
+  QueryBuilder<Pin, (R, int), QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Pin, (R, String), QAfterProperty> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 
   QueryBuilder<Pin, (R, String), QAfterProperty> phoneNumberProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addProperty(2);
     });
   }
 
   QueryBuilder<Pin, (R, int), QAfterProperty> pinProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addProperty(3);
     });
   }
 
   QueryBuilder<Pin, (R, int), QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addProperty(4);
     });
   }
 
   QueryBuilder<Pin, (R, int), QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addProperty(5);
     });
   }
 }
 
 extension PinQueryProperty3<R1, R2>
     on QueryBuilder<Pin, (R1, R2), QAfterProperty> {
-  QueryBuilder<Pin, (R1, R2, String), QOperations> idProperty() {
+  QueryBuilder<Pin, (R1, R2, int), QOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addProperty(0);
     });
   }
 
   QueryBuilder<Pin, (R1, R2, String), QOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addProperty(1);
     });
   }
 
   QueryBuilder<Pin, (R1, R2, String), QOperations> phoneNumberProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addProperty(2);
     });
   }
 
   QueryBuilder<Pin, (R1, R2, int), QOperations> pinProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addProperty(3);
     });
   }
 
   QueryBuilder<Pin, (R1, R2, int), QOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addProperty(4);
     });
   }
 
   QueryBuilder<Pin, (R1, R2, int), QOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addProperty(5);
     });
   }
 }
@@ -1354,7 +1250,7 @@ extension PinQueryProperty3<R1, R2>
 // **************************************************************************
 
 Pin _$PinFromJson(Map<String, dynamic> json) => Pin(
-      id: json['id'] as String,
+      id: json['id'] as int,
       userId: json['userId'] as String,
       phoneNumber: json['phoneNumber'] as String,
       pin: json['pin'] as int,

@@ -40,9 +40,12 @@ class RemoteService implements RemoteInterface {
       String email;
 
       if (foundation.kDebugMode) {
-        url = AppSecrets.apiUrlDebug;
-        password = AppSecrets.debugPassword;
-        email = AppSecrets.debugEmail;
+        // url = AppSecrets.apiUrlDebug;
+        // password = AppSecrets.debugPassword;
+        // email = AppSecrets.debugEmail;
+        url = AppSecrets.apiUrlProd;
+        password = AppSecrets.prodPassword;
+        email = AppSecrets.prodEmail;
       } else {
         url = AppSecrets.apiUrlProd;
         password = AppSecrets.prodPassword;
@@ -206,6 +209,7 @@ class RemoteService implements RemoteInterface {
                       model: Social.fromJson(updatedJson), branchId: branchId);
                   break;
                 case 'rra':
+                  // log(updatedJson.toString(), name: 'rra data');
                   await handleItem(
                       model: EBM.fromJson(updatedJson), branchId: branchId);
                   break;
@@ -428,6 +432,10 @@ class RemoteService implements RemoteInterface {
       if (localEbm == null &&
           ebm.businessId == ProxyService.box.getBusinessId()) {
         ebm.lastTouched = DateTime.now();
+
+        if (ebm.taxServerUrl != null) {
+          ebm.taxServerUrl = ebm.taxServerUrl!.trim();
+        }
         await ProxyService.isar.create(data: ebm);
         // update business
         Business? business = await ProxyService.isar.getBusiness();

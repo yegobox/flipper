@@ -2,18 +2,18 @@ import 'dart:developer';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
+// import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:googleapis/drive/v3.dart' as ga;
+// import 'package:googleapis/drive/v3.dart' as ga;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 
-const _googleClientId =
-    '455580464649-3nhpbm3bp02stjuh0g01ovfr0kemi00j.apps.googleusercontent.com';
+// const _googleClientId =
+//     '455580464649-3nhpbm3bp02stjuh0g01ovfr0kemi00j.apps.googleusercontent.com';
 
 class AuthOptionPage extends StatelessWidget {
   final _routerService = locator<RouterService>();

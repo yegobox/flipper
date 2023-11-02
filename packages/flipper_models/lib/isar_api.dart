@@ -693,7 +693,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ),
     );
     if (response.statusCode == 200) {
-      String id = randomString();
+      int id = randomNumber();
       Pin pin = Pin.fromJson(json.decode(response.body));
       pin.id = id;
       db.write((isar) {
@@ -899,7 +899,7 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'pin':
         db.write((isar) {
-          Pin? pin = isar.pins.get(id);
+          Pin? pin = isar.pins.get(int.parse(id));
           if (pin != null) {
             isar.pins.delete(pin.id);
             return true;
@@ -1419,6 +1419,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Tenant>> signup({required Map business}) async {
+    log(jsonEncode(business));
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
@@ -1497,6 +1498,12 @@ class IsarAPI<M> implements IsarApiInterface {
       );
       recordUserActivity(userId: user.id, activity: 'login');
       if (user.tenants.isEmpty) {
+        throw BusinessNotFoundException(
+            term:
+                "No tenant added to the user, if a business is added it should have one tenant");
+      }
+      if (user.tenants.first.businesses.isEmpty ||
+          user.tenants.first.branches.isEmpty) {
         throw BusinessNotFoundException(
             term:
                 "No tenant added to the user, if a business is added it should have one tenant");
