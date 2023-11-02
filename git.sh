@@ -15,6 +15,7 @@ cd .. && cd flutter_list_drag_and_drop &&  git checkout main  && git add .  && g
 # cd .. && cd flutter_slidable &&  git checkout dev  && git add .  && git commit -am "clean-up" && git push origin dev
 # cd .. && cd flutter_datetime_picker &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 cd .. && cd flutter_luban  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
+cd .. && cd flipper-turbo  &&  git checkout prod  && git add .  && git commit -am "clean-up" && git push origin prod
 # cd .. && cd form_block  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 # cd .. && cd dart_pdf  &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 
