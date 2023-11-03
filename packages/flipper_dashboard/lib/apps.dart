@@ -217,7 +217,6 @@ class _AppsState extends State<Apps> {
               ],
             ),
             Container(
-              // color: Colors.red,
               height: 200,
               child: Column(
                 children: [
