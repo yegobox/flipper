@@ -109,7 +109,7 @@ abstract class IsarApiInterface {
       {required Map customer, required String transactionId});
   Future assingTransactionToCustomer(
       {required String customerId, required String transactionId});
-  Stream<Customer?> getCustomer({String? key, String? transactionId});
+  Future<Customer?> getCustomer({String? key, String? transactionId});
 
   Future<Transaction?> getTransactionById({required String id});
   Future<List<Transaction>> tickets();

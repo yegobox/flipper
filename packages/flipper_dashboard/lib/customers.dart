@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
@@ -26,7 +28,7 @@ class Customers extends StatelessWidget {
                 onPop: () {
                   _routerService.pop();
                 },
-                title: 'Add customer',
+                title: 'Add customer here',
                 showActionButton: false,
                 onActionButtonClicked: () async {
                   _routerService.pop();
@@ -51,109 +53,127 @@ class Customers extends StatelessWidget {
                   ),
                   verticalSpaceSmall,
                   StreamBuilder<Customer?>(
-                      stream: ProxyService.isar.getCustomer(
-                        key: model.searchCustomerkey,
-                      ),
+                      stream: model.getCustomer(key: model.searchCustomerkey),
                       builder: (context, snapshot) {
-                        return snapshot.data != null
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator(); // Optional loading indicator
+                        }
+
+                        if (snapshot.hasData) {
+                          print("Data received: ${snapshot.data!.toJson()}");
+                        } else if (snapshot.hasError) {
+                          print("Error: ${snapshot.error}");
+                        }
+
+                        return snapshot.hasData
                             ? Padding(
                                 padding:
                                     const EdgeInsets.only(left: 18, right: 18),
-                                child: Slidable(
-                                  child: GestureDetector(
-                                    onTap: () async {
-                                      await model.assignToSale(
-                                        customerId: snapshot.data!.id,
-                                        transactionId: transactionId ?? '0',
-                                      );
-                                      model.app.setCustomer(snapshot.data!);
-                                      model.getTransactionById();
-                                      _routerService.pop();
-                                    },
-                                    onLongPress: () {},
-                                    child: Column(children: <Widget>[
-                                      ListTile(
-                                        contentPadding:
-                                            const EdgeInsets.fromLTRB(
-                                                0, 0, 10, 0),
-                                        leading: SizedBox(
-                                            height: MediaQuery.of(context)
-                                                .size
-                                                .height,
-                                            width: 58,
-                                            child: TextDrawable(
-                                              backgroundColor: Colors.red,
-                                              text: snapshot.data!.name,
-                                              isTappable: true,
-                                              onTap: null,
-                                              boxShape: BoxShape.rectangle,
-                                            )),
-                                        title: Text(
-                                          snapshot.data!.phone,
-                                          style: const TextStyle(
-                                              color: Colors.black),
+                                child: ListView(
+                                  shrinkWrap: true,
+                                  children: [
+                                    Slidable(
+                                      child: GestureDetector(
+                                        onTap: () async {
+                                          await model.assignToSale(
+                                            customerId: snapshot.data!.id,
+                                            transactionId: transactionId!,
+                                          );
+                                          model.app.setCustomer(snapshot.data!);
+                                          model.getTransactionById();
+                                          _routerService.pop();
+                                        },
+                                        onLongPress: () {},
+                                        child: Column(
+                                          children: <Widget>[
+                                            ListTile(
+                                              contentPadding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 0, 10, 0),
+                                              leading: SizedBox(
+                                                height: MediaQuery.of(context)
+                                                    .size
+                                                    .height,
+                                                width: 58,
+                                                child: TextDrawable(
+                                                  backgroundColor: Colors.red,
+                                                  text: snapshot.data!.name,
+                                                  isTappable: true,
+                                                  onTap: null,
+                                                  boxShape: BoxShape.rectangle,
+                                                ),
+                                              ),
+                                              title: Text(
+                                                snapshot.data!.phone,
+                                                style: const TextStyle(
+                                                    color: Colors.black),
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 0.5,
+                                              color: Colors.black26,
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      Container(
-                                        height: 0.5,
-                                        color: Colors.black26,
+                                      startActionPane: ActionPane(
+                                        motion: const ScrollMotion(
+                                          key: Key('dismissable-100'),
+                                        ),
+                                        children: [
+                                          SlidableAction(
+                                            onPressed: (_) {
+                                              model.deleteCustomer(
+                                                  snapshot.data!.id, (message) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(message),
+                                                  ),
+                                                );
+                                              });
+                                            },
+                                            backgroundColor:
+                                                const Color(0xFFFE4A49),
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.delete,
+                                            label: 'Delete',
+                                          ),
+                                        ],
                                       ),
-                                    ]),
-                                  ),
-                                  startActionPane: ActionPane(
-                                    motion: const ScrollMotion(
-                                      key: Key('dismissable-100'),
-                                    ),
-                                    children: [
-                                      SlidableAction(
-                                        onPressed: (_) {
-                                          model.deleteCustomer(
-                                              snapshot.data!.id, (message) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                backgroundColor: Colors.red,
-                                                content: Text(message),
-                                              ),
-                                            );
-                                          });
-                                        },
-                                        backgroundColor:
-                                            const Color(0xFFFE4A49),
-                                        foregroundColor: Colors.white,
-                                        icon: Icons.delete,
-                                        label: 'Delete',
+                                      endActionPane: ActionPane(
+                                        motion: const ScrollMotion(
+                                          key: Key('dismissable-100'),
+                                        ),
+                                        children: [
+                                          SlidableAction(
+                                            onPressed: (_) {
+                                              model.deleteCustomer(
+                                                  snapshot.data!.id, (message) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  SnackBar(
+                                                    backgroundColor: Colors.red,
+                                                    content: Text(message),
+                                                  ),
+                                                );
+                                              });
+                                            },
+                                            backgroundColor:
+                                                const Color(0xFFFE4A49),
+                                            foregroundColor: Colors.white,
+                                            icon: Icons.delete,
+                                            label: 'Delete',
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                  endActionPane: ActionPane(
-                                    motion: const ScrollMotion(
-                                        key: Key('dismissable-100')),
-                                    children: [
-                                      SlidableAction(
-                                        onPressed: (_) {
-                                          model.deleteCustomer(
-                                              snapshot.data!.id, (message) {
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                backgroundColor: Colors.red,
-                                                content: Text(message),
-                                              ),
-                                            );
-                                          });
-                                        },
-                                        backgroundColor:
-                                            const Color(0xFFFE4A49),
-                                        foregroundColor: Colors.white,
-                                        icon: Icons.delete,
-                                        label: 'Delete',
-                                      ),
-                                    ],
-                                  ),
+                                    )
+                                  ],
                                 ),
                               )
-                            : const SizedBox.shrink();
+                            : SizedBox.shrink();
                       }),
                   verticalSpaceSmall,
                   Padding(

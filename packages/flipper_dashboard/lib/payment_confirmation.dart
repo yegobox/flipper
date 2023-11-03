@@ -91,10 +91,8 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
                       right: 0,
                       left: 0,
                       child: StreamBuilder<Customer?>(
-                        stream: ProxyService.isar.getCustomer(
-                            transactionId: model.kTransaction == null
-                                ? '0'
-                                : model.kTransaction!.id),
+                        stream: model.getCustomer(
+                            transactionId: model.kTransaction?.id ?? '0'),
                         builder: (context, snapshot) {
                           return Column(
                             children: [

@@ -3184,18 +3184,19 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
+  Future<Customer?> getCustomer({String? key, String? transactionId}) async {
     if (transactionId != null) {
       Transaction? tr = db.transactions.get(transactionId);
-      return db.read((isar) => isar.customers
+      final customer = await db.read((isar) => isar.customers
           .where()
           .idEqualTo(tr!.customerId ?? '0')
           .deletedAtIsNull()
           .sortByLastTouchedDesc()
-          .watch(fireImmediately: true)
-          .asyncMap((event) => event.first));
+          .findFirst());
+
+      return customer;
     } else {
-      return db.read((isar) => db.customers
+      final customer = await db.read((isar) => db.customers
           .where()
           .nameEqualTo(key!)
           .or()
@@ -3204,8 +3205,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .phoneEqualTo(key)
           .and()
           .deletedAtIsNull()
-          .watch(fireImmediately: true)
-          .asyncMap((event) => event.first));
+          .findFirst());
+
+      return customer;
     }
   }
 

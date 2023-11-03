@@ -1124,4 +1124,14 @@ class CoreViewModel extends FlipperBaseModel with Properties {
     }
     return 0;
   }
+
+  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
+    return Stream.fromFuture(ProxyService.isar
+            .getCustomer(key: key, transactionId: transactionId))
+        .asyncExpand((customer) async* {
+      // Yield the customer as he become available
+      
+      yield customer;
+    });
+  }
 }
