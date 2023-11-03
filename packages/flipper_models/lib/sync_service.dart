@@ -90,12 +90,13 @@ class SynchronizationService<M extends IJsonSerializable>
     if (transaction.action != AppActions.remote) {
       Map<String, dynamic>? variantRecord = await _push(transaction as M);
       if (variantRecord != null && variantRecord.isNotEmpty) {
-        Transaction o = Transaction.fromJson(variantRecord);
+        Transaction trans = Transaction.fromJson(variantRecord);
 
-        // /// keep the local ID unchanged to avoid complication
-        o.id = transaction.id;
+        /// keep the local ID unchanged to avoid complication
+        trans.id = transaction.id;
+        trans.action = AppActions.remote;
 
-        await ProxyService.isar.update(data: o);
+        await ProxyService.isar.update(data: trans);
       }
     }
   }
@@ -113,7 +114,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (stockRecord != null && stockRecord.isNotEmpty) {
           TransactionItem iItem = TransactionItem.fromJson(stockRecord);
 
-          iItem.action = AppActions.updated;
+          iItem.action = AppActions.remote;
 
           await ProxyService.isar.update(data: iItem);
         }
@@ -125,7 +126,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (stockRecord != null && stockRecord.isNotEmpty) {
           Stock s = Stock.fromJson(stockRecord);
 
-          s.action = AppActions.updated;
+          s.action = AppActions.remote;
 
           await ProxyService.isar.update(data: s);
         }
@@ -137,7 +138,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (variantRecord != null && variantRecord.isNotEmpty) {
           Variant va = Variant.fromJson(variantRecord);
 
-          va.action = AppActions.updated;
+          va.action = AppActions.remote;
           await ProxyService.isar.update(data: va);
         }
       }
@@ -150,7 +151,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (record != null && record.isNotEmpty) {
           Product product = Product.fromJson(record);
 
-          product.action = AppActions.updated;
+          product.action = AppActions.remote;
           await ProxyService.isar.update(data: product);
         }
       }
@@ -163,7 +164,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (record != null && record.isNotEmpty) {
           Favorite fav = Favorite.fromJson(record);
 
-          fav.action = AppActions.updated;
+          fav.action = AppActions.remote;
           await ProxyService.isar.update(data: fav);
         }
       }
@@ -177,7 +178,7 @@ class SynchronizationService<M extends IJsonSerializable>
         if (record != null && record.isNotEmpty) {
           Device dev = Device.fromJson(record);
 
-          dev.action = AppActions.updated;
+          dev.action = AppActions.remote;
           await ProxyService.isar.update(data: dev);
         }
       }
