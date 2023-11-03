@@ -3081,8 +3081,32 @@ class IsarAPI<M> implements IsarApiInterface {
         .watch(fireImmediately: true));
   }
 
+  void assignStockToVariant({required String variantId}) {
+    Variant? variant = db.read((isar) => isar.variants.get(variantId));
+
+    Stock? stock = db.read((isar) => isar.stocks
+        .where()
+        .variantIdEqualTo(variantId)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findFirst());
+    if (stock == null) {
+      Stock stock = Stock(
+          lastTouched: DateTime.now(),
+          id: randomString(),
+          action: 'create',
+          branchId: ProxyService.box.getBranchId()!,
+          variantId: variantId,
+          currentStock: 0.0,
+          productId: variant!.productId);
+      db.stocks.put(stock);
+    }
+  }
+
   @override
   Stream<Stock> stockByVariantIdStream({required String variantId}) {
+    /// check if this variant has stock, if not first assign stock
+    assignStockToVariant(variantId: variantId);
     return db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
