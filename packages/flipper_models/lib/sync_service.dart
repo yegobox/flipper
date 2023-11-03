@@ -143,7 +143,7 @@ class SynchronizationService<M extends IJsonSerializable>
         }
       }
     }
-
+//
     for (Product product in data.products) {
       if (product.action != AppActions.remote) {
         Map<String, dynamic>? record = await _push(product as M);
