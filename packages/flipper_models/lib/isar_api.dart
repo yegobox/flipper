@@ -3198,11 +3198,11 @@ class IsarAPI<M> implements IsarApiInterface {
     } else {
       final customer = await db.read((isar) => db.customers
           .where()
-          .nameEqualTo(key!)
+          .nameContains(key!)
           .or()
-          .emailEqualTo(key)
+          .emailContains(key)
           .or()
-          .phoneEqualTo(key)
+          .phoneContains(key)
           .and()
           .deletedAtIsNull()
           .findFirst());
