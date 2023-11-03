@@ -90,7 +90,7 @@ class PreviewSaleButton extends StatelessWidget {
           ));
         },
         child: StreamBuilder<List<TransactionItem>>(
-            stream: ProxyService.isar.transactionItemsStream(),
+            stream: model.transactionItemsStream(),
             builder: (context, snapshot) {
               final transactionItems =
                   snapshot.data ?? []; // Retrieve the data from the stream

@@ -2929,13 +2929,13 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Transaction>> transactionsStreams({
+  Future<List<Transaction>> transactionsFuture({
     String? status,
     String? transactionType,
     int? branchId,
     bool isCashOut = false,
     bool includePending = false,
-  }) {
+  }) async {
     final isarQuery = db.transactions.where().statusEqualTo(status ?? COMPLETE);
 
     if (isCashOut) {
@@ -2957,27 +2957,26 @@ class IsarAPI<M> implements IsarApiInterface {
       isarQuery.and().branchIdEqualTo(branchId);
     }
 
-    Stream<List<Transaction>> transactionsStream =
-        db.read((isar) => isarQuery.watch(fireImmediately: true));
-    return transactionsStream;
+    final transactions = await db.read((isar) => isarQuery.findAll());
+
+    return transactions;
   }
 
   @override
-  Stream<List<TransactionItem>> transactionItemsStream() {
-    return transactionsStreams(status: PENDING).asyncMap((transactions) async {
-      final List<TransactionItem> allItems = [];
+  Future<List<TransactionItem>> transactionItemsFuture() async {
+    List<Transaction> transactions = await transactionsFuture(status: PENDING);
+    final List<TransactionItem> allItems = [];
 
-      for (final transaction in transactions) {
-        log(transaction.id, name: "transactionItemsStream");
-        final items = await db.read((isar) => isar.transactionItems
-            .where()
-            .transactionIdEqualTo(transaction.id)
-            .findAll());
-        allItems.addAll(items);
-      }
+    for (final transaction in transactions) {
+      log(transaction.id, name: "transactionItemsFuture");
+      final items = await db.read((isar) => isar.transactionItems
+          .where()
+          .transactionIdEqualTo(transaction.id)
+          .findAll());
+      allItems.addAll(items);
+    }
 
-      return allItems.isNotEmpty ? allItems : <TransactionItem>[];
-    });
+    return allItems.isNotEmpty ? allItems : <TransactionItem>[];
   }
 
   @override

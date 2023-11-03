@@ -15,9 +15,9 @@ import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
 import 'package:stacked/stacked.dart';
 
-import 'mixins/propertiesCore.dart';
+import 'mixins/all.dart';
 
-class CoreViewModel extends FlipperBaseModel with Properties {
+class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   bool handlingConfirm = false;
 
   String? getSetting() {
@@ -404,7 +404,6 @@ class CoreViewModel extends FlipperBaseModel with Properties {
   List<Transaction> transactions = [];
   void updateTransactionsList({required List<Transaction> newTransactions}) {
     transactions.addAll(newTransactions);
-    // rebuildUi();
   }
 
   Future<bool> saveCashBookTransaction(
@@ -1033,30 +1032,6 @@ class CoreViewModel extends FlipperBaseModel with Properties {
   List<ListenableServiceMixin> get listenableServices =>
       [keypad, app, productService, settingService];
 
-//Transaction functions
-  Stream<List<Transaction>> getTransactions(
-      {required String transactionStatus}) {
-    Stream<List<Transaction>> res = ProxyService.isar.transactionsStreams();
-    return res;
-  }
-
-  Stream<List<Transaction>> getLocalTransactions() {
-    Stream<List<Transaction>> res = ProxyService.isar.transactionsStreams();
-    return res;
-  }
-
-  Stream<List<Transaction>> getCashInTransactions() {
-    Stream<List<Transaction>> res =
-        ProxyService.isar.transactionsStreams(isCashOut: false);
-    return res;
-  }
-
-  Stream<List<Transaction>> getCashOutTransactions() {
-    Stream<List<Transaction>> res =
-        ProxyService.isar.transactionsStreams(isCashOut: true);
-    return res;
-  }
-
   Future<String> deleteTransactionByIndex(String transactionIndex) async {
     Transaction? target = await getTransactionByIndex(transactionIndex);
     await ProxyService.isar
@@ -1123,15 +1098,5 @@ class CoreViewModel extends FlipperBaseModel with Properties {
       return response;
     }
     return 0;
-  }
-
-  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
-    return Stream.fromFuture(ProxyService.isar
-            .getCustomer(key: key, transactionId: transactionId))
-        .asyncExpand((customer) async* {
-      // Yield the customer as he become available
-      
-      yield customer;
-    });
   }
 }

@@ -82,7 +82,12 @@ class Customers extends StatelessWidget {
                                           );
                                           model.app.setCustomer(snapshot.data!);
                                           model.getTransactionById();
-                                          _routerService.pop();
+                                          // _routerService.pop();
+                                          SnackBar(
+                                            backgroundColor: Colors.red,
+                                            content:
+                                                Text("Customer added to sale"),
+                                          );
                                         },
                                         onLongPress: () {},
                                         child: Column(
@@ -97,7 +102,7 @@ class Customers extends StatelessWidget {
                                                     .height,
                                                 width: 58,
                                                 child: TextDrawable(
-                                                  backgroundColor: Colors.red,
+                                                  backgroundColor: Colors.green,
                                                   text: snapshot.data!.name,
                                                   isTappable: true,
                                                   onTap: null,
@@ -149,23 +154,24 @@ class Customers extends StatelessWidget {
                                         ),
                                         children: [
                                           SlidableAction(
-                                            onPressed: (_) {
-                                              model.deleteCustomer(
-                                                  snapshot.data!.id, (message) {
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    backgroundColor: Colors.red,
-                                                    content: Text(message),
-                                                  ),
-                                                );
-                                              });
+                                            onPressed: (_) async {
+                                              await model.assignToSale(
+                                                customerId: snapshot.data!.id,
+                                                transactionId: transactionId!,
+                                              );
+                                              model.app
+                                                  .setCustomer(snapshot.data!);
+                                              model.getTransactionById();
+                                              SnackBar(
+                                                backgroundColor: Colors.red,
+                                                content: Text(
+                                                    "Customer added to sale"),
+                                              );
                                             },
-                                            backgroundColor:
-                                                const Color(0xFFFE4A49),
+                                            backgroundColor: Colors.green,
                                             foregroundColor: Colors.white,
-                                            icon: Icons.delete,
-                                            label: 'Delete',
+                                            icon: Icons.add,
+                                            label: 'Add',
                                           ),
                                         ],
                                       ),

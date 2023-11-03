@@ -18,7 +18,7 @@ Widget BuildGaugeOrList(
   final _routerService = locator<RouterService>();
   return StreamBuilder<List<Transaction>>(
     initialData: null,
-    stream: ProxyService.isar.transactionsStreams(),
+    stream: model.getTransactions(),
     builder: (context, snapshot) {
       if (model.transactions.isEmpty) {
         if (widgetType == 'gauge') {

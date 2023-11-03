@@ -18,7 +18,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'ribbon.dart';
+//TODO: continue working on ribbon later
+// import 'ribbon.dart';
 
 class ProductView extends StatefulWidget {
   final int? favIndex;

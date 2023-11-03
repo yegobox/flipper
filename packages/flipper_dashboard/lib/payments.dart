@@ -71,7 +71,7 @@ class _PaymentsState extends State<Payments> {
                 children: [
                   const SizedBox(height: 145),
                   StreamBuilder<List<TransactionItem>>(
-                    stream: ProxyService.isar.transactionItemsStream(),
+                    stream: model.transactionItemsStream(),
                     builder: (context, snapshot) {
                       final duePay = widget.transaction.subTotal;
                       return Column(

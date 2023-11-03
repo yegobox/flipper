@@ -13,7 +13,7 @@ abstract class IsarApiInterface {
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required String productId});
   Stream<Stock> stockByVariantIdStream({required String variantId});
-  Stream<List<Transaction>> transactionsStreams({
+  Future<List<Transaction>> transactionsFuture({
     String? status,
     String? transactionType,
     int? branchId,
@@ -190,7 +190,7 @@ abstract class IsarApiInterface {
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
       {required String transactionId, required bool doneWithTransaction});
-  Stream<List<TransactionItem>> transactionItemsStream();
+  Future<List<TransactionItem>> transactionItemsFuture();
   Future<Variant?> getVariantById({required String id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
