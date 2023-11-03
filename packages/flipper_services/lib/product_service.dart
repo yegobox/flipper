@@ -33,9 +33,12 @@ class ProductService with ListenableServiceMixin {
         ProxyService.isar.getDiscounts(branchId: branchId));
   }
 
-  /// products streams
-  Stream<List<Product>> productStream({required int branchId}) async* {
-    yield* ProxyService.isar.productStreams();
+  Stream<List<Product>> productStream({required int branchId}) {
+    return Stream.fromFuture(ProxyService.isar.getProductList())
+        .asyncExpand((products) async* {
+      // Yield the products as they become available
+      yield products;
+    });
   }
 
   StreamTransformer<List<Product>, List<Product>> searchTransformer(

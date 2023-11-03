@@ -3142,6 +3142,27 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Future<List<Product>> getProductList({String? prodIndex}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+
+    final completer = Completer<List<Product>>();
+    final queryBuilder = db.read((isar) => isar.products
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull());
+
+    if (prodIndex != null) {
+      queryBuilder.idEqualTo(prodIndex);
+    }
+
+    final products = await queryBuilder.findAll();
+
+    completer.complete(products);
+    return completer.future;
+  }
+
+  @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
     int branchId = ProxyService.box.getBranchId()!;
     if (prodIndex == null) {

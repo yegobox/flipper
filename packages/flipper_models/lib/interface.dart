@@ -21,6 +21,7 @@ abstract class IsarApiInterface {
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({String? prodIndex});
+  Future<List<Product>> getProductList({String? prodIndex});
   Future<Stock?> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
