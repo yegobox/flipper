@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-// import 'dart:math' as math;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
@@ -88,8 +87,11 @@ class RWTax implements TaxApi {
     var headers = {'Content-Type': 'application/json'};
     EBM? ebm = await ProxyService.isar
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
-    var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + '/items/saveItems'));
+    if (ebm == null) {
+      return false;
+    }
+    var request =
+        http.Request('POST', Uri.parse(ebm.taxServerUrl! + '/items/saveItems'));
     // log(variation.toJson().toString());
     request.body = json.encode(variation.toJson());
 
@@ -121,8 +123,11 @@ class RWTax implements TaxApi {
     var headers = {'Content-Type': 'application/json'};
     EBM? ebm = await ProxyService.isar
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
+    if (ebm == null) {
+      return false;
+    }
     var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + '/items/selectItems'));
+        'POST', Uri.parse(ebm.taxServerUrl! + '/items/selectItems'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "lastReqDt": lastReqDt});
     request.headers.addAll(headers);
@@ -137,7 +142,6 @@ class RWTax implements TaxApi {
             "lastReqDt": lastReqDt
           }.toString(),
           responseData: response.stream.bytesToString().toString());
-      // print(await response.stream.bytesToString());
       return Future.value(true);
     } else {
       // print(response.reasonPhrase);
@@ -163,9 +167,11 @@ class RWTax implements TaxApi {
     var headers = {'Content-Type': 'application/json'};
     EBM? ebm = await ProxyService.isar
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
-
+    if (ebm == null) {
+      return null;
+    }
     var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + '/trnsSales/saveSales'));
+        'POST', Uri.parse(ebm.taxServerUrl! + '/trnsSales/saveSales'));
     List<Map<String, dynamic>> itemsList = [];
     for (var item in items) {
       itemsList.add(item.toJson());

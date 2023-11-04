@@ -908,7 +908,13 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     if (receiptType == ReceiptType.ps) {
       counter = await ProxyService.isar.pSCounter(branchId: branchId);
     }
-    return counter!;
+    return counter ??
+        Counter(
+            branchId: ProxyService.box.getBranchId(),
+            businessId: ProxyService.box.getBusinessId(),
+            curRcptNo: 0,
+            id: 1,
+            totRcptNo: 0);
   }
 
   Future<void> updateDrawer(String receiptType, Transaction transaction) async {
