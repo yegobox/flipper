@@ -233,6 +233,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                           DataColumn(label: Text('Price')),
                           DataColumn(label: Text('Created At')),
                           DataColumn(label: Text('Quantity')),
+                          DataColumn(label: Text('Action')),
                         ],
                         rows: model.scannedVariants.map((variant) {
                           return DataRow(cells: [
@@ -249,6 +250,14 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                             ),
                             DataCell(
                               Text(variant.qty.toString()),
+                            ),
+                            DataCell(
+                              ElevatedButton(
+                                onPressed: () {
+                                  model.removeVariant(id: variant.id);
+                                },
+                                child: const Text('Delete'),
+                              ),
                             ),
                           ]);
                         }).toList(),

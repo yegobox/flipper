@@ -70,4 +70,15 @@ class ScannViewModel extends BaseViewModel {
     productName = name;
     notifyListeners();
   }
+
+  void removeVariant({required String id}) {
+    // Find the index of the variant with the specified id
+    int index = scannedVariants.indexWhere((variant) => variant.id == id);
+
+    if (index != -1) {
+      // If the variant is found, remove it from the list
+      scannedVariants.removeAt(index);
+      notifyListeners();
+    }
+  }
 }
