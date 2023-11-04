@@ -1,9 +1,11 @@
+import 'dart:async';
+import 'dart:developer';
+
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
-
-import 'BlockColorPicker.dart';
 
 class ProductEntryScreen extends StatefulWidget {
   const ProductEntryScreen({super.key});
@@ -13,13 +15,82 @@ class ProductEntryScreen extends StatefulWidget {
 }
 
 class _ProductEntryScreenState extends State<ProductEntryScreen> {
-  Color currentColor = Colors.amber;
-  List<Color> currentColors = [Colors.yellow, Colors.green];
-  List<Color> colorHistory = [];
+  int _portraitCrossAxisCount = 4;
+  int _landscapeCrossAxisCount = 5;
+  double _borderRadius = 30;
+  double _blurRadius = 5;
+  double _iconSize = 24;
+  Color pickerColor = Colors.amber;
 
-  void changeColor(Color color) => setState(() => currentColor = color);
-  void changeColors(List<Color> colors) =>
-      setState(() => currentColors = colors);
+  void changeColor(Color color) => setState(() => pickerColor = color);
+
+  Widget pickerLayoutBuilder(
+      BuildContext context, List<Color> colors, PickerItem child) {
+    Orientation orientation = MediaQuery.of(context).orientation;
+
+    return SizedBox(
+      width: 300,
+      height: orientation == Orientation.portrait ? 360 : 240,
+      child: GridView.count(
+        crossAxisCount: orientation == Orientation.portrait
+            ? _portraitCrossAxisCount
+            : _landscapeCrossAxisCount,
+        crossAxisSpacing: 5,
+        mainAxisSpacing: 5,
+        children: [for (Color color in colors) child(color)],
+      ),
+    );
+  }
+
+  Widget pickerItemBuilder(
+      Color color, bool isCurrentColor, void Function() changeColor) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_borderRadius),
+        color: color,
+        boxShadow: [
+          BoxShadow(
+              color: color.withOpacity(0.8),
+              offset: const Offset(1, 2),
+              blurRadius: _blurRadius)
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: changeColor,
+          borderRadius: BorderRadius.circular(_borderRadius),
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 250),
+            opacity: isCurrentColor ? 1 : 0,
+            child: Icon(
+              Icons.done,
+              size: _iconSize,
+              color: useWhiteForeground(color) ? Colors.white : Colors.black,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  TextEditingController productNameController = TextEditingController();
+  TextEditingController defaultPriceController = TextEditingController();
+  TextEditingController scannedInputController = TextEditingController();
+  FocusNode scannedInputFocusNode = FocusNode();
+  Timer? _inputTimer;
+
+  @override
+  void dispose() {
+    _inputTimer?.cancel();
+    productNameController.dispose();
+    defaultPriceController.dispose();
+    scannedInputController.dispose();
+    scannedInputFocusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ScannViewModel>.reactive(
@@ -41,13 +112,31 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                     height: 50, // Set a specific height
                     child: Row(
                       children: [
-                        // BlockColorPicker(
-                        //   pickerColor: currentColor,
-                        //   onColorChanged: changeColor,
-                        //   pickerColors: currentColors,
-                        //   onColorsChanged: changeColors,
-                        //   colorHistory: colorHistory,
-                        // ),
+                        ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                        content: SingleChildScrollView(
+                                      child: BlockPicker(
+                                        pickerColor: pickerColor,
+                                        onColorChanged: changeColor,
+                                        availableColors: colors,
+                                        layoutBuilder: pickerLayoutBuilder,
+                                      ),
+                                    ));
+                                  });
+                            },
+                            child: Icon(Icons.color_lens,
+                                color: useWhiteForeground(pickerColor)
+                                    ? Colors.white
+                                    : Colors.black),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: pickerColor,
+                              shadowColor: pickerColor.withOpacity(1),
+                              elevation: 0,
+                            )),
                         ElevatedButton(
                           onPressed: () {
                             // Handle button click here
@@ -62,7 +151,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: model.productNameController,
+                    controller: productNameController,
                     textInputAction: TextInputAction.next,
                     onSubmitted: (value) {
                       model.setProductName(name: value);
@@ -80,7 +169,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: model.defaultPriceController,
+                    controller: defaultPriceController,
                     decoration: InputDecoration(
                       labelText: 'Default Variant Price',
                       border: OutlineInputBorder(
@@ -95,7 +184,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: model.scannedInputController,
+                    controller: scannedInputController,
                     decoration: InputDecoration(
                       labelText: 'Scan or Type',
                       border: OutlineInputBorder(
@@ -105,9 +194,22 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                           const EdgeInsets.symmetric(horizontal: 16.0),
                     ),
                     onChanged: (scannedInput) {
-                      model.handleScannedInput(scannedInput);
+                      _inputTimer?.cancel();
+                      _inputTimer = Timer(const Duration(seconds: 1), () {
+                        double defaultPrice =
+                            double.parse(defaultPriceController.text);
+                        if (scannedInput.isNotEmpty) {
+                          model.addVariant(
+                            variantName: scannedInput,
+                            defaultPrice: defaultPrice,
+                            isTaxExempted: false,
+                          );
+                          scannedInputController.clear();
+                          scannedInputFocusNode.requestFocus();
+                        }
+                      });
                     },
-                    focusNode: model.scannedInputFocusNode,
+                    focusNode: scannedInputFocusNode,
                   ),
                 ),
                 Container(
@@ -129,12 +231,24 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                         columns: const [
                           DataColumn(label: Text('Variant Name')),
                           DataColumn(label: Text('Price')),
+                          DataColumn(label: Text('Created At')),
+                          DataColumn(label: Text('Quantity')),
                         ],
                         rows: model.scannedVariants.map((variant) {
                           return DataRow(cells: [
                             DataCell(Text(variant.name)),
                             DataCell(
                               Text(variant.retailPrice.toStringAsFixed(2)),
+                            ),
+                            DataCell(
+                              Text(variant.lastTouched == null
+                                  ? ''
+                                  : variant.lastTouched!
+                                      .toUtc()
+                                      .toIso8601String()),
+                            ),
+                            DataCell(
+                              Text(variant.qty.toString()),
                             ),
                           ]);
                         }).toList(),

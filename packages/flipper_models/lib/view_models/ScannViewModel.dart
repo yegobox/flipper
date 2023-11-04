@@ -4,17 +4,11 @@ import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
 class ScannViewModel extends BaseViewModel {
   List<Variant> scannedVariants = [];
   late Product product;
-  TextEditingController productNameController = TextEditingController();
-  TextEditingController defaultPriceController = TextEditingController();
-  TextEditingController scannedInputController = TextEditingController();
-  FocusNode scannedInputFocusNode = FocusNode();
-  Timer? _inputTimer;
 
   void addVariant({
     required String variantName,
@@ -22,6 +16,19 @@ class ScannViewModel extends BaseViewModel {
     required bool isTaxExempted,
   }) {
     int branchId = ProxyService.box.getBranchId()!;
+
+    // Check if the variant with the same name already exists
+    for (var variant in scannedVariants) {
+      if (variant.name == variantName) {
+        // If found, update it
+        variant.retailPrice = defaultPrice;
+        variant.qty = (variant.qty ?? 0) + 1; // Increment the quantity safely
+        notifyListeners();
+        return;
+      }
+    }
+
+    // If no matching variant was found, add a new one
     scannedVariants.add(
       Variant(
         name: variantName,
@@ -36,35 +43,11 @@ class ScannViewModel extends BaseViewModel {
         isTaxExempted: isTaxExempted,
         action: AppActions.create,
         lastTouched: DateTime.now(),
+        qty: 1,
       ),
     );
+
     notifyListeners();
-  }
-
-  void handleScannedInput(String scannedInput) {
-    _inputTimer?.cancel();
-    _inputTimer = Timer(const Duration(microseconds: 30), () {
-      double defaultPrice = double.parse(defaultPriceController.text);
-      if (scannedInput.isNotEmpty) {
-        addVariant(
-          variantName: scannedInput,
-          defaultPrice: defaultPrice,
-          isTaxExempted: false,
-        );
-        scannedInputController.clear();
-        scannedInputFocusNode.requestFocus();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _inputTimer?.cancel();
-    productNameController.dispose();
-    defaultPriceController.dispose();
-    scannedInputController.dispose();
-    scannedInputFocusNode.dispose();
-    super.dispose();
   }
 
   Future<void> createProduct({required String name}) async {
