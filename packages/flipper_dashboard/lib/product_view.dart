@@ -99,7 +99,6 @@ class _ProductViewState extends State<ProductView> {
                                 : double.infinity,
                             child: SearchField(
                               controller: searchController,
-                              model: model,
                             ),
                           ),
                           SizedBox(

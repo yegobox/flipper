@@ -493,4 +493,11 @@ class ProductViewModel extends FlipperBaseModel {
 
   @override
   List<ListenableServiceMixin> get listenableServices => [app, productService];
+
+  bool isScanningMode = false; // Add a boolean variable for scanning mode
+
+  void toggleScanningMode() {
+    isScanningMode = !isScanningMode;
+    rebuildUi();
+  }
 }
