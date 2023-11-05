@@ -32,4 +32,5 @@ abstract class Remote {
   String supportLine();
   int sessionTimeOutMinutes();
   Widget bannerAd();
+  bool enableTakingScreenShoot();
 }

@@ -472,34 +472,38 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> addVariant(
-      {required List<Variant> data,
-      required double retailPrice,
-      required double supplyPrice}) async {
+  Future<int> addVariant({required List<Variant> variations}) async {
     String id = randomString();
     db.write((isar) {
-      for (Variant variation in data) {
+      for (Variant variation in variations) {
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
         variation.itemClsCd = "5020230602";
         variation.pkg = "1";
         variation.id = id;
-        isar.variants.put(variation);
+
+        /// check if there is variant saved with same product name and do nothing
+        Variant? existingVariantWithSameProduct = db.variants
+            .where()
+            .productIdEqualTo(variation.productId)
+            .findFirst();
+        if (existingVariantWithSameProduct == null) {
+          isar.variants.put(variation);
+        }
         final stock = Stock(
             id: id,
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: 'create',
-            currentStock: 0.0,
+            action: AppActions.create,
+            currentStock: variation.qty!,
             productId: variation.productId)
           ..id = id
           ..variantId = id
           ..lowStock = 0.0
           ..branchId = ProxyService.box.getBranchId()!
-          ..currentStock = 0.0
-          ..supplyPrice = supplyPrice
-          ..retailPrice = retailPrice
+          ..supplyPrice = variation.supplyPrice
+          ..retailPrice = variation.retailPrice
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId

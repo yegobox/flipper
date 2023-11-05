@@ -6,11 +6,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
-class ScannViewModel extends BaseViewModel {
+import 'mixins/_product.dart';
+
+class ScannViewModel extends BaseViewModel with ProductMixin {
   List<Variant> scannedVariants = [];
   late Product product;
 
-  void addVariant({
+  void onAddVariant({
     required String variantName,
     required double defaultPrice,
     required bool isTaxExempted,
@@ -65,7 +67,6 @@ class ScannViewModel extends BaseViewModel {
     ));
   }
 
-  String productName = TEMP_PRODUCT;
   void setProductName({required String name}) {
     productName = name;
     notifyListeners();

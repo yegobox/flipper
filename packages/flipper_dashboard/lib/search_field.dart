@@ -76,6 +76,7 @@ class _SearchFieldState extends State<SearchField> {
                             : IconButton(
                                 onPressed: () {
                                   showDialog(
+                                    barrierDismissible: false,
                                     context: context,
                                     builder: (context) => OptionModal(
                                       child: isDesktopOrWeb

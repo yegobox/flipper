@@ -41,9 +41,7 @@ abstract class IsarApiInterface {
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({
-    required List<Variant> data,
-    required double retailPrice,
-    required double supplyPrice,
+    required List<Variant> variations,
   });
 
   Future<int> addFavorite({required Favorite data});

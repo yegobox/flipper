@@ -38,7 +38,8 @@ class RemoteConfigService implements Remote {
       'supportLine': "+250783054874",
       'isMarketingFeatureEnabled': true,
       "sessionTimeOutMinutes": 10,
-      "isLocalAuthAvailable": true
+      "isLocalAuthAvailable": true,
+      "enableTakingScreenShoot": true
     });
   }
 
@@ -241,6 +242,11 @@ class RemoteConfigService implements Remote {
     return AppBannerAd.fromKey(configKey: 'banner_ad');
     // return AppRewardedAd.fromKey(configKey: 'reward_ad');
   }
+
+  @override
+  bool enableTakingScreenShoot() {
+    return remoteConfig.getBool('enableTakingScreenShoot');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -403,5 +409,10 @@ class RemoteConfigWindows implements Remote {
   @override
   Widget bannerAd() {
     return SizedBox.shrink();
+  }
+
+  @override
+  bool enableTakingScreenShoot() {
+    return false;
   }
 }

@@ -18,7 +18,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 
-class ProductViewModel extends FlipperBaseModel {
+import 'mixins/_product.dart';
+
+class ProductViewModel extends FlipperBaseModel with ProductMixin {
   // extends ReactiveViewModel
   final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields
@@ -83,14 +85,9 @@ class ProductViewModel extends FlipperBaseModel {
     }
   }
 
-  String? _productName;
-  get productName => _productName;
-
   Stream<String> getBarCode() async* {
     yield productService.barCode;
   }
-
-  bool inUpdateProcess = false;
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
@@ -125,7 +122,7 @@ class ProductViewModel extends FlipperBaseModel {
   }
 
   void setName({String? name}) {
-    _productName = name;
+    productName = name;
     notifyListeners();
   }
 
@@ -279,18 +276,6 @@ class ProductViewModel extends FlipperBaseModel {
   }
 
   /// add variation to a product [variations],[retailPrice],[supplyPrice]
-  Future<int> addVariant({
-    List<Variant>? variations,
-    required double retailPrice,
-    required double supplyPrice,
-  }) async {
-    int result = await ProxyService.isar.addVariant(
-      data: variations!,
-      retailPrice: retailPrice,
-      supplyPrice: supplyPrice,
-    );
-    return result;
-  }
 
   void navigateAddVariation(
       {required String productId, required BuildContext context}) {
@@ -348,47 +333,6 @@ class ProductViewModel extends FlipperBaseModel {
         }
       }
     }
-  }
-
-  /// Add a product into the system
-  Future<bool> saveProduct({required Product mproduct}) async {
-    ProxyService.analytics
-        .trackEvent("product_creation", {'feature_name': 'product_creation'});
-    // String mproductName =
-    mproduct.name = productName;
-    mproduct.barCode = productService.barCode.toString();
-    mproduct.color = currentColor;
-
-    Category? activeCat = await ProxyService.isar
-        .activeCategory(branchId: ProxyService.box.getBranchId()!);
-
-    String activeCatName = activeCat!.name;
-
-    mproduct.categoryId = activeCatName;
-
-    activeCat.active = false;
-    activeCat.focused = false;
-    await ProxyService.isar.update(data: activeCat);
-
-    mproduct.action = inUpdateProcess ? AppActions.update : AppActions.create;
-
-    final response = await ProxyService.isar.update(data: mproduct);
-    List<Variant> variants =
-        await ProxyService.isar.getVariantByProductId(productId: mproduct.id);
-
-    for (Variant variant in variants) {
-      variant.productName = productName;
-      variant.prc = variant.retailPrice;
-      variant.productId = mproduct.id;
-      variant.pkgUnitCd = "NT";
-      variant.action = inUpdateProcess ? AppActions.update : AppActions.create;
-      await ProxyService.isar.update(data: variant);
-      if (await ProxyService.isar.isTaxEnabled()) {
-        ProxyService.tax.saveItem(variation: variant);
-      }
-    }
-    ProxyService.sync.push();
-    return response == 200;
   }
 
   /// Add a product into the favorites

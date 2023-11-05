@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
@@ -138,9 +138,26 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                               elevation: 0,
                             )),
                         ElevatedButton(
-                          onPressed: () {
-                            // Handle button click here
-                            // You can use model.productNameController.text to get the product name
+                          onPressed: () async {
+                            /// check if the user has added variant
+                            /// and has added the name of the product
+                            /// if not then do not save anything and just exit
+                            if (model.scannedVariants.isEmpty) {
+                              toast('No Product saved!');
+                            } else {
+                              if (model.productName != null) {
+                                await model.addVariant(
+                                    variations: model.scannedVariants);
+                                toast("Product Saved");
+                                model.product.color = pickerColor.toHex();
+                                await model.saveProduct(
+                                    mproduct: model.product);
+                                Navigator.maybePop(context);
+                              } else {
+                                toast('No product name!');
+                              }
+                            }
+                            Navigator.maybePop(context);
                           },
                           child: const Text('Save'),
                         )
@@ -153,7 +170,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                   child: TextField(
                     controller: productNameController,
                     textInputAction: TextInputAction.next,
-                    onSubmitted: (value) {
+                    onChanged: (value) {
                       model.setProductName(name: value);
                     },
                     decoration: InputDecoration(
@@ -199,7 +216,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                         double defaultPrice =
                             double.parse(defaultPriceController.text);
                         if (scannedInput.isNotEmpty) {
-                          model.addVariant(
+                          model.onAddVariant(
                             variantName: scannedInput,
                             defaultPrice: defaultPrice,
                             isTaxExempted: false,

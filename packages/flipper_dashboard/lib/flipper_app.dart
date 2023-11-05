@@ -43,7 +43,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    if (isAndroid) {
+    if (isAndroid && ProxyService.remoteConfig.enableTakingScreenShoot()) {
       _disableScreenshots();
     }
   }
