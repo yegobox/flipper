@@ -3,12 +3,14 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
+import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

@@ -437,12 +437,4 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
   @override
   List<ListenableServiceMixin> get listenableServices => [app, productService];
-
-  bool isScanningMode = false; // Add a boolean variable for scanning mode
-
-  bool toggleScanningMode() {
-    bool toggled = isScanningMode = !isScanningMode;
-    rebuildUi();
-    return toggled;
-  }
 }

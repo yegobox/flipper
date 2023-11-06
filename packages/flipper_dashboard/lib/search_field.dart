@@ -1,21 +1,23 @@
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/view_models/product_viewmodel.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/scann.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
-class SearchField extends StatefulWidget {
+class SearchField extends StatefulHookConsumerWidget {
   SearchField({Key? key, required this.controller}) : super(key: key);
   final TextEditingController controller;
   @override
-  _SearchFieldState createState() => _SearchFieldState();
+  SearchFieldState createState() => SearchFieldState();
 }
 
-class _SearchFieldState extends State<SearchField> {
+class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   @override
   void initState() {
@@ -28,8 +30,10 @@ class _SearchFieldState extends State<SearchField> {
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<ProductViewModel>.reactive(
-      viewModelBuilder: () => ProductViewModel(),
+    // We can also use "ref" to listen to a provider inside the build method
+    final isScanningMode = ref.watch(scanningModeProvider);
+    return ViewModelBuilder<CoreViewModel>.reactive(
+      viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,
@@ -56,17 +60,20 @@ class _SearchFieldState extends State<SearchField> {
               children: [
                 IconButton(
                   onPressed: () {
-                    if (model.toggleScanningMode()) {
+                    ref
+                        .read(scanningModeProvider.notifier)
+                        .toggleScanningMode();
+                    if (isScanningMode) {
                       toast("Scanning mode Activated");
                     } else {
                       toast("Scanning mode DeActivated");
                     }
                   },
                   icon: Icon(
-                    model.isScanningMode
+                    isScanningMode
                         ? FluentIcons.camera_switch_24_regular
                         : FluentIcons.camera_switch_24_regular,
-                    color: model.isScanningMode ? Colors.green : Colors.blue,
+                    color: isScanningMode ? Colors.green : Colors.blue,
                   ),
                 ),
                 IconButton(

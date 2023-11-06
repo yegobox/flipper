@@ -11,6 +11,7 @@ import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,7 +26,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 
 Future<void> onDidReceiveBackgroundNotificationResponse(
@@ -117,43 +117,45 @@ void main() async {
     /// This is for testing in case the whole app has issues
     /// runApp(const MyApp());
     runApp(
-      OverlaySupport.global(
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: true,
-          title: 'flipper',
-          // Define the light theme for the app, based on defined colors and
-          // properties above.
-          //TODOimplement my own as this is killing design
-          // theme: GThemeGenerator.generate(),
-          // darkTheme: GThemeGenerator.generateDark(),
-          theme: ThemeData(
-            useMaterial3: true,
-            textTheme: GoogleFonts.poppinsTextTheme(),
-          ),
-          localizationsDelegates: [
-            FirebaseUILocalizations.withDefaultOverrides(
-              const LabelOverrides(),
+      ProviderScope(
+        child: OverlaySupport.global(
+          child: MaterialApp.router(
+            debugShowCheckedModeBanner: true,
+            title: 'flipper',
+            // Define the light theme for the app, based on defined colors and
+            // properties above.
+            //TODOimplement my own as this is killing design
+            // theme: GThemeGenerator.generate(),
+            // darkTheme: GThemeGenerator.generateDark(),
+            theme: ThemeData(
+              useMaterial3: true,
+              textTheme: GoogleFonts.poppinsTextTheme(),
             ),
-            const FlipperLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            CountryLocalizations.delegate
-          ],
-          supportedLocales: const [
-            Locale('en'), // English
-            Locale('es'), // Spanish
-          ],
-          locale: const Locale('en'),
-          // locale: model
-          //     .languageService.locale,
-          // themeMode: model.settingService.themeMode.value,
-          themeMode: ThemeMode.system,
-          routerDelegate: stackedRouter.delegate(),
-          routeInformationParser: stackedRouter.defaultRouteParser(),
-        ).animate().fadeIn(
-              delay: const Duration(milliseconds: 50),
-              duration: const Duration(milliseconds: 400),
-            ),
+            localizationsDelegates: [
+              FirebaseUILocalizations.withDefaultOverrides(
+                const LabelOverrides(),
+              ),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              CountryLocalizations.delegate
+            ],
+            supportedLocales: const [
+              Locale('en'), // English
+              Locale('es'), // Spanish
+            ],
+            locale: const Locale('en'),
+            // locale: model
+            //     .languageService.locale,
+            // themeMode: model.settingService.themeMode.value,
+            themeMode: ThemeMode.system,
+            routerDelegate: stackedRouter.delegate(),
+            routeInformationParser: stackedRouter.defaultRouteParser(),
+          ).animate().fadeIn(
+                delay: const Duration(milliseconds: 50),
+                duration: const Duration(milliseconds: 400),
+              ),
+        ),
       ),
     );
 

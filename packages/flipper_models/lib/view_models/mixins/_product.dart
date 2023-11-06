@@ -57,4 +57,5 @@ mixin ProductMixin {
     ProxyService.sync.push();
     return response == 200;
   }
+
 }

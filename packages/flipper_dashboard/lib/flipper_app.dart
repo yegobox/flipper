@@ -93,7 +93,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
-        fireOnViewModelReadyOnce: true,
+        // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
           //get default tenant
@@ -233,7 +233,7 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                     return AppLayoutDrawer(
                       controller: controller,
                       tabSelected: tabselected,
-                      model: model,
+                      // model: model,
                       focusNode: focusNode,
                     );
                   }),
