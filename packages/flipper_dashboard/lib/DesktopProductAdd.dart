@@ -97,6 +97,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) {
         model.createProduct(name: TEMP_PRODUCT);
+        model.setProductName(name: null);
       },
       builder: (context, model, child) {
         return Padding(

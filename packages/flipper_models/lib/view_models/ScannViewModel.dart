@@ -67,7 +67,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     ));
   }
 
-  void setProductName({required String name}) {
+  void setProductName({String? name}) {
     productName = name;
     notifyListeners();
   }

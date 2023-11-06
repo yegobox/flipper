@@ -15,85 +15,89 @@ class SearchField extends StatefulWidget {
 }
 
 class _SearchFieldState extends State<SearchField> {
-  late ValueNotifier<bool> _hasText;
+  late bool _hasText;
   @override
   void initState() {
     super.initState();
-    _hasText = ValueNotifier<bool>(false);
+    _hasText = false;
     widget.controller.addListener(() {
-      _hasText.value = widget.controller.text.isNotEmpty;
+      _hasText = widget.controller.text.isNotEmpty;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
-        viewModelBuilder: () => ProductViewModel(),
-        builder: (a, model, b) {
-          return TextFormField(
-            controller: widget.controller,
-            onChanged: (value) {
-              model.search(value);
-            },
-            decoration: InputDecoration(
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-              ),
-              hintText: 'Search items here',
-              prefixIcon: IconButton(
-                onPressed: null,
-                icon: Icon(FluentIcons.search_24_regular),
-              ),
-              suffixIcon: ValueListenableBuilder<bool>(
-                valueListenable: _hasText,
-                builder: (context, hasText, _) {
-                  return Row(
-                    children: [
-                      Spacer(),
-                      IconButton(
-                        onPressed: () {
-                          model.toggleScanningMode();
-                        },
-                        icon: Icon(
-                          model.isScanningMode
-                              ? FluentIcons.scan_24_regular
-                              : FluentIcons.camera_switch_24_regular,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: hasText
-                            ? () {
-                                widget.controller.clear();
-                                _hasText.value = false;
-                              }
-                            : null,
-                        icon: hasText
-                            ? Icon(FluentIcons.dismiss_24_regular)
-                            : IconButton(
-                                onPressed: () {
-                                  showDialog(
-                                    barrierDismissible: false,
-                                    context: context,
-                                    builder: (context) => OptionModal(
-                                      child: isDesktopOrWeb
-                                          ? ProductEntryScreen()
-                                          : AddProductButtons(),
-                                    ),
-                                  );
-                                },
-                                icon: Icon(FluentIcons.add_20_regular),
+      viewModelBuilder: () => ProductViewModel(),
+      builder: (a, model, b) {
+        return TextFormField(
+          controller: widget.controller,
+          maxLines: null,
+          textInputAction: TextInputAction.done,
+          onChanged: (value) {
+            _hasText = value.isNotEmpty;
+          },
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+            ),
+            // hintText: 'Search items here',
+            prefixIcon: IconButton(
+              onPressed: () {
+                // Handle search functionality here
+              },
+              icon: Icon(FluentIcons.search_24_regular),
+            ),
+            suffixIcon: InkWell(
+              onTap: _hasText
+                  ? () {
+                      widget.controller.clear();
+                      _hasText = false;
+                    }
+                  : null,
+              child: Wrap(
+                children: [
+                  Spacer(),
+                  IconButton(
+                    onPressed: () {
+                      // Handle scanning mode functionality here
+                    },
+                    icon: Icon(
+                      // Update icon based on scanning mode state
+                      FluentIcons.scan_24_regular,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _hasText
+                        ? () {
+                            // Clear text field
+                            widget.controller.clear();
+                            _hasText = false;
+                          }
+                        : () {
+                            // Open dialog box
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (context) => OptionModal(
+                                child: ProductEntryScreen(),
                               ),
-                      )
-                    ],
-                  );
-                },
+                            );
+                          },
+                    icon: _hasText
+                        ? Icon(FluentIcons.dismiss_24_regular)
+                        : Icon(FluentIcons.add_20_regular),
+                  ),
+                ],
               ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 }
