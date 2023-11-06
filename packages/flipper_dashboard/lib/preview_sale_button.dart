@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
@@ -23,33 +24,10 @@ class PreviewSaleButton extends StatelessWidget {
         child: SizedBox(
       height: 64,
       child: TextButton(
-        style: ButtonStyle(
-          shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-            (states) => RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-          ),
-          backgroundColor:
-              MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-              if (states.contains(MaterialState.hovered)) {
-                return Colors.blue.withOpacity(0.04);
-              }
-              if (states.contains(MaterialState.focused) ||
-                  states.contains(MaterialState.pressed)) {
-                return Colors.blue.withOpacity(0.12);
-              }
-              return null;
-            },
-          ),
-        ),
+        style: primaryButtonStyle,
         onPressed: () async {
           HapticFeedback.lightImpact();
           log("nav payment route");
-
-          /// if there is something on keyboard, it will be added to the cart automatically
-          /// TODO: Add this into settings if a user have a dirty keypad to take it as he want to add it to cart
           model.keyboardKeyPressed(key: '+');
           Transaction? transaction = await ProxyService.isar
               .pendingTransaction(branchId: ProxyService.box.getBranchId()!);

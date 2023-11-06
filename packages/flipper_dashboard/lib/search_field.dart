@@ -32,6 +32,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   Widget build(BuildContext context) {
     // We can also use "ref" to listen to a provider inside the build method
     final isScanningMode = ref.watch(scanningModeProvider);
+    final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
@@ -74,6 +75,24 @@ class SearchFieldState extends ConsumerState<SearchField> {
                         ? FluentIcons.camera_switch_24_regular
                         : FluentIcons.camera_switch_24_regular,
                     color: isScanningMode ? Colors.green : Colors.blue,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(receivingOrdersModeProvider.notifier)
+                        .toggleReceiveOrder();
+                    if (receiveOrderMode) {
+                      toast("receiveOrderMode Activated");
+                    } else {
+                      toast("receiveOrderMode DeActivated");
+                    }
+                  },
+                  icon: Icon(
+                    receiveOrderMode
+                        ? FluentIcons.cart_24_regular
+                        : FluentIcons.cart_24_regular,
+                    color: receiveOrderMode ? Colors.amber : Colors.blue,
                   ),
                 ),
                 IconButton(

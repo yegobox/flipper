@@ -28,7 +28,7 @@ class RemoteConfigService implements Remote {
       'isAccessiblityFeatureAvailable': false,
       'isMapAvailable': false,
       'isAInvitingMembersAvailable': false,
-      'isSyncAvailable': false,
+      'isSyncAvailable': true,
       'isChatAvailable': false,
       'isGoogleLoginAvailable': true,
       'isResetSettingEnabled': false,
@@ -180,9 +180,6 @@ class RemoteConfigService implements Remote {
 
   @override
   bool isSyncAvailable() {
-    if (kDebugMode) {
-      return false;
-    }
     return remoteConfig.getBool('isSyncAvailable');
   }
 
@@ -358,7 +355,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isSyncAvailable() {
-    return false;
+    return true;
   }
 
   @override

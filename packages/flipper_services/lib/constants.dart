@@ -70,11 +70,11 @@ bool isWindows = UniversalPlatform.isWindows;
 bool isLinux = UniversalPlatform.isLinux;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 ButtonStyle primaryButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: const Color(0xff006AFE),
-      )),
+  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+    (states) => RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0),
+    ),
+  ),
   backgroundColor: MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
   overlayColor: MaterialStateProperty.resolveWith<Color?>(
     (Set<MaterialState> states) {

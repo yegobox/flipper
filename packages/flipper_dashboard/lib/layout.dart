@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
+import 'receipt_ui.dart';
+
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer(
       {Key? key,
@@ -56,7 +58,16 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                       child: ProductView.normalMode(),
                     ),
                     isScanningMode
-                        ? Text("scann")
+                        ? Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Expanded(
+                              child: Container(
+                                width: 400,
+                                // height: 300,
+                                child: ReceiptUI(),
+                              ),
+                            ),
+                          )
                         : Expanded(
                             flex: 1,
                             child: CheckOut(isBigScreen: true),

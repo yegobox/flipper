@@ -13,8 +13,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'create/divider.dart';
-
 class ProductRow extends StatelessWidget {
   final Map<int, String> positionString = {
     0: 'first',
@@ -66,8 +64,8 @@ class ProductRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CenterDivider(
-          width: double.infinity,
+        SizedBox(
+          height: 0.5,
         ),
         Slidable(
           key: Key('slidable-${product.id}'),

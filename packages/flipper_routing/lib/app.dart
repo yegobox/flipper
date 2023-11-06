@@ -166,3 +166,6 @@ class App {}
 // TODO: https://blog.mobile.dev/running-your-maestro-flows-on-github-actions-fe2e016b7338
 // TODO: https://github.com/hautvfami/firebase_admob_config/blob/main/example/lib/main.dart
 // TODO: https://pub.dev/packages/flutter_nfc_kit
+
+// TODO:https://pub.dev/packages/datecs_printer package to use
+// TODO: https://medium.com/flutter-community/a-better-approach-for-cloud-firestore-odm-ad2f6eed11e1
