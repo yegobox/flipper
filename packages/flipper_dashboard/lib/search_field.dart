@@ -5,6 +5,7 @@ import 'package:flipper_models/view_models/product_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
 class SearchField extends StatefulWidget {
@@ -51,49 +52,45 @@ class _SearchFieldState extends State<SearchField> {
               },
               icon: Icon(FluentIcons.search_24_regular),
             ),
-            suffixIcon: InkWell(
-              onTap: _hasText
-                  ? () {
-                      widget.controller.clear();
-                      _hasText = false;
+            suffixIcon: Wrap(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    if (model.toggleScanningMode()) {
+                      toast("Scanning mode Activated");
+                    } else {
+                      toast("Scanning mode DeActivated");
                     }
-                  : null,
-              child: Wrap(
-                children: [
-                  Spacer(),
-                  IconButton(
-                    onPressed: () {
-                      // Handle scanning mode functionality here
-                    },
-                    icon: Icon(
-                      // Update icon based on scanning mode state
-                      FluentIcons.scan_24_regular,
-                      color: Colors.blue,
-                    ),
+                  },
+                  icon: Icon(
+                    model.isScanningMode
+                        ? FluentIcons.camera_switch_24_regular
+                        : FluentIcons.camera_switch_24_regular,
+                    color: model.isScanningMode ? Colors.green : Colors.blue,
                   ),
-                  IconButton(
-                    onPressed: _hasText
-                        ? () {
-                            // Clear text field
-                            widget.controller.clear();
-                            _hasText = false;
-                          }
-                        : () {
-                            // Open dialog box
-                            showDialog(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (context) => OptionModal(
-                                child: ProductEntryScreen(),
-                              ),
-                            );
-                          },
-                    icon: _hasText
-                        ? Icon(FluentIcons.dismiss_24_regular)
-                        : Icon(FluentIcons.add_20_regular),
-                  ),
-                ],
-              ),
+                ),
+                IconButton(
+                  onPressed: _hasText
+                      ? () {
+                          widget.controller.clear();
+                          _hasText = false;
+                        }
+                      : () {
+                          showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) => OptionModal(
+                              child: isDesktopOrWeb
+                                  ? ProductEntryScreen()
+                                  : AddProductButtons(),
+                            ),
+                          );
+                        },
+                  icon: _hasText
+                      ? Icon(FluentIcons.dismiss_24_regular)
+                      : Icon(FluentIcons.add_20_regular),
+                ),
+              ],
             ),
           ),
         );

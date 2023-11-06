@@ -440,8 +440,9 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
   bool isScanningMode = false; // Add a boolean variable for scanning mode
 
-  void toggleScanningMode() {
-    isScanningMode = !isScanningMode;
+  bool toggleScanningMode() {
+    bool toggled = isScanningMode = !isScanningMode;
     rebuildUi();
+    return toggled;
   }
 }
