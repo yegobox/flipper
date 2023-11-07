@@ -26,6 +26,11 @@ class TransactionPeriod {
   static String thisMonth = 'This Month';
 }
 
+class NavigationPurpose {
+  static String home = 'Home';
+  static String back = 'Back';
+}
+
 const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
 const String PENDING = 'pending';

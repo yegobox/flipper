@@ -91,6 +91,7 @@ class _AddProductViewState extends State<AddProductView> {
           onWillPop: () async {
             return onWillPop(
                 context: context,
+                navigationPurpose: NavigationPurpose.back,
                 message: 'You have unsaved product, do you want to discard?');
           },
           child: Scaffold(

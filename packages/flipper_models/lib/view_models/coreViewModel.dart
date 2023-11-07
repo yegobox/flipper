@@ -420,12 +420,12 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     Category? activeCat = await ProxyService.isar
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
-    String activeCatName = activeCat!.name;
+    String? activeCatName = activeCat?.name;
 
     cbTransaction.categoryId = activeCatName;
 
-    activeCat.active = false;
-    activeCat.focused = false;
+    activeCat?.active = false;
+    activeCat?.focused = false;
     await ProxyService.isar.update(data: activeCat);
 
     List<TransactionItem> cbTransactionItems = await ProxyService.isar

@@ -1,11 +1,18 @@
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:move_to_background/move_to_background.dart';
+import 'package:flipper_routing/app.locator.dart';
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 Future<bool> onWillPop(
-    {
-    required BuildContext context,
+    {required BuildContext context,
+    required String navigationPurpose,
     required String message}) async {
+  final _routerService = locator<RouterService>();
   final shouldPop = await showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -61,7 +68,13 @@ Future<bool> onWillPop(
                 },
               ),
             ),
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              if (navigationPurpose == NavigationPurpose.home) {
+                _routerService.navigateTo(FlipperAppRoute());
+              } else if (navigationPurpose == NavigationPurpose.back) {
+                Navigator.of(context).pop(true);
+              }
+            },
           ),
         ],
       );
