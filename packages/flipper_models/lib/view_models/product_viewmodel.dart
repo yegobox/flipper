@@ -219,7 +219,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
       Stock? stock =
           await ProxyService.isar.stockByVariantId(variantId: variantId);
 
-      stock!.currentStock = _stockValue!;
+      stock.currentStock = _stockValue!;
 
       ProxyService.isar.update(data: stock);
       if (await ProxyService.isar.isTaxEnabled()) {

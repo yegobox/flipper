@@ -27,10 +27,8 @@ class IsarAPI<M> implements IsarApiInterface {
   late String commApi;
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
-    String path = '';
-    if (!foundation.kIsWeb) {
-      path = (await getApplicationDocumentsDirectory()).path;
-    }
+    String? appDocDir = '';
+
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -43,7 +41,9 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (isa == null) {
       if (foundation.kIsWeb) {
-        await Isar.initialize();
+        Isar.initialize();
+      } else {
+        appDocDir = (await getApplicationDocumentsDirectory()).path;
       }
       db = await Isar.open(
         // compactOnLaunch:
@@ -81,7 +81,7 @@ class IsarAPI<M> implements IsarApiInterface {
           EBMSchema,
           UserActivitySchema
         ],
-        directory: foundation.kIsWeb ? Isar.sqliteInMemory : path,
+        directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir,
         engine: foundation.kIsWeb || Platform.isLinux
             ? IsarEngine.sqlite
             : IsarEngine.isar,
@@ -487,29 +487,19 @@ class IsarAPI<M> implements IsarApiInterface {
         variation.itemClsCd = "5020230602";
         variation.pkg = "1";
         variation.id = id;
-
-        /// check if there is variant saved with same product name and do nothing
-        Variant? existingVariantWithSameProduct = db.variants
-            .where()
-            .productIdEqualTo(variation.productId)
-            .findFirst();
-        if (existingVariantWithSameProduct == null) {
-          isar.variants.put(variation);
-        }
+        isar.variants.put(variation);
         final stock = Stock(
             id: id,
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: AppActions.create,
+            action: 'create',
             currentStock: variation.qty!,
             productId: variation.productId)
           ..id = id
           ..variantId = id
           ..lowStock = 0.0
           ..branchId = ProxyService.box.getBranchId()!
-          ..supplyPrice = variation.supplyPrice
-          ..retailPrice = variation.retailPrice
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId
@@ -610,8 +600,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
     for (TransactionItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
-      stock?.currentStock = stock.currentStock - item.qty;
-      stock?.action = AppActions.update;
+      stock.currentStock = stock.currentStock - item.qty;
+      stock.action = AppActions.update;
       item.doneWithTransaction = true;
       item.updatedAt = DateTime.now().toIso8601String();
       await update(data: stock);
@@ -3095,7 +3085,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<void> assignStockToVariant({required String variantId}) async {
     Variant? variant = db.read((isar) => isar.variants.get(variantId));
 
-    Stock? stock = await db.readAsync((isar) => isar.stocks
+    Stock? stock = await db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
         .and()
