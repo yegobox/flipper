@@ -16,7 +16,7 @@ Widget BuildGaugeOrList(
     required CoreViewModel model,
     required String widgetType}) {
   final _routerService = locator<RouterService>();
-  return StreamBuilder<List<Transaction>>(
+  return StreamBuilder<List<ITransaction>>(
     initialData: null,
     stream: model.getTransactions(),
     builder: (context, snapshot) {
@@ -51,7 +51,7 @@ Widget BuildGaugeOrList(
           oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
         }
 
-        List<Transaction> filteredTransactions = [];
+        List<ITransaction> filteredTransactions = [];
         for (final transaction in model.transactions) {
           temporaryDate = DateTime.parse(transaction.createdAt);
           if (temporaryDate.isAfter(oldDate)) {

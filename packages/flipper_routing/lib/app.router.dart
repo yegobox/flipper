@@ -1334,7 +1334,7 @@ class SellArgs {
 class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
-    required _i8.Transaction transaction,
+    required _i8.ITransaction transaction,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
@@ -1355,7 +1355,7 @@ class PaymentsArgs {
 
   final _i4.Key? key;
 
-  final _i8.Transaction transaction;
+  final _i8.ITransaction transaction;
 
   @override
   String toString() {
@@ -1370,7 +1370,7 @@ class PaymentConfirmationRoute
   PaymentConfirmationRoute({
     _i4.Key? key,
     required double totalTransactionAmount,
-    required _i8.Transaction transaction,
+    required _i8.ITransaction transaction,
     required String paymentType,
     String? receiptType = "ns",
   }) : super(
@@ -1401,7 +1401,7 @@ class PaymentConfirmationArgs {
 
   final double totalTransactionAmount;
 
-  final _i8.Transaction transaction;
+  final _i8.ITransaction transaction;
 
   final String paymentType;
 
@@ -1418,7 +1418,7 @@ class PaymentConfirmationArgs {
 class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
     _i4.Key? key,
-    required _i8.Transaction transaction,
+    required _i8.ITransaction transaction,
   }) : super(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
@@ -1439,7 +1439,7 @@ class TransactionDetailArgs {
 
   final _i4.Key? key;
 
-  final _i8.Transaction transaction;
+  final _i8.ITransaction transaction;
 
   @override
   String toString() {
@@ -1837,7 +1837,7 @@ class ConversationHistoryArgs {
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
-    _i8.Transaction? transaction,
+    _i8.ITransaction? transaction,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
@@ -1858,7 +1858,7 @@ class TicketsArgs {
 
   final _i4.Key? key;
 
-  final _i8.Transaction? transaction;
+  final _i8.ITransaction? transaction;
 
   @override
   String toString() {
@@ -1871,7 +1871,7 @@ class TicketsArgs {
 class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
-    required _i8.Transaction transaction,
+    required _i8.ITransaction transaction,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
@@ -1892,7 +1892,7 @@ class NewTicketArgs {
 
   final _i4.Key? key;
 
-  final _i8.Transaction transaction;
+  final _i8.ITransaction transaction;
 
   @override
   String toString() {

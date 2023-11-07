@@ -241,7 +241,7 @@ class _AppsState extends State<Apps> {
   }
 
   Widget _buildGauge(BuildContext context, CoreViewModel model) {
-    return StreamBuilder<List<Transaction>>(
+    return StreamBuilder<List<ITransaction>>(
       initialData: null,
       stream: model.getTransactions(),
       builder: (context, snapshot) {
@@ -271,7 +271,7 @@ class _AppsState extends State<Apps> {
             oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
           }
 
-          List<Transaction> filteredTransactions = [];
+          List<ITransaction> filteredTransactions = [];
           for (final transaction in transactions) {
             temporaryDate = DateTime.parse(transaction.createdAt);
             if (temporaryDate.isAfter(oldDate)) {

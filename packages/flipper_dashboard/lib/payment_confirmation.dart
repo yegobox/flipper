@@ -19,7 +19,7 @@ class PaymentConfirmation extends StatefulWidget {
       this.receiptType = "ns"})
       : super(key: key);
   final double totalTransactionAmount;
-  final Transaction transaction;
+  final ITransaction transaction;
   final String? receiptType;
   final String paymentType;
 

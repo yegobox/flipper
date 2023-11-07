@@ -394,7 +394,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Transaction? transaction =
+    ITransaction? transaction =
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {

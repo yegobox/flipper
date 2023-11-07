@@ -974,7 +974,7 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  void setTransaction(_i9.Transaction? transaction) => super.noSuchMethod(
+  void setTransaction(_i9.ITransaction? transaction) => super.noSuchMethod(
         Invocation.method(
           #setTransaction,
           [transaction],
@@ -982,7 +982,7 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
         returnValueForMissingStub: null,
       );
   @override
-  _i5.Future<_i9.Transaction?> getPendingTransaction(
+  _i5.Future<_i9.ITransaction?> getPendingTransaction(
           {required int? branchId}) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -990,20 +990,20 @@ class MockKeyPadService extends _i1.Mock implements _i14.KeyPadService {
           [],
           {#branchId: branchId},
         ),
-        returnValue: _i5.Future<_i9.Transaction?>.value(),
-        returnValueForMissingStub: _i5.Future<_i9.Transaction?>.value(),
-      ) as _i5.Future<_i9.Transaction?>);
+        returnValue: _i5.Future<_i9.ITransaction?>.value(),
+        returnValueForMissingStub: _i5.Future<_i9.ITransaction?>.value(),
+      ) as _i5.Future<_i9.ITransaction?>);
   @override
-  _i5.Future<_i9.Transaction?> getTransactionById({required String? id}) =>
+  _i5.Future<_i9.ITransaction?> getTransactionById({required String? id}) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTransactionById,
           [],
           {#id: id},
         ),
-        returnValue: _i5.Future<_i9.Transaction?>.value(),
-        returnValueForMissingStub: _i5.Future<_i9.Transaction?>.value(),
-      ) as _i5.Future<_i9.Transaction?>);
+        returnValue: _i5.Future<_i9.ITransaction?>.value(),
+        returnValueForMissingStub: _i5.Future<_i9.ITransaction?>.value(),
+      ) as _i5.Future<_i9.ITransaction?>);
   @override
   void reset() => super.noSuchMethod(
         Invocation.method(

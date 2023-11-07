@@ -17,7 +17,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 class Payments extends StatefulWidget {
   Payments({Key? key, required this.transaction}) : super(key: key);
 
-  final Transaction transaction;
+  final ITransaction transaction;
 
   @override
   State<Payments> createState() => _PaymentsState();

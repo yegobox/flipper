@@ -48,7 +48,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   late String? longitude;
   late String? latitude;
 
-  Transaction? get kTransaction => keypad.transaction;
+  ITransaction? get kTransaction => keypad.transaction;
 
   double get amountTotal => keypad.amountTotal;
 
@@ -104,7 +104,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
-    Transaction? pendingTransaction =
+    ITransaction? pendingTransaction =
         await ProxyService.isar.manageTransaction();
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: pendingTransaction.id, doneWithTransaction: false);
@@ -136,7 +136,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   }
 
   void handleClearKey(
-      List<TransactionItem> items, Transaction pendingTransaction) async {
+      List<TransactionItem> items, ITransaction pendingTransaction) async {
     if (items.isEmpty) {
       ProxyService.keypad.reset();
       return;
@@ -155,7 +155,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     await ProxyService.isar.update(data: pendingTransaction);
     ProxyService.keypad.reset();
 
-    Transaction? updatedTransaction =
+    ITransaction? updatedTransaction =
         await ProxyService.isar.getTransactionById(id: pendingTransaction.id);
     keypad.setTransaction(updatedTransaction);
 
@@ -163,7 +163,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   }
 
   void handleSingleDigitKey(
-      List<TransactionItem> items, Transaction pendingTransaction) async {
+      List<TransactionItem> items, ITransaction pendingTransaction) async {
     double amount = double.parse(ProxyService.keypad.key);
 
     if (amount == 0.0) return;
@@ -203,7 +203,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   }
 
   void handleMultipleDigitKey(
-      List<TransactionItem> items, Transaction pendingTransaction) async {
+      List<TransactionItem> items, ITransaction pendingTransaction) async {
     double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.isar.getCustomVariant();
     if (variation == null) return;
@@ -261,14 +261,14 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingTransaction);
 
-      Transaction? updatedTransaction =
+      ITransaction? updatedTransaction =
           await ProxyService.isar.getTransactionById(id: pendingTransaction.id);
       keypad.setTransaction(updatedTransaction);
     }
   }
 
   TransactionItem newTransactionItem(double amount, Variant variation,
-      String name, Transaction pendingTransaction, Stock stock) {
+      String name, ITransaction pendingTransaction, Stock stock) {
     int branchId = ProxyService.box.getBranchId()!;
     return TransactionItem(
       id: randomString(),
@@ -403,14 +403,14 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     rebuildUi();
   }
 
-  List<Transaction> transactions = [];
-  void updateTransactionsList({required List<Transaction> newTransactions}) {
+  List<ITransaction> transactions = [];
+  void updateTransactionsList({required List<ITransaction> newTransactions}) {
     transactions.addAll(newTransactions);
   }
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    Transaction cbTransaction = kTransaction!;
+    ITransaction cbTransaction = kTransaction!;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
     cbTransaction.transactionType = cbTransactionType;
@@ -436,7 +436,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       item.doneWithTransaction = true;
       await ProxyService.isar.update(data: item);
     }
-    List<Transaction> tr = [];
+    List<ITransaction> tr = [];
     tr.add(cbTransaction);
     await ProxyService.isar.update(data: cbTransaction);
     updateTransactionsList(newTransactions: tr);
@@ -459,7 +459,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
         : variation.productName;
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
-    Transaction pendingTransaction =
+    ITransaction pendingTransaction =
         await ProxyService.isar.manageTransaction();
 
     TransactionItem? existTransactionItem = await ProxyService.isar
@@ -492,7 +492,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   /// because we don't know if this is not something different you are selling at this point.
   Future<void> addTransactionItems({
     required String variationId,
-    required Transaction pendingTransaction,
+    required ITransaction pendingTransaction,
     required String name,
     required Variant variation,
     required Stock stock,
@@ -651,7 +651,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     if (kTransaction == null) {
       return;
     }
-    Transaction? transaction =
+    ITransaction? transaction =
         await ProxyService.isar.getTransactionById(id: kTransaction!.id);
     // Map map = transaction!;
     transaction!.note = note;
@@ -666,7 +666,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   void saveTicket(
       {required String ticketName,
       required String ticketNote,
-      required Transaction transaction}) async {
+      required ITransaction transaction}) async {
     transaction.status = PARKED;
     transaction.note = ticketNote;
     transaction.ticketName = ticketName;
@@ -675,7 +675,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   }
 
   Future resumeTransaction({required String ticketId}) async {
-    Transaction? _transaction =
+    ITransaction? _transaction =
         await ProxyService.isar.getTransactionById(id: ticketId);
 
     _transaction!.status = PENDING;
@@ -729,7 +729,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       {required String id, required BuildContext context}) async {
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
-    Transaction? pendingTransaction =
+    ITransaction? pendingTransaction =
         await ProxyService.isar.manageTransaction();
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: pendingTransaction.id, doneWithTransaction: false);
@@ -772,10 +772,10 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
 
   void loadReport() async {
     int branchId = ProxyService.box.getBranchId()!;
-    List<Transaction> completedTransactions =
+    List<ITransaction> completedTransactions =
         await ProxyService.isar.completedTransactions(branchId: branchId);
     Set<TransactionItem> allItems = {};
-    for (Transaction completedTransaction in completedTransactions) {
+    for (ITransaction completedTransaction in completedTransactions) {
       List<TransactionItem> transactionItems = await ProxyService.isar
           .getTransactionItemsByTransactionId(
               transactionId: completedTransaction.id);
@@ -789,10 +789,10 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       {required List<TransactionItem> items,
       required Business business,
       required String receiptType,
-      required Transaction otransaction}) async {
+      required ITransaction otransaction}) async {
     // get receipt from isar related to this transaction
     // get refreshed transaction with cash received
-    Transaction? transaction =
+    ITransaction? transaction =
         await ProxyService.isar.getTransactionById(id: otransaction.id);
     Receipt? receipt =
         await ProxyService.isar.getReceipt(transactionId: transaction!.id);
@@ -840,7 +840,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       {required List<TransactionItem> items,
       required Business business,
       String? receiptType = "ns",
-      required Transaction transaction,
+      required ITransaction transaction,
       required Function callback}) async {
     // use local counter as long as it is marked as synced.
     Counter counter = await getCounter(receiptType);
@@ -919,7 +919,8 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
             totRcptNo: 0);
   }
 
-  Future<void> updateDrawer(String receiptType, Transaction transaction) async {
+  Future<void> updateDrawer(
+      String receiptType, ITransaction transaction) async {
     Drawers? drawer = await ProxyService.isar
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
     drawer!
@@ -952,9 +953,9 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     await ProxyService.isar.update(data: drawer);
   }
 
-  List<Transaction> _completedTransactions = [];
-  List<Transaction> get completedTransactionsList => _completedTransactions;
-  set completedTransactionsList(List<Transaction> value) {
+  List<ITransaction> _completedTransactions = [];
+  List<ITransaction> get completedTransactionsList => _completedTransactions;
+  set completedTransactionsList(List<ITransaction> value) {
     _completedTransactions = value;
     notifyListeners();
   }
@@ -1041,7 +1042,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
       [keypad, app, productService, settingService];
 
   Future<String> deleteTransactionByIndex(String transactionIndex) async {
-    Transaction? target = await getTransactionByIndex(transactionIndex);
+    ITransaction? target = await getTransactionByIndex(transactionIndex);
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
@@ -1052,8 +1053,8 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     return '403';
   }
 
-  Future<Transaction?> getTransactionByIndex(String transactionIndex) async {
-    Transaction? res =
+  Future<ITransaction?> getTransactionByIndex(String transactionIndex) async {
+    ITransaction? res =
         await ProxyService.isar.getTransactionById(id: transactionIndex);
     return res;
   }

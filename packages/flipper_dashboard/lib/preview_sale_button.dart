@@ -29,7 +29,7 @@ class PreviewSaleButton extends StatelessWidget {
           HapticFeedback.lightImpact();
           log("nav payment route");
           model.keyboardKeyPressed(key: '+');
-          Transaction? transaction = await ProxyService.isar
+          ITransaction? transaction = await ProxyService.isar
               .pendingTransaction(branchId: ProxyService.box.getBranchId()!);
           if (transaction == null) {
             showToast(context, 'No item on cart!', color: Colors.red);

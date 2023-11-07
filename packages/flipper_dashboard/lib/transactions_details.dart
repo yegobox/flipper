@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 class TransactionDetail extends StatefulWidget {
   const TransactionDetail({Key? key, required this.transaction})
       : super(key: key);
-  final Transaction transaction;
+  final ITransaction transaction;
   @override
   State<TransactionDetail> createState() => _TransactionDetailState();
 }

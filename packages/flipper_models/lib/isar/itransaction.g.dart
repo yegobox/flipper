@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'transaction.dart';
+part of 'itransaction.dart';
 
 // **************************************************************************
 // _IsarCollectionGenerator
@@ -10,13 +10,13 @@ part of 'transaction.dart';
 // ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
 // ignore_for_file: type=lint
 
-extension GetTransactionCollection on Isar {
-  IsarCollection<String, Transaction> get transactions => this.collection();
+extension GetITransactionCollection on Isar {
+  IsarCollection<String, ITransaction> get iTransactions => this.collection();
 }
 
-const TransactionSchema = IsarGeneratedSchema(
+const ITransactionSchema = IsarGeneratedSchema(
   schema: IsarSchema(
-    name: 'Transaction',
+    name: 'ITransaction',
     idName: 'id',
     embedded: false,
     properties: [
@@ -112,16 +112,16 @@ const TransactionSchema = IsarGeneratedSchema(
       ),
     ],
   ),
-  converter: IsarObjectConverter<String, Transaction>(
-    serialize: serializeTransaction,
-    deserialize: deserializeTransaction,
-    deserializeProperty: deserializeTransactionProp,
+  converter: IsarObjectConverter<String, ITransaction>(
+    serialize: serializeITransaction,
+    deserialize: deserializeITransaction,
+    deserializeProperty: deserializeITransactionProp,
   ),
   embeddedSchemas: [],
 );
 
 @isarProtected
-int serializeTransaction(IsarWriter writer, Transaction object) {
+int serializeITransaction(IsarWriter writer, ITransaction object) {
   IsarCore.writeString(writer, 1, object.id);
   IsarCore.writeString(writer, 2, object.reference);
   {
@@ -193,7 +193,7 @@ int serializeTransaction(IsarWriter writer, Transaction object) {
 }
 
 @isarProtected
-Transaction deserializeTransaction(IsarReader reader) {
+ITransaction deserializeITransaction(IsarReader reader) {
   final String _id;
   _id = IsarCore.readString(reader, 1) ?? '';
   final String _reference;
@@ -250,7 +250,7 @@ Transaction deserializeTransaction(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final object = Transaction(
+  final object = ITransaction(
     id: _id,
     reference: _reference,
     categoryId: _categoryId,
@@ -276,7 +276,7 @@ Transaction deserializeTransaction(IsarReader reader) {
 }
 
 @isarProtected
-dynamic deserializeTransactionProp(IsarReader reader, int property) {
+dynamic deserializeITransactionProp(IsarReader reader, int property) {
   switch (property) {
     case 1:
       return IsarCore.readString(reader, 1) ?? '';
@@ -339,7 +339,7 @@ dynamic deserializeTransactionProp(IsarReader reader, int property) {
   }
 }
 
-sealed class _TransactionUpdate {
+sealed class _ITransactionUpdate {
   bool call({
     required String id,
     String? reference,
@@ -364,10 +364,10 @@ sealed class _TransactionUpdate {
   });
 }
 
-class _TransactionUpdateImpl implements _TransactionUpdate {
-  const _TransactionUpdateImpl(this.collection);
+class _ITransactionUpdateImpl implements _ITransactionUpdate {
+  const _ITransactionUpdateImpl(this.collection);
 
-  final IsarCollection<String, Transaction> collection;
+  final IsarCollection<String, ITransaction> collection;
 
   @override
   bool call({
@@ -419,7 +419,7 @@ class _TransactionUpdateImpl implements _TransactionUpdate {
   }
 }
 
-sealed class _TransactionUpdateAll {
+sealed class _ITransactionUpdateAll {
   int call({
     required List<String> id,
     String? reference,
@@ -444,10 +444,10 @@ sealed class _TransactionUpdateAll {
   });
 }
 
-class _TransactionUpdateAllImpl implements _TransactionUpdateAll {
-  const _TransactionUpdateAllImpl(this.collection);
+class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
+  const _ITransactionUpdateAllImpl(this.collection);
 
-  final IsarCollection<String, Transaction> collection;
+  final IsarCollection<String, ITransaction> collection;
 
   @override
   int call({
@@ -496,13 +496,13 @@ class _TransactionUpdateAllImpl implements _TransactionUpdateAll {
   }
 }
 
-extension TransactionUpdate on IsarCollection<String, Transaction> {
-  _TransactionUpdate get update => _TransactionUpdateImpl(this);
+extension ITransactionUpdate on IsarCollection<String, ITransaction> {
+  _ITransactionUpdate get update => _ITransactionUpdateImpl(this);
 
-  _TransactionUpdateAll get updateAll => _TransactionUpdateAllImpl(this);
+  _ITransactionUpdateAll get updateAll => _ITransactionUpdateAllImpl(this);
 }
 
-sealed class _TransactionQueryUpdate {
+sealed class _ITransactionQueryUpdate {
   int call({
     String? reference,
     String? categoryId,
@@ -526,10 +526,10 @@ sealed class _TransactionQueryUpdate {
   });
 }
 
-class _TransactionQueryUpdateImpl implements _TransactionQueryUpdate {
-  const _TransactionQueryUpdateImpl(this.query, {this.limit});
+class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
+  const _ITransactionQueryUpdateImpl(this.query, {this.limit});
 
-  final IsarQuery<Transaction> query;
+  final IsarQuery<ITransaction> query;
   final int? limit;
 
   @override
@@ -578,17 +578,17 @@ class _TransactionQueryUpdateImpl implements _TransactionQueryUpdate {
   }
 }
 
-extension TransactionQueryUpdate on IsarQuery<Transaction> {
-  _TransactionQueryUpdate get updateFirst =>
-      _TransactionQueryUpdateImpl(this, limit: 1);
+extension ITransactionQueryUpdate on IsarQuery<ITransaction> {
+  _ITransactionQueryUpdate get updateFirst =>
+      _ITransactionQueryUpdateImpl(this, limit: 1);
 
-  _TransactionQueryUpdate get updateAll => _TransactionQueryUpdateImpl(this);
+  _ITransactionQueryUpdate get updateAll => _ITransactionQueryUpdateImpl(this);
 }
 
-class _TransactionQueryBuilderUpdateImpl implements _TransactionQueryUpdate {
-  const _TransactionQueryBuilderUpdateImpl(this.query, {this.limit});
+class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
+  const _ITransactionQueryBuilderUpdateImpl(this.query, {this.limit});
 
-  final QueryBuilder<Transaction, Transaction, QOperations> query;
+  final QueryBuilder<ITransaction, ITransaction, QOperations> query;
   final int? limit;
 
   @override
@@ -642,18 +642,18 @@ class _TransactionQueryBuilderUpdateImpl implements _TransactionQueryUpdate {
   }
 }
 
-extension TransactionQueryBuilderUpdate
-    on QueryBuilder<Transaction, Transaction, QOperations> {
-  _TransactionQueryUpdate get updateFirst =>
-      _TransactionQueryBuilderUpdateImpl(this, limit: 1);
+extension ITransactionQueryBuilderUpdate
+    on QueryBuilder<ITransaction, ITransaction, QOperations> {
+  _ITransactionQueryUpdate get updateFirst =>
+      _ITransactionQueryBuilderUpdateImpl(this, limit: 1);
 
-  _TransactionQueryUpdate get updateAll =>
-      _TransactionQueryBuilderUpdateImpl(this);
+  _ITransactionQueryUpdate get updateAll =>
+      _ITransactionQueryBuilderUpdateImpl(this);
 }
 
-extension TransactionQueryFilter
-    on QueryBuilder<Transaction, Transaction, QFilterCondition> {
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idEqualTo(
+extension ITransactionQueryFilter
+    on QueryBuilder<ITransaction, ITransaction, QFilterCondition> {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -668,7 +668,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idGreaterThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -683,7 +683,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       idGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -699,7 +699,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idLessThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idLessThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -714,7 +714,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       idLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -730,7 +730,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -747,7 +747,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idStartsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -762,7 +762,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idEndsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -777,7 +777,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idContains(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -791,7 +791,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idMatches(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -805,7 +805,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idIsEmpty() {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> idIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -816,7 +816,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> idIsNotEmpty() {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      idIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
@@ -827,7 +828,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -843,7 +844,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -859,7 +860,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -875,7 +876,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceLessThan(
     String value, {
     bool caseSensitive = true,
@@ -891,7 +892,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -907,7 +908,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceBetween(
     String lower,
     String upper, {
@@ -925,7 +926,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -941,7 +942,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -957,7 +958,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -970,7 +971,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -983,7 +984,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -995,7 +996,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       referenceIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1007,21 +1008,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 3));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 3));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1037,7 +1038,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
@@ -1053,7 +1054,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1069,7 +1070,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdLessThan(
     String? value, {
     bool caseSensitive = true,
@@ -1085,7 +1086,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1101,7 +1102,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdBetween(
     String? lower,
     String? upper, {
@@ -1119,7 +1120,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1135,7 +1136,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1151,7 +1152,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1164,7 +1165,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1177,7 +1178,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1189,7 +1190,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       categoryIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1201,7 +1202,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1217,7 +1218,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -1233,7 +1234,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1249,7 +1250,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberLessThan(
     String value, {
     bool caseSensitive = true,
@@ -1265,7 +1266,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1281,7 +1282,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberBetween(
     String lower,
     String upper, {
@@ -1299,7 +1300,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1315,7 +1316,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1331,7 +1332,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1344,7 +1345,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1357,7 +1358,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1369,7 +1370,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1381,7 +1382,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> branchIdEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      branchIdEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -1394,7 +1396,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       branchIdGreaterThan(
     int value,
   ) {
@@ -1408,7 +1410,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       branchIdGreaterThanOrEqualTo(
     int value,
   ) {
@@ -1422,7 +1424,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       branchIdLessThan(
     int value,
   ) {
@@ -1436,7 +1438,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       branchIdLessThanOrEqualTo(
     int value,
   ) {
@@ -1450,7 +1452,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> branchIdBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      branchIdBetween(
     int lower,
     int upper,
   ) {
@@ -1465,7 +1468,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> statusEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1480,7 +1483,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -1496,7 +1499,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1512,7 +1515,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusLessThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      statusLessThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1527,7 +1531,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1543,7 +1547,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> statusBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -1560,7 +1564,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1576,7 +1580,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusEndsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      statusEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1591,9 +1596,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      statusContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -1605,7 +1609,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> statusMatches(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> statusMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1619,7 +1623,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1631,7 +1635,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       statusIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1643,7 +1647,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1659,7 +1663,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -1675,7 +1679,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1691,7 +1695,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeLessThan(
     String value, {
     bool caseSensitive = true,
@@ -1707,7 +1711,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1723,7 +1727,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeBetween(
     String lower,
     String upper, {
@@ -1741,7 +1745,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1757,7 +1761,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1773,7 +1777,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1786,7 +1790,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1799,7 +1803,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1811,7 +1815,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       transactionTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1823,7 +1827,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> subTotalEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      subTotalEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
   }) {
@@ -1838,7 +1843,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       subTotalGreaterThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -1854,7 +1859,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       subTotalGreaterThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -1870,7 +1875,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       subTotalLessThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -1886,7 +1891,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       subTotalLessThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -1902,7 +1907,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> subTotalBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      subTotalBetween(
     double lower,
     double upper, {
     double epsilon = Filter.epsilon,
@@ -1919,7 +1925,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1935,7 +1941,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -1951,7 +1957,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1967,7 +1973,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeLessThan(
     String value, {
     bool caseSensitive = true,
@@ -1983,7 +1989,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1999,7 +2005,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeBetween(
     String lower,
     String upper, {
@@ -2017,7 +2023,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2033,7 +2039,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2049,7 +2055,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2062,7 +2068,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2075,7 +2081,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2087,7 +2093,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       paymentTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2099,7 +2105,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2115,7 +2121,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedGreaterThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2131,7 +2137,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedGreaterThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2147,7 +2153,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedLessThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2163,7 +2169,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedLessThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2179,7 +2185,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       cashReceivedBetween(
     double lower,
     double upper, {
@@ -2197,7 +2203,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2213,7 +2219,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueGreaterThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2229,7 +2235,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueGreaterThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2245,7 +2251,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueLessThan(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2261,7 +2267,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueLessThanOrEqualTo(
     double value, {
     double epsilon = Filter.epsilon,
@@ -2277,7 +2283,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerChangeDueBetween(
     double lower,
     double upper, {
@@ -2295,7 +2301,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2311,7 +2317,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -2327,7 +2333,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2343,7 +2349,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtLessThan(
     String value, {
     bool caseSensitive = true,
@@ -2359,7 +2365,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -2375,7 +2381,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtBetween(
     String lower,
     String upper, {
@@ -2393,7 +2399,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2409,7 +2415,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2425,7 +2431,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2438,7 +2444,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2451,7 +2457,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2463,7 +2469,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       createdAtIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2475,21 +2481,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 13));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 13));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2505,7 +2511,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeGreaterThan(
     String? value, {
     bool caseSensitive = true,
@@ -2521,7 +2527,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2537,7 +2543,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeLessThan(
     String? value, {
     bool caseSensitive = true,
@@ -2553,7 +2559,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2569,7 +2575,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeBetween(
     String? lower,
     String? upper, {
@@ -2587,7 +2593,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2603,7 +2609,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2619,7 +2625,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2632,7 +2638,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2645,7 +2651,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2657,7 +2663,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       receiptTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2669,21 +2675,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 14));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 14));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2699,7 +2705,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtGreaterThan(
     String? value, {
     bool caseSensitive = true,
@@ -2715,7 +2721,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2731,7 +2737,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtLessThan(
     String? value, {
     bool caseSensitive = true,
@@ -2747,7 +2753,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2763,7 +2769,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtBetween(
     String? lower,
     String? upper, {
@@ -2781,7 +2787,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2797,7 +2803,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2813,7 +2819,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2826,7 +2832,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2839,7 +2845,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2851,7 +2857,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       updatedAtIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -2863,21 +2869,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 15));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 15));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2893,7 +2899,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdGreaterThan(
     String? value, {
     bool caseSensitive = true,
@@ -2909,7 +2915,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2925,7 +2931,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdLessThan(
     String? value, {
     bool caseSensitive = true,
@@ -2941,7 +2947,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2957,7 +2963,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdBetween(
     String? lower,
     String? upper, {
@@ -2975,7 +2981,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2991,7 +2997,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -3007,7 +3013,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3020,7 +3026,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3033,7 +3039,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3045,7 +3051,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       customerIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3057,20 +3063,20 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteIsNull() {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 16));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       noteIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 16));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3085,7 +3091,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteGreaterThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteGreaterThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3100,7 +3107,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       noteGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3116,7 +3123,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteLessThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteLessThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3131,7 +3138,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       noteLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3147,7 +3154,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteBetween(
     String? lower,
     String? upper, {
     bool caseSensitive = true,
@@ -3164,7 +3171,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteStartsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -3179,7 +3187,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteEndsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -3194,7 +3202,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteContains(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3208,7 +3216,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteMatches(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3222,7 +3230,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> noteIsEmpty() {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
@@ -3233,7 +3242,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       noteIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3245,21 +3254,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 17));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 17));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedEqualTo(
     DateTime? value,
   ) {
@@ -3273,7 +3282,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedGreaterThan(
     DateTime? value,
   ) {
@@ -3287,7 +3296,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedGreaterThanOrEqualTo(
     DateTime? value,
   ) {
@@ -3301,7 +3310,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedLessThan(
     DateTime? value,
   ) {
@@ -3315,7 +3324,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedLessThanOrEqualTo(
     DateTime? value,
   ) {
@@ -3329,7 +3338,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedBetween(
     DateTime? lower,
     DateTime? upper,
@@ -3345,7 +3354,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> actionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -3360,7 +3369,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionGreaterThan(
     String value, {
     bool caseSensitive = true,
@@ -3376,7 +3385,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionGreaterThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3392,7 +3401,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionLessThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      actionLessThan(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -3407,7 +3417,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionLessThanOrEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3423,7 +3433,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionBetween(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> actionBetween(
     String lower,
     String upper, {
     bool caseSensitive = true,
@@ -3440,7 +3450,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -3456,7 +3466,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionEndsWith(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      actionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -3471,9 +3482,8 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      actionContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
@@ -3485,7 +3495,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition> actionMatches(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> actionMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -3499,7 +3509,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3511,7 +3521,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3523,21 +3533,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 19));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 19));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3553,7 +3563,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameGreaterThan(
     String? value, {
     bool caseSensitive = true,
@@ -3569,7 +3579,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3585,7 +3595,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameLessThan(
     String? value, {
     bool caseSensitive = true,
@@ -3601,7 +3611,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3617,7 +3627,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameBetween(
     String? lower,
     String? upper, {
@@ -3635,7 +3645,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -3651,7 +3661,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -3667,7 +3677,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3680,7 +3690,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3693,7 +3703,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3705,7 +3715,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3717,21 +3727,21 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 20));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 20));
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtEqualTo(
     DateTime? value,
   ) {
@@ -3745,7 +3755,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtGreaterThan(
     DateTime? value,
   ) {
@@ -3759,7 +3769,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtGreaterThanOrEqualTo(
     DateTime? value,
   ) {
@@ -3773,7 +3783,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtLessThan(
     DateTime? value,
   ) {
@@ -3787,7 +3797,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtLessThanOrEqualTo(
     DateTime? value,
   ) {
@@ -3801,7 +3811,7 @@ extension TransactionQueryFilter
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterFilterCondition>
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtBetween(
     DateTime? lower,
     DateTime? upper,
@@ -3818,12 +3828,12 @@ extension TransactionQueryFilter
   }
 }
 
-extension TransactionQueryObject
-    on QueryBuilder<Transaction, Transaction, QFilterCondition> {}
+extension ITransactionQueryObject
+    on QueryBuilder<ITransaction, ITransaction, QFilterCondition> {}
 
-extension TransactionQuerySortBy
-    on QueryBuilder<Transaction, Transaction, QSortBy> {
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortById(
+extension ITransactionQuerySortBy
+    on QueryBuilder<ITransaction, ITransaction, QSortBy> {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortById(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3833,7 +3843,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3844,7 +3854,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReference(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByReference(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3854,7 +3864,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReferenceDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByReferenceDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3865,7 +3875,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCategoryId(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCategoryId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3875,7 +3885,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCategoryIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCategoryIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3886,8 +3896,8 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTransactionNumber(
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      sortByTransactionNumber({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
         4,
@@ -3896,7 +3906,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByTransactionNumberDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3907,19 +3917,19 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByBranchId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByStatus(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByStatus(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3929,7 +3939,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByStatusDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByStatusDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3940,7 +3950,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTransactionType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByTransactionType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3950,7 +3960,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByTransactionTypeDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3961,19 +3971,19 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortBySubTotal() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortBySubTotal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(8);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortBySubTotalDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortBySubTotalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByPaymentType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByPaymentType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3983,7 +3993,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByPaymentTypeDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByPaymentTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -3994,34 +4004,34 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCashReceived() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCashReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByCashReceivedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByCustomerChangeDue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(11);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByCustomerChangeDueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(11, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCreatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCreatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4031,7 +4041,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCreatedAtDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCreatedAtDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4042,7 +4052,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReceiptType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByReceiptType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4052,7 +4062,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByReceiptTypeDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByReceiptTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4063,7 +4073,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByUpdatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByUpdatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4073,7 +4083,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByUpdatedAtDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByUpdatedAtDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4084,7 +4094,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerId(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCustomerId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4094,7 +4104,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByCustomerIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCustomerIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4105,7 +4115,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByNote(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNote(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4115,7 +4125,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByNoteDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNoteDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4126,19 +4136,20 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByLastTouched() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(17);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByLastTouchedDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(17, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByAction(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4148,7 +4159,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByActionDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4159,7 +4170,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTicketName(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByTicketName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4169,7 +4180,7 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByTicketNameDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByTicketNameDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4180,674 +4191,682 @@ extension TransactionQuerySortBy
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDeletedAt() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(20);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> sortByDeletedAtDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(20, sort: Sort.desc);
     });
   }
 }
 
-extension TransactionQuerySortThenBy
-    on QueryBuilder<Transaction, Transaction, QSortThenBy> {
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenById(
+extension ITransactionQuerySortThenBy
+    on QueryBuilder<ITransaction, ITransaction, QSortThenBy> {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenById(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(1, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReference(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByReference(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(2, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReferenceDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByReferenceDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCategoryId(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCategoryId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(3, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCategoryIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCategoryIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTransactionNumber(
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      thenByTransactionNumber({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByTransactionNumberDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(4, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByBranchId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(5, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByStatus(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByStatus(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(6, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByStatusDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByStatusDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(6, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTransactionType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByTransactionType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(7, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByTransactionTypeDesc({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(7, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenBySubTotal() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenBySubTotal() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(8);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenBySubTotalDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenBySubTotalDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByPaymentType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByPaymentType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(9, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByPaymentTypeDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByPaymentTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(9, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCashReceived() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCashReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByCashReceivedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(10, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByCustomerChangeDue() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(11);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy>
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByCustomerChangeDueDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(11, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCreatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCreatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(12, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCreatedAtDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCreatedAtDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(12, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReceiptType(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByReceiptType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(13, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByReceiptTypeDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByReceiptTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(13, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByUpdatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByUpdatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(14, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByUpdatedAtDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByUpdatedAtDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(14, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerId(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCustomerId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(15, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByCustomerIdDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCustomerIdDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(15, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByNote(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNote(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(16, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByNoteDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNoteDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(16, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByLastTouched() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(17);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByLastTouchedDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(17, sort: Sort.desc);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByAction(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(18, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByActionDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(18, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTicketName(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByTicketName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(19, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByTicketNameDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByTicketNameDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(19, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDeletedAt() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(20);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterSortBy> thenByDeletedAtDesc() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(20, sort: Sort.desc);
     });
   }
 }
 
-extension TransactionQueryWhereDistinct
-    on QueryBuilder<Transaction, Transaction, QDistinct> {
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByReference(
+extension ITransactionQueryWhereDistinct
+    on QueryBuilder<ITransaction, ITransaction, QDistinct> {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByReference(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(2, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByCategoryId(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByCategoryId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(3, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByTransactionNumber({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(4, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByBranchId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(5);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByStatus(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByStatus(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(6, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByTransactionType({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(7, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctBySubTotal() {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctBySubTotal() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(8);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByPaymentType(
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByPaymentType({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(9, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByCashReceived() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(10);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByCustomerChangeDue() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(11);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByCreatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByCreatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(12, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByReceiptType(
-      {bool caseSensitive = true}) {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByReceiptType({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(13, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByUpdatedAt(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByUpdatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(14, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByCustomerId(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByCustomerId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(15, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByNote(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByNote(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(16, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct>
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(17);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByAction(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(18, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByTicketName(
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByTicketName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(19, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Transaction, Transaction, QAfterDistinct> distinctByDeletedAt() {
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(20);
     });
   }
 }
 
-extension TransactionQueryProperty1
-    on QueryBuilder<Transaction, Transaction, QProperty> {
-  QueryBuilder<Transaction, String, QAfterProperty> idProperty() {
+extension ITransactionQueryProperty1
+    on QueryBuilder<ITransaction, ITransaction, QProperty> {
+  QueryBuilder<ITransaction, String, QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> referenceProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> referenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> categoryIdProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> categoryIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty>
+  QueryBuilder<ITransaction, String, QAfterProperty>
       transactionNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Transaction, int, QAfterProperty> branchIdProperty() {
+  QueryBuilder<ITransaction, int, QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> statusProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> transactionTypeProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> transactionTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Transaction, double, QAfterProperty> subTotalProperty() {
+  QueryBuilder<ITransaction, double, QAfterProperty> subTotalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> paymentTypeProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> paymentTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Transaction, double, QAfterProperty> cashReceivedProperty() {
+  QueryBuilder<ITransaction, double, QAfterProperty> cashReceivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<Transaction, double, QAfterProperty>
+  QueryBuilder<ITransaction, double, QAfterProperty>
       customerChangeDueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> createdAtProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(12);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> receiptTypeProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(13);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> updatedAtProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(14);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> customerIdProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> noteProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
     });
   }
 
-  QueryBuilder<Transaction, DateTime?, QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<ITransaction, DateTime?, QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(17);
     });
   }
 
-  QueryBuilder<Transaction, String, QAfterProperty> actionProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(18);
     });
   }
 
-  QueryBuilder<Transaction, String?, QAfterProperty> ticketNameProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(19);
     });
   }
 
-  QueryBuilder<Transaction, DateTime?, QAfterProperty> deletedAtProperty() {
+  QueryBuilder<ITransaction, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
     });
   }
 }
 
-extension TransactionQueryProperty2<R>
-    on QueryBuilder<Transaction, R, QAfterProperty> {
-  QueryBuilder<Transaction, (R, String), QAfterProperty> idProperty() {
+extension ITransactionQueryProperty2<R>
+    on QueryBuilder<ITransaction, R, QAfterProperty> {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty> referenceProperty() {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty> referenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty> categoryIdProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty>
+      categoryIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty>
+  QueryBuilder<ITransaction, (R, String), QAfterProperty>
       transactionNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Transaction, (R, int), QAfterProperty> branchIdProperty() {
+  QueryBuilder<ITransaction, (R, int), QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty> statusProperty() {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty> statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty>
+  QueryBuilder<ITransaction, (R, String), QAfterProperty>
       transactionTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Transaction, (R, double), QAfterProperty> subTotalProperty() {
+  QueryBuilder<ITransaction, (R, double), QAfterProperty> subTotalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty> paymentTypeProperty() {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty>
+      paymentTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Transaction, (R, double), QAfterProperty>
+  QueryBuilder<ITransaction, (R, double), QAfterProperty>
       cashReceivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<Transaction, (R, double), QAfterProperty>
+  QueryBuilder<ITransaction, (R, double), QAfterProperty>
       customerChangeDueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty> createdAtProperty() {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(12);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty>
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty>
       receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(13);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty> updatedAtProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty> updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(14);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty> customerIdProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty>
+      customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty> noteProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
     });
   }
 
-  QueryBuilder<Transaction, (R, DateTime?), QAfterProperty>
+  QueryBuilder<ITransaction, (R, DateTime?), QAfterProperty>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(17);
     });
   }
 
-  QueryBuilder<Transaction, (R, String), QAfterProperty> actionProperty() {
+  QueryBuilder<ITransaction, (R, String), QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(18);
     });
   }
 
-  QueryBuilder<Transaction, (R, String?), QAfterProperty> ticketNameProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty>
+      ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(19);
     });
   }
 
-  QueryBuilder<Transaction, (R, DateTime?), QAfterProperty>
+  QueryBuilder<ITransaction, (R, DateTime?), QAfterProperty>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
@@ -4855,134 +4874,136 @@ extension TransactionQueryProperty2<R>
   }
 }
 
-extension TransactionQueryProperty3<R1, R2>
-    on QueryBuilder<Transaction, (R1, R2), QAfterProperty> {
-  QueryBuilder<Transaction, (R1, R2, String), QOperations> idProperty() {
+extension ITransactionQueryProperty3<R1, R2>
+    on QueryBuilder<ITransaction, (R1, R2), QAfterProperty> {
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations> referenceProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations>
+      referenceProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       categoryIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations>
       transactionNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, int), QOperations> branchIdProperty() {
+  QueryBuilder<ITransaction, (R1, R2, int), QOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations> statusProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations> statusProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations>
       transactionTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, double), QOperations> subTotalProperty() {
+  QueryBuilder<ITransaction, (R1, R2, double), QOperations> subTotalProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations>
       paymentTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, double), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, double), QOperations>
       cashReceivedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(10);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, double), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, double), QOperations>
       customerChangeDueProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(11);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations> createdAtProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations>
+      createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(12);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(13);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       updatedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(14);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       customerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations> noteProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, DateTime?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, DateTime?), QOperations>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(17);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String), QOperations> actionProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String), QOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(18);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, String?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(19);
     });
   }
 
-  QueryBuilder<Transaction, (R1, R2, DateTime?), QOperations>
+  QueryBuilder<ITransaction, (R1, R2, DateTime?), QOperations>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
@@ -4994,7 +5015,7 @@ extension TransactionQueryProperty3<R1, R2>
 // JsonSerializableGenerator
 // **************************************************************************
 
-Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
+ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       reference: json['reference'] as String,
       categoryId: json['categoryId'] as String?,
       transactionNumber: json['transactionNumber'] as String,
@@ -5021,7 +5042,7 @@ Transaction _$TransactionFromJson(Map<String, dynamic> json) => Transaction(
           : DateTime.parse(json['deletedAt'] as String),
     );
 
-Map<String, dynamic> _$TransactionToJson(Transaction instance) =>
+Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
     <String, dynamic>{
       'id': instance.id,
       'reference': instance.reference,

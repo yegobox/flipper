@@ -20,7 +20,7 @@ class Branch extends IJsonSerializable {
     this.businessId,
     this.longitude,
     this.latitude,
-    this.table,
+  
     this.deletedAt,
   });
 
@@ -32,7 +32,7 @@ class Branch extends IJsonSerializable {
   int? businessId;
   String? longitude;
   String? latitude;
-  String? table;
+  
   late bool isDefault;
 
   @JsonKey(includeIfNull: true)

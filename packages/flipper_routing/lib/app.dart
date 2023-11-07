@@ -169,3 +169,5 @@ class App {}
 
 // TODO:https://pub.dev/packages/datecs_printer package to use
 // TODO: https://medium.com/flutter-community/a-better-approach-for-cloud-firestore-odm-ad2f6eed11e1
+// best packages
+// https://pub.dev/packages/device_apps

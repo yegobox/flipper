@@ -8,7 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class NewTicket extends StatefulWidget {
   const NewTicket({super.key, required this.transaction});
-  final Transaction transaction;
+  final ITransaction transaction;
   @override
   State<NewTicket> createState() => _NewTicketState();
 }

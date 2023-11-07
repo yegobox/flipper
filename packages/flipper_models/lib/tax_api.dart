@@ -30,7 +30,7 @@ abstract class TaxApi {
   // });
   Future<ReceiptSignature?> createReceipt(
       {Customer? customer,
-      required Transaction transaction,
+      required ITransaction transaction,
       required List<TransactionItem> items,
       required String receiptType,
       required Counter counter});
