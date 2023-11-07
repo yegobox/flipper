@@ -27,10 +27,8 @@ class IsarAPI<M> implements IsarApiInterface {
   late String commApi;
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
-    String path = '';
-    if (!foundation.kIsWeb) {
-      path = (await getApplicationDocumentsDirectory()).path;
-    }
+    String? appDocDir = '';
+
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -43,7 +41,8 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (isa == null) {
       if (foundation.kIsWeb) {
-        await Isar.initialize();
+        appDocDir = (await getApplicationDocumentsDirectory()).path;
+        Isar.initialize();
       }
       db = await Isar.open(
         // compactOnLaunch:
@@ -81,7 +80,7 @@ class IsarAPI<M> implements IsarApiInterface {
           EBMSchema,
           UserActivitySchema
         ],
-        directory: foundation.kIsWeb ? Isar.sqliteInMemory : path,
+        directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir,
         engine: foundation.kIsWeb || Platform.isLinux
             ? IsarEngine.sqlite
             : IsarEngine.isar,
@@ -478,38 +477,34 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> addVariant({required List<Variant> variations}) async {
+  Future<int> addVariant(
+      {required List<Variant> data,
+      required double retailPrice,
+      required double supplyPrice}) async {
     String id = randomString();
     db.write((isar) {
-      for (Variant variation in variations) {
+      for (Variant variation in data) {
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
         variation.itemClsCd = "5020230602";
         variation.pkg = "1";
         variation.id = id;
-
-        /// check if there is variant saved with same product name and do nothing
-        Variant? existingVariantWithSameProduct = db.variants
-            .where()
-            .productIdEqualTo(variation.productId)
-            .findFirst();
-        if (existingVariantWithSameProduct == null) {
-          isar.variants.put(variation);
-        }
+        isar.variants.put(variation);
         final stock = Stock(
             id: id,
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: AppActions.create,
-            currentStock: variation.qty!,
+            action: 'create',
+            currentStock: 0.0,
             productId: variation.productId)
           ..id = id
           ..variantId = id
           ..lowStock = 0.0
           ..branchId = ProxyService.box.getBranchId()!
-          ..supplyPrice = variation.supplyPrice
-          ..retailPrice = variation.retailPrice
+          ..currentStock = 0.0
+          ..supplyPrice = supplyPrice
+          ..retailPrice = retailPrice
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId
@@ -1657,14 +1652,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Stock?> stockByVariantId({required String variantId}) async {
+  Future<Stock> stockByVariantId({required String variantId}) async {
     int branchId = ProxyService.box.getBranchId()!;
+    await assignStockToVariant(variantId: variantId);
     return db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
         .and()
         .branchIdEqualTo(branchId)
-        .findFirst());
+        .findFirst())!;
   }
 
   @override
@@ -3091,10 +3087,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .watch(fireImmediately: true));
   }
 
-  void assignStockToVariant({required String variantId}) {
+  Future<void> assignStockToVariant({required String variantId}) async {
     Variant? variant = db.read((isar) => isar.variants.get(variantId));
 
-    Stock? stock = db.read((isar) => isar.stocks
+    Stock? stock = await db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
         .and()
@@ -3111,19 +3107,6 @@ class IsarAPI<M> implements IsarApiInterface {
           productId: variant!.productId);
       db.stocks.put(stock);
     }
-  }
-
-  @override
-  Stream<Stock> stockByVariantIdStream({required String variantId}) {
-    /// check if this variant has stock, if not first assign stock
-    assignStockToVariant(variantId: variantId);
-    return db.read((isar) => isar.stocks
-        .where()
-        .variantIdEqualTo(variantId)
-        .and()
-        .branchIdEqualTo(ProxyService.box.getBranchId()!)
-        .watch(fireImmediately: true)
-        .asyncMap((event) => event.first));
   }
 
   @override
