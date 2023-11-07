@@ -212,7 +212,7 @@ class RemoteService implements RemoteInterface {
                   break;
                 case 'transactions':
                   await handleItem(
-                      model: Transaction.fromJson(updatedJson),
+                      model: ITransaction.fromJson(updatedJson),
                       branchId: branchId);
                   break;
                 case 'transactionItems':
@@ -334,7 +334,7 @@ class RemoteService implements RemoteInterface {
         await handleItem(model: Social.fromJson(jsonData), branchId: branchId);
       case 'transactions':
         await handleItem(
-            model: Transaction.fromJson(jsonData), branchId: branchId);
+            model: ITransaction.fromJson(jsonData), branchId: branchId);
         break;
       case 'transactionItems':
         await handleItem(
@@ -447,9 +447,9 @@ class RemoteService implements RemoteInterface {
         await ProxyService.isar.update(data: ebm);
       }
     }
-    if (model is Transaction) {
-      Transaction remoteTransaction = Transaction.fromJson(model.toJson());
-      Transaction? localTransaction =
+    if (model is ITransaction) {
+      ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
+      ITransaction? localTransaction =
           await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
 
       if (localTransaction == null &&

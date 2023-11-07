@@ -70,7 +70,7 @@ class _PreviewSaleBottomSheetState extends State<PreviewSaleBottomSheet> {
                                     children: [
                                       AddCustomerButton(
                                           transactionId:
-                                              model.kTransaction!.id),
+                                              model.kTransaction?.id ?? '0'),
                                       ...buildItems(
                                         context: context,
                                         callback: (item) async {

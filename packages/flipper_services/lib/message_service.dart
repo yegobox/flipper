@@ -23,7 +23,7 @@ class MessageService with ReactiveServiceMixin {
 
   final _orders = ReactiveValue<dynamic>(null);
 
-  Transaction? get orders => _orders.value;
+  ITransaction? get orders => _orders.value;
   void onNewTransaction() {
     // _orders.value = new TransactionF();
   }

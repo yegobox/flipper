@@ -27,8 +27,10 @@ class IsarAPI<M> implements IsarApiInterface {
   late String commApi;
   late Isar db;
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
-    final appDocDir = await getApplicationDocumentsDirectory();
-
+    String path = '';
+    if (!foundation.kIsWeb) {
+      path = (await getApplicationDocumentsDirectory()).path;
+    }
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -40,11 +42,14 @@ class IsarAPI<M> implements IsarApiInterface {
       commApi = AppSecrets.commApi;
     }
     if (isa == null) {
+      if (foundation.kIsWeb) {
+        await Isar.initialize();
+      }
       db = await Isar.open(
         // compactOnLaunch:
         //     CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
         schemas: [
-          TransactionSchema,
+          ITransactionSchema,
           BusinessSchema,
           BranchSchema,
           TransactionItemSchema,
@@ -76,7 +81,7 @@ class IsarAPI<M> implements IsarApiInterface {
           EBMSchema,
           UserActivitySchema
         ],
-        directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir.path,
+        directory: foundation.kIsWeb ? Isar.sqliteInMemory : path,
         engine: foundation.kIsWeb || Platform.isLinux
             ? IsarEngine.sqlite
             : IsarEngine.isar,
@@ -106,8 +111,8 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.customers.put(kCustomer);
     });
 
-    Transaction transaction =
-        db.read((isar) => isar.transactions.get(transactionId)!);
+    ITransaction transaction =
+        db.read((isar) => isar.iTransactions.get(transactionId)!);
     transaction.customerId = kCustomer.id;
     // update the transaction with the customerID
     await update(data: transaction);
@@ -119,17 +124,17 @@ class IsarAPI<M> implements IsarApiInterface {
   /// those change will stay on local, so I need to work on them as well.
 
   @override
-  Future<Transaction> manageTransaction({
+  Future<ITransaction> manageTransaction({
     String transactionType = 'custom',
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    Transaction? existTransaction =
+    ITransaction? existTransaction =
         await pendingTransaction(branchId: branchId);
 
     if (existTransaction == null) {
       final String id = randomString();
-      final transaction = Transaction(
+      final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
         reference: randomString(),
@@ -148,9 +153,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
       // save transaction to db
       db.write((isar) {
-        isar.transactions.put(transaction);
+        isar.iTransactions.put(transaction);
       });
-      Transaction? createdTransaction = await db.transactions.get(id);
+      ITransaction? createdTransaction = await db.iTransactions.get(id);
       ProxyService.box.writeString(key: 'currentTransactionId', value: id);
       return createdTransaction!;
     } else {
@@ -159,16 +164,16 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Transaction> manageCashInOutTransaction(
+  Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    Transaction? existTransaction =
+    ITransaction? existTransaction =
         await pendingTransaction(branchId: branchId);
 
     if (existTransaction == null) {
       String id = randomString();
-      final transaction = Transaction(
+      final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
         reference: randomString(),
@@ -187,9 +192,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
       // save transaction to db
       db.write((isar) {
-        isar.transactions.put(transaction);
+        isar.iTransactions.put(transaction);
       });
-      Transaction? createdTransaction = db.transactions.get(id);
+      ITransaction? createdTransaction = db.iTransactions.get(id);
       ProxyService.box.writeString(key: 'currentTransactionId', value: id);
       return createdTransaction!;
     } else {
@@ -199,7 +204,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> addTransactionItem(
-      {required Transaction transaction, required TransactionItem item}) async {
+      {required ITransaction transaction,
+      required TransactionItem item}) async {
     db.write((isar) {
       isar.transactionItems.put(item);
     });
@@ -213,8 +219,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Transaction?> getTransactionById({required String id}) async {
-    return db.read((isar) => isar.transactions.get(id));
+  Future<ITransaction?> getTransactionById({required String id}) async {
+    return db.read((isar) => isar.iTransactions.get(id));
   }
 
   //Delete a favorite
@@ -222,7 +228,7 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<int> deleteTransactionByIndex(
       {required String transactionIndex}) async {
     db.write((isar) {
-      isar.transactions.delete(transactionIndex);
+      isar.iTransactions.delete(transactionIndex);
     });
     return Future.value(200);
   }
@@ -247,7 +253,7 @@ class IsarAPI<M> implements IsarApiInterface {
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
-    List<Transaction> cashIn = db.read((isar) => isar.transactions
+    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo(TransactionType.cashIn)
@@ -265,7 +271,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     cashInOut.add(In);
 
-    List<Transaction> cashOut = db.transactions
+    List<ITransaction> cashOut = db.iTransactions
         .where()
         .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo(TransactionType.cashOut)
@@ -302,7 +308,7 @@ class IsarAPI<M> implements IsarApiInterface {
     List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
-    List<Transaction> cashIn = db.read((isar) => isar.transactions
+    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo(TransactionType.cashIn)
@@ -320,7 +326,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     cashInOut.add(In);
 
-    List<Transaction> cashOut = db.transactions
+    List<ITransaction> cashOut = db.iTransactions
         .where()
         .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo(TransactionType.cashOut)
@@ -472,34 +478,38 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> addVariant(
-      {required List<Variant> data,
-      required double retailPrice,
-      required double supplyPrice}) async {
+  Future<int> addVariant({required List<Variant> variations}) async {
     String id = randomString();
     db.write((isar) {
-      for (Variant variation in data) {
+      for (Variant variation in variations) {
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
         variation.itemClsCd = "5020230602";
         variation.pkg = "1";
         variation.id = id;
-        isar.variants.put(variation);
+
+        /// check if there is variant saved with same product name and do nothing
+        Variant? existingVariantWithSameProduct = db.variants
+            .where()
+            .productIdEqualTo(variation.productId)
+            .findFirst();
+        if (existingVariantWithSameProduct == null) {
+          isar.variants.put(variation);
+        }
         final stock = Stock(
             id: id,
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: 'create',
-            currentStock: 0.0,
+            action: AppActions.create,
+            currentStock: variation.qty!,
             productId: variation.productId)
           ..id = id
           ..variantId = id
           ..lowStock = 0.0
           ..branchId = ProxyService.box.getBranchId()!
-          ..currentStock = 0.0
-          ..supplyPrice = supplyPrice
-          ..retailPrice = retailPrice
+          ..supplyPrice = variation.supplyPrice
+          ..retailPrice = variation.retailPrice
           ..canTrackingStock = false
           ..showLowStockAlert = false
           ..productId = variation.productId
@@ -514,13 +524,13 @@ class IsarAPI<M> implements IsarApiInterface {
   Future assingTransactionToCustomer(
       {required String customerId, required String transactionId}) async {
     // get transaction where id = transactionId from db
-    Transaction? transaction =
-        db.transactions.where().idEqualTo(transactionId).findFirst();
+    ITransaction? transaction =
+        db.iTransactions.where().idEqualTo(transactionId).findFirst();
 
     transaction!.customerId = customerId;
     // update transaction to db
     db.write((isar) {
-      isar.transactions.put(transaction);
+      isar.iTransactions.put(transaction);
     });
     // get customer where id = customerId from db
     //// and updat this customer with timestamp so it can trigger change!.
@@ -584,7 +594,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<void> collectPayment(
       {required double cashReceived,
-      required Transaction transaction,
+      required ITransaction transaction,
       required String paymentType}) async {
     transaction.status = COMPLETE;
 
@@ -1169,7 +1179,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Customer?> nGetCustomerByTransactionId({required String id}) async {
-    Transaction? transaction = db.transactions.get(id);
+    ITransaction? transaction = db.iTransactions.get(id);
     if (transaction == null) {
       return null;
     }
@@ -1579,8 +1589,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Transaction?> pendingTransaction({required int branchId}) async {
-    return db.read((isar) => isar.transactions
+  Future<ITransaction?> pendingTransaction({required int branchId}) async {
+    return db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(PENDING)
         .and()
@@ -1689,8 +1699,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Transaction>> tickets() async {
-    return db.read((isar) => isar.transactions
+  Future<List<ITransaction>> tickets() async {
+    return db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(PARKED)
         .and()
@@ -1802,9 +1812,9 @@ class IsarAPI<M> implements IsarApiInterface {
       });
       return Future.value(null);
     }
-    if (data is Transaction) {
+    if (data is ITransaction) {
       db.write((isar) {
-        isar.transactions.put(data);
+        isar.iTransactions.put(data);
       });
       return Future.value(null);
     }
@@ -1865,10 +1875,10 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.stocks.put(stock);
       });
     }
-    if (data is Transaction) {
+    if (data is ITransaction) {
       final transaction = data;
       db.write((isar) {
-        isar.transactions.put(transaction);
+        isar.iTransactions.put(transaction);
       });
     }
     if (data is Category) {
@@ -2088,7 +2098,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Receipt?> createReceipt(
       {required ReceiptSignature signature,
-      required Transaction transaction,
+      required ITransaction transaction,
       required String qrCode,
       required Counter counter,
       required String receiptType}) async {
@@ -2339,9 +2349,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
 // https://pub.dev/packages/excel
   @override
-  Future<List<Transaction>> completedTransactions(
+  Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE}) async {
-    return db.transactions
+    return db.iTransactions
         .where()
         .statusEqualTo(status!)
         .and()
@@ -2812,7 +2822,7 @@ class IsarAPI<M> implements IsarApiInterface {
         List<Product> products,
         List<Favorite> favorites,
         List<Device> devices,
-        List<Transaction> transactions,
+        List<ITransaction> transactions,
         List<TransactionItem> transactionItems
       })> getUnSyncedData() async {
     return db.read((isar) {
@@ -2878,7 +2888,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .and()
           .branchIdEqualTo(ProxyService.box.getBranchId()!)
           .findAll();
-      final List<Transaction> transactions = isar.transactions
+      final List<ITransaction> transactions = isar.iTransactions
           .where()
           .statusEqualTo(COMPLETE)
           .lastTouchedIsNull()
@@ -2930,14 +2940,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Transaction>> transactionsFuture({
+  Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
     int? branchId,
     bool isCashOut = false,
     bool includePending = false,
   }) async {
-    final isarQuery = db.transactions.where().statusEqualTo(status ?? COMPLETE);
+    final isarQuery =
+        db.iTransactions.where().statusEqualTo(status ?? COMPLETE);
 
     if (isCashOut) {
       isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
@@ -2965,7 +2976,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<TransactionItem>> transactionItemsFuture() async {
-    List<Transaction> transactions = await transactionsFuture(status: PENDING);
+    List<ITransaction> transactions = await transactionsFuture(status: PENDING);
     final List<TransactionItem> allItems = [];
 
     for (final transaction in transactions) {
@@ -2981,10 +2992,10 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Transaction>> getTransactionsByCustomerId(
+  Stream<List<ITransaction>> getTransactionsByCustomerId(
       {required String customerId}) async* {
     yield* db.read((isar) =>
-        isar.transactions.where().customerIdEqualTo(customerId).watch());
+        isar.iTransactions.where().customerIdEqualTo(customerId).watch());
   }
 
   @override
@@ -3071,9 +3082,9 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Transaction>> ticketsStreams() {
+  Stream<List<ITransaction>> ticketsStreams() {
     log(ProxyService.box.getBranchId()!.toString(), name: "ticketsStreams()");
-    return db.read((isar) => isar.transactions
+    return db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(PARKED)
         .and()
@@ -3173,7 +3184,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Customer?> getCustomer({String? key, String? transactionId}) async {
     if (transactionId != null) {
-      Transaction? tr = db.transactions.get(transactionId);
+      ITransaction? tr = db.iTransactions.get(transactionId);
       final customer = await db.read((isar) => isar.customers
           .where()
           .idEqualTo(tr!.customerId ?? '0')

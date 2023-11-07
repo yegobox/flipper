@@ -83,14 +83,14 @@ class SynchronizationService<M extends IJsonSerializable>
   }
 
   // The extracted function for updating and reporting transactions
-  Future<void> _pushTransactions(Transaction transaction) async {
+  Future<void> _pushTransactions(ITransaction transaction) async {
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     transaction.updatedAt = DateTime.now().toIso8601String();
     transaction.createdAt = DateTime.now().toIso8601String();
     if (transaction.action != AppActions.remote) {
       Map<String, dynamic>? variantRecord = await _push(transaction as M);
       if (variantRecord != null && variantRecord.isNotEmpty) {
-        Transaction trans = Transaction.fromJson(variantRecord);
+        ITransaction trans = ITransaction.fromJson(variantRecord);
 
         /// keep the local ID unchanged to avoid complication
         trans.id = transaction.id;
@@ -105,7 +105,7 @@ class SynchronizationService<M extends IJsonSerializable>
   Future<void> localChanges() async {
     final data = await ProxyService.isar.getUnSyncedData();
 
-    for (Transaction transaction in data.transactions) {
+    for (ITransaction transaction in data.transactions) {
       await _pushTransactions(transaction);
     }
     for (TransactionItem item in data.transactionItems) {

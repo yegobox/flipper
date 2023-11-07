@@ -49,9 +49,9 @@ class KeyPadService with ListenableServiceMixin {
 
   /// all the time we have one transaction being processed at the time.
   /// one transaction can have multiple transaction items.
-  final _transaction = ReactiveValue<Transaction?>(null);
+  final _transaction = ReactiveValue<ITransaction?>(null);
 
-  Transaction? get transaction => _transaction.value;
+  ITransaction? get transaction => _transaction.value;
 
   final _totalPayable = ReactiveValue<double>(0.00);
   double get totalPayable => _totalPayable.value;
@@ -65,7 +65,7 @@ class KeyPadService with ListenableServiceMixin {
     _totalDiscount.value = amount;
   }
 
-  void setTransaction(Transaction? transaction) async {
+  void setTransaction(ITransaction? transaction) async {
     if (transaction != null) {
       _transaction.value = transaction;
     } else {
@@ -76,8 +76,8 @@ class KeyPadService with ListenableServiceMixin {
   /// transaction can not be more than 1 lenght i.e at one instance
   /// we have one transaction but an transaction can have more than 1 transactionitem(s)
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
-  Future<Transaction?> getPendingTransaction({required int branchId}) async {
-    Transaction? transaction =
+  Future<ITransaction?> getPendingTransaction({required int branchId}) async {
+    ITransaction? transaction =
         await ProxyService.isar.pendingTransaction(branchId: branchId);
 
     if (transaction != null) {
@@ -91,8 +91,8 @@ class KeyPadService with ListenableServiceMixin {
 
   /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
-  Future<Transaction?> getTransactionById({required String id}) async {
-    Transaction? od = await ProxyService.isar.getTransactionById(id: id);
+  Future<ITransaction?> getTransactionById({required String id}) async {
+    ITransaction? od = await ProxyService.isar.getTransactionById(id: id);
     List<TransactionItem> transactionItems = await ProxyService.isar
         .getTransactionItemsByTransactionId(transactionId: od!.id);
     _countTransactionItems.value = transactionItems.length;

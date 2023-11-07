@@ -275,7 +275,7 @@ final stockMock = Stock(
   ..active = false;
 
 // transaction mock
-Transaction? TransactionFMock = Transaction(
+ITransaction? TransactionFMock = ITransaction(
   lastTouched: DateTime.now(),
   action: AppActions.create,
   id: randomString(),
@@ -341,6 +341,5 @@ final branchMock = Branch(
   latitude: '0',
   longitude: '2',
   name: 'name',
-  table: 'branches',
   isDefault: false,
 );

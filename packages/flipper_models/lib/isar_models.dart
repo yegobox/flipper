@@ -3,7 +3,7 @@ export 'package:isar/isar.dart';
 export 'isar/points.dart';
 export 'isar/pin.dart';
 export 'isar/transaction_item.dart';
-export 'isar/transaction.dart';
+export 'isar/itransaction.dart';
 export 'isar/feature.dart';
 export 'isar/discount.dart';
 export 'isar/customer.dart';
@@ -53,6 +53,7 @@ export 'package:flipper_models/view_models/drawer_viewmodel.dart';
 export 'package:flipper_models/view_models/setting_view_model.dart';
 export 'package:flipper_models/view_models/favorite_viewmodel.dart';
 export 'package:flipper_models/view_models/flipperBaseModel.dart';
+export 'package:flipper_models/view_models/ScannViewModel.dart';
 
 export 'package:flipper_services/objectbox_api.dart'
     if (dart.library.html) 'package:flipper_services/objectbox_api_web.dart';

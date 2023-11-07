@@ -42,7 +42,7 @@ class _CashbookState extends State<Cashbook> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<Transaction> _transactions = await ProxyService.isar
+        List<ITransaction> _transactions = await ProxyService.isar
             .completedTransactions(branchId: ProxyService.box.getBranchId()!);
         model.updateTransactionsList(newTransactions: _transactions);
       },

@@ -3,11 +3,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
-part 'transaction.g.dart';
+part 'itransaction.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Transaction extends IJsonSerializable {
+class ITransaction extends IJsonSerializable {
   late String id;
   late String reference;
   String? categoryId;
@@ -39,7 +39,7 @@ class Transaction extends IJsonSerializable {
   String? ticketName;
   @Index()
   DateTime? deletedAt;
-  Transaction({
+  ITransaction({
     required this.reference,
     this.categoryId,
     required this.transactionNumber,
@@ -62,10 +62,10 @@ class Transaction extends IJsonSerializable {
     this.deletedAt,
   });
 
-  factory Transaction.fromRecord(RecordModel record) =>
-      Transaction.fromJson(record.toJson());
+  factory ITransaction.fromRecord(RecordModel record) =>
+      ITransaction.fromJson(record.toJson());
 
-  factory Transaction.fromJson(Map<String, dynamic> json) {
+  factory ITransaction.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
     json['deletedAt'] = json['deletedAt'] == null ||
@@ -79,12 +79,12 @@ class Transaction extends IJsonSerializable {
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
 
-    return _$TransactionFromJson(json);
+    return _$ITransactionFromJson(json);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$TransactionToJson(this);
+    final Map<String, dynamic> data = _$ITransactionToJson(this);
 
     data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
     data['businessId'] = ProxyService.box.getBusinessId();

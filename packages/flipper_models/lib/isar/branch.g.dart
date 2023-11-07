@@ -45,10 +45,6 @@ const BranchSchema = IsarGeneratedSchema(
         type: IsarType.string,
       ),
       IsarPropertySchema(
-        name: 'table',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
         name: 'isDefault',
         type: IsarType.bool,
       ),
@@ -118,22 +114,14 @@ int serializeBranch(IsarWriter writer, Branch object) {
       IsarCore.writeString(writer, 6, value);
     }
   }
-  {
-    final value = object.table;
-    if (value == null) {
-      IsarCore.writeNull(writer, 7);
-    } else {
-      IsarCore.writeString(writer, 7, value);
-    }
-  }
-  IsarCore.writeBool(writer, 8, object.isDefault);
+  IsarCore.writeBool(writer, 7, object.isDefault);
   IsarCore.writeLong(
       writer,
-      9,
+      8,
       object.lastTouched?.toUtc().microsecondsSinceEpoch ??
           -9223372036854775808);
-  IsarCore.writeString(writer, 10, object.action);
-  IsarCore.writeLong(writer, 11,
+  IsarCore.writeString(writer, 9, object.action);
+  IsarCore.writeLong(writer, 10,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
   return object.id;
 }
@@ -167,15 +155,13 @@ Branch deserializeBranch(IsarReader reader) {
   _longitude = IsarCore.readString(reader, 5);
   final String? _latitude;
   _latitude = IsarCore.readString(reader, 6);
-  final String? _table;
-  _table = IsarCore.readString(reader, 7);
   final bool _isDefault;
-  _isDefault = IsarCore.readBool(reader, 8);
+  _isDefault = IsarCore.readBool(reader, 7);
   final String _action;
-  _action = IsarCore.readString(reader, 10) ?? '';
+  _action = IsarCore.readString(reader, 9) ?? '';
   final DateTime? _deletedAt;
   {
-    final value = IsarCore.readLong(reader, 11);
+    final value = IsarCore.readLong(reader, 10);
     if (value == -9223372036854775808) {
       _deletedAt = null;
     } else {
@@ -191,13 +177,12 @@ Branch deserializeBranch(IsarReader reader) {
     businessId: _businessId,
     longitude: _longitude,
     latitude: _latitude,
-    table: _table,
     isDefault: _isDefault,
     action: _action,
     deletedAt: _deletedAt,
   );
   {
-    final value = IsarCore.readLong(reader, 9);
+    final value = IsarCore.readLong(reader, 8);
     if (value == -9223372036854775808) {
       object.lastTouched = null;
     } else {
@@ -239,12 +224,10 @@ dynamic deserializeBranchProp(IsarReader reader, int property) {
     case 6:
       return IsarCore.readString(reader, 6);
     case 7:
-      return IsarCore.readString(reader, 7);
+      return IsarCore.readBool(reader, 7);
     case 8:
-      return IsarCore.readBool(reader, 8);
-    case 9:
       {
-        final value = IsarCore.readLong(reader, 9);
+        final value = IsarCore.readLong(reader, 8);
         if (value == -9223372036854775808) {
           return null;
         } else {
@@ -252,11 +235,11 @@ dynamic deserializeBranchProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 9:
+      return IsarCore.readString(reader, 9) ?? '';
     case 10:
-      return IsarCore.readString(reader, 10) ?? '';
-    case 11:
       {
-        final value = IsarCore.readLong(reader, 11);
+        final value = IsarCore.readLong(reader, 10);
         if (value == -9223372036854775808) {
           return null;
         } else {
@@ -278,7 +261,6 @@ sealed class _BranchUpdate {
     int? businessId,
     String? longitude,
     String? latitude,
-    String? table,
     bool? isDefault,
     DateTime? lastTouched,
     String? action,
@@ -300,7 +282,6 @@ class _BranchUpdateImpl implements _BranchUpdate {
     Object? businessId = ignore,
     Object? longitude = ignore,
     Object? latitude = ignore,
-    Object? table = ignore,
     Object? isDefault = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -315,11 +296,10 @@ class _BranchUpdateImpl implements _BranchUpdate {
           if (businessId != ignore) 4: businessId as int?,
           if (longitude != ignore) 5: longitude as String?,
           if (latitude != ignore) 6: latitude as String?,
-          if (table != ignore) 7: table as String?,
-          if (isDefault != ignore) 8: isDefault as bool?,
-          if (lastTouched != ignore) 9: lastTouched as DateTime?,
-          if (action != ignore) 10: action as String?,
-          if (deletedAt != ignore) 11: deletedAt as DateTime?,
+          if (isDefault != ignore) 7: isDefault as bool?,
+          if (lastTouched != ignore) 8: lastTouched as DateTime?,
+          if (action != ignore) 9: action as String?,
+          if (deletedAt != ignore) 10: deletedAt as DateTime?,
         }) >
         0;
   }
@@ -334,7 +314,6 @@ sealed class _BranchUpdateAll {
     int? businessId,
     String? longitude,
     String? latitude,
-    String? table,
     bool? isDefault,
     DateTime? lastTouched,
     String? action,
@@ -356,7 +335,6 @@ class _BranchUpdateAllImpl implements _BranchUpdateAll {
     Object? businessId = ignore,
     Object? longitude = ignore,
     Object? latitude = ignore,
-    Object? table = ignore,
     Object? isDefault = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -369,11 +347,10 @@ class _BranchUpdateAllImpl implements _BranchUpdateAll {
       if (businessId != ignore) 4: businessId as int?,
       if (longitude != ignore) 5: longitude as String?,
       if (latitude != ignore) 6: latitude as String?,
-      if (table != ignore) 7: table as String?,
-      if (isDefault != ignore) 8: isDefault as bool?,
-      if (lastTouched != ignore) 9: lastTouched as DateTime?,
-      if (action != ignore) 10: action as String?,
-      if (deletedAt != ignore) 11: deletedAt as DateTime?,
+      if (isDefault != ignore) 7: isDefault as bool?,
+      if (lastTouched != ignore) 8: lastTouched as DateTime?,
+      if (action != ignore) 9: action as String?,
+      if (deletedAt != ignore) 10: deletedAt as DateTime?,
     });
   }
 }
@@ -392,7 +369,6 @@ sealed class _BranchQueryUpdate {
     int? businessId,
     String? longitude,
     String? latitude,
-    String? table,
     bool? isDefault,
     DateTime? lastTouched,
     String? action,
@@ -414,7 +390,6 @@ class _BranchQueryUpdateImpl implements _BranchQueryUpdate {
     Object? businessId = ignore,
     Object? longitude = ignore,
     Object? latitude = ignore,
-    Object? table = ignore,
     Object? isDefault = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -427,11 +402,10 @@ class _BranchQueryUpdateImpl implements _BranchQueryUpdate {
       if (businessId != ignore) 4: businessId as int?,
       if (longitude != ignore) 5: longitude as String?,
       if (latitude != ignore) 6: latitude as String?,
-      if (table != ignore) 7: table as String?,
-      if (isDefault != ignore) 8: isDefault as bool?,
-      if (lastTouched != ignore) 9: lastTouched as DateTime?,
-      if (action != ignore) 10: action as String?,
-      if (deletedAt != ignore) 11: deletedAt as DateTime?,
+      if (isDefault != ignore) 7: isDefault as bool?,
+      if (lastTouched != ignore) 8: lastTouched as DateTime?,
+      if (action != ignore) 9: action as String?,
+      if (deletedAt != ignore) 10: deletedAt as DateTime?,
     });
   }
 }
@@ -456,7 +430,6 @@ class _BranchQueryBuilderUpdateImpl implements _BranchQueryUpdate {
     Object? businessId = ignore,
     Object? longitude = ignore,
     Object? latitude = ignore,
-    Object? table = ignore,
     Object? isDefault = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -471,11 +444,10 @@ class _BranchQueryBuilderUpdateImpl implements _BranchQueryUpdate {
         if (businessId != ignore) 4: businessId as int?,
         if (longitude != ignore) 5: longitude as String?,
         if (latitude != ignore) 6: latitude as String?,
-        if (table != ignore) 7: table as String?,
-        if (isDefault != ignore) 8: isDefault as bool?,
-        if (lastTouched != ignore) 9: lastTouched as DateTime?,
-        if (action != ignore) 10: action as String?,
-        if (deletedAt != ignore) 11: deletedAt as DateTime?,
+        if (isDefault != ignore) 7: isDefault as bool?,
+        if (lastTouched != ignore) 8: lastTouched as DateTime?,
+        if (action != ignore) 9: action as String?,
+        if (deletedAt != ignore) 10: deletedAt as DateTime?,
       });
     } finally {
       q.close();
@@ -1431,197 +1403,13 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 7,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 7,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 7,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterFilterCondition> tableIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 7,
-          value: '',
-        ),
-      );
-    });
-  }
-
   QueryBuilder<Branch, Branch, QAfterFilterCondition> isDefaultEqualTo(
     bool value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 8,
+          property: 7,
           value: value,
         ),
       );
@@ -1630,13 +1418,13 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 9));
+      return query.addFilterCondition(const IsNullCondition(property: 8));
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> lastTouchedIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 9));
+      return query.addFilterCondition(const IsNullCondition(property: 8));
     });
   }
 
@@ -1646,7 +1434,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 9,
+          property: 8,
           value: value,
         ),
       );
@@ -1659,7 +1447,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 9,
+          property: 8,
           value: value,
         ),
       );
@@ -1673,7 +1461,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 9,
+          property: 8,
           value: value,
         ),
       );
@@ -1686,7 +1474,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 9,
+          property: 8,
           value: value,
         ),
       );
@@ -1700,7 +1488,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 9,
+          property: 8,
           value: value,
         ),
       );
@@ -1714,7 +1502,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 9,
+          property: 8,
           lower: lower,
           upper: upper,
         ),
@@ -1729,7 +1517,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1744,7 +1532,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1760,7 +1548,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1775,7 +1563,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1790,7 +1578,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1806,7 +1594,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 10,
+          property: 9,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -1822,7 +1610,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1837,7 +1625,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1851,7 +1639,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 10,
+          property: 9,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -1865,7 +1653,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 10,
+          property: 9,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -1877,7 +1665,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 10,
+          property: 9,
           value: '',
         ),
       );
@@ -1888,7 +1676,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 10,
+          property: 9,
           value: '',
         ),
       );
@@ -1897,13 +1685,13 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 11));
+      return query.addFilterCondition(const IsNullCondition(property: 10));
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterFilterCondition> deletedAtIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 11));
+      return query.addFilterCondition(const IsNullCondition(property: 10));
     });
   }
 
@@ -1913,7 +1701,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 11,
+          property: 10,
           value: value,
         ),
       );
@@ -1926,7 +1714,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 11,
+          property: 10,
           value: value,
         ),
       );
@@ -1940,7 +1728,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 11,
+          property: 10,
           value: value,
         ),
       );
@@ -1953,7 +1741,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 11,
+          property: 10,
           value: value,
         ),
       );
@@ -1967,7 +1755,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 11,
+          property: 10,
           value: value,
         ),
       );
@@ -1981,7 +1769,7 @@ extension BranchQueryFilter on QueryBuilder<Branch, Branch, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 11,
+          property: 10,
           lower: lower,
           upper: upper,
         ),
@@ -2113,48 +1901,27 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortByTable(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> sortByTableDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByIsDefault() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8);
+      return query.addSortBy(7);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByIsDefaultDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, sort: Sort.desc);
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9);
+      return query.addSortBy(8);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9, sort: Sort.desc);
+      return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
@@ -2162,7 +1929,7 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        10,
+        9,
         caseSensitive: caseSensitive,
       );
     });
@@ -2172,7 +1939,7 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        10,
+        9,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -2181,13 +1948,13 @@ extension BranchQuerySortBy on QueryBuilder<Branch, Branch, QSortBy> {
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11);
+      return query.addSortBy(10);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, sort: Sort.desc);
+      return query.addSortBy(10, sort: Sort.desc);
     });
   }
 }
@@ -2285,67 +2052,53 @@ extension BranchQuerySortThenBy on QueryBuilder<Branch, Branch, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterSortBy> thenByTable(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Branch, Branch, QAfterSortBy> thenByTableDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByIsDefault() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8);
+      return query.addSortBy(7);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByIsDefaultDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, sort: Sort.desc);
+      return query.addSortBy(7, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9);
+      return query.addSortBy(8);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9, sort: Sort.desc);
+      return query.addSortBy(8, sort: Sort.desc);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, caseSensitive: caseSensitive);
+      return query.addSortBy(9, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(9, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11);
+      return query.addSortBy(10);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, sort: Sort.desc);
+      return query.addSortBy(10, sort: Sort.desc);
     });
   }
 }
@@ -2391,35 +2144,28 @@ extension BranchQueryWhereDistinct on QueryBuilder<Branch, Branch, QDistinct> {
     });
   }
 
-  QueryBuilder<Branch, Branch, QAfterDistinct> distinctByTable(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(7, caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Branch, Branch, QAfterDistinct> distinctByIsDefault() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(8);
+      return query.addDistinctBy(7);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(9);
+      return query.addDistinctBy(8);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(10, caseSensitive: caseSensitive);
+      return query.addDistinctBy(9, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<Branch, Branch, QAfterDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(11);
+      return query.addDistinctBy(10);
     });
   }
 }
@@ -2467,33 +2213,27 @@ extension BranchQueryProperty1 on QueryBuilder<Branch, Branch, QProperty> {
     });
   }
 
-  QueryBuilder<Branch, String?, QAfterProperty> tableProperty() {
+  QueryBuilder<Branch, bool, QAfterProperty> isDefaultProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Branch, bool, QAfterProperty> isDefaultProperty() {
+  QueryBuilder<Branch, DateTime?, QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Branch, DateTime?, QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<Branch, String, QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Branch, String, QAfterProperty> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
-    });
-  }
-
   QueryBuilder<Branch, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
+      return query.addProperty(10);
     });
   }
 }
@@ -2541,33 +2281,27 @@ extension BranchQueryProperty2<R> on QueryBuilder<Branch, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<Branch, (R, String?), QAfterProperty> tableProperty() {
+  QueryBuilder<Branch, (R, bool), QAfterProperty> isDefaultProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Branch, (R, bool), QAfterProperty> isDefaultProperty() {
+  QueryBuilder<Branch, (R, DateTime?), QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Branch, (R, DateTime?), QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<Branch, (R, String), QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Branch, (R, String), QAfterProperty> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
-    });
-  }
-
   QueryBuilder<Branch, (R, DateTime?), QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
+      return query.addProperty(10);
     });
   }
 }
@@ -2616,33 +2350,27 @@ extension BranchQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Branch, (R1, R2, String?), QOperations> tableProperty() {
+  QueryBuilder<Branch, (R1, R2, bool), QOperations> isDefaultProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
   }
 
-  QueryBuilder<Branch, (R1, R2, bool), QOperations> isDefaultProperty() {
+  QueryBuilder<Branch, (R1, R2, DateTime?), QOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(8);
     });
   }
 
-  QueryBuilder<Branch, (R1, R2, DateTime?), QOperations> lastTouchedProperty() {
+  QueryBuilder<Branch, (R1, R2, String), QOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(9);
     });
   }
 
-  QueryBuilder<Branch, (R1, R2, String), QOperations> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
-    });
-  }
-
   QueryBuilder<Branch, (R1, R2, DateTime?), QOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
+      return query.addProperty(10);
     });
   }
 }
@@ -2661,7 +2389,6 @@ Branch _$BranchFromJson(Map<String, dynamic> json) => Branch(
       businessId: json['businessId'] as int?,
       longitude: json['longitude'] as String?,
       latitude: json['latitude'] as String?,
-      table: json['table'] as String?,
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
@@ -2677,7 +2404,6 @@ Map<String, dynamic> _$BranchToJson(Branch instance) => <String, dynamic>{
       'businessId': instance.businessId,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
-      'table': instance.table,
       'isDefault': instance.isDefault,
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,

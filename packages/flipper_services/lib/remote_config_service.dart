@@ -28,7 +28,7 @@ class RemoteConfigService implements Remote {
       'isAccessiblityFeatureAvailable': false,
       'isMapAvailable': false,
       'isAInvitingMembersAvailable': false,
-      'isSyncAvailable': false,
+      'isSyncAvailable': true,
       'isChatAvailable': false,
       'isGoogleLoginAvailable': true,
       'isResetSettingEnabled': false,
@@ -38,7 +38,8 @@ class RemoteConfigService implements Remote {
       'supportLine': "+250783054874",
       'isMarketingFeatureEnabled': true,
       "sessionTimeOutMinutes": 10,
-      "isLocalAuthAvailable": true
+      "isLocalAuthAvailable": true,
+      "enableTakingScreenShoot": true
     });
   }
 
@@ -179,9 +180,6 @@ class RemoteConfigService implements Remote {
 
   @override
   bool isSyncAvailable() {
-    if (kDebugMode) {
-      return false;
-    }
     return remoteConfig.getBool('isSyncAvailable');
   }
 
@@ -240,6 +238,11 @@ class RemoteConfigService implements Remote {
   Widget bannerAd() {
     return AppBannerAd.fromKey(configKey: 'banner_ad');
     // return AppRewardedAd.fromKey(configKey: 'reward_ad');
+  }
+
+  @override
+  bool enableTakingScreenShoot() {
+    return remoteConfig.getBool('enableTakingScreenShoot');
   }
 }
 
@@ -352,7 +355,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isSyncAvailable() {
-    return false;
+    return true;
   }
 
   @override
@@ -403,5 +406,10 @@ class RemoteConfigWindows implements Remote {
   @override
   Widget bannerAd() {
     return SizedBox.shrink();
+  }
+
+  @override
+  bool enableTakingScreenShoot() {
+    return false;
   }
 }

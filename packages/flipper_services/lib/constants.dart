@@ -8,6 +8,7 @@ class AppActions {
   static const String delete = "delete";
   static const String deleted = "deleted";
   static const String create = "create";
+  static const String defaultCategory = "default";
   static const String remote = "remote";
   static const String created = "created";
 }
@@ -37,6 +38,29 @@ const String LOGIN = 'login';
 const String SELLING = 'selling';
 const String COMPLETE = 'completed';
 
+const List<Color> colors = [
+  Colors.red,
+  Colors.pink,
+  Colors.purple,
+  Colors.deepPurple,
+  Colors.indigo,
+  Colors.blue,
+  Colors.lightBlue,
+  Colors.cyan,
+  Colors.teal,
+  Colors.green,
+  Colors.lightGreen,
+  Colors.lime,
+  Colors.yellow,
+  Colors.amber,
+  Colors.orange,
+  Colors.deepOrange,
+  Colors.brown,
+  Colors.grey,
+  Colors.blueGrey,
+  Colors.black,
+];
+
 const Color primary = Color(0xFF399df8);
 bool isMacOs = UniversalPlatform.isMacOS;
 bool isIos = UniversalPlatform.isIOS;
@@ -46,11 +70,11 @@ bool isWindows = UniversalPlatform.isWindows;
 bool isLinux = UniversalPlatform.isLinux;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 ButtonStyle primaryButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
-      RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
-        color: const Color(0xff006AFE),
-      )),
+  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+    (states) => RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0),
+    ),
+  ),
   backgroundColor: MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
   overlayColor: MaterialStateProperty.resolveWith<Color?>(
     (Set<MaterialState> states) {

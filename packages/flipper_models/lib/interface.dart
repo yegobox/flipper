@@ -5,14 +5,15 @@ import 'package:flipper_services/constants.dart';
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<Tenant>> signup({required Map business});
-  Future<Transaction?> pendingTransaction({required int branchId});
+  Future<ITransaction?> pendingTransaction({required int branchId});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({required int userId});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({required int businessId});
   Future<List<Stock?>> stocks({required String productId});
-  Future<List<Transaction>> transactionsFuture({
+  // Stream<Stock> stockByVariantIdStream({required String variantId});
+  Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
     int? branchId,
@@ -40,9 +41,7 @@ abstract class IsarApiInterface {
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({
-    required List<Variant> data,
-    required double retailPrice,
-    required double supplyPrice,
+    required List<Variant> variations,
   });
 
   Future<int> addFavorite({required Favorite data});
@@ -66,14 +65,14 @@ abstract class IsarApiInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<Transaction> manageTransaction({
+  Future<ITransaction> manageTransaction({
     String transactionType = 'custom',
   });
 
-  Future<Transaction> manageCashInOutTransaction(
+  Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType});
 
-  Future<List<Transaction>> completedTransactions(
+  Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required String id});
 
@@ -81,7 +80,7 @@ abstract class IsarApiInterface {
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectPayment(
       {required double cashReceived,
-      required Transaction transaction,
+      required ITransaction transaction,
       required String paymentType});
 
 // app settings and users settings
@@ -110,12 +109,12 @@ abstract class IsarApiInterface {
       {required String customerId, required String transactionId});
   Future<Customer?> getCustomer({String? key, String? transactionId});
 
-  Future<Transaction?> getTransactionById({required String id});
-  Future<List<Transaction>> tickets();
-  Stream<List<Transaction>> ticketsStreams();
+  Future<ITransaction?> getTransactionById({required String id});
+  Future<List<ITransaction>> tickets();
+  Stream<List<ITransaction>> ticketsStreams();
   Future<List<double>> getTransactionsAmountsSum({required String period});
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
-  Stream<List<Transaction>> getTransactionsByCustomerId(
+  Stream<List<ITransaction>> getTransactionsByCustomerId(
       {required String customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
@@ -139,7 +138,7 @@ abstract class IsarApiInterface {
   Future<List<Discount>> getDiscounts({required int branchId});
 
   Future<void> addTransactionItem(
-      {required Transaction transaction, required TransactionItem item});
+      {required ITransaction transaction, required TransactionItem item});
 
   void emptySentMessageQueue();
   bool suggestRestore();
@@ -194,7 +193,7 @@ abstract class IsarApiInterface {
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required ReceiptSignature signature,
-      required Transaction transaction,
+      required ITransaction transaction,
       required String qrCode,
       required String receiptType,
       required Counter counter});
@@ -267,7 +266,7 @@ abstract class IsarApiInterface {
         List<Product> products,
         List<Favorite> favorites,
         List<Device> devices,
-        List<Transaction> transactions,
+        List<ITransaction> transactions,
         List<TransactionItem> transactionItems
       })> getUnSyncedData();
   Future<Conversation> sendMessage(

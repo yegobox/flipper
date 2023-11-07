@@ -41,7 +41,7 @@ Widget PaymentTicketManager(
       },
       duePay: model.kTransaction?.subTotal,
       ticketHandler: () async {
-        Transaction transaction = await ProxyService.isar.manageTransaction();
+        ITransaction transaction = await ProxyService.isar.manageTransaction();
         _routerService.navigateTo(TicketsRoute(transaction: transaction));
       },
     ),

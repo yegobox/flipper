@@ -74,17 +74,11 @@ class _CheckOutState extends State<CheckOut>
                           model: model,
                           isBigScreen: widget.isBigScreen,
                         ),
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(0.0, 10, 0, 0),
-                          child: PaymentTicketManager(
-                            context: context,
-                            model: model,
-                            controller: textEditController,
-                            nodeDisabled: true,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 30,
+                        PaymentTicketManager(
+                          context: context,
+                          model: model,
+                          controller: textEditController,
+                          nodeDisabled: true,
                         ),
                       ],
                     ),

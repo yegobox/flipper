@@ -12,7 +12,7 @@ import 'package:timeago/timeago.dart' as timeago;
 class Tickets extends StatefulWidget {
   const Tickets({super.key, this.transaction});
   // final List<Transaction> tickets;
-  final Transaction? transaction;
+  final ITransaction? transaction;
   @override
   State<Tickets> createState() => _TicketsState();
 }
@@ -101,11 +101,11 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
                     Padding(
                       padding: const EdgeInsets.only(
                           left: 24.0, top: 20.0, right: 20.0),
-                      child: StreamBuilder<List<Transaction>>(
+                      child: StreamBuilder<List<ITransaction>>(
                           stream: ProxyService.isar.ticketsStreams(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
-                              List<Transaction> data = snapshot.data!;
+                              List<ITransaction> data = snapshot.data!;
                               return Column(
                                 children: data.map((e) {
                                   return GestureDetector(

@@ -168,8 +168,8 @@ class _TransactionsState extends State<Transactions> {
   }
 
   List<Widget> _normalTransactions(
-      {required List<Transaction> completedTransaction}) {
-    for (Transaction transaction in completedTransaction) {
+      {required List<ITransaction> completedTransaction}) {
+    for (ITransaction transaction in completedTransaction) {
       if (displayedTransactionType == 1 &&
           transaction.transactionType == 'Cash Out') {
         continue;
@@ -331,7 +331,7 @@ class _TransactionsState extends State<Transactions> {
   }
 
   Widget buildList(BuildContext context, CoreViewModel model) {
-    return StreamBuilder<List<Transaction>>(
+    return StreamBuilder<List<ITransaction>>(
       initialData: null,
       stream: model.getTransactions(),
       builder: (context, snapshot) {

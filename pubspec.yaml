@@ -12,14 +12,13 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.790630560599+1699359960
+version: 1.170.809321922802+1699360494
 #......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
 environment:
   sdk: ">=3.0.0"
-
 
 dependencies:
   flutter:
@@ -44,7 +43,6 @@ dependencies:
   logger: ^1.1.0
   firebase_crashlytics: ^3.3.2
   path: ^1.8.2
-  flutter_riverpod: any
   meta: any
   flutter_native_splash: ^2.3.2
   firebase_ui_localizations: ^1.5.0
@@ -76,16 +74,15 @@ dependencies:
   workmanager: ^0.5.1
   google_mobile_ads: ^3.1.0
   firebase_admob_config: ^1.3.1
+  flutter_riverpod: ^2.4.5
+  riverpod_annotation: ^2.3.0
+  flutter_hooks:
+  riverpod: ^2.0.0
+  hooks_riverpod: ^2.0.0
+  url_strategy: ^0.2.0
+  responsive_builder: ^0.7.0
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  integration_test:
-    sdk: flutter
-  flutter_driver:
-    sdk: flutter
   stacked_generator:
-  mockito:
-  test:
   flutter_launcher_icons: ^0.13.1
   # objectbox_generator: ^1.4.0
   matcher: ^0.12.10
@@ -101,6 +98,17 @@ dev_dependencies:
   # rules and activating additional ones.
   build_runner: ^2.4.4
   flutter_assets_generator: ^0.0.8
+  custom_lint:
+  riverpod_generator: ^2.3.5
+  # riverpod_lint: ^2.3.3
+  mockito: ^5.4.2
+  test:
+  # integration_test:
+  #   sdk: flutter
+  # flutter_driver:
+  #   sdk: flutter
+  # flutter_test:
+  #   sdk: flutter
 dependency_overrides:
   http: ^1.1.0
 flutter_launcher_icons:

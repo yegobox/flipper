@@ -38,8 +38,8 @@ mixin Properties {
   get categories => app.categories;
 }
 
-mixin SharebleMethods{
-   Stream<Customer?> getCustomer({String? key, String? transactionId}) {
+mixin SharebleMethods {
+  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
     return Stream.fromFuture(ProxyService.isar
             .getCustomer(key: key, transactionId: transactionId))
         .asyncExpand((customer) async* {
@@ -57,7 +57,7 @@ mixin SharebleMethods{
   }
 
   //Transaction functions
-  Stream<List<Transaction>> getTransactions({String? transactionStatus}) {
+  Stream<List<ITransaction>> getTransactions({String? transactionStatus}) {
     return Stream.fromFuture(
             ProxyService.isar.transactionsFuture(status: transactionStatus))
         .asyncExpand((items) async* {
@@ -65,7 +65,7 @@ mixin SharebleMethods{
     });
   }
 
-  Stream<List<Transaction>> getCashInTransactions() {
+  Stream<List<ITransaction>> getCashInTransactions() {
     return Stream.fromFuture(
             ProxyService.isar.transactionsFuture(isCashOut: false))
         .asyncExpand((items) async* {
@@ -73,7 +73,7 @@ mixin SharebleMethods{
     });
   }
 
-  Stream<List<Transaction>> getCashOutTransactions() {
+  Stream<List<ITransaction>> getCashOutTransactions() {
     return Stream.fromFuture(
             ProxyService.isar.transactionsFuture(isCashOut: true))
         .asyncExpand((items) async* {

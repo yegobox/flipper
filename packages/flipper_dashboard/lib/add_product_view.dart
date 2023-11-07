@@ -319,7 +319,6 @@ class _AddProductViewState extends State<AddProductView> {
                                     const EdgeInsets.only(left: 18, right: 18),
                                 child: VariationList(
                                   variations: variations,
-                                  model: model,
                                   deleteVariant: (id) {
                                     model.deleteVariant(id: id);
                                   },

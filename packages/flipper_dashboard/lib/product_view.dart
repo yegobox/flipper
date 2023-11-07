@@ -92,14 +92,13 @@ class _ProductViewState extends State<ProductView> {
                       child: Container(
                         height: kToolbarHeight,
                         child: Wrap(direction: Axis.horizontal, children: [
-                          //TODO:add shortcut if is big screen here
+                          //TODO:add shortcut or ribbon if is big screen here
                           SizedBox(
                             width: isDesktopOrWeb
                                 ? searchFieldWidth
                                 : double.infinity,
                             child: SearchField(
                               controller: searchController,
-                              model: model,
                             ),
                           ),
                           SizedBox(

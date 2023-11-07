@@ -1,76 +1,126 @@
+import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/view_models/product_viewmodel.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/scann.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'package:stacked/stacked.dart';
 
-class SearchField extends StatefulWidget {
-  SearchField({Key? key, required this.controller, required this.model})
-      : super(key: key);
+class SearchField extends StatefulHookConsumerWidget {
+  SearchField({Key? key, required this.controller}) : super(key: key);
   final TextEditingController controller;
-  final ProductViewModel model;
   @override
-  _SearchFieldState createState() => _SearchFieldState();
+  SearchFieldState createState() => SearchFieldState();
 }
 
-class _SearchFieldState extends State<SearchField> {
-  late ValueNotifier<bool> _hasText;
-
+class SearchFieldState extends ConsumerState<SearchField> {
+  late bool _hasText;
   @override
   void initState() {
     super.initState();
-    _hasText = ValueNotifier<bool>(false);
+    _hasText = false;
     widget.controller.addListener(() {
-      _hasText.value = widget.controller.text.isNotEmpty;
+      _hasText = widget.controller.text.isNotEmpty;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      onChanged: (value) {
-        widget.model.search(value);
-      },
-      decoration: InputDecoration(
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-        ),
-        hintText: 'Search items here',
-        prefixIcon: IconButton(
-          onPressed: null,
-          icon: Icon(FluentIcons.search_24_regular),
-        ),
-        suffixIcon: ValueListenableBuilder<bool>(
-          valueListenable: _hasText,
-          builder: (context, hasText, _) {
-            return IconButton(
-              onPressed: hasText
-                  ? () {
-                      widget.controller.clear();
-                      _hasText.value = false;
-                    }
-                  : null,
-              icon: hasText
-                  ? Icon(FluentIcons.dismiss_24_regular)
-                  : IconButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => const OptionModal(
-                            child: AddProductButtons(),
-                          ),
-                        );
-                      },
-                      icon: Icon(FluentIcons.add_20_regular),
-                    ),
-            );
+    // We can also use "ref" to listen to a provider inside the build method
+    final isScanningMode = ref.watch(scanningModeProvider);
+    final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
+    return ViewModelBuilder<CoreViewModel>.reactive(
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (a, model, b) {
+        return TextFormField(
+          controller: widget.controller,
+          maxLines: null,
+          textInputAction: TextInputAction.done,
+          onChanged: (value) {
+            _hasText = value.isNotEmpty;
           },
-        ),
-      ),
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+            ),
+            // hintText: 'Search items here',
+            prefixIcon: IconButton(
+              onPressed: () {
+                // Handle search functionality here
+              },
+              icon: Icon(FluentIcons.search_24_regular),
+            ),
+            suffixIcon: Wrap(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(scanningModeProvider.notifier)
+                        .toggleScanningMode();
+                    if (isScanningMode) {
+                      toast("Scanning mode Activated");
+                    } else {
+                      toast("Scanning mode DeActivated");
+                    }
+                  },
+                  icon: Icon(
+                    isScanningMode
+                        ? FluentIcons.camera_switch_24_regular
+                        : FluentIcons.camera_switch_24_regular,
+                    color: isScanningMode ? Colors.green : Colors.blue,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    ref
+                        .read(receivingOrdersModeProvider.notifier)
+                        .toggleReceiveOrder();
+                    if (receiveOrderMode) {
+                      toast("receiveOrderMode Activated");
+                    } else {
+                      toast("receiveOrderMode DeActivated");
+                    }
+                  },
+                  icon: Icon(
+                    receiveOrderMode
+                        ? FluentIcons.cart_24_regular
+                        : FluentIcons.cart_24_regular,
+                    color: receiveOrderMode ? Colors.amber : Colors.blue,
+                  ),
+                ),
+                IconButton(
+                  onPressed: _hasText
+                      ? () {
+                          widget.controller.clear();
+                          _hasText = false;
+                        }
+                      : () {
+                          showDialog(
+                            barrierDismissible: false,
+                            context: context,
+                            builder: (context) => OptionModal(
+                              child: isDesktopOrWeb
+                                  ? ProductEntryScreen()
+                                  : AddProductButtons(),
+                            ),
+                          );
+                        },
+                  icon: _hasText
+                      ? Icon(FluentIcons.dismiss_24_regular)
+                      : Icon(FluentIcons.add_20_regular),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
