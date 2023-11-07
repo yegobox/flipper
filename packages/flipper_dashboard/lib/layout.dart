@@ -1,11 +1,8 @@
-import 'dart:developer';
-
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class AppLayoutDrawer extends StatefulWidget {
   const AppLayoutDrawer(

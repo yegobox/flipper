@@ -5,7 +5,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-// import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,114 +13,113 @@ class VariationList extends StatelessWidget {
     Key? key,
     required this.variations,
     required this.deleteVariant,
-    required this.model,
   }) : super(key: key);
+
   final List<Variant> variations;
-  final ProductViewModel model;
   final Function deleteVariant;
   final _routerService = locator<RouterService>();
-  Widget _buildVariationsList({required List<Variant> variations}) {
-    final List<Widget> list = <Widget>[];
 
-    for (var i = 0; i < variations.length; i++) {
-      if (variations[i].name != 'temp') {
-        list.add(
-          StreamBuilder<Stock>(
-            stream: ProxyService.isar.stockByVariantIdStream(
-              variantId: variations[i].id,
-            ),
-            builder: (context, snapshot) {
-              final Stock? stock = snapshot.data;
-              return Slidable(
-                key: Key('slidable-${variations[i].id}'),
-                child: Center(
-                  child: SizedBox(
-                    height: 90,
-                    width: double.infinity,
-                    child: Column(children: <Widget>[
-                      ListTile(
-                        leading: Icon(FluentIcons.cart_24_regular),
-                        subtitle: Text(
-                          '${variations[i].name} \nRWF ${variations[i].retailPrice}',
-                          style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w400),
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            TextButton(
-                              child: Text(
-                                stock == null || stock.currentStock == 0.0
-                                    ? 'Receive Stock'
-                                    : stock.currentStock.toString() +
-                                        ' in stock',
-                                style: GoogleFonts.poppins(
-                                    color: Colors.black,
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w400),
-                              ),
-                              onPressed: () {
-                                _routerService.navigateTo(ReceiveStockRoute(
-                                    variantId: variations[i].id,
-                                    existingStock: stock!.currentStock
-                                        .toInt()
-                                        .toString()));
-                              },
-                            ),
-                          ],
-                        ),
-                        dense: true,
-                      )
-                    ]),
+  Widget _buildVariationListItem(Variant variant) {
+    return Slidable(
+      key: Key('slidable-${variant.id}'),
+      child: Center(
+        child: SizedBox(
+          height: 90,
+          width: double.infinity,
+          child: Column(
+            children: <Widget>[
+              ListTile(
+                leading: Icon(FluentIcons.cart_24_regular),
+                subtitle: Text(
+                  '${variant.name} \nRWF ${variant.retailPrice}',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
-                startActionPane: ActionPane(
-                  // A motion is a widget used to control how the pane animates.
-                  motion: const ScrollMotion(),
-                  // All actions are defined in the children parameter.
-                  children: [
-                    // A SlidableAction can have an icon and/or a label.
-                    SlidableAction(
-                      onPressed: (_) {
-                        deleteVariant(variations[i].id);
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    FutureBuilder<Stock>(
+                      future: ProxyService.isar.stockByVariantId(
+                        variantId: variant.id,
+                      ),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return CircularProgressIndicator(); // Show a loading indicator.
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        final Stock? stock = snapshot.data;
+                        return TextButton(
+                          child: Text(
+                            stock == null || stock.currentStock == 0.0
+                                ? 'Receive Stock'
+                                : '${stock.currentStock} in stock',
+                            style: GoogleFonts.poppins(
+                              color: Colors.black,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          onPressed: () {
+                            _routerService.navigateTo(
+                              ReceiveStockRoute(
+                                variantId: variant.id,
+                                existingStock:
+                                    stock!.currentStock.toInt().toString(),
+                              ),
+                            );
+                          },
+                        );
                       },
-                      backgroundColor: const Color(0xFFFE4A49),
-                      foregroundColor: Colors.white,
-                      icon: FluentIcons.delete_20_regular,
-                      label: 'Delete',
                     ),
                   ],
                 ),
-                endActionPane: ActionPane(
-                  // A motion is a widget used to control how the pane animates.
-                  motion: const ScrollMotion(),
-                  // All actions are defined in the children parameter.
-                  children: [
-                    // A SlidableAction can have an icon and/or a label.
-                    SlidableAction(
-                      onPressed: (_) {
-                        deleteVariant(variations[i].id);
-                      },
-                      backgroundColor: const Color(0xFFFE4A49),
-                      foregroundColor: Colors.white,
-                      icon: FluentIcons.delete_20_regular,
-                      label: 'Delete',
-                    ),
-                  ],
-                ),
-              );
-            },
+                dense: true,
+              ),
+            ],
           ),
-        );
-      }
-    }
-    return Wrap(children: list);
+        ),
+      ),
+      startActionPane: _buildActionPane(variant),
+      endActionPane: _buildActionPane(variant),
+    );
+  }
+
+  ActionPane _buildActionPane(Variant variant) {
+    return ActionPane(
+      motion: const ScrollMotion(),
+      children: [
+        SlidableAction(
+          onPressed: (_) {
+            deleteVariant(variant.id);
+          },
+          backgroundColor: const Color(0xFFFE4A49),
+          foregroundColor: Colors.white,
+          icon: FluentIcons.delete_20_regular,
+          label: 'Delete',
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _buildVariationsList(variations: variations);
+    return ListView.builder(
+      itemCount: variations.length,
+      itemBuilder: (context, index) {
+        final variant = variations[index];
+
+        if (variant.name == 'temp') {
+          return SizedBox.shrink();
+        }
+
+        return _buildVariationListItem(variant);
+      },
+    );
   }
 }
