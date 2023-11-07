@@ -704,92 +704,102 @@ class IsarAPI<M> implements IsarApiInterface {
     return null;
   }
 
-  Future<Product?> _isCustomProductExist(
-      {required int businessId, required String name}) async {
-    return db.read((isar) => isar.products
-        .where()
-        .businessIdEqualTo(businessId)
-        .and()
-        .nameEqualTo(name)
-        .findFirst());
-  }
-
   @override
-  Future<Product> createProduct({required Product product}) async {
-    Business? business = await getBusiness();
-
+  Future<Product> createProduct(
+      {required Product product, bool skipRegularVariant = false}) async {
+    final Business? business = await getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
-    // check if the product created custom amount exist and do not re-create
-    if (product.name == CUSTOM_PRODUCT) {
-      Product? existingProduct = await _isCustomProductExist(
-          businessId: ProxyService.box.getBusinessId()!, name: CUSTOM_PRODUCT);
+
+    // Check if the product created (custom or temp) already exists and return it
+    final String productName = product.name;
+    if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+      final Product? existingProduct = await _findProductByNameAndBusinessId(
+        name: productName,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
       if (existingProduct != null) {
         return existingProduct;
       }
     }
-    if (product.name == TEMP_PRODUCT) {
-      Product? existingProduct = await _isCustomProductExist(
-          businessId: ProxyService.box.getBusinessId()!, name: TEMP_PRODUCT);
-      if (existingProduct != null) {
-        return existingProduct;
-      }
-    }
+
     db.write((isar) {
+      // isar.products.onPut(product);
       isar.products.put(product);
-      String variantId = randomString();
-      Product? kProduct = isar.products.get(product.id);
-      Variant newVariant = Variant(
-          lastTouched: DateTime.now(),
-          name: 'Regular',
-          sku: 'sku',
-          action: 'create',
-          productId: kProduct!.id,
-          unit: 'Per Item',
-          productName: product.name,
-          branchId: branchId,
-          supplyPrice: 0.0,
-          retailPrice: 0.0,
-          id: variantId,
-          isTaxExempted: false,
-          bhfId: business?.bhfId ?? '',
-          itemCd: randomString())
 
-        // TODOask about item clasification code, it seems to be static
-        ..itemClsCd = "5020230602"
-        ..itemTyCd = "1"
-        ..itemNm = "Regular"
-        ..itemStdNm = "Regular"
-        ..orgnNatCd = "RW"
-        ..pkgUnitCd = "NT"
-        ..qtyUnitCd = "U"
-        ..taxTyCd = "B"
-        ..dftPrc = 0.0
-        ..addInfo = "A"
-        ..isrcAplcbYn = "N"
-        ..useYn = "N"
-        ..regrId = randomString()
-        ..regrNm = "Regular"
-        ..modrId = randomString()
-        ..modrNm = "Regular"
-        ..pkg = "1"
-        ..itemSeq = "1"
-        ..splyAmt = 0.0
-        // RRA fields ends
-        ..supplyPrice = 0.0;
-      isar.variants.put(newVariant);
-      Variant? variant = isar.variants.get(variantId);
+      if (!skipRegularVariant) {
+        final Product? kProduct = isar.products.get(product.id);
 
-      Stock stock = Stock(
+        // Create a Regular Variant
+        final Variant newVariant =
+            _createRegularVariant(product, branchId, business);
+        isar.variants.put(newVariant);
+
+        // Create a Stock for the Regular Variant
+        final Stock stock = Stock(
           lastTouched: DateTime.now(),
           id: randomString(),
           action: 'create',
           branchId: branchId,
-          variantId: variant!.id,
+          variantId: newVariant.id,
           currentStock: 0.0,
-          productId: kProduct.id);
-      isar.stocks.put(stock);
+          productId: kProduct!.id,
+        );
+        isar.stocks.put(stock);
+      }
     });
+
     return db.read((isar) => isar.products.get(product.id))!;
+  }
+
+  Variant _createRegularVariant(
+      Product product, int branchId, Business? business) {
+    final String variantId = randomString();
+    return Variant(
+      lastTouched: DateTime.now(),
+      name: 'Regular',
+      sku: 'sku',
+      action: 'create',
+      productId: product.id,
+      unit: 'Per Item',
+      productName: product.name,
+      branchId: branchId,
+      supplyPrice: 0.0,
+      retailPrice: 0.0,
+      id: variantId,
+      isTaxExempted: false,
+      bhfId: business?.bhfId ?? '',
+      itemCd: randomString(),
+      itemClsCd: "5020230602", // TODO: Ask about item classification code
+      itemTyCd: "1",
+      itemNm: "Regular",
+      itemStdNm: "Regular",
+      orgnNatCd: "RW",
+      pkgUnitCd: "NT",
+      qtyUnitCd: "U",
+      taxTyCd: "B",
+      dftPrc: 0.0,
+      addInfo: "A",
+      isrcAplcbYn: "N",
+      useYn: "N",
+      regrId: randomString(),
+      regrNm: "Regular",
+      modrId: randomString(),
+      modrNm: "Regular",
+      pkg: "1",
+      itemSeq: "1",
+      splyAmt: 0.0,
+    );
+  }
+
+  Future<Product?> _findProductByNameAndBusinessId({
+    required String name,
+    required int businessId,
+  }) async {
+    return db.read((isar) => isar.products
+        .where()
+        .nameEqualTo(name)
+        .businessIdEqualTo(businessId)
+        .findFirst());
   }
 
   @override
@@ -3085,22 +3095,25 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<void> assignStockToVariant({required String variantId}) async {
     Variant? variant = db.read((isar) => isar.variants.get(variantId));
 
-    Stock? stock = await db.read((isar) => isar.stocks
+    Stock? stock = db.read((isar) => isar.stocks
         .where()
         .variantIdEqualTo(variantId)
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .findFirst());
     if (stock == null) {
-      Stock stock = Stock(
-          lastTouched: DateTime.now(),
-          id: randomString(),
-          action: 'create',
-          branchId: ProxyService.box.getBranchId()!,
-          variantId: variantId,
-          currentStock: 0.0,
-          productId: variant!.productId);
-      db.stocks.put(stock);
+      db.write(
+        (isar) => isar.stocks.put(
+          Stock(
+              lastTouched: DateTime.now(),
+              id: randomString(),
+              action: 'create',
+              branchId: ProxyService.box.getBranchId()!,
+              variantId: variantId,
+              currentStock: 0.0,
+              productId: variant!.productId),
+        ),
+      );
     }
   }
 

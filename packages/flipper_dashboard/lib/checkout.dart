@@ -1,5 +1,7 @@
 import 'package:flipper_dashboard/favorites.dart';
+import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -89,9 +91,16 @@ class _CheckOutState extends State<CheckOut>
           });
     } else {
       return ViewModelBuilder<CoreViewModel>.reactive(
-          viewModelBuilder: () => CoreViewModel(),
-          builder: (context, model, child) {
-            return Stack(
+        viewModelBuilder: () => CoreViewModel(),
+        builder: (context, model, child) {
+          return WillPopScope(
+            onWillPop: () async {
+              return onWillPop(
+                  context: context,
+                  navigationPurpose: NavigationPurpose.home,
+                  message: 'You have unsaved product, do you want to discard?');
+            },
+            child: Stack(
               children: [
                 MobileView(
                     widget: widget,
@@ -113,8 +122,10 @@ class _CheckOutState extends State<CheckOut>
                   ),
                 )
               ],
-            );
-          });
+            ),
+          );
+        },
+      );
     }
   }
 }

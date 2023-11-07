@@ -301,12 +301,10 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
           Stock? stock =
               await ProxyService.isar.stockByVariantId(variantId: variation.id);
 
-          if (stock != null) {
-            stock.supplyPrice = supplyPrice;
-            stock.action =
-                inUpdateProcess ? AppActions.update : AppActions.create;
-            ProxyService.isar.update(data: stock);
-          }
+          stock.supplyPrice = supplyPrice;
+          stock.action =
+              inUpdateProcess ? AppActions.update : AppActions.create;
+          ProxyService.isar.update(data: stock);
         }
       }
     }
@@ -321,15 +319,13 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
               inUpdateProcess ? AppActions.update : AppActions.create;
           variation.productName = product!.name;
           ProxyService.isar.update(data: variation);
-          Stock? stock =
+          Stock stock =
               await ProxyService.isar.stockByVariantId(variantId: variation.id);
 
-          if (stock != null) {
-            stock.retailPrice = retailPrice;
-            stock.action =
-                inUpdateProcess ? AppActions.update : AppActions.create;
-            await ProxyService.isar.update(data: stock);
-          }
+          stock.retailPrice = retailPrice;
+          stock.action =
+              inUpdateProcess ? AppActions.update : AppActions.create;
+          await ProxyService.isar.update(data: stock);
         }
       }
     }
@@ -359,11 +355,11 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
     for (Variant variation in variations) {
       await ProxyService.isar.delete(id: variation.id, endPoint: 'variant');
       //get stock->delete
-      Stock? stock =
+      Stock stock =
           await ProxyService.isar.stockByVariantId(variantId: variation.id);
-      if (stock != null) {
-        await ProxyService.isar.delete(id: stock.id, endPoint: 'stock');
-      }
+
+      await ProxyService.isar.delete(id: stock.id, endPoint: 'stock');
+
       Favorite? fav =
           await ProxyService.isar.getFavoriteByProdId(prodId: productId);
       if (fav != null) {

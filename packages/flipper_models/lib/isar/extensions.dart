@@ -1,4 +1,6 @@
+import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
+import 'package:isar/isar.dart';
 
 extension DateTimeExtensions on DateTime {
   bool isFutureDateCompareTo(DateTime? other) {
@@ -7,14 +9,12 @@ extension DateTimeExtensions on DateTime {
   }
 }
 
-
 extension NullableDateTimeExtensions on DateTime? {
   bool isFutureDateCompareTo(DateTime? other) {
     if (this == null) return false;
     return this!.isFutureDateCompareTo(other);
   }
 }
-
 
 extension ColorExtension on Color {
   String toHex() {
@@ -24,3 +24,8 @@ extension ColorExtension on Color {
   }
 }
 
+// extension IsarCollectionLogging on IsarCollection {
+//   void onPut(Product object) {
+//     print('Putting object: ${object.toJson().toString()}');
+//   }
+// }

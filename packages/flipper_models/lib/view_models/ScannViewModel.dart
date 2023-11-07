@@ -56,15 +56,17 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     product = await ProxyService.isar.createProduct(
-        product: Product(
-      name: name,
-      color: COLOR,
-      businessId: businessId,
-      branchId: branchId,
-      action: AppActions.create,
-      id: randomString(),
-      lastTouched: DateTime.now(),
-    ));
+      product: Product(
+        name: name,
+        color: COLOR,
+        businessId: businessId,
+        branchId: branchId,
+        action: AppActions.create,
+        id: randomString(),
+        lastTouched: DateTime.now(),
+      ),
+      skipRegularVariant: true,
+    );
   }
 
   void setProductName({String? name}) {

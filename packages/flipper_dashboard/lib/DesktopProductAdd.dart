@@ -149,10 +149,12 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                               if (model.productName != null) {
                                 await model.addVariant(
                                     variations: model.scannedVariants);
-                                toast("Product Saved");
+
                                 model.product.color = pickerColor.toHex();
                                 await model.saveProduct(
                                     mproduct: model.product);
+
+                                toast("Product Saved");
                                 Navigator.maybePop(context);
                               } else {
                                 toast('No product name!');
