@@ -3,7 +3,7 @@ export 'package:isar/isar.dart';
 export 'isar/points.dart';
 export 'isar/pin.dart';
 export 'isar/transaction_item.dart';
-export 'isar/transaction.dart';
+export 'isar/itransaction.dart';
 export 'isar/feature.dart';
 export 'isar/discount.dart';
 export 'isar/customer.dart';

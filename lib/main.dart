@@ -90,7 +90,9 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await initDependencies();
-  setPathUrlStrategy();
+  if (foundation.kIsWeb) {
+    setPathUrlStrategy();
+  }
   await loc.setupLocator(stackedRouter: stackedRouter);
   setupDialogUi();
   setupBottomSheetUi();
