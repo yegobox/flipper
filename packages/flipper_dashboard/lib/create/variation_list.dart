@@ -109,17 +109,13 @@ class VariationList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: variations.length,
-      itemBuilder: (context, index) {
-        final variant = variations[index];
-
-        if (variant.name == 'temp') {
-          return SizedBox.shrink();
-        }
-
-        return _buildVariationListItem(variant);
-      },
+    return SingleChildScrollView(
+      child: Column(
+        children: variations
+            .where((variant) => variant.name != 'temp')
+            .map((variant) => _buildVariationListItem(variant))
+            .toList(),
+      ),
     );
   }
 }
