@@ -190,7 +190,8 @@ class ProductRow extends StatelessWidget {
                       ),
                       Text(
                         stocks.isNotEmpty
-                            ? 'In stock: ' + stocks[0]!.currentStock.toString()
+                            ? 'In stock: ' +
+                                stocks.first!.currentStock.toString()
                             : 'In stock: 0.0',
                         style: const TextStyle(color: Colors.black),
                       ),
@@ -220,7 +221,7 @@ class ProductRow extends StatelessWidget {
                           );
                         } else {
                           return const Text(
-                            'RWF 0',
+                            'RWF ',
                             style: TextStyle(color: Colors.black),
                           );
                         }

@@ -347,7 +347,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
     return res;
   }
 
-  void deleteProduct({required String productId}) async {
+  Future<void> deleteProduct({required String productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.getBranchId()!;
     List<Variant> variations = await ProxyService.isar

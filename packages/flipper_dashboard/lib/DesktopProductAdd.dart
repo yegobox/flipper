@@ -1,20 +1,23 @@
 import 'dart:async';
 
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 
-class ProductEntryScreen extends StatefulWidget {
+class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key});
 
   @override
-  State<ProductEntryScreen> createState() => _ProductEntryScreenState();
+  ProductEntryScreenState createState() => ProductEntryScreenState();
 }
 
-class _ProductEntryScreenState extends State<ProductEntryScreen> {
+class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   int _portraitCrossAxisCount = 4;
   int _landscapeCrossAxisCount = 5;
   double _borderRadius = 30;
@@ -152,8 +155,15 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                                     variations: model.scannedVariants);
 
                                 model.product.color = pickerColor.toHex();
-                                await model.saveProduct(
+                                Product? product = await model.saveProduct(
                                     mproduct: model.product);
+                                ref
+                                    .read(productsProvider(
+                                            ProxyService.box.getBranchId()!)
+                                        .notifier)
+                                    .addProducts(products: [
+                                  if (product != null) ...[product]
+                                ]);
 
                                 toast("Product Saved");
                                 Navigator.maybePop(context);

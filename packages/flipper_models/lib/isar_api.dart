@@ -493,16 +493,10 @@ class IsarAPI<M> implements IsarApiInterface {
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: 'create',
+            action: AppActions.create,
+            retailPrice: variation.retailPrice,
             currentStock: variation.qty!,
             productId: variation.productId)
-          ..id = id
-          ..variantId = id
-          ..lowStock = 0.0
-          ..branchId = ProxyService.box.getBranchId()!
-          ..canTrackingStock = false
-          ..showLowStockAlert = false
-          ..productId = variation.productId
           ..active = false;
         isar.stocks.put(stock);
       }

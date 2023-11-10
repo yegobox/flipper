@@ -226,9 +226,13 @@ class ProductViewState extends ConsumerState<ProductView> {
                       .navigateTo(AddProductViewRoute(productId: productId));
                 },
                 addToMenu: (productId) {},
-                delete: (productId) {
+                delete: (productId) async {
                   log("about deleting product ${productId}", name: 'delete');
-                  model.deleteProduct(productId: productId);
+                  await model.deleteProduct(productId: productId);
+                  ref
+                      .read(productsProvider(ProxyService.box.getBranchId()!)
+                          .notifier)
+                      .deleteProduct(productId: productId);
                 },
                 enableNfc: (product) {
                   showMaterialModalBottomSheet(

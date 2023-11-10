@@ -37,6 +37,20 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
     final currentData = state.value ?? [];
     state = AsyncData([...currentData, ...products]);
   }
+
+  void deleteProduct({required String productId}) {
+    state = AsyncLoading(); // Set the state to loading while deleting
+
+    try {
+      final updatedProducts =
+          state.value?.where((product) => product.id != productId).toList() ??
+              [];
+
+      state = AsyncData(updatedProducts);
+    } catch (error) {
+      state = AsyncError(error, StackTrace.current);
+    }
+  }
 }
 
 // scanning

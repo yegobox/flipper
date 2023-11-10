@@ -19,7 +19,7 @@ mixin ProductMixin {
   }
 
   /// Add a product into the system
-  Future<bool> saveProduct({required Product mproduct}) async {
+  Future<Product?> saveProduct({required Product mproduct}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
 
@@ -39,7 +39,7 @@ mixin ProductMixin {
 
     mproduct.action = inUpdateProcess ? AppActions.update : AppActions.create;
 
-    final response = await ProxyService.isar.update(data: mproduct);
+    await ProxyService.isar.update(data: mproduct);
     List<Variant> variants =
         await ProxyService.isar.getVariantByProductId(productId: mproduct.id);
 
@@ -55,6 +55,7 @@ mixin ProductMixin {
       }
     }
     ProxyService.sync.push();
-    return response == 200;
+
+    return await ProxyService.isar.getProduct(id: mproduct.id);
   }
 }
