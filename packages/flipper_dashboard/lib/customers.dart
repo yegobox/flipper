@@ -148,7 +148,7 @@ class CustomersState extends ConsumerState<Customers> {
                             ),
                           ),
                           title: Text(
-                            customer.phone + "(${customer.phone})",
+                            customer.name + "(${customer.phone})",
                             style: const TextStyle(color: Colors.black),
                           ),
                         ),

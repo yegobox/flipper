@@ -1,6 +1,4 @@
 library flipper_login;
-
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
