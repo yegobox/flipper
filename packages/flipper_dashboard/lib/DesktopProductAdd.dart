@@ -154,7 +154,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 await model.addVariant(
                                     variations: model.scannedVariants);
 
-                                model.product.color = pickerColor.toHex();
+                                model.currentColor = pickerColor.toHex();
                                 Product? product = await model.saveProduct(
                                     mproduct: model.product);
                                 ref
