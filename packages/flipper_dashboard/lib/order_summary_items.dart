@@ -4,10 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-List<Widget> buildItems(
-    {required Function callback,
-    required BuildContext context,
-    required List<TransactionItem> items}) {
+List<Widget> buildItems({
+  required Function callback,
+  required BuildContext context,
+  required List<TransactionItem> items,
+}) {
   final List<Widget> list = [];
 
   if (items.isEmpty) {
@@ -64,25 +65,40 @@ List<Widget> buildItems(
           trailing: Text(
             'RWF ' + NumberFormat('#,###').format(item.price * item.qty),
             style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
+              fontWeight: FontWeight.w400,
+              fontSize: 15,
+              color: Colors.black,
+            ),
           ),
-          leading: Text(
-            item.name,
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
-          ),
-          title: Row(
-            children: [
-              const Icon(
-                Icons.close,
-                color: Colors.black,
-                size: 16.0,
+          leading: Container(
+            child: Flexible(
+              child: Text(
+                item.name.substring(0, 10),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  color: Colors.black,
+                ),
               ),
-              const Text(' '),
-              Text(
-                item.qty.toInt().toString(),
-              )
-            ],
+            ),
+          ),
+          title: Container(
+            child: Flexible(
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.close,
+                    color: Colors.black,
+                    size: 16.0,
+                  ),
+                  const Text(' '),
+                  Text(
+                    item.qty.toInt().toString(),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

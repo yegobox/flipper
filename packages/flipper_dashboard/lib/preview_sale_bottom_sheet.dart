@@ -133,20 +133,23 @@ class PreviewSaleBottomSheetState
                           padding: const EdgeInsets.only(bottom: 9.0),
                           child: Align(
                             alignment: Alignment.bottomCenter,
-                            child: BoxButton(
-                              title: "Pay",
-                              onTap: () {
-                                model.kTransaction!.subTotal =
-                                    transactionItems.fold(
-                                  0,
-                                  (a, b) => a! + (b.price * b.qty),
-                                )!;
-                                _routerService.navigateTo(
-                                  PaymentsRoute(
-                                    transaction: model.kTransaction!,
-                                  ),
-                                );
-                              },
+                            child: Padding(
+                              padding: EdgeInsets.all(8),
+                              child: BoxButton(
+                                title: "Pay",
+                                onTap: () {
+                                  model.kTransaction!.subTotal =
+                                      transactionItems.fold(
+                                    0,
+                                    (a, b) => a! + (b.price * b.qty),
+                                  )!;
+                                  _routerService.navigateTo(
+                                    PaymentsRoute(
+                                      transaction: model.kTransaction!,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
