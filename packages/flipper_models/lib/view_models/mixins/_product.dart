@@ -45,7 +45,7 @@ mixin ProductMixin {
 
     for (Variant variant in variants) {
       variant.productName = productName!;
-      variant.prc = variant.retailPrice;
+      variant.retailPrice = variant.retailPrice;
       variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";
       variant.action = inUpdateProcess ? AppActions.update : AppActions.create;
@@ -57,5 +57,4 @@ mixin ProductMixin {
     ProxyService.sync.push();
     return response == 200;
   }
-
 }

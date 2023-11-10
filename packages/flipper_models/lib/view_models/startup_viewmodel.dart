@@ -20,7 +20,6 @@ class StartupViewModel extends FlipperBaseModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    log("on startup..here");
     //log(ProxyService.box.getBusinessId()?.toString() ?? "no BusinessId");
     try {
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
@@ -33,7 +32,6 @@ class StartupViewModel extends FlipperBaseModel {
       log("User " + ProxyService.box.getUserId().toString(),
           name: 'runStartupLogic');
 
-      log('hitting here', name: 'runStartupLogic');
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isar
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {

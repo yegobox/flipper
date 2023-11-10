@@ -29,3 +29,11 @@ extension ColorExtension on Color {
 //     print('Putting object: ${object.toJson().toString()}');
 //   }
 // }
+
+extension IsarCollectionLogging<ID, OBJ> on IsarCollection<ID, OBJ> {
+  void onPut(OBJ object, void Function(OBJ) callback) {
+    print('Putting object: ${object}');
+    callback(object); // Perform operations on the object
+    put(object); // Put the object
+  }
+}

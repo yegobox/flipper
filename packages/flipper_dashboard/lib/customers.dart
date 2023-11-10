@@ -1,7 +1,5 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flipper_services/proxy.dart';
 import 'add_customer.dart';
 import 'customappbar.dart';
 import 'package:flipper_models/isar_models.dart';

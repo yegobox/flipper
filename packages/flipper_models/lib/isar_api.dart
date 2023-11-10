@@ -723,8 +723,9 @@ class IsarAPI<M> implements IsarApiInterface {
     }
 
     db.write((isar) {
-      // isar.products.onPut(product);
-      isar.products.put(product);
+      isar.products.onPut(product, (modifiedProduct) {
+        // Access and modify the 'modifiedProduct' as needed
+      });
 
       if (!skipRegularVariant) {
         final Product? kProduct = isar.products.get(product.id);
@@ -2066,8 +2067,20 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
-    return db.read(
-        (isar) => isar.products.where().branchIdEqualTo(branchId).findAll());
+    final allProducts = await db.read((isar) => isar.products
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull()
+        .findAll());
+
+    // Filter out products with the name 'temp' or 'custom'
+    final filteredProducts = allProducts
+        .where((product) =>
+            product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
+        .toList();
+
+    return filteredProducts;
   }
 
   @override
@@ -3179,6 +3192,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .branchIdEqualTo(branchId)
           .and()
           .deletedAtIsNull()
+          .and()
           .idEqualTo(prodIndex)
           .watch(fireImmediately: true));
     }

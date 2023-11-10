@@ -11,10 +11,10 @@ import 'mixins/_product.dart';
 class ScannViewModel extends BaseViewModel with ProductMixin {
   List<Variant> scannedVariants = [];
   late Product product;
+  double defaultPrice = 0.0;
 
   void onAddVariant({
     required String variantName,
-    required double defaultPrice,
     required bool isTaxExempted,
   }) {
     int branchId = ProxyService.box.getBranchId()!;
@@ -83,5 +83,10 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
       scannedVariants.removeAt(index);
       notifyListeners();
     }
+  }
+
+  setDefaultPrice({required String price}) {
+    defaultPrice = double.parse(price);
+    notifyListeners();
   }
 }

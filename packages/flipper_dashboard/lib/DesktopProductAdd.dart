@@ -98,6 +98,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
       onViewModelReady: (model) {
         model.createProduct(name: TEMP_PRODUCT);
         model.setProductName(name: null);
+        model.scannedVariants = [];
       },
       builder: (context, model, child) {
         return Padding(
@@ -190,6 +191,7 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
                     controller: defaultPriceController,
+                    onChanged: (value) => model.setDefaultPrice(price: value),
                     decoration: InputDecoration(
                       labelText: 'Default Variant Price',
                       border: OutlineInputBorder(
@@ -216,12 +218,9 @@ class _ProductEntryScreenState extends State<ProductEntryScreen> {
                     onChanged: (scannedInput) {
                       _inputTimer?.cancel();
                       _inputTimer = Timer(const Duration(seconds: 1), () {
-                        double defaultPrice =
-                            double.parse(defaultPriceController.text);
                         if (scannedInput.isNotEmpty) {
                           model.onAddVariant(
                             variantName: scannedInput,
-                            defaultPrice: defaultPrice,
                             isTaxExempted: false,
                           );
                           scannedInputController.clear();
