@@ -4772,6 +4772,7 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
+      searchMatch: json['searchMatch'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
@@ -4795,4 +4796,5 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'searchMatch': instance.searchMatch,
     };

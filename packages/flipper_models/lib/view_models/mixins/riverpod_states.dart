@@ -49,7 +49,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   void addProducts({required List<Product> products}) {
-    final currentData = state?.value ?? [];
+    final currentData = state.value ?? [];
     final List<Product> updatedProducts = [...currentData, ...products];
     state = AsyncData(updatedProducts);
   }

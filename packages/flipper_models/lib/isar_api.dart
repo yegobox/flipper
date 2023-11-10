@@ -111,9 +111,9 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.customers.put(kCustomer);
     });
 
-    ITransaction transaction =
-        db.read((isar) => isar.iTransactions.get(transactionId)!);
-    transaction.customerId = kCustomer.id;
+    ITransaction? transaction =
+        db.read((isar) => isar.iTransactions.get(transactionId));
+    transaction?.customerId = kCustomer.id;
     // update the transaction with the customerID
     await update(data: transaction);
     return kCustomer;
@@ -506,16 +506,19 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future assingTransactionToCustomer(
-      {required String customerId, required String transactionId}) async {
+      {required String customerId, String? transactionId}) async {
     // get transaction where id = transactionId from db
     ITransaction? transaction =
-        db.iTransactions.where().idEqualTo(transactionId).findFirst();
+        db.iTransactions.where().idEqualTo(transactionId ?? "").findFirst();
 
-    transaction!.customerId = customerId;
+    transaction?.customerId = customerId;
     // update transaction to db
-    db.write((isar) {
-      isar.iTransactions.put(transaction);
-    });
+    if (transaction != null) {
+      db.write((isar) {
+        isar.iTransactions.put(transaction);
+      });
+    }
+
     // get customer where id = customerId from db
     //// and updat this customer with timestamp so it can trigger change!.
     Customer? customer = db.customers.get(customerId);

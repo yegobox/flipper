@@ -44,6 +44,10 @@ class Product extends IJsonSerializable {
   @Index()
   DateTime? deletedAt;
 
+  /// this is helper to highlight a product when is found in search
+  @Ignore()
+  bool searchMatch;
+
   Product({
     required this.name,
     required this.color,
@@ -65,6 +69,7 @@ class Product extends IJsonSerializable {
     this.isFavorite,
     required this.lastTouched,
     this.deletedAt,
+    this.searchMatch = false,
   });
 
   factory Product.fromRecord(RecordModel record) =>
@@ -80,10 +85,10 @@ class Product extends IJsonSerializable {
             ? DateTime.now().toIso8601String()
             : DateTime.parse(json['lastTouched'] ?? DateTime.now())
                 .toIso8601String();
-   
+
     return _$ProductFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() =>_$ProductToJson(this);
+  Map<String, dynamic> toJson() => _$ProductToJson(this);
 }

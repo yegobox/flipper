@@ -2,15 +2,12 @@ library flipper_models;
 
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
-import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -171,11 +168,8 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     Variant? variation = await ProxyService.isar.getCustomVariant();
     if (variation == null) return;
 
-    Stock? stock =
+    Stock stock =
         await ProxyService.isar.stockByVariantId(variantId: variation.id);
-    if (stock == null) {
-      stock = await ProxyService.isar.addStockToVariant(variant: variation);
-    }
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
@@ -183,7 +177,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
 
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
-          amount, variation, name, pendingTransaction, stock!);
+          amount, variation, name, pendingTransaction, stock);
       newItem.action = AppActions.create;
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
@@ -209,11 +203,8 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     if (variation == null) return;
 
     if (items.isEmpty) {
-      Stock? stock =
+      Stock stock =
           await ProxyService.isar.stockByVariantId(variantId: variation.id);
-      if (stock == null) {
-        stock = await ProxyService.isar.addStockToVariant(variant: variation);
-      }
 
       String name = variation.productName != 'Custom Amount'
           ? '${variation.productName}(${variation.name})'
@@ -236,7 +227,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
         ProxyService.isar.update(data: existTransactionItem);
       } else {
         TransactionItem newItem = newTransactionItem(
-            amount, variation, name, pendingTransaction, stock!);
+            amount, variation, name, pendingTransaction, stock);
 
         List<TransactionItem> items = await ProxyService.isar.transactionItems(
             transactionId: pendingTransaction.id, doneWithTransaction: false);
@@ -465,18 +456,13 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
     TransactionItem? existTransactionItem = await ProxyService.isar
         .getTransactionItemByVariantId(
             variantId: variationId, transactionId: pendingTransaction.id);
-    if (stock == null) {
-      /// directly create stock for this variant, there is cases seen on production
-      /// where a variant might not have a stock related to it, this might be because of faulty sync
-      /// we add default stock then to it.
-      stock = await ProxyService.isar.addStockToVariant(variant: variation);
-    }
+
     await addTransactionItems(
       variationId: variationId,
       pendingTransaction: pendingTransaction,
       name: name,
       variation: variation,
-      stock: stock!,
+      stock: stock,
       amountTotal: amountTotal,
       isCustom: customItem,
       item: existTransactionItem,
@@ -634,7 +620,7 @@ class CoreViewModel extends FlipperBaseModel with Properties, SharebleMethods {
   }
 
   Future<void> assignToSale(
-      {required String customerId, required String transactionId}) async {
+      {required String customerId,  String? transactionId}) async {
     ProxyService.isar.assingTransactionToCustomer(
         customerId: customerId, transactionId: transactionId);
   }

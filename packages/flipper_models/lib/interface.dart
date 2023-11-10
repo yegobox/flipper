@@ -57,7 +57,8 @@ abstract class IsarApiInterface {
   Future<Product?> getProductByBarCode({required String barCode});
   // Future
   //this function for now figure out what is the business id on backend side.
-  Future<Product> createProduct({required Product product,bool skipRegularVariant=false});
+  Future<Product> createProduct(
+      {required Product product, bool skipRegularVariant = false});
   Future<void> logOut();
   Future<void> logOutLight();
 
@@ -106,7 +107,7 @@ abstract class IsarApiInterface {
   Future<Customer?> addCustomer(
       {required Map customer, required String transactionId});
   Future assingTransactionToCustomer(
-      {required String customerId, required String transactionId});
+      {required String customerId, String? transactionId});
   Future<Customer?> getCustomer({String? key, String? transactionId});
 
   Future<ITransaction?> getTransactionById({required String id});
