@@ -183,7 +183,6 @@ class RemoteService implements RemoteInterface {
               // Update the 'action' property in the copied JSON
               /// we change action from remote fetched data to remote
               /// so that we don't push these data back when property has not changed
-              updatedJson['action'] = AppActions.remote;
               switch (collectionName) {
                 case 'stocks':
                   await handleItem(

@@ -2835,8 +2835,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read((isar) {
       final List<Stock> stocks = isar.stocks
           .where()
-          .lastTouchedIsNull()
-          .or()
           .actionEqualTo(AppActions.update)
           .or()
           .actionEqualTo(AppActions.create)
@@ -2849,8 +2847,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Variant> variants = isar.variants
           .where()
-          .lastTouchedIsNull()
-          .or()
           .actionEqualTo(AppActions.update)
           .or()
           .actionEqualTo(AppActions.create)
@@ -2861,8 +2857,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Product> products = isar.products
           .where()
-          .lastTouchedIsNull()
-          .or()
           .actionEqualTo(AppActions.update)
           .or()
           .actionEqualTo(AppActions.create)
@@ -2873,8 +2867,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Favorite> favorites = isar.favorites
           .where()
-          .lastTouchedIsNull()
-          .or()
           .actionEqualTo(AppActions.update)
           .or()
           .actionEqualTo(AppActions.create)
@@ -2885,8 +2877,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Device> devices = isar.devices
           .where()
-          .lastTouchedIsNull()
-          .or()
           .actionEqualTo(AppActions.update)
           .or()
           .actionEqualTo(AppActions.create)
@@ -2898,7 +2888,6 @@ class IsarAPI<M> implements IsarApiInterface {
       final List<ITransaction> transactions = isar.iTransactions
           .where()
           .statusEqualTo(COMPLETE)
-          .lastTouchedIsNull()
           .or()
           .actionEqualTo(AppActions.update)
           .or()
@@ -2910,8 +2899,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<TransactionItem> transactionItems = isar.transactionItems
           .where()
-          .lastTouchedIsNull()
-          .and()
           .doneWithTransactionEqualTo(true)
           .or()
           .actionEqualTo(AppActions.update)

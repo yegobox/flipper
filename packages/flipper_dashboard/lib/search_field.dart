@@ -33,6 +33,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     // We can also use "ref" to listen to a provider inside the build method
     final isScanningMode = ref.watch(scanningModeProvider);
     final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
+
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
@@ -42,6 +43,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
           textInputAction: TextInputAction.done,
           onChanged: (value) {
             _hasText = value.isNotEmpty;
+            ref.read(searchStringProvider.notifier).emitString(value: value);
           },
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(

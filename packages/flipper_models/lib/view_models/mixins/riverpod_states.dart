@@ -1,9 +1,9 @@
-import 'dart:developer';
+// import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+// import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // typedef ChatRef = void Function();
 // // Define a StreamProvider that takes a ChatRef as a parameter
@@ -12,7 +12,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 //   return ProxyService.isar.productStreams(prodIndex: prodIndex);
 // });
 
-// @riverpod
 final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
     AsyncValue<List<Product>>, int>((ref, branchId) {
   return ProductsNotifier(branchId);
@@ -39,17 +38,24 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   void deleteProduct({required String productId}) {
-    state = AsyncLoading(); // Set the state to loading while deleting
+    state.when(
+      data: (currentData) {
+        try {
+          final updatedProducts =
+              currentData.where((product) => product.id != productId).toList();
 
-    try {
-      final updatedProducts =
-          state.value?.where((product) => product.id != productId).toList() ??
-              [];
-
-      state = AsyncData(updatedProducts);
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
-    }
+          state = AsyncData(updatedProducts);
+        } catch (error) {
+          state = AsyncError(error, StackTrace.current);
+        }
+      },
+      loading: () {
+        // State is already loading, no need to modify it
+      },
+      error: (error, stackTrace) {
+        // Handle the error state if needed
+      },
+    );
   }
 }
 
@@ -83,3 +89,15 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
+final searchStringProvider =
+    StateNotifierProvider<SearchStringNotifier, String>((ref) {
+  return SearchStringNotifier();
+});
+
+class SearchStringNotifier extends StateNotifier<String> {
+  SearchStringNotifier() : super("");
+
+  void emitString({required String value}) {
+    state = value;
+  }
+}
