@@ -60,12 +60,13 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget build(BuildContext context) {
     final productsRef =
         ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+    final searchKeyword = ref.watch(searchStringProvider);
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts();
+            .loadProducts(searchString: searchKeyword);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -87,7 +88,7 @@ class ProductViewState extends ConsumerState<ProductView> {
         slivers: [
           buildStickyHeader(searchFieldWidth),
           buildProductList(context, model, productsRef),
-          //TODO: when re-enabling discounts, remember it is causing black screen error
+          //todo when re-enabling discounts, remember it is causing black screen error
           // as there might be some loop that isn't well
           // buildDiscountsList(context, model),
         ],

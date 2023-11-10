@@ -1,4 +1,4 @@
-// import 'dart:developer';
+import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -11,21 +11,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 //     StreamProvider.family<List<Product>, String?>((ref, prodIndex) {
 //   return ProxyService.isar.productStreams(prodIndex: prodIndex);
 // });
-
-final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
-    AsyncValue<List<Product>>, int>((ref, branchId) {
-  return ProductsNotifier(branchId);
+final searchStringProvider =
+    StateNotifierProvider<SearchStringNotifier, String>((ref) {
+  return SearchStringNotifier();
 });
+
+class SearchStringNotifier extends StateNotifier<String> {
+  SearchStringNotifier() : super("");
+
+  void emitString({required String value}) {
+    log(value, name: 'emitted search');
+    state = value;
+  }
+}
 
 class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   final int branchId;
 
   ProductsNotifier(this.branchId) : super(AsyncLoading());
 
-  Future<void> loadProducts() async {
+  Future<void> loadProducts({required String searchString}) async {
     try {
-      final List<Product> products =
+      List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
+
+      if (searchString.isNotEmpty) {
+        products = products
+            .where((product) =>
+                product.name.toLowerCase().contains(searchString.toLowerCase()))
+            .toList();
+      }
+
       state = AsyncData(products);
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
@@ -33,31 +49,41 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   void addProducts({required List<Product> products}) {
-    final currentData = state.value ?? [];
-    state = AsyncData([...currentData, ...products]);
+    final currentData = state?.value ?? [];
+    final List<Product> updatedProducts = [...currentData, ...products];
+    state = AsyncData(updatedProducts);
   }
 
   void deleteProduct({required String productId}) {
-    state.when(
+    state.maybeWhen(
       data: (currentData) {
-        try {
-          final updatedProducts =
-              currentData.where((product) => product.id != productId).toList();
-
-          state = AsyncData(updatedProducts);
-        } catch (error) {
-          state = AsyncError(error, StackTrace.current);
-        }
+        final updatedProducts =
+            currentData.where((product) => product.id != productId).toList();
+        state = AsyncData(updatedProducts);
       },
-      loading: () {
-        // State is already loading, no need to modify it
-      },
-      error: (error, stackTrace) {
-        // Handle the error state if needed
-      },
+      orElse: () {},
     );
   }
+
+  List<Product> filterProducts(List<Product> products, String searchString) {
+    if (searchString.isNotEmpty) {
+      return products
+          .where((product) =>
+              product.name.toLowerCase().contains(searchString.toLowerCase()))
+          .toList();
+    }
+    return products;
+  }
 }
+
+final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
+    AsyncValue<List<Product>>, int>((ref, branchId) {
+  final productsNotifier = ProductsNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  productsNotifier.loadProducts(searchString: searchString);
+
+  return productsNotifier;
+});
 
 // scanning
 final scanningModeProvider =
@@ -89,15 +115,4 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
-final searchStringProvider =
-    StateNotifierProvider<SearchStringNotifier, String>((ref) {
-  return SearchStringNotifier();
-});
 
-class SearchStringNotifier extends StateNotifier<String> {
-  SearchStringNotifier() : super("");
-
-  void emitString({required String value}) {
-    state = value;
-  }
-}
