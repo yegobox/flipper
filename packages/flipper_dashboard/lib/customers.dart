@@ -1,4 +1,5 @@
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'add_customer.dart';
@@ -27,6 +28,8 @@ class CustomersState extends ConsumerState<Customers> {
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
+    final customersRef =
+        ref.watch(customersProvider(ProxyService.box.getBranchId()!));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -62,31 +65,14 @@ class CustomersState extends ConsumerState<Customers> {
                   ),
                 ),
                 verticalSpaceSmall,
-                StreamBuilder<Customer?>(
-                  stream: model.getCustomer(key: searchKeyword),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return CircularProgressIndicator();
-                    }
-
-                    if (snapshot.hasData) {
-                      print("Data received: ${snapshot.data!.toJson()}");
-                    } else if (snapshot.hasError) {
-                      print("Error: ${snapshot.error}");
-                    }
-
-                    return snapshot.hasData
-                        ? _buildCustomerList(context, model, snapshot.data!)
-                        : SizedBox.shrink();
-                  },
-                ),
+                _buildCustomerList(context, model, customersRef),
                 verticalSpaceSmall,
                 Padding(
                   padding:
                       const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
                   child: BoxButton(
                     title: searchKeyword.isNotEmpty
-                        ? 'Create Customer "$model.searchCustomerKey"'
+                        ? 'Create Customer "${searchKeyword}"'
                         : 'Add Customer',
                     onTap: () {
                       _showModalBottomSheet(
@@ -96,7 +82,8 @@ class CustomersState extends ConsumerState<Customers> {
                       );
                     },
                   ),
-                )
+                ),
+                Spacer()
               ],
             ),
           ),
@@ -105,112 +92,120 @@ class CustomersState extends ConsumerState<Customers> {
     );
   }
 
-  Widget _buildCustomerList(
-    BuildContext context,
-    CoreViewModel model,
-    Customer customer,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 18, right: 18),
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          Slidable(
-            child: GestureDetector(
-              onTap: () async {
-                await model.assignToSale(
-                  customerId: customer.id,
-                  transactionId: widget.transactionId,
-                );
-                model.app.setCustomer(customer);
-                model.getTransactionById();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: Colors.red,
-                    content: Text("Customer added to sale"),
-                  ),
-                );
-              },
-              onLongPress: () {},
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    contentPadding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                    leading: SizedBox(
-                      height: MediaQuery.of(context).size.height,
-                      width: 58,
-                      child: TextDrawable(
-                        backgroundColor: Colors.green,
-                        text: customer.name,
-                        isTappable: true,
-                        onTap: null,
-                        boxShape: BoxShape.rectangle,
-                      ),
-                    ),
-                    title: Text(
-                      customer.phone,
-                      style: const TextStyle(color: Colors.black),
-                    ),
-                  ),
-                  Container(
-                    height: 0.5,
-                    color: Colors.black26,
-                  ),
-                ],
-              ),
-            ),
-            startActionPane: ActionPane(
-              motion: const ScrollMotion(
-                key: Key('dismissable-100'),
-              ),
-              children: [
-                SlidableAction(
-                  onPressed: (_) {
-                    model.deleteCustomer(customer.id, (message) {
+  Widget _buildCustomerList(BuildContext context, CoreViewModel model,
+      AsyncValue<List<Customer>> customersRef) {
+    return customersRef.when(
+      data: (customers) => Expanded(
+        child: ListView(
+          shrinkWrap: true,
+          children: customers
+              .map(
+                (customer) => Slidable(
+                  // ... (rest of your code)
+                  child: GestureDetector(
+                    onTap: () async {
+                      await model.assignToSale(
+                        customerId: customer.id,
+                        transactionId: widget.transactionId,
+                      );
+                      model.app.setCustomer(customer);
+                      model.getTransactionById();
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           backgroundColor: Colors.red,
-                          content: Text(message),
+                          content: Text("Customer added to sale"),
                         ),
                       );
-                    });
-                  },
-                  backgroundColor: const Color(0xFFFE4A49),
-                  foregroundColor: Colors.white,
-                  icon: Icons.delete,
-                  label: 'Delete',
-                ),
-              ],
-            ),
-            endActionPane: ActionPane(
-              motion: const ScrollMotion(
-                key: Key('dismissable-100'),
-              ),
-              children: [
-                SlidableAction(
-                  onPressed: (_) async {
-                    await model.assignToSale(
-                      customerId: customer.id,
-                      transactionId: widget.transactionId!,
-                    );
-                    model.app.setCustomer(customer);
-                    model.getTransactionById();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text("Customer added to sale"),
+                    },
+                    onLongPress: () {},
+                    child: Column(
+                      children: <Widget>[
+                        ListTile(
+                          contentPadding:
+                              const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                          leading: SizedBox(
+                            height: MediaQuery.of(context).size.height,
+                            width: 58,
+                            child: TextDrawable(
+                              backgroundColor: Colors.green,
+                              text: customer.name + "(${customer.phone})",
+                              isTappable: true,
+                              onTap: null,
+                              boxShape: BoxShape.rectangle,
+                            ),
+                          ),
+                          title: Text(
+                            customer.phone + "(${customer.phone})",
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        Container(
+                          height: 0.5,
+                          color: Colors.black26,
+                        ),
+                      ],
+                    ),
+                  ),
+                  startActionPane: ActionPane(
+                    motion: const ScrollMotion(
+                      key: Key('dismissable-100'),
+                    ),
+                    children: [
+                      SlidableAction(
+                        onPressed: (_) {
+                          model.deleteCustomer(customer.id, (message) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text(message),
+                              ),
+                            );
+                          });
+                        },
+                        backgroundColor: const Color(0xFFFE4A49),
+                        foregroundColor: Colors.white,
+                        icon: Icons.delete,
+                        label: 'Delete',
                       ),
-                    );
-                  },
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  icon: Icons.add,
-                  label: 'Add',
+                    ],
+                  ),
+                  endActionPane: ActionPane(
+                    motion: const ScrollMotion(
+                      key: Key('dismissable-100'),
+                    ),
+                    children: [
+                      SlidableAction(
+                        onPressed: (_) async {
+                          await model.assignToSale(
+                            customerId: customer.id,
+                            transactionId: widget.transactionId!,
+                          );
+                          model.app.setCustomer(customer);
+                          model.getTransactionById();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text("Customer added to sale"),
+                            ),
+                          );
+                        },
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        icon: Icons.add,
+                        label: 'Add',
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        ],
+              )
+              .toList(),
+        ),
+      ),
+      error: (error, stackTrace) => Expanded(
+        child: Text('Error: $error'),
+      ),
+      loading: () => const Expanded(
+        child: CircularProgressIndicator(),
       ),
     );
   }

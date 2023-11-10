@@ -3321,4 +3321,10 @@ class IsarAPI<M> implements IsarApiInterface {
         .watch(fireImmediately: true)
         .asyncMap((event) => event.first);
   }
+
+  @override
+  Future<List<Customer>> customers({required int branchId}) async {
+    return db.read(
+        (isar) => isar.customers.where().branchIdEqualTo(branchId).findAll());
+  }
 }

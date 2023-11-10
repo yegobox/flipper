@@ -115,4 +115,64 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
+class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
+  final int branchId;
 
+  CustomersNotifier(this.branchId) : super(AsyncLoading());
+
+  Future<void> loadCustomers({required String searchString}) async {
+    try {
+      List<Customer> customers =
+          await ProxyService.isar.customers(branchId: branchId);
+
+      if (searchString.isNotEmpty) {
+        customers = customers
+            .where((customer) => customer.name
+                .toLowerCase()
+                .contains(searchString.toLowerCase()))
+            .toList();
+      }
+
+      state = AsyncData(customers);
+    } catch (error) {
+      state = AsyncError(error, StackTrace.current);
+    }
+  }
+
+  void addCustomers({required List<Customer> customers}) {
+    final currentData = state.value ?? [];
+    final List<Customer> updatedCustomers = [...currentData, ...customers];
+    state = AsyncData(updatedCustomers);
+  }
+
+  void deleteCustomer({required String customerId}) {
+    state.maybeWhen(
+      data: (currentData) {
+        final updatedCustomers =
+            currentData.where((customer) => customer.id != customerId).toList();
+        state = AsyncData(updatedCustomers);
+      },
+      orElse: () {},
+    );
+  }
+
+  List<Customer> filterCustomers(
+      List<Customer> customers, String searchString) {
+    if (searchString.isNotEmpty) {
+      return customers
+          .where((customer) =>
+              customer.name.toLowerCase().contains(searchString.toLowerCase()))
+          .toList();
+    }
+    return customers;
+  }
+}
+
+final customersProvider = StateNotifierProviderFamily<CustomersNotifier,
+    AsyncValue<List<Customer>>, int>((ref, branchId) {
+  final customersNotifier = CustomersNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  customersNotifier.loadCustomers(searchString: searchString);
+
+  return customersNotifier;
+});
