@@ -156,14 +156,19 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     );
   }
 
-  List<Customer> filterCustomers(
-      List<Customer> customers, String searchString) {
+  List<Customer?>? filterCustomers(
+      List<Customer>? customers, String searchString) {
+    if (customers == null) {
+      return null;
+    }
+
     if (searchString.isNotEmpty) {
       return customers
           .where((customer) =>
               customer.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
     }
+
     return customers;
   }
 }

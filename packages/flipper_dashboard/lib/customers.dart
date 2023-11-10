@@ -56,6 +56,13 @@ class CustomersState extends ConsumerState<Customers> {
                   child: BoxInputField(
                     controller: _searchController,
                     trailing: const Icon(Icons.clear_outlined),
+                    trailingTapped: () {
+                      //clear the
+                      _searchController.clear();
+                      ref
+                          .read(searchStringProvider.notifier)
+                          .emitString(value: "");
+                    },
                     placeholder: 'Search for a customer',
                     onChanged: (value) {
                       ref
@@ -71,7 +78,13 @@ class CustomersState extends ConsumerState<Customers> {
                   padding:
                       const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
                   child: BoxButton(
-                    title: searchKeyword.isNotEmpty
+                    title: ref
+                                .read(customersProvider(
+                                        ProxyService.box.getBranchId()!)
+                                    .notifier)
+                                .filterCustomers(customersRef.asData?.value,
+                                    searchKeyword) ==
+                            null
                         ? 'Create Customer "${searchKeyword}"'
                         : 'Add Customer',
                     onTap: () {
