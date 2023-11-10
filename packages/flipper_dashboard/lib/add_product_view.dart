@@ -1,8 +1,10 @@
 import 'package:flipper_dashboard/create/retail_price.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/product_form.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -22,15 +24,15 @@ import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:intl/intl.dart';
 
-class AddProductView extends StatefulWidget {
+class AddProductView extends StatefulHookConsumerWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
   final String? productId;
 
   @override
-  _AddProductViewState createState() => _AddProductViewState();
+  AddProductViewState createState() => AddProductViewState();
 }
 
-class _AddProductViewState extends State<AddProductView> {
+class AddProductViewState extends ConsumerState<AddProductView> {
   final DateFormat formatter = DateFormat('yyyy-MM-dd');
   final _sub = GlobalKey<FormState>();
   final productForm = ProductForm();
@@ -46,28 +48,30 @@ class _AddProductViewState extends State<AddProductView> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
-        // start by reseting bar code.
+        // Reset barcode on initialization.
         if (SchedulerBinding.instance.schedulerPhase ==
             SchedulerPhase.persistentCallbacks) {
           SchedulerBinding.instance.addPostFrameCallback((_) {
             model.productService.setBarcode('');
           });
         }
+
         await model.getProduct(productId: widget.productId);
         model.loadCategories();
         await model.loadColors();
         model.loadUnits();
-        //start locking the save button
+
+        // Start locking the save button.
         widget.productId == null
             ? model.setName(name: ' ')
             : model.product?.name;
 
-        /// get the regular variant then get it's price to fill in the form when we are in edit mode!
-        /// normal this is a List of variants where match the productId and take where we have the regular variant
+        // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
           List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);
-          //filter the variants where we have the regular variant and get one of them
+
+          // Filter variants to get the regular variant.
           Variant regularVariant =
               variants.firstWhere((variant) => variant.name == 'Regular');
 
@@ -109,15 +113,23 @@ class _AddProductViewState extends State<AddProductView> {
                   showToast(context, 'Provide name for the product');
                   return;
                 }
+
                 Product product =
                     await model.getProduct(productId: widget.productId);
                 await model.saveProduct(mproduct: product);
-                // then re-update the product default variant with retail price
-                // retailPriceController this is to present missing out key stroke.
+
+                ref
+                    .read(productsProvider(ProxyService.box.getBranchId()!)
+                        .notifier)
+                    .addProducts(products: [
+                  ...[product]
+                ]);
+                // Re-update the product default variant with retail price.
                 await model.updateRegularVariant(
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
                     productId: model.product?.id);
+
                 await model.updateRegularVariant(
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
@@ -142,27 +154,9 @@ class _AddProductViewState extends State<AddProductView> {
                       verticalSpaceSmall,
                       model.product == null
                           ? const SizedBox.shrink()
-                          : StreamBuilder<List<Product>>(
-                              stream: ProxyService.isar
-                                  .productStreams(prodIndex: model.product!.id),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                        ConnectionState.waiting ||
-                                    !snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  return ColorAndImagePlaceHolder(
-                                    currentColor: '#0984e3',
-                                    product: model.product,
-                                  );
-                                } else {
-                                  String color = snapshot.data!.first.color;
-
-                                  return ColorAndImagePlaceHolder(
-                                    currentColor: color,
-                                    product: model.product,
-                                  );
-                                }
-                              },
+                          : ColorAndImagePlaceHolder(
+                              currentColor: model.product!.color,
+                              product: model.product,
                             ),
                       Text(
                         'Product',
