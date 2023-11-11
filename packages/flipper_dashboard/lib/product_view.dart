@@ -215,7 +215,10 @@ class ProductViewState extends ConsumerState<ProductView> {
             elevation: 1,
             expandedHeaderPadding: EdgeInsets.zero,
             expansionCallback: (int panelIndex, bool isExpanded) {
-              ref.read(expandProvider.notifier).expanded(index, isExpanded);
+              ref
+                  .read(productsProvider(ProxyService.box.getBranchId()!)
+                      .notifier)
+                  .expanded(products[index]);
             },
             children: [
               ExpansionPanel(
@@ -278,7 +281,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                   );
                 },
                 body: Text("show when expanded"),
-                isExpanded: ref.read(expandProvider)[index],
+                isExpanded: products[index].searchMatch,
               ),
             ],
           ),
