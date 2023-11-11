@@ -181,3 +181,24 @@ final customersProvider = StateNotifierProviderFamily<CustomersNotifier,
 
   return customersNotifier;
 });
+final expandProvider =
+    StateNotifierProvider.autoDispose<ExpandNotifier, List<bool>>((ref) {
+  // Assuming products is defined somewhere in your code
+  final productsAsync =
+      ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+
+  final products = productsAsync.value ?? [];
+
+  return ExpandNotifier(products.length);
+});
+
+class ExpandNotifier extends StateNotifier<List<bool>> {
+  ExpandNotifier(int initialLength) : super(List.filled(initialLength, false));
+
+  // Pass the panelIndex and isExpanded parameters to the expanded() method
+  void expanded(int panelIndex, bool isExpanded) {
+    log(panelIndex.toString());
+    // Update the bool value for the panel that is tapped
+    state[panelIndex] = !isExpanded;
+  }
+}

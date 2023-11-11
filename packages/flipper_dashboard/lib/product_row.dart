@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_login/colors.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -71,83 +72,7 @@ class ProductRow extends StatelessWidget {
           key: Key('slidable-${product.id}'),
           child: InkWell(
             onTap: () {
-              log("tap recognized");
-              if (addFavoriteMode != null && addFavoriteMode == true) {
-                String? position = positionString[favIndex!];
-                //Confirmation dialog
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Confirm Favorite'),
-                      content: Text(
-                          'You are about to add $name to your $position favorite position.\n\nDo you approve?'),
-                      actions: <Widget>[
-                        OutlinedButton(
-                          child: Text('Yes',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              )),
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                const Color(0xff006AFE)),
-                            overlayColor:
-                                MaterialStateProperty.resolveWith<Color?>(
-                              (Set<MaterialState> states) {
-                                if (states.contains(MaterialState.hovered)) {
-                                  return Colors.blue.withOpacity(0.04);
-                                }
-                                if (states.contains(MaterialState.focused) ||
-                                    states.contains(MaterialState.pressed)) {
-                                  return Colors.blue.withOpacity(0.12);
-                                }
-                                return null; // Defer to the widget's default.
-                              },
-                            ),
-                          ),
-                          onPressed: () => {
-                            model.addFavorite(
-                                favIndex: favIndex!, productId: product.id),
-                            model.rebuildUi(),
-                            Navigator.of(context).pop(),
-                            Navigator.of(context).pop(),
-                          },
-                        ),
-                        OutlinedButton(
-                          child: Text('No',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              )),
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                const Color(0xff006AFE)),
-                            overlayColor:
-                                MaterialStateProperty.resolveWith<Color?>(
-                              (Set<MaterialState> states) {
-                                if (states.contains(MaterialState.hovered)) {
-                                  return Colors.blue.withOpacity(0.04);
-                                }
-                                if (states.contains(MaterialState.focused) ||
-                                    states.contains(MaterialState.pressed)) {
-                                  return Colors.blue.withOpacity(0.12);
-                                }
-                                return null; // Defer to the widget's default.
-                              },
-                            ),
-                          ),
-                          onPressed: () => Navigator.of(context).pop(false),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              } else {
-                _routerService.navigateTo(SellRoute(product: product));
-              }
+              onRowClick(context);
             },
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,5 +219,69 @@ class ProductRow extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void onRowClick(BuildContext context) {
+     log("tap recognized");
+    if (addFavoriteMode != null && addFavoriteMode == true) {
+      String? position = positionString[favIndex!];
+      //Confirmation dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Confirm Favorite'),
+            content: Text(
+                'You are about to add $name to your $position favorite position.\n\nDo you approve?'),
+            actions: <Widget>[
+              OutlinedButton(
+                child: Text('Yes',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    )),
+                style: primaryButtonStyle,
+                onPressed: () => {
+                  model.addFavorite(
+                      favIndex: favIndex!, productId: product.id),
+                  model.rebuildUi(),
+                  Navigator.of(context).pop(),
+                  Navigator.of(context).pop(),
+                },
+              ),
+              OutlinedButton(
+                child: Text('No',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    )),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      const Color(0xff006AFE)),
+                  overlayColor:
+                      MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.hovered)) {
+                        return Colors.blue.withOpacity(0.04);
+                      }
+                      if (states.contains(MaterialState.focused) ||
+                          states.contains(MaterialState.pressed)) {
+                        return Colors.blue.withOpacity(0.12);
+                      }
+                      return null; // Defer to the widget's default.
+                    },
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      _routerService.navigateTo(SellRoute(product: product));
+    }
   }
 }

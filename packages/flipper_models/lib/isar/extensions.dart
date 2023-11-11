@@ -24,16 +24,9 @@ extension ColorExtension on Color {
   }
 }
 
-// extension IsarCollectionLogging on IsarCollection {
-//   void onPut(Product object) {
-//     print('Putting object: ${object.toJson().toString()}');
-//   }
-// }
-
-extension IsarCollectionLogging<ID, OBJ> on IsarCollection<ID, OBJ> {
-  void onPut(OBJ object, void Function(OBJ) callback) {
+extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
+  void onPut(OBJ object) {
     print('Putting object: ${object}');
-    callback(object); // Perform operations on the object
-    put(object); // Put the object
+    put(object);
   }
 }

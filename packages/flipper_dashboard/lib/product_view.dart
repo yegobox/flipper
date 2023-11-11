@@ -204,59 +204,85 @@ class ProductViewState extends ConsumerState<ProductView> {
   }
 
   Widget buildProductRows(
-      BuildContext context, ProductViewModel model, List<Product> products) {
+    BuildContext context,
+    ProductViewModel model,
+    List<Product> products,
+  ) {
     return Column(
-      children: products.map((product) {
-        return Container(
-          child: FutureBuilder<List<Stock?>>(
-            future: model.productService.loadStockByProductId(
-              productId: product.id,
-            ),
-            builder: (BuildContext context, stocks) {
-              return ProductRow(
-                color: product.color,
-                stocks: stocks.data ?? [],
-                model: model,
-                product: product,
-                name: product.name,
-                imageUrl: product.imageUrl,
-                addFavoriteMode: (widget.favIndex != null) ? true : false,
-                favIndex: widget.favIndex,
-                edit: (productId) {
-                  _routerService
-                      .navigateTo(AddProductViewRoute(productId: productId));
-                },
-                addToMenu: (productId) {},
-                delete: (productId) async {
-                  log("about deleting product ${productId}", name: 'delete');
-                  await model.deleteProduct(productId: productId);
-                  ref
-                      .read(productsProvider(ProxyService.box.getBranchId()!)
-                          .notifier)
-                      .deleteProduct(productId: productId);
-                },
-                enableNfc: (product) {
-                  showMaterialModalBottomSheet(
-                    expand: false,
-                    context: context,
-                    backgroundColor: Colors.white,
-                    builder: (context) => LayoutBuilder(
-                      builder: (context, constraints) => SizedBox(
-                        height: constraints.maxHeight * 0.4,
-                        child: ListTenants(
-                          tenants: model.tenants,
-                          model: model,
-                          product: product as Product,
-                        ),
-                      ),
+      children: [
+        for (int index = 0; index < products.length; index++)
+          ExpansionPanelList(
+            elevation: 1,
+            expandedHeaderPadding: EdgeInsets.zero,
+            expansionCallback: (int panelIndex, bool isExpanded) {
+              ref.read(expandProvider.notifier).expanded(index, isExpanded);
+            },
+            children: [
+              ExpansionPanel(
+                headerBuilder: (BuildContext context, bool isExpanded) {
+                  final product = products[index];
+                  return FutureBuilder<List<Stock?>>(
+                    future: model.productService.loadStockByProductId(
+                      productId: product.id,
                     ),
+                    builder: (BuildContext context, stocks) {
+                      return ProductRow(
+                        color: product.color,
+                        stocks: stocks.data ?? [],
+                        model: model,
+                        product: product,
+                        name: product.name,
+                        imageUrl: product.imageUrl,
+                        addFavoriteMode:
+                            (widget.favIndex != null) ? true : false,
+                        favIndex: widget.favIndex,
+                        edit: (productId) {
+                          _routerService.navigateTo(
+                            AddProductViewRoute(productId: productId),
+                          );
+                        },
+                        addToMenu: (productId) {},
+                        delete: (productId) async {
+                          log(
+                            "about deleting product $productId",
+                            name: 'delete',
+                          );
+                          await model.deleteProduct(productId: productId);
+                          ref
+                              .read(
+                                productsProvider(
+                                  ProxyService.box.getBranchId()!,
+                                ).notifier,
+                              )
+                              .deleteProduct(productId: productId);
+                        },
+                        enableNfc: (product) {
+                          showMaterialModalBottomSheet(
+                            expand: false,
+                            context: context,
+                            backgroundColor: Colors.white,
+                            builder: (context) => LayoutBuilder(
+                              builder: (context, constraints) => SizedBox(
+                                height: constraints.maxHeight * 0.4,
+                                child: ListTenants(
+                                  tenants: model.tenants,
+                                  model: model,
+                                  product: product as Product,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
                   );
                 },
-              );
-            },
+                body: Text("show when expanded"),
+                isExpanded: ref.read(expandProvider)[index],
+              ),
+            ],
           ),
-        );
-      }).toList(),
+      ],
     );
   }
 

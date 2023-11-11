@@ -5,8 +5,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 List<Widget> buildItems({
-  required Function(TransactionItem)
-      callback, // Changed the type of the callback parameter
+  required Function(TransactionItem) callback,
   required BuildContext context,
   required List<TransactionItem> items,
 }) {

@@ -720,9 +720,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
 
     db.write((isar) {
-      isar.products.onPut(product, (modifiedProduct) {
-        // Access and modify the 'modifiedProduct' as needed
-      });
+      isar.products.onPut(product);
 
       if (!skipRegularVariant) {
         final Product? kProduct = isar.products.get(product.id);

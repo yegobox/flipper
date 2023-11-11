@@ -44,6 +44,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
           onChanged: (value) {
             _hasText = value.isNotEmpty;
             ref.read(searchStringProvider.notifier).emitString(value: value);
+            if (isScanningMode) {
+              toast("Scanning" + value);
+            }
           },
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
