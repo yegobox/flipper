@@ -3,10 +3,8 @@ description: flipper models scaffold.
 version: 0.0.1-dev.7
 repository: https://github.com/yegobox/packages
 
-
 environment:
   sdk: ">=3.0.0"
-
 
 dependencies:
   equatable: ^2.0.3
@@ -39,6 +37,7 @@ dependencies:
   flutter_hooks:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
+  freezed_annotation:
 dependency_overrides:
   http: ^1.1.0
 dev_dependencies:
@@ -46,3 +45,4 @@ dev_dependencies:
   custom_lint:
   riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.3
+  freezed:

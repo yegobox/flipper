@@ -2,78 +2,42 @@ library flipper_models;
 
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'product.freezed.dart';
 part 'product.g.dart';
 
+@freezed
 @JsonSerializable()
 @Collection()
-class Product extends IJsonSerializable {
-  late String id;
-  @Index()
-  late String name;
-  String? description;
-  String? taxId;
-  late String color;
-  late int businessId;
-  @Index()
-  late int branchId;
-  String? supplierId;
-  String? categoryId;
-  String? createdAt;
-  String? unit;
-  String? imageUrl;
-  String? expiryDate;
-  @Index()
-  String? barCode;
-  bool? nfcEnabled;
-  // This is a localID not necessary coming from remote
-  @Index()
-  int? bindedToTenantId;
-  bool? isFavorite;
-
-  /// as multiple devices can touch the same product, we need to track the device
-  /// the onlne generated ID will be the ID other device need to use in updating so
-  /// the ID of the product in all devices should be similar and other IDs.
-
-  @JsonKey(includeIfNull: true)
-  DateTime? lastTouched;
-
-  String action;
-
-  @Index()
-  DateTime? deletedAt;
-
-  /// this is helper to highlight a product when is found in search
-  @Ignore()
-  bool searchMatch;
-
-  Product({
-    required this.name,
-    required this.color,
-    required this.businessId,
-    required this.branchId,
-    required this.action,
-    required this.id,
-    this.description,
-    this.taxId,
-    this.supplierId,
-    this.categoryId,
-    this.createdAt,
-    this.unit,
-    this.imageUrl,
-    this.expiryDate,
-    this.barCode,
-    this.nfcEnabled,
-    this.bindedToTenantId,
-    this.isFavorite,
-    required this.lastTouched,
-    this.deletedAt,
-    this.searchMatch = false,
-  });
+class Product extends IJsonSerializable with _$Product {
+  const factory Product({
+    required String id,
+    required String name,
+    String? description,
+    String? taxId,
+    required String color,
+    required int businessId,
+    required int branchId,
+    String? supplierId,
+    String? categoryId,
+    String? createdAt,
+    String? unit,
+    String? imageUrl,
+    String? expiryDate,
+    String? barCode,
+    bool? nfcEnabled,
+    int? bindedToTenantId,
+    bool? isFavorite,
+    DateTime? lastTouched,
+    required String action,
+    DateTime? deletedAt,
+    bool? searchMatch,
+  }) = _Product;
 
   factory Product.fromRecord(RecordModel record) =>
       Product.fromJson(record.toJson());
+
   factory Product.fromJson(Map<String, dynamic> json) {
     json['deletedAt'] = json['deletedAt'] == null ||
             (json['deletedAt'] is String && json['deletedAt'].isEmpty)
@@ -91,4 +55,14 @@ class Product extends IJsonSerializable {
 
   @override
   Map<String, dynamic> toJson() => _$ProductToJson(this);
+
+  // Add the missing setters for the other fields
+  @override
+  set action(String value) => this.copyWith(action: value);
+
+  @override
+  set deletedAt(DateTime? value) => this.copyWith(deletedAt: value);
+
+  @override
+  set lastTouched(DateTime? value) => this.copyWith(lastTouched: value);
 }

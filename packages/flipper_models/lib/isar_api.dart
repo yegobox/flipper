@@ -1048,17 +1048,8 @@ class IsarAPI<M> implements IsarApiInterface {
               action: 'create',
               businessId: businessId,
               color: "#e74c3c",
-              branchId: businessId)
-            ..branchId = branchId
-            ..taxId = "XX"
-            ..businessId = businessId
-            ..name = "Custom Amount"
-            ..description = "L"
-            ..color = "#e74c3c"
-            ..supplierId = "XXX"
-            ..categoryId = "XXX"
-            ..unit = "kg"
-            ..createdAt = DateTime.now().toIso8601String());
+              createdAt: DateTime.now().toIso8601String(),
+              branchId: businessId));
       // add this newProduct's variant to the RRA DB
       Variant? variant =
           db.variants.where().productIdEqualTo(newProduct.id).findFirst();
@@ -2336,10 +2327,12 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<bool> bindProduct(
       {required String productId, required int tenantId}) async {
     final product = await db.read((isar) => db.products.get(productId));
-    product!.nfcEnabled = true;
-    product.bindedToTenantId = tenantId;
+    // Assign the result of copyWith to a new variable
+    final updatedProduct =
+        product!.copyWith(nfcEnabled: true, bindedToTenantId: tenantId);
+    // Pass the updated product to the write function
     db.write((isar) {
-      isar.products.put(product);
+      isar.products.put(updatedProduct);
     });
     return true;
   }

@@ -230,11 +230,11 @@ class ProductViewState extends ConsumerState<ProductView> {
                     ),
                     builder: (BuildContext context, stocks) {
                       return ProductRow(
-                        color: product.color,
+                        color: product.color!,
                         stocks: stocks.data ?? [],
                         model: model,
                         product: product,
-                        name: product.name,
+                        name: product.name!,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
                             (widget.favIndex != null) ? true : false,
@@ -281,7 +281,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                   );
                 },
                 body: Text("show when expanded"),
-                isExpanded: products[index].searchMatch,
+                isExpanded: products[index].searchMatch ?? false,
               ),
             ],
           ),
