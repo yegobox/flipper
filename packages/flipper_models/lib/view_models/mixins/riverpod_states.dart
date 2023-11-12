@@ -36,7 +36,10 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
           await ProxyService.isar.productsFuture(branchId: branchId);
 
       if (searchString.isNotEmpty) {
-        products = filterProducts(products, searchString);
+        products = products
+            .where((product) =>
+                product.name.toLowerCase().contains(searchString.toLowerCase()))
+            .toList();
       }
 
       state = AsyncData(products);
@@ -63,11 +66,13 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   }
 
   List<Product> filterProducts(List<Product> products, String searchString) {
-    return products.map((product) {
-      final bool match =
-          product.name.toLowerCase().contains(searchString.toLowerCase());
-      return product.copyWith(searchMatch: match);
-    }).toList();
+    if (searchString.isNotEmpty) {
+      return products
+          .where((product) =>
+              product.name.toLowerCase().contains(searchString.toLowerCase()))
+          .toList();
+    }
+    return products;
   }
 
   void expanded(Product product) {
@@ -76,11 +81,12 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
           if (p.id == product.id) {
-            return p.copyWith(searchMatch: true);
+            p.searchMatch = !p.searchMatch;
           } else {
             // Set searchMatch to false for other products
-            return p.copyWith(searchMatch: false);
+            p.searchMatch = false;
           }
+          return p;
         }).toList();
         state = AsyncData(updatedProducts);
       },
