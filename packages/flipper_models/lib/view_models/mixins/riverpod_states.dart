@@ -104,6 +104,38 @@ final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
   return productsNotifier;
 });
 
+final variantsProvider = StateNotifierProviderFamily<VariantsNotifier,
+    AsyncValue<List<Variant>>, String?>((ref, productId) {
+  final variantsNotifier = VariantsNotifier(productId);
+  ref.onDispose(() => variantsNotifier.dispose());
+
+  // Fetch and update the list of variants.
+  variantsNotifier.variants();
+
+  return variantsNotifier;
+});
+
+class VariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
+  final String? productId;
+
+  VariantsNotifier(this.productId) : super(AsyncLoading());
+
+  Future<void> variants() async {
+    // Fetch the list of variants from a remote service.
+    final variants = await ProxyService.isar.variants(
+        branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
+
+    // Update the state with the list of variants.
+    state = AsyncValue.data(variants);
+  }
+
+  @override
+  void dispose() {
+    // Dispose of any resources that were used to fetch and update the list of variants.
+    super.dispose();
+  }
+}
+
 // scanning
 final scanningModeProvider =
     StateNotifierProvider<ScanningModeNotifier, bool>((ref) {

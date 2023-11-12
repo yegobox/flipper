@@ -203,6 +203,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     }
   }
 
+  String? productId;
   Widget buildProductRows(
     BuildContext context,
     ProductViewModel model,
@@ -219,6 +220,12 @@ class ProductViewState extends ConsumerState<ProductView> {
                   .read(productsProvider(ProxyService.box.getBranchId()!)
                       .notifier)
                   .expanded(products[index]);
+
+              /// fetch variants for this selected product
+
+              setState(() {
+                productId = products[index].id;
+              });
             },
             children: [
               ExpansionPanel(
@@ -230,11 +237,11 @@ class ProductViewState extends ConsumerState<ProductView> {
                     ),
                     builder: (BuildContext context, stocks) {
                       return ProductRow(
-                        color: product.color!,
+                        color: product.color,
                         stocks: stocks.data ?? [],
                         model: model,
                         product: product,
-                        name: product.name!,
+                        name: product.name,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
                             (widget.favIndex != null) ? true : false,
@@ -280,8 +287,23 @@ class ProductViewState extends ConsumerState<ProductView> {
                     },
                   );
                 },
-                body: Text("show when expanded"),
-                isExpanded: products[index].searchMatch ?? false,
+                body: ref.read(variantsProvider(productId)).when(
+                      loading: () => Center(child: CircularProgressIndicator()),
+                      error: (error, stackTrace) => Text(error.toString()),
+                      data: (variants) => ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: variants.length,
+                        itemBuilder: (context, index) {
+                          final variant = variants[index];
+                          return ListTile(
+                            trailing: Text(variant.name),
+                            leading:
+                                Text(variant.retailPrice.toString() + " RWF"),
+                          );
+                        },
+                      ),
+                    ),
+                isExpanded: products[index].searchMatch,
               ),
             ],
           ),
