@@ -58,9 +58,9 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                       child: ProductView.normalMode(),
                     ),
                     isScanningMode
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Expanded(
+                        ? Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
                               child: Container(
                                 width: 400,
                                 // height: 300,

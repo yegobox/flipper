@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/product_row.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -61,12 +59,13 @@ class ProductViewState extends ConsumerState<ProductView> {
     final productsRef =
         ref.watch(productsProvider(ProxyService.box.getBranchId()!));
     final searchKeyword = ref.watch(searchStringProvider);
+    final scannMode = ref.watch(scanningModeProvider);
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts(searchString: searchKeyword);
+            .loadProducts(searchString: searchKeyword, scannMode: scannMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -253,10 +252,6 @@ class ProductViewState extends ConsumerState<ProductView> {
                         },
                         addToMenu: (productId) {},
                         delete: (productId) async {
-                          log(
-                            "about deleting product $productId",
-                            name: 'delete',
-                          );
                           await model.deleteProduct(productId: productId);
                           ref
                               .read(

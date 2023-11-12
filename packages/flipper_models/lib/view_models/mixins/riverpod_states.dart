@@ -20,7 +20,6 @@ class SearchStringNotifier extends StateNotifier<String> {
   SearchStringNotifier() : super("");
 
   void emitString({required String value}) {
-    log(value, name: 'emitted search');
     state = value;
   }
 }
@@ -30,8 +29,10 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
 
   ProductsNotifier(this.branchId) : super(AsyncLoading());
 
-  Future<void> loadProducts({required String searchString}) async {
+  Future<void> loadProducts(
+      {required String searchString, required bool scannMode}) async {
     try {
+      log(scannMode.toString(), name: 'Scann mode');
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
 
@@ -65,16 +66,6 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
     );
   }
 
-  List<Product> filterProducts(List<Product> products, String searchString) {
-    if (searchString.isNotEmpty) {
-      return products
-          .where((product) =>
-              product.name.toLowerCase().contains(searchString.toLowerCase()))
-          .toList();
-    }
-    return products;
-  }
-
   void expanded(Product product) {
     state.maybeWhen(
       data: (currentData) {
@@ -99,7 +90,9 @@ final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
     AsyncValue<List<Product>>, int>((ref, branchId) {
   final productsNotifier = ProductsNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
-  productsNotifier.loadProducts(searchString: searchString);
+  final scannMode = ref.watch(scanningModeProvider);
+  productsNotifier.loadProducts(
+      searchString: searchString, scannMode: scannMode);
 
   return productsNotifier;
 });
