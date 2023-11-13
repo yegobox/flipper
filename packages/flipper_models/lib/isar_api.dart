@@ -385,7 +385,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Product?> getProduct({required String id}) async {
-    return db.read((isar) => isar.products.get(id));
+    return db.read((isar) => isar.products.where().idEqualTo(id).findFirst());
   }
 
   @override
@@ -1048,7 +1048,7 @@ class IsarAPI<M> implements IsarApiInterface {
               action: 'create',
               businessId: businessId,
               color: "#e74c3c",
-              createdAt:DateTime.now().toIso8601String(),
+              createdAt: DateTime.now().toIso8601String(),
               branchId: businessId));
       // add this newProduct's variant to the RRA DB
       Variant? variant =
@@ -1327,6 +1327,15 @@ class IsarAPI<M> implements IsarApiInterface {
   int lifeTimeCustomersForbranch({required String branchId}) {
     // TODO: implement lifeTimeCustomersForbranch
     throw UnimplementedError();
+  }
+
+  @override
+  void clear() {
+    db.write((isar) {
+      isar.products.clear();
+      isar.variants.clear();
+      isar.stocks.clear();
+    });
   }
 
   @override
@@ -2023,8 +2032,19 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> variant({required String variantId}) async {
-    return db.read((isar) => isar.variants.get(variantId));
+  Future<Variant?> variant({String? variantId, String? name}) async {
+    if (variantId != null) {
+      return db.read((isar) => isar.variants.get(variantId));
+    }
+    if (name != null) {
+      return db.read((isar) => isar.variants
+          .where()
+          .nameEqualTo(name)
+          .and()
+          .deletedAtIsNull()
+          .findFirst());
+    }
+    return null;
   }
 
   @override

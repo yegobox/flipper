@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppActions {
   static const String update = "update";
+  static const String nA = "N/A";
   static const String updated = "updated";
-  static const String delete = "delete";
   static const String deleted = "deleted";
   static const String create = "create";
   static const String defaultCategory = "default";

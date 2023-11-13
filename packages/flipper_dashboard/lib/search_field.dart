@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -69,6 +70,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     ref
                         .read(scanningModeProvider.notifier)
                         .toggleScanningMode();
+
+                    //ProxyService.isar.clear();
                     if (isScanningMode) {
                       toast("Scanning mode Activated");
                     } else {

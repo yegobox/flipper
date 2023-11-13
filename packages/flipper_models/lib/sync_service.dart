@@ -57,13 +57,16 @@ class SynchronizationService<M extends IJsonSerializable>
 
       RecordModel? result = null;
 
-      if (json['action'] == 'update') {
+      if (json['action'] == AppActions.update) {
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
-      } else if (json['action'] == 'delete') {
+      } else if (json['action'] == AppActions.deleted) {
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
-      } else if (json['action'] == 'create') {
+      } else if (json['action'] == AppActions.create) {
+        //change action when sending to remote to avoid pulling it next time with create
+        // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
+        json['action'] = AppActions.nA;
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
@@ -104,6 +107,49 @@ class SynchronizationService<M extends IJsonSerializable>
   @override
   Future<void> localChanges() async {
     final data = await ProxyService.isar.getUnSyncedData();
+    for (Product product in data.products) {
+      if (product.action != AppActions.remote && product.name != TEMP_PRODUCT) {
+        Map<String, dynamic>? record = await _push(product as M);
+
+        if (record != null && record.isNotEmpty) {
+          Product product = Product.fromJson(record);
+
+          product.action = AppActions.remote;
+          await ProxyService.isar.update(data: product);
+        }
+
+        /// now sync other to avoid lace condition when synching
+        List<Variant> variants = await ProxyService.isar.variants(
+            branchId: ProxyService.box.getBranchId()!, productId: product.id);
+        for (Variant variant in variants) {
+          if (variant.action != AppActions.remote) {
+            Map<String, dynamic>? variantRecord = await _push(variant as M);
+            if (variantRecord != null && variantRecord.isNotEmpty) {
+              Variant va = Variant.fromJson(variantRecord);
+
+              va.action = AppActions.remote;
+              await ProxyService.isar.update(data: va);
+            }
+
+            /// push related stock
+            Stock stock =
+                await ProxyService.isar.stockByVariantId(variantId: variant.id);
+            Map<String, dynamic>? stockRecord = await _push(stock as M);
+            if (stockRecord != null && stockRecord.isNotEmpty) {
+              Stock s = Stock.fromJson(stockRecord);
+
+              s.action = AppActions.remote;
+
+              await ProxyService.isar.update(data: s);
+            }
+
+            /// end of pushing related stock to this variant
+          }
+        }
+
+        /// done syncing related to product data
+      }
+    }
 
     for (ITransaction transaction in data.transactions) {
       await _pushTransactions(transaction);
@@ -117,41 +163,6 @@ class SynchronizationService<M extends IJsonSerializable>
           iItem.action = AppActions.remote;
 
           await ProxyService.isar.update(data: iItem);
-        }
-      }
-    }
-    for (Stock stock in data.stocks) {
-      if (stock.action != AppActions.remote) {
-        Map<String, dynamic>? stockRecord = await _push(stock as M);
-        if (stockRecord != null && stockRecord.isNotEmpty) {
-          Stock s = Stock.fromJson(stockRecord);
-
-          s.action = AppActions.remote;
-
-          await ProxyService.isar.update(data: s);
-        }
-      }
-    }
-    for (Variant variant in data.variants) {
-      if (variant.action != AppActions.remote) {
-        Map<String, dynamic>? variantRecord = await _push(variant as M);
-        if (variantRecord != null && variantRecord.isNotEmpty) {
-          Variant va = Variant.fromJson(variantRecord);
-
-          va.action = AppActions.remote;
-          await ProxyService.isar.update(data: va);
-        }
-      }
-    }
-    for (Product product in data.products) {
-      if (product.action != AppActions.remote) {
-        Map<String, dynamic>? record = await _push(product as M);
-
-        if (record != null && record.isNotEmpty) {
-          Product product = Product.fromJson(record);
-
-          product.action = AppActions.remote;
-          await ProxyService.isar.update(data: product);
         }
       }
     }

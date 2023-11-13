@@ -24,23 +24,91 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
+final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
+    AsyncValue<List<Product>>, int>((ref, branchId) {
+  final productsNotifier = ProductsNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  final scannMode = ref.watch(scanningModeProvider);
+
+  productsNotifier.loadProducts(
+      searchString: searchString, scannMode: scannMode);
+
+  return productsNotifier;
+});
+
 class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   final int branchId;
 
   ProductsNotifier(this.branchId) : super(AsyncLoading());
+  void expanded(Product? product) {
+    if (product == null) {
+      return;
+    }
+
+    state.maybeWhen(
+      data: (currentData) {
+        final updatedProducts = currentData.map((p) {
+          // Update the searchMatch property to true for the expanded product
+          if (p.id == product.id) {
+            p.searchMatch = !p.searchMatch;
+          } else {
+            // Set searchMatch to false for other products
+            p.searchMatch = false;
+          }
+          return p;
+        }).toList();
+        state = AsyncData(updatedProducts);
+      },
+      orElse: () {},
+    );
+  }
 
   Future<void> loadProducts(
       {required String searchString, required bool scannMode}) async {
     try {
-      log(scannMode.toString(), name: 'Scann mode');
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
+      if (scannMode) {
+        log('scanning');
 
-      if (searchString.isNotEmpty) {
-        products = products
-            .where((product) =>
-                product.name.toLowerCase().contains(searchString.toLowerCase()))
-            .toList();
+        /// search variant using name
+        Variant? variant = await ProxyService.isar.variant(name: searchString);
+        if (variant != null) {
+          log(variant.name);
+          log(variant.productId);
+          Product? associatedProduct =
+              await ProxyService.isar.getProduct(id: variant.productId);
+          if (associatedProduct != null) {
+            for (Product product in products) {
+              log(product.name.toLowerCase());
+              log(product.id.toLowerCase());
+              log(associatedProduct.name.toLowerCase());
+              if (product.name.toLowerCase() ==
+                  associatedProduct.name.toLowerCase()) {
+                log('here', name: 'index');
+
+                /// if the product is found, call expanded with the product
+                products = products
+                    .where((product) => product.name
+                        .toLowerCase()
+                        .contains(associatedProduct.name))
+                    .toList();
+                print(
+                    'Before calling expanded with associatedProduct: ${associatedProduct.toJson()}');
+                expanded(associatedProduct);
+                print('After calling expanded');
+              }
+            }
+          }
+        }
+      } else {
+        if (searchString.isNotEmpty) {
+          products = products
+              .where((product) => product.name
+                  .toLowerCase()
+                  .contains(searchString.toLowerCase()))
+              .toList();
+        }
       }
 
       state = AsyncData(products);
@@ -65,37 +133,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
       orElse: () {},
     );
   }
-
-  void expanded(Product product) {
-    state.maybeWhen(
-      data: (currentData) {
-        final updatedProducts = currentData.map((p) {
-          // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id) {
-            p.searchMatch = !p.searchMatch;
-          } else {
-            // Set searchMatch to false for other products
-            p.searchMatch = false;
-          }
-          return p;
-        }).toList();
-        state = AsyncData(updatedProducts);
-      },
-      orElse: () {},
-    );
-  }
 }
-
-final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
-    AsyncValue<List<Product>>, int>((ref, branchId) {
-  final productsNotifier = ProductsNotifier(branchId);
-  final searchString = ref.watch(searchStringProvider);
-  final scannMode = ref.watch(scanningModeProvider);
-  productsNotifier.loadProducts(
-      searchString: searchString, scannMode: scannMode);
-
-  return productsNotifier;
-});
 
 final variantsProvider = StateNotifierProviderFamily<VariantsNotifier,
     AsyncValue<List<Variant>>, String?>((ref, productId) {

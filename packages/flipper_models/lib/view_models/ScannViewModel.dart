@@ -13,6 +13,12 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
   late Product product;
   double defaultPrice = 0.0;
 
+  void initialize() {
+    scannedVariants = [];
+    setProductName(name: null);
+    notifyListeners();
+  }
+
   void onAddVariant({
     required String variantName,
     required bool isTaxExempted,

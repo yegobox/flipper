@@ -30,8 +30,8 @@ class CronService {
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
       // get a list of local copy of product to sync
       if (ProxyService.remoteConfig.isSyncAvailable()) {
-        // ProxyService.sync.push();
-        // ProxyService.sync.pull();
+        ProxyService.sync.push();
+        ProxyService.sync.pull();
       }
 
       ProxyService.messaging

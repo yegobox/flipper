@@ -20,7 +20,7 @@ import 'dart:math';
 
 String randomString() {
   final random = Random();
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const chars = '123defghijklmnopqrstuvwxyz0123456789';
   return String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
 }

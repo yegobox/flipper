@@ -37,7 +37,7 @@ abstract class IsarApiInterface {
     required int branchId,
     required String productId,
   });
-  Future<Variant?> variant({required String variantId});
+  Future<Variant?> variant({ String? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({
@@ -284,5 +284,7 @@ abstract class IsarApiInterface {
       {required int userId, required String activity});
 
   Future<List<Customer>> customers({required int branchId});
+
+  void clear();
   // Future<double> todayTotalBalance
 }

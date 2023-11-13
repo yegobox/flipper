@@ -100,8 +100,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) {
         model.createProduct(name: TEMP_PRODUCT);
-        model.setProductName(name: null);
-        model.scannedVariants = [];
+        model.initialize();
       },
       builder: (context, model, child) {
         return Padding(
