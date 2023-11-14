@@ -586,6 +586,7 @@ class CoreViewModel extends FlipperBaseModel
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
       {required String id, required BuildContext context}) async {
+    log('deleting', name: 'transactionItem');
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
     ITransaction? pendingTransaction =

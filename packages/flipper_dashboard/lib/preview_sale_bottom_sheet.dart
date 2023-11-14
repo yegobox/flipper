@@ -86,6 +86,7 @@ class PreviewSaleBottomSheetState
                             id: item.id,
                             context: context,
                           );
+                          ref.refresh(transactionItemsProvider);
                         },
                         items: transactionItems.value ?? [],
                       ),
