@@ -22,7 +22,9 @@ class SearchStringNotifier extends StateNotifier<String> {
   SearchStringNotifier() : super("");
 
   void emitString({required String value}) {
-    state = value;
+    if (value.isNotEmpty) {
+      state = value;
+    }
   }
 }
 

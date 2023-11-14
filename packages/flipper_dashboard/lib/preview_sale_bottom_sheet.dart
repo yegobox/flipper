@@ -122,26 +122,21 @@ class PreviewSaleBottomSheetState
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 9.0),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: EdgeInsets.all(8),
-                      child: BoxButton(
-                        title: "Collect ${totalPayable} RWF",
-                        onTap: () {
-                          model.kTransaction!.subTotal = totalPayable;
-                          _routerService.navigateTo(
-                            PaymentsRoute(
-                              transaction: model.kTransaction!,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+                  padding: EdgeInsets.all(8),
+                  child: BoxButton(
+                    title: "Collect ${totalPayable} RWF",
+                    onTap: () {
+                      model.kTransaction?.subTotal = totalPayable;
+                      if (model.kTransaction != null) {
+                        _routerService.navigateTo(
+                          PaymentsRoute(
+                            transaction: model.kTransaction!,
+                          ),
+                        );
+                      }
+                    },
                   ),
                 ),
-                SizedBox(height: 20),
               ],
             ),
           ),
