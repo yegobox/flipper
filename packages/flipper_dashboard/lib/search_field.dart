@@ -32,7 +32,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     widget.controller.addListener(() {
       _hasText = widget.controller.text.isNotEmpty;
     });
-    _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
+    _textSubject.debounceTime(Duration(seconds: 1)).listen((value) {
       // Process the debounced value
       log('Processing value: $value', name: 'logic');
       ref.read(searchStringProvider.notifier).emitString(value: value);

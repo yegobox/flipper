@@ -1,4 +1,3 @@
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -95,9 +94,13 @@ final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
   final productsNotifier = OuterVariantsNotifier(branchId);
 
   final scannMode = ref.watch(scanningModeProvider);
-
+  final searchString = ref.watch(searchStringProvider);
+  final pendingTransaction = ref.watch(pendingTransactionProvider);
   if (scannMode) {
-    productsNotifier.loadVariants(ref: ref);
+    productsNotifier.loadVariants(
+        scannMode: scannMode,
+        searchString: searchString,
+        pendingTransaction: pendingTransaction);
   }
   return productsNotifier;
 });
@@ -107,13 +110,10 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   int branchId;
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
-  Future<void> loadVariants({
-    required StateNotifierProviderRef<OuterVariantsNotifier,
-            AsyncValue<List<Variant>>>
-        ref,
-  }) async {
-    final searchString = ref.watch(searchStringProvider);
-    final pendingTransaction = ref.watch(pendingTransactionProvider);
+  Future<void> loadVariants(
+      {required bool scannMode,
+      required String searchString,
+      required AsyncValue<ITransaction> pendingTransaction}) async {
     try {
       final allVariants = await ProxyService.isar.variants(
         branchId: ProxyService.box.getBranchId()!,
