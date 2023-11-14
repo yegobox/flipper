@@ -69,33 +69,31 @@ List<Widget> buildItems({
           ),
         ),
         leading: Container(
-          child: Flexible(
-            child: Text(
-              item.name.substring(0, 10),
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w400,
-                fontSize: 15,
-                color: Colors.black,
-              ),
+          width: 100, // Set your preferred width
+          child: Text(
+            item.name.substring(0, 10),
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w400,
+              fontSize: 15,
+              color: Colors.black,
             ),
           ),
         ),
         title: Container(
-          child: Flexible(
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.close,
-                  color: Colors.black,
-                  size: 16.0,
-                ),
-                const Text(' '),
-                Text(
-                  item.qty.toInt().toString(),
-                ),
-              ],
-            ),
+          width: 100, // Set your preferred width
+          child: Row(
+            children: [
+              const Icon(
+                Icons.close,
+                color: Colors.black,
+                size: 16.0,
+              ),
+              const Text(' '),
+              Text(
+                item.qty.toInt().toString(),
+              ),
+            ],
           ),
         ),
         onTap: () => callback(item), // Added the value argument
