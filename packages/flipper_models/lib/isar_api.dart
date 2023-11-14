@@ -2058,8 +2058,12 @@ class IsarAPI<M> implements IsarApiInterface {
           .branchIdEqualTo(branchId)
           .findAll());
     } else {
-      return db.read(
-          (isar) => isar.variants.where().branchIdEqualTo(branchId).findAll());
+      return db.read((isar) => isar.variants
+          .where()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .findAll());
     }
   }
 

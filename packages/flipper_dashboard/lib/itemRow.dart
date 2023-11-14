@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_login/colors.dart';
@@ -178,16 +177,15 @@ class RowItem extends StatelessWidget {
         key: Key('dismissable-${product?.id ?? variant?.id}'),
       ),
       children: [
-        if (variant == null)
-          SlidableAction(
-            onPressed: (_) {
-              delete(product?.id ?? variant?.id);
-            },
-            backgroundColor: const Color(0xFFFE4A49),
-            foregroundColor: Colors.white,
-            icon: FluentIcons.delete_20_regular,
-            label: '',
-          ),
+        SlidableAction(
+          onPressed: (_) {
+            delete(product?.id ?? variant?.id);
+          },
+          backgroundColor: const Color(0xFFFE4A49),
+          foregroundColor: Colors.white,
+          icon: FluentIcons.delete_20_regular,
+          label: '',
+        ),
         if (variant == null)
           SlidableAction(
             onPressed: (_) {

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -157,7 +159,13 @@ class ProductViewState extends ConsumerState<ProductView> {
                     );
                   },
 
-                  delete: (productId) async {},
+                  delete: (variantId) async {
+                    log(variantId, name: 'deleting');
+                    ProxyService.isar
+                        .delete(id: variantId, endPoint: 'variant');
+                    ref.refresh(
+                        outerVariantsProvider(ProxyService.box.getBranchId()!));
+                  },
                   enableNfc: (product) {
                     // Handle NFC functionality
                   },
