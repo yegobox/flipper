@@ -26,6 +26,43 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
+final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
+    AsyncValue<List<TransactionItem>>>((ref) {
+  final itemNotifier = TransactionItemsNotifier();
+  final searchString = ref.watch(searchStringProvider);
+  final scannMode = ref.watch(scanningModeProvider);
+  
+    itemNotifier.items(searchString: searchString, scannMode: scannMode);
+  
+  return itemNotifier;
+});
+
+class TransactionItemsNotifier
+    extends StateNotifier<AsyncValue<List<TransactionItem>>> {
+  TransactionItemsNotifier() : super(AsyncLoading());
+
+  Future<void> items(
+      {required String searchString, required bool scannMode}) async {
+    try {
+      state = AsyncLoading();
+      List<TransactionItem> items =
+          await ProxyService.isar.transactionItemsFuture();
+      state = AsyncData(items);
+    } catch (error) {
+      state = AsyncError(error, StackTrace.current);
+    }
+  }
+
+  double get totalPayable {
+    return state.maybeWhen(
+      data: (items) {
+        return items.fold(0, (a, b) => a + (b.price * b.qty));
+      },
+      orElse: () => 0.0,
+    );
+  }
+}
+
 final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
     AsyncValue<List<Variant>>, int>((ref, branchId) {
   final productsNotifier = OuterVariantsNotifier(branchId);

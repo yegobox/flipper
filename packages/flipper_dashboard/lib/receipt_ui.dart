@@ -14,7 +14,6 @@ class ReceiptUI extends StatelessWidget {
         builder: (a, model, b) {
           return PreviewSaleBottomSheet(
             reverse: false,
-            model: model,
           );
         },
       ),

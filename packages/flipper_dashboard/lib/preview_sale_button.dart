@@ -48,9 +48,7 @@ class PreviewSaleButton extends StatelessWidget {
               barrierColor: Colors.black.withOpacity(0.25),
               builder: (BuildContext context, ScrollController scrollController,
                   double bottomSheetOffset) {
-                return PreviewSaleBottomSheet(
-                  model: model,
-                );
+                return PreviewSaleBottomSheet();
               },
             );
 
