@@ -41,8 +41,12 @@ class PreviewSaleBottomSheetState
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
         return Material(
+          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
           child: CupertinoPageScaffold(
+            backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
             navigationBar: CupertinoNavigationBar(
+              backgroundColor:
+                  CupertinoTheme.of(context).scaffoldBackgroundColor,
               leading: SizedBox.shrink(),
               middle: Row(
                 children: [
