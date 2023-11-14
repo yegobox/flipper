@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:developer';
+import 'package:rxdart/rxdart.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -20,6 +23,7 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
+  final _textSubject = BehaviorSubject<String>();
   @override
   void initState() {
     super.initState();
@@ -28,11 +32,24 @@ class SearchFieldState extends ConsumerState<SearchField> {
     widget.controller.addListener(() {
       _hasText = widget.controller.text.isNotEmpty;
     });
+    _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
+      // Process the debounced value
+      log('Processing value: $value', name: 'logic');
+      ref.read(searchStringProvider.notifier).emitString(value: value);
+
+      widget.controller.clear();
+      _hasText = false;
+      _focusNode.requestFocus();
+      ref.read(searchStringProvider.notifier).emitString(value: '');
+      // ignore: unused_result
+      ref.refresh(searchStringProvider);
+    });
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
+    _textSubject.close();
     super.dispose();
   }
 
@@ -52,19 +69,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
           textInputAction: TextInputAction.done,
           onChanged: (value) {
             _hasText = value.isNotEmpty;
-            ref.read(searchStringProvider.notifier).emitString(value: value);
+
             if (isScanningMode) {
-              toast("Scanning" + value);
-            }
-            if (isScanningMode) {
-              Future.delayed(Duration(seconds: 2), () {
-                if (mounted) {
-                  // widget.controller.clear();
-                  _hasText = false;
-                  _focusNode.requestFocus();
-                  // ref.read(searchStringProvider.notifier).emitString(value: '');
-                }
-              });
+              _textSubject.add(value);
             }
           },
           decoration: InputDecoration(

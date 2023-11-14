@@ -97,6 +97,7 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   bottom_sheet: ^4.0.0
+  rxdart: ^0.27.2
 dependency_overrides:
   http: ^1.1.0
 flutter:

@@ -589,16 +589,7 @@ class CoreViewModel extends FlipperBaseModel
     log('deleting', name: 'transactionItem');
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
-    ITransaction? pendingTransaction =
-        await ProxyService.isar.manageTransaction();
-    List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: pendingTransaction.id, doneWithTransaction: false);
-
     updatePayable();
-
-    if (items.isEmpty) {
-      Navigator.of(context).pop();
-    }
 
     return true;
   }

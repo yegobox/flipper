@@ -31,9 +31,9 @@ final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
   final itemNotifier = TransactionItemsNotifier();
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
-  
-    itemNotifier.items(searchString: searchString, scannMode: scannMode);
-  
+
+  itemNotifier.items(searchString: searchString, scannMode: scannMode);
+
   return itemNotifier;
 });
 
@@ -75,25 +75,45 @@ final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
   return productsNotifier;
 });
 
-class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
+class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
+    with TransactionMixin {
   int branchId;
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
-  Future<void> loadVariants(
-      {required String searchString, required bool scannMode}) async {
-    final allVariants = await ProxyService.isar
-        .variants(branchId: ProxyService.box.getBranchId()!);
+  Future<void> loadVariants({
+    required String searchString,
+    required bool scannMode,
+  }) async {
+    try {
+      final allVariants = await ProxyService.isar.variants(
+        branchId: ProxyService.box.getBranchId()!,
+      );
 
-    // Apply search if searchString is not empty
-    final filteredVariants = searchString.isNotEmpty
-        ? allVariants
-            .where((variant) =>
-                variant.name.toLowerCase().contains(searchString.toLowerCase()))
-            .toList()
-        : allVariants;
+      // Apply search if searchString is not empty
+      final filteredVariants = searchString.isNotEmpty
+          ? allVariants
+              .where((variant) => variant.name
+                  .toLowerCase()
+                  .contains(searchString.toLowerCase()))
+              .toList()
+          : allVariants;
 
-    // Update the state with the filtered list of variants.
-    state = AsyncValue.data(filteredVariants);
+      // If there's a match, save the transaction for the first matched variant
+      if (filteredVariants.isNotEmpty) {
+        final variant = filteredVariants.first;
+        await saveTransaction(
+          variationId: variant.id,
+          amountTotal: variant.retailPrice,
+          customItem: false,
+        );
+      }
+
+      // Update the state with the filtered list of variants.
+      state = AsyncValue.data(filteredVariants);
+    } catch (error) {
+      // Handle errors if needed
+      state = AsyncValue.error(error, StackTrace.current);
+    }
   }
 }
 
@@ -171,10 +191,10 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       //     .read(productsProvider(ProxyService.box.getBranchId()!)
       //         .notifier)
       //     .expanded(associatedProduct);
-      //         saveTransaction(
-      //             variationId: variant.id,
-      //             amountTotal: variant.retailPrice,
-      //             customItem: false);
+      // saveTransaction(
+      //     variationId: variant.id,
+      //     amountTotal: variant.retailPrice,
+      //     customItem: false);
 
       //         print('After calling expanded');
       //       }
