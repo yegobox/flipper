@@ -2049,9 +2049,18 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Variant>> variants(
-      {required int branchId, required String productId}) async {
-    return db.read(
-        (isar) => isar.variants.where().productIdEqualTo(productId).findAll());
+      {required int branchId, String? productId}) async {
+    if (productId != null) {
+      return db.read((isar) => isar.variants
+          .where()
+          .productIdEqualTo(productId)
+          .and()
+          .branchIdEqualTo(branchId)
+          .findAll());
+    } else {
+      return db.read(
+          (isar) => isar.variants.where().branchIdEqualTo(branchId).findAll());
+    }
   }
 
   List<DateTime> getWeeksForRange(DateTime start, DateTime end) {

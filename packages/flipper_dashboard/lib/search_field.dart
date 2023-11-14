@@ -4,7 +4,6 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,13 +19,21 @@ class SearchField extends StatefulHookConsumerWidget {
 
 class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
+  late FocusNode _focusNode;
   @override
   void initState() {
     super.initState();
     _hasText = false;
+    _focusNode = FocusNode();
     widget.controller.addListener(() {
       _hasText = widget.controller.text.isNotEmpty;
     });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 
   @override
@@ -41,12 +48,23 @@ class SearchFieldState extends ConsumerState<SearchField> {
         return TextFormField(
           controller: widget.controller,
           maxLines: null,
+          focusNode: _focusNode,
           textInputAction: TextInputAction.done,
           onChanged: (value) {
             _hasText = value.isNotEmpty;
             ref.read(searchStringProvider.notifier).emitString(value: value);
             if (isScanningMode) {
               toast("Scanning" + value);
+            }
+            if (isScanningMode) {
+              Future.delayed(Duration(seconds: 2), () {
+                if (mounted) {
+                  widget.controller.clear();
+                  _hasText = false;
+                  _focusNode.requestFocus();
+                  ref.read(searchStringProvider.notifier).emitString(value: '');
+                }
+              });
             }
           },
           decoration: InputDecoration(

@@ -35,9 +35,9 @@ abstract class IsarApiInterface {
   Future<Stock?> getStock({required int branchId, required String variantId});
   Future<List<Variant>> variants({
     required int branchId,
-    required String productId,
+    String? productId,
   });
-  Future<Variant?> variant({ String? variantId, String? name});
+  Future<Variant?> variant({String? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({

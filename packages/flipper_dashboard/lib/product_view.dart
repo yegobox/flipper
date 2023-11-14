@@ -58,6 +58,8 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget build(BuildContext context) {
     final productsRef =
         ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+    final variantsRef =
+        ref.watch(outerVariantsProvider(ProxyService.box.getBranchId()!));
     final searchKeyword = ref.watch(searchStringProvider);
     final scannMode = ref.watch(scanningModeProvider);
     return ViewModelBuilder<ProductViewModel>.reactive(
@@ -70,13 +72,19 @@ class ProductViewState extends ConsumerState<ProductView> {
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildProductView(context, model, productsRef, searchFieldWidth);
+        return buildProductView(
+            context, model, productsRef, searchFieldWidth, variantsRef);
       },
     );
   }
 
-  Widget buildProductView(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Product>> productsRef, double searchFieldWidth) {
+  Widget buildProductView(
+      BuildContext context,
+      ProductViewModel model,
+      AsyncValue<List<Product>> productsRef,
+      double searchFieldWidth,
+      AsyncValue<List<Variant>> variantsRef) {
+    final scannMode = ref.watch(scanningModeProvider);
     return KeyboardVisibility(
       onChanged: (bool keyboardVisible) {
         if (!keyboardVisible) {
@@ -86,12 +94,78 @@ class ProductViewState extends ConsumerState<ProductView> {
       child: CustomScrollView(
         slivers: [
           buildStickyHeader(searchFieldWidth),
-          buildProductList(context, model, productsRef),
+          scannMode
+              ? buildVariantList(context, model, variantsRef)
+              : buildProductList(context, model, productsRef),
           //todo when re-enabling discounts, remember it is causing black screen error
           // as there might be some loop that isn't well
           // buildDiscountsList(context, model),
         ],
       ),
+    );
+  }
+
+  SliverList buildVariantList(BuildContext context, ProductViewModel model,
+      AsyncValue<List<Variant>> variantsRef) {
+    return SliverList(
+      delegate: SliverChildListDelegate([
+        SizedBox(height: 8),
+        buildVariantsSection(context, model, variantsRef),
+      ]),
+    );
+  }
+
+  Widget buildVariantsSection(BuildContext context, ProductViewModel model,
+      AsyncValue<List<Variant>> variantsRef) {
+    return Center(
+      child: Center(
+          child: switch (variantsRef) {
+        AsyncData(:final value) => Column(
+            children: [
+              buildVariantRows(context, model, value),
+            ],
+          ),
+        AsyncError(:final error) => Text('error: $error'),
+        _ => const CircularProgressIndicator(),
+      }),
+    );
+  }
+
+  Widget buildVariantRows(
+    BuildContext context,
+    ProductViewModel model,
+    List<Variant> variants,
+  ) {
+    return Column(
+      children: [
+        for (int index = 0; index < variants.length; index++)
+          Container(
+            child: FutureBuilder<List<Stock?>>(
+              future: model.productService.loadStockByProductId(
+                productId: variants[index].productId,
+              ),
+              builder: (BuildContext context, stocks) {
+                return RowItem(
+                  color: "#d63031", // Replace with actual color
+                  stocks: stocks.data ?? [],
+                  model: model,
+                  variant: variants[index],
+                  name: variants[index].name,
+                  edit: (productId) {
+                    _routerService.navigateTo(
+                      AddProductViewRoute(productId: productId),
+                    );
+                  },
+
+                  delete: (productId) async {},
+                  enableNfc: (product) {
+                    // Handle NFC functionality
+                  },
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -235,7 +309,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                       productId: product.id,
                     ),
                     builder: (BuildContext context, stocks) {
-                      return ProductRow(
+                      return RowItem(
                         color: product.color,
                         stocks: stocks.data ?? [],
                         model: model,
@@ -250,7 +324,6 @@ class ProductViewState extends ConsumerState<ProductView> {
                             AddProductViewRoute(productId: productId),
                           );
                         },
-                        addToMenu: (productId) {},
                         delete: (productId) async {
                           await model.deleteProduct(productId: productId);
                           ref

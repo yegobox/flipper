@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '_transaction.dart';
 // import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // typedef ChatRef = void Function();
@@ -24,9 +26,35 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
+final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
+    AsyncValue<List<Variant>>, int>((ref, branchId) {
+  final productsNotifier = OuterVariantsNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  final scannMode = ref.watch(scanningModeProvider);
+
+  productsNotifier.loadVariants(
+      searchString: searchString, scannMode: scannMode);
+
+  return productsNotifier;
+});
+
+class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
+  int branchId;
+  OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
+
+  Future<void> loadVariants(
+      {required String searchString, required bool scannMode}) async {
+    final variants = await ProxyService.isar
+        .variants(branchId: ProxyService.box.getBranchId()!);
+
+    // Update the state with the list of variants.
+    state = AsyncValue.data(variants);
+  }
+}
+
 final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
     AsyncValue<List<Product>>, int>((ref, branchId) {
-  final productsNotifier = ProductsNotifier(branchId);
+  final productsNotifier = ProductsNotifier(branchId, ref);
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
 
@@ -36,10 +64,12 @@ final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
   return productsNotifier;
 });
 
-class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
+    with TransactionMixin {
   final int branchId;
-
-  ProductsNotifier(this.branchId) : super(AsyncLoading());
+  final StateNotifierProviderRef<ProductsNotifier, AsyncValue<List<Product>>>
+      ref;
+  ProductsNotifier(this.branchId, this.ref) : super(AsyncLoading());
   void expanded(Product? product) {
     if (product == null) {
       return;
@@ -85,17 +115,23 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>> {
               log(associatedProduct.name.toLowerCase());
               if (product.name.toLowerCase() ==
                   associatedProduct.name.toLowerCase()) {
-                log('here', name: 'index');
-
                 /// if the product is found, call expanded with the product
-                products = products
-                    .where((product) => product.name
-                        .toLowerCase()
-                        .contains(associatedProduct.name))
-                    .toList();
-                print(
-                    'Before calling expanded with associatedProduct: ${associatedProduct.toJson()}');
-                expanded(associatedProduct);
+                // products = products
+                //     .where((product) => product.name
+                //         .toLowerCase()
+                //         .contains(associatedProduct.name))
+                //     .toList();
+                print('Before calling expanded with associatedProduct:');
+                // expanded(associatedProduct);
+                // ref
+                //     .read(productsProvider(ProxyService.box.getBranchId()!)
+                //         .notifier)
+                //     .expanded(associatedProduct);
+                saveTransaction(
+                    variationId: variant.id,
+                    amountTotal: variant.retailPrice,
+                    customItem: false);
+
                 print('After calling expanded');
               }
             }

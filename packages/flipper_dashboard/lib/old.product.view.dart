@@ -169,7 +169,7 @@ class _ProductViewState extends State<ProductView> {
                               future: model.productService
                                   .loadStockByProductId(productId: product.id),
                               builder: (BuildContext context, stocks) {
-                                return ProductRow(
+                                return RowItem(
                                   color: product.color,
                                   stocks: stocks.data ?? [],
                                   model: model,
@@ -184,7 +184,6 @@ class _ProductViewState extends State<ProductView> {
                                         AddProductViewRoute(
                                             productId: productId));
                                   },
-                                  addToMenu: (productId) {},
                                   delete: (productId) {
                                     log("about deleting product ${productId}",
                                         name: 'delete');

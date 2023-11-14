@@ -45,7 +45,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
         sku: variantName,
         productId: product.id,
         unit: 'item',
-        productName: product.name,
+        productName: productName ?? product.name,
         branchId: branchId,
         supplyPrice: defaultPrice,
         isTaxExempted: isTaxExempted,

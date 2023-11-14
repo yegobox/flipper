@@ -14,53 +14,56 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class ProductRow extends StatelessWidget {
-  final Map<int, String> positionString = {
-    0: 'first',
-    1: 'second',
-    2: 'third',
-    3: 'fourth',
-    4: 'fifth',
-    5: 'sixth',
-    6: 'seventh',
-    7: 'eighth',
-    8: 'ninth',
-    9: 'tenth',
-    10: 'eleventh',
-    11: 'twelvth',
-    12: 'thirteenth',
-    13: 'fourteenth',
-    14: 'fifteenth',
-    15: 'sixteenth'
-  };
-  ProductRow({
-    Key? key,
-    required this.color,
-    required this.name,
-    this.imageUrl,
-    required this.stocks,
-    required this.addToMenu,
-    required this.product,
-    required this.edit,
-    required this.enableNfc,
-    required this.model,
-    required this.delete,
-    this.addFavoriteMode,
-    this.favIndex,
-  }) : super(key: key);
+Map<int, String> positionString = {
+  0: 'first',
+  1: 'second',
+  2: 'third',
+  3: 'fourth',
+  4: 'fifth',
+  5: 'sixth',
+  6: 'seventh',
+  7: 'eighth',
+  8: 'ninth',
+  9: 'tenth',
+  10: 'eleventh',
+  11: 'twelvth',
+  12: 'thirteenth',
+  13: 'fourteenth',
+  14: 'fifteenth',
+  15: 'sixteenth'
+};
+
+class RowItem extends StatelessWidget {
   final String color;
   final String name;
   final String? imageUrl;
-  final bool? addFavoriteMode;
-  final int? favIndex;
-  final Product product;
   final Function delete;
-  final Function addToMenu;
   final Function edit;
   final Function enableNfc;
   final ProductViewModel model;
   final List<Stock?> stocks;
+  final Variant? variant;
+  final Product? product;
+  final bool? addFavoriteMode;
+  final int? favIndex;
   final _routerService = locator<RouterService>();
+
+  RowItem({
+    Key? key,
+    required this.color,
+    required this.name,
+    required this.stocks,
+    required this.delete,
+    required this.edit,
+    required this.enableNfc,
+    required this.model,
+    this.imageUrl,
+    this.variant,
+    this.product,
+    this.addFavoriteMode,
+    this.favIndex,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -69,7 +72,7 @@ class ProductRow extends StatelessWidget {
           height: 0.5,
         ),
         Slidable(
-          key: Key('slidable-${product.id}'),
+          key: Key('slidable-${product?.id ?? variant?.id}'),
           child: InkWell(
             onTap: () {
               onRowClick(context);
@@ -104,7 +107,8 @@ class ProductRow extends StatelessWidget {
                         ),
                 ),
                 SizedBox(
-                    width: 10), // Add spacing between the leading and title
+                  width: 10,
+                ),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,50 +128,51 @@ class ProductRow extends StatelessWidget {
                   ),
                 ),
                 SizedBox(
-                    width: 10), // Add spacing between the title and trailing
-                Container(
-                  width: 80,
-                  child: StreamBuilder<List<Variant>>(
-                    stream: ProxyService.isar
-                        .geVariantStreamByProductId(productId: product.id),
-                    builder: (context, snapshot) {
-                      if (snapshot.data?.isNotEmpty == true &&
-                          snapshot.data!.length > 1) {
-                        return const Text(
-                          ' Prices',
-                          style: TextStyle(color: Colors.black),
-                        );
-                      } else {
-                        if (stocks.isNotEmpty &&
-                            stocks.first!.retailPrice != null) {
-                          return Text(
-                            'RWF ' + stocks.first!.retailPrice.toString(),
-                            style: const TextStyle(color: Colors.black),
-                          );
-                        } else {
-                          return const Text(
-                            'RWF ',
-                            style: TextStyle(color: Colors.black),
-                          );
-                        }
-                      }
-                    },
-                  ),
+                  width: 10,
                 ),
+                product != null
+                    ? Container(
+                        width: 80,
+                        child: StreamBuilder<List<Variant>>(
+                          stream: ProxyService.isar.geVariantStreamByProductId(
+                            productId: product!.id,
+                          ),
+                          builder: (context, snapshot) {
+                            if (snapshot.data?.isNotEmpty == true &&
+                                snapshot.data!.length > 1) {
+                              return const Text(
+                                ' Prices',
+                                style: TextStyle(color: Colors.black),
+                              );
+                            } else {
+                              if (stocks.isNotEmpty &&
+                                  stocks.first!.retailPrice != null) {
+                                return Text(
+                                  'RWF ' + stocks.first!.retailPrice.toString(),
+                                  style: const TextStyle(color: Colors.black),
+                                );
+                              } else {
+                                return const Text(
+                                  'RWF ',
+                                  style: TextStyle(color: Colors.black),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      )
+                    : SizedBox.shrink(),
               ],
             ),
           ),
           startActionPane: ActionPane(
-            // A motion is a widget used to control how the pane animates.
             motion: ScrollMotion(
-              key: Key('dismissable-${product.id}'),
+              key: Key('dismissable-${product?.id ?? variant?.id}'),
             ),
-            // All actions are defined in the children parameter.
             children: [
-              // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
-                  delete(product.id);
+                  delete(product?.id ?? variant?.id);
                 },
                 backgroundColor: const Color(0xFFFE4A49),
                 foregroundColor: Colors.white,
@@ -176,44 +181,40 @@ class ProductRow extends StatelessWidget {
               ),
               SlidableAction(
                 onPressed: (_) {
-                  edit(product.id);
+                  edit(product?.id ?? variant?.id);
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 icon: FluentIcons.edit_24_regular,
                 label: '',
               ),
-              SlidableAction(
-                onPressed: (_) {
-                  enableNfc(product);
-                },
-                backgroundColor:
-                    product.nfcEnabled != null && product.nfcEnabled!
-                        ? Colors.blue
-                        : Colors.red,
-                foregroundColor: Colors.white,
-                icon: Icons.nfc,
-                label: '',
-              )
+              if (variant == null) // Only show NFC action for Products
+                SlidableAction(
+                  onPressed: (_) {
+                    enableNfc(product);
+                  },
+                  backgroundColor:
+                      product?.nfcEnabled == true ? Colors.blue : Colors.red,
+                  foregroundColor: Colors.white,
+                  icon: Icons.nfc,
+                  label: '',
+                ),
             ],
           ),
           endActionPane: ActionPane(
-            // A motion is a widget used to control how the pane animates.
             motion: ScrollMotion(
-              key: Key('dismissable-${product.id}'),
+              key: Key('dismissable-${product?.id ?? variant?.id}'),
             ),
-            // All actions are defined in the children parameter.
             children: [
-              // A SlidableAction can have an icon and/or a label.
               SlidableAction(
                 onPressed: (_) {
-                  edit(product.id);
+                  edit(product?.id ?? variant?.id);
                 },
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 icon: FluentIcons.edit_24_regular,
                 label: '',
-              )
+              ),
             ],
           ),
         ),
@@ -222,10 +223,9 @@ class ProductRow extends StatelessWidget {
   }
 
   void onRowClick(BuildContext context) {
-     log("tap recognized");
+    log("tap recognized");
     if (addFavoriteMode != null && addFavoriteMode == true) {
       String? position = positionString[favIndex!];
-      //Confirmation dialog
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -244,7 +244,7 @@ class ProductRow extends StatelessWidget {
                 style: primaryButtonStyle,
                 onPressed: () => {
                   model.addFavorite(
-                      favIndex: favIndex!, productId: product.id),
+                      favIndex: favIndex!, productId: product!.id),
                   model.rebuildUi(),
                   Navigator.of(context).pop(),
                   Navigator.of(context).pop(),
@@ -258,10 +258,9 @@ class ProductRow extends StatelessWidget {
                       color: Colors.white,
                     )),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                      const Color(0xff006AFE)),
-                  overlayColor:
-                      MaterialStateProperty.resolveWith<Color?>(
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
                     (Set<MaterialState> states) {
                       if (states.contains(MaterialState.hovered)) {
                         return Colors.blue.withOpacity(0.04);
@@ -270,7 +269,7 @@ class ProductRow extends StatelessWidget {
                           states.contains(MaterialState.pressed)) {
                         return Colors.blue.withOpacity(0.12);
                       }
-                      return null; // Defer to the widget's default.
+                      return null;
                     },
                   ),
                 ),
@@ -281,7 +280,9 @@ class ProductRow extends StatelessWidget {
         },
       );
     } else {
-      _routerService.navigateTo(SellRoute(product: product));
+      _routerService.navigateTo(product != null
+          ? SellRoute(product: product!)
+          : SellRoute(product: product!));
     }
   }
 }
