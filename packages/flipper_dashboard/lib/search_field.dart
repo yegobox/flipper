@@ -59,10 +59,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
             if (isScanningMode) {
               Future.delayed(Duration(seconds: 2), () {
                 if (mounted) {
-                  widget.controller.clear();
+                  // widget.controller.clear();
                   _hasText = false;
                   _focusNode.requestFocus();
-                  ref.read(searchStringProvider.notifier).emitString(value: '');
+                  // ref.read(searchStringProvider.notifier).emitString(value: '');
                 }
               });
             }

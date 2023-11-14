@@ -31,10 +31,10 @@ final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
   final productsNotifier = OuterVariantsNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
-
-  productsNotifier.loadVariants(
-      searchString: searchString, scannMode: scannMode);
-
+  if (scannMode) {
+    productsNotifier.loadVariants(
+        searchString: searchString, scannMode: scannMode);
+  }
   return productsNotifier;
 });
 
@@ -44,11 +44,19 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
 
   Future<void> loadVariants(
       {required String searchString, required bool scannMode}) async {
-    final variants = await ProxyService.isar
+    final allVariants = await ProxyService.isar
         .variants(branchId: ProxyService.box.getBranchId()!);
 
-    // Update the state with the list of variants.
-    state = AsyncValue.data(variants);
+    // Apply search if searchString is not empty
+    final filteredVariants = searchString.isNotEmpty
+        ? allVariants
+            .where((variant) =>
+                variant.name.toLowerCase().contains(searchString.toLowerCase()))
+            .toList()
+        : allVariants;
+
+    // Update the state with the filtered list of variants.
+    state = AsyncValue.data(filteredVariants);
   }
 }
 
@@ -57,10 +65,10 @@ final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
   final productsNotifier = ProductsNotifier(branchId, ref);
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
-
-  productsNotifier.loadProducts(
-      searchString: searchString, scannMode: scannMode);
-
+  if (!scannMode) {
+    productsNotifier.loadProducts(
+        searchString: searchString, scannMode: scannMode);
+  }
   return productsNotifier;
 });
 
@@ -98,53 +106,51 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
     try {
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
-      if (scannMode) {
-        log('scanning');
+      // if (scannMode) {
+      //TODO: work on auto-expanding the product row when a search is match
+      /// search variant using name
+      // Variant? variant = await ProxyService.isar.variant(name: searchString);
+      // if (variant != null) {
+      // log(variant.name);
+      // log(variant.productId);
+      // Product? associatedProduct =
+      //     await ProxyService.isar.getProduct(id: variant.productId);
+      // if (associatedProduct != null) {
+      //   for (Product product in products) {
+      //     log(product.name.toLowerCase());
+      //     log(product.id.toLowerCase());
+      //     log(associatedProduct.name.toLowerCase());
+      //     if (product.name.toLowerCase() ==
+      //         associatedProduct.name.toLowerCase()) {
+      /// if the product is found, call expanded with the product
+      // products = products
+      //     .where((product) => product.name
+      //         .toLowerCase()
+      //         .contains(associatedProduct.name))
+      //     .toList();
+      // print('Before calling expanded with associatedProduct:');
+      // expanded(associatedProduct);
+      // ref
+      //     .read(productsProvider(ProxyService.box.getBranchId()!)
+      //         .notifier)
+      //     .expanded(associatedProduct);
+      //         saveTransaction(
+      //             variationId: variant.id,
+      //             amountTotal: variant.retailPrice,
+      //             customItem: false);
 
-        /// search variant using name
-        Variant? variant = await ProxyService.isar.variant(name: searchString);
-        if (variant != null) {
-          log(variant.name);
-          log(variant.productId);
-          Product? associatedProduct =
-              await ProxyService.isar.getProduct(id: variant.productId);
-          if (associatedProduct != null) {
-            for (Product product in products) {
-              log(product.name.toLowerCase());
-              log(product.id.toLowerCase());
-              log(associatedProduct.name.toLowerCase());
-              if (product.name.toLowerCase() ==
-                  associatedProduct.name.toLowerCase()) {
-                /// if the product is found, call expanded with the product
-                // products = products
-                //     .where((product) => product.name
-                //         .toLowerCase()
-                //         .contains(associatedProduct.name))
-                //     .toList();
-                print('Before calling expanded with associatedProduct:');
-                // expanded(associatedProduct);
-                // ref
-                //     .read(productsProvider(ProxyService.box.getBranchId()!)
-                //         .notifier)
-                //     .expanded(associatedProduct);
-                saveTransaction(
-                    variationId: variant.id,
-                    amountTotal: variant.retailPrice,
-                    customItem: false);
-
-                print('After calling expanded');
-              }
-            }
-          }
-        }
-      } else {
-        if (searchString.isNotEmpty) {
-          products = products
-              .where((product) => product.name
-                  .toLowerCase()
-                  .contains(searchString.toLowerCase()))
-              .toList();
-        }
+      //         print('After calling expanded');
+      //       }
+      //     }
+      //   }
+      // }
+      // } else {
+      if (searchString.isNotEmpty) {
+        products = products
+            .where((product) =>
+                product.name.toLowerCase().contains(searchString.toLowerCase()))
+            .toList();
+        // }
       }
 
       state = AsyncData(products);

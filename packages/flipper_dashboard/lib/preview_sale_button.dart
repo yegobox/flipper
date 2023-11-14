@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -7,9 +5,8 @@ import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:bottom_sheet/bottom_sheet.dart';
 import 'preview_sale_bottom_sheet.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class PreviewSaleButton extends StatelessWidget {
   const PreviewSaleButton({
@@ -21,59 +18,54 @@ class PreviewSaleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-        child: SizedBox(
-      height: 64,
-      child: TextButton(
-        style: primaryButtonStyle,
-        onPressed: () async {
-          HapticFeedback.lightImpact();
-          log("nav payment route");
-          model.keyboardKeyPressed(key: '+');
-          ITransaction? transaction = await ProxyService.isar
-              .pendingTransaction(branchId: ProxyService.box.getBranchId()!);
-          if (transaction == null) {
-            showToast(context, 'No item on cart!', color: Colors.red);
-            return;
-          }
-          model.keypad.setTransaction(transaction);
-          showBarModalBottomSheet(
-            overlayStyle: SystemUiOverlayStyle.light,
-            expand: false,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10))),
-            context: context,
-            useRootNavigator: true,
-            barrierColor: Colors.black.withOpacity(0.25),
-            backgroundColor: Colors.transparent,
-            builder: (context) => Container(
-              child: PreviewSaleBottomSheet(
-                model: model,
-              ),
-            ),
-          ).whenComplete(() {
+      child: SizedBox(
+        height: 64,
+        child: TextButton(
+          style: primaryButtonStyle,
+          onPressed: () async {
+            HapticFeedback.lightImpact();
+
+            model.keyboardKeyPressed(key: '+');
+            final transaction = await ProxyService.isar.pendingTransaction(
+              branchId: ProxyService.box.getBranchId()!,
+            );
+
+            if (transaction == null) {
+              showToast(context, 'No item on cart!', color: Colors.red);
+              return;
+            }
+
+            model.keypad.setTransaction(transaction);
+
+            showFlexibleBottomSheet(
+              context: context,
+              useRootNavigator: true,
+              minHeight: 0,
+              initHeight: 0.5,
+              maxHeight: 1,
+              anchors: [0, 0.5, 1],
+              isSafeArea: true,
+              barrierColor: Colors.black.withOpacity(0.25),
+              builder: (BuildContext context, ScrollController scrollController,
+                  double bottomSheetOffset) {
+                return PreviewSaleBottomSheet(
+                  model: model,
+                );
+              },
+            );
+
             SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-              systemNavigationBarColor:
-                  Colors.white, // change the color of the navigation bar
+              systemNavigationBarColor: Colors
+                  .transparent, // set the navigation bar color to transparent
               systemNavigationBarIconBrightness:
-                  Brightness.dark, // set the icon color to dark
+                  Brightness.light, // set the icon color to light
             ));
-          });
-          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-            systemNavigationBarColor: Colors
-                .transparent, // set the navigation bar color to transparent
-            systemNavigationBarIconBrightness:
-                Brightness.light, // set the icon color to light
-          ));
-        },
-        child: StreamBuilder<List<TransactionItem>>(
+          },
+          child: StreamBuilder<List<TransactionItem>>(
             stream: model.transactionItemsStream(),
             builder: (context, snapshot) {
-              final transactionItems =
-                  snapshot.data ?? []; // Retrieve the data from the stream
-              final saleCounts = transactionItems
-                  .length; // Calculate the saleCounts based on the transactionItems
+              final transactionItems = snapshot.data ?? [];
+              final saleCounts = transactionItems.length;
 
               return Text(
                 "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}",
@@ -83,8 +75,10 @@ class PreviewSaleButton extends StatelessWidget {
                   color: const Color(0xffFFFFFF),
                 ),
               );
-            }),
+            },
+          ),
+        ),
       ),
-    ));
+    );
   }
 }

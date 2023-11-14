@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/discount_row.dart';
-import 'package:flipper_dashboard/product_row.dart';
+import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';

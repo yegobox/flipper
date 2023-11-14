@@ -87,9 +87,9 @@ class PreviewSaleBottomSheetState
                             ...buildItems(
                               context: context,
                               callback: (item) async {
-                                model.kTransaction?.subTotal =
-                                    model.kTransaction?.subTotal ??
-                                        0 - (item.price * item.qty);
+                                model.kTransaction!.subTotal =
+                                    model.kTransaction!.subTotal -
+                                        (item.price * item.qty);
                                 await ProxyService.isar.update(
                                   data: model.kTransaction,
                                 );
