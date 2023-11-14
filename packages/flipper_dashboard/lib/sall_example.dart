@@ -602,11 +602,11 @@ class Sell extends StatelessWidget {
               disableButton: false,
               showActionButton: true,
               onActionButtonClicked: () async {
-                await model.saveTransaction(
-                  variationId: model.checked,
-                  amountTotal: model.amountTotal,
-                  customItem: false,
-                );
+                // await model.saveTransaction(
+                //   variationId: model.checked,
+                //   amountTotal: model.amountTotal,
+                //   customItem: false,
+                // );
                 // _routerService.pop();
               },
               // actionButtonName: 'Add',

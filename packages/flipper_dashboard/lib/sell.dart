@@ -1,8 +1,10 @@
 import 'dart:developer';
 
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -12,10 +14,17 @@ import 'widgets/quantity_widget.dart';
 import 'widgets/title_widget.dart';
 import 'widgets/variant_widget.dart';
 
-class Sell extends StatelessWidget {
+class Sell extends StatefulHookConsumerWidget {
   Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
+
+  @override
+  SellState createState() => SellState();
+}
+
+class SellState extends ConsumerState<Sell> {
   final _routerService = locator<RouterService>();
+
   final TextEditingController quantityController =
       TextEditingController(text: "1");
 
@@ -26,10 +35,11 @@ class Sell extends StatelessWidget {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
         model.toggleCheckbox(variantId: '-1');
-        await model.getVariants(productId: product.id);
+        await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
+        final pendingTransaction = ref.watch(pendingTransactionProvider);
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -38,17 +48,17 @@ class Sell extends StatelessWidget {
             },
             title: titleWidget(
               model: model,
-              name: product.name,
+              name: widget.product.name,
             ),
             rightActionButtonName: 'Save',
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
               bool saved = await model.saveTransaction(
-                variationId: model.checked,
-                amountTotal: model.amountTotal,
-                customItem: false,
-              );
+                  variationId: model.checked,
+                  amountTotal: model.amountTotal,
+                  customItem: false,
+                  pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
@@ -69,7 +79,7 @@ class Sell extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            product.name,
+                            widget.product.name,
                             style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17,

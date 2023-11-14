@@ -13,6 +13,7 @@ mixin TransactionMixin {
     required String variationId,
     required double amountTotal,
     required bool customItem,
+    required ITransaction pendingTransaction,
   }) async {
     Variant? variation =
         await ProxyService.isar.variant(variantId: variationId);
@@ -24,8 +25,6 @@ mixin TransactionMixin {
         : variation.productName;
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
-    ITransaction pendingTransaction =
-        await ProxyService.isar.manageTransaction();
 
     TransactionItem? existTransactionItem = await ProxyService.isar
         .getTransactionItemByVariantId(
@@ -41,6 +40,7 @@ mixin TransactionMixin {
       isCustom: customItem,
       item: existTransactionItem,
     );
+
     return true;
   }
 

@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
@@ -24,6 +23,32 @@ class SearchStringNotifier extends StateNotifier<String> {
   void emitString({required String value}) {
     if (value.isNotEmpty) {
       state = value;
+    }
+  }
+}
+
+final pendingTransactionProvider =
+    StateNotifierProvider<PendingTransactionNotifier, AsyncValue<ITransaction>>(
+        (ref) {
+  final pendingTransactionNotifier = PendingTransactionNotifier();
+
+  pendingTransactionNotifier.pendingTransaction();
+
+  return pendingTransactionNotifier;
+});
+
+class PendingTransactionNotifier
+    extends StateNotifier<AsyncValue<ITransaction>> {
+  PendingTransactionNotifier() : super(AsyncLoading());
+
+  Future<void> pendingTransaction() async {
+    try {
+      state = AsyncLoading();
+      ITransaction pendingTransaction =
+          await ProxyService.isar.manageTransaction();
+      state = AsyncData(pendingTransaction);
+    } catch (error) {
+      state = AsyncError(error, StackTrace.current);
     }
   }
 }
@@ -68,11 +93,11 @@ class TransactionItemsNotifier
 final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
     AsyncValue<List<Variant>>, int>((ref, branchId) {
   final productsNotifier = OuterVariantsNotifier(branchId);
-  final searchString = ref.watch(searchStringProvider);
+
   final scannMode = ref.watch(scanningModeProvider);
+
   if (scannMode) {
-    productsNotifier.loadVariants(
-        searchString: searchString, scannMode: scannMode);
+    productsNotifier.loadVariants(ref: ref);
   }
   return productsNotifier;
 });
@@ -83,9 +108,12 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
   Future<void> loadVariants({
-    required String searchString,
-    required bool scannMode,
+    required StateNotifierProviderRef<OuterVariantsNotifier,
+            AsyncValue<List<Variant>>>
+        ref,
   }) async {
+    final searchString = ref.watch(searchStringProvider);
+    final pendingTransaction = ref.watch(pendingTransactionProvider);
     try {
       final allVariants = await ProxyService.isar.variants(
         branchId: ProxyService.box.getBranchId()!,
@@ -104,10 +132,10 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
       if (filteredVariants.isNotEmpty) {
         final variant = filteredVariants.first;
         await saveTransaction(
-          variationId: variant.id,
-          amountTotal: variant.retailPrice,
-          customItem: false,
-        );
+            variationId: variant.id,
+            amountTotal: variant.retailPrice,
+            customItem: false,
+            pendingTransaction: pendingTransaction.value!);
       }
 
       // Update the state with the filtered list of variants.

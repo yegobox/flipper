@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,18 +16,20 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
 import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:stacked/stacked.dart';
 
-class FlipperApp extends StatefulWidget {
+class FlipperApp extends StatefulHookConsumerWidget {
   const FlipperApp({Key? key}) : super(key: key);
 
   @override
-  _FlipperAppState createState() => _FlipperAppState();
+  FlipperAppState createState() => FlipperAppState();
 }
 
-class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
+class FlipperAppState extends ConsumerState<FlipperApp>
+    with WidgetsBindingObserver {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
@@ -117,11 +120,14 @@ class _FlipperAppState extends State<FlipperApp> with WidgetsBindingObserver {
                 );
             AppService.cleanedData.listen((data) async {
               log("listened to data");
+              final pendingTransaction = ref.watch(pendingTransactionProvider);
               log(data);
               List<String> parts = data.split(':');
               String firstPart = parts[0];
 
-              await model.sellWithCard(tenantId: int.parse(firstPart));
+              await model.sellWithCard(
+                  tenantId: int.parse(firstPart),
+                  pendingTransaction: pendingTransaction);
               showToast(context, 'Sale recorded successfully.');
             });
           }

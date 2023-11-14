@@ -36,6 +36,7 @@ class PreviewSaleBottomSheetState
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         final transactionItems = ref.watch(transactionItemsProvider);
+        final pendingTransaction = ref.watch(pendingTransactionProvider);
         final saleCounts = transactionItems.value?.length;
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
@@ -126,14 +127,11 @@ class PreviewSaleBottomSheetState
                   child: BoxButton(
                     title: "Collect ${totalPayable} RWF",
                     onTap: () {
-                      model.kTransaction?.subTotal = totalPayable;
-                      if (model.kTransaction != null) {
-                        _routerService.navigateTo(
-                          PaymentsRoute(
-                            transaction: model.kTransaction!,
-                          ),
-                        );
-                      }
+                      _routerService.navigateTo(
+                        PaymentsRoute(
+                          transaction: pendingTransaction.value!,
+                        ),
+                      );
                     },
                   ),
                 ),

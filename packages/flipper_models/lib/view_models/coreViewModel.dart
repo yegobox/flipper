@@ -13,6 +13,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
+import 'package:riverpod/src/common.dart';
 import 'package:stacked/stacked.dart';
 
 import 'mixins/all.dart';
@@ -862,7 +863,9 @@ class CoreViewModel extends FlipperBaseModel
   /// this work with nfc card tapped on supported devices to perfom sales
   /// []
 
-  Future<void> sellWithCard({required int tenantId}) async {
+  Future<void> sellWithCard(
+      {required int tenantId,
+      required AsyncValue<ITransaction> pendingTransaction}) async {
     Product? product =
         await ProxyService.isar.findProductByTenantId(tenantId: tenantId);
 
@@ -876,10 +879,10 @@ class CoreViewModel extends FlipperBaseModel
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
     await saveTransaction(
-      variationId: checked,
-      amountTotal: amountTotal,
-      customItem: false,
-    );
+        variationId: checked,
+        amountTotal: amountTotal,
+        customItem: false,
+        pendingTransaction: pendingTransaction.value!);
   }
 
   List<Branch> branches = [];
