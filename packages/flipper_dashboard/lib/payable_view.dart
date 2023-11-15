@@ -80,7 +80,7 @@ class PayableView extends StatelessWidget {
           const SizedBox(
             width: 10,
           ),
-          PreviewSaleButton(model: model)
+          PreviewSaleButton()
         ],
       ),
     );

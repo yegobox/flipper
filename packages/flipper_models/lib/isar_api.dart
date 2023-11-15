@@ -1872,6 +1872,7 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITransaction) {
+      log('updating how often', name: 'try');
       final transaction = data;
       db.write((isar) {
         isar.iTransactions.put(transaction);

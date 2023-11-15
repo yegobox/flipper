@@ -67,8 +67,10 @@ class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
   TransactionItemsNotifier() : super(AsyncLoading());
 
-  Future<void> items(
-      {required String searchString, required bool scannMode}) async {
+  Future<void> items({
+    required String searchString,
+    required bool scannMode,
+  }) async {
     try {
       state = AsyncLoading();
       List<TransactionItem> items =
@@ -77,6 +79,23 @@ class TransactionItemsNotifier
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
     }
+  }
+
+  /// keep pending transaction with update subtotal
+  Future<void> updatePendingTransaction() async {
+    ITransaction iTransaction = await ProxyService.isar.manageTransaction();
+
+    iTransaction.subTotal = totalPayable;
+    ProxyService.isar.update(data: iTransaction);
+  }
+
+  int get counts {
+    return state.maybeWhen(
+      data: (items) {
+        return items.length;
+      },
+      orElse: () => 0,
+    );
   }
 
   double get totalPayable {

@@ -27,7 +27,7 @@ class SalesButtonsController extends StatelessWidget {
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.only(left: 0.0, right: 0.0),
-          child: ticketsEnabled ? payable : PreviewSaleButton(model: model),
+          child: ticketsEnabled ? payable : PreviewSaleButton(),
         ),
       ],
     );

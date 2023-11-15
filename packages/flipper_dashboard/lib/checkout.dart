@@ -5,12 +5,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
 import 'product_view.dart';
 
-class CheckOut extends StatefulWidget {
+class CheckOut extends StatefulHookConsumerWidget {
   CheckOut({
     Key? key,
     required this.isBigScreen,
@@ -19,10 +20,10 @@ class CheckOut extends StatefulWidget {
   final bool isBigScreen;
 
   @override
-  State<CheckOut> createState() => _CheckOutState();
+  CheckOutState createState() => CheckOutState();
 }
 
-class _CheckOutState extends State<CheckOut>
+class CheckOutState extends ConsumerState<CheckOut>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _animationController;
   late Animation<double> _animation;
@@ -98,7 +99,7 @@ class _CheckOutState extends State<CheckOut>
               return onWillPop(
                   context: context,
                   navigationPurpose: NavigationPurpose.home,
-                  message: 'You have unsaved product, do you want to discard?');
+                  message: 'Do you want to go home?');
             },
             child: Stack(
               children: [

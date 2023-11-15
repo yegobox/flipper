@@ -32,7 +32,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
   late Map<String, bool> isFocusedMap;
   late bool cashPayment;
-  late String? paymentType;
+  String? paymentType;
 
   @override
   void initState() {
