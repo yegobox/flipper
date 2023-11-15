@@ -74,13 +74,13 @@ class ProductViewState extends ConsumerState<ProductView> {
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildProductView(
+        return buildRowView(
             context, model, productsRef, searchFieldWidth, variantsRef);
       },
     );
   }
 
-  Widget buildProductView(
+  Widget buildRowView(
       BuildContext context,
       ProductViewModel model,
       AsyncValue<List<Product>> productsRef,
@@ -163,6 +163,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                     log(variantId, name: 'deleting');
                     ProxyService.isar
                         .delete(id: variantId, endPoint: 'variant');
+                    // ignore: unused_result
                     ref.refresh(
                         outerVariantsProvider(ProxyService.box.getBranchId()!));
                   },
@@ -197,6 +198,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     return Wrap(
       direction: Axis.horizontal,
       children: <Widget>[
+        // IconRow(),
         buildSearchField(searchFieldWidth),
         SizedBox(width: 5),
         buildProfileWidget(),

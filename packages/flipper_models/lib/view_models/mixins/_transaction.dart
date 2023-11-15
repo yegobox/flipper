@@ -127,10 +127,14 @@ mixin TransactionMixin {
 
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: pendingTransaction.id, doneWithTransaction: false);
+
     pendingTransaction.subTotal =
         items.fold(0, (a, b) => a + (b.price * b.qty));
+
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
+
     await ProxyService.isar.update(data: pendingTransaction);
+
     newItem.action = AppActions.create;
     await ProxyService.isar
         .addTransactionItem(transaction: pendingTransaction, item: newItem);

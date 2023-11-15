@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:bottom_sheet/bottom_sheet.dart';
 import 'preview_sale_bottom_sheet.dart';
+import 'package:flutter/cupertino.dart';
 
 class PreviewSaleButton extends StatelessWidget {
   const PreviewSaleButton({
@@ -38,12 +39,13 @@ class PreviewSaleButton extends StatelessWidget {
             model.keypad.setTransaction(transaction);
 
             showModalBottomSheet(
+              backgroundColor: Colors.white,
               context: context,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
               ),
               useRootNavigator: true,
-              barrierColor: Colors.black.withOpacity(0.25),
+              barrierColor: Colors.white,
               builder: (BuildContext context) {
                 return Padding(
                   padding: const EdgeInsets.only(top: 20.0),
