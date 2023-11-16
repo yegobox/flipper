@@ -22,10 +22,13 @@ class _DrawerScreenState extends State<DrawerScreen> {
   final _controller = TextEditingController();
   final _sub = GlobalKey<FormState>();
   final _routerService = locator<RouterService>();
+  String? value = "0.0";
+
   @override
   void dispose() {
     _controller.dispose();
     _sub.currentState?.dispose();
+
     super.dispose();
   }
 
@@ -37,112 +40,147 @@ class _DrawerScreenState extends State<DrawerScreen> {
         alignment: Alignment.center,
         child: SizedBox(
           width: isDesktopOrWeb ? 380 : double.infinity,
-          child: Form(
-            key: _sub,
-            child: Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: isDesktopOrWeb ? 0 : 13),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.open == "close"
-                            ? "Close a Business"
-                            : "Open Business",
-                        style: GoogleFonts.poppins(
-                          fontSize: 36.0,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),
-                      ),
-                      if (widget.open == "close")
-                        Text(
-                          "with ${widget.drawer.closingBalance} RWF",
-                          style: GoogleFonts.poppins(
-                            fontSize: 38.0, // Adjust the font size as needed
-                            fontWeight: FontWeight.normal,
-                            color: Colors.black,
-                          ),
-                        ),
-                    ],
-                  ),
-                  Spacer(),
-                  TextFormField(
-                    controller: _controller,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "You need to enter the amount";
-                      }
-                      final numericValue = num.tryParse(value);
-                      if (numericValue == null) {
-                        return "Only numeric values are allowed";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      enabled: true,
-                      border: const OutlineInputBorder(),
-                      suffixIcon: const Icon(Icons.money),
-                      hintText: widget.open == "open"
-                          ? "Opening balance"
-                          : "Closing balance",
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
-                    child: Container(
-                      color: Colors.white70,
-                      width: double.infinity,
-                      height: 60,
-                      child: BoxButton(
-                          title: widget.open == "open"
-                              ? "Open Drawer"
-                              : "Close Drawer",
-                          onTap: () async {
-                            if (_sub.currentState!.validate()) {
-                              setState(() {
-                                isProcessing = true;
-                              });
-                              if (widget.open == "open") {
-                                ProxyService.isar.openDrawer(
-                                  drawer: widget.drawer
-                                    ..openingBalance =
-                                        double.tryParse(_controller.text) ?? 0,
-                                );
-                                LoginInfo().isLoggedIn = true;
-
-                                _routerService.navigateTo(FlipperAppRoute());
-                              } else {
-                                ProxyService.isar.update(
-                                    data: widget.drawer
-                                      ..closingBalance =
-                                          double.parse(_controller.text)
-                                      ..closingDateTime =
-                                          DateTime.now().toIso8601String()
-                                      ..open = false);
-
-                                /// when you close a drawer we asume you also closed a business day
-                                /// therefore we log you out for next day log in.
-                                await ProxyService.isar.logOut();
-                                _routerService.navigateTo(LoginViewRoute());
-                              }
-                            }
-                          },
-                          busy: isProcessing),
-                    ),
-                  ),
-                  const Spacer(),
-                  const Spacer(),
-                ],
-              ),
-            ),
-          ),
+          child: buildForm(isProcessing),
         ),
       ),
     );
+  }
+
+  Widget buildForm(bool isProcessing) {
+    return Form(
+      key: _sub,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: isDesktopOrWeb ? 0 : 13),
+        child: Column(
+          children: [
+            const Spacer(),
+            buildHeader(),
+            buildTextFormField(),
+            buildSubmitButton(isProcessing),
+            const Spacer(),
+            const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.open == "close" ? "Close a Business" : "Open Business",
+          style: GoogleFonts.poppins(
+            fontSize: 36.0,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        if (widget.open == "close") ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 80.0),
+            child: Text(
+              "with ${widget.drawer.closingBalance} RWF",
+              style: GoogleFonts.poppins(
+                fontSize: 38.0,
+                fontWeight: FontWeight.normal,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+        if (widget.open != "close") ...[
+          Padding(
+            padding: const EdgeInsets.only(left: 80.0),
+            child: Text(
+              "${value} RWF",
+              style: GoogleFonts.poppins(
+                fontSize: 38.0,
+                fontWeight: FontWeight.normal,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget buildTextFormField() {
+    return TextFormField(
+      controller: _controller,
+      keyboardType: TextInputType.number,
+      onChanged: (v) {
+        setState(() {
+          value = v.isEmpty ? "0.0" : v;
+        });
+      },
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return "You need to enter the amount";
+        }
+        final numericValue = num.tryParse(value);
+        if (numericValue == null) {
+          return "Only numeric values are allowed";
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        enabled: true,
+        border: const OutlineInputBorder(),
+        suffixIcon: const Icon(Icons.money),
+        hintText: widget.open == "open" ? "Opening balance" : "Closing balance",
+      ),
+    );
+  }
+
+  Widget buildSubmitButton(bool isProcessing) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
+      child: Container(
+        color: Colors.white70,
+        width: double.infinity,
+        height: 60,
+        child: BoxButton(
+          title: widget.open == "open" ? "Open Drawer" : "Close Drawer",
+          onTap: () async {
+            if (_sub.currentState!.validate()) {
+              setState(() {
+                isProcessing = true;
+              });
+              if (widget.open == "open") {
+                handleOpenDrawer();
+              } else {
+                handleCloseDrawer();
+              }
+            }
+          },
+          busy: isProcessing,
+        ),
+      ),
+    );
+  }
+
+  void handleOpenDrawer() {
+    ProxyService.isar.openDrawer(
+      drawer: widget.drawer
+        ..openingBalance = double.tryParse(_controller.text) ?? 0,
+    );
+
+    LoginInfo().isLoggedIn = true;
+    _routerService.navigateTo(FlipperAppRoute());
+  }
+
+  void handleCloseDrawer() async {
+    ProxyService.isar.update(
+      data: widget.drawer
+        ..closingBalance = double.parse(_controller.text)
+        ..closingDateTime = DateTime.now().toIso8601String()
+        ..open = false,
+    );
+
+    await ProxyService.isar.logOut();
+    _routerService.navigateTo(LoginViewRoute());
   }
 }
