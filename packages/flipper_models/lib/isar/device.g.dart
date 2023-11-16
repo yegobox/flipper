@@ -2840,9 +2840,7 @@ Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
       businessId: json['businessId'] as int,
       userId: json['userId'] as int,
       defaultApp: json['defaultApp'] as String,
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
+      deletedAt: Device._dateTimeFromJson(json['deletedAt']),
     )..lastTouched = json['lastTouched'] == null
         ? null
         : DateTime.parse(json['lastTouched'] as String);
@@ -2860,5 +2858,5 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'defaultApp': instance.defaultApp,
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'deletedAt': Device._dateTimeToJson(instance.deletedAt),
     };

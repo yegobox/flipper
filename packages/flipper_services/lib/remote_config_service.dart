@@ -355,7 +355,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isSyncAvailable() {
-    return false;
+    return true;
   }
 
   @override

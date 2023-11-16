@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 class InitApp {
   static void init() {
+    log('inititialized core app', name: 'init');
     ProxyService.event.connect();
 
     ProxyService.remoteConfig.config();

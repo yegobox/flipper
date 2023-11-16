@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
+import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -92,6 +93,18 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     }
   }
 
+  void initializeApplicationIfRequired() {
+    if (ProxyService.box.getBranchId() != null &&
+        ProxyService.box.getBusinessId() != null &&
+        ProxyService.box.getUserId() != null) {
+      InitApp.init();
+
+      try {
+        ProxyService.remote.listenToChanges();
+      } catch (e) {}
+    }
+  }
+
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
@@ -99,6 +112,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
+          initializeApplicationIfRequired();
           //get default tenant
           model.defaultTenant();
           ProxyService.isar.refreshSession(

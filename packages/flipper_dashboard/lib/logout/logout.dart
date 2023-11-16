@@ -102,15 +102,17 @@ class LogOut extends StackedView<LogoutModel> {
                             'linkingCode': device.linkingCode,
                           });
 
-                          await ProxyService.remote
-                              .hardDelete(
-                                  id: device.id, collectionName: 'devices')
-                              .then((value) {
-                            ProxyService.isar.delete(
-                              endPoint: 'device',
-                              id: device.id,
-                            );
-                          });
+                          try {
+                            await ProxyService.remote
+                                .hardDelete(
+                                    id: device.id, collectionName: 'devices')
+                                .then((value) {
+                              ProxyService.isar.delete(
+                                endPoint: 'device',
+                                id: device.id,
+                              );
+                            });
+                          } catch (e) {}
                           completer(DialogResponse(confirmed: true));
                         }
                       } else {

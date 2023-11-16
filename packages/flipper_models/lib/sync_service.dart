@@ -1,4 +1,5 @@
 import 'dart:core';
+import 'dart:developer';
 import 'package:flipper_models/server_definitions.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/constants.dart';
@@ -106,6 +107,7 @@ class SynchronizationService<M extends IJsonSerializable>
 
   @override
   Future<void> localChanges() async {
+    log('pushing local changes to server', name: 'sync');
     final data = await ProxyService.isar.getUnSyncedData();
     for (Product product in data.products) {
       if (product.action != AppActions.remote && product.name != TEMP_PRODUCT) {

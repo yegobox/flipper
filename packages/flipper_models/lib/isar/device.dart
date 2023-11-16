@@ -30,6 +30,11 @@ class Device extends IJsonSerializable {
   // only for accor when fetching from remove
 
   @Index()
+  @JsonKey(
+    includeIfNull: true,
+    fromJson: _dateTimeFromJson,
+    toJson: _dateTimeToJson,
+  )
   DateTime? deletedAt;
   Device({
     required this.id,
@@ -47,6 +52,24 @@ class Device extends IJsonSerializable {
   });
   factory Device.fromRecord(RecordModel record) =>
       Device.fromJson(record.toJson());
+
+  // Custom converter for DateTime field
+  static DateTime? _dateTimeFromJson(dynamic value) {
+    if (value == null || value is DateTime) {
+      return value;
+    } else if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        // Handle parsing error, return null or handle accordingly
+      }
+    }
+    return null;
+  }
+
+  static dynamic _dateTimeToJson(DateTime? value) {
+    return value?.toIso8601String();
+  }
 
   factory Device.fromJson(Map<String, dynamic> json) {
     json['lastTouched'] =
