@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
 import 'package:flipper_dashboard/CashBookCashOutPressed.dart';
 import 'package:flipper_dashboard/CashBookCashInPressed.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'customappbar.dart';
@@ -10,14 +12,14 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'widgets/dropdown.dart';
 
-class Cashbook extends StatefulWidget {
+class Cashbook extends StatefulHookConsumerWidget {
   Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
   @override
-  _CashbookState createState() => _CashbookState();
+  CashbookState createState() => CashbookState();
 }
 
-class _CashbookState extends State<Cashbook> {
+class CashbookState extends ConsumerState<Cashbook> {
   List<String> transactionPeriodOptions = [
     "Today",
     "This Week",
@@ -38,9 +40,11 @@ class _CashbookState extends State<Cashbook> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value!),
       onViewModelReady: (model) async {
         List<ITransaction> _transactions = await ProxyService.isar
             .completedTransactions(branchId: ProxyService.box.getBranchId()!);

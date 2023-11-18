@@ -1,16 +1,18 @@
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:intl/intl.dart';
 
-class PaymentConfirmation extends StatefulWidget {
+class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation(
       {Key? key,
       required this.totalTransactionAmount,
@@ -24,10 +26,10 @@ class PaymentConfirmation extends StatefulWidget {
   final String paymentType;
 
   @override
-  _PaymentConfirmationState createState() => _PaymentConfirmationState();
+  PaymentConfirmationState createState() => PaymentConfirmationState();
 }
 
-class _PaymentConfirmationState extends State<PaymentConfirmation> {
+class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final _routerService = locator<RouterService>();
   @override
   void initState() {
@@ -36,6 +38,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -92,7 +95,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                         stream: model.getCustomer(
-                            transactionId: model.kTransaction?.id ?? '0'),
+                            transactionId: model.currentTransaction!.id),
                         builder: (context, snapshot) {
                           return Column(
                             children: [
@@ -326,6 +329,7 @@ class _PaymentConfirmationState extends State<PaymentConfirmation> {
             }
           }
         },
-        viewModelBuilder: () => CoreViewModel());
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value!));
   }
 }

@@ -23,8 +23,10 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton> {
   @override
   Widget build(BuildContext context) {
     final saleCounts = ref.watch(transactionItemsProvider.notifier).counts;
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value!),
         builder: (context, model, child) {
           return Expanded(
             child: SizedBox(

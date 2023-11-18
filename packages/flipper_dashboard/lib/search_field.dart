@@ -57,9 +57,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
     // We can also use "ref" to listen to a provider inside the build method
     final isScanningMode = ref.watch(scanningModeProvider);
     final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
-
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value!),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,
@@ -120,11 +121,14 @@ class SearchFieldState extends ConsumerState<SearchField> {
                       toast("receiveOrderMode DeActivated");
                     }
                   },
-                  icon: Icon(
-                    receiveOrderMode
-                        ? FluentIcons.cart_24_regular
-                        : FluentIcons.cart_24_regular,
-                    color: receiveOrderMode ? Colors.amber : Colors.blue,
+                  icon: Badge(
+                    label: Text('1'),
+                    child: Icon(
+                      receiveOrderMode
+                          ? FluentIcons.cart_24_regular
+                          : FluentIcons.cart_24_regular,
+                      color: receiveOrderMode ? Colors.amber : Colors.blue,
+                    ),
                   ),
                 ),
                 IconButton(

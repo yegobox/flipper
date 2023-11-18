@@ -30,6 +30,7 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
@@ -37,7 +38,8 @@ class SellState extends ConsumerState<Sell> {
         model.toggleCheckbox(variantId: '-1');
         await model.getVariants(productId: widget.product.id);
       },
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value!),
       builder: (context, model, child) {
         final pendingTransaction = ref.watch(pendingTransactionProvider);
         return Scaffold(

@@ -1,19 +1,21 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class NewTicket extends StatefulWidget {
+class NewTicket extends StatefulHookConsumerWidget {
   const NewTicket({super.key, required this.transaction});
   final ITransaction transaction;
   @override
-  State<NewTicket> createState() => _NewTicketState();
+  NewTicketState createState() => NewTicketState();
 }
 
-class _NewTicketState extends State<NewTicket>
+class NewTicketState extends ConsumerState<NewTicket>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final _routerService = locator<RouterService>();
@@ -40,9 +42,11 @@ class _NewTicketState extends State<NewTicket>
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return SafeArea(
         child: ViewModelBuilder<CoreViewModel>.reactive(
-            viewModelBuilder: () => CoreViewModel(),
+            viewModelBuilder: () =>
+                CoreViewModel(transaction: currentTransaction.value!),
             onViewModelReady: (model) async {},
             builder: (context, model, child) {
               return Scaffold(

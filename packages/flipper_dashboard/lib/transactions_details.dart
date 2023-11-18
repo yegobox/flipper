@@ -1,7 +1,9 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/receipt_types.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -11,15 +13,15 @@ import 'customappbar.dart';
 import 'widgets/transaction_status_widget.dart';
 import 'package:intl/intl.dart';
 
-class TransactionDetail extends StatefulWidget {
+class TransactionDetail extends StatefulHookConsumerWidget {
   const TransactionDetail({Key? key, required this.transaction})
       : super(key: key);
   final ITransaction transaction;
   @override
-  State<TransactionDetail> createState() => _TransactionDetailState();
+  TransactionDetailState createState() => TransactionDetailState();
 }
 
-class _TransactionDetailState extends State<TransactionDetail> {
+class TransactionDetailState extends ConsumerState<TransactionDetail> {
   bool transactionItemListIsExpanded = false;
   bool transactionStatusWidgetIsExpanded = false;
   bool moreActionsIsPressed = false;
@@ -177,8 +179,10 @@ class _TransactionDetailState extends State<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value!),
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(

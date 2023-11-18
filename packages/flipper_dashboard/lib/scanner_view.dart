@@ -1,10 +1,12 @@
 import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -17,7 +19,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 // TODO:
 // import 'package:mobile_scanner/mobile_scanner.dart' as newKid;
 
-class ScannView extends StatefulWidget {
+class ScannView extends StatefulHookConsumerWidget {
   const ScannView({
     Key? key,
     this.intent = 'selling',
@@ -28,10 +30,10 @@ class ScannView extends StatefulWidget {
   final bool useLatestImplementation;
 
   @override
-  State<StatefulWidget> createState() => _ScannViewState();
+  ScannViewState createState() => ScannViewState();
 }
 
-class _ScannViewState extends State<ScannView> {
+class ScannViewState extends ConsumerState<ScannView> {
   Barcode? result;
   List<Offset> points = [];
   QRViewController? controller;
@@ -49,8 +51,10 @@ class _ScannViewState extends State<ScannView> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value!),
       builder: (context, model, child) {
         return Scaffold(
           body: Stack(
@@ -143,6 +147,7 @@ class _ScannViewState extends State<ScannView> {
     if (result != null && result.contains('-')) {
       HapticFeedback.lightImpact();
       showToast(context, 'Login success');
+      _routerService.back();
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
         _publishLoginDetails(split[1]);

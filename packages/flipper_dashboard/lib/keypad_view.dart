@@ -75,7 +75,7 @@ class KeyPadView extends StatelessWidget {
           onTap: () {
             log("Key: " + model.key);
             HapticFeedback.lightImpact();
-            if ((model.kTransaction != null) &&
+            if ((model.currentTransaction != null) &&
                 ((model.key != '0') &&
                     (model.key != '0.0') &&
                     (model.key != '0.00'))) {
