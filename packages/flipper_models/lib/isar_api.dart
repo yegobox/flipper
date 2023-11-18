@@ -153,7 +153,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
       // save transaction to db
       db.write((isar) {
-        isar.iTransactions.put(transaction);
+        isar.iTransactions.onPut(transaction);
       });
       ITransaction? createdTransaction = await db.iTransactions.get(id);
       ProxyService.box.writeString(key: 'currentTransactionId', value: id);
@@ -192,7 +192,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
       // save transaction to db
       db.write((isar) {
-        isar.iTransactions.put(transaction);
+        isar.iTransactions.onPut(transaction);
       });
       ITransaction? createdTransaction = db.iTransactions.get(id);
       ProxyService.box.writeString(key: 'currentTransactionId', value: id);
@@ -207,7 +207,7 @@ class IsarAPI<M> implements IsarApiInterface {
       {required ITransaction transaction,
       required TransactionItem item}) async {
     db.write((isar) {
-      isar.transactionItems.put(item);
+      isar.transactionItems.onPut(item);
     });
   }
 
@@ -354,7 +354,7 @@ class IsarAPI<M> implements IsarApiInterface {
     } else {
       fav.productId = data.productId;
       db.write((isar) {
-        isar.favorites.put(fav);
+        isar.favorites.onPut(fav);
       });
       return Future.value(200);
     }
@@ -487,7 +487,7 @@ class IsarAPI<M> implements IsarApiInterface {
         variation.itemClsCd = "5020230602";
         variation.pkg = "1";
         variation.id = id;
-        isar.variants.put(variation);
+        isar.variants.onPut(variation);
         final stock = Stock(
             id: id,
             lastTouched: DateTime.now(),
@@ -498,7 +498,7 @@ class IsarAPI<M> implements IsarApiInterface {
             currentStock: variation.qty!,
             productId: variation.productId)
           ..active = false;
-        isar.stocks.put(stock);
+        isar.stocks.onPut(stock);
       }
     });
     return Future.value(200);
@@ -515,7 +515,7 @@ class IsarAPI<M> implements IsarApiInterface {
     // update transaction to db
     if (transaction != null) {
       db.write((isar) {
-        isar.iTransactions.put(transaction);
+        isar.iTransactions.onPut(transaction);
       });
     }
 
@@ -728,7 +728,7 @@ class IsarAPI<M> implements IsarApiInterface {
         // Create a Regular Variant
         final Variant newVariant =
             _createRegularVariant(product, branchId, business);
-        isar.variants.put(newVariant);
+        isar.variants.onPut(newVariant);
 
         // Create a Stock for the Regular Variant
         final Stock stock = Stock(
@@ -740,7 +740,7 @@ class IsarAPI<M> implements IsarApiInterface {
           currentStock: 0.0,
           productId: kProduct!.id,
         );
-        isar.stocks.put(stock);
+        isar.stocks.onPut(stock);
       }
     });
 
@@ -861,7 +861,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (product != null) {
             product.deletedAt = deletionTime;
             product.action = AppActions.deleted;
-            isar.products.put(product);
+            isar.products.onPut(product);
             return true;
           }
           return false;
@@ -873,7 +873,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (variant != null) {
             variant.deletedAt = deletionTime;
             variant.action = AppActions.deleted;
-            isar.variants.put(variant);
+            isar.variants.onPut(variant);
             return true;
           }
           return false;
@@ -885,7 +885,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (stocks != null) {
             stocks.deletedAt = deletionTime;
             stocks.action = AppActions.deleted;
-            isar.stocks.put(stocks);
+            isar.stocks.onPut(stocks);
             return true;
           }
           return false;
@@ -1078,7 +1078,7 @@ class IsarAPI<M> implements IsarApiInterface {
           DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
       variation = db.write((isar) {
-        isar.variants.put(
+        isar.variants.onPut(
           Variant(
               id: id,
               lastTouched: DateTime.now(),
@@ -1158,7 +1158,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ..rsdQty = 0.0;
 
       db.write((isar) {
-        isar.stocks.put(stock);
+        isar.stocks.onPut(stock);
       });
     }
     return variation;
@@ -1763,24 +1763,24 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Product) {
       db.write((isar) {
-        return isar.products.put(data);
+        return isar.products.onPut(data);
       });
     }
     if (data is Variant) {
       db.write((isar) {
-        isar.variants.put(data);
+        isar.variants.onPut(data);
       });
       return Future.value(null);
     }
     if (data is Favorite) {
       db.write((isar) {
-        isar.favorites.put(data);
+        isar.favorites.onPut(data);
       });
       return Future.value(null);
     }
     if (data is Stock) {
       db.write((isar) {
-        isar.stocks.put(data);
+        isar.stocks.onPut(data);
       });
       return Future.value(null);
     }
@@ -1810,13 +1810,13 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is ITransaction) {
       db.write((isar) {
-        isar.iTransactions.put(data);
+        isar.iTransactions.onPut(data);
       });
       return Future.value(null);
     }
     if (data is TransactionItem) {
       db.write((isar) {
-        isar.transactionItems.put(data);
+        isar.transactionItems.onPut(data);
       });
       return Future.value(null);
     }
@@ -1850,32 +1850,32 @@ class IsarAPI<M> implements IsarApiInterface {
       Product product = data;
 
       db.write((isar) {
-        isar.products.put(product);
+        isar.products.onPut(product);
       });
     }
     if (data is Favorite) {
       Favorite fav = data;
       db.write((isar) {
-        isar.favorites.put(fav);
+        isar.favorites.onPut(fav);
       });
     }
     if (data is Variant) {
       Variant variant = data;
       db.write((isar) {
-        isar.variants.put(variant);
+        isar.variants.onPut(variant);
       });
     }
     if (data is Stock) {
       Stock stock = data;
       db.write((isar) {
-        isar.stocks.put(stock);
+        isar.stocks.onPut(stock);
       });
     }
     if (data is ITransaction) {
       log('updating how often', name: 'try');
       final transaction = data;
       db.write((isar) {
-        isar.iTransactions.put(transaction);
+        isar.iTransactions.onPut(transaction);
       });
     }
     if (data is Category) {
@@ -1898,7 +1898,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is TransactionItem) {
       db.write((isar) {
-        isar.transactionItems.put(data);
+        isar.transactionItems.onPut(data);
       });
     }
     if (data is EBM) {
@@ -2168,7 +2168,7 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.write((isar) {
       TransactionItem? item = isar.transactionItems.get(itemId);
       item!.isRefunded = true;
-      isar.transactionItems.put(item);
+      isar.transactionItems.onPut(item);
     });
   }
 
@@ -2364,7 +2364,7 @@ class IsarAPI<M> implements IsarApiInterface {
     product!.nfcEnabled = true;
     product.bindedToTenantId = tenantId;
     db.write((isar) {
-      isar.products.put(product);
+      isar.products.onPut(product);
     });
     return true;
   }
@@ -2805,7 +2805,7 @@ class IsarAPI<M> implements IsarApiInterface {
       ..rsdQty = 0.0;
 
     return db.write((isar) {
-      isar.stocks.put(stock);
+      isar.stocks.onPut(stock);
       return isar.stocks.get(stock.id);
     });
   }
@@ -3127,7 +3127,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .findFirst());
     if (stock == null) {
       db.write(
-        (isar) => isar.stocks.put(
+        (isar) => isar.stocks.onPut(
           Stock(
               lastTouched: DateTime.now(),
               id: randomString(),

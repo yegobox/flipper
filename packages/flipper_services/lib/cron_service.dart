@@ -34,6 +34,7 @@ class CronService {
       if (ProxyService.remoteConfig.isSyncAvailable()) {
         ProxyService.sync.push();
         ProxyService.sync.pull();
+        ProxyService.syncFirestore.pull();
       }
 
       ProxyService.messaging

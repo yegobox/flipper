@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 
@@ -26,7 +27,15 @@ extension ColorExtension on Color {
 
 extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
   void onPut(OBJ object) {
-    print('Putting object: ${object}');
     put(object);
+    if (object is Product) {
+      ProxyService.syncFirestore.onSave<Product>(item: object);
+    }
+    if (object is Variant) {
+      ProxyService.syncFirestore.onSave<Variant>(item: object);
+    }
+    if (object is Stock) {
+      ProxyService.syncFirestore.onSave<Stock>(item: object);
+    }
   }
 }

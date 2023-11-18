@@ -28,7 +28,140 @@ abstract class RemoteInterface {
   );
 }
 
-class RemoteService implements RemoteInterface {
+mixin HandleItemMixin {
+  Future<void> handleItem<T>({required T model, required int branchId}) async {
+    if (model is Stock) {
+      Stock remoteStock = Stock.fromJson(model.toJson());
+
+      Stock? localStock =
+          await ProxyService.isar.getStockById(id: remoteStock.id);
+
+      if (localStock == null && remoteStock.branchId == branchId) {
+        await ProxyService.isar.create(data: remoteStock);
+      } else if (localStock != null &&
+          localStock.lastTouched != null &&
+          remoteStock.lastTouched
+              .isFutureDateCompareTo(localStock.lastTouched)) {
+        remoteStock.action = AppActions.updated;
+        await ProxyService.isar.update(data: remoteStock);
+      }
+    }
+    if (model is Variant) {
+      Variant remoteVariant = Variant.fromJson(model.toJson());
+      Variant? localVariant =
+          await ProxyService.isar.getVariantById(id: remoteVariant.id);
+
+      if (localVariant == null && remoteVariant.branchId == branchId) {
+        await ProxyService.isar.create(data: remoteVariant);
+      } else if (localVariant != null &&
+          localVariant.lastTouched != null &&
+          remoteVariant.lastTouched
+              .isFutureDateCompareTo(localVariant.lastTouched)) {
+        remoteVariant.action = AppActions.updated;
+        await ProxyService.isar.update(data: remoteVariant);
+      }
+    }
+    if (model is Product) {
+      Product remoteProduct = Product.fromJson(model.toJson());
+      Product? localProduct =
+          await ProxyService.isar.getProduct(id: remoteProduct.id);
+
+      if (localProduct == null && remoteProduct.branchId == branchId) {
+        await ProxyService.isar.create(data: remoteProduct);
+      } else if (localProduct != null &&
+          localProduct.lastTouched != null &&
+          remoteProduct.lastTouched
+              .isFutureDateCompareTo(localProduct.lastTouched)) {
+        remoteProduct.action = AppActions.updated;
+        await ProxyService.isar.update(data: remoteProduct);
+      }
+    }
+    if (model is Device) {
+      Device remoteDevice = Device.fromJson(model.toJson());
+      Device? localDevice =
+          await ProxyService.isar.getDeviceById(id: remoteDevice.id);
+
+      if (localDevice == null && remoteDevice.branchId == branchId) {
+        await ProxyService.isar.create(data: remoteDevice);
+      } else if (localDevice != null &&
+          localDevice.lastTouched != null &&
+          remoteDevice.lastTouched
+              .isFutureDateCompareTo(localDevice.lastTouched)) {
+        localDevice.action = AppActions.updated;
+        await ProxyService.isar.update(data: localDevice);
+      }
+    }
+    if (model is Social) {
+      Social remoteSocial = Social.fromJson(model.toJson());
+      Social? localSocial =
+          await ProxyService.isar.getSocialById(id: remoteSocial.id);
+
+      if (localSocial == null &&
+          remoteSocial.branchId == ProxyService.box.getBranchId()) {
+        await ProxyService.isar.create(data: remoteSocial);
+      } else if (localSocial != null &&
+          remoteSocial.lastTouched
+              .isFutureDateCompareTo(localSocial.lastTouched)) {
+        await ProxyService.isar.update(data: remoteSocial);
+      }
+    }
+    if (model is EBM) {
+      EBM ebm = EBM.fromJson(model.toJson());
+      EBM? localEbm =
+          await ProxyService.isar.getEbmByBranchId(branchId: ebm.branchId);
+
+      if (localEbm == null &&
+          ebm.businessId == ProxyService.box.getBusinessId()) {
+        ebm.lastTouched = DateTime.now();
+
+        if (ebm.taxServerUrl != null) {
+          ebm.taxServerUrl = ebm.taxServerUrl!.trim();
+        }
+        await ProxyService.isar.create(data: ebm);
+        // update business
+        Business? business = await ProxyService.isar.getBusiness();
+        business!.bhfId = ebm.bhfId;
+        business.taxServerUrl = ebm.taxServerUrl;
+        business.tinNumber = ebm.tinNumber;
+        business.dvcSrlNo = ebm.dvcSrlNo;
+        ProxyService.isar.update(data: business);
+      } else if (localEbm != null &&
+          ebm.lastTouched != null &&
+          ebm.lastTouched.isFutureDateCompareTo(localEbm.lastTouched)) {
+        await ProxyService.isar.update(data: ebm);
+      }
+    }
+    if (model is ITransaction) {
+      ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
+      ITransaction? localTransaction =
+          await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
+
+      if (localTransaction == null &&
+          remoteTransaction.branchId == ProxyService.box.getBranchId()) {
+        await ProxyService.isar.create(data: remoteTransaction);
+      } else if (localTransaction != null &&
+          remoteTransaction.lastTouched
+              .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        await ProxyService.isar.update(data: remoteTransaction);
+      }
+    }
+    if (model is TransactionItem) {
+      TransactionItem? remoteTransactionItem =
+          TransactionItem.fromJson(model.toJson());
+      TransactionItem? localTransaction = await ProxyService.isar
+          .getTransactionItemById(id: remoteTransactionItem.id);
+
+      if (localTransaction == null) {
+        await ProxyService.isar.create(data: remoteTransactionItem);
+      } else if (remoteTransactionItem.lastTouched
+          .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        await ProxyService.isar.update(data: remoteTransactionItem);
+      }
+    }
+  }
+}
+
+class RemoteService with HandleItemMixin implements RemoteInterface {
   PocketBase? pb;
   late String url;
   int _retryCount = 0;
@@ -341,137 +474,6 @@ class RemoteService implements RemoteInterface {
         break;
       default:
         break;
-    }
-  }
-
-  Future<void> handleItem<T>({required T model, required int branchId}) async {
-    if (model is Stock) {
-      Stock remoteStock = Stock.fromJson(model.toJson());
-
-      Stock? localStock =
-          await ProxyService.isar.getStockById(id: remoteStock.id);
-
-      if (localStock == null && remoteStock.branchId == branchId) {
-        await ProxyService.isar.create(data: remoteStock);
-      } else if (localStock != null &&
-          localStock.lastTouched != null &&
-          remoteStock.lastTouched
-              .isFutureDateCompareTo(localStock.lastTouched)) {
-        remoteStock.action = AppActions.updated;
-        await ProxyService.isar.update(data: remoteStock);
-      }
-    }
-    if (model is Variant) {
-      Variant remoteVariant = Variant.fromJson(model.toJson());
-      Variant? localVariant =
-          await ProxyService.isar.getVariantById(id: remoteVariant.id);
-
-      if (localVariant == null && remoteVariant.branchId == branchId) {
-        await ProxyService.isar.create(data: remoteVariant);
-      } else if (localVariant != null &&
-          localVariant.lastTouched != null &&
-          remoteVariant.lastTouched
-              .isFutureDateCompareTo(localVariant.lastTouched)) {
-        remoteVariant.action = AppActions.updated;
-        await ProxyService.isar.update(data: remoteVariant);
-      }
-    }
-    if (model is Product) {
-      Product remoteProduct = Product.fromJson(model.toJson());
-      Product? localProduct =
-          await ProxyService.isar.getProduct(id: remoteProduct.id);
-
-      if (localProduct == null && remoteProduct.branchId == branchId) {
-        await ProxyService.isar.create(data: remoteProduct);
-      } else if (localProduct != null &&
-          localProduct.lastTouched != null &&
-          remoteProduct.lastTouched
-              .isFutureDateCompareTo(localProduct.lastTouched)) {
-        remoteProduct.action = AppActions.updated;
-        await ProxyService.isar.update(data: remoteProduct);
-      }
-    }
-    if (model is Device) {
-      Device remoteDevice = Device.fromJson(model.toJson());
-      Device? localDevice =
-          await ProxyService.isar.getDeviceById(id: remoteDevice.id);
-
-      if (localDevice == null && remoteDevice.branchId == branchId) {
-        await ProxyService.isar.create(data: remoteDevice);
-      } else if (localDevice != null &&
-          localDevice.lastTouched != null &&
-          remoteDevice.lastTouched
-              .isFutureDateCompareTo(localDevice.lastTouched)) {
-        localDevice.action = AppActions.updated;
-        await ProxyService.isar.update(data: localDevice);
-      }
-    }
-    if (model is Social) {
-      Social remoteSocial = Social.fromJson(model.toJson());
-      Social? localSocial =
-          await ProxyService.isar.getSocialById(id: remoteSocial.id);
-
-      if (localSocial == null &&
-          remoteSocial.branchId == ProxyService.box.getBranchId()) {
-        await ProxyService.isar.create(data: remoteSocial);
-      } else if (localSocial != null &&
-          remoteSocial.lastTouched
-              .isFutureDateCompareTo(localSocial.lastTouched)) {
-        await ProxyService.isar.update(data: remoteSocial);
-      }
-    }
-    if (model is EBM) {
-      EBM ebm = EBM.fromJson(model.toJson());
-      EBM? localEbm =
-          await ProxyService.isar.getEbmByBranchId(branchId: ebm.branchId);
-
-      if (localEbm == null &&
-          ebm.businessId == ProxyService.box.getBusinessId()) {
-        ebm.lastTouched = DateTime.now();
-
-        if (ebm.taxServerUrl != null) {
-          ebm.taxServerUrl = ebm.taxServerUrl!.trim();
-        }
-        await ProxyService.isar.create(data: ebm);
-        // update business
-        Business? business = await ProxyService.isar.getBusiness();
-        business!.bhfId = ebm.bhfId;
-        business.taxServerUrl = ebm.taxServerUrl;
-        business.tinNumber = ebm.tinNumber;
-        business.dvcSrlNo = ebm.dvcSrlNo;
-        ProxyService.isar.update(data: business);
-      } else if (localEbm != null &&
-          ebm.lastTouched != null &&
-          ebm.lastTouched.isFutureDateCompareTo(localEbm.lastTouched)) {
-        await ProxyService.isar.update(data: ebm);
-      }
-    }
-    if (model is ITransaction) {
-      ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
-      ITransaction? localTransaction =
-          await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
-
-      if (localTransaction == null &&
-          remoteTransaction.branchId == ProxyService.box.getBranchId()) {
-        await ProxyService.isar.create(data: remoteTransaction);
-      } else if (localTransaction != null &&
-          remoteTransaction.lastTouched
-              .isFutureDateCompareTo(localTransaction.lastTouched)) {
-        await ProxyService.isar.update(data: remoteTransaction);
-      }
-    }
-    if (model is TransactionItem) {
-      TransactionItem? remoteTransactionItem =
-          TransactionItem.fromJson(model.toJson());
-      TransactionItem? localTransaction = await ProxyService.isar
-          .getTransactionItemById(id: remoteTransactionItem.id);
-
-      if (localTransaction == null) {
-        await ProxyService.isar.create(data: remoteTransactionItem);
-      } else if (remoteTransactionItem.lastTouched
-          .isFutureDateCompareTo(localTransaction.lastTouched)) {
-        await ProxyService.isar.update(data: remoteTransactionItem);
-      }
     }
   }
 
