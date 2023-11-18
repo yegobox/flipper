@@ -1,8 +1,10 @@
 import 'package:flipper_models/sync_service.dart';
 
-abstract class SyncApiInterface<M extends IJsonSerializable> {
+abstract class Sync<M extends IJsonSerializable> {
   void pull();
   Future<void> push();
   Future<void> localChanges();
-  factory SyncApiInterface.create() => SynchronizationService<M>();
+  factory Sync.create() => SynchronizationService<M>();
+
+  Future<void> onSave<M extends IJsonSerializable>({required M item});
 }

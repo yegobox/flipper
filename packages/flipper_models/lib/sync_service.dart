@@ -14,8 +14,7 @@ abstract class IJsonSerializable {
   String action = AppActions.create;
 }
 
-class SynchronizationService<M extends IJsonSerializable>
-    implements SyncApiInterface<M> {
+class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   @override
   Future<void> push() async {
     try {
@@ -195,5 +194,11 @@ class SynchronizationService<M extends IJsonSerializable>
         }
       }
     }
+  }
+
+  @override
+  Future<void> onSave<M extends IJsonSerializable>({required M item}) {
+    // TODO: implement onSave
+    throw UnimplementedError();
   }
 }

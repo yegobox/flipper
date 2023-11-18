@@ -1,3 +1,4 @@
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -52,7 +53,8 @@ final ForceDataEntryService _forceDataEntry = getIt<ForceDataEntryService>();
 final Crash _crash = getIt<Crash>();
 final LNotification _notification = getIt<LNotification>();
 final Review _review = getIt<Review>();
-final SyncApiInterface _syncApi = getIt<SyncApiInterface>();
+final Sync _syncApi = getIt<Sync>();
+final SyncFirestore _syncFirestore = getIt<SyncFirestore>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
@@ -91,7 +93,8 @@ abstract class ProxyService {
   static ForceDataEntryService get forceDateEntry => _forceDataEntry;
   static LNotification get notification => _notification;
   static Review get review => _review;
-  static SyncApiInterface get sync => _syncApi;
+  static Sync get sync => _syncApi;
+  static SyncFirestore get syncFirestore => _syncFirestore;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

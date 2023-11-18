@@ -9,12 +9,13 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:flipper_models/FirestoreSync.dart' as _i30;
 import 'package:flipper_models/isar_models.dart' as _i13;
 import 'package:flipper_models/remote_service.dart' as _i22;
 import 'package:flipper_models/sync.dart' as _i28;
 import 'package:flipper_models/sync_service.dart' as _i29;
-import 'package:flipper_models/tax_api.dart' as _i31;
-import 'package:flipper_models/whatsapp.dart' as _i33;
+import 'package:flipper_models/tax_api.dart' as _i32;
+import 'package:flipper_models/whatsapp.dart' as _i34;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
@@ -25,8 +26,8 @@ import 'abstractions/printer.dart' as _i19;
 import 'abstractions/remote.dart' as _i21;
 import 'abstractions/shareable.dart' as _i26;
 import 'abstractions/storage.dart' as _i17;
-import 'abstractions/system_time.dart' as _i30;
-import 'abstractions/upload.dart' as _i32;
+import 'abstractions/system_time.dart' as _i31;
+import 'abstractions/upload.dart' as _i33;
 import 'app_service.dart' as _i4;
 import 'billing_service.dart' as _i5;
 import 'country_service.dart' as _i6;
@@ -41,7 +42,7 @@ import 'language_service.dart' as _i16;
 import 'local_notification_service.dart' as _i15;
 import 'product_service.dart' as _i20;
 import 'sentry_service.dart' as _i24;
-import 'services_module.dart' as _i34;
+import 'services_module.dart' as _i35;
 import 'setting_service.dart' as _i25;
 import 'status.dart' as _i27;
 
@@ -94,19 +95,22 @@ extension GetItInjectableX on _i1.GetIt {
     gh.factory<_i25.SettingsService>(() => servicesModule.settingsService);
     gh.lazySingleton<_i26.Shareable>(() => servicesModule.share);
     gh.lazySingleton<_i27.Status>(() => servicesModule.status);
-    gh.lazySingleton<_i28.SyncApiInterface<_i29.IJsonSerializable>>(
+    gh.lazySingleton<_i28.Sync<_i29.IJsonSerializable>>(
         () => servicesModule.sync());
-    gh.lazySingleton<_i30.SystemTime>(() => servicesModule.systemTime);
-    gh.lazySingleton<_i31.TaxApi>(() => servicesModule.taxApiService);
-    gh.lazySingleton<_i32.UploadT>(() => servicesModule.upload);
-    gh.lazySingleton<_i33.WhatsApp>(() => servicesModule.whatsApp);
+    gh.lazySingleton<_i30.SyncFirestore<_i29.IJsonSerializable>>(
+        () => servicesModule.syncFirestore());
+    gh.lazySingleton<_i31.SystemTime>(() => servicesModule.systemTime);
+    gh.lazySingleton<_i32.TaxApi>(() => servicesModule.taxApiService);
+    gh.lazySingleton<_i33.UploadT>(() => servicesModule.upload);
+    gh.lazySingleton<_i34.WhatsApp>(() => servicesModule.whatsApp);
     return this;
   }
 }
 
-class _$ServicesModule extends _i34.ServicesModule {
+class _$ServicesModule extends _i35.ServicesModule {
   @override
   _i14.KeyPadService get keypadService => _i14.KeyPadService();
+
   @override
   _i25.SettingsService get settingsService => _i25.SettingsService();
 }
