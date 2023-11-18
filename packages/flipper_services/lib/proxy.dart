@@ -1,4 +1,4 @@
-import 'package:flipper_models/firestoreApi.dart';
+import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';

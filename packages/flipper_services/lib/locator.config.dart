@@ -9,7 +9,7 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/firestoreApi.dart' as _i30;
+import 'package:flipper_models/FirestoreSync.dart' as _i30;
 import 'package:flipper_models/isar_models.dart' as _i13;
 import 'package:flipper_models/remote_service.dart' as _i22;
 import 'package:flipper_models/sync.dart' as _i28;

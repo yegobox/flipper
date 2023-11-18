@@ -37,5 +37,8 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     if (object is Stock) {
       ProxyService.syncFirestore.onSave<Stock>(item: object);
     }
+    if (object is Device) {
+      ProxyService.syncFirestore.onSave<Device>(item: object);
+    }
   }
 }

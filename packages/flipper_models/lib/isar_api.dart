@@ -837,7 +837,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (device != null) {
             device.deletedAt = deletionTime;
             device.action = AppActions.deleted;
-            isar.devices.put(device);
+            isar.devices.onPut(device);
             return true;
           }
           return false;
@@ -1743,7 +1743,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Device) {
       Device device = data;
       db.write((isar) {
-        isar.devices.put(device);
+        isar.devices.onPut(device);
       });
       return Future.value(null);
     }
@@ -1836,7 +1836,7 @@ class IsarAPI<M> implements IsarApiInterface {
       Device device = data;
 
       db.write((isar) {
-        isar.devices.put(device);
+        isar.devices.onPut(device);
       });
     }
     if (data is Social) {
