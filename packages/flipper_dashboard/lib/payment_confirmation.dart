@@ -330,6 +330,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           }
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!));
+            CoreViewModel(transaction: currentTransaction.value));
   }
 }

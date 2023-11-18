@@ -44,7 +44,7 @@ class CashbookState extends ConsumerState<Cashbook> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
       onViewModelReady: (model) async {
         List<ITransaction> _transactions = await ProxyService.isar
             .completedTransactions(branchId: ProxyService.box.getBranchId()!);

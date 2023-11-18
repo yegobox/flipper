@@ -46,7 +46,7 @@ class NewTicketState extends ConsumerState<NewTicket>
     return SafeArea(
         child: ViewModelBuilder<CoreViewModel>.reactive(
             viewModelBuilder: () =>
-                CoreViewModel(transaction: currentTransaction.value!),
+                CoreViewModel(transaction: currentTransaction.value),
             onViewModelReady: (model) async {},
             builder: (context, model, child) {
               return Scaffold(

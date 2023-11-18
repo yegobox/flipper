@@ -63,7 +63,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
     final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Container(

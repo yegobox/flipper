@@ -39,7 +39,7 @@ class SellState extends ConsumerState<Sell> {
         await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
         final pendingTransaction = ref.watch(pendingTransactionProvider);
         return Scaffold(

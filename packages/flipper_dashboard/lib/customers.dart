@@ -33,7 +33,7 @@ class CustomersState extends ConsumerState<Customers> {
         ref.watch(customersProvider(ProxyService.box.getBranchId()!));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
         return SafeArea(
           child: Scaffold(

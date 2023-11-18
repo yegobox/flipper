@@ -180,7 +180,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

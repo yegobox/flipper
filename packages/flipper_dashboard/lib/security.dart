@@ -41,7 +41,7 @@ class SecurityState extends ConsumerState<Security> {
             backgroundColor: Theme.of(context).canvasColor,
             body: ViewModelBuilder<CoreViewModel>.reactive(
                 viewModelBuilder: () =>
-                    CoreViewModel(transaction: currentTransaction.value!),
+                    CoreViewModel(transaction: currentTransaction.value),
                 builder: (a, model, c) {
                   return SafeArea(
                     child: Column(

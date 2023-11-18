@@ -19,7 +19,7 @@ class ReceiptUIState extends ConsumerState<ReceiptUI> {
     return Scaffold(
       body: ViewModelBuilder.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (a, model, b) {
           return PreviewSaleBottomSheet(
             reverse: false,

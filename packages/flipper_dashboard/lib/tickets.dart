@@ -160,6 +160,6 @@ class TicketsState extends ConsumerState<Tickets>
           model.updatePayable();
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!));
+            CoreViewModel(transaction: currentTransaction.value));
   }
 }

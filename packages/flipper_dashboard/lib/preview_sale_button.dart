@@ -26,7 +26,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton> {
     final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Expanded(
             child: SizedBox(

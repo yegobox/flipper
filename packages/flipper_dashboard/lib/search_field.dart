@@ -60,7 +60,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,

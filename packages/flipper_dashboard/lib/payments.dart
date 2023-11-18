@@ -63,7 +63,7 @@ class PaymentsState extends ConsumerState<Payments> {
       },
       onViewModelReady: (model) => model.updatePayable(),
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value!),
+          CoreViewModel(transaction: currentTransaction.value),
     );
   }
 

@@ -67,7 +67,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
           viewModelBuilder: () =>
-              CoreViewModel(transaction: currentTransaction.value!),
+              CoreViewModel(transaction: currentTransaction.value),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -97,7 +97,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return WillPopScope(
             onWillPop: () async {

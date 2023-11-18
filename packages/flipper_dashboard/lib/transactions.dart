@@ -289,7 +289,7 @@ class TransactionsState extends ConsumerState<Transactions> {
           });
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

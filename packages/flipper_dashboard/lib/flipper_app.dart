@@ -112,7 +112,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     return ViewModelBuilder<CoreViewModel>.reactive(
         // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         onViewModelReady: (model) async {
           initializeApplicationIfRequired();
           //get default tenant

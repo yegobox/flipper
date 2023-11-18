@@ -182,7 +182,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
     final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value!),
+            CoreViewModel(transaction: currentTransaction.value),
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(
