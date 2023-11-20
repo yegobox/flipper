@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
-  cloud_firestore
   connectivity_plus
   desktop_webview_auth
   file_selector_windows
