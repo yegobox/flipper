@@ -117,7 +117,7 @@ class EventService implements EventInterface {
                   pubNubPublished: false,
                   branchId: loginData.branchId,
                   businessId: loginData.businessId,
-                  action: AppActions.create,
+                  action: AppActions.created,
                   defaultApp: loginData.defaultApp,
                   phone: loginData.phone,
                   userId: loginData.userId,
@@ -128,7 +128,7 @@ class EventService implements EventInterface {
         await ProxyService.isar
             .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
         keepTryingPublishDevice();
-         await FirebaseAuth.instance.signInAnonymously();
+        await FirebaseAuth.instance.signInAnonymously();
       });
     } catch (e) {
       rethrow;
@@ -178,7 +178,7 @@ class EventService implements EventInterface {
             data: Device(
                 id: randomString(),
                 pubNubPublished: true,
-                action: AppActions.create,
+                action: AppActions.created,
                 branchId: deviceEvent.branchId,
                 businessId: deviceEvent.businessId,
                 defaultApp: deviceEvent.defaultApp,

@@ -171,3 +171,6 @@ class App {}
 // TODO: https://medium.com/flutter-community/a-better-approach-for-cloud-firestore-odm-ad2f6eed11e1
 // best packages
 // https://pub.dev/packages/device_apps
+
+// TODO: support auto-printing
+//https://github.com/DavBfr/dart_pdf/issues/1116

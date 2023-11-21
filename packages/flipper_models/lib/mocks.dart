@@ -277,7 +277,7 @@ final stockMock = Stock(
 // transaction mock
 ITransaction? TransactionFMock = ITransaction(
   lastTouched: DateTime.now(),
-  action: AppActions.create,
+  action: AppActions.created,
   id: randomString(),
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
@@ -333,7 +333,7 @@ final productMock = Product(
   ..createdAt = DateTime.now().toIso8601String();
 
 final branchMock = Branch(
-  action: AppActions.create,
+  action: AppActions.created,
   id: randomNumber(),
   active: false,
   description: 'desc',

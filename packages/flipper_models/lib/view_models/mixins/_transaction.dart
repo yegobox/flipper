@@ -78,7 +78,7 @@ mixin TransactionMixin {
       id: randomString(),
       branchId: branchId,
       lastTouched: DateTime.now(),
-      action: AppActions.create,
+      action: AppActions.created,
       qty: isCustom ? 1.0 : quantity,
       price: amountTotal / quantity,
       variantId: variationId,
@@ -135,7 +135,7 @@ mixin TransactionMixin {
 
     await ProxyService.isar.update(data: pendingTransaction);
 
-    newItem.action = AppActions.create;
+    newItem.action = AppActions.created;
     await ProxyService.isar
         .addTransactionItem(transaction: pendingTransaction, item: newItem);
   }

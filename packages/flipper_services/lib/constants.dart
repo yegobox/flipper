@@ -3,14 +3,12 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppActions {
-  static const String update = "update";
-  static const String nA = "N/A";
   static const String updated = "updated";
+  static const String updatedLocally = "updated_locally";
   static const String deleted = "deleted";
-  static const String create = "create";
+  static const String created = "created";
   static const String defaultCategory = "default";
   static const String remote = "remote";
-  static const String created = "created";
 }
 
 class TransactionType {

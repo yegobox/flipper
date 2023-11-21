@@ -109,7 +109,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
         product: Product(
             id: randomString(),
             name: TEMP_PRODUCT,
-            action: AppActions.create,
+            action: AppActions.created,
             lastTouched: DateTime.now(),
             businessId: ProxyService.box.getBusinessId()!,
             color: COLOR,
@@ -295,7 +295,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
           variation.supplyPrice = supplyPrice;
           variation.productName = product!.name;
           variation.action =
-              inUpdateProcess ? AppActions.update : AppActions.create;
+              inUpdateProcess ? AppActions.updated : AppActions.created;
           variation.productId = variation.productId;
           ProxyService.isar.update(data: variation);
           Stock? stock =
@@ -303,7 +303,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
           stock.supplyPrice = supplyPrice;
           stock.action =
-              inUpdateProcess ? AppActions.update : AppActions.create;
+              inUpdateProcess ? AppActions.updated : AppActions.created;
           ProxyService.isar.update(data: stock);
         }
       }
@@ -316,7 +316,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
           variation.productId = variation.productId;
           variation.prc = retailPrice;
           variation.action =
-              inUpdateProcess ? AppActions.update : AppActions.create;
+              inUpdateProcess ? AppActions.updated : AppActions.created;
           variation.productName = product!.name;
           ProxyService.isar.update(data: variation);
           Stock stock =
@@ -324,7 +324,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
           stock.retailPrice = retailPrice;
           stock.action =
-              inUpdateProcess ? AppActions.update : AppActions.create;
+              inUpdateProcess ? AppActions.updated : AppActions.created;
           await ProxyService.isar.update(data: stock);
         }
       }
@@ -338,7 +338,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
       favIndex: favIndex,
       productId: productId,
       branchId: ProxyService.box.getBranchId(),
-      action: AppActions.create,
+      action: AppActions.created,
     );
 
     int res = await ProxyService.isar.addFavorite(data: favorite);

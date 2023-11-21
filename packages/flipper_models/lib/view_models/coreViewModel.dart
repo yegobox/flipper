@@ -183,7 +183,7 @@ class CoreViewModel extends FlipperBaseModel
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
           amount, variation, name, pendingTransaction, stock);
-      newItem.action = AppActions.create;
+      newItem.action = AppActions.created;
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
       items = await ProxyService.isar.transactionItems(
@@ -240,7 +240,7 @@ class CoreViewModel extends FlipperBaseModel
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
         await ProxyService.isar.update(data: pendingTransaction);
-        newItem.action = AppActions.create;
+        newItem.action = AppActions.created;
         await ProxyService.isar
             .addTransactionItem(transaction: pendingTransaction, item: newItem);
 
@@ -269,7 +269,7 @@ class CoreViewModel extends FlipperBaseModel
     return TransactionItem(
       id: randomString(),
       qty: 1,
-      action: AppActions.create,
+      action: AppActions.created,
       price: amount / 1,
       variantId: variation.id,
       name: name,

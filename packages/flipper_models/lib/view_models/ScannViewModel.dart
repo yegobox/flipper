@@ -11,7 +11,8 @@ import 'mixins/_product.dart';
 class ScannViewModel extends BaseViewModel with ProductMixin {
   List<Variant> scannedVariants = [];
   late Product product;
-  double defaultPrice = 0.0;
+  double retailPrice = 0.0;
+  double supplyPrice = 0.0;
 
   void initialize() {
     scannedVariants = [];
@@ -29,7 +30,8 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     for (var variant in scannedVariants) {
       if (variant.name == variantName) {
         // If found, update it
-        variant.retailPrice = defaultPrice;
+        variant.retailPrice = retailPrice;
+        variant.supplyPrice = supplyPrice;
         variant.qty = (variant.qty ?? 0) + 1; // Increment the quantity safely
         notifyListeners();
         return;
@@ -40,16 +42,16 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     scannedVariants.add(
       Variant(
         name: variantName,
-        retailPrice: defaultPrice,
+        retailPrice: retailPrice,
         id: randomString(),
         sku: variantName,
         productId: product.id,
         unit: 'item',
         productName: productName ?? product.name,
         branchId: branchId,
-        supplyPrice: defaultPrice,
+        supplyPrice: supplyPrice,
         isTaxExempted: isTaxExempted,
-        action: AppActions.create,
+        action: AppActions.created,
         lastTouched: DateTime.now(),
         qty: 1,
       ),
@@ -67,7 +69,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
         color: COLOR,
         businessId: businessId,
         branchId: branchId,
-        action: AppActions.create,
+        action: AppActions.created,
         id: randomString(),
         lastTouched: DateTime.now(),
       ),
@@ -91,8 +93,13 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     }
   }
 
-  setDefaultPrice({required String price}) {
-    defaultPrice = double.parse(price);
+  setRetailPrice({required String price}) {
+    retailPrice = double.parse(price);
+    notifyListeners();
+  }
+
+  setSupplyPrice({required String price}) {
+    supplyPrice = double.parse(price);
     notifyListeners();
   }
 }

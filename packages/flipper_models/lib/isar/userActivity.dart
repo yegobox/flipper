@@ -40,7 +40,7 @@ class UserActivity extends IJsonSerializable {
                 .toIso8601String();
 
     // this line ony added in both business and UserActivity as they are not part of sync schemd
-    json['action'] = AppActions.create;
+    json['action'] = AppActions.created;
     return _$UserActivityFromJson(json);
   }
 

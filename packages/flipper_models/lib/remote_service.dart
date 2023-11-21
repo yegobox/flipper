@@ -243,7 +243,17 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       await getInstance();
     }
     try {
-      return await pb!.collection(collectionName).update(recordId, body: data);
+      // check if record's id exist
+      CollectionModel? record = await pb!.collections.getOne(recordId);
+
+      if (record.toJson().length != 0) {
+        // Record is empty
+        return await pb!
+            .collection(collectionName)
+            .update(recordId, body: data);
+      } else {
+        return null;
+      }
     } on SocketException catch (e) {
       log(e.toString());
       return null;
@@ -480,7 +490,11 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
   @override
   Future<void> hardDelete(
       {required String id, required String collectionName}) async {
-    await pb!.collection(collectionName).delete(id);
+    CollectionModel? record = await pb!.collections.getOne(id);
+
+    if (record.toJson().length != 0) {
+      await pb!.collection(collectionName).delete(id);
+    }
   }
 
   @override

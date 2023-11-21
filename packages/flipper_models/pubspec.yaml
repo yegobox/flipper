@@ -22,7 +22,7 @@ dependencies:
   built_collection: ^5.1.1
   flipper_services: ^1.0.0
   flipper_routing: ^0.0.1-dev.3
-  connectivity_plus: ^4.0.1
+  connectivity_plus: ^5.0.1
   isar: ^4.0.0-dev.13
   isar_flutter_libs: ^4.0.0-dev.13
   pocketbase: ^0.15.1

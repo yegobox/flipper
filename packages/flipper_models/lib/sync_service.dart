@@ -11,7 +11,7 @@ abstract class IJsonSerializable {
   Map<String, dynamic> toJson();
   DateTime? lastTouched = DateTime.now();
   DateTime? deletedAt;
-  String action = AppActions.create;
+  String action = AppActions.created;
 }
 
 class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
@@ -52,27 +52,29 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
       }
 
       /// remove trailing dashes to sent lastTouched
-      final lastTouched = DateTime.now().toIso8601String();
-      json["lastTouched"] = lastTouched;
 
       RecordModel? result = null;
 
-      if (json['action'] == AppActions.update) {
+      if (json['action'] == AppActions.updated) {
+        json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
       } else if (json['action'] == AppActions.deleted) {
+        json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
-      } else if (json['action'] == AppActions.create) {
+      } else if (json['action'] == AppActions.created) {
         //change action when sending to remote to avoid pulling it next time with create
         // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
-        json['action'] = AppActions.nA;
+        json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }
       if (result != null) {
         Map<String, dynamic> updatedJson = Map.from(result.toJson());
-        updatedJson['action'] = AppActions.updated;
+        updatedJson['action'] = AppActions.updatedLocally;
+        final lastTouched = DateTime.now().toIso8601String();
+
         updatedJson['lastTouched'] = lastTouched;
         return updatedJson;
       }

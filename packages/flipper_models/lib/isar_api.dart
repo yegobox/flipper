@@ -79,7 +79,8 @@ class IsarAPI<M> implements IsarApiInterface {
           DeviceSchema,
           FavoriteSchema,
           EBMSchema,
-          UserActivitySchema
+          UserActivitySchema,
+          SyncRecordSchema
         ],
         directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir,
         engine: foundation.kIsWeb || Platform.isLinux
@@ -100,7 +101,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Customer kCustomer = Customer(
         name: customer['name'],
         id: randomString(),
-        action: AppActions.create,
+        action: AppActions.created,
         tinNumber: customer['tinNumber'],
         email: customer['email'],
         phone: customer['phone'],
@@ -138,7 +139,7 @@ class IsarAPI<M> implements IsarApiInterface {
         lastTouched: DateTime.now(),
         id: id,
         reference: randomString(),
-        action: AppActions.create,
+        action: AppActions.created,
         transactionNumber: randomString(),
         status: PENDING,
         transactionType: transactionType,
@@ -177,7 +178,7 @@ class IsarAPI<M> implements IsarApiInterface {
         lastTouched: DateTime.now(),
         id: id,
         reference: randomString(),
-        action: AppActions.create,
+        action: AppActions.created,
         transactionNumber: randomString(),
         status: PENDING,
         transactionType: transactionType,
@@ -493,7 +494,7 @@ class IsarAPI<M> implements IsarApiInterface {
             lastTouched: DateTime.now(),
             branchId: ProxyService.box.getBranchId()!,
             variantId: id,
-            action: AppActions.create,
+            action: AppActions.created,
             retailPrice: variation.retailPrice,
             currentStock: variation.qty!,
             productId: variation.productId)
@@ -598,7 +599,7 @@ class IsarAPI<M> implements IsarApiInterface {
     for (TransactionItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock.currentStock = stock.currentStock - item.qty;
-      stock.action = AppActions.update;
+      stock.action = AppActions.updated;
       item.doneWithTransaction = true;
       item.updatedAt = DateTime.now().toIso8601String();
       await update(data: stock);
@@ -1733,7 +1734,7 @@ class IsarAPI<M> implements IsarApiInterface {
           isar.pColors.put(PColor(
               id: randomString(),
               lastTouched: DateTime.now(),
-              action: AppActions.create,
+              action: AppActions.created,
               name: colorName,
               active: color.active,
               branchId: color.branchId));
@@ -2865,9 +2866,9 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read((isar) {
       final List<Stock> stocks = isar.stocks
           .where()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2877,9 +2878,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Variant> variants = isar.variants
           .where()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2887,9 +2888,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Product> products = isar.products
           .where()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2897,9 +2898,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Favorite> favorites = isar.favorites
           .where()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2907,9 +2908,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .findAll();
       final List<Device> devices = isar.devices
           .where()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2919,9 +2920,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .where()
           .statusEqualTo(COMPLETE)
           .or()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .and()
@@ -2931,9 +2932,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .where()
           .doneWithTransactionEqualTo(true)
           .or()
-          .actionEqualTo(AppActions.update)
+          .actionEqualTo(AppActions.updated)
           .or()
-          .actionEqualTo(AppActions.create)
+          .actionEqualTo(AppActions.created)
           .or()
           .actionEqualTo(AppActions.deleted)
           .findAll();
@@ -3357,5 +3358,11 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<Customer>> customers({required int branchId}) async {
     return db.read(
         (isar) => isar.customers.where().branchIdEqualTo(branchId).findAll());
+  }
+
+  @override
+  Future<List<SyncRecord>> syncedModels({required int branchId}) async {
+    return db.read(
+        (isar) => isar.syncRecords.where().branchIdEqualTo(branchId).findAll());
   }
 }

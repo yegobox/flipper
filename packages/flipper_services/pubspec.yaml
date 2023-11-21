@@ -14,7 +14,7 @@ dependencies:
 
   stacked: ^3.4.1+1
   firebase_remote_config: ^4.2.5
-  share_plus: ^7.0.2
+  share_plus: ^7.2.1
   # in_app_review: ^2.0.6
   firebase_messaging: ^14.6.2
   image: ^4.0.17
@@ -47,7 +47,7 @@ dependencies:
   flipper_nfc: ^1.2.0
   timezone: ^0.9.2
   flutter_native_timezone: ^2.0.0
-  connectivity_plus: ^4.0.1
+  connectivity_plus: ^5.0.1
   flutter_statusbarcolor_ns: ^0.5.0
   #TODO: real-time support on web https://github.com/pocketbase/dart-sdk/issues/11
   # TODO: find out how to take advantage this
