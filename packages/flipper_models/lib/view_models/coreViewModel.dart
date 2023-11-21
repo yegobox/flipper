@@ -462,7 +462,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void registerLocation() async {
-    final permission = await ProxyService.location.doWeHaveLocationPermission();
+    final permission = await ProxyService.location.hasLocationPermission();
     if (permission) {
       final Map<String, String> location =
           await ProxyService.location.getLocations();

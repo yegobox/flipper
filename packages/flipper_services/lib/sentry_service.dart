@@ -18,6 +18,6 @@ class SentryService implements SentryServiceInterface {
     // NewrelicMobile.instance.recordCustomEvent(event,
     //     eventName: event,
     //     eventAttributes: {"item1": "Clothes", "price": 34.00});
-    return await Sentry.captureMessage(event, level: SentryLevel.debug);
+    return await Sentry.captureMessage(event, level: SentryLevel.error);
   }
 }

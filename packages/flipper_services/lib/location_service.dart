@@ -17,7 +17,7 @@ class LocationService implements FlipperLocation {
     }
   }
 
-  Future<bool> doWeHaveLocationPermission() async {
+  Future<bool> hasLocationPermission() async {
     final permissionStatus = await requestPermission();
     return permissionStatus == PermissionStatus.authorizedAlways ||
         permissionStatus == PermissionStatus.authorizedWhenInUse;

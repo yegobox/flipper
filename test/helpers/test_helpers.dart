@@ -122,7 +122,7 @@ MockFlipperLocation getAndRegisterLocationService() {
   final service = MockFlipperLocation();
   // when(service.getLocation())
   //     .thenAnswer((_) async => {'longitude': "1.1", 'latitude': "1.1"});
-  when(service.doWeHaveLocationPermission()).thenAnswer((_) async => false);
+  when(service.hasLocationPermission()).thenAnswer((_) async => false);
   getIt.registerSingleton<FlipperLocation>(service);
   return service;
 }

@@ -229,7 +229,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       log(e.toString());
       return null;
     } catch (e) {
-      rethrow;
+      return null;
     }
   }
 
@@ -243,25 +243,18 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       await getInstance();
     }
     try {
-      // check if record's id exist
-      CollectionModel? record = await pb!.collections.getOne(recordId);
-
-      if (record.toJson().length != 0) {
-        // Record is empty
-        return await pb!
-            .collection(collectionName)
-            .update(recordId, body: data);
-      } else {
-        return null;
-      }
+      // Record is empty
+      return await pb!.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
       log(e.toString());
       return null;
     } on ClientException catch (e) {
       log(e.toString());
+      ProxyService.sentry.debug(event: e.toString());
       return null;
     } catch (e) {
-      rethrow;
+      ProxyService.sentry.debug(event: e.toString());
+      return null;
     }
   }
 
@@ -490,10 +483,10 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
   @override
   Future<void> hardDelete(
       {required String id, required String collectionName}) async {
-    CollectionModel? record = await pb!.collections.getOne(id);
-
-    if (record.toJson().length != 0) {
+    try {
       await pb!.collection(collectionName).delete(id);
+    } catch (e) {
+      ProxyService.sentry.debug(event: e.toString());
     }
   }
 
