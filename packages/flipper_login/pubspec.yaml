@@ -21,7 +21,7 @@ dependencies:
       url: https://github.com/Cavin6080/form_bloc.git
       path: packages/flutter_form_bloc
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.20.0
+  firebase_core: ^2.23.0
   # firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^1.0.0
   flipper_dashboard: ^0.0.1-dev.5
