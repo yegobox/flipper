@@ -37,7 +37,7 @@ mixin ProductMixin {
 
     await ProxyService.isar.update(data: activeCat);
 
-    mproduct.action = inUpdateProcess ? AppActions.update : AppActions.create;
+    mproduct.action = inUpdateProcess ? AppActions.updated : AppActions.created;
 
     await ProxyService.isar.update(data: mproduct);
     List<Variant> variants =
@@ -48,7 +48,8 @@ mixin ProductMixin {
       variant.retailPrice = variant.retailPrice;
       variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";
-      variant.action = inUpdateProcess ? AppActions.update : AppActions.create;
+      variant.action =
+          inUpdateProcess ? AppActions.updated : AppActions.created;
       await ProxyService.isar.update(data: variant);
       if (await ProxyService.isar.isTaxEnabled()) {
         ProxyService.tax.saveItem(variation: variant);

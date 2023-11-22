@@ -50,6 +50,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -61,7 +62,8 @@ class PaymentsState extends ConsumerState<Payments> {
         );
       },
       onViewModelReady: (model) => model.updatePayable(),
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value),
     );
   }
 
@@ -325,13 +327,15 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     final transaction = ref.watch(pendingTransactionProvider);
     final totalPayable =
         ref.watch(transactionItemsProvider.notifier).totalPayable;
     model.handlingConfirm = true;
-    await model.collectPayment(paymentType: paymentType!);
+    await model.collectPayment(
+        paymentType: paymentType!, transaction: currentTransaction.value!);
     double amount = _cash.text.isEmpty
-        ? model.kTransaction!.subTotal
+        ? model.currentTransaction!.subTotal
         : double.parse(_cash.text);
     model.keypad.setCashReceived(amount: amount);
     String receiptType = "ns";

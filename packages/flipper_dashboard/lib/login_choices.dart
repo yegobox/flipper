@@ -1,5 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -25,6 +26,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
+    // final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {

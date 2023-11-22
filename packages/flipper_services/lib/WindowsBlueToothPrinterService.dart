@@ -1,4 +1,3 @@
-import 'abstractions/location.dart';
 import 'abstractions/printer.dart';
 
 class WindowsBlueToothPrinterService implements Printer {
@@ -21,20 +20,5 @@ class WindowsBlueToothPrinterService implements Printer {
   Future sendToPrinter() async {
     // TODO: implement sendToPrinter
     // throw UnimplementedError();
-  }
-}
-
-class WindowsLocationService implements FlipperLocation {
-  @override
-  Future<Map<String, String>> getLocations() async {
-    return {
-      "longitude": "11",
-      "latitude": "11"
-    }; //for windows it is not supported then please use the default
-  }
-
-  @override
-  Future<bool> doWeHaveLocationPermission() async {
-    return false; //so we can return default.
   }
 }

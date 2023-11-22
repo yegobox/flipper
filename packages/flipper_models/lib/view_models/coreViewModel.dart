@@ -6,11 +6,13 @@ import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
 import 'package:riverpod/src/common.dart';
@@ -21,6 +23,10 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
+  ITransaction? currentTransaction;
+  CoreViewModel({ITransaction? transaction}) {
+    currentTransaction = transaction;
+  }
 
   String? getSetting() {
     klocale =
@@ -47,8 +53,6 @@ class CoreViewModel extends FlipperBaseModel
 
   late String? longitude;
   late String? latitude;
-
-  ITransaction? get kTransaction => keypad.transaction;
 
   double get amountTotal => keypad.amountTotal;
 
@@ -101,7 +105,7 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  void keyboardKeyPressed({required String key}) async {
+  void keyboardKeyPressed({required String key, required WidgetRef ref}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
     ITransaction? pendingTransaction =
@@ -112,6 +116,7 @@ class CoreViewModel extends FlipperBaseModel
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction);
+        ref.read(transactionItemsProvider.notifier).items();
         break;
 
       case '+':
@@ -122,15 +127,19 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.isar.update(data: item);
         }
         ProxyService.keypad.reset();
+        ref.read(transactionItemsProvider.notifier).items();
         rebuildUi();
         break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
+          ref.read(transactionItemsProvider.notifier).items();
         } else if (ProxyService.keypad.key.length > 1) {
           handleMultipleDigitKey(items, pendingTransaction);
+          ref.read(transactionItemsProvider.notifier).items();
         }
+        ref.read(transactionItemsProvider.notifier).items();
         break;
     }
   }
@@ -181,7 +190,7 @@ class CoreViewModel extends FlipperBaseModel
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
           amount, variation, name, pendingTransaction, stock);
-      newItem.action = AppActions.create;
+      newItem.action = AppActions.created;
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
       items = await ProxyService.isar.transactionItems(
@@ -238,7 +247,7 @@ class CoreViewModel extends FlipperBaseModel
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
         await ProxyService.isar.update(data: pendingTransaction);
-        newItem.action = AppActions.create;
+        newItem.action = AppActions.created;
         await ProxyService.isar
             .addTransactionItem(transaction: pendingTransaction, item: newItem);
 
@@ -267,7 +276,7 @@ class CoreViewModel extends FlipperBaseModel
     return TransactionItem(
       id: randomString(),
       qty: 1,
-      action: AppActions.create,
+      action: AppActions.created,
       price: amount / 1,
       variantId: variation.id,
       name: name,
@@ -404,7 +413,7 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    ITransaction cbTransaction = kTransaction!;
+    ITransaction cbTransaction = currentTransaction!;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
     cbTransaction.transactionType = cbTransactionType;
@@ -446,23 +455,21 @@ class CoreViewModel extends FlipperBaseModel
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isar.collectPayment(
         cashReceived: cashReceived,
-        transaction: kTransaction!,
+        transaction: currentTransaction!,
         paymentType: paymentType);
     return "PaymentRecorded";
   }
 
-  Future<void> collectPayment({required String paymentType}) async {
-    if (kTransaction == null && amountTotal != 0.0) {
-      return;
-    }
+  Future<void> collectPayment(
+      {required String paymentType, required ITransaction transaction}) async {
     await ProxyService.isar.collectPayment(
         cashReceived: keypad.cashReceived,
-        transaction: kTransaction!,
+        transaction: currentTransaction!,
         paymentType: paymentType);
   }
 
   void registerLocation() async {
-    final permission = await ProxyService.location.doWeHaveLocationPermission();
+    final permission = await ProxyService.location.hasLocationPermission();
     if (permission) {
       final Map<String, String> location =
           await ProxyService.location.getLocations();
@@ -508,11 +515,8 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
-    if (kTransaction == null) {
-      return;
-    }
     ITransaction? transaction =
-        await ProxyService.isar.getTransactionById(id: kTransaction!.id);
+        await ProxyService.isar.getTransactionById(id: currentTransaction!.id);
     // Map map = transaction!;
     transaction!.note = note;
     ProxyService.isar.update(data: transaction);
@@ -824,7 +828,7 @@ class CoreViewModel extends FlipperBaseModel
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
   void deleteCustomer(String id, Function callback) {
-    if (kTransaction!.customerId == null) {
+    if (currentTransaction!.customerId == null) {
       ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {
       callback("Can't delete the customer");

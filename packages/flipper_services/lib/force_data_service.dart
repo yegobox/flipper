@@ -57,7 +57,7 @@ class ForceDataEntryService {
         colors: colors,
         branchId: branchId,
         lastTouched: DateTime.now(),
-        action: AppActions.create,
+        action: AppActions.created,
         name: "#d63031",
         active: false);
 

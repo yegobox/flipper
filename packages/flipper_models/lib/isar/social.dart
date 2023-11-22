@@ -49,7 +49,7 @@ class Social extends IJsonSerializable {
                 .toIso8601String();
 
     // this line ony added in both business and branch as they are not part of sync schemd
-    json['action'] = AppActions.create;
+    json['action'] = AppActions.created;
     return _$SocialFromJson(json);
   }
   @override

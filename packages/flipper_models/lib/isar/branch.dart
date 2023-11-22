@@ -20,7 +20,6 @@ class Branch extends IJsonSerializable {
     this.businessId,
     this.longitude,
     this.latitude,
-  
     this.deletedAt,
   });
 
@@ -32,7 +31,7 @@ class Branch extends IJsonSerializable {
   int? businessId;
   String? longitude;
   String? latitude;
-  
+
   late bool isDefault;
 
   @JsonKey(includeIfNull: true)
@@ -56,7 +55,7 @@ class Branch extends IJsonSerializable {
                 .toIso8601String();
 
     // this line ony added in both business and branch as they are not part of sync schemd
-    json['action'] = AppActions.create;
+    json['action'] = AppActions.created;
     return _$BranchFromJson(json);
   }
 

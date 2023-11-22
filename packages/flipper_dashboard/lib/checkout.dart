@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -62,9 +63,11 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
-          viewModelBuilder: () => CoreViewModel(),
+          viewModelBuilder: () =>
+              CoreViewModel(transaction: currentTransaction.value),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -91,8 +94,10 @@ class CheckOutState extends ConsumerState<CheckOut>
             );
           });
     } else {
+      final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return WillPopScope(
             onWillPop: () async {

@@ -126,11 +126,11 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/flipper-turbo
+// git submodule deinit -f open-sources/plus_plugins
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/flipper-turbo
-///git rm -rf open-sources/flipper-turbo
-///rm -rf open-sources/flipper-turbo
+///git submodule deinit -f open-sources/plus_plugins
+///git rm -rf open-sources/plus_plugins
+///rm -rf open-sources/plus_plugins
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
 /// find ./ -name pubspec.lock -type f -delete
@@ -171,3 +171,6 @@ class App {}
 // TODO: https://medium.com/flutter-community/a-better-approach-for-cloud-firestore-odm-ad2f6eed11e1
 // best packages
 // https://pub.dev/packages/device_apps
+
+// TODO: support auto-printing
+//https://github.com/DavBfr/dart_pdf/issues/1116

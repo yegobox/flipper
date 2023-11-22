@@ -13,7 +13,7 @@ dependencies:
   # firebase_auth_desktop: ^1.0.2-flipper
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.4
-  firebase_auth: ^4.12.0
+  firebase_auth: ^4.14.1
   stacked: ^3.4.1+1
   built_value: ^8.1.4
   azlistview: ^2.0.0
@@ -22,7 +22,7 @@ dependencies:
   built_collection: ^5.1.1
   flipper_services: ^1.0.0
   flipper_routing: ^0.0.1-dev.3
-  connectivity_plus: ^4.0.1
+  connectivity_plus: ^5.0.1
   isar: ^4.0.0-dev.13
   isar_flutter_libs: ^4.0.0-dev.13
   pocketbase: ^0.15.1
@@ -38,7 +38,7 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   freezed_annotation:
-  cloud_firestore: ^4.13.1
+  # cloud_firestore: ^4.13.1
 dependency_overrides:
   http: ^1.1.0
 dev_dependencies:

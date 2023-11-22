@@ -28,9 +28,9 @@ Widget PaymentTicketManager(
     payable: PayableView(
       model: model,
       onClick: () {
-        if (model.kTransaction != null) {
-          _routerService
-              .navigateTo(PaymentsRoute(transaction: model.kTransaction!));
+        if (model.currentTransaction != null) {
+          _routerService.navigateTo(
+              PaymentsRoute(transaction: model.currentTransaction!));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -39,7 +39,7 @@ Widget PaymentTicketManager(
           );
         }
       },
-      duePay: model.kTransaction?.subTotal,
+      duePay: model.currentTransaction?.subTotal,
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.isar.manageTransaction();
         _routerService.navigateTo(TicketsRoute(transaction: transaction));

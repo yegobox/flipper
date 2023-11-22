@@ -25,7 +25,7 @@ class AppService with ListenableServiceMixin {
   final _business = ReactiveValue<isar.Business>(isar.Business(
     id: randomNumber(),
     isDefault: false,
-    action: AppActions.create,
+    action: AppActions.created,
   ));
   isar.Business get business => _business.value;
   setBusiness({required isar.Business business}) {

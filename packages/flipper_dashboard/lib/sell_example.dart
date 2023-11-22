@@ -1,5 +1,7 @@
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
@@ -14,24 +16,34 @@ enum Delivery { lafayette, jefferson }
 
 enum Pickup { lafayette, jefferson }
 
-class Sell extends StatelessWidget {
+class Sell extends StatefulHookConsumerWidget {
   Sell({Key? key, required this.product}) : super(key: key);
   final Product product;
+
+  @override
+  SellState createState() => SellState();
+}
+
+class SellState extends ConsumerState<Sell> {
   final ForHere forHere = ForHere.lafayette;
+
   final ToGo toGo = ToGo.lafayette;
 
   final Delivery delivery = Delivery.lafayette;
+
   final Pickup pick = Pickup.lafayette;
+
   final TextEditingController quantityController =
       TextEditingController(text: "1");
+
   String buildTitle(CoreViewModel model) {
     if (model.amountTotal.toString() == 'null') {
-      return product.name;
+      return widget.product.name;
     }
     if (model.amountTotal == 0) {
       return '';
     }
-    return product.name + ' Frw' + model.amountTotal.toInt().toString();
+    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
   }
 
   Widget Quantity(
@@ -585,11 +597,13 @@ class Sell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
-          await model.getVariants(productId: product.id!);
+          await model.getVariants(productId: widget.product.id);
         },
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Scaffold(
             backgroundColor: Colors.white,
@@ -623,7 +637,7 @@ class Sell extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            product.name,
+                            widget.product.name,
                             style: GoogleFonts.rubik(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.w500,

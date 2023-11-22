@@ -1,11 +1,13 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -13,13 +15,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 import 'divider.dart';
 
-class ListCategories extends StatelessWidget {
+class ListCategories extends StatefulHookConsumerWidget {
   ListCategories(
       {Key? key, required this.categories, required this.modeOfOperation})
       : super(key: key);
   final List<Category>? categories;
   final String? modeOfOperation;
+
+  @override
+  ListCategoriesState createState() => ListCategoriesState();
+}
+
+class ListCategoriesState extends ConsumerState<ListCategories> {
   final _routerService = locator<RouterService>();
+
   Wrap categoryListForProducts(
       {required List<Category> categories,
       required BuildContext context,
@@ -116,7 +125,7 @@ class ListCategories extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (modeOfOperation == 'product') {
+    if (widget.modeOfOperation == 'product') {
       return ViewModelBuilder<ProductViewModel>.reactive(
         viewModelBuilder: () => ProductViewModel(),
         builder: (context, model, child) {
@@ -168,8 +177,10 @@ class ListCategories extends StatelessWidget {
         },
       );
     } else {
+      final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

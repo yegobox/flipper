@@ -59,7 +59,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   void registerLocation() async {
-    final permission = await ProxyService.location.doWeHaveLocationPermission();
+    final permission = await ProxyService.location.hasLocationPermission();
     if (permission) {
       final Map<String, String> location =
           await ProxyService.location.getLocations();
@@ -147,7 +147,7 @@ class SignupViewModel extends ReactiveViewModel {
             colors: colors,
             active: false,
             lastTouched: DateTime.now(),
-            action: AppActions.create,
+            action: AppActions.created,
             branchId: branches[0].id,
             name: 'sample');
 

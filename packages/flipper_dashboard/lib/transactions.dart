@@ -1,11 +1,13 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -14,14 +16,14 @@ import 'customappbar.dart';
 import 'widgets/mini_app_icon.dart';
 import 'widgets/radio_buttons.dart';
 
-class Transactions extends StatefulWidget {
+class Transactions extends StatefulHookConsumerWidget {
   const Transactions({Key? key}) : super(key: key);
 
   @override
-  State<Transactions> createState() => _TransactionsState();
+  TransactionsState createState() => TransactionsState();
 }
 
-class _TransactionsState extends State<Transactions> {
+class TransactionsState extends ConsumerState<Transactions> {
   @override
   void initState() {
     super.initState();
@@ -275,6 +277,7 @@ class _TransactionsState extends State<Transactions> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           Drawers? drawer = await ProxyService.isar
@@ -285,7 +288,8 @@ class _TransactionsState extends State<Transactions> {
             zlist = _zTransactions(drawer: drawer!);
           });
         },
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

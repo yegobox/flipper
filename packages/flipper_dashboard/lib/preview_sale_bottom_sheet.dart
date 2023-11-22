@@ -32,8 +32,10 @@ class PreviewSaleBottomSheetState
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
         final transactionItems = ref.watch(transactionItemsProvider);
         final pendingTransaction = ref.watch(pendingTransactionProvider);
@@ -76,16 +78,15 @@ class PreviewSaleBottomSheetState
                     physics: const ClampingScrollPhysics(),
                     children: [
                       AddCustomerButton(
-                        transactionId: model.kTransaction?.id ?? '0',
+                        transactionId: model.currentTransaction!.id,
                       ),
                       ...buildItems(
                         context: context,
                         callback: (item) async {
-                          model.kTransaction?.subTotal =
-                              model.kTransaction?.subTotal ??
-                                  0 - (item.price * item.qty);
+                          model.currentTransaction!.subTotal =
+                              model.currentTransaction!.subTotal;
                           await ProxyService.isar.update(
-                            data: model.kTransaction,
+                            data: model.currentTransaction,
                           );
                           model.deleteTransactionItem(
                             id: item.id,

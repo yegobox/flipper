@@ -1646,7 +1646,7 @@ class MockFlipperLocation extends _i1.Mock implements _i19.FlipperLocation {
             _i5.Future<Map<String, String>>.value(<String, String>{}),
       ) as _i5.Future<Map<String, String>>);
   @override
-  _i5.Future<bool> doWeHaveLocationPermission() => (super.noSuchMethod(
+  _i5.Future<bool> hasLocationPermission() => (super.noSuchMethod(
         Invocation.method(
           #doWeHaveLocationPermission,
           [],

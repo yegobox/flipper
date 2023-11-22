@@ -50,9 +50,6 @@
 # git submodule update --remote open-sources/plus_plugins
 # git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch open-sources/plus_plugins' --prune-empty --tag-name-filter cat -- --all
 #  git rm --cached open-sources/pubnub
-[submodule "open-sources/plus_plugins"]
-	path = open-sources/plus_plugins
-	url = https://github.com/yegobox/plus_plugins.git
 [submodule "open-sources/form_bloc"]
 	path = open-sources/form_bloc
 	url = https://github.com/GiancarloCode/form_bloc.git

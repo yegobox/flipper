@@ -1,5 +1,8 @@
 library flipper_login;
+
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:universal_platform/universal_platform.dart';
@@ -7,7 +10,7 @@ import 'package:flipper_models/isar_models.dart';
 
 final isWindows = UniversalPlatform.isWindows;
 
-class AddCustomer extends StatefulWidget {
+class AddCustomer extends StatefulHookConsumerWidget {
   const AddCustomer({Key? key, required this.transactionId, this.searchedKey})
       : super(key: key);
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -15,10 +18,10 @@ class AddCustomer extends StatefulWidget {
   final String? searchedKey;
 
   @override
-  _AddCustomerState createState() => _AddCustomerState();
+  AddCustomerState createState() => AddCustomerState();
 }
 
-class _AddCustomerState extends State<AddCustomer> {
+class AddCustomerState extends ConsumerState<AddCustomer> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -57,8 +60,10 @@ class _AddCustomerState extends State<AddCustomer> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () => CoreViewModel(),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Container(

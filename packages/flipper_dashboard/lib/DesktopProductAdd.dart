@@ -79,7 +79,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   TextEditingController productNameController = TextEditingController();
-  TextEditingController defaultPriceController = TextEditingController();
+  TextEditingController retailPriceController = TextEditingController();
+  TextEditingController supplyPriceController = TextEditingController();
   TextEditingController scannedInputController = TextEditingController();
   FocusNode scannedInputFocusNode = FocusNode();
   Timer? _inputTimer;
@@ -88,8 +89,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   void dispose() {
     _inputTimer?.cancel();
     productNameController.dispose();
-    defaultPriceController.dispose();
+    retailPriceController.dispose();
     scannedInputController.dispose();
+    supplyPriceController.dispose();
     scannedInputFocusNode.dispose();
     super.dispose();
   }
@@ -199,10 +201,26 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: TextField(
-                    controller: defaultPriceController,
-                    onChanged: (value) => model.setDefaultPrice(price: value),
+                    controller: retailPriceController,
+                    onChanged: (value) => model.setRetailPrice(price: value),
                     decoration: InputDecoration(
-                      labelText: 'Default Variant Price',
+                      labelText: 'Retail Price',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16.0),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: supplyPriceController,
+                    onChanged: (value) => model.setSupplyPrice(price: value),
+                    decoration: InputDecoration(
+                      labelText: 'Supply Price',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),

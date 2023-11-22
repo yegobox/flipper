@@ -108,9 +108,11 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         // fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () => CoreViewModel(),
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value),
         onViewModelReady: (model) async {
           initializeApplicationIfRequired();
           //get default tenant

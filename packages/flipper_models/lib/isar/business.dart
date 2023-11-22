@@ -124,7 +124,7 @@ class Business extends IJsonSerializable {
         ? DateTime.now()
         : json['lastTouched'];
     // this line ony added in both business and branch as they are not part of sync schemd
-    json['action'] = AppActions.create;
+    json['action'] = AppActions.created;
     if (json['userId'] is String) {
       json['userId'] = int.tryParse(json['userId']) ?? json['userId'];
     }

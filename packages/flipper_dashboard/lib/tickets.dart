@@ -1,23 +1,26 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class Tickets extends StatefulWidget {
+class Tickets extends StatefulHookConsumerWidget {
   const Tickets({super.key, this.transaction});
   // final List<Transaction> tickets;
   final ITransaction? transaction;
   @override
-  State<Tickets> createState() => _TicketsState();
+  TicketsState createState() => TicketsState();
 }
 
-class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
+class TicketsState extends ConsumerState<Tickets>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -35,6 +38,7 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -155,6 +159,7 @@ class _TicketsState extends State<Tickets> with SingleTickerProviderStateMixin {
         onViewModelReady: (model) {
           model.updatePayable();
         },
-        viewModelBuilder: () => CoreViewModel());
+        viewModelBuilder: () =>
+            CoreViewModel(transaction: currentTransaction.value));
   }
 }
