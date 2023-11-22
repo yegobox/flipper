@@ -39,7 +39,8 @@ class RemoteConfigService implements Remote {
       'isMarketingFeatureEnabled': true,
       "sessionTimeOutMinutes": 10,
       "isLocalAuthAvailable": true,
-      "enableTakingScreenShoot": true
+      "enableTakingScreenShoot": true,
+      "isOrderFeatureOrderEnabled": true
     });
   }
 
@@ -244,6 +245,11 @@ class RemoteConfigService implements Remote {
   bool enableTakingScreenShoot() {
     return remoteConfig.getBool('enableTakingScreenShoot');
   }
+
+  @override
+  bool isOrderFeatureOrderEnabled() {
+    return remoteConfig.getBool('isOrderFeatureOrderEnabled');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -410,6 +416,11 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool enableTakingScreenShoot() {
+    return false;
+  }
+
+  @override
+  bool isOrderFeatureOrderEnabled() {
     return false;
   }
 }

@@ -204,7 +204,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     controller: retailPriceController,
                     onChanged: (value) => model.setRetailPrice(price: value),
                     decoration: InputDecoration(
-                      labelText: 'Default Variant Price',
+                      labelText: 'Retail Price',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),
@@ -220,7 +220,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     controller: supplyPriceController,
                     onChanged: (value) => model.setSupplyPrice(price: value),
                     decoration: InputDecoration(
-                      labelText: 'Default Variant Price',
+                      labelText: 'Supply Price',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),

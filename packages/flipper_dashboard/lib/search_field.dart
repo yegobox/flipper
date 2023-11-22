@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flipper_services/proxy.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -111,26 +112,28 @@ class SearchFieldState extends ConsumerState<SearchField> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {
-                    ref
-                        .read(receivingOrdersModeProvider.notifier)
-                        .toggleReceiveOrder();
-                    if (receiveOrderMode) {
-                      toast("receiveOrderMode Activated");
-                    } else {
-                      toast("receiveOrderMode DeActivated");
-                    }
-                  },
-                  icon: Badge(
-                    label: Text('1'),
-                    child: Icon(
-                      receiveOrderMode
-                          ? FluentIcons.cart_24_regular
-                          : FluentIcons.cart_24_regular,
-                      color: receiveOrderMode ? Colors.amber : Colors.blue,
-                    ),
-                  ),
-                ),
+                    onPressed: () {
+                      ref
+                          .read(receivingOrdersModeProvider.notifier)
+                          .toggleReceiveOrder();
+                      if (receiveOrderMode) {
+                        toast("receiveOrderMode Activated");
+                      } else {
+                        toast("receiveOrderMode DeActivated");
+                      }
+                    },
+                    icon: ProxyService.remoteConfig.isOrderFeatureOrderEnabled()
+                        ? Badge(
+                            label: Text('1'),
+                            child: Icon(
+                              receiveOrderMode
+                                  ? FluentIcons.cart_24_regular
+                                  : FluentIcons.cart_24_regular,
+                              color:
+                                  receiveOrderMode ? Colors.amber : Colors.blue,
+                            ),
+                          )
+                        : SizedBox.shrink()),
                 IconButton(
                   onPressed: _hasText
                       ? () {

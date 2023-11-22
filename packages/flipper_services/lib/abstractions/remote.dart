@@ -33,4 +33,5 @@ abstract class Remote {
   int sessionTimeOutMinutes();
   Widget bannerAd();
   bool enableTakingScreenShoot();
+  bool isOrderFeatureOrderEnabled();
 }
