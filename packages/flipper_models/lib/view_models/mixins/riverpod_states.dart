@@ -55,10 +55,7 @@ class PendingTransactionNotifier
 final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
     AsyncValue<List<TransactionItem>>>((ref) {
   final itemNotifier = TransactionItemsNotifier();
-  final searchString = ref.watch(searchStringProvider);
-  final scannMode = ref.watch(scanningModeProvider);
-
-  itemNotifier.items(searchString: searchString, scannMode: scannMode);
+  itemNotifier.items();
 
   return itemNotifier;
 });
@@ -67,10 +64,7 @@ class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
   TransactionItemsNotifier() : super(AsyncLoading());
 
-  Future<void> items({
-    required String searchString,
-    required bool scannMode,
-  }) async {
+  Future<void> items() async {
     try {
       state = AsyncLoading();
       List<TransactionItem> items =

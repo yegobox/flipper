@@ -6,11 +6,13 @@ import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
 import 'package:riverpod/src/common.dart';
@@ -103,7 +105,7 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  void keyboardKeyPressed({required String key}) async {
+  void keyboardKeyPressed({required String key, required WidgetRef ref}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
     ITransaction? pendingTransaction =
@@ -114,6 +116,7 @@ class CoreViewModel extends FlipperBaseModel
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction);
+        ref.read(transactionItemsProvider.notifier).items();
         break;
 
       case '+':
@@ -124,15 +127,19 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.isar.update(data: item);
         }
         ProxyService.keypad.reset();
+        ref.read(transactionItemsProvider.notifier).items();
         rebuildUi();
         break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
+          ref.read(transactionItemsProvider.notifier).items();
         } else if (ProxyService.keypad.key.length > 1) {
           handleMultipleDigitKey(items, pendingTransaction);
+          ref.read(transactionItemsProvider.notifier).items();
         }
+        ref.read(transactionItemsProvider.notifier).items();
         break;
     }
   }

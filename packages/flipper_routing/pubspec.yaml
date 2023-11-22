@@ -3,7 +3,6 @@ description: A new Flutter package project.
 version: 0.0.1-dev.3
 repository: https://github.com/yegobox/packages
 
-
 environment:
   sdk: ">=3.0.0"
 
@@ -19,7 +18,7 @@ dependencies:
   url_strategy: ^0.2.0
   flipper_finance: ^0.0.1
   logger: ^1.1.0
-  firebase_ui_auth: ^1.6.4
+  firebase_ui_auth: ^1.10.0
   flipper_actionable: 0.0.1
 dependency_overrides:
   http: ^1.1.0

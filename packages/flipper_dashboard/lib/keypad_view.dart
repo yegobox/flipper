@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -19,7 +20,7 @@ class AlwaysDisabledFocusNode extends FocusNode {
 }
 
 // ignore: must_be_immutable
-class KeyPadView extends StatelessWidget {
+class KeyPadView extends StatefulHookConsumerWidget {
   KeyPadView(
       {Key? key,
       required this.model,
@@ -41,15 +42,20 @@ class KeyPadView extends StatelessWidget {
   final String transactionType;
 
   @override
+  KeyPadViewState createState() => KeyPadViewState();
+}
+
+class KeyPadViewState extends ConsumerState<KeyPadView> {
+  @override
   Widget build(BuildContext context) {
     Widget plusOrSubmit;
-    if (transactionMode == false) {
+    if (widget.transactionMode == false) {
       plusOrSubmit = Expanded(
         child: InkWell(
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
             HapticFeedback.lightImpact();
-            model.keyboardKeyPressed(key: '+');
+            widget.model.keyboardKeyPressed(key: '+', ref: ref);
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -73,17 +79,17 @@ class KeyPadView extends StatelessWidget {
         child: InkWell(
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
-            log("Key: " + model.key);
+            log("Key: " + widget.model.key);
             HapticFeedback.lightImpact();
-            if ((model.currentTransaction != null) &&
-                ((model.key != '0') &&
-                    (model.key != '0.0') &&
-                    (model.key != '0.00'))) {
+            if ((widget.model.currentTransaction != null) &&
+                ((widget.model.key != '0') &&
+                    (widget.model.key != '0.0') &&
+                    (widget.model.key != '0.00'))) {
               showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   return AlertDialog(
-                    title: Text('Save $transactionType transaction'),
+                    title: Text('Save ${widget.transactionType} transaction'),
                     content:
                         Text('Are you sure you want to save this transaction?'),
                     actions: <Widget>[
@@ -135,7 +141,7 @@ class KeyPadView extends StatelessWidget {
         ),
       );
     }
-    final screenHeight = isBigScreen ? 200 : 600;
+    final screenHeight = widget.isBigScreen ? 200 : 600;
     final paddingHeight = screenHeight * 0.1; // 10% of screen height
     return Expanded(
       child: Column(
@@ -143,21 +149,22 @@ class KeyPadView extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(
-                vertical: transactionMode ? paddingHeight / 3 : paddingHeight),
-            child: transactionMode
+                vertical:
+                    widget.transactionMode ? paddingHeight / 3 : paddingHeight),
+            child: widget.transactionMode
                 ? SizedBox(
                     height: 80,
                     child: Column(
                       children: [
                         Text(
-                          NumberFormat('#,###')
-                                  .format(double.parse(model.keypad.key)) +
+                          NumberFormat('#,###').format(
+                                  double.parse(widget.model.keypad.key)) +
                               " RWF",
                           style: GoogleFonts.poppins(
                             fontSize: 35,
                             fontWeight: FontWeight.w500,
                             color: const Color(0xff000000),
-                            height: transactionMode ? 1 : 1.5,
+                            height: widget.transactionMode ? 1 : 1.5,
                           ),
                         ),
                         SizedBox(height: 20),
@@ -165,7 +172,7 @@ class KeyPadView extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(width: 10),
-                            transactionType == 'Cash In'
+                            widget.transactionType == 'Cash In'
                                 ? Text('Cash in for',
                                     style: GoogleFonts.poppins(
                                         fontSize: 15,
@@ -176,7 +183,7 @@ class KeyPadView extends StatelessWidget {
                                         fontWeight: FontWeight.bold)),
                             Spacer(),
                             CategorySelector.transactionMode(
-                                categories: model.categories),
+                                categories: widget.model.categories),
                           ],
                         )
                       ],
@@ -184,7 +191,7 @@ class KeyPadView extends StatelessWidget {
                   )
                 : Text(
                     NumberFormat('#,###')
-                            .format(double.parse(model.keypad.key)) +
+                            .format(double.parse(widget.model.keypad.key)) +
                         " RWF",
                     style: GoogleFonts.poppins(
                       fontSize: 35,
@@ -203,7 +210,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '1');
+                      widget.model.keyboardKeyPressed(key: '1', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -225,7 +232,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '2');
+                      widget.model.keyboardKeyPressed(key: '2', ref: ref);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -249,7 +256,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '3');
+                      widget.model.keyboardKeyPressed(key: '3', ref: ref);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -279,7 +286,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '4');
+                      widget.model.keyboardKeyPressed(key: '4', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -301,7 +308,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '5');
+                      widget.model.keyboardKeyPressed(key: '5', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -323,7 +330,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '6');
+                      widget.model.keyboardKeyPressed(key: '6', ref: ref);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -353,7 +360,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '7');
+                      widget.model.keyboardKeyPressed(key: '7', ref: ref);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -377,7 +384,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '8');
+                      widget.model.keyboardKeyPressed(key: '8', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -399,7 +406,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '9');
+                      widget.model.keyboardKeyPressed(key: '9', ref: ref);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -429,7 +436,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: 'C');
+                      widget.model.keyboardKeyPressed(key: 'C', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -451,7 +458,7 @@ class KeyPadView extends StatelessWidget {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      model.keyboardKeyPressed(key: '0');
+                      widget.model.keyboardKeyPressed(key: '0', ref: ref);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -479,14 +486,15 @@ class KeyPadView extends StatelessWidget {
 
   void HandleTransactionFromCashBook() async {
     /// this will close the keypad
-    model.newTransactionPressed = false;
+    widget.model.newTransactionPressed = false;
 
-    model.keyboardKeyPressed(key: '+');
-    model.saveCashBookTransaction(cbTransactionType: transactionType);
+    widget.model.keyboardKeyPressed(key: '+', ref: ref);
+    widget.model
+        .saveCashBookTransaction(cbTransactionType: widget.transactionType);
   }
 }
 
-class KeyboardKey extends StatelessWidget {
+class KeyboardKey extends StatefulHookConsumerWidget {
   const KeyboardKey({
     Key? key,
     required this.model,
@@ -496,12 +504,18 @@ class KeyboardKey extends StatelessWidget {
   final CoreViewModel model;
 
   @override
+  KeyboardKeyState createState() => KeyboardKeyState();
+}
+
+class KeyboardKeyState extends ConsumerState<KeyboardKey> {
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: 100,
       height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
       child: InkWell(
-        onTap: () => {model.keyboardKeyPressed(key: value)},
+        onTap: () =>
+            {widget.model.keyboardKeyPressed(key: widget.value, ref: ref)},
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
@@ -511,7 +525,7 @@ class KeyboardKey extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              value,
+              widget.value,
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge!

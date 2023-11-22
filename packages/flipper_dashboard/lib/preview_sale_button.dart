@@ -36,7 +36,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton> {
                 onPressed: () async {
                   HapticFeedback.lightImpact();
 
-                  model.keyboardKeyPressed(key: '+');
+                  model.keyboardKeyPressed(key: '+', ref: ref);
                   final transaction =
                       await ProxyService.isar.pendingTransaction(
                     branchId: ProxyService.box.getBranchId()!,

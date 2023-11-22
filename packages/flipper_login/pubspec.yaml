@@ -13,7 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  firebase_ui_auth: ^1.6.4
+  firebase_ui_auth: ^1.10.0
   # flutter_form_bloc: ^0.31.0
   # flutter_form_bloc: ^0.31.0
   flutter_form_bloc:
