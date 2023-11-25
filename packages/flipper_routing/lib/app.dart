@@ -174,3 +174,8 @@ class App {}
 
 // TODO: support auto-printing
 //https://github.com/DavBfr/dart_pdf/issues/1116
+
+// TODO: using custom domain follow this
+//https://github.com/firebase/flutterfire/issues/9668 to update
+// https://github.com/firebase/flutterfire/pull/11925
+// https://github.com/firebase/flutterfire/issues/9668

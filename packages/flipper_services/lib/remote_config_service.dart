@@ -421,6 +421,6 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isOrderFeatureOrderEnabled() {
-    return false;
+    return true;
   }
 }

@@ -128,7 +128,6 @@ void main() async {
             // theme: GThemeGenerator.generate(),
             // darkTheme: GThemeGenerator.generateDark(),
             theme: ThemeData(
-              useMaterial3: true,
               textTheme: GoogleFonts.poppinsTextTheme(),
             ),
             localizationsDelegates: [
