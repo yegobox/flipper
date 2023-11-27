@@ -326,6 +326,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    OrdersRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i2.Orders(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     InAppBrowserRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
@@ -654,6 +662,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           OrderViewRoute.name,
           path: '/order-view',
+        ),
+        _i3.RouteConfig(
+          OrdersRoute.name,
+          path: '/Orders',
         ),
         _i3.RouteConfig(
           InAppBrowserRoute.name,
@@ -1544,6 +1556,18 @@ class OrderViewArgs {
   String toString() {
     return 'OrderViewArgs{key: $key}';
   }
+}
+
+/// generated route for
+/// [_i2.Orders]
+class OrdersRoute extends _i3.PageRouteInfo<void> {
+  const OrdersRoute()
+      : super(
+          OrdersRoute.name,
+          path: '/Orders',
+        );
+
+  static const String name = 'Orders';
 }
 
 /// generated route for

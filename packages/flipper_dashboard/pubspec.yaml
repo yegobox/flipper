@@ -98,6 +98,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   bottom_sheet: ^4.0.0
   rxdart: ^0.27.2
+  swipe_to_complete: ^0.0.1
 dependency_overrides:
   http: ^1.1.0
 flutter:

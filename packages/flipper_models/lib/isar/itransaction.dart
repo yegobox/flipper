@@ -39,6 +39,9 @@ class ITransaction extends IJsonSerializable {
   String? ticketName;
   @Index()
   DateTime? deletedAt;
+
+  // fields when a transaction is created for ordering system
+  int businessOwnerId;
   ITransaction({
     required this.reference,
     this.categoryId,
@@ -51,6 +54,7 @@ class ITransaction extends IJsonSerializable {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
+    required this.businessOwnerId,
     this.receiptType,
     this.updatedAt,
     this.customerId,

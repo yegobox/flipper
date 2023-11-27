@@ -81,7 +81,7 @@ class _AppsState extends State<Apps> {
             _routerService.navigateTo(CustomersRoute());
             break;
           case "Orders":
-            _routerService.navigateTo(CustomersRoute());
+            _routerService.navigateTo(OrdersRoute());
             break;
           default:
             _routerService.navigateTo(CheckOutRoute(
