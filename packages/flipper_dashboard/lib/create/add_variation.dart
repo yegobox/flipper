@@ -64,6 +64,7 @@ class _AddVariationState extends State<AddVariation> {
                   List<Variant> variations = [];
                   Variant data = Variant(
                       id: id,
+                      color: model.product!.color,
                       name: nameController.text,
                       sku: sku,
                       lastTouched: DateTime.now(),

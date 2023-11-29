@@ -5,6 +5,7 @@ import 'variant.dart';
 final variationMock = Variant(
     id: randomString(),
     name: 'Regular',
+    color: '#cc',
     sku: 'sku',
     action: 'create',
     lastTouched: DateTime.now(),

@@ -41,7 +41,7 @@ class ITransaction extends IJsonSerializable {
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
-  int businessOwnerId;
+  // int businessOwnerId;
   ITransaction({
     required this.reference,
     this.categoryId,
@@ -54,7 +54,7 @@ class ITransaction extends IJsonSerializable {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
-    required this.businessOwnerId,
+    // required this.businessOwnerId,
     this.receiptType,
     this.updatedAt,
     this.customerId,

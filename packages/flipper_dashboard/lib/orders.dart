@@ -1,10 +1,15 @@
 // ignore_for_file: unused_result
 import 'dart:convert';
+import 'package:flipper_models/isar_models.dart';
+
+import 'package:flutter/foundation.dart' as found;
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:swipe_to_complete/view/swiper_widget.dart';
+
+import 'Confirm.dart';
 
 class Supplier {
   final int businessId;
@@ -16,13 +21,6 @@ class Supplier {
     required this.branchId,
     required this.name,
   });
-}
-
-class Product {
-  final String productName;
-  final double retailPrice;
-
-  Product({required this.productName, required this.retailPrice});
 }
 
 final supplierListProvider =
@@ -127,25 +125,29 @@ class OrdersState extends ConsumerState<Orders> {
 }
 
 final productListProvider =
-    FutureProvider.autoDispose<List<Product>?>((ref) async {
+    FutureProvider.autoDispose<List<Variant>?>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
+  String? token;
+  if (found.kDebugMode) {
+    token = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
+        AppSecrets.debugPassword, AppSecrets.debugEmail);
+  } else {
+    token = await ProxyService.remote.getToken(
+        AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
+  }
 
   final response = await http.get(
     Uri.parse(
         'https://db.yegobox.com/api/collections/variants/records?filter=(branchId=\'${supplier.value!.branchId}\')'),
     headers: {
-      'Authorization':
-          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDIyMDA1NjMsImlkIjoiZXM4Zm9kc2lxa2ljbDZwIiwidHlwZSI6ImFkbWluIn0.amcO_wouA_69M8PaGtiNB0YSWeQQxD1wIYN1p1fO2FE',
+      'Authorization': 'Bearer ${token}',
     },
   );
   if (response.statusCode == 200) {
     final Map<String, dynamic> data = jsonDecode(response.body);
     final List<dynamic> items = data['items'];
-    return items.map<Product>((item) {
-      return Product(
-        productName: item['productName'],
-        retailPrice: item['retailPrice']?.toDouble() ?? 0,
-      );
+    return items.map<Variant>((item) {
+      return Variant.fromJson(item);
     }).toList();
   } else {
     throw Exception('Failed to load products');
@@ -172,6 +174,14 @@ class ProductListScreen extends StatefulHookConsumerWidget {
 }
 
 class ProductListScreenState extends ConsumerState<ProductListScreen> {
+  Color hexToColor(String code) {
+    return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+  }
+
+  List<Color> extractColors(List<Variant> variants) {
+    return variants.map((variant) => hexToColor(variant.color)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final productsAsyncValue = ref.watch(productListProvider);
@@ -191,7 +201,10 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const Confirm(),
+                      builder: (context) => Confirm(
+                        products: products,
+                        colors: extractColors(products),
+                      ),
                     ),
                   );
                 },
@@ -208,28 +221,6 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
       ),
-    );
-  }
-}
-
-class Confirm extends StatelessWidget {
-  const Confirm({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        const Text('hello world'),
-        Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: NewSwiper(
-              type: SwiperType.horizontal,
-              callback: () =>
-                  const SizedBox(height: 200, child: Text("swiping")),
-            )),
-      ],
     );
   }
 }

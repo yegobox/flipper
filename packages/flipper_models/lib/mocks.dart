@@ -230,6 +230,7 @@ final List<Map<String, dynamic>> mockUnits = [
 // variation mock
 final variationMock = Variant(
     action: 'create',
+     color: '#cc',
     name: 'Regular',
     lastTouched: DateTime.now(),
     sku: 'sku',

@@ -13,6 +13,7 @@ class Variant extends IJsonSerializable {
   late String id;
   @Index()
   late String name;
+    late String color;
   late String sku;
   @Index()
   late String productId;
@@ -99,6 +100,7 @@ class Variant extends IJsonSerializable {
     required this.retailPrice,
     required this.isTaxExempted,
     required this.action,
+    required this.color,
     required this.id,
     this.taxName = 'N/A',
     this.taxPercentage = 0,
