@@ -29,6 +29,10 @@ class FirestoreSync<M extends IJsonSerializable>
       return 'stocks';
     } else if (T == Device) {
       return 'devices';
+    } else if (T == ITransaction) {
+      return 'transactions';
+    } else if (T == TransactionItem) {
+      return 'transactionItems';
     }
 
     throw ArgumentError('Unsupported type: $T');
@@ -42,6 +46,10 @@ class FirestoreSync<M extends IJsonSerializable>
     } else if (item is Stock) {
       return item.id;
     } else if (item is Device) {
+      return item.id;
+    } else if (item is ITransaction) {
+      return item.id;
+    } else if (item is TransactionItem) {
       return item.id;
     }
     throw ArgumentError('Unsupported type: $T');
@@ -95,6 +103,30 @@ class FirestoreSync<M extends IJsonSerializable>
       for (final docSnapshot in querySnapshot.docs) {
         final updatedJson = docSnapshot.data();
         handleItem(model: Device.fromJson(updatedJson), branchId: branchId);
+      }
+    });
+
+    final transactionCollectionRef =
+        FirebaseFirestore.instance.collection('transactions');
+
+    final transactionsSnapshots = transactionCollectionRef.snapshots();
+    transactionsSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(
+            model: ITransaction.fromJson(updatedJson), branchId: branchId);
+      }
+    });
+
+    final transactionItemCollectionRef =
+        FirebaseFirestore.instance.collection('transactionItems');
+
+    final transactionItemSnapshots = transactionItemCollectionRef.snapshots();
+    transactionItemSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(
+            model: TransactionItem.fromJson(updatedJson), branchId: branchId);
       }
     });
   }

@@ -4,15 +4,23 @@ import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'list_divider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class ColorTile extends StatelessWidget {
+class ColorTile extends StatefulHookConsumerWidget {
   ColorTile({Key? key}) : super(key: key);
+
+  @override
+  ColorTileState createState() => ColorTileState();
+}
+
+class ColorTileState extends ConsumerState<ColorTile> {
   final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<UploadViewModel>.reactive(
@@ -244,8 +252,7 @@ class ColorTile extends StatelessWidget {
                   ),
                   child: const Text(''),
                   onPressed: () {
-                    model.switchColor(
-                        color: colors[i], product: model.product!);
+                    model.switchColor(color: colors[i], widgetReference: ref);
                   },
                 ),
               ),
@@ -256,7 +263,7 @@ class ColorTile extends StatelessWidget {
                       color: Colors.white,
                       onPressed: () {
                         model.switchColor(
-                            color: colors[i], product: model.product!);
+                            color: colors[i], widgetReference: ref);
                       },
                     )
                   : const Visibility(

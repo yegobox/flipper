@@ -11,6 +11,18 @@ import '_transaction.dart';
 //     StreamProvider.family<List<Product>, String?>((ref, prodIndex) {
 //   return ProxyService.isar.productStreams(prodIndex: prodIndex);
 // });
+final productProvider = StateNotifierProvider<ProductNotifier, Product?>((ref) {
+  return ProductNotifier();
+});
+
+class ProductNotifier extends StateNotifier<Product?> {
+  ProductNotifier() : super(null);
+
+  void emitProduct({required Product value}) {
+    state = value;
+  }
+}
+
 final searchStringProvider =
     StateNotifierProvider<SearchStringNotifier, String>((ref) {
   return SearchStringNotifier();
