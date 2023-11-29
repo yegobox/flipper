@@ -129,6 +129,7 @@ class IsarAPI<M> implements IsarApiInterface {
     String transactionType = 'custom',
   }) async {
     int branchId = ProxyService.box.getBranchId()!;
+    int businessId = ProxyService.box.getBusinessId()!;
 
     ITransaction? existTransaction =
         await pendingTransaction(branchId: branchId);
@@ -138,6 +139,7 @@ class IsarAPI<M> implements IsarApiInterface {
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
+        businessOwnerId: businessId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -172,11 +174,13 @@ class IsarAPI<M> implements IsarApiInterface {
     ITransaction? existTransaction =
         await pendingTransaction(branchId: branchId);
 
+    int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
       String id = randomString();
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
+        businessOwnerId: businessId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
