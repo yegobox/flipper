@@ -35,7 +35,7 @@ final supplierListProvider =
 
   final response = await http.get(
     Uri.parse('https://apihub.yegobox.com/searchAlike?name=$keyword'),
-    headers: {'Authorization': 'Bearer ${token}'},
+    headers: {'Authorization': '${token}'},
   );
 
   if (response.statusCode == 200) {

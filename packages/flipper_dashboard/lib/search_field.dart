@@ -12,6 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.router.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   SearchField({Key? key, required this.controller}) : super(key: key);
@@ -53,6 +56,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     super.dispose();
   }
 
+  final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
     // We can also use "ref" to listen to a provider inside the build method
@@ -111,29 +115,26 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     color: isScanningMode ? Colors.green : Colors.blue,
                   ),
                 ),
-                IconButton(
-                    onPressed: () {
-                      ref
-                          .read(receivingOrdersModeProvider.notifier)
-                          .toggleReceiveOrder();
-                      if (receiveOrderMode) {
-                        toast("receiveOrderMode Activated");
-                      } else {
-                        toast("receiveOrderMode DeActivated");
-                      }
-                    },
-                    icon: ProxyService.remoteConfig.isOrderFeatureOrderEnabled()
-                        ? Badge(
-                            label: Text('1'),
-                            child: Icon(
-                              receiveOrderMode
-                                  ? FluentIcons.cart_24_regular
-                                  : FluentIcons.cart_24_regular,
-                              color:
-                                  receiveOrderMode ? Colors.amber : Colors.blue,
-                            ),
-                          )
-                        : SizedBox.shrink()),
+                ProxyService.remoteConfig.isOrderFeatureOrderEnabled()
+                    ? IconButton(
+                        onPressed: () {
+                          ref
+                              .read(receivingOrdersModeProvider.notifier)
+                              .toggleReceiveOrder();
+                          _routerService.navigateTo(OrdersRoute());
+                        },
+                        icon: Badge(
+                          smallSize: 3,
+                          label: Text('1'),
+                          child: Icon(
+                            receiveOrderMode
+                                ? FluentIcons.cart_24_regular
+                                : FluentIcons.cart_24_regular,
+                            color:
+                                receiveOrderMode ? Colors.amber : Colors.blue,
+                          ),
+                        ))
+                    : SizedBox.shrink(),
                 IconButton(
                   onPressed: _hasText
                       ? () {
