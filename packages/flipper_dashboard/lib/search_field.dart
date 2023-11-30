@@ -46,6 +46,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
       ref.read(searchStringProvider.notifier).emitString(value: '');
       // ignore: unused_result
       ref.refresh(searchStringProvider);
+      ref.read(transactionItemsProvider.notifier).items();
     });
   }
 

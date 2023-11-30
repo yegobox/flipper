@@ -4,7 +4,7 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
-
+import 'DateTimeConverter.dart';
 part 'device.g.dart';
 
 @JsonSerializable()
@@ -23,11 +23,21 @@ class Device extends IJsonSerializable {
 
   /// for sync
 
-  @JsonKey(includeIfNull: true)
+  @JsonKey(
+      includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? lastTouched;
 
   String action;
   // only for accor when fetching from remove
+  static DateTime? _dateTimeFromJson(String? json) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.fromJson(json);
+  }
+
+  static String? _dateTimeToJson(DateTime? dateTime) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.toJson(dateTime);
+  }
 
   @Index()
   @JsonKey(
@@ -53,33 +63,7 @@ class Device extends IJsonSerializable {
   factory Device.fromRecord(RecordModel record) =>
       Device.fromJson(record.toJson());
 
-  // Custom converter for DateTime field
-  static DateTime? _dateTimeFromJson(dynamic value) {
-    if (value == null || value is DateTime) {
-      return value;
-    } else if (value is String) {
-      try {
-        return DateTime.parse(value);
-      } catch (e) {
-        // Handle parsing error, return null or handle accordingly
-      }
-    }
-    return null;
-  }
-
-  static dynamic _dateTimeToJson(DateTime? value) {
-    return value?.toIso8601String();
-  }
-
-  factory Device.fromJson(Map<String, dynamic> json) {
-    json['lastTouched'] =
-        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now().toIso8601String()
-            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
-                .toIso8601String();
-
-    return _$DeviceFromJson(json);
-  }
+  factory Device.fromJson(Map<String, dynamic> json) => _$DeviceFromJson(json);
   @override
   Map<String, dynamic> toJson() => _$DeviceToJson(this);
 }

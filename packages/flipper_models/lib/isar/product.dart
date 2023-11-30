@@ -4,6 +4,7 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'DateTimeConverter.dart';
 part 'product.g.dart';
 
 @JsonSerializable()
@@ -36,17 +37,28 @@ class Product extends IJsonSerializable {
   /// the onlne generated ID will be the ID other device need to use in updating so
   /// the ID of the product in all devices should be similar and other IDs.
 
-  @JsonKey(includeIfNull: true)
+  @JsonKey(
+      includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? lastTouched;
 
   String action;
 
-  @Index()
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? deletedAt;
 
   /// this is helper to highlight a product when is found in search
   @Ignore()
   bool searchMatch;
+
+  static DateTime? _dateTimeFromJson(String? json) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.fromJson(json);
+  }
+
+  static String? _dateTimeToJson(DateTime? dateTime) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.toJson(dateTime);
+  }
 
   Product({
     required this.name,

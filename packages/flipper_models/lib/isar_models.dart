@@ -1,5 +1,6 @@
 export 'interface.dart';
 export 'package:isar/isar.dart';
+export 'isar/DateTimeConverter.dart';
 export 'isar/points.dart';
 export 'isar/pin.dart';
 export 'isar/transaction_item.dart';

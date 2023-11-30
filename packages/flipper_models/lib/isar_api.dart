@@ -1834,7 +1834,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<int> update<T>({required T data}) async {
     /// update user activity
-    int userId = ProxyService.box.getUserId()!;
+    int userId = ProxyService.box.getUserId() ?? 0;
+    if (userId == 0) return 0;
     recordUserActivity(userId: userId, activity: 'create');
 
     /// end updating user activity

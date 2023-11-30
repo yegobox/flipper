@@ -2,7 +2,9 @@ import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
+import 'DateTimeConverter.dart';
 part 'transaction_item.g.dart';
+
 
 @JsonSerializable()
 @Collection()
@@ -89,10 +91,22 @@ class TransactionItem extends IJsonSerializable {
   String? modrId;
   String? modrNm;
 
-  @JsonKey(includeIfNull: true)
+  @JsonKey(
+      includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? lastTouched;
-  @Index()
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? deletedAt;
+
+  static DateTime? _dateTimeFromJson(String? json) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.fromJson(json);
+  }
+
+  static String? _dateTimeToJson(DateTime? dateTime) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.toJson(dateTime);
+  }
+
   TransactionItem({
     required this.id,
     required this.action,

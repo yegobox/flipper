@@ -65,6 +65,7 @@ class FirestoreSync<M extends IJsonSerializable>
   void pull() {
     final productCollectionRef =
         FirebaseFirestore.instance.collection('products');
+    if (ProxyService.box.getBranchId() == null) return;
     int branchId = ProxyService.box.getBranchId()!;
     final productSnapshots = productCollectionRef.snapshots();
     productSnapshots.listen((querySnapshot) {
