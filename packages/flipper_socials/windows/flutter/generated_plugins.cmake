@@ -4,19 +4,23 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
+  cloud_firestore
   connectivity_plus
   desktop_webview_auth
   file_selector_windows
+  firebase_auth
   firebase_core
   flutter_window_close
   geolocator_windows
   isar_flutter_libs
+  local_auth_windows
   local_notifier
   permission_handler_windows
   printing
   screen_retriever
   sentry_flutter
   share_plus
+  smart_auth
   tray_manager
   url_launcher_windows
   window_manager

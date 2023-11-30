@@ -11,6 +11,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   printing
   screen_retriever
   sentry_flutter
+  smart_auth
   tray_manager
   url_launcher_linux
   window_manager
