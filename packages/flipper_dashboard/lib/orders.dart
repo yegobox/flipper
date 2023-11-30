@@ -128,29 +128,42 @@ final productListProvider =
     FutureProvider.autoDispose<List<Variant>?>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
   String? token;
+  String? url;
   if (found.kDebugMode) {
     token = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
         AppSecrets.debugPassword, AppSecrets.debugEmail);
+    url = AppSecrets.apiUrlProd;
   } else {
     token = await ProxyService.remote.getToken(
         AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
+    url = AppSecrets.apiUrlProd;
   }
-
   final response = await http.get(
     Uri.parse(
-        'https://db.yegobox.com/api/collections/variants/records?filter=(branchId=\'${supplier.value!.branchId}\')'),
+        '${url}/api/collections/variants/records?filter=(branchId=\'${supplier.value!.branchId}\')'),
     headers: {
       'Authorization': 'Bearer ${token}',
     },
   );
   if (response.statusCode == 200) {
+    // Successful response with status code 200
     final Map<String, dynamic> data = jsonDecode(response.body);
+    if (data['items'] is List && data['items']?.isEmpty) {
+      throw Exception('No product added yet for this supplier');
+    }
     final List<dynamic> items = data['items'];
-    return items.map<Variant>((item) {
+
+    // Map the list of items to Variant objects using Variant.fromJson
+    List<Variant> variants = items.map<Variant>((item) {
+      print(item);
       return Variant.fromJson(item);
     }).toList();
+    // Return the list of Variant objects
+    return variants;
   } else {
-    throw Exception('Failed to load products');
+    // Failed response with a status code other than 200
+    throw Exception(
+        'Failed to load products. Status Code: ${response.statusCode}');
   }
 });
 
@@ -189,7 +202,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Products loading${selectedSupplier.value!.branchId}'),
+        title: Text('Products ${selectedSupplier.value!.branchId}'),
       ),
       body: productsAsyncValue.when(
         data: (products) {
@@ -209,9 +222,11 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                   );
                 },
                 child: ListTile(
-                  title: Text(products[index].productName),
+                  title: Text(products[index].name,
+                      style: TextStyle(color: Colors.black)),
                   subtitle: Text(
-                      'Price: \$${products[index].retailPrice.toStringAsFixed(2)}'),
+                      'Price: \$${products[index].retailPrice.toStringAsFixed(2)}',
+                      style: TextStyle(color: Colors.black)),
                   // Add more details as needed
                 ),
               );
