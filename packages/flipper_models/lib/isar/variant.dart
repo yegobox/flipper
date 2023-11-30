@@ -13,6 +13,7 @@ class Variant extends IJsonSerializable {
   late String id;
   @Index()
   late String name;
+  late String color;
   late String sku;
   @Index()
   late String productId;
@@ -99,6 +100,7 @@ class Variant extends IJsonSerializable {
     required this.retailPrice,
     required this.isTaxExempted,
     required this.action,
+    required this.color,
     required this.id,
     this.taxName = 'N/A',
     this.taxPercentage = 0,
@@ -114,7 +116,7 @@ class Variant extends IJsonSerializable {
     this.itemStdNm,
     this.orgnNatCd,
     this.pkg,
-     this.itemCd,
+    this.itemCd,
     this.pkgUnitCd,
     this.qtyUnitCd,
     this.itemNm,
@@ -122,7 +124,7 @@ class Variant extends IJsonSerializable {
     this.prc = 0.0,
     this.splyAmt,
     this.tin,
-     this.bhfId,
+    this.bhfId,
     this.dftPrc,
     this.addInfo,
     this.isrcAplcbYn,
@@ -139,20 +141,8 @@ class Variant extends IJsonSerializable {
   factory Variant.fromRecord(RecordModel record) =>
       Variant.fromJson(record.toJson());
 
-  factory Variant.fromJson(Map<String, dynamic> json) {
-    json['deletedAt'] = json['deletedAt'] == null ||
-            (json['deletedAt'] is String && json['deletedAt'].isEmpty)
-        ? null
-        : json['deletedAt'];
-
-    json['lastTouched'] =
-        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now().toIso8601String()
-            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
-                .toIso8601String();
-
-    return _$VariantFromJson(json);
-  }
+  factory Variant.fromJson(Map<String, dynamic> json) =>
+      _$VariantFromJson(json);
 
   @override
   Map<String, dynamic> toJson() => _$VariantToJson(this);

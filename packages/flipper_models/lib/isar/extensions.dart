@@ -1,7 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:isar/isar.dart';
 
 extension DateTimeExtensions on DateTime {
   bool isFutureDateCompareTo(DateTime? other) {
@@ -39,6 +38,12 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     }
     if (object is Device) {
       ProxyService.syncFirestore.onSave<Device>(item: object);
+    }
+    if (object is ITransaction) {
+      ProxyService.syncFirestore.onSave<ITransaction>(item: object);
+    }
+    if (object is TransactionItem) {
+      ProxyService.syncFirestore.onSave<TransactionItem>(item: object);
     }
   }
 }

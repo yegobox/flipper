@@ -6,6 +6,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -14,6 +15,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
@@ -69,6 +71,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
   setCurrentColor({required String color}) {
     currentColor = color;
+    notifyListeners();
   }
 
   List<PColor> colors = [];
@@ -99,7 +102,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
       kProductName = product.name;
-
+      setCurrentColor(color: product.color);
       notifyListeners();
       return product;
     }
@@ -117,6 +120,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
     setCurrentProduct(currentProduct: product);
     kProductName = product.name;
+    setCurrentColor(color: product.color);
     rebuildUi();
     return product;
   }
@@ -246,7 +250,7 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
   }
 
   Future<void> switchColor(
-      {required PColor color, required Product product}) async {
+      {required PColor color, required WidgetRef widgetReference}) async {
     int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
@@ -261,7 +265,8 @@ class ProductViewModel extends FlipperBaseModel with ProductMixin {
 
     _color!.active = true;
     _color.branchId = branchId;
-    product.color = color.name!;
+    product!.color = color.name!;
+    widgetReference.read(productProvider.notifier).emitProduct(value: product!);
     await ProxyService.isar.update(data: product);
     await ProxyService.isar.update(data: _color);
 

@@ -1,6 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/sync_service.dart';
-// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
@@ -15,9 +15,9 @@ class FirestoreSync<M extends IJsonSerializable>
     implements SyncFirestore<M> {
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
-    // final String collectionName = getCollectionName<T>();
-    // final collectionRef = FirebaseFirestore.instance.collection(collectionName);
-    // await collectionRef.doc(getItemId<T>(item)).set(item.toJson());
+    final String collectionName = getCollectionName<T>();
+    final collectionRef = FirebaseFirestore.instance.collection(collectionName);
+    await collectionRef.doc(getItemId<T>(item)).set(item.toJson());
   }
 
   String getCollectionName<T>() {
@@ -29,6 +29,10 @@ class FirestoreSync<M extends IJsonSerializable>
       return 'stocks';
     } else if (T == Device) {
       return 'devices';
+    } else if (T == ITransaction) {
+      return 'transactions';
+    } else if (T == TransactionItem) {
+      return 'transactionItems';
     }
 
     throw ArgumentError('Unsupported type: $T');
@@ -43,6 +47,10 @@ class FirestoreSync<M extends IJsonSerializable>
       return item.id;
     } else if (item is Device) {
       return item.id;
+    } else if (item is ITransaction) {
+      return item.id;
+    } else if (item is TransactionItem) {
+      return item.id;
     }
     throw ArgumentError('Unsupported type: $T');
   }
@@ -55,48 +63,72 @@ class FirestoreSync<M extends IJsonSerializable>
 
   @override
   void pull() {
-    // final productCollectionRef =
-    //     FirebaseFirestore.instance.collection('products');
-    // int branchId = ProxyService.box.getBranchId()!;
-    // final productSnapshots = productCollectionRef.snapshots();
-    // productSnapshots.listen((querySnapshot) {
-    //   for (final docSnapshot in querySnapshot.docs) {
-    //     final updatedJson = docSnapshot.data();
-    //     handleItem(model: Product.fromJson(updatedJson), branchId: branchId);
-    //   }
-    // });
+    final productCollectionRef =
+        FirebaseFirestore.instance.collection('products');
+    int branchId = ProxyService.box.getBranchId()!;
+    final productSnapshots = productCollectionRef.snapshots();
+    productSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(model: Product.fromJson(updatedJson), branchId: branchId);
+      }
+    });
 
-    // final variantCollectionRef =
-    //     FirebaseFirestore.instance.collection('variants');
+    final variantCollectionRef =
+        FirebaseFirestore.instance.collection('variants');
 
-    // final variantSnapshots = variantCollectionRef.snapshots();
-    // variantSnapshots.listen((querySnapshot) {
-    //   for (final docSnapshot in querySnapshot.docs) {
-    //     final updatedJson = docSnapshot.data();
-    //     handleItem(model: Variant.fromJson(updatedJson), branchId: branchId);
-    //   }
-    // });
+    final variantSnapshots = variantCollectionRef.snapshots();
+    variantSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(model: Variant.fromJson(updatedJson), branchId: branchId);
+      }
+    });
 
-    // final stockCollectionRef = FirebaseFirestore.instance.collection('stocks');
+    final stockCollectionRef = FirebaseFirestore.instance.collection('stocks');
 
-    // final stockSnapshots = stockCollectionRef.snapshots();
-    // stockSnapshots.listen((querySnapshot) {
-    //   for (final docSnapshot in querySnapshot.docs) {
-    //     final updatedJson = docSnapshot.data();
-    //     handleItem(model: Stock.fromJson(updatedJson), branchId: branchId);
-    //   }
-    // });
+    final stockSnapshots = stockCollectionRef.snapshots();
+    stockSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(model: Stock.fromJson(updatedJson), branchId: branchId);
+      }
+    });
 
-    // final deviceCollectionRef =
-    //     FirebaseFirestore.instance.collection('devices');
+    final deviceCollectionRef =
+        FirebaseFirestore.instance.collection('devices');
 
-    // final deviceSnapshots = deviceCollectionRef.snapshots();
-    // deviceSnapshots.listen((querySnapshot) {
-    //   for (final docSnapshot in querySnapshot.docs) {
-    //     final updatedJson = docSnapshot.data();
-    //     handleItem(model: Device.fromJson(updatedJson), branchId: branchId);
-    //   }
-    // });
+    final deviceSnapshots = deviceCollectionRef.snapshots();
+    deviceSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(model: Device.fromJson(updatedJson), branchId: branchId);
+      }
+    });
+
+    final transactionCollectionRef =
+        FirebaseFirestore.instance.collection('transactions');
+
+    final transactionsSnapshots = transactionCollectionRef.snapshots();
+    transactionsSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(
+            model: ITransaction.fromJson(updatedJson), branchId: branchId);
+      }
+    });
+
+    final transactionItemCollectionRef =
+        FirebaseFirestore.instance.collection('transactionItems');
+
+    final transactionItemSnapshots = transactionItemCollectionRef.snapshots();
+    transactionItemSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(
+            model: TransactionItem.fromJson(updatedJson), branchId: branchId);
+      }
+    });
   }
 
   @override

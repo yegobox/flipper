@@ -46,6 +46,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
+    final productRef = ref.watch(productProvider);
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         // Reset barcode on initialization.
@@ -56,7 +57,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
           });
         }
 
-        await model.getProduct(productId: widget.productId);
+        Product product = await model.getProduct(productId: widget.productId);
+        ref.read(productProvider.notifier).emitProduct(value: product);
         model.loadCategories();
         await model.loadColors();
         model.loadUnits();
@@ -155,7 +157,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       model.product == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: model.product!.color,
+                              currentColor: productRef!.color,
                               product: model.product,
                             ),
                       Text(

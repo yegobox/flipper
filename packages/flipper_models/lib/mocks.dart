@@ -230,6 +230,7 @@ final List<Map<String, dynamic>> mockUnits = [
 // variation mock
 final variationMock = Variant(
     action: 'create',
+    color: '#cc',
     name: 'Regular',
     lastTouched: DateTime.now(),
     sku: 'sku',
@@ -279,6 +280,7 @@ ITransaction? TransactionFMock = ITransaction(
   lastTouched: DateTime.now(),
   action: AppActions.created,
   id: randomString(),
+  businessOwnerId: 1,
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
   status: "pending",

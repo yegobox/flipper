@@ -100,6 +100,10 @@ const ITransactionSchema = IsarGeneratedSchema(
         name: 'deletedAt',
         type: IsarType.dateTime,
       ),
+      IsarPropertySchema(
+        name: 'businessOwnerId',
+        type: IsarType.long,
+      ),
     ],
     indexes: [
       IsarIndexSchema(
@@ -189,6 +193,7 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
   }
   IsarCore.writeLong(writer, 20,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
+  IsarCore.writeLong(writer, 21, object.businessOwnerId);
   return Isar.fastHash(object.id);
 }
 
@@ -250,6 +255,8 @@ ITransaction deserializeITransaction(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
+  final int _businessOwnerId;
+  _businessOwnerId = IsarCore.readLong(reader, 21);
   final object = ITransaction(
     id: _id,
     reference: _reference,
@@ -271,6 +278,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     action: _action,
     ticketName: _ticketName,
     deletedAt: _deletedAt,
+    businessOwnerId: _businessOwnerId,
   );
   return object;
 }
@@ -334,6 +342,8 @@ dynamic deserializeITransactionProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 21:
+      return IsarCore.readLong(reader, 21);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -361,6 +371,7 @@ sealed class _ITransactionUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
+    int? businessOwnerId,
   });
 }
 
@@ -391,6 +402,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
+    Object? businessOwnerId = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -414,6 +426,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
           if (action != ignore) 18: action as String?,
           if (ticketName != ignore) 19: ticketName as String?,
           if (deletedAt != ignore) 20: deletedAt as DateTime?,
+          if (businessOwnerId != ignore) 21: businessOwnerId as int?,
         }) >
         0;
   }
@@ -441,6 +454,7 @@ sealed class _ITransactionUpdateAll {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
+    int? businessOwnerId,
   });
 }
 
@@ -471,6 +485,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
+    Object? businessOwnerId = ignore,
   }) {
     return collection.updateProperties(id, {
       if (reference != ignore) 2: reference as String?,
@@ -492,6 +507,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
+      if (businessOwnerId != ignore) 21: businessOwnerId as int?,
     });
   }
 }
@@ -523,6 +539,7 @@ sealed class _ITransactionQueryUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
+    int? businessOwnerId,
   });
 }
 
@@ -553,6 +570,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
+    Object? businessOwnerId = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (reference != ignore) 2: reference as String?,
@@ -574,6 +592,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
+      if (businessOwnerId != ignore) 21: businessOwnerId as int?,
     });
   }
 }
@@ -612,6 +631,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
+    Object? businessOwnerId = ignore,
   }) {
     final q = query.build();
     try {
@@ -635,6 +655,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
         if (action != ignore) 18: action as String?,
         if (ticketName != ignore) 19: ticketName as String?,
         if (deletedAt != ignore) 20: deletedAt as DateTime?,
+        if (businessOwnerId != ignore) 21: businessOwnerId as int?,
       });
     } finally {
       q.close();
@@ -3826,6 +3847,92 @@ extension ITransactionQueryFilter
       );
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 21,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 21,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 21,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 21,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 21,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      businessOwnerIdBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 21,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
 }
 
 extension ITransactionQueryObject
@@ -4202,6 +4309,20 @@ extension ITransactionQuerySortBy
       return query.addSortBy(20, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      sortByBusinessOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21);
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      sortByBusinessOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
 }
 
 extension ITransactionQuerySortThenBy
@@ -4477,6 +4598,20 @@ extension ITransactionQuerySortThenBy
       return query.addSortBy(20, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      thenByBusinessOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21);
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
+      thenByBusinessOwnerIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(21, sort: Sort.desc);
+    });
+  }
 }
 
 extension ITransactionQueryWhereDistinct
@@ -4613,6 +4748,13 @@ extension ITransactionQueryWhereDistinct
       return query.addDistinctBy(20);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByBusinessOwnerId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(21);
+    });
+  }
 }
 
 extension ITransactionQueryProperty1
@@ -4736,6 +4878,12 @@ extension ITransactionQueryProperty1
   QueryBuilder<ITransaction, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
+    });
+  }
+
+  QueryBuilder<ITransaction, int, QAfterProperty> businessOwnerIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
     });
   }
 }
@@ -4870,6 +5018,13 @@ extension ITransactionQueryProperty2<R>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
+    });
+  }
+
+  QueryBuilder<ITransaction, (R, int), QAfterProperty>
+      businessOwnerIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
     });
   }
 }
@@ -5009,6 +5164,13 @@ extension ITransactionQueryProperty3<R1, R2>
       return query.addProperty(20);
     });
   }
+
+  QueryBuilder<ITransaction, (R1, R2, int), QOperations>
+      businessOwnerIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(21);
+    });
+  }
 }
 
 // **************************************************************************
@@ -5027,6 +5189,7 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       cashReceived: (json['cashReceived'] as num).toDouble(),
       customerChangeDue: (json['customerChangeDue'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
+      businessOwnerId: json['businessOwnerId'] as int,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
       customerId: json['customerId'] as String?,
@@ -5064,4 +5227,5 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'action': instance.action,
       'ticketName': instance.ticketName,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'businessOwnerId': instance.businessOwnerId,
     };

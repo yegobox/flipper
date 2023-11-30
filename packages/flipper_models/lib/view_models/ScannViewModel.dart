@@ -46,6 +46,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
         id: randomString(),
         sku: variantName,
         productId: product.id,
+        color: product.color,
         unit: 'item',
         productName: productName ?? product.name,
         branchId: branchId,
