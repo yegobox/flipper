@@ -2,7 +2,7 @@ name: Deploy to Play Store
 on:
   # Enable manual run
   workflow_dispatch:
-     inputs:
+    inputs:
       lane:
         description: "Fastlane lane"
         required: true
@@ -17,7 +17,7 @@ on:
     #     description: "Fastlane lane to use (beta OR promote_to_production OR production)"
     #     required: true
     #     default: "internal"
-        # default: "beta"
+    # default: "beta"
   # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
     branches: [main, dev]
@@ -39,7 +39,7 @@ jobs:
   #       with:
   #         flutter-version: '3.13.6' #firebase_auth_desktop is broken with  3.10.6
   #         channel: "stable"
-          
+
   #     - run: git submodule update --init
   #     - name: Configure Missing files
   #       run: |
@@ -54,41 +54,41 @@ jobs:
   #         dart pub global activate melos 2.9.0
   #         melos bootstrap
   #         flutter test --dart-define=Test=true
-      # android_integration_test:
-      #   runs-on: macos-13
-      #   timeout-minutes: 30
-      
-      #   strategy:
-      #     matrix:
-      #       android-api-level: [ 21, 26, 32 ]
+  # android_integration_test:
+  #   runs-on: macos-13
+  #   timeout-minutes: 30
 
-      #   steps:
-      #     - name: "Checkout repository"
-      #       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      #     - name: "Install Flutter"
-      #       run: ./.github/workflows/scripts/install-flutter.sh stable
-      #     - name: "Install Tools"
-      #       run: ./.github/workflows/scripts/install-tools.sh
+  #   strategy:
+  #     matrix:
+  #       android-api-level: [ 21, 26, 32 ]
 
-      #     # Required for Android builds
-      #     - uses: actions/setup-java@v3
-      #       with:
-      #         distribution: "temurin"
-      #         java-version: "11"
+  #   steps:
+  #     - name: "Checkout repository"
+  #       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+  #     - name: "Install Flutter"
+  #       run: ./.github/workflows/scripts/install-flutter.sh stable
+  #     - name: "Install Tools"
+  #       run: ./.github/workflows/scripts/install-tools.sh
 
-      #     - name: "Bootstrap Workspace"
-      #       run: melos bootstrap --scope="$PLUGIN_SCOPE"
+  #     # Required for Android builds
+  #     - uses: actions/setup-java@v3
+  #       with:
+  #         distribution: "temurin"
+  #         java-version: "11"
 
-      #     - name: "Android Integration Test"
-      #       uses: reactivecircus/android-emulator-runner@v2
-      #       with:
-      #         api-level: ${{ matrix.android-api-level }}
-      #         cores: 3
-      #         target: google_apis
-      #         arch: x86_64
-      #         force-avd-creation: false
-      #         profile: Nexus 5X
-      #         script: ./.github/workflows/scripts/integration-test.sh android share_plus_example
+  #     - name: "Bootstrap Workspace"
+  #       run: melos bootstrap --scope="$PLUGIN_SCOPE"
+
+  #     - name: "Android Integration Test"
+  #       uses: reactivecircus/android-emulator-runner@v2
+  #       with:
+  #         api-level: ${{ matrix.android-api-level }}
+  #         cores: 3
+  #         target: google_apis
+  #         arch: x86_64
+  #         force-avd-creation: false
+  #         profile: Nexus 5X
+  #         script: ./.github/workflows/scripts/integration-test.sh android share_plus_example
 
   fastlane-deploy:
     name: "Google Deploy"
@@ -100,7 +100,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6' #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.16.0" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -142,7 +142,7 @@ jobs:
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
-        uses:  ruby/setup-ruby@v1 
+        uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.0"
           bundler-cache: true
