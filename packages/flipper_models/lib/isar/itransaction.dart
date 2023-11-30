@@ -29,7 +29,8 @@ class ITransaction extends IJsonSerializable {
   String? customerId;
   String? note;
 
-  @JsonKey(includeIfNull: true)
+  @JsonKey(
+      includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? lastTouched;
 
   String action;
@@ -37,11 +38,22 @@ class ITransaction extends IJsonSerializable {
   // int categoryId;
 
   String? ticketName;
-  @Index()
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
   int businessOwnerId;
+
+  static DateTime? _dateTimeFromJson(String? json) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.fromJson(json);
+  }
+
+  static String? _dateTimeToJson(DateTime? dateTime) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.toJson(dateTime);
+  }
+
   ITransaction({
     required this.reference,
     this.categoryId,

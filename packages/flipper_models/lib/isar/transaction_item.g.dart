@@ -12528,12 +12528,10 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
       regrNm: json['regrNm'] as String?,
       modrId: json['modrId'] as String?,
       modrNm: json['modrNm'] as String?,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
+      lastTouched:
+          TransactionItem._dateTimeFromJson(json['lastTouched'] as String?),
+      deletedAt:
+          TransactionItem._dateTimeFromJson(json['deletedAt'] as String?),
     );
 
 Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
@@ -12585,8 +12583,8 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'regrNm': instance.regrNm,
       'modrId': instance.modrId,
       'modrNm': instance.modrNm,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'lastTouched': TransactionItem._dateTimeToJson(instance.lastTouched),
+      'deletedAt': TransactionItem._dateTimeToJson(instance.deletedAt),
       'action': instance.action,
       'branchId': instance.branchId,
     };

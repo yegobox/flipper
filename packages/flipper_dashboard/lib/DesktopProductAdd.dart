@@ -98,10 +98,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final productRef = ref.watch(productProvider);
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
-      onViewModelReady: (model) {
-        model.createProduct(name: TEMP_PRODUCT);
+      onViewModelReady: (model) async {
+        Product product = await model.createProduct(name: TEMP_PRODUCT);
+        ref.read(productProvider.notifier).emitProduct(value: product);
         model.initialize();
       },
       builder: (context, model, child) {
@@ -157,7 +159,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                                 model.currentColor = pickerColor.toHex();
                                 Product? product = await model.saveProduct(
-                                    mproduct: model.product);
+                                  mproduct: productRef!,
+                                );
                                 ref
                                     .read(productsProvider(
                                             ProxyService.box.getBranchId()!)
@@ -249,6 +252,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           model.onAddVariant(
                             variantName: scannedInput,
                             isTaxExempted: false,
+                            product: productRef!,
                           );
                           scannedInputController.clear();
                           scannedInputFocusNode.requestFocus();

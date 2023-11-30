@@ -5195,14 +5195,11 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       customerId: json['customerId'] as String?,
       note: json['note'] as String?,
       id: json['id'] as String,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
+      lastTouched:
+          ITransaction._dateTimeFromJson(json['lastTouched'] as String?),
       action: json['action'] as String,
       ticketName: json['ticketName'] as String?,
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
+      deletedAt: ITransaction._dateTimeFromJson(json['deletedAt'] as String?),
     );
 
 Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
@@ -5223,9 +5220,9 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'updatedAt': instance.updatedAt,
       'customerId': instance.customerId,
       'note': instance.note,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'lastTouched': ITransaction._dateTimeToJson(instance.lastTouched),
       'action': instance.action,
       'ticketName': instance.ticketName,
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'deletedAt': ITransaction._dateTimeToJson(instance.deletedAt),
       'businessOwnerId': instance.businessOwnerId,
     };

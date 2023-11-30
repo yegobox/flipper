@@ -10,7 +10,6 @@ import 'mixins/_product.dart';
 
 class ScannViewModel extends BaseViewModel with ProductMixin {
   List<Variant> scannedVariants = [];
-  late Product product;
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
 
@@ -23,6 +22,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
   void onAddVariant({
     required String variantName,
     required bool isTaxExempted,
+    required Product product,
   }) {
     int branchId = ProxyService.box.getBranchId()!;
 
@@ -46,7 +46,7 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
         id: randomString(),
         sku: variantName,
         productId: product.id,
-        color: product.color,
+        color: currentColor,
         unit: 'item',
         productName: productName ?? product.name,
         branchId: branchId,
@@ -61,10 +61,10 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     notifyListeners();
   }
 
-  Future<void> createProduct({required String name}) async {
+  Future<Product> createProduct({required String name}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
-    product = await ProxyService.isar.createProduct(
+    return await ProxyService.isar.createProduct(
       product: Product(
         name: name,
         color: COLOR,

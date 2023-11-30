@@ -1,15 +1,17 @@
 library flipper_models;
 
+import 'DateTimeConverter.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';
-
 part 'variant.g.dart';
 
 @JsonSerializable()
 @Collection()
 class Variant extends IJsonSerializable {
+  @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+  DateTime? deletedAt;
   late String id;
   @Index()
   late String name;
@@ -86,9 +88,16 @@ class Variant extends IJsonSerializable {
   String action;
 
   // only for accor when fetching from remove
+  static DateTime? _dateTimeFromJson(String? json) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.fromJson(json);
+  }
 
-  @Index()
-  DateTime? deletedAt;
+  static String? _dateTimeToJson(DateTime? dateTime) {
+    const dateTimeConverter = DateTimeConverter();
+    return dateTimeConverter.toJson(dateTime);
+  }
+
   Variant({
     required this.name,
     required this.sku,

@@ -4766,12 +4766,8 @@ Product _$ProductFromJson(Map<String, dynamic> json) => Product(
       nfcEnabled: json['nfcEnabled'] as bool?,
       bindedToTenantId: json['bindedToTenantId'] as int?,
       isFavorite: json['isFavorite'] as bool?,
-      lastTouched: json['lastTouched'] == null
-          ? null
-          : DateTime.parse(json['lastTouched'] as String),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
+      lastTouched: Product._dateTimeFromJson(json['lastTouched'] as String?),
+      deletedAt: Product._dateTimeFromJson(json['deletedAt'] as String?),
       searchMatch: json['searchMatch'] as bool? ?? false,
     );
 
@@ -4793,8 +4789,8 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'nfcEnabled': instance.nfcEnabled,
       'bindedToTenantId': instance.bindedToTenantId,
       'isFavorite': instance.isFavorite,
-      'lastTouched': instance.lastTouched?.toIso8601String(),
+      'lastTouched': Product._dateTimeToJson(instance.lastTouched),
       'action': instance.action,
-      'deletedAt': instance.deletedAt?.toIso8601String(),
+      'deletedAt': Product._dateTimeToJson(instance.deletedAt),
       'searchMatch': instance.searchMatch,
     };
