@@ -77,9 +77,9 @@ class _ConversationHistoryState extends State<ConversationHistory>
                 messages: messageList,
                 onSendPressed: _click,
                 showUserAvatars: true,
-                avatarBuilder: (String userId) {
+                avatarBuilder: (types.User user) {
                   types.Message m = messageList
-                      .where((element) => element.roomId == userId)
+                      .where((element) => element.roomId == user.id)
                       .first;
                   log(m.toJson().toString(), name: "messageAvatar");
                   return CircleAvatar(
