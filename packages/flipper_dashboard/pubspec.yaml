@@ -51,7 +51,6 @@ dependencies:
   # causing issue on web https://github.com/pd4d10/flutter-vector-icons/issues/19
   # flutter_vector_icons: ^2.0.0
 
-  uuid: ^4.2.1
   flipper_login: ^0.0.1-dev.5
   intl: ^0.18.0
 
