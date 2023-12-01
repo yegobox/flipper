@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 library flipper_models;
 
 import 'dart:async';
@@ -116,7 +118,7 @@ class CoreViewModel extends FlipperBaseModel
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction);
-        ref.read(transactionItemsProvider.notifier).items();
+        ref.refresh(transactionItemsProvider);
         break;
 
       case '+':
@@ -127,19 +129,18 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.isar.update(data: item);
         }
         ProxyService.keypad.reset();
-        ref.read(transactionItemsProvider.notifier).items();
-        rebuildUi();
+        ref.refresh(transactionItemsProvider);
         break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
-          ref.read(transactionItemsProvider.notifier).items();
+          ref.refresh(transactionItemsProvider);
         } else if (ProxyService.keypad.key.length > 1) {
           handleMultipleDigitKey(items, pendingTransaction);
-          ref.read(transactionItemsProvider.notifier).items();
+          ref.refresh(transactionItemsProvider.notifier);
         }
-        ref.read(transactionItemsProvider.notifier).items();
+        ref.refresh(transactionItemsProvider.notifier);
         break;
     }
   }
@@ -175,7 +176,7 @@ class CoreViewModel extends FlipperBaseModel
       List<TransactionItem> items, ITransaction pendingTransaction) async {
     double amount = double.parse(ProxyService.keypad.key);
 
-    if (amount == 0.0) return;
+    if (amount == 0) return;
 
     Variant? variation = await ProxyService.isar.getCustomVariant();
     if (variation == null) return;
@@ -591,7 +592,6 @@ class CoreViewModel extends FlipperBaseModel
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
       {required String id, required BuildContext context}) async {
-    log('deleting', name: 'transactionItem');
     await ProxyService.isar.delete(id: id, endPoint: 'transactionItem');
 
     updatePayable();

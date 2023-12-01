@@ -125,8 +125,11 @@ class SearchFieldState extends ConsumerState<SearchField> {
                           _routerService.navigateTo(OrdersRoute());
                         },
                         icon: Badge(
-                          smallSize: 3,
-                          label: Text('1'),
+                          smallSize: 1,
+                          label: Text(
+                            '1',
+                            style: TextStyle(fontSize: 10),
+                          ),
                           child: Icon(
                             receiveOrderMode
                                 ? FluentIcons.cart_24_regular

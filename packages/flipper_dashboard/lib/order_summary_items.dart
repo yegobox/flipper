@@ -96,7 +96,7 @@ List<Widget> buildItems({
             ],
           ),
         ),
-        onTap: () => callback(item), // Added the value argument
+        onTap: () => null, //removed calling callback
       ),
     );
   }).toList();

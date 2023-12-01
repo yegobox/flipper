@@ -939,8 +939,14 @@ class IsarAPI<M> implements IsarApiInterface {
         break;
       case 'transactionItem':
         db.write((isar) {
-          isar.transactionItems.delete(id);
-          return true;
+          TransactionItem? transactionItems = isar.transactionItems.get(id);
+          if (transactionItems != null) {
+            transactionItems.deletedAt = deletionTime;
+            transactionItems.action = AppActions.deleted;
+            isar.transactionItems.put(transactionItems);
+            return true;
+          }
+          return false;
         });
         break;
       case 'customer':
@@ -3012,10 +3018,11 @@ class IsarAPI<M> implements IsarApiInterface {
     final List<TransactionItem> allItems = [];
 
     for (final transaction in transactions) {
-      log(transaction.id, name: "transactionItemsFuture");
       final items = await db.read((isar) => isar.transactionItems
           .where()
           .transactionIdEqualTo(transaction.id)
+          .and()
+          .deletedAtIsNull()
           .findAll());
       allItems.addAll(items);
     }
