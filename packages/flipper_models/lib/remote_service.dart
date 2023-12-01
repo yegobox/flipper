@@ -249,7 +249,12 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       log(e.toString());
       return null;
     } on ClientException catch (e) {
-      log(e.toString());
+      if (e.statusCode == 404) {
+        ///there is cases where a model is marked as need update locally yet it is not on
+        ///remote, in this case create it first
+        return await pb!.collection(collectionName).create(body: data);
+      }
+      log(e.statusCode.toString(), name: 'failed to update');
       ProxyService.sentry.debug(event: e.toString());
       return null;
     } catch (e) {

@@ -56,10 +56,16 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
       RecordModel? result = null;
 
       if (json['action'] == AppActions.updated) {
+        final lastTouched = DateTime.now().toIso8601String();
+
+        json['lastTouched'] = lastTouched;
         json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
       } else if (json['action'] == AppActions.deleted) {
+        final lastTouched = DateTime.now().toIso8601String();
+
+        json['lastTouched'] = lastTouched;
         json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
@@ -67,6 +73,9 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         //change action when sending to remote to avoid pulling it next time with create
         // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
         json['action'] = AppActions.updatedLocally;
+        final lastTouched = DateTime.now().toIso8601String();
+
+        json['lastTouched'] = lastTouched;
         result = await ProxyService.remote
             .create(collection: json, collectionName: endpoint);
       }

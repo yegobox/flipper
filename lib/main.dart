@@ -120,6 +120,7 @@ void main() async {
       ProviderScope(
         child: OverlaySupport.global(
           child: MaterialApp.router(
+            restorationScopeId: "flipper-rw",
             debugShowCheckedModeBanner: true,
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and
