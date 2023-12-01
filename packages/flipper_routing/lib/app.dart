@@ -182,3 +182,28 @@ class App {}
 // https://github.com/firebase/flutterfire/issues/9668
 
 // https://pub.dev/packages/wakelock
+// https://pub.dev/packages/system_tray
+
+// Auto-printing
+// import 'package:pdf/pdf.dart';
+// import 'package:pdf/widgets.dart' as pw;
+// import 'package:printing/printing.dart';
+
+// void main() async {
+//   // Create a PDF document
+//   final pdf = pw.Document();
+//   pdf.addPage(pw.Page(
+//       pageFormat: PdfPageFormat.a4,
+//       build: (pw.Context context) {
+//         return pw.Center(
+//           child: pw.Text('Hello World'),
+//         ); // Center
+//       })); // Page
+
+//   // Print the document without opening a dialog
+//   await Printing.directPrintPdf(
+//     printer: await Printing.pickPrinter(),
+//     onLayout: (PdfPageFormat format) async => pdf.save(),
+//   );
+// }
+
