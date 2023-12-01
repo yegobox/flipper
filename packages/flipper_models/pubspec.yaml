@@ -18,7 +18,7 @@ dependencies:
   built_value: ^8.1.4
   azlistview: ^2.0.0
   scrollable_positioned_list: ^0.3.2-dev
-  uuid: ^3.0.7
+  uuid: ^4.2.1
   built_collection: ^5.1.1
   flipper_services: ^1.0.0
   flipper_routing: ^0.0.1-dev.3
