@@ -15,7 +15,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
   isar_flutter_libs
   local_auth_windows
-  local_notifier
   permission_handler_windows
   printing
   screen_retriever
