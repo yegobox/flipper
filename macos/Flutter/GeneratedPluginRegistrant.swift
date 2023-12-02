@@ -24,6 +24,7 @@ import flutter_native_timezone
 import flutter_window_close
 import geolocator_apple
 import isar_flutter_libs
+import local_notifier
 import location_macos
 import package_info_plus
 import path_provider_foundation
@@ -60,6 +61,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FlutterWindowClosePlugin.register(with: registry.registrar(forPlugin: "FlutterWindowClosePlugin"))
   GeolocatorPlugin.register(with: registry.registrar(forPlugin: "GeolocatorPlugin"))
   IsarFlutterLibsPlugin.register(with: registry.registrar(forPlugin: "IsarFlutterLibsPlugin"))
+  LocalNotifierPlugin.register(with: registry.registrar(forPlugin: "LocalNotifierPlugin"))
   LocationPlugin.register(with: registry.registrar(forPlugin: "LocationPlugin"))
   FLTPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FLTPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
