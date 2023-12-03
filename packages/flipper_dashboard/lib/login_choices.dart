@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -173,20 +174,16 @@ class _LoginChoicesState extends State<LoginChoices> {
     model.setDefaultBranch(branch: branch);
     if (await ProxyService.isar
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
-      Drawers? drawer = Drawers()
-        ..cashierId = ProxyService.box.getBusinessId()!
-        ..closingBalance = 0
-        ..tradeName = ProxyService.app.business.name
-        ..nsSaleCount = 0
-        ..trSaleCount = 0
-        ..psSaleCount = 0
-        ..incompleteSale = 0
-        ..totalCsSaleIncome = 0
-        ..totalNsSaleIncome = 0
-        ..csSaleCount = 0
-        ..nrSaleCount = 0
-        ..openingDateTime = DateTime.now().toIso8601String()
-        ..open = true;
+      Drawers drawer = Drawers(
+        id: randomString(),
+        openingBalance: 0.0,
+        closingBalance: 0.0,
+        cashierId: ProxyService.box.getBusinessId()!,
+        tradeName: ProxyService.app.business.name,
+        openingDateTime: DateTime.now().toIso8601String(),
+        open: true,
+      );
+
       _routerService
           .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
     }

@@ -87,8 +87,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     amountTotal: variant.retailPrice,
                     customItem: false,
                     pendingTransaction: currentTransaction.value!);
-                // ignore: unused_result
-                // ref.refresh(transactionItemsProvider);
               }
             }
           },

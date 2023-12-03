@@ -130,6 +130,17 @@ class FirestoreSync<M extends IJsonSerializable>
             model: TransactionItem.fromJson(updatedJson), branchId: branchId);
       }
     });
+
+    final drawersCollectionRef =
+        FirebaseFirestore.instance.collection('drawers');
+
+    final drawersSnapshots = drawersCollectionRef.snapshots();
+    drawersSnapshots.listen((querySnapshot) {
+      for (final docSnapshot in querySnapshot.docs) {
+        final updatedJson = docSnapshot.data();
+        handleItem(model: Drawers.fromJson(updatedJson), branchId: branchId);
+      }
+    });
   }
 
   @override

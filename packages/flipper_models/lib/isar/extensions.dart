@@ -45,5 +45,8 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     if (object is TransactionItem) {
       ProxyService.syncFirestore.onSave<TransactionItem>(item: object);
     }
+    if (object is Drawers) {
+      ProxyService.syncFirestore.onSave<Drawers>(item: object);
+    }
   }
 }

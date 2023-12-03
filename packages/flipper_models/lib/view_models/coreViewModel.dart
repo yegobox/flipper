@@ -966,10 +966,4 @@ class CoreViewModel extends FlipperBaseModel
     }
     return 0;
   }
-
-  void refreshData({required WidgetRef ref}) {
-    ref.listen(searchStringProvider, (previous, next) {
-      log(next, name: 'iiiiiiiiiiiiiiiiiiiiiiii');
-    });
-  }
 }

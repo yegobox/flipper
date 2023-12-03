@@ -831,7 +831,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (color != null) {
             color.deletedAt = deletionTime;
             color.action = AppActions.deleted;
-            isar.pColors.put(color);
+            isar.pColors.onPut(color);
             return true;
           }
           return false;
@@ -855,7 +855,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (category != null) {
             category.deletedAt = deletionTime;
             category.action = AppActions.deleted;
-            isar.categorys.put(category);
+            isar.categorys.onPut(category);
             return true;
           }
           return false;
@@ -903,7 +903,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (setting != null) {
             setting.deletedAt = deletionTime;
             setting.action = AppActions.deleted;
-            isar.settings.put(setting);
+            isar.settings.onPut(setting);
             return true;
           }
           return false;
@@ -943,7 +943,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (transactionItems != null) {
             transactionItems.deletedAt = deletionTime;
             transactionItems.action = AppActions.deleted;
-            isar.transactionItems.put(transactionItems);
+            isar.transactionItems.onPut(transactionItems);
             return true;
           }
           return false;
@@ -955,7 +955,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (customer != null) {
             customer.deletedAt = deletionTime;
             customer.action = AppActions.deleted;
-            isar.customers.put(customer);
+            isar.customers.onPut(customer);
             return true;
           }
           return false;
@@ -1247,7 +1247,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .transactionIdEqualTo(transactionId!)
         .and()
-        .deletedAtIsNotNull()
+        .deletedAtIsNull()
         .findFirst();
   }
 
@@ -1919,19 +1919,19 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Category) {
       final transaction = data;
       db.write((isar) {
-        isar.categorys.put(transaction);
+        isar.categorys.onPut(transaction);
       });
     }
     if (data is IUnit) {
       final unit = data;
       db.write((isar) {
-        isar.iUnits.put(unit);
+        isar.iUnits.onPut(unit);
       });
     }
     if (data is PColor) {
       final color = data;
       db.write((isar) {
-        isar.pColors.put(color);
+        isar.pColors.onPut(color);
       });
     }
     if (data is TransactionItem) {
@@ -1952,7 +1952,7 @@ class IsarAPI<M> implements IsarApiInterface {
           ..bhfId = ebm.bhfId
           ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
-        isar.business.put(business!);
+        isar.business.onPut(business!);
       });
     }
     if (data is Token) {
@@ -1962,7 +1962,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ..businessId = token.businessId
         ..type = token.type;
       db.write((isar) {
-        db.tokens.put(token);
+        db.tokens.onPut(token);
       });
     }
     if (data is Business) {
@@ -1993,7 +1993,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Counter) {
       db.write((isar) {
-        isar.counters.put(data);
+        isar.counters.onPut(data);
       });
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/counter/${data.id}"),
@@ -2003,7 +2003,7 @@ class IsarAPI<M> implements IsarApiInterface {
         log(response.body, name: 'response.body');
         Counter counter = Counter.fromRawJson(response.body);
         db.write((isar) {
-          isar.counters.put(data
+          isar.counters.onPut(data
             ..branchId = counter.branchId
             ..businessId = counter.businessId
             ..receiptType = counter.receiptType
@@ -2029,7 +2029,7 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Drawers) {
       final drawer = data;
       db.write((isar) {
-        isar.drawers.put(drawer);
+        isar.drawers.onPut(drawer);
       });
     }
     if (data is User) {
@@ -2046,7 +2046,7 @@ class IsarAPI<M> implements IsarApiInterface {
       );
       if (response.statusCode == 200) {
         db.write((isar) {
-          isar.iTenants.put(data);
+          isar.iTenants.onPut(data);
         });
       }
       return response.statusCode;
