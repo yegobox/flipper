@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -32,10 +31,9 @@ class CronService {
       // get a list of local copy of product to sync
 
       if (ProxyService.remoteConfig.isSyncAvailable()) {
-        // ProxyService.isar.clear();
-        // ProxyService.sync.push();
-        // ProxyService.sync.pull();
-        // ProxyService.syncFirestore.pull();
+        ProxyService.sync.push();
+        ProxyService.sync.pull();
+        ProxyService.syncFirestore.pull();
       }
 
       ProxyService.messaging

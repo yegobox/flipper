@@ -132,7 +132,7 @@ final productListProvider =
   if (found.kDebugMode) {
     token = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
         AppSecrets.debugPassword, AppSecrets.debugEmail);
-    url = AppSecrets.apiUrlProd;
+    url = AppSecrets.apiUrlDebug;
   } else {
     token = await ProxyService.remote.getToken(
         AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
@@ -188,7 +188,12 @@ class ProductListScreen extends StatefulHookConsumerWidget {
 
 class ProductListScreenState extends ConsumerState<ProductListScreen> {
   Color hexToColor(String code) {
-    return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+    if (code.isNotEmpty) {
+      return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
+    } else {
+      return Color(
+          int.parse("#FF0000".substring(1, 7), radix: 16) + 0xFF000000);
+    }
   }
 
   List<Color> extractColors(List<Variant> variants) {
