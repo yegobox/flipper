@@ -48,10 +48,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton> {
                   }
 
                   model.keypad.setTransaction(transaction);
-                  ref
-                      .read(transactionItemsProvider.notifier)
-                      .updatePendingTransaction();
+
                   showModalBottomSheet(
+                    backgroundColor: Colors.red,
                     context: context,
                     shape: const RoundedRectangleBorder(
                       borderRadius:

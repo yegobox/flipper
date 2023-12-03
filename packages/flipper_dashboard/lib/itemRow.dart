@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -39,7 +40,7 @@ class RowItem extends StatelessWidget {
   final Function edit;
   final Function enableNfc;
   final ProductViewModel model;
-  final List<Stock?> stocks;
+  final double stock;
   final Variant? variant;
   final Product? product;
   final bool? addFavoriteMode;
@@ -50,7 +51,7 @@ class RowItem extends StatelessWidget {
     Key? key,
     required this.color,
     required this.name,
-    required this.stocks,
+    required this.stock,
     required this.delete,
     required this.edit,
     required this.enableNfc,
@@ -89,14 +90,14 @@ class RowItem extends StatelessWidget {
                         style: const TextStyle(color: Colors.black),
                       ),
                       Text(
-                        _getStockText(),
+                        "${stock}",
                         style: const TextStyle(color: Colors.black),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(width: 10),
-                if (product != null) _buildPrices(),
+                _buildPrices(),
               ],
             ),
           ),
@@ -134,18 +135,12 @@ class RowItem extends StatelessWidget {
     );
   }
 
-  String _getStockText() {
-    return stocks.isNotEmpty
-        ? 'In stock: ${stocks.first!.currentStock}'
-        : 'In stock: 0.0';
-  }
-
   Widget _buildPrices() {
     return Container(
       width: 80,
       child: StreamBuilder<List<Variant>>(
         stream: ProxyService.isar.geVariantStreamByProductId(
-          productId: product!.id,
+          productId: product == null ? "0" : product!.id,
         ),
         builder: (context, snapshot) {
           if (snapshot.data?.isNotEmpty == true && snapshot.data!.length > 1) {
@@ -154,17 +149,34 @@ class RowItem extends StatelessWidget {
               style: TextStyle(color: Colors.black),
             );
           } else {
-            if (stocks.isNotEmpty && stocks.first!.retailPrice != null) {
-              return Text(
-                'RWF ${stocks.first!.retailPrice}',
-                style: const TextStyle(color: Colors.black),
-              );
-            } else {
-              return const Text(
-                'RWF ',
-                style: TextStyle(color: Colors.black),
-              );
-            }
+            /// this work with assumption that if we only have one variant for the product
+            /// that means we can directly show that default variant price to the UI
+            return FutureBuilder<List<Variant>>(
+              future: ProxyService.isar.getVariantByProductId(
+                productId: product?.id ?? "0",
+              ),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return SizedBox.shrink();
+                }
+
+                final variants = snapshot.data;
+
+                if (variant != null) {
+                  return Text(
+                    'RWF ${NumberFormat('#,###').format(variant!.retailPrice)}',
+                    style: const TextStyle(color: Colors.black),
+                  );
+                } else if (variants != null && variants.isNotEmpty) {
+                  return Text(
+                    'RWF ${NumberFormat('#,###').format(variants.first.retailPrice)}',
+                    style: const TextStyle(color: Colors.black),
+                  );
+                }
+
+                return SizedBox.shrink();
+              },
+            );
           }
         },
       ),

@@ -46,7 +46,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
       ref.read(searchStringProvider.notifier).emitString(value: '');
       // ignore: unused_result
       ref.refresh(searchStringProvider);
-      ref.read(transactionItemsProvider.notifier).items();
+      // ignore: unused_result
+      ref.refresh(transactionItemsProvider);
     });
   }
 
@@ -73,11 +74,22 @@ class SearchFieldState extends ConsumerState<SearchField> {
           maxLines: null,
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
-          onChanged: (value) {
+          onChanged: (value) async {
             _hasText = value.isNotEmpty;
 
             if (isScanningMode) {
               _textSubject.add(value);
+              Variant? variant = await ProxyService.isar.variant(name: value);
+              // ProxyService.isar.clear();
+              if (variant != null && currentTransaction.value != null) {
+                model.saveTransaction(
+                    variationId: variant.id,
+                    amountTotal: variant.retailPrice,
+                    customItem: false,
+                    pendingTransaction: currentTransaction.value!);
+                // ignore: unused_result
+                // ref.refresh(transactionItemsProvider);
+              }
             }
           },
           decoration: InputDecoration(

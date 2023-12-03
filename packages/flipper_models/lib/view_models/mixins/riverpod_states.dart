@@ -127,6 +127,7 @@ final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
         searchString: searchString,
         pendingTransaction: pendingTransaction);
   }
+
   return productsNotifier;
 });
 
@@ -154,14 +155,6 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
           : allVariants;
 
       // If there's a match, save the transaction for the first matched variant
-      if (filteredVariants.isNotEmpty) {
-        final variant = filteredVariants.first;
-        await saveTransaction(
-            variationId: variant.id,
-            amountTotal: variant.retailPrice,
-            customItem: false,
-            pendingTransaction: pendingTransaction.value!);
-      }
 
       // Update the state with the filtered list of variants.
       state = AsyncValue.data(filteredVariants);

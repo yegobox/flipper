@@ -1,6 +1,7 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,15 +34,16 @@ class PreviewSaleBottomSheetState
   @override
   Widget build(BuildContext context) {
     final currentTransaction = ref.watch(pendingTransactionProvider);
+    final transactionItems = ref.watch(transactionItemsProvider);
+    final pendingTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
           CoreViewModel(transaction: currentTransaction.value),
       builder: (context, model, child) {
-        final transactionItems = ref.watch(transactionItemsProvider);
-        final pendingTransaction = ref.watch(pendingTransactionProvider);
         final saleCounts = transactionItems.value?.length;
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
+        ref.read(transactionItemsProvider.notifier).updatePendingTransaction();
         return Material(
           color: CupertinoTheme.of(context).scaffoldBackgroundColor,
           child: CupertinoPageScaffold(
@@ -63,8 +65,9 @@ class PreviewSaleBottomSheetState
                 ],
               ),
               trailing: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Icon(Icons.close),
+                onTap: () =>
+                    isDesktopOrWeb ? null : Navigator.of(context).pop(),
+                child: isDesktopOrWeb ? SizedBox.shrink() : Icon(Icons.close),
               ),
             ),
             child: Column(
@@ -95,7 +98,7 @@ class PreviewSaleBottomSheetState
                           // ignore: unused_result
                           ref.refresh(transactionItemsProvider);
                         },
-                        items: transactionItems.value ?? [],
+                        items: transactionItems,
                       ),
                       if (model.totalDiscount > 0)
                         ListTile(
@@ -130,7 +133,8 @@ class PreviewSaleBottomSheetState
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: BoxButton(
-                    title: "Collect ${totalPayable} RWF",
+                    title:
+                        "Collect ${NumberFormat('#,###').format(totalPayable)} RWF",
                     onTap: () {
                       _routerService.navigateTo(
                         PaymentsRoute(

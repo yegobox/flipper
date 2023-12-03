@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
@@ -65,6 +63,8 @@ class SellState extends ConsumerState<Sell> {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
+              // ignore: unused_result
+              ref.refresh(transactionItemsProvider);
               _routerService.pop();
             },
             icon: Icons.close,

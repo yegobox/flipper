@@ -1246,6 +1246,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .variantIdEqualTo(variantId)
         .and()
         .transactionIdEqualTo(transactionId!)
+        .and()
+        .deletedAtIsNotNull()
         .findFirst();
   }
 
@@ -1348,6 +1350,8 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.products.clear();
       isar.variants.clear();
       isar.stocks.clear();
+      isar.iTransactions.clear();
+      isar.transactionItems.clear();
     });
   }
 
@@ -1678,9 +1682,29 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Stock?>> stocks({required String productId}) async {
-    return db.read(
-        (isar) => isar.stocks.where().productIdEqualTo(productId).findAll());
+  Future<double> stocks({String? productId, String? variantId}) async {
+    double totalStock = 0.0;
+
+    // If productId is given, compute the total stock for all variants and return it
+    // Otherwise, get the stock for a single variant based on variantId
+    if (productId != null) {
+      // Query Isar database to find all stocks with a matching productId
+      final stocks = await db.read(
+        (isar) => isar.stocks.where().productIdEqualTo(productId).findAll(),
+      );
+
+      // Sum up the stock quantities for all variants with the given productId
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    } else if (variantId != null) {
+      // Query Isar database to find all stocks with a matching variantId
+      final stocks = await db.read(
+        (isar) => isar.stocks.where().variantIdEqualTo(variantId).findAll(),
+      );
+
+      // Sum up the stock quantities for the variant with the given variantId
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    }
+    return totalStock;
   }
 
   @override
@@ -1886,7 +1910,7 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITransaction) {
-      log('updating how often', name: 'try');
+      log(data.toJson().toString(), name: 'UpdatingTransaction');
       final transaction = data;
       db.write((isar) {
         isar.iTransactions.onPut(transaction);
@@ -2071,6 +2095,8 @@ class IsarAPI<M> implements IsarApiInterface {
           .productIdEqualTo(productId)
           .and()
           .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
           .findAll());
     } else {
       return db.read((isar) => isar.variants
@@ -2078,6 +2104,10 @@ class IsarAPI<M> implements IsarApiInterface {
           .branchIdEqualTo(branchId)
           .and()
           .deletedAtIsNull()
+          .and()
+          .retailPriceGreaterThan(0)
+          .and()
+          .supplyPriceGreaterThan(0)
           .findAll());
     }
   }
@@ -3007,25 +3037,24 @@ class IsarAPI<M> implements IsarApiInterface {
       isarQuery.and().branchIdEqualTo(branchId);
     }
 
-    final transactions = await db.read((isar) => isarQuery.findAll());
+    final transactions =
+        await db.read((isar) => isarQuery.and().deletedAtIsNull().findAll());
 
     return transactions;
   }
 
   @override
   Future<List<TransactionItem>> transactionItemsFuture() async {
-    List<ITransaction> transactions = await transactionsFuture(status: PENDING);
+    ITransaction transaction = await manageTransaction();
     final List<TransactionItem> allItems = [];
 
-    for (final transaction in transactions) {
-      final items = await db.read((isar) => isar.transactionItems
-          .where()
-          .transactionIdEqualTo(transaction.id)
-          .and()
-          .deletedAtIsNull()
-          .findAll());
-      allItems.addAll(items);
-    }
+    final items = await db.read((isar) => isar.transactionItems
+        .where()
+        .transactionIdEqualTo(transaction.id)
+        .and()
+        .deletedAtIsNull()
+        .findAll());
+    allItems.addAll(items);
 
     return allItems.isNotEmpty ? allItems : <TransactionItem>[];
   }

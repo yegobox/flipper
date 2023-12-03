@@ -69,7 +69,8 @@ class ProductViewState extends ConsumerState<ProductView> {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts(searchString: searchKeyword, scannMode: scannMode);
+            .loadProducts(
+                searchString: searchKeyword, scannMode: scannMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -117,64 +118,77 @@ class ProductViewState extends ConsumerState<ProductView> {
     );
   }
 
-  Widget buildVariantsSection(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Variant>> variantsRef) {
+  Widget buildVariantsSection(
+    BuildContext context,
+    ProductViewModel model,
+    AsyncValue<List<Variant>> variantsRef,
+  ) {
     return Center(
       child: Center(
-          child: switch (variantsRef) {
-        AsyncData(:final value) => Column(
-            children: [
-              buildVariantRows(context, model, value),
-            ],
-          ),
-        AsyncError(:final error) => Text('error: $error'),
-        _ => const CircularProgressIndicator(),
-      }),
+        child: variantsRef.when(
+          data: (variants) {
+            return Column(
+              children: [
+                for (int index = 0; index < variants.length; index++)
+                  buildVariantRow(context, model, variants[index]),
+              ],
+            );
+          },
+          error: (error, e) => Text('error: $error'),
+          loading: () => const CircularProgressIndicator(),
+        ),
+      ),
     );
   }
 
-  Widget buildVariantRows(
+  Widget buildVariantRow(
     BuildContext context,
     ProductViewModel model,
-    List<Variant> variants,
+    Variant variant,
   ) {
-    return Column(
-      children: [
-        for (int index = 0; index < variants.length; index++)
-          Container(
-            child: FutureBuilder<List<Stock?>>(
-              future: model.productService.loadStockByProductId(
-                productId: variants[index].productId,
-              ),
-              builder: (BuildContext context, stocks) {
-                return RowItem(
-                  color: "#d63031", // Replace with actual color
-                  stocks: stocks.data ?? [],
-                  model: model,
-                  variant: variants[index],
-                  name: variants[index].name,
-                  edit: (productId) {
-                    _routerService.navigateTo(
-                      AddProductViewRoute(productId: productId),
-                    );
-                  },
+    return Container(
+      child: FutureBuilder<double>(
+        future: ProxyService.isar.stocks(variantId: variant.id),
+        builder: (BuildContext context, stock) {
+          print(stock);
+          if (stock == 0) {
+            return SizedBox.shrink();
+          } else {
+            return buildRowItem(context, model, variant, stock.data ?? 0.0);
+          }
+        },
+      ),
+    );
+  }
 
-                  delete: (variantId) async {
-                    log(variantId, name: 'deleting');
-                    ProxyService.isar
-                        .delete(id: variantId, endPoint: 'variant');
-                    // ignore: unused_result
-                    ref.refresh(
-                        outerVariantsProvider(ProxyService.box.getBranchId()!));
-                  },
-                  enableNfc: (product) {
-                    // Handle NFC functionality
-                  },
-                );
-              },
-            ),
-          ),
-      ],
+  Widget buildRowItem(
+    BuildContext context,
+    ProductViewModel model,
+    Variant variant,
+    double stock,
+  ) {
+    return RowItem(
+      color: "#d63031", // Replace with actual color
+      stock: stock,
+      model: model,
+      variant: variant,
+      name: variant.name,
+      edit: (productId) {
+        _routerService.navigateTo(
+          AddProductViewRoute(productId: productId),
+        );
+      },
+      delete: (variantId) async {
+        log(variantId, name: 'deleting');
+        ProxyService.isar.delete(id: variantId, endPoint: 'variant');
+        // ignore: unused_result
+        ref.refresh(
+          outerVariantsProvider(ProxyService.box.getBranchId()!),
+        );
+      },
+      enableNfc: (product) {
+        // Handle NFC functionality
+      },
     );
   }
 
@@ -314,14 +328,12 @@ class ProductViewState extends ConsumerState<ProductView> {
               ExpansionPanel(
                 headerBuilder: (BuildContext context, bool isExpanded) {
                   final product = products[index];
-                  return FutureBuilder<List<Stock?>>(
-                    future: model.productService.loadStockByProductId(
-                      productId: product.id,
-                    ),
-                    builder: (BuildContext context, stocks) {
+                  return FutureBuilder<double>(
+                    future: ProxyService.isar.stocks(productId: product.id),
+                    builder: (BuildContext context, stock) {
                       return RowItem(
                         color: product.color,
-                        stocks: stocks.data ?? [],
+                        stock: stock.data ?? 0.0,
                         model: model,
                         product: product,
                         name: product.name,

@@ -11,7 +11,7 @@ abstract class IsarApiInterface {
   Future<List<Business>> businesses({required int userId});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({required int businessId});
-  Future<List<Stock?>> stocks({required String productId});
+  Future<double> stocks({String? productId, String? variantId});
   // Stream<Stock> stockByVariantIdStream({required String variantId});
   Future<List<ITransaction>> transactionsFuture({
     String? status,
