@@ -113,7 +113,7 @@ class RowItem extends StatelessWidget {
       width: 58,
       child: imageUrl?.isEmpty ?? true
           ? TextDrawable(
-              backgroundColor: HexColor(color),
+              backgroundColor: HexColor(color.isEmpty ? "#FF0000" : color),
               text: name,
               isTappable: true,
               onTap: null,
