@@ -3,12 +3,8 @@ description: A new Flutter package project.
 version: 0.0.1
 # homepage:
 
-
-
 environment:
   sdk: ">=3.0.0"
-
-
 
 dependencies:
   intl: ^0.18.0
@@ -18,7 +14,7 @@ dependencies:
   stacked: ^3.4.1+1
   flipper_services: ^1.0.0
 dependency_overrides:
-  http: ^1.1.0
+  http: ^1.1.2
 dev_dependencies:
   flutter_test:
     sdk: flutter

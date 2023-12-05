@@ -63,10 +63,10 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                         color: products[index].color,
                         name: products[index].name,
                         stock: 1,
-                        delete: () {},
-                        edit: () {},
-                        enableNfc: () {},
                         model: model,
+                        addToMenu: (id) {
+                          print("this is item to add to menu ${id}");
+                        },
                       ),
                     );
                   },

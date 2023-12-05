@@ -14,12 +14,20 @@ class FlipperHttpClient extends http.BaseClient {
     /// token,userId can be null when is desktop login with pin
     String? token = ProxyService.box.getBearerToken();
     int? userId = ProxyService.box.getUserId();
+    Map<String, String> headers;
+    if (token == null) {
+      headers = {
+        'Content-Type': 'application/json',
+        'userId': userId == null ? "" : userId.toString()
+      };
+    } else {
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+        'userId': userId == null ? "" : userId.toString()
+      };
+    }
 
-    var headers = {
-      'Content-Type': 'application/json',
-      'Authorization': '$token',
-      'userId': userId == null ? "" : userId.toString()
-    };
     request.headers.addAll(headers);
 
     const retries = 3;

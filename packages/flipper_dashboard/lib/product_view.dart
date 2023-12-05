@@ -69,8 +69,7 @@ class ProductViewState extends ConsumerState<ProductView> {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts(
-                searchString: searchKeyword, scannMode: scannMode);
+            .loadProducts(searchString: searchKeyword, scannMode: scannMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -337,6 +336,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                         model: model,
                         product: product,
                         name: product.name,
+                        addToMenu: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
                             (widget.favIndex != null) ? true : false,

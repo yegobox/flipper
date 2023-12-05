@@ -1264,15 +1264,21 @@ class IsarAPI<M> implements IsarApiInterface {
   /// we still need to create & get pin
   @override
   Future<Pin?> getPin({required String pin}) async {
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
-    if (response.statusCode == 200) {
-      return Pin.fromJson(json.decode(response.body));
+    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
+
+    try {
+      final http.Response response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        return Pin.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 404) {
+        throw ErrorReadingFromYBServer(term: response.body);
+      } else {
+        throw ErrorReadingFromYBServer(term: response.body);
+      }
+    } catch (error) {
+      throw ErrorReadingFromYBServer(term: error.toString());
     }
-    if (response.statusCode == 404) {
-      return null;
-    }
-    throw ErrorReadingFromYBServer(term: 'Failed to load pin');
   }
 
   @override

@@ -46,15 +46,16 @@ class RowItem extends StatelessWidget {
   final bool? addFavoriteMode;
   final int? favIndex;
   final _routerService = locator<RouterService>();
-
+  final Function? addToMenu;
   RowItem({
     Key? key,
     required this.color,
     required this.name,
     required this.stock,
-    required this.delete,
-    required this.edit,
-    required this.enableNfc,
+    this.addToMenu = _defaultFunction,
+    this.delete = _defaultFunction,
+    this.edit = _defaultFunction,
+    this.enableNfc = _defaultFunction,
     required this.model,
     this.imageUrl,
     this.variant,
@@ -62,6 +63,10 @@ class RowItem extends StatelessWidget {
     this.addFavoriteMode,
     this.favIndex,
   }) : super(key: key);
+
+  static _defaultFunction() {
+    print("no function provided for the action");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +107,10 @@ class RowItem extends StatelessWidget {
             ),
           ),
           startActionPane: _buildStartActionPane(),
-          endActionPane: _buildEndActionPane(),
+
+          /// when add to menu is given then we have one swiping option therefore
+          /// disable the bellow swipe
+          endActionPane: addToMenu == null ? null : _buildEndActionPane(),
         ),
       ],
     );
@@ -191,11 +199,15 @@ class RowItem extends StatelessWidget {
       children: [
         SlidableAction(
           onPressed: (_) {
-            delete(product?.id ?? variant?.id);
+            addToMenu == null
+                ? delete(product?.id ?? variant?.id)
+                : addToMenu!(product?.id ?? variant?.id);
           },
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,
-          icon: FluentIcons.delete_20_regular,
+          icon: addToMenu == null
+              ? FluentIcons.delete_20_regular
+              : FluentIcons.check_20_regular,
           label: '',
         ),
         if (variant == null)

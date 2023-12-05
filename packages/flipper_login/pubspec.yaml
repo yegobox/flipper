@@ -45,7 +45,7 @@ dependencies:
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
 dependency_overrides:
-  http: ^1.1.0
+  http: ^1.1.2
 flutter:
   assets:
     - assets/

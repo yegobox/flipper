@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -36,6 +37,15 @@ Future<void> onDidReceiveBackgroundNotificationResponse(
     'On When notification clicked from background: ${notificationResponse.payload}',
     level: SentryLevel.info,
   );
+}
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+  }
 }
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
@@ -116,6 +126,12 @@ void main() async {
 
     /// This is for testing in case the whole app has issues
     /// runApp(const MyApp());
+    HttpOverrides.global = MyHttpOverrides();
+    ByteData data =
+        await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
+    SecurityContext.defaultContext
+        .setTrustedCertificatesBytes(data.buffer.asUint8List());
+
     runApp(
       ProviderScope(
         child: OverlaySupport.global(

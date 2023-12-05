@@ -15,6 +15,7 @@ class Variant extends IJsonSerializable {
   late String id;
   @Index()
   late String name;
+
   late String color;
   late String sku;
   @Index()
