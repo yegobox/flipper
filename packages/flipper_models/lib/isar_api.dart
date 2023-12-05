@@ -3052,17 +3052,13 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<TransactionItem>> transactionItemsFuture() async {
     ITransaction transaction = await manageTransaction();
-    final List<TransactionItem> allItems = [];
 
-    final items = await db.read((isar) => isar.transactionItems
+    return await db.read((isar) => isar.transactionItems
         .where()
         .transactionIdEqualTo(transaction.id)
         .and()
         .deletedAtIsNull()
         .findAll());
-    allItems.addAll(items);
-
-    return allItems.isNotEmpty ? allItems : <TransactionItem>[];
   }
 
   @override

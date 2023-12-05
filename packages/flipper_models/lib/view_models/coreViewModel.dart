@@ -107,7 +107,7 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  void keyboardKeyPressed({required String key, required WidgetRef ref}) async {
+  void keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
     ITransaction? pendingTransaction =
@@ -118,7 +118,7 @@ class CoreViewModel extends FlipperBaseModel
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction);
-        ref.refresh(transactionItemsProvider);
+
         break;
 
       case '+':
@@ -129,18 +129,16 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.isar.update(data: item);
         }
         ProxyService.keypad.reset();
-        ref.refresh(transactionItemsProvider);
+
         break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
-          ref.refresh(transactionItemsProvider);
         } else if (ProxyService.keypad.key.length > 1) {
           handleMultipleDigitKey(items, pendingTransaction);
-          ref.refresh(transactionItemsProvider.notifier);
         }
-        ref.refresh(transactionItemsProvider.notifier);
+
         break;
     }
   }

@@ -111,7 +111,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                       child: OutlinedButton(
                                         onPressed: () async {
                                           model.keyboardKeyPressed(
-                                              key: 'C', ref: ref);
+                                              key: 'C');
                                           if (await ProxyService.isar
                                               .isTaxEnabled()) {
                                             if (model.receiptReady) {
@@ -281,7 +281,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                     onPressed: () {
                                       // refresh transactions
                                       model.keyboardKeyPressed(
-                                          key: 'C', ref: ref);
+                                          key: 'C');
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },

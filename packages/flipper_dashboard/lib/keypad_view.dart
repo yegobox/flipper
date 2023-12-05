@@ -1,7 +1,10 @@
+// ignore_for_file: unused_result
+
 library pos;
 
 import 'dart:developer';
 
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -55,7 +58,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           splashColor: Color(0xFFDFF0FF),
           onTap: () {
             HapticFeedback.lightImpact();
-            widget.model.keyboardKeyPressed(key: '+', ref: ref);
+            widget.model.keyboardKeyPressed(key: '+');
+            ref.refresh(transactionItemsProvider);
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -210,7 +214,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '1', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '1');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -232,7 +237,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '2', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '2');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -256,7 +262,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '3', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '3');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -286,7 +293,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '4', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '4');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -308,7 +316,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '5', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '5');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -330,7 +339,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '6', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '6');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -360,7 +370,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '7', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '7');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -384,7 +395,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '8', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '8');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -406,7 +418,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '9', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '9');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -436,7 +449,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: 'C', ref: ref);
+                      widget.model.keyboardKeyPressed(key: 'C');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -458,7 +472,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     splashColor: Color(0xFFDFF0FF),
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '0', ref: ref);
+                      widget.model.keyboardKeyPressed(key: '0');
+                      ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -488,9 +503,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     /// this will close the keypad
     widget.model.newTransactionPressed = false;
 
-    widget.model.keyboardKeyPressed(key: '+', ref: ref);
+    widget.model.keyboardKeyPressed(key: '+');
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
+    ref.refresh(transactionItemsProvider);
   }
 }
 
@@ -514,8 +530,7 @@ class KeyboardKeyState extends ConsumerState<KeyboardKey> {
       width: 100,
       height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
       child: InkWell(
-        onTap: () =>
-            {widget.model.keyboardKeyPressed(key: widget.value, ref: ref)},
+        onTap: () => {widget.model.keyboardKeyPressed(key: widget.value)},
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
