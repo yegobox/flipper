@@ -7,6 +7,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:pubnub/pubnub.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -145,9 +146,6 @@ class ScannViewState extends ConsumerState<ScannView> {
 
   void scanToLogin({required String? result}) {
     if (result != null && result.contains('-')) {
-      HapticFeedback.lightImpact();
-      showToast(context, 'Login success');
-      _routerService.back();
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
         _publishLoginDetails(split[1]);
@@ -155,14 +153,14 @@ class ScannViewState extends ConsumerState<ScannView> {
     }
   }
 
-  void _publishLoginDetails(String channel) {
+  Future<void> _publishLoginDetails(String channel) async {
     int userId = ProxyService.box.getUserId()!;
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     String phone = ProxyService.box.getUserPhone()!;
     String defaultApp = ProxyService.box.getDefaultApp();
 
-    ProxyService.event.publish(loginDetails: {
+    PublishResult result = await ProxyService.event.publish(loginDetails: {
       'channel': channel,
       'userId': userId,
       'businessId': businessId,
@@ -173,6 +171,14 @@ class ScannViewState extends ConsumerState<ScannView> {
       'deviceVersion': Platform.operatingSystemVersion,
       'linkingCode': randomNumber().toString(),
     });
+    if (!result.isError) {
+      HapticFeedback.lightImpact();
+      showToast(context, 'Login success');
+      _routerService.back();
+    } else {
+      showToast(context, 'Login failed');
+      _routerService.back();
+    }
   }
 
   void _onQRViewCreated(QRViewController givenController, CoreViewModel model) {

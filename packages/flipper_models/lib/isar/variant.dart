@@ -15,8 +15,8 @@ class Variant extends IJsonSerializable {
   late String id;
   @Index()
   late String name;
-
-  late String color;
+  @JsonKey(fromJson: _colorFromJson)
+  String color;
   late String sku;
   @Index()
   late String productId;
@@ -97,6 +97,11 @@ class Variant extends IJsonSerializable {
   static String? _dateTimeToJson(DateTime? dateTime) {
     const dateTimeConverter = DateTimeConverter();
     return dateTimeConverter.toJson(dateTime);
+  }
+
+  static String _colorFromJson(dynamic json) {
+    // Return a default color if the deserialized value is an empty string
+    return (json ?? "").isEmpty ? "#FF0000" : json;
   }
 
   Variant({

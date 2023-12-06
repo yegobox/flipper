@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:developer';
 import 'package:flipper_services/proxy.dart';
 import 'package:rxdart/rxdart.dart';
@@ -44,10 +46,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
       _hasText = false;
       _focusNode.requestFocus();
       ref.read(searchStringProvider.notifier).emitString(value: '');
-      // ignore: unused_result
-      ref.refresh(searchStringProvider);
-      // ignore: unused_result
-      ref.refresh(transactionItemsProvider);
     });
   }
 
@@ -78,15 +76,16 @@ class SearchFieldState extends ConsumerState<SearchField> {
             _hasText = value.isNotEmpty;
 
             if (isScanningMode) {
-              _textSubject.add(value);
               Variant? variant = await ProxyService.isar.variant(name: value);
-              // ProxyService.isar.clear();
               if (variant != null && currentTransaction.value != null) {
                 model.saveTransaction(
-                    variationId: variant.id,
-                    amountTotal: variant.retailPrice,
-                    customItem: false,
-                    pendingTransaction: currentTransaction.value!);
+                  variationId: variant.id,
+                  amountTotal: variant.retailPrice,
+                  customItem: false,
+                  pendingTransaction: currentTransaction.value!,
+                );
+                ref.refresh(transactionItemsProvider);
+                ref.refresh(searchStringProvider);
               }
             }
           },

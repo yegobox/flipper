@@ -2924,6 +2924,7 @@ class IsarAPI<M> implements IsarApiInterface {
           .actionIsNotEmpty()
           .and()
           .branchIdEqualTo(ProxyService.box.getBranchId()!)
+          
           .findAll();
       final List<Variant> variants = isar.variants
           .where()

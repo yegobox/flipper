@@ -43,14 +43,20 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
           return null; // do not proceed if name is empty
       }
 
-      if (endpoint == "stocks" && json["retailPrice"] == null) {
-        throw Exception("stocks has null retail price");
+      if (endpoint == "stocks" && json["retailPrice"] == null || json["retailPrice"]==0.0) {
+        // ProxyService.isar.delete(id: json["id"], endPoint: 'stocks');
+         return null;
       }
 
-      if (endpoint == "variants" && json["retailPrice"] == null) {
-        throw Exception("variant has null retail price");
+      if (endpoint == "variants" && json["retailPrice"] == null || json["retailPrice"]==0.0) {
+        ProxyService.isar.delete(id: json["id"], endPoint: 'variants');
+        ProxyService.isar.delete(id: json["productId"], endPoint: 'products');
+         return null;
       }
-
+      if (endpoint == "transactionItem" && json["price"] == null || json["price"]==0.0) {
+         ProxyService.isar.delete(id: json["id"], endPoint: 'transactionItem');
+         return null;
+      }
       /// remove trailing dashes to sent lastTouched
 
       RecordModel? result = null;

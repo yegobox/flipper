@@ -5,16 +5,30 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 
-class Devices extends StatelessWidget {
+// Define a Riverpod provider for the device list
+final deviceListProvider = FutureProvider<List<Device>>((ref) async {
+  // Watch for updates from the updateStream
+//  await ref.watch(deviceUpdateProvider.); // Wait for the first event
+  return ProxyService.isar.getDevices(
+    businessId: ProxyService.box.getBusinessId()!,
+  );
+});
+
+class Devices extends ConsumerWidget {
   Devices({Key? key, this.pin}) : super(key: key);
   final int? pin;
   final _routerService = locator<RouterService>();
   final _dialogService = locator<DialogService>();
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final deviceListAsyncValue = ref.watch(deviceListProvider);
+    // ignore: unused_result
+    ref.refresh(deviceListProvider.future);
+
     return SafeArea(
       child: Scaffold(
         appBar: CustomAppBar(
@@ -138,37 +152,35 @@ class Devices extends StatelessWidget {
               ),
             ),
             // streams of devices
-            FutureBuilder<List<Device>>(
-              future: ProxyService.isar
-                  .getDevices(businessId: ProxyService.box.getBusinessId()!),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        leading: Image.asset(
-                          'assets/${snapshot.data![index].deviceName}.png',
-                          package: 'flipper_dashboard',
-                        ),
-                        title: Text(snapshot.data![index].deviceName),
-                        subtitle: Text(snapshot.data![index].deviceVersion),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            _dialogService.showCustomDialog(
-                                variant: DialogType.logOut,
-                                title: 'Log out',
-                                data: snapshot.data![index]);
-                          },
-                        ),
-                      );
-                    },
-                  );
-                } else {
-                  return Container();
-                }
+            deviceListAsyncValue.when(
+              data: (deviceList) {
+                return ListView.builder(
+                  itemCount: deviceList.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Image.asset(
+                        'assets/${deviceList[index].deviceName}.png',
+                        package: 'flipper_dashboard',
+                      ),
+                      title: Text(deviceList[index].deviceName),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          _dialogService.showCustomDialog(
+                              variant: DialogType.logOut,
+                              title: 'Log out',
+                              data: deviceList[index]);
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+              loading: () {
+                return CircularProgressIndicator();
+              },
+              error: (error, stackTrace) {
+                return Text('Error: $error');
               },
             ),
           ],

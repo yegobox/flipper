@@ -6,7 +6,7 @@ part of 'CartLogic.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$cartLogicHash() => r'eac397c11005222554b55dd6f90a6a5fb35f509f';
+String _$cartLogicHash() => r'dc46ca22f15a8161b385253bcea5a98217d534ad';
 
 /// See also [CartLogic].
 @ProviderFor(CartLogic)

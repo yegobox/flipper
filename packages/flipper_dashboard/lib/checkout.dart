@@ -99,12 +99,17 @@ class CheckOutState extends ConsumerState<CheckOut>
         viewModelBuilder: () =>
             CoreViewModel(transaction: currentTransaction.value),
         builder: (context, model, child) {
-          return WillPopScope(
-            onWillPop: () async {
-              return onWillPop(
-                  context: context,
-                  navigationPurpose: NavigationPurpose.home,
-                  message: 'Do you want to go home?');
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) {
+              if (didPop) {
+                return;
+              }
+              onWillPop(
+                context: context,
+                navigationPurpose: NavigationPurpose.home,
+                message: 'Do you want to go home?',
+              );
             },
             child: Stack(
               children: [

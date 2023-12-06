@@ -64,35 +64,47 @@ class PendingTransactionNotifier
   }
 }
 
+// final productsProvider = FutureProvider((ref) async {
+//      return ProxyService.isar.transactionItemsFuture();
+// });
+// Use a const constructor for the StateNotifierProvider to avoid unnecessary rebuilds
 final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
-    AsyncValue<List<TransactionItem>>>((ref) {
-  final itemNotifier = TransactionItemsNotifier();
-  itemNotifier.items();
-
-  return itemNotifier;
-});
+    AsyncValue<List<TransactionItem>>>(
+  (ref) {
+    return TransactionItemsNotifier();
+  },
+);
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  TransactionItemsNotifier() : super(AsyncLoading());
+  TransactionItemsNotifier() : super(AsyncLoading()) {
+    _loadItems();
+  }
 
-  Future<void> items() async {
+  Future<void> _loadItems() async {
     try {
       state = AsyncLoading();
-      List<TransactionItem> items =
-          await ProxyService.isar.transactionItemsFuture();
+
+      // Await the future and store the result in a local variable
+      final items = await ProxyService.isar.transactionItemsFuture();
+
       state = AsyncData(items);
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
     }
   }
 
-  /// keep pending transaction with update subtotal
+  /// Keep pending transaction with updated subtotal
   Future<void> updatePendingTransaction() async {
-    ITransaction iTransaction = await ProxyService.isar.manageTransaction();
+    try {
+      // Await the future and store the result in a local variable
+      final transaction = await ProxyService.isar.manageTransaction();
 
-    iTransaction.subTotal = totalPayable;
-    ProxyService.isar.update(data: iTransaction);
+      transaction.subTotal = totalPayable;
+      await ProxyService.isar.update(data: transaction);
+    } catch (error) {
+      // Handle error
+    }
   }
 
   int get counts {
