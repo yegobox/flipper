@@ -66,8 +66,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                             model: model,
                             addToMenu: (item) async {
                               Variant variant = item as Variant;
-                              print(
-                                  "This is item to add to cart ${variant.id}");
+
                               await model.saveTransaction(
                                   variation: variant,
                                   currentStock: 1.0,
@@ -91,6 +90,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
         width: 200,
         child: PreviewSaleButton(
           wording: "Preview Cart",
+          forOrdering: true,
         ),
       ),
     );

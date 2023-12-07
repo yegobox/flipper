@@ -38,6 +38,8 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
+
+
 final pendingTransactionProvider = StateNotifierProvider.autoDispose<
     PendingTransactionNotifier, AsyncValue<ITransaction>>((ref) {
   final pendingTransactionNotifier = PendingTransactionNotifier();
