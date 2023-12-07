@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -31,11 +33,13 @@ class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
 class PreviewSaleBottomSheetState
     extends ConsumerState<PreviewSaleBottomSheet> {
   final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     final currentTransaction = ref.watch(pendingTransactionProvider);
     final transactionItems = ref.watch(transactionItemsProvider);
     final pendingTransaction = ref.watch(pendingTransactionProvider);
+
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
           CoreViewModel(transaction: currentTransaction.value),
@@ -44,6 +48,7 @@ class PreviewSaleBottomSheetState
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
         ref.read(transactionItemsProvider.notifier).updatePendingTransaction();
+
         return Material(
           color: CupertinoTheme.of(context).scaffoldBackgroundColor,
           child: CupertinoPageScaffold(
@@ -73,63 +78,59 @@ class PreviewSaleBottomSheetState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: ListView(
-                    reverse: widget.reverse,
-                    shrinkWrap: true,
-                    controller: ModalScrollController.of(context),
-                    physics: const ClampingScrollPhysics(),
-                    children: [
-                      AddCustomerButton(
-                        transactionId: model.currentTransaction!.id,
-                      ),
-                      ...buildItems(
-                        context: context,
-                        callback: (item) async {
-                          model.currentTransaction!.subTotal =
-                              model.currentTransaction!.subTotal;
-                          await ProxyService.isar.update(
-                            data: model.currentTransaction,
-                          );
-                          model.deleteTransactionItem(
-                            id: item.id,
-                            context: context,
-                          );
-                          // ignore: unused_result
-                          ref.refresh(transactionItemsProvider);
-                        },
-                        items: transactionItems,
-                      ),
-                      if (model.totalDiscount > 0)
-                        ListTile(
-                          contentPadding: const EdgeInsets.only(
-                            left: 40.0,
-                            right: 40.0,
-                          ),
-                          title: Text(
-                            'Discounts',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                          trailing: Text(
-                            '- RWF ' +
-                                NumberFormat('#,###')
-                                    .format(model.totalDiscount)
-                                    .toString(),
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
+                AddCustomerButton(transactionId: model.currentTransaction!.id),
+                ListView(
+                  reverse: widget.reverse,
+                  shrinkWrap: true,
+                  controller: ModalScrollController.of(context),
+                  physics: const ClampingScrollPhysics(),
+                  children: [
+                    ...buildItems(
+                      context: context,
+                      callback: (item) async {
+                        model.currentTransaction!.subTotal =
+                            model.currentTransaction!.subTotal;
+                        await ProxyService.isar.update(
+                          data: model.currentTransaction,
+                        );
+                        model.deleteTransactionItem(
+                          id: item.id,
+                          context: context,
+                        );
+                        ref.refresh(transactionItemsProvider);
+                      },
+                      items: transactionItems,
+                    ),
+                    if (model.totalDiscount > 0)
+                      ListTile(
+                        contentPadding: const EdgeInsets.only(
+                          left: 40.0,
+                          right: 40.0,
+                        ),
+                        title: Text(
+                          'Discounts',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: Colors.black,
                           ),
                         ),
-                      SizedBox(height: 100),
-                    ],
-                  ),
+                        trailing: Text(
+                          '- RWF ' +
+                              NumberFormat('#,###')
+                                  .format(model.totalDiscount)
+                                  .toString(),
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 100),
+                  ],
                 ),
+                Spacer(),
                 Padding(
                   padding: EdgeInsets.all(8),
                   child: BoxButton(

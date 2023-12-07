@@ -34,59 +34,59 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productsAsyncValue = ref.watch(productListProvider);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Products'),
       ),
-      body: productsAsyncValue.when(
-        data: (products) {
-          return ViewModelBuilder.reactive(
-              viewModelBuilder: () => ProductViewModel(),
-              builder: (context, model, child) {
-                return ListView.builder(
-                  itemCount: products!.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Confirm(
-                              products: products,
-                              colors: extractColors(products),
-                            ),
+      body: ref.watch(productListProvider).when(
+            data: (products) {
+              return ViewModelBuilder.reactive(
+                  viewModelBuilder: () => ProductViewModel(),
+                  builder: (context, model, child) {
+                    return ListView.builder(
+                      itemCount: products!.length,
+                      itemBuilder: (context, index) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Confirm(
+                                  products: products,
+                                  colors: extractColors(products),
+                                ),
+                              ),
+                            );
+                          },
+                          child: RowItem(
+                            variant: products[index],
+                            color: products[index].color,
+                            name: products[index].name,
+                            stock: 1,
+                            model: model,
+                            addToMenu: (item) async {
+                              Variant variant = item as Variant;
+                              print(
+                                  "This is item to add to cart ${variant.id}");
+                              await model.saveTransaction(
+                                  variation: variant,
+                                  currentStock: 1.0,
+                                  amountTotal: variant.retailPrice,
+                                  customItem: false,
+                                  pendingTransaction: ref
+                                      .read(pendingTransactionProvider)
+                                      .value!);
+                              ref.refresh(transactionItemsProvider);
+                            },
                           ),
                         );
                       },
-                      child: RowItem(
-                        variant: products[index],
-                        color: products[index].color,
-                        name: products[index].name,
-                        stock: 1,
-                        model: model,
-                        addToMenu: (item) {
-                          Variant variant = item as Variant;
-                          print("This is item to add to cart ${variant.id}");
-                          model.saveTransaction(
-                              variation: variant,
-                              currentStock: 1.0,
-                              amountTotal: variant.retailPrice,
-                              customItem: false,
-                              pendingTransaction:
-                                  ref.read(pendingTransactionProvider).value!);
-                          ref.refresh(transactionItemsProvider);
-                        },
-                      ),
                     );
-                  },
-                );
-              });
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
-      ),
+                  });
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(child: Text('Error: $error')),
+          ),
       floatingActionButton: SizedBox(
         width: 200,
         child: PreviewSaleButton(

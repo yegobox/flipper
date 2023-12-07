@@ -17,6 +17,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:badges/badges.dart' as badges;
 
 class SearchField extends StatefulHookConsumerWidget {
   SearchField({Key? key, required this.controller}) : super(key: key);
@@ -60,13 +61,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    // We can also use "ref" to listen to a provider inside the build method
-    final isScanningMode = ref.watch(scanningModeProvider);
-    final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(
+          transaction: ref.watch(pendingTransactionProvider).value),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,
@@ -75,8 +72,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
           textInputAction: TextInputAction.done,
           onChanged: (value) async {
             _hasText = value.isNotEmpty;
-
-            if (isScanningMode && _hasText) {
+            final currentTransaction = ref.watch(pendingTransactionProvider);
+            if (ref.watch(scanningModeProvider) && _hasText) {
               Variant? variant = await ProxyService.isar.variant(name: value);
               if (variant != null && currentTransaction.value != null) {
                 Stock? stock = await ProxyService.isar
@@ -116,17 +113,19 @@ class SearchFieldState extends ConsumerState<SearchField> {
                         .read(scanningModeProvider.notifier)
                         .toggleScanningMode(given: scann);
 
-                    if (isScanningMode) {
+                    if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");
                     } else {
                       toast("Scanning mode DeActivated");
                     }
                   },
                   icon: Icon(
-                    isScanningMode
+                    ref.watch(scanningModeProvider)
                         ? FluentIcons.camera_switch_24_regular
                         : FluentIcons.camera_switch_24_regular,
-                    color: isScanningMode ? Colors.green : Colors.blue,
+                    color: ref.watch(scanningModeProvider)
+                        ? Colors.green
+                        : Colors.blue,
                   ),
                 ),
                 ProxyService.remoteConfig.isOrderFeatureOrderEnabled()
@@ -137,20 +136,13 @@ class SearchFieldState extends ConsumerState<SearchField> {
                               .toggleReceiveOrder();
                           _routerService.navigateTo(OrdersRoute());
                         },
-                        icon: Badge(
-                          smallSize: 1,
-                          label: Text(
-                            '1',
-                            style: TextStyle(fontSize: 10),
-                          ),
-                          child: Icon(
-                            receiveOrderMode
-                                ? FluentIcons.cart_24_regular
-                                : FluentIcons.cart_24_regular,
-                            color:
-                                receiveOrderMode ? Colors.amber : Colors.blue,
-                          ),
-                        ))
+                        icon: badges.Badge(
+                          badgeContent:
+                              Text('3', style: TextStyle(color: Colors.white)),
+                          child: Icon(FluentIcons.cart_24_regular,
+                              color: Colors.blue),
+                        ),
+                      )
                     : SizedBox.shrink(),
                 IconButton(
                   onPressed: _hasText

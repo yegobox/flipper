@@ -86,7 +86,6 @@ class TransactionItemsNotifier
 
       // Await the future and store the result in a local variable
       final items = await ProxyService.isar.transactionItemsFuture();
-
       state = AsyncData(items);
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
@@ -297,7 +296,7 @@ final variantsProvider = StateNotifierProvider.autoDispose
     .family<VariantsNotifier, AsyncValue<List<Variant>>, String?>(
         (ref, productId) {
   final variantsNotifier = VariantsNotifier(productId);
- 
+
   // Fetch and update the list of variants.
   variantsNotifier.variants();
 

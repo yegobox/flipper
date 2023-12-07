@@ -4,6 +4,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flipper_rw/StateObserver.dart';
 
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
@@ -28,7 +29,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 
-const Color darkBlue = Color.fromARGB(255, 18, 32, 47);
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
 class MyHttpOverrides extends HttpOverrides {
@@ -110,9 +110,9 @@ Future<void> main() async {
     },
     appRunner: () => runApp(
       ProviderScope(
+        observers: [StateObserver()],
         child: OverlaySupport.global(
           child: MaterialApp.router(
-            
             debugShowCheckedModeBanner: true,
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and

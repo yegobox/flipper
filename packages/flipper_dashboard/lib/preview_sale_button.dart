@@ -40,83 +40,78 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
-    final saleCounts = ref.watch(transactionItemsProvider.notifier).counts;
-    final currentTransaction = ref.watch(pendingTransactionProvider);
-
     return ViewModelBuilder.reactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(
+          transaction: ref.watch(pendingTransactionProvider).value),
       builder: (context, model, child) {
-        return Expanded(
-          child: SizedBox(
-            height: 64,
-            child: AnimatedBuilder(
-              animation: _buttonColorTween,
-              builder: (context, child) {
-                return TextButton(
-                  style: primaryButtonStyle.copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                      (Set<MaterialState> states) {
-                        if (states.contains(MaterialState.pressed)) {
-                          return _buttonColorTween.value;
-                        }
-                        return primaryButtonStyle.backgroundColor!
-                            .resolve(states);
-                      },
-                    ),
+        return SizedBox(
+          height: 64,
+          child: AnimatedBuilder(
+            animation: _buttonColorTween,
+            builder: (context, child) {
+              return TextButton(
+                style: primaryButtonStyle.copyWith(
+                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                    (Set<MaterialState> states) {
+                      if (states.contains(MaterialState.pressed)) {
+                        return _buttonColorTween.value;
+                      }
+                      return primaryButtonStyle.backgroundColor!
+                          .resolve(states);
+                    },
                   ),
-                  onPressed: () async {
-                    HapticFeedback.lightImpact();
-                    model.keyboardKeyPressed(key: '+');
+                ),
+                onPressed: () async {
+                  HapticFeedback.lightImpact();
+                  model.keyboardKeyPressed(key: '+');
 
-                    _controller.forward(); // Start the animation
-                    final transaction =
-                        await ProxyService.isar.pendingTransaction(
-                      branchId: ProxyService.box.getBranchId()!,
-                    );
+                  _controller.forward(); // Start the animation
+                  final transaction =
+                      await ProxyService.isar.pendingTransaction(
+                    branchId: ProxyService.box.getBranchId()!,
+                  );
 
-                    if (transaction == null) {
-                      showToast(context, 'No item on cart!', color: Colors.red);
-                      return;
-                    }
+                  if (transaction == null) {
+                    showToast(context, 'No item on cart!', color: Colors.red);
+                    return;
+                  }
 
-                    model.keypad.setTransaction(transaction);
+                  model.keypad.setTransaction(transaction);
 
-                    showModalBottomSheet(
-                      backgroundColor: Colors.red,
-                      context: context,
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(10.0)),
-                      ),
-                      useRootNavigator: true,
-                      builder: (BuildContext context) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 20.0),
-                          child: PreviewSaleBottomSheet(),
-                        );
-                      },
-                    );
-
-                    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-                      systemNavigationBarColor: Colors.transparent,
-                      systemNavigationBarIconBrightness: Brightness.light,
-                    ));
-                    _controller.reverse();
-                  },
-                  child: Text(
-                    widget.wording == null
-                        ? "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}"
-                        : "Preview Cart ${saleCounts != 0 ? "($saleCounts)" : ""}",
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: const Color(0xffFFFFFF),
+                  showModalBottomSheet(
+                    // backgroundColor: Colors.red,
+                    context: context,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(10.0)),
                     ),
+                    useRootNavigator: true,
+                    builder: (BuildContext context) {
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 20.0),
+                        child: PreviewSaleBottomSheet(),
+                      );
+                    },
+                  );
+
+                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                    systemNavigationBarColor: Colors.transparent,
+                    systemNavigationBarIconBrightness: Brightness.light,
+                  ));
+                  _controller.reverse();
+                },
+                child: Text(
+                  widget.wording == null
+                      ? "Preview Sale ${ref.watch(transactionItemsProvider.notifier).counts != 0 ? "(${ref.watch(transactionItemsProvider.notifier).counts})" : ""}"
+                      : "Preview Cart ${ref.watch(transactionItemsProvider.notifier).counts != 0 ? "(${ref.watch(transactionItemsProvider.notifier).counts})" : ""}",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                    color: const Color(0xffFFFFFF),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
         );
       },
