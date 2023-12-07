@@ -41,6 +41,9 @@ class FlipperHttpClient extends http.BaseClient {
     } on SocketException catch (e) {
       print('Failed to connect: ${e.message}');
       throw Exception('Failed to connect: ${e.message}');
+    } on HandshakeException catch (e) {
+      print('Failed to connect: ${e.message}');
+      throw Exception('Failed to connect: ${e.message}');
     } catch (error, stackTrace) {
       // Handle other types of errors that might occur during the request
       ProxyService.crash.reportError(error, stackTrace);

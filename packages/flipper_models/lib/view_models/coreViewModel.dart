@@ -107,7 +107,7 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  void keyboardKeyPressed({required String key}) async {
+  Future<void> keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
     ITransaction? pendingTransaction =
@@ -166,8 +166,6 @@ class CoreViewModel extends FlipperBaseModel
     ITransaction? updatedTransaction =
         await ProxyService.isar.getTransactionById(id: pendingTransaction.id);
     keypad.setTransaction(updatedTransaction);
-
-    rebuildUi();
   }
 
   void handleSingleDigitKey(
@@ -249,8 +247,6 @@ class CoreViewModel extends FlipperBaseModel
         newItem.action = AppActions.created;
         await ProxyService.isar
             .addTransactionItem(transaction: pendingTransaction, item: newItem);
-
-        notifyListeners();
       }
     } else {
       TransactionItem item = items.last;
@@ -880,10 +876,13 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
+    Variant? variant = await ProxyService.isar.getVariantById(id: checked);
+    Stock? stock = await ProxyService.isar.stockByVariantId(variantId: checked);
     await saveTransaction(
-        variationId: checked,
+        variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
+        currentStock: stock.currentStock,
         pendingTransaction: pendingTransaction.value!);
   }
 

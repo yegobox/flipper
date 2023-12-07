@@ -56,6 +56,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     super.dispose();
   }
 
+  bool _scanningMode = false;
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
@@ -63,7 +64,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     final isScanningMode = ref.watch(scanningModeProvider);
     final receiveOrderMode = ref.watch(receivingOrdersModeProvider);
     final currentTransaction = ref.watch(pendingTransactionProvider);
-    return ViewModelBuilder<CoreViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () =>
           CoreViewModel(transaction: currentTransaction.value),
       builder: (a, model, b) {
@@ -75,15 +76,18 @@ class SearchFieldState extends ConsumerState<SearchField> {
           onChanged: (value) async {
             _hasText = value.isNotEmpty;
 
-            if (isScanningMode) {
+            if (isScanningMode && _hasText) {
               Variant? variant = await ProxyService.isar.variant(name: value);
               if (variant != null && currentTransaction.value != null) {
+                Stock? stock = await ProxyService.isar
+                    .stockByVariantId(variantId: variant.id);
+
                 model.saveTransaction(
-                  variationId: variant.id,
-                  amountTotal: variant.retailPrice,
-                  customItem: false,
-                  pendingTransaction: currentTransaction.value!,
-                );
+                    variation: variant,
+                    amountTotal: variant.retailPrice,
+                    customItem: false,
+                    pendingTransaction: currentTransaction.value!,
+                    currentStock: stock.currentStock);
                 ref.refresh(transactionItemsProvider);
                 ref.refresh(searchStringProvider);
               }
@@ -107,11 +111,11 @@ class SearchFieldState extends ConsumerState<SearchField> {
               children: [
                 IconButton(
                   onPressed: () {
+                    bool scann = !_scanningMode;
                     ref
                         .read(scanningModeProvider.notifier)
-                        .toggleScanningMode();
+                        .toggleScanningMode(given: scann);
 
-                    //ProxyService.isar.clear();
                     if (isScanningMode) {
                       toast("Scanning mode Activated");
                     } else {

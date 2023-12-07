@@ -1,3 +1,62 @@
+// import 'package:flipper_services/proxy.dart';
+// import 'package:flutter/material.dart';
+// import 'package:hooks_riverpod/hooks_riverpod.dart';
+// import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+// import 'package:flipper_services/constants.dart';
+// import 'package:flipper_services/app_service.dart';
+
+// import 'package:flipper_dashboard/init_app.dart';
+// // import 'package:flutter/services.dart';
+// import 'dart:async';
+
+// class FlipperApp extends StatefulHookConsumerWidget {
+//   const FlipperApp({Key? key}) : super(key: key);
+
+//   @override
+//   FlipperAppState createState() => FlipperAppState();
+// }
+
+// class FlipperAppState extends ConsumerState<FlipperApp>
+//     with WidgetsBindingObserver {
+//   Future<void> _disableScreenshots() async {
+//     if (!isDesktopOrWeb) {
+//       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+//     }
+//   }
+
+//   void initializeApplicationIfRequired() {
+//     if (ProxyService.box.getBranchId() != null &&
+//         ProxyService.box.getBusinessId() != null &&
+//         ProxyService.box.getUserId() != null) {
+//       InitApp.init();
+
+//       try {
+//         ProxyService.remote.listenToChanges();
+//       } catch (e) {}
+//     }
+//   }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     initializeApplicationIfRequired();
+//     if (isAndroid && ProxyService.remoteConfig.enableTakingScreenShoot()) {
+//       _disableScreenshots();
+//     }
+//   }
+
+//   @override
+//   void dispose() {
+//     AppService.cleanedDataController.close();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Text("Hello world");
+//   }
+// }
+
 import 'dart:async';
 import 'dart:developer';
 
@@ -97,11 +156,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     if (ProxyService.box.getBranchId() != null &&
         ProxyService.box.getBusinessId() != null &&
         ProxyService.box.getUserId() != null) {
-      InitApp.init();
-
-      try {
-        ProxyService.remote.listenToChanges();
-      } catch (e) {}
+        // InitApp.init();
     }
   }
 

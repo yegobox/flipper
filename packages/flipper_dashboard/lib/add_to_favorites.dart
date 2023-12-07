@@ -1,13 +1,18 @@
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddToFavorites extends StatelessWidget {
   final int favoriteIndex;
-  List<String> existingFavs = [];
-  AddToFavorites(
-      {Key? key, required this.favoriteIndex, required this.existingFavs})
-      : super(key: key);
+  final List<String> existingFavs; // Make this field 'final'
+
+  AddToFavorites({
+    Key? key,
+    required this.favoriteIndex,
+    required this.existingFavs,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -23,14 +28,16 @@ class AddToFavorites extends StatelessWidget {
                     fontSize: 20, fontWeight: FontWeight.bold)),
             SizedBox(height: 16.0),
             Expanded(
-                child: ProductView.favoriteMode(
-              favIndex: favoriteIndex,
-              existingFavs: existingFavs,
-            )),
+              child: ProductView.favoriteMode(
+                favIndex: favoriteIndex,
+                existingFavs: existingFavs,
+              ),
+            ),
             ElevatedButton(
               child: Text('Close'),
               onPressed: () {
-                Navigator.of(context).pop();
+                final _routerService = locator<RouterService>();
+                _routerService.back();
               },
             ),
           ],

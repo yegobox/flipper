@@ -1,5 +1,6 @@
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -54,10 +55,15 @@ class SellState extends ConsumerState<Sell> {
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
+              Stock? stock = await ProxyService.isar
+                  .stockByVariantId(variantId: model.checked);
+              Variant? variant =
+                  await ProxyService.isar.getVariantById(id: model.checked);
               bool saved = await model.saveTransaction(
-                  variationId: model.checked,
+                  variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
+                  currentStock: stock.currentStock,
                   pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),

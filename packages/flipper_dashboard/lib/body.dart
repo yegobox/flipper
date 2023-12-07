@@ -13,6 +13,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'settings.dart';
+import 'tickets.dart';
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 // ignore: non_constant_identifier_names
@@ -42,7 +43,20 @@ Widget PaymentTicketManager(
       duePay: model.currentTransaction?.subTotal,
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.isar.manageTransaction();
-        _routerService.navigateTo(TicketsRoute(transaction: transaction));
+        showModalBottomSheet(
+          backgroundColor: Colors.red,
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+          ),
+          useRootNavigator: true,
+          builder: (BuildContext context) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Tickets(transaction: transaction),
+            );
+          },
+        );
       },
     ),
     controller: controller,

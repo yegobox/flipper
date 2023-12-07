@@ -106,13 +106,13 @@ Future<void> main() async {
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
       // We recommend adjusting this value in production.
       options.tracesSampleRate = 1.0;
-      // options.profilesSampleRate = 1.0;
+      options.attachScreenshot = true;
     },
     appRunner: () => runApp(
       ProviderScope(
         child: OverlaySupport.global(
           child: MaterialApp.router(
-            restorationScopeId: "flipper-rw",
+            
             debugShowCheckedModeBanner: true,
             title: 'flipper',
             // Define the light theme for the app, based on defined colors and

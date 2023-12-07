@@ -9,17 +9,12 @@ mixin TransactionMixin {
   final KeyPadService keypad = getIt<KeyPadService>();
   get quantity => keypad.quantity;
 
-  Future<bool> saveTransaction({
-    required String variationId,
-    required double amountTotal,
-    required bool customItem,
-    required ITransaction pendingTransaction,
-  }) async {
-    Variant? variation =
-        await ProxyService.isar.variant(variantId: variationId);
-    Stock? stock =
-        await ProxyService.isar.stockByVariantId(variantId: variation!.id);
-
+  Future<bool> saveTransaction(
+      {required Variant variation,
+      required double amountTotal,
+      required bool customItem,
+      required ITransaction pendingTransaction,
+      required double currentStock}) async {
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName;
@@ -28,14 +23,14 @@ mixin TransactionMixin {
 
     TransactionItem? existTransactionItem = await ProxyService.isar
         .getTransactionItemByVariantId(
-            variantId: variationId, transactionId: pendingTransaction.id);
+            variantId: variation.id, transactionId: pendingTransaction.id);
 
     await addTransactionItems(
-      variationId: variationId,
+      variationId: variation.id,
       pendingTransaction: pendingTransaction,
       name: name,
       variation: variation,
-      stock: stock,
+      currentStock: currentStock,
       amountTotal: amountTotal,
       isCustom: customItem,
       item: existTransactionItem,
@@ -53,7 +48,7 @@ mixin TransactionMixin {
     required ITransaction pendingTransaction,
     required String name,
     required Variant variation,
-    required Stock stock,
+    required double currentStock,
     required double amountTotal,
     required bool isCustom,
     TransactionItem? item,
@@ -121,7 +116,7 @@ mixin TransactionMixin {
       regrNm: variation.regrNm,
       modrId: variation.modrId,
       modrNm: variation.modrNm,
-      remainingStock: stock.currentStock - quantity,
+      remainingStock: currentStock - quantity,
       doneWithTransaction: false,
     );
 

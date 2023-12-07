@@ -24,7 +24,7 @@ class ProductNotifier extends StateNotifier<Product?> {
 }
 
 final searchStringProvider =
-    StateNotifierProvider<SearchStringNotifier, String>((ref) {
+    StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
   return SearchStringNotifier();
 });
 
@@ -38,9 +38,8 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
-final pendingTransactionProvider =
-    StateNotifierProvider<PendingTransactionNotifier, AsyncValue<ITransaction>>(
-        (ref) {
+final pendingTransactionProvider = StateNotifierProvider.autoDispose<
+    PendingTransactionNotifier, AsyncValue<ITransaction>>((ref) {
   final pendingTransactionNotifier = PendingTransactionNotifier();
 
   pendingTransactionNotifier.pendingTransaction();
@@ -68,8 +67,8 @@ class PendingTransactionNotifier
 //      return ProxyService.isar.transactionItemsFuture();
 // });
 // Use a const constructor for the StateNotifierProvider to avoid unnecessary rebuilds
-final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
-    AsyncValue<List<TransactionItem>>>(
+final transactionItemsProvider = StateNotifierProvider.autoDispose<
+    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>>(
   (ref) {
     return TransactionItemsNotifier();
   },
@@ -126,10 +125,10 @@ class TransactionItemsNotifier
   }
 }
 
-final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
-    AsyncValue<List<Variant>>, int>((ref, branchId) {
+final outerVariantsProvider = StateNotifierProvider.autoDispose
+    .family<OuterVariantsNotifier, AsyncValue<List<Variant>>, int>(
+        (ref, branchId) {
   final productsNotifier = OuterVariantsNotifier(branchId);
-
   final scannMode = ref.watch(scanningModeProvider);
   final searchString = ref.watch(searchStringProvider);
   final pendingTransaction = ref.watch(pendingTransactionProvider);
@@ -177,8 +176,8 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   }
 }
 
-final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
-    AsyncValue<List<Product>>, int>((ref, branchId) {
+final productsProvider = StateNotifierProvider.autoDispose
+    .family<ProductsNotifier, AsyncValue<List<Product>>, int>((ref, branchId) {
   final productsNotifier = ProductsNotifier(branchId, ref);
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
@@ -224,7 +223,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
       // if (scannMode) {
-      //TODO: work on auto-expanding the product row when a search is match
+      //TODO:work on auto-expanding the product row when a search is match
       /// search variant using name
       // Variant? variant = await ProxyService.isar.variant(name: searchString);
       // if (variant != null) {
@@ -294,11 +293,11 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }
 }
 
-final variantsProvider = StateNotifierProviderFamily<VariantsNotifier,
-    AsyncValue<List<Variant>>, String?>((ref, productId) {
+final variantsProvider = StateNotifierProvider.autoDispose
+    .family<VariantsNotifier, AsyncValue<List<Variant>>, String?>(
+        (ref, productId) {
   final variantsNotifier = VariantsNotifier(productId);
-  ref.onDispose(() => variantsNotifier.dispose());
-
+ 
   // Fetch and update the list of variants.
   variantsNotifier.variants();
 
@@ -328,15 +327,15 @@ class VariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
 
 // scanning
 final scanningModeProvider =
-    StateNotifierProvider<ScanningModeNotifier, bool>((ref) {
+    StateNotifierProvider.autoDispose<ScanningModeNotifier, bool>((ref) {
   return ScanningModeNotifier();
 });
 
 class ScanningModeNotifier extends StateNotifier<bool> {
   ScanningModeNotifier() : super(false);
 
-  void toggleScanningMode() {
-    state = !state;
+  void toggleScanningMode({required bool given}) {
+    state = given;
   }
 }
 // end scanning
@@ -414,8 +413,9 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   }
 }
 
-final customersProvider = StateNotifierProviderFamily<CustomersNotifier,
-    AsyncValue<List<Customer>>, int>((ref, branchId) {
+final customersProvider = StateNotifierProvider.autoDispose
+    .family<CustomersNotifier, AsyncValue<List<Customer>>, int>(
+        (ref, branchId) {
   final customersNotifier = CustomersNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
   customersNotifier.loadCustomers(searchString: searchString);

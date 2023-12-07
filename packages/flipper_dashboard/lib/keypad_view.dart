@@ -56,9 +56,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       plusOrSubmit = Expanded(
         child: InkWell(
           splashColor: Color(0xFFDFF0FF),
-          onTap: () {
+          onTap: () async {
             HapticFeedback.lightImpact();
-            widget.model.keyboardKeyPressed(key: '+');
+            await widget.model.keyboardKeyPressed(key: '+');
             ref.refresh(transactionItemsProvider);
           },
           child: Container(
@@ -82,7 +82,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       plusOrSubmit = Expanded(
         child: InkWell(
           splashColor: Color(0xFFDFF0FF),
-          onTap: () {
+          onTap: () async {
             log("Key: " + widget.model.key);
             HapticFeedback.lightImpact();
             if ((widget.model.currentTransaction != null) &&
@@ -212,9 +212,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '1');
+                      await widget.model.keyboardKeyPressed(key: '1');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -235,9 +235,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '2');
+                      await widget.model.keyboardKeyPressed(key: '2');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -260,9 +260,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '3');
+                      await widget.model.keyboardKeyPressed(key: '3');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -291,9 +291,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '4');
+                      await widget.model.keyboardKeyPressed(key: '4');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -314,9 +314,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '5');
+                      await widget.model.keyboardKeyPressed(key: '5');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -337,9 +337,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '6');
+                      await widget.model.keyboardKeyPressed(key: '6');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -368,9 +368,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '7');
+                      await widget.model.keyboardKeyPressed(key: '7');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -393,9 +393,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '8');
+                      await widget.model.keyboardKeyPressed(key: '8');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -416,9 +416,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '9');
+                      await widget.model.keyboardKeyPressed(key: '9');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -447,9 +447,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: 'C');
+                      await widget.model.keyboardKeyPressed(key: 'C');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -470,9 +470,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Expanded(
                   child: InkWell(
                     splashColor: Color(0xFFDFF0FF),
-                    onTap: () {
+                    onTap: () async {
                       HapticFeedback.lightImpact();
-                      widget.model.keyboardKeyPressed(key: '0');
+                      await widget.model.keyboardKeyPressed(key: '0');
                       ref.refresh(transactionItemsProvider);
                     },
                     child: Container(
@@ -503,7 +503,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     /// this will close the keypad
     widget.model.newTransactionPressed = false;
 
-    widget.model.keyboardKeyPressed(key: '+');
+    await widget.model.keyboardKeyPressed(key: '+');
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
     ref.refresh(transactionItemsProvider);
@@ -530,7 +530,8 @@ class KeyboardKeyState extends ConsumerState<KeyboardKey> {
       width: 100,
       height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
       child: InkWell(
-        onTap: () => {widget.model.keyboardKeyPressed(key: widget.value)},
+        onTap: () async =>
+            {await widget.model.keyboardKeyPressed(key: widget.value)},
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(

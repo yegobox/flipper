@@ -11,78 +11,121 @@ import 'package:stacked/stacked.dart';
 import 'preview_sale_bottom_sheet.dart';
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
-  const PreviewSaleButton({
-    Key? key,
-  }) : super(key: key);
-
+  const PreviewSaleButton({Key? key, this.wording}) : super(key: key);
+  final String? wording;
   @override
   PreviewSaleButtonState createState() => PreviewSaleButtonState();
 }
 
-class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton> {
+class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<Color?> _buttonColorTween;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    final Color _buttonColor = primaryButtonStyle.backgroundColor!.resolve({})!;
+
+    _buttonColorTween = ColorTween(
+      begin: primaryButtonStyle.backgroundColor?.resolve(Set.of([])),
+      end: _buttonColor
+          .withOpacity(0.8), // Change this to the desired pressed color
+    ).animate(_controller);
+  }
+
   @override
   Widget build(BuildContext context) {
     final saleCounts = ref.watch(transactionItemsProvider.notifier).counts;
     final currentTransaction = ref.watch(pendingTransactionProvider);
+
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
-        builder: (context, model, child) {
-          return Expanded(
-            child: SizedBox(
-              height: 64,
-              child: TextButton(
-                style: primaryButtonStyle,
-                onPressed: () async {
-                  HapticFeedback.lightImpact();
-
-                  model.keyboardKeyPressed(key: '+');
-                  final transaction =
-                      await ProxyService.isar.pendingTransaction(
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
-
-                  if (transaction == null) {
-                    showToast(context, 'No item on cart!', color: Colors.red);
-                    return;
-                  }
-
-                  model.keypad.setTransaction(transaction);
-
-                  showModalBottomSheet(
-                    backgroundColor: Colors.red,
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(10.0)),
+      viewModelBuilder: () =>
+          CoreViewModel(transaction: currentTransaction.value),
+      builder: (context, model, child) {
+        return Expanded(
+          child: SizedBox(
+            height: 64,
+            child: AnimatedBuilder(
+              animation: _buttonColorTween,
+              builder: (context, child) {
+                return TextButton(
+                  style: primaryButtonStyle.copyWith(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color?>(
+                      (Set<MaterialState> states) {
+                        if (states.contains(MaterialState.pressed)) {
+                          return _buttonColorTween.value;
+                        }
+                        return primaryButtonStyle.backgroundColor!
+                            .resolve(states);
+                      },
                     ),
-                    useRootNavigator: true,
-                    builder: (BuildContext context) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: PreviewSaleBottomSheet(),
-                      );
-                    },
-                  );
-
-                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-                    systemNavigationBarColor: Colors
-                        .transparent, // set the navigation bar color to transparent
-                    systemNavigationBarIconBrightness:
-                        Brightness.light, // set the icon color to light
-                  ));
-                },
-                child: Text(
-                  "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: const Color(0xffFFFFFF),
                   ),
-                ),
-              ),
+                  onPressed: () async {
+                    HapticFeedback.lightImpact();
+                    model.keyboardKeyPressed(key: '+');
+
+                    _controller.forward(); // Start the animation
+                    final transaction =
+                        await ProxyService.isar.pendingTransaction(
+                      branchId: ProxyService.box.getBranchId()!,
+                    );
+
+                    if (transaction == null) {
+                      showToast(context, 'No item on cart!', color: Colors.red);
+                      return;
+                    }
+
+                    model.keypad.setTransaction(transaction);
+
+                    showModalBottomSheet(
+                      backgroundColor: Colors.red,
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(10.0)),
+                      ),
+                      useRootNavigator: true,
+                      builder: (BuildContext context) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 20.0),
+                          child: PreviewSaleBottomSheet(),
+                        );
+                      },
+                    );
+
+                    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+                      systemNavigationBarColor: Colors.transparent,
+                      systemNavigationBarIconBrightness: Brightness.light,
+                    ));
+                    _controller.reverse();
+                  },
+                  child: Text(
+                    widget.wording == null
+                        ? "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}"
+                        : "Preview Cart ${saleCounts != 0 ? "($saleCounts)" : ""}",
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: const Color(0xffFFFFFF),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

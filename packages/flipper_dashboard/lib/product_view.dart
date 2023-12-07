@@ -58,13 +58,9 @@ class ProductViewState extends ConsumerState<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    final productsRef =
-        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
-    final variantsRef =
-        ref.watch(outerVariantsProvider(ProxyService.box.getBranchId()!));
     final searchKeyword = ref.watch(searchStringProvider);
     final scannMode = ref.watch(scanningModeProvider);
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
@@ -74,18 +70,16 @@ class ProductViewState extends ConsumerState<ProductView> {
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildRowView(
-            context, model, productsRef, searchFieldWidth, variantsRef);
+        return buildRowView(context, model, searchFieldWidth);
       },
     );
   }
 
   Widget buildRowView(
-      BuildContext context,
-      ProductViewModel model,
-      AsyncValue<List<Product>> productsRef,
-      double searchFieldWidth,
-      AsyncValue<List<Variant>> variantsRef) {
+    BuildContext context,
+    ProductViewModel model,
+    double searchFieldWidth,
+  ) {
     final scannMode = ref.watch(scanningModeProvider);
     return KeyboardVisibility(
       onChanged: (bool keyboardVisible) {
@@ -97,8 +91,8 @@ class ProductViewState extends ConsumerState<ProductView> {
         slivers: [
           buildStickyHeader(searchFieldWidth),
           scannMode
-              ? buildVariantList(context, model, variantsRef)
-              : buildProductList(context, model, productsRef),
+              ? buildVariantList(context, model)
+              : buildProductList(context, model),
           //todo when re-enabling discounts, remember it is causing black screen error
           // as there might be some loop that isn't well
           // buildDiscountsList(context, model),
@@ -107,12 +101,14 @@ class ProductViewState extends ConsumerState<ProductView> {
     );
   }
 
-  SliverList buildVariantList(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Variant>> variantsRef) {
+  SliverList buildVariantList(
+    BuildContext context,
+    ProductViewModel model,
+  ) {
     return SliverList(
       delegate: SliverChildListDelegate([
         SizedBox(height: 8),
-        buildVariantsSection(context, model, variantsRef),
+        buildVariantsSection(context, model),
       ]),
     );
   }
@@ -120,8 +116,9 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget buildVariantsSection(
     BuildContext context,
     ProductViewModel model,
-    AsyncValue<List<Variant>> variantsRef,
   ) {
+    final variantsRef =
+        ref.watch(outerVariantsProvider(ProxyService.box.getBranchId()!));
     return Center(
       child: Center(
         child: variantsRef.when(
@@ -250,18 +247,18 @@ class ProductViewState extends ConsumerState<ProductView> {
         : SizedBox.shrink();
   }
 
-  SliverList buildProductList(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Product>> productsRef) {
+  SliverList buildProductList(BuildContext context, ProductViewModel model) {
     return SliverList(
       delegate: SliverChildListDelegate([
         SizedBox(height: 8),
-        buildProductsSection(context, model, productsRef),
+        buildProductsSection(context, model),
       ]),
     );
   }
 
-  Widget buildProductsSection(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Product>> productsRef) {
+  Widget buildProductsSection(BuildContext context, ProductViewModel model) {
+    final productsRef =
+        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
     return Center(
       child: Center(
         child: switch (productsRef) {

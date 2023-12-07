@@ -201,13 +201,13 @@ class RowItem extends StatelessWidget {
           onPressed: (_) {
             addToMenu == null
                 ? delete(product?.id ?? variant?.id)
-                : addToMenu!(product?.id ?? variant?.id);
+                : addToMenu!(product ?? variant);
           },
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,
           icon: addToMenu == null
               ? FluentIcons.delete_20_regular
-              : FluentIcons.check_20_regular,
+              : FluentIcons.cart_24_regular,
           label: '',
         ),
         if (variant == null)
@@ -295,24 +295,8 @@ class RowItem extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    const Color(0xff006AFE),
-                  ),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
-                      }
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pop(false),
+                style: primaryButtonStyle,
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           );

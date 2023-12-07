@@ -349,9 +349,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addFavorite({required Favorite data}) async {
+    
     Favorite? fav = db.read((isar) =>
         isar.favorites.where().favIndexEqualTo(data.favIndex!).findFirst());
     if (fav == null) {
+      data.id = db.favorites.autoIncrement();
       db.write((db) {
         db.favorites.put(data);
       });
@@ -2924,7 +2926,6 @@ class IsarAPI<M> implements IsarApiInterface {
           .actionIsNotEmpty()
           .and()
           .branchIdEqualTo(ProxyService.box.getBranchId()!)
-          
           .findAll();
       final List<Variant> variants = isar.variants
           .where()

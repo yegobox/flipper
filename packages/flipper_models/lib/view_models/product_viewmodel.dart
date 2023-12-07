@@ -21,8 +21,10 @@ import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
 
 import 'mixins/_product.dart';
+import 'mixins/_transaction.dart';
 
-class ProductViewModel extends FlipperBaseModel with ProductMixin {
+class ProductViewModel extends FlipperBaseModel
+    with ProductMixin, TransactionMixin {
   // extends ReactiveViewModel
   final AppService app = loc.getIt<AppService>();
   // ignore: annotate_overrides, overridden_fields

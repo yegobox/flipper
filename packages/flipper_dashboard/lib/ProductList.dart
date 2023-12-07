@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:stacked/stacked.dart';
 import 'Confirm.dart';
+import 'preview_sale_button.dart';
 
 class ProductListScreen extends StatefulHookConsumerWidget {
   const ProductListScreen({super.key});
@@ -64,8 +66,17 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                         name: products[index].name,
                         stock: 1,
                         model: model,
-                        addToMenu: (id) {
-                          print("this is item to add to menu ${id}");
+                        addToMenu: (item) {
+                          Variant variant = item as Variant;
+                          print("This is item to add to cart ${variant.id}");
+                          model.saveTransaction(
+                              variation: variant,
+                              currentStock: 1.0,
+                              amountTotal: variant.retailPrice,
+                              customItem: false,
+                              pendingTransaction:
+                                  ref.read(pendingTransactionProvider).value!);
+                          ref.refresh(transactionItemsProvider);
                         },
                       ),
                     );
@@ -75,6 +86,12 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
+      ),
+      floatingActionButton: SizedBox(
+        width: 200,
+        child: PreviewSaleButton(
+          wording: "Preview Cart",
+        ),
       ),
     );
   }
