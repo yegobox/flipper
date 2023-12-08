@@ -14,7 +14,7 @@ dependencies:
 
   stacked: ^3.4.1+1
   firebase_remote_config: ^4.2.5
-  # share_plus: ^7.2.1
+  share_plus: ^7.2.1
   # in_app_review: ^2.0.6
   firebase_messaging: ^14.6.2
   image: ^4.0.17
