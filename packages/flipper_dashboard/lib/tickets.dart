@@ -39,7 +39,8 @@ class TicketsState extends ConsumerState<Tickets>
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -175,6 +176,6 @@ class TicketsState extends ConsumerState<Tickets>
           model.updatePayable();
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value));
+            CoreViewModel(transaction: currentTransaction.value?.value));
   }
 }

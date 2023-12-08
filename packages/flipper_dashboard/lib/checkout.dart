@@ -66,11 +66,12 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
           viewModelBuilder: () =>
-              CoreViewModel(transaction: currentTransaction.value),
+              CoreViewModel(transaction: currentTransaction.value?.value),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -97,10 +98,11 @@ class CheckOutState extends ConsumerState<CheckOut>
             );
           });
     } else {
-      final currentTransaction = ref.watch(pendingTransactionProvider);
+      final currentTransaction =
+          ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         builder: (context, model, child) {
           return PopScope(
             canPop: false,

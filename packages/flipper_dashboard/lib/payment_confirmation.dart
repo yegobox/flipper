@@ -38,7 +38,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -110,8 +111,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                       width: 140,
                                       child: OutlinedButton(
                                         onPressed: () async {
-                                          model.keyboardKeyPressed(
-                                              key: 'C');
+                                          model.keyboardKeyPressed(key: 'C');
                                           if (await ProxyService.isar
                                               .isTaxEnabled()) {
                                             if (model.receiptReady) {
@@ -280,8 +280,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                                                 .circular(4)))),
                                     onPressed: () {
                                       // refresh transactions
-                                      model.keyboardKeyPressed(
-                                          key: 'C');
+                                      model.keyboardKeyPressed(key: 'C');
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },
@@ -332,6 +331,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           }
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value));
+            CoreViewModel(transaction: currentTransaction.value?.value));
   }
 }

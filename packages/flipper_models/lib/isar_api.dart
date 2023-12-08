@@ -125,21 +125,19 @@ class IsarAPI<M> implements IsarApiInterface {
   /// those change will stay on local, so I need to work on them as well.
 
   @override
-  Future<ITransaction> manageTransaction({
-    String transactionType = 'custom',
-  }) async {
+  Future<ITransaction> manageTransaction(
+      {String transactionType = 'custom', int? retailId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-
-    ITransaction? existTransaction =
-        await pendingTransaction(branchId: branchId);
+    ITransaction? existTransaction = retailId != null
+        ? await pendingTransaction(retailId: retailId)
+        : await pendingTransaction(branchId: branchId);
 
     if (existTransaction == null) {
       final String id = randomString();
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        businessOwnerId: businessId,
+        retailerId: retailId ?? branchId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -180,7 +178,7 @@ class IsarAPI<M> implements IsarApiInterface {
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        businessOwnerId: businessId,
+        retailerId: businessId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -1624,13 +1622,24 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<ITransaction?> pendingTransaction({required int branchId}) async {
-    return db.read((isar) => isar.iTransactions
-        .where()
-        .statusEqualTo(PENDING)
-        .and()
-        .branchIdEqualTo(branchId)
-        .findFirst());
+  Future<ITransaction?> pendingTransaction(
+      {int? branchId, int? retailId}) async {
+    if (branchId != null) {
+      return db.read((isar) => isar.iTransactions
+          .where()
+          .statusEqualTo(PENDING)
+          .and()
+          .branchIdEqualTo(branchId)
+          .findFirst());
+    } else if (retailId != null) {
+      return db.read((isar) => isar.iTransactions
+          .where()
+          .statusEqualTo(PENDING)
+          .and()
+          .retailerIdEqualTo(retailId)
+          .findFirst());
+    }
+    return null;
   }
 
   @override

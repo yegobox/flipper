@@ -36,7 +36,10 @@ class PreviewSaleBottomSheetState
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(
-          transaction: ref.watch(pendingTransactionProvider).value),
+          transaction: ref
+              .watch(pendingTransactionProvider(ProxyService.box.getBranchId()))
+              .value
+              ?.value),
       builder: (context, model, child) {
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
@@ -109,7 +112,11 @@ class PreviewSaleBottomSheetState
                 onTap: () {
                   _routerService.navigateTo(
                     PaymentsRoute(
-                      transaction: ref.watch(pendingTransactionProvider).value!,
+                      transaction: ref
+                          .read(pendingTransactionProvider(
+                              ProxyService.box.getBranchId()))
+                          .value!
+                          .value!,
                     ),
                   );
                 },

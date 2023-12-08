@@ -63,7 +63,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(
-          transaction: ref.watch(pendingTransactionProvider).value),
+          transaction: ref
+              .watch(pendingTransactionProvider(ProxyService.box.getBranchId()))
+              .value
+              ?.value),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,
@@ -72,7 +75,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
           textInputAction: TextInputAction.done,
           onChanged: (value) async {
             _hasText = value.isNotEmpty;
-            final currentTransaction = ref.watch(pendingTransactionProvider);
+            final currentTransaction = ref.watch(
+                pendingTransactionProvider(ProxyService.box.getBranchId()));
             if (ref.watch(scanningModeProvider) && _hasText) {
               Variant? variant = await ProxyService.isar.variant(name: value);
               if (variant != null && currentTransaction.value != null) {
@@ -83,7 +87,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     variation: variant,
                     amountTotal: variant.retailPrice,
                     customItem: false,
-                    pendingTransaction: currentTransaction.value!,
+                    pendingTransaction: currentTransaction.value!.value!,
                     currentStock: stock.currentStock);
                 ref.refresh(transactionItemsProvider);
                 ref.refresh(searchStringProvider);

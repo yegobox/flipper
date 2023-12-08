@@ -179,10 +179,11 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(

@@ -50,7 +50,8 @@ class PaymentsState extends ConsumerState<Payments> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -63,7 +64,7 @@ class PaymentsState extends ConsumerState<Payments> {
       },
       onViewModelReady: (model) => model.updatePayable(),
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+          CoreViewModel(transaction: currentTransaction.value?.value),
     );
   }
 
@@ -327,13 +328,16 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
-    final transaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    final transaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     final totalPayable =
         ref.watch(transactionItemsProvider.notifier).totalPayable;
     model.handlingConfirm = true;
     await model.collectPayment(
-        paymentType: paymentType!, transaction: currentTransaction.value!);
+        paymentType: paymentType!,
+        transaction: currentTransaction.value!.value!);
     double amount = _cash.text.isEmpty
         ? model.currentTransaction!.subTotal
         : double.parse(_cash.text);
@@ -350,7 +354,7 @@ class PaymentsState extends ConsumerState<Payments> {
         totalTransactionAmount: totalPayable,
         receiptType: receiptType,
         paymentType: paymentType!,
-        transaction: transaction.value!,
+        transaction: transaction.value!.value!,
       ),
     );
   }

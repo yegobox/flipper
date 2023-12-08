@@ -16,7 +16,6 @@ dependencies:
   stacked_services: ^1.0.4
   stacked: ^3.4.1+1
   url_strategy: ^0.2.0
-  flipper_finance: ^0.0.1
   logger: ^1.1.0
   firebase_ui_auth: ^1.10.0
   flipper_actionable: 0.0.1

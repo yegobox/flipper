@@ -104,11 +104,12 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         onViewModelReady: (model) async {
           initializeApplicationIfRequired();
           //get default tenant
@@ -132,14 +133,15 @@ class FlipperAppState extends ConsumerState<FlipperApp>
                 );
             AppService.cleanedData.listen((data) async {
               log("listened to data");
-              final pendingTransaction = ref.watch(pendingTransactionProvider);
+              final pendingTransaction = ref.watch(
+                  pendingTransactionProvider(ProxyService.box.getBranchId()));
               log(data);
               List<String> parts = data.split(':');
               String firstPart = parts[0];
 
               await model.sellWithCard(
                   tenantId: int.parse(firstPart),
-                  pendingTransaction: pendingTransaction);
+                  pendingTransaction: pendingTransaction.value!.value!);
               showToast(context, 'Sale recorded successfully.');
             });
           }

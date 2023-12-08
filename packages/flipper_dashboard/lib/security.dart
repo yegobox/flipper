@@ -23,7 +23,8 @@ class SecurityState extends ConsumerState<Security> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async => await model.createPin(),
@@ -41,7 +42,7 @@ class SecurityState extends ConsumerState<Security> {
             backgroundColor: Theme.of(context).canvasColor,
             body: ViewModelBuilder<CoreViewModel>.reactive(
                 viewModelBuilder: () =>
-                    CoreViewModel(transaction: currentTransaction.value),
+                    CoreViewModel(transaction: currentTransaction.value?.value),
                 builder: (a, model, c) {
                   return SafeArea(
                     child: Column(

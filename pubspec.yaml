@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.998091512335+1702019149
+version: 1.170.999793531485+1702064571
 
 #......
 # The packages below are just refrences for what packages being used
@@ -34,7 +34,7 @@ dependencies:
   # firebase_auth_desktop: ^1.0.2-flipper
   # firebase_core_desktop: ^1.0.2-dev
   firebase_ui_auth: ^1.10.0
-  firebase_auth: ^4.15.0
+  firebase_auth: ^4.15.2
   google_fonts: ^6.1.0
   stacked: ^3.4.1+1
   firebase_messaging: ^14.6.2
@@ -46,7 +46,7 @@ dependencies:
   path: ^1.8.2
   meta: any
   flutter_native_splash: ^2.3.2
-  firebase_ui_localizations: ^1.5.0
+  firebase_ui_localizations: ^1.9.0
   timezone: ^0.9.2
   flutter_native_timezone: ^2.0.0
   flutter_localizations:
@@ -56,7 +56,7 @@ dependencies:
   flipper_dashboard: ^0.0.1-dev.5
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
-  flipper_localize: ^1.0.0
+  flipper_localize: ^1.0.0-dev
   flipper_data_table: 1.0.0-dev.2
   flutter_animate: ^4.1.0
   flipper_services: ^1.0.0
@@ -65,7 +65,7 @@ dependencies:
     path: ./packages/flipper_login
   flipper_actionable:
     path: ./packages/flipper_actionable
-  firebase_core: ^2.24.0
+  firebase_core: ^2.24.2
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
   injectable: ^2.3.0

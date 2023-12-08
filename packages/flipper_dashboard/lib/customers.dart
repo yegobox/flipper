@@ -28,12 +28,13 @@ class CustomersState extends ConsumerState<Customers> {
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     final customersRef =
         ref.watch(customersProvider(ProxyService.box.getBranchId()!));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+          CoreViewModel(transaction: currentTransaction.value?.value),
       builder: (context, model, child) {
         return SafeArea(
           child: Scaffold(

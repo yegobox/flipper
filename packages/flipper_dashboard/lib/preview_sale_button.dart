@@ -45,7 +45,10 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(
-          transaction: ref.watch(pendingTransactionProvider).value),
+          transaction: ref
+              .watch(pendingTransactionProvider(ProxyService.box.getBranchId()))
+              .value
+              ?.value),
       builder: (context, model, child) {
         return SizedBox(
           height: 64,

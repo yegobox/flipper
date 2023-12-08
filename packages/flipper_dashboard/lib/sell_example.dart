@@ -58,6 +58,7 @@
 // }
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -656,13 +657,14 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getVariants(productId: widget.product.id);
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         builder: (context, model, child) {
           return Scaffold(
             backgroundColor: Colors.white,

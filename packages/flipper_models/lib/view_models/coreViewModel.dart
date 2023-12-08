@@ -862,8 +862,7 @@ class CoreViewModel extends FlipperBaseModel
   /// []
 
   Future<void> sellWithCard(
-      {required int tenantId,
-      required AsyncValue<ITransaction> pendingTransaction}) async {
+      {required int tenantId, required ITransaction pendingTransaction}) async {
     Product? product =
         await ProxyService.isar.findProductByTenantId(tenantId: tenantId);
 
@@ -883,7 +882,7 @@ class CoreViewModel extends FlipperBaseModel
         amountTotal: amountTotal,
         customItem: false,
         currentStock: stock.currentStock,
-        pendingTransaction: pendingTransaction.value!);
+        pendingTransaction: pendingTransaction);
   }
 
   List<Branch> branches = [];

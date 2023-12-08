@@ -52,10 +52,11 @@ class ScannViewState extends ConsumerState<ScannView> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+          CoreViewModel(transaction: currentTransaction.value?.value),
       builder: (context, model, child) {
         return Scaffold(
           body: Stack(

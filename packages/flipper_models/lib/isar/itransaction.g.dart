@@ -101,7 +101,7 @@ const ITransactionSchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
       IsarPropertySchema(
-        name: 'businessOwnerId',
+        name: 'retailerId',
         type: IsarType.long,
       ),
     ],
@@ -193,7 +193,7 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
   }
   IsarCore.writeLong(writer, 20,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 21, object.businessOwnerId);
+  IsarCore.writeLong(writer, 21, object.retailerId);
   return Isar.fastHash(object.id);
 }
 
@@ -255,8 +255,8 @@ ITransaction deserializeITransaction(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final int _businessOwnerId;
-  _businessOwnerId = IsarCore.readLong(reader, 21);
+  final int _retailerId;
+  _retailerId = IsarCore.readLong(reader, 21);
   final object = ITransaction(
     id: _id,
     reference: _reference,
@@ -278,7 +278,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     action: _action,
     ticketName: _ticketName,
     deletedAt: _deletedAt,
-    businessOwnerId: _businessOwnerId,
+    retailerId: _retailerId,
   );
   return object;
 }
@@ -371,7 +371,7 @@ sealed class _ITransactionUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? businessOwnerId,
+    int? retailerId,
   });
 }
 
@@ -402,7 +402,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? businessOwnerId = ignore,
+    Object? retailerId = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -426,7 +426,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
           if (action != ignore) 18: action as String?,
           if (ticketName != ignore) 19: ticketName as String?,
           if (deletedAt != ignore) 20: deletedAt as DateTime?,
-          if (businessOwnerId != ignore) 21: businessOwnerId as int?,
+          if (retailerId != ignore) 21: retailerId as int?,
         }) >
         0;
   }
@@ -454,7 +454,7 @@ sealed class _ITransactionUpdateAll {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? businessOwnerId,
+    int? retailerId,
   });
 }
 
@@ -485,7 +485,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? businessOwnerId = ignore,
+    Object? retailerId = ignore,
   }) {
     return collection.updateProperties(id, {
       if (reference != ignore) 2: reference as String?,
@@ -507,7 +507,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (businessOwnerId != ignore) 21: businessOwnerId as int?,
+      if (retailerId != ignore) 21: retailerId as int?,
     });
   }
 }
@@ -539,7 +539,7 @@ sealed class _ITransactionQueryUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? businessOwnerId,
+    int? retailerId,
   });
 }
 
@@ -570,7 +570,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? businessOwnerId = ignore,
+    Object? retailerId = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (reference != ignore) 2: reference as String?,
@@ -592,7 +592,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (businessOwnerId != ignore) 21: businessOwnerId as int?,
+      if (retailerId != ignore) 21: retailerId as int?,
     });
   }
 }
@@ -631,7 +631,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? businessOwnerId = ignore,
+    Object? retailerId = ignore,
   }) {
     final q = query.build();
     try {
@@ -655,7 +655,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
         if (action != ignore) 18: action as String?,
         if (ticketName != ignore) 19: ticketName as String?,
         if (deletedAt != ignore) 20: deletedAt as DateTime?,
-        if (businessOwnerId != ignore) 21: businessOwnerId as int?,
+        if (retailerId != ignore) 21: retailerId as int?,
       });
     } finally {
       q.close();
@@ -3849,7 +3849,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdEqualTo(
+      retailerIdEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3863,7 +3863,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdGreaterThan(
+      retailerIdGreaterThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3877,7 +3877,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdGreaterThanOrEqualTo(
+      retailerIdGreaterThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3891,7 +3891,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdLessThan(
+      retailerIdLessThan(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3905,7 +3905,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdLessThanOrEqualTo(
+      retailerIdLessThanOrEqualTo(
     int value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3919,7 +3919,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      businessOwnerIdBetween(
+      retailerIdBetween(
     int lower,
     int upper,
   ) {
@@ -4310,15 +4310,14 @@ extension ITransactionQuerySortBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      sortByBusinessOwnerId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByRetailerId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      sortByBusinessOwnerIdDesc() {
+      sortByRetailerIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
     });
@@ -4599,15 +4598,14 @@ extension ITransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      thenByBusinessOwnerId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByRetailerId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      thenByBusinessOwnerIdDesc() {
+      thenByRetailerIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
     });
@@ -4750,7 +4748,7 @@ extension ITransactionQueryWhereDistinct
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
-      distinctByBusinessOwnerId() {
+      distinctByRetailerId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(21);
     });
@@ -4881,7 +4879,7 @@ extension ITransactionQueryProperty1
     });
   }
 
-  QueryBuilder<ITransaction, int, QAfterProperty> businessOwnerIdProperty() {
+  QueryBuilder<ITransaction, int, QAfterProperty> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5021,8 +5019,7 @@ extension ITransactionQueryProperty2<R>
     });
   }
 
-  QueryBuilder<ITransaction, (R, int), QAfterProperty>
-      businessOwnerIdProperty() {
+  QueryBuilder<ITransaction, (R, int), QAfterProperty> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5165,8 +5162,7 @@ extension ITransactionQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITransaction, (R1, R2, int), QOperations>
-      businessOwnerIdProperty() {
+  QueryBuilder<ITransaction, (R1, R2, int), QOperations> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5189,7 +5185,7 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       cashReceived: (json['cashReceived'] as num).toDouble(),
       customerChangeDue: (json['customerChangeDue'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
-      businessOwnerId: json['businessOwnerId'] as int,
+      retailerId: json['retailerId'] as int,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
       customerId: json['customerId'] as String?,
@@ -5224,5 +5220,5 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'action': instance.action,
       'ticketName': instance.ticketName,
       'deletedAt': ITransaction._dateTimeToJson(instance.deletedAt),
-      'businessOwnerId': instance.businessOwnerId,
+      'retailerId': instance.retailerId,
     };

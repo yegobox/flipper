@@ -40,11 +40,12 @@ class CashbookState extends ConsumerState<Cashbook> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+          CoreViewModel(transaction: currentTransaction.value?.value),
       onViewModelReady: (model) async {
         List<ITransaction> _transactions = await ProxyService.isar
             .completedTransactions(branchId: ProxyService.box.getBranchId()!);

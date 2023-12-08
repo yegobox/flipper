@@ -280,7 +280,7 @@ ITransaction? TransactionFMock = ITransaction(
   lastTouched: DateTime.now(),
   action: AppActions.created,
   id: randomString(),
-  businessOwnerId: 1,
+  retailerId: 1,
   reference: Uuid().v1(),
   transactionNumber: Uuid().v1(),
   status: "pending",

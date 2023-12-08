@@ -277,7 +277,8 @@ class TransactionsState extends ConsumerState<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           Drawers? drawer = await ProxyService.isar
@@ -289,7 +290,7 @@ class TransactionsState extends ConsumerState<Transactions> {
           });
         },
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

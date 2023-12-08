@@ -62,31 +62,16 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
   }
 }
 
-final pendingTransactionProvider = StateNotifierProvider.autoDispose<
-    PendingTransactionNotifier, AsyncValue<ITransaction>>((ref) {
-  final pendingTransactionNotifier = PendingTransactionNotifier();
-
-  pendingTransactionNotifier.pendingTransaction();
-
-  return pendingTransactionNotifier;
-});
-
-class PendingTransactionNotifier
-    extends StateNotifier<AsyncValue<ITransaction>> {
-  PendingTransactionNotifier() : super(AsyncLoading());
-
-  Future<void> pendingTransaction() async {
-    try {
-      state = AsyncLoading();
-      ITransaction pendingTransaction =
-          await ProxyService.isar.manageTransaction();
-      state = AsyncData(pendingTransaction);
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
-    }
+final pendingTransactionProvider = FutureProvider.autoDispose
+    .family<AsyncValue<ITransaction>, int?>((ref, retailId) async {
+  try {
+    ITransaction pendingTransaction =
+        await ProxyService.isar.manageTransaction(retailId: retailId);
+    return AsyncData(pendingTransaction);
+  } catch (error) {
+    return AsyncError(error, StackTrace.current);
   }
-}
-
+});
 // final productsProvider = FutureProvider((ref) async {
 //      return ProxyService.isar.transactionItemsFuture();
 // });
@@ -154,12 +139,11 @@ final outerVariantsProvider = StateNotifierProvider.autoDispose
   final productsNotifier = OuterVariantsNotifier(branchId);
   final scannMode = ref.watch(scanningModeProvider);
   final searchString = ref.watch(searchStringProvider);
-  final pendingTransaction = ref.watch(pendingTransactionProvider);
   if (scannMode) {
     productsNotifier.loadVariants(
-        scannMode: scannMode,
-        searchString: searchString,
-        pendingTransaction: pendingTransaction);
+      scannMode: scannMode,
+      searchString: searchString,
+    );
   }
 
   return productsNotifier;
@@ -171,9 +155,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
   Future<void> loadVariants(
-      {required bool scannMode,
-      required String searchString,
-      required AsyncValue<ITransaction> pendingTransaction}) async {
+      {required bool scannMode, required String searchString}) async {
     try {
       final allVariants = await ProxyService.isar.variants(
         branchId: ProxyService.box.getBranchId()!,

@@ -29,7 +29,8 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
@@ -38,9 +39,10 @@ class SellState extends ConsumerState<Sell> {
         await model.getVariants(productId: widget.product.id);
       },
       viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+          CoreViewModel(transaction: currentTransaction.value?.value),
       builder: (context, model, child) {
-        final pendingTransaction = ref.watch(pendingTransactionProvider);
+        final pendingTransaction = ref
+            .watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -64,7 +66,7 @@ class SellState extends ConsumerState<Sell> {
                   amountTotal: model.amountTotal,
                   customItem: false,
                   currentStock: stock.currentStock,
-                  pendingTransaction: pendingTransaction.value!);
+                  pendingTransaction: pendingTransaction.value!.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);

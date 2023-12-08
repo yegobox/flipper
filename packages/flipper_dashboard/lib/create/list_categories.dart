@@ -177,10 +177,11 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         },
       );
     } else {
-      final currentTransaction = ref.watch(pendingTransactionProvider);
+      final currentTransaction =
+          ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+            CoreViewModel(transaction: currentTransaction.value?.value),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(
