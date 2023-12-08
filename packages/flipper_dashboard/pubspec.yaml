@@ -54,7 +54,7 @@ dependencies:
   flipper_login: ^0.0.1-dev.5
   intl: ^0.18.0
 
-  connectivity_plus: ^5.0.1
+  connectivity_plus: ^5.0.2
   flipper_data_table: ^1.0.0-dev.2
   device_info_plus: ^9.1.0
   provider: ^6.0.2
