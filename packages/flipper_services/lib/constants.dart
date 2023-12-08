@@ -16,6 +16,7 @@ class TransactionType {
   static String cashOut = 'Cash Out';
   static String sale = 'Sale';
   static String custom = 'custom';
+  static String onlineSale = 'Online Sale';
 }
 
 class TransactionPeriod {

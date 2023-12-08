@@ -225,7 +225,14 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITransaction?> getTransactionById({required String id}) async {
-    return db.read((isar) => isar.iTransactions.get(id));
+    int branchId = ProxyService.box.getBranchId()!;
+    return db
+        .read((isar) => isar.iTransactions
+            .where()
+            .idEqualTo(id)
+            .and()
+            .branchIdEqualTo(branchId))
+        .findFirst();
   }
 
   //Delete a favorite
@@ -349,7 +356,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addFavorite({required Favorite data}) async {
-    
     Favorite? fav = db.read((isar) =>
         isar.favorites.where().favIndexEqualTo(data.favIndex!).findFirst());
     if (fav == null) {
@@ -1237,12 +1243,18 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<TransactionItem?> getTransactionItemById({required String id}) async {
-    return db.transactionItems.get(id);
+    return db.transactionItems
+        .where()
+        .idEqualTo(id)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findFirst();
   }
 
   @override
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, required String? transactionId}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.transactionItems
         .where()
         .variantIdEqualTo(variantId)
@@ -1250,6 +1262,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .transactionIdEqualTo(transactionId!)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .findFirst();
   }
 
@@ -3035,7 +3049,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .or()
           .transactionTypeEqualTo(TransactionType.sale)
           .or()
-          .transactionTypeEqualTo(TransactionType.custom);
+          .transactionTypeEqualTo(TransactionType.custom)
+          .or()
+          .transactionTypeEqualTo(TransactionType.onlineSale);
     }
 
     if (branchId != null) {

@@ -38,7 +38,29 @@ class SearchStringNotifier extends StateNotifier<String> {
   }
 }
 
+enum SellingMode {
+  forOrdering,
+  forHere,
+  forSelling,
+  // Add other modes as needed
+}
 
+// Change the argument type to SellingMode
+final sellingModeProvider =
+    StateNotifierProvider.autoDispose<SellingModeNotifier, SellingMode>((ref) {
+  return SellingModeNotifier();
+});
+
+class SellingModeNotifier extends StateNotifier<SellingMode> {
+  // Declare an optional named parameter with a default value
+  SellingModeNotifier({SellingMode mode = SellingMode.forSelling})
+      : super(mode);
+
+  SellingMode setSellingMode(SellingMode mode) {
+    state = mode;
+    return state;
+  }
+}
 
 final pendingTransactionProvider = StateNotifierProvider.autoDispose<
     PendingTransactionNotifier, AsyncValue<ITransaction>>((ref) {

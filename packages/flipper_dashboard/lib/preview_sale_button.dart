@@ -11,10 +11,11 @@ import 'package:stacked/stacked.dart';
 import 'preview_sale_bottom_sheet.dart';
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
-  const PreviewSaleButton({Key? key, this.wording, this.forOrdering = false})
+  const PreviewSaleButton(
+      {Key? key, this.wording, this.mode = SellingMode.forSelling})
       : super(key: key);
   final String? wording;
-  final bool forOrdering;
+  final SellingMode mode;
   @override
   PreviewSaleButtonState createState() => PreviewSaleButtonState();
 }
@@ -91,8 +92,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     builder: (BuildContext context) {
                       return Padding(
                         padding: const EdgeInsets.only(top: 20.0),
-                        child: PreviewSaleBottomSheet(
-                            forOrdering: widget.forOrdering),
+                        child: PreviewSaleBottomSheet(mode: widget.mode),
                       );
                     },
                   );

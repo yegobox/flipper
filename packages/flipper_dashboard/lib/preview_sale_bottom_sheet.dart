@@ -19,9 +19,9 @@ import 'order_summary_items.dart';
 
 class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
   final bool reverse;
-  final bool forOrdering;
+  final SellingMode mode;
   const PreviewSaleBottomSheet(
-      {Key? key, this.reverse = false, this.forOrdering = false})
+      {Key? key, this.reverse = false, this.mode = SellingMode.forSelling})
       : super(key: key);
 
   @override
@@ -45,7 +45,7 @@ class PreviewSaleBottomSheetState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            !widget.forOrdering
+            widget.mode == SellingMode.forSelling
                 ? AddCustomerButton(transactionId: model.currentTransaction!.id)
                 : SizedBox.shrink(),
             ListView(
@@ -103,7 +103,7 @@ class PreviewSaleBottomSheetState
             Padding(
               padding: EdgeInsets.all(8),
               child: BoxButton(
-                title: !widget.forOrdering
+                title: widget.mode != SellingMode.forSelling
                     ? "Collect ${NumberFormat('#,###').format(totalPayable)} RWF"
                     : "Order ${NumberFormat('#,###').format(totalPayable)} RWF",
                 onTap: () {
