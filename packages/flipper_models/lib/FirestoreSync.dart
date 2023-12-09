@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class SyncFirestore<M extends IJsonSerializable> implements Sync {
   Future<void> onSave<T extends IJsonSerializable>({required T item});
@@ -15,15 +16,21 @@ class FirestoreSync<M extends IJsonSerializable>
     implements SyncFirestore<M> {
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
-    final String collectionName = getCollectionName<T>();
-    final collectionRef = FirebaseFirestore.instance.collection(collectionName);
     try {
-      final doc = collectionRef.doc(getItemId<T>(item));
-      await doc.set(item.toJson(), SetOptions(merge: true));
+      await compute(_saveToFirestore<T>, {'item': item});
     } catch (e) {
       print('Error: $e');
       // Handle the error appropriately.
     }
+  }
+
+  Future<void> _saveToFirestore<T extends IJsonSerializable>(
+      Map<String, dynamic> data) async {
+    final T item = data['item'];
+    final String collectionName = getCollectionName<T>();
+    final collectionRef = FirebaseFirestore.instance.collection(collectionName);
+    final doc = collectionRef.doc(getItemId<T>(item));
+    await doc.set(item.toJson(), SetOptions(merge: true));
   }
 
   String getCollectionName<T>() {
