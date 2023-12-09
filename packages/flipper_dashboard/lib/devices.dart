@@ -154,26 +154,28 @@ class Devices extends ConsumerWidget {
             // streams of devices
             deviceListAsyncValue.when(
               data: (deviceList) {
-                return ListView.builder(
-                  itemCount: deviceList.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: Image.asset(
-                        'assets/${deviceList[index].deviceName}.png',
-                        package: 'flipper_dashboard',
-                      ),
-                      title: Text(deviceList[index].deviceName),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () {
-                          _dialogService.showCustomDialog(
-                              variant: DialogType.logOut,
-                              title: 'Log out',
-                              data: deviceList[index]);
-                        },
-                      ),
-                    );
-                  },
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: deviceList.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Image.asset(
+                          'assets/${deviceList[index].deviceName}.png',
+                          package: 'flipper_dashboard',
+                        ),
+                        title: Text(deviceList[index].deviceName),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            _dialogService.showCustomDialog(
+                                variant: DialogType.logOut,
+                                title: 'Log out',
+                                data: deviceList[index]);
+                          },
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
               loading: () {

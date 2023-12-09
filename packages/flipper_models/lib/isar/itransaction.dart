@@ -42,7 +42,7 @@ class ITransaction extends IJsonSerializable {
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
-  int retailerId;
+  int? retailerId;
 
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();

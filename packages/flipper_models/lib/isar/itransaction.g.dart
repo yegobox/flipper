@@ -193,7 +193,7 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
   }
   IsarCore.writeLong(writer, 20,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 21, object.retailerId);
+  IsarCore.writeLong(writer, 21, object.retailerId ?? -9223372036854775808);
   return Isar.fastHash(object.id);
 }
 
@@ -255,8 +255,15 @@ ITransaction deserializeITransaction(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final int _retailerId;
-  _retailerId = IsarCore.readLong(reader, 21);
+  final int? _retailerId;
+  {
+    final value = IsarCore.readLong(reader, 21);
+    if (value == -9223372036854775808) {
+      _retailerId = null;
+    } else {
+      _retailerId = value;
+    }
+  }
   final object = ITransaction(
     id: _id,
     reference: _reference,
@@ -343,7 +350,14 @@ dynamic deserializeITransactionProp(IsarReader reader, int property) {
         }
       }
     case 21:
-      return IsarCore.readLong(reader, 21);
+      {
+        final value = IsarCore.readLong(reader, 21);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -3849,8 +3863,22 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      retailerIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 21));
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      retailerIdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 21));
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3864,7 +3892,7 @@ extension ITransactionQueryFilter
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdGreaterThan(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3878,7 +3906,7 @@ extension ITransactionQueryFilter
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdGreaterThanOrEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3892,7 +3920,7 @@ extension ITransactionQueryFilter
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdLessThan(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3906,7 +3934,7 @@ extension ITransactionQueryFilter
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdLessThanOrEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3920,8 +3948,8 @@ extension ITransactionQueryFilter
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       retailerIdBetween(
-    int lower,
-    int upper,
+    int? lower,
+    int? upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -4879,7 +4907,7 @@ extension ITransactionQueryProperty1
     });
   }
 
-  QueryBuilder<ITransaction, int, QAfterProperty> retailerIdProperty() {
+  QueryBuilder<ITransaction, int?, QAfterProperty> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5019,7 +5047,7 @@ extension ITransactionQueryProperty2<R>
     });
   }
 
-  QueryBuilder<ITransaction, (R, int), QAfterProperty> retailerIdProperty() {
+  QueryBuilder<ITransaction, (R, int?), QAfterProperty> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5162,7 +5190,7 @@ extension ITransactionQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITransaction, (R1, R2, int), QOperations> retailerIdProperty() {
+  QueryBuilder<ITransaction, (R1, R2, int?), QOperations> retailerIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5185,7 +5213,7 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       cashReceived: (json['cashReceived'] as num).toDouble(),
       customerChangeDue: (json['customerChangeDue'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
-      retailerId: json['retailerId'] as int,
+      retailerId: json['retailerId'] as int?,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
       customerId: json['customerId'] as String?,

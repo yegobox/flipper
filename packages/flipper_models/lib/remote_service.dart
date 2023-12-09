@@ -197,13 +197,14 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
     }
   }
 
-  Future<RemoteInterface> retryConnect() async {
+  Future<RemoteInterface?> retryConnect() async {
     await Future.delayed(Duration(seconds: 5));
     try {
       await pb!.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
       return this;
     } catch (e) {
-      throw Exception("Failed to initialize RemoteInterface.");
+      //throw Exception("Failed to initialize RemoteInterface.");
+      return null;
     }
   }
 

@@ -27,10 +27,6 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
 
   @override
   void initState() {
-    DateTime now = DateTime.now();
-    setState(() {
-      loginCode = 'login-' + now.millisecondsSinceEpoch.toString();
-    });
     super.initState();
   }
 
@@ -46,6 +42,10 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
       onViewModelReady: (model) {
+        DateTime now = DateTime.now();
+        setState(() {
+          loginCode = 'login-' + now.millisecondsSinceEpoch.toString();
+        });
         if (loginCode != null) {
           ProxyService.event.connect();
           try {
