@@ -62,6 +62,15 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
   }
 }
 
+final variantsProvider = FutureProvider.autoDispose
+    .family<List<Variant>, String?>((ref, productId) async {
+  // Fetch the list of variants from a remote service.
+  final variants = await ProxyService.isar.variants(
+      branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
+
+  return variants;
+});
+
 final pendingTransactionProvider = FutureProvider.autoDispose
     .family<AsyncValue<ITransaction>, int?>((ref, retailId) async {
   try {
@@ -298,38 +307,6 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }
 }
 
-final variantsProvider = StateNotifierProvider.autoDispose
-    .family<VariantsNotifier, AsyncValue<List<Variant>>, String?>(
-        (ref, productId) {
-  final variantsNotifier = VariantsNotifier(productId);
-
-  // Fetch and update the list of variants.
-  variantsNotifier.variants();
-
-  return variantsNotifier;
-});
-
-class VariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
-  final String? productId;
-
-  VariantsNotifier(this.productId) : super(AsyncLoading());
-
-  Future<void> variants() async {
-    // Fetch the list of variants from a remote service.
-    final variants = await ProxyService.isar.variants(
-        branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
-
-    // Update the state with the list of variants.
-    state = AsyncValue.data(variants);
-  }
-
-  @override
-  void dispose() {
-    // Dispose of any resources that were used to fetch and update the list of variants.
-    super.dispose();
-  }
-}
-
 // scanning
 final scanningModeProvider =
     StateNotifierProvider.autoDispose<ScanningModeNotifier, bool>((ref) {
@@ -339,8 +316,8 @@ final scanningModeProvider =
 class ScanningModeNotifier extends StateNotifier<bool> {
   ScanningModeNotifier() : super(false);
 
-  void toggleScanningMode({required bool given}) {
-    state = given;
+  void toggleScanningMode() {
+    state = !state;
   }
 }
 // end scanning

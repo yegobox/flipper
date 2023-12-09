@@ -112,10 +112,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
               children: [
                 IconButton(
                   onPressed: () {
-                    bool scann = !_scanningMode;
+                   
                     ref
                         .read(scanningModeProvider.notifier)
-                        .toggleScanningMode(given: scann);
+                        .toggleScanningMode();
 
                     if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");

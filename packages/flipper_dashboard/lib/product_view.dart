@@ -117,22 +117,22 @@ class ProductViewState extends ConsumerState<ProductView> {
     BuildContext context,
     ProductViewModel model,
   ) {
-    final variantsRef =
-        ref.watch(outerVariantsProvider(ProxyService.box.getBranchId()!));
     return Center(
       child: Center(
-        child: variantsRef.when(
-          data: (variants) {
-            return Column(
-              children: [
-                for (int index = 0; index < variants.length; index++)
-                  buildVariantRow(context, model, variants[index]),
-              ],
-            );
-          },
-          error: (error, e) => Text('error: $error'),
-          loading: () => const CircularProgressIndicator(),
-        ),
+        child: ref
+            .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
+            .when(
+              data: (variants) {
+                return Column(
+                  children: [
+                    for (int index = 0; index < variants.length; index++)
+                      buildVariantRow(context, model, variants[index]),
+                  ],
+                );
+              },
+              error: (error, e) => Text('error: $error'),
+              loading: () => const CircularProgressIndicator(),
+            ),
       ),
     );
   }
