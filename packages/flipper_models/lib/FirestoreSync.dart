@@ -17,7 +17,12 @@ class FirestoreSync<M extends IJsonSerializable>
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
     final String collectionName = getCollectionName<T>();
     final collectionRef = FirebaseFirestore.instance.collection(collectionName);
-    await collectionRef.doc(getItemId<T>(item)).set(item.toJson());
+    try {
+      await collectionRef.doc(getItemId<T>(item)).set(item.toJson());
+    } catch (e) {
+      print('Error: $e');
+      // Handle the error appropriately.
+    }
   }
 
   String getCollectionName<T>() {
@@ -33,9 +38,11 @@ class FirestoreSync<M extends IJsonSerializable>
       return 'transactions';
     } else if (T == TransactionItem) {
       return 'transactionItems';
+    } else if (T == Drawers) {
+      return 'drawers';
+    } else {
+      throw ArgumentError('Unsupported type: $T');
     }
-
-    throw ArgumentError('Unsupported type: $T');
   }
 
   String getItemId<T>(T item) {
@@ -51,98 +58,70 @@ class FirestoreSync<M extends IJsonSerializable>
       return item.id;
     } else if (item is TransactionItem) {
       return item.id;
+    } else if (item is Drawers) {
+      return item.id;
+    } else {
+      throw ArgumentError('Unsupported type: $T');
     }
-    throw ArgumentError('Unsupported type: $T');
   }
 
   @override
-  Future<void> localChanges() {
+  Future<void> localChanges() async {
     // TODO: implement localChanges
     throw UnimplementedError();
   }
 
   @override
   void pull() {
-    final productCollectionRef =
-        FirebaseFirestore.instance.collection('products');
-    if (ProxyService.box.getBranchId() == null) return;
-    int branchId = ProxyService.box.getBranchId()!;
-    final productSnapshots = productCollectionRef.snapshots();
-    productSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(model: Product.fromJson(updatedJson), branchId: branchId);
-      }
-    });
+    final int? branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
 
-    final variantCollectionRef =
-        FirebaseFirestore.instance.collection('variants');
+    for (final collectionName in [
+      'products',
+      'variants',
+      'stocks',
+      'devices',
+      'transactions',
+      'transactionItems',
+      'drawers'
+    ]) {
+      final collectionRef =
+          FirebaseFirestore.instance.collection(collectionName);
 
-    final variantSnapshots = variantCollectionRef.snapshots();
-    variantSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(model: Variant.fromJson(updatedJson), branchId: branchId);
-      }
-    });
-
-    final stockCollectionRef = FirebaseFirestore.instance.collection('stocks');
-
-    final stockSnapshots = stockCollectionRef.snapshots();
-    stockSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(model: Stock.fromJson(updatedJson), branchId: branchId);
-      }
-    });
-
-    final deviceCollectionRef =
-        FirebaseFirestore.instance.collection('devices');
-
-    final deviceSnapshots = deviceCollectionRef.snapshots();
-    deviceSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(model: Device.fromJson(updatedJson), branchId: branchId);
-      }
-    });
-
-    final transactionCollectionRef =
-        FirebaseFirestore.instance.collection('transactions');
-
-    final transactionsSnapshots = transactionCollectionRef.snapshots();
-    transactionsSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(
-            model: ITransaction.fromJson(updatedJson), branchId: branchId);
-      }
-    });
-
-    final transactionItemCollectionRef =
-        FirebaseFirestore.instance.collection('transactionItems');
-
-    final transactionItemSnapshots = transactionItemCollectionRef.snapshots();
-    transactionItemSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(
-            model: TransactionItem.fromJson(updatedJson), branchId: branchId);
-      }
-    });
-
-    final drawersCollectionRef =
-        FirebaseFirestore.instance.collection('drawers');
-
-    final drawersSnapshots = drawersCollectionRef.snapshots();
-    drawersSnapshots.listen((querySnapshot) {
-      for (final docSnapshot in querySnapshot.docs) {
-        final updatedJson = docSnapshot.data();
-        handleItem(model: Drawers.fromJson(updatedJson), branchId: branchId);
-      }
-    });
+      final collectionSnapshots = collectionRef.snapshots();
+      collectionSnapshots.listen((querySnapshot) {
+        for (final docSnapshot in querySnapshot.docs) {
+          final updatedJson = docSnapshot.data();
+          handleItem(
+              model: getSpecificModel(collectionName, updatedJson),
+              branchId: branchId);
+        }
+      });
+    }
   }
 
   @override
   Future<void> push() async {}
+
+  IJsonSerializable getSpecificModel(
+      String collectionName, Map<String, dynamic> data) {
+    switch (collectionName) {
+      case 'products':
+        return Product.fromJson(data);
+      case 'variants':
+        return Variant.fromJson(data);
+      case 'stocks':
+        return Stock.fromJson(data);
+      case 'devices':
+        return Device.fromJson(data);
+      case 'transactions':
+        return ITransaction.fromJson(data);
+      case 'transactionItems':
+        return TransactionItem.fromJson(data);
+      case 'drawers':
+        return Drawers.fromJson(data);
+      default:
+        throw ArgumentError('Unsupported collection name: $collectionName');
+    }
+  }
 }

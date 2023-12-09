@@ -146,46 +146,30 @@ class RowItem extends StatelessWidget {
   Widget _buildPrices() {
     return Container(
       width: 80,
-      child: StreamBuilder<List<Variant>>(
-        stream: ProxyService.isar.geVariantStreamByProductId(
-          productId: product == null ? "0" : product!.id,
+      child: FutureBuilder<List<Variant>>(
+        future: ProxyService.isar.getVariantByProductId(
+          productId: product?.id ?? "0",
         ),
         builder: (context, snapshot) {
-          if (snapshot.data?.isNotEmpty == true && snapshot.data!.length > 1) {
-            return const Text(
-              ' Prices',
-              style: TextStyle(color: Colors.black),
+          if (snapshot.hasError) {
+            return SizedBox.shrink();
+          }
+
+          final variants = snapshot.data;
+
+          if (variant != null) {
+            return Text(
+              'RWF ${NumberFormat('#,###').format(variant!.retailPrice)}',
+              style: const TextStyle(color: Colors.black),
             );
-          } else {
-            /// this work with assumption that if we only have one variant for the product
-            /// that means we can directly show that default variant price to the UI
-            return FutureBuilder<List<Variant>>(
-              future: ProxyService.isar.getVariantByProductId(
-                productId: product?.id ?? "0",
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return SizedBox.shrink();
-                }
-
-                final variants = snapshot.data;
-
-                if (variant != null) {
-                  return Text(
-                    'RWF ${NumberFormat('#,###').format(variant!.retailPrice)}',
-                    style: const TextStyle(color: Colors.black),
-                  );
-                } else if (variants != null && variants.isNotEmpty) {
-                  return Text(
-                    'RWF ${NumberFormat('#,###').format(variants.first.retailPrice)}',
-                    style: const TextStyle(color: Colors.black),
-                  );
-                }
-
-                return SizedBox.shrink();
-              },
+          } else if (variants != null && variants.isNotEmpty) {
+            return Text(
+              'RWF ${NumberFormat('#,###').format(variants.first.retailPrice)}',
+              style: const TextStyle(color: Colors.black),
             );
           }
+
+          return SizedBox.shrink();
         },
       ),
     );
