@@ -38,6 +38,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   freezed_annotation:
   cloud_firestore: ^4.13.5
+  isolated_worker: ^0.1.1
   dio: ^4.0.6
 dependency_overrides:
   http: ^1.1.2

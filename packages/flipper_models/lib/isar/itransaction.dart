@@ -99,12 +99,5 @@ class ITransaction extends IJsonSerializable {
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$ITransactionToJson(this);
-
-    data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
-    data['businessId'] = ProxyService.box.getBusinessId();
-
-    return data;
-  }
+  Map<String, dynamic> toJson() => _$ITransactionToJson(this);
 }

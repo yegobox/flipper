@@ -57,7 +57,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     super.dispose();
   }
 
-  bool _scanningMode = false;
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
@@ -112,11 +111,16 @@ class SearchFieldState extends ConsumerState<SearchField> {
               children: [
                 IconButton(
                   onPressed: () {
-                   
                     ref
                         .read(scanningModeProvider.notifier)
                         .toggleScanningMode();
 
+                    ProxyService.isar.update(
+                        data: ref
+                            .read(pendingTransactionProvider(
+                                ProxyService.box.getBranchId()))
+                            .value
+                            ?.value);
                     if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");
                     } else {
