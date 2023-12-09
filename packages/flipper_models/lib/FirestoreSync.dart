@@ -18,7 +18,8 @@ class FirestoreSync<M extends IJsonSerializable>
     final String collectionName = getCollectionName<T>();
     final collectionRef = FirebaseFirestore.instance.collection(collectionName);
     try {
-      await collectionRef.doc(getItemId<T>(item)).set(item.toJson());
+      final doc = collectionRef.doc(getItemId<T>(item));
+      await doc.set(item.toJson(), SetOptions(merge: true));
     } catch (e) {
       print('Error: $e');
       // Handle the error appropriately.
