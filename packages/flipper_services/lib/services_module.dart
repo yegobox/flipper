@@ -27,7 +27,7 @@ import 'package:flipper_services/remote_config_service.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/sentry_service.dart';
 import 'package:flipper_services/setting_service.dart';
-// import 'package:flipper_services/sharing_service.dart';
+import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:flutter/foundation.dart';
@@ -75,14 +75,14 @@ abstract class ServicesModule {
     return upload;
   }
 
-  // @LazySingleton()
-  // Shareable get share {
-  //   Shareable share;
+  @LazySingleton()
+  Shareable get share {
+    Shareable share;
 
-  //   share = SharingService();
+    share = SharingService();
 
-  //   return share;
-  // }
+    return share;
+  }
 
   @LazySingleton()
   Review get review {
