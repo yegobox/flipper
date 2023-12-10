@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:developer';
-import 'dart:ui';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -14,74 +12,70 @@ import 'package:flutter/foundation.dart';
 class CronService {
   final drive = GoogleDrive();
 
-  void companyWideReport() {}
+  Future<void> companyWideReport() async {
+    // Implement company-wide report logic
+  }
 
-  void customerBasedReport() {}
-  //bluethooth should search and auto connect to any near bluethoopt printer.
-  //the setting should enable this i.e toggled to true i.e we will start the search process on app startup
-  //the search process should be triggered by a button on the settings page
-  connectBlueToothPrinter() {}
+  Future<void> customerBasedReport() async {
+    // Implement customer-based report logic
+  }
 
-  deleteReceivedMessageFromServer() {}
+  Future<void> connectBlueToothPrinter() async {
+    // Implement Bluetooth connection logic
+  }
 
-  //the default file that will be generated and saved in known app folder
-  //will be printed everytime a sales is complete for demo
-  //after demo i.e that time we will be sure that bluethooth is working
-  // then we will customize invoice to match with actual data.
+  Future<void> deleteReceivedMessageFromServer() async {
+    // Implement delete received message logic
+  }
+
   Future<void> _remoteHttps(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
-    /// because this func run in isolate we need to re-register getit dependencies
-    /// REF:https://github.com/fluttercommunity/get_it/issues/165
     await initDependencies();
     await ProxyService.sync.push();
     ProxyService.sync.pull();
     sendPort.send('Done sending data to http server');
   }
 
-  schedule() async {
-    //save the device token to firestore if it is not already there
+  Future<void> schedule() async {
+    await _setupFirebase();
+
+    Timer.periodic(_getSyncPushDuration(), (Timer t) async {
+      await _syncPushData();
+    });
+
+    Timer.periodic(_getFirebaseSyncDuration(), (Timer t) async {
+      await _syncFirestoreData();
+    });
+
+    Timer.periodic(_getDemoPrintDuration(), (Timer t) async {
+      await _runDemoPrint();
+    });
+
+    Timer.periodic(_getSyncPullDuration(), (Timer t) async {
+      _syncPullData();
+    });
+
+    Timer.periodic(_getpublushingDeviceDuration(), (Timer t) async {
+       ProxyService.isar.sendScheduleMessages();
+      await _keepTryingPublishDevice(); // Add this line
+    });
+
+    // Other scheduled tasks...
+  }
+
+  Future<void> _keepTryingPublishDevice() async {
+    // Implement the logic for keepTryingPublishDevice
+    ProxyService.event.keepTryingPublishDevice();
+  }
+
+  Future<void> _setupFirebase() async {
     Business? business = await ProxyService.isar.getBusiness();
     ProxyService.syncFirestore.configure();
     String? token;
-    Timer.periodic(Duration(minutes: kDebugMode ? 10 : 20), (Timer t) async {
-      if (ProxyService.remoteConfig.isSyncAvailable()) {
-        ProxyService.sync.pull();
-      }
-    });
-    Timer.periodic(Duration(minutes: kDebugMode ? 3 : 7), (Timer t) async {
-      if (ProxyService.remoteConfig.isSyncAvailable()) {
-        // ProxyService.syncFirestore.pull();
-      }
-    });
-    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
-      // get a list of local copy of product to sync
 
-      if (ProxyService.remoteConfig.isSyncAvailable()) {
-        await ProxyService.sync.push();
-        // ProxyService.sync.pull();
-        // RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
-        // if (rootIsolateToken == null) {
-        //   print("Cannot get the RootIsolateToken");
-        //   return;
-        // }
-        // ReceivePort receivePort = ReceivePort();
-        // await Isolate.spawn(
-        //   _remoteHttps,
-        //   [rootIsolateToken, receivePort.sendPort],
-        // );
-        // receivePort.listen((message) {
-        //   log('Message from isolate: $message', name: 'sync');
-        // });
-        // REF: https://github.com/firebase/flutterfire/issues/11933
-      }
-
-      ProxyService.messaging
-          .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
-      // in case pubnub did not get latest message load them forcefully
-    });
     if (!Platform.isWindows) {
       token = await FirebaseMessaging.instance.getToken();
       if (business != null) {
@@ -89,37 +83,56 @@ class CronService {
         updatedBusiness['deviceToken'] = token.toString();
       }
     }
-    Timer.periodic(Duration(hours: 5), (Timer t) async {
-      if (ProxyService.box.hasSignedInForAutoBackup()) {
-        drive.upload();
-      }
-    });
+  }
 
-    // we need to think when the devices change or app is uninstalled
-    // for the case like that the token needs to be updated, but not covered now
-    // this sill make more sence once we implement the sync that is when we will implement such solution
-    bool backOff = false;
-    Timer.periodic(Duration(seconds: kDebugMode ? 10 : 10), (Timer t) async {
-      /// get unsynced counter and send them online for houseKeping.
-      try {
-        if (!backOff) {
-          ProxyService.isar.sendScheduleMessages();
-          ProxyService.event.keepTryingPublishDevice();
-        }
-      } catch (e) {
-        backOff = true;
-      }
-    });
-    Timer.periodic(Duration(minutes: kDebugMode ? 1 : 10), (Timer t) async {
-      /// get unsynced counter and send them online for houseKeping.
-      if (ProxyService.box.getBranchId() != null) {
-        // TODO: counters...
-        // List<Counter> counters = await ProxyService.isar
-        // .unSyncedCounters(branchId: ProxyService.box.getBranchId()!);
-        // for (Counter counter in counters) {
-        //   ProxyService.isar.update(data: counter..backed = true);
-        // }
-      }
-    });
+  Future<void> _syncPullData() async {
+    if (ProxyService.remoteConfig.isSyncAvailable()) {
+      ProxyService.sync.pull();
+    }
+  }
+
+  Future<void> _syncPushData() async {
+    if (ProxyService.remoteConfig.isSyncAvailable()) {
+      await ProxyService.sync.push();
+      await _runRemoteHttpsIsolate();
+      ProxyService.messaging
+          .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
+    }
+    // Other sync-related logic...
+  }
+
+  Future<void> _syncFirestoreData() async {
+    if (ProxyService.remoteConfig.isSyncAvailable()) {
+      // Implement Firestore sync logic
+      // ProxyService.syncFirestore.pull();
+    }
+  }
+
+  Future<void> _runDemoPrint() async {
+    // Implement demo print logic
+  }
+
+  Future<void> _runRemoteHttpsIsolate() async {
+    // Implement logic to run _remoteHttps in an isolate
+  }
+
+  Duration _getSyncPushDuration() {
+    return Duration(minutes: kDebugMode ? 1 : 5);
+  }
+
+  Duration _getSyncPullDuration() {
+    return Duration(minutes: kDebugMode ? 10 : 20);
+  }
+
+  Duration _getpublushingDeviceDuration() {
+    return Duration(minutes: kDebugMode ? 10 : 20);
+  }
+
+  Duration _getFirebaseSyncDuration() {
+    return Duration(minutes: kDebugMode ? 3 : 7);
+  }
+
+  Duration _getDemoPrintDuration() {
+    return Duration(minutes: kDebugMode ? 10 : 20);
   }
 }
