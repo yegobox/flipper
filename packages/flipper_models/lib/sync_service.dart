@@ -127,7 +127,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
 
   @override
   Future<void> localChanges() async {
-    log('pushing local changes to server', name: 'sync');
+    log('Start sending data to server', name: 'sync');
     final data = await ProxyService.isar.getUnSyncedData();
     for (Product product in data.products) {
       if (product.action != AppActions.remote && product.name != TEMP_PRODUCT) {

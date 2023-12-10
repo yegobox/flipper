@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
-
+import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -32,6 +32,7 @@ class CronService {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     await ProxyService.sync.push();
     ProxyService.sync.pull();
+    sendPort.send('Done sending data to http server');
   }
 
   schedule() async {
