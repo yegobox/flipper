@@ -40,6 +40,8 @@ dependencies:
   cloud_firestore: ^4.13.5
   isolated_worker: ^0.1.1
   dio: ^4.0.6
+  # adding realm to replace firestore on desktop in transporting data to cloud
+  realm: ^1.6.1
 dependency_overrides:
   http: ^1.1.2
 dev_dependencies:

@@ -10,6 +10,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   isar_flutter_libs
   local_notifier
   printing
+  realm
   screen_retriever
   sentry_flutter
   smart_auth

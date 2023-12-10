@@ -18,6 +18,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   local_notifier
   permission_handler_windows
   printing
+  realm
   screen_retriever
   sentry_flutter
   share_plus
