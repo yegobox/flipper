@@ -66,7 +66,7 @@ Future<void> main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
-  if (isAndroid || isWindows && foundation.kReleaseMode && !isWeb) {
+  if (isAndroid && foundation.kReleaseMode && !isWeb & !isWindows) {
     NewRelic.initialize();
   }
   if (!isWindows) {

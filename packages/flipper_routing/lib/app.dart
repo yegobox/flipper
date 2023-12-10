@@ -208,3 +208,6 @@ class App {}
 // }
 // TODO: when get time implement this: https://app.posthog.com/ (login with richard github account)
 // https://pub.dev/packages/side_navigation
+
+// Login Pins
+// YEGOBOX: 31658
