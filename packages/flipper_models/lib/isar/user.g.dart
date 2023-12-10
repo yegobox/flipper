@@ -17,3 +17,9 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'phoneNumber': instance.phoneNumber,
       'pin': instance.pin,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

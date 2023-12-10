@@ -576,3 +576,9 @@ Map<String, dynamic> _$PermissionToJson(Permission instance) =>
       'id': instance.id,
       'name': instance.name,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

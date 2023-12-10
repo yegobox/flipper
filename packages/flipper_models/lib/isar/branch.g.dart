@@ -2409,3 +2409,9 @@ Map<String, dynamic> _$BranchToJson(Branch instance) => <String, dynamic>{
       'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

@@ -1266,3 +1266,9 @@ Map<String, dynamic> _$PinToJson(Pin instance) => <String, dynamic>{
       'branchId': instance.branchId,
       'businessId': instance.businessId,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

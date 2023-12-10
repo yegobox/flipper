@@ -1367,3 +1367,9 @@ Map<String, dynamic> _$HistoryToJson(History instance) => <String, dynamic>{
       'action': instance.action,
       'createdAt': instance.createdAt.toIso8601String(),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

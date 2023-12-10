@@ -2062,3 +2062,9 @@ Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
       'message': instance.message,
       'deletedAt': instance.deletedAt?.toIso8601String(),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

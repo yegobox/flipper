@@ -5250,3 +5250,9 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'deletedAt': ITransaction._dateTimeToJson(instance.deletedAt),
       'retailerId': instance.retailerId,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

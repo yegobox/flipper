@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';

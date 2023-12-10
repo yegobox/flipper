@@ -11375,3 +11375,9 @@ Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
       'retailPrice': instance.retailPrice,
       'action': instance.action,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

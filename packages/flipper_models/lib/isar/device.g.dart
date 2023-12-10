@@ -2858,3 +2858,9 @@ Map<String, dynamic> _$DeviceToJson(Device instance) => <String, dynamic>{
       'action': instance.action,
       'deletedAt': Device._dateTimeToJson(instance.deletedAt),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint
