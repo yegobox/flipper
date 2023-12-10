@@ -46,24 +46,36 @@ class CronService {
     Business? business = await ProxyService.isar.getBusiness();
     ProxyService.syncFirestore.configure();
     String? token;
+    Timer.periodic(Duration(minutes: kDebugMode ? 10 : 20), (Timer t) async {
+      if (ProxyService.remoteConfig.isSyncAvailable()) {
+        ProxyService.sync.pull();
+      }
+    });
+    Timer.periodic(Duration(minutes: kDebugMode ? 3 : 7), (Timer t) async {
+      if (ProxyService.remoteConfig.isSyncAvailable()) {
+        ProxyService.syncFirestore.pull();
+      }
+    });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
       // get a list of local copy of product to sync
 
       if (ProxyService.remoteConfig.isSyncAvailable()) {
-        RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
-        if (rootIsolateToken == null) {
-          print("Cannot get the RootIsolateToken");
-          return;
-        }
-        ReceivePort receivePort = ReceivePort();
-        await Isolate.spawn(
-          _remoteHttps,
-          [rootIsolateToken, receivePort.sendPort],
-        );
-        receivePort.listen((message) {
-          log('Message from isolate: $message', name: 'sync');
-        });
-        ProxyService.syncFirestore.pull();
+        await ProxyService.sync.push();
+        // ProxyService.sync.pull();
+        // RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
+        // if (rootIsolateToken == null) {
+        //   print("Cannot get the RootIsolateToken");
+        //   return;
+        // }
+        // ReceivePort receivePort = ReceivePort();
+        // await Isolate.spawn(
+        //   _remoteHttps,
+        //   [rootIsolateToken, receivePort.sendPort],
+        // );
+        // receivePort.listen((message) {
+        //   log('Message from isolate: $message', name: 'sync');
+        // });
+        // REF: https://github.com/firebase/flutterfire/issues/11933
       }
 
       ProxyService.messaging
