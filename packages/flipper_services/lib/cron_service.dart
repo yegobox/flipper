@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:developer';
 import 'dart:ui';
+import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -30,6 +32,10 @@ class CronService {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+
+    /// because this func run in isolate we need to re-register getit dependencies
+    /// REF:https://github.com/fluttercommunity/get_it/issues/165
+    await initDependencies();
     await ProxyService.sync.push();
     ProxyService.sync.pull();
     sendPort.send('Done sending data to http server');
@@ -55,7 +61,7 @@ class CronService {
           [rootIsolateToken, receivePort.sendPort],
         );
         receivePort.listen((message) {
-          print('Message from isolate: $message');
+          log('Message from isolate: $message', name: 'sync');
         });
         ProxyService.syncFirestore.pull();
       }
