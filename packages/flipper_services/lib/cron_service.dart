@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -23,16 +26,36 @@ class CronService {
   //will be printed everytime a sales is complete for demo
   //after demo i.e that time we will be sure that bluethooth is working
   // then we will customize invoice to match with actual data.
+  Future<void> _remoteHttps(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    await ProxyService.sync.push();
+    ProxyService.sync.pull();
+  }
+
   schedule() async {
     //save the device token to firestore if it is not already there
     Business? business = await ProxyService.isar.getBusiness();
+    ProxyService.syncFirestore.configure();
     String? token;
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
       // get a list of local copy of product to sync
 
       if (ProxyService.remoteConfig.isSyncAvailable()) {
-        // ProxyService.sync.push();
-        // ProxyService.sync.pull();
+        RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
+        if (rootIsolateToken == null) {
+          print("Cannot get the RootIsolateToken");
+          return;
+        }
+        ReceivePort receivePort = ReceivePort();
+        await Isolate.spawn(
+          _remoteHttps,
+          [rootIsolateToken, receivePort.sendPort],
+        );
+        receivePort.listen((message) {
+          print('Message from isolate: $message');
+        });
         ProxyService.syncFirestore.pull();
       }
 
