@@ -53,7 +53,7 @@ class CronService {
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 3 : 7), (Timer t) async {
       if (ProxyService.remoteConfig.isSyncAvailable()) {
-        ProxyService.syncFirestore.pull();
+        // ProxyService.syncFirestore.pull();
       }
     });
     Timer.periodic(Duration(minutes: kDebugMode ? 1 : 5), (Timer t) async {
