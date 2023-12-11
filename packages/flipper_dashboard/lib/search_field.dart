@@ -47,6 +47,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
       _hasText = false;
       _focusNode.requestFocus();
       ref.read(searchStringProvider.notifier).emitString(value: '');
+
+      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
     });
   }
 
@@ -72,21 +74,22 @@ class SearchFieldState extends ConsumerState<SearchField> {
           maxLines: null,
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
-          onChanged: (value) async {
-            _hasText = value.isNotEmpty;
-            final currentTransaction = ref.watch(
-                pendingTransactionProvider(ProxyService.box.getBranchId()));
-            if (ref.watch(scanningModeProvider) && _hasText) {
+          onFieldSubmitted: (value) async {
+            _textSubject.add(value);
+
+            ITransaction currentTransaction =
+                await ProxyService.isar.manageTransaction();
+            if (ref.watch(scanningModeProvider) && value.isNotEmpty) {
               Variant? variant = await ProxyService.isar.variant(name: value);
-              if (variant != null && currentTransaction.value != null) {
+              if (variant != null) {
                 Stock? stock = await ProxyService.isar
                     .stockByVariantId(variantId: variant.id);
 
-                model.saveTransaction(
+                await model.saveTransaction(
                     variation: variant,
                     amountTotal: variant.retailPrice,
                     customItem: false,
-                    pendingTransaction: currentTransaction.value!.value!,
+                    pendingTransaction: currentTransaction,
                     currentStock: stock.currentStock);
                 ref.refresh(transactionItemsProvider);
                 ref.refresh(searchStringProvider);
@@ -117,6 +120,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");
                     } else {
+                      ref.refresh(
+                          productsProvider(ProxyService.box.getBranchId()!));
                       toast("Scanning mode DeActivated");
                     }
                   },

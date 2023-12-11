@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -278,9 +280,11 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(4)))),
-                                    onPressed: () {
+                                    onPressed: () async {
                                       // refresh transactions
                                       model.keyboardKeyPressed(key: 'C');
+
+                                      ref.refresh(transactionItemsProvider);
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },

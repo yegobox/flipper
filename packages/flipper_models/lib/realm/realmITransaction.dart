@@ -1,9 +1,13 @@
 import 'package:realm/realm.dart';
+
 part 'realmITransaction.g.dart';
 
 @RealmModel()
 class _RealmITransaction {
   late String id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
   late String reference;
   String? categoryId;
   late String transactionNumber;

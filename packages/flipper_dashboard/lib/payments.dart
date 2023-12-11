@@ -328,20 +328,20 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    ITransaction currentTransaction =
+        await ProxyService.isar.manageTransaction();
     final transaction =
         ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     final totalPayable =
         ref.watch(transactionItemsProvider.notifier).totalPayable;
     model.handlingConfirm = true;
-    await model.collectPayment(
-        paymentType: paymentType!,
-        transaction: currentTransaction.value!.value!);
     double amount = _cash.text.isEmpty
-        ? model.currentTransaction!.subTotal
+        ? currentTransaction.subTotal
         : double.parse(_cash.text);
     model.keypad.setCashReceived(amount: amount);
+    await model.collectPayment(
+        paymentType: paymentType!, transaction: currentTransaction);
+
     String receiptType = "ns";
     if (ProxyService.box.isPoroformaMode()) {
       receiptType = ReceiptType.ps;

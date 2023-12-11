@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -41,7 +42,10 @@ class CronService {
 
   Future<void> schedule() async {
     await _setupFirebase();
-
+    await _setupRealm();
+    if (!isWeb) {
+      ProxyService.realm.pull();
+    }
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
     });
@@ -59,7 +63,7 @@ class CronService {
     });
 
     Timer.periodic(_getpublushingDeviceDuration(), (Timer t) async {
-       ProxyService.isar.sendScheduleMessages();
+      ProxyService.isar.sendScheduleMessages();
       await _keepTryingPublishDevice(); // Add this line
     });
 
@@ -134,5 +138,11 @@ class CronService {
 
   Duration _getDemoPrintDuration() {
     return Duration(minutes: kDebugMode ? 10 : 20);
+  }
+
+  Future<void> _setupRealm() async {
+    if (!isWeb) {
+      await ProxyService.realm.configure();
+    }
   }
 }

@@ -85,7 +85,6 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                   model.keypad.setTransaction(transaction);
 
                   showModalBottomSheet(
-                    // backgroundColor: Colors.red,
                     context: context,
                     shape: const RoundedRectangleBorder(
                       borderRadius:

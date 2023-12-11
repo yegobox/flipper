@@ -11,6 +11,7 @@ class RealmITransaction extends _RealmITransaction
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmITransaction(
     String id,
+    ObjectId realmId,
     String reference,
     String transactionNumber,
     int branchId,
@@ -33,6 +34,7 @@ class RealmITransaction extends _RealmITransaction
     int? retailerId,
   }) {
     RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'reference', reference);
     RealmObjectBase.set(this, 'categoryId', categoryId);
     RealmObjectBase.set(this, 'transactionNumber', transactionNumber);
@@ -61,6 +63,12 @@ class RealmITransaction extends _RealmITransaction
   String get id => RealmObjectBase.get<String>(this, 'id') as String;
   @override
   set id(String value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
   String get reference =>
@@ -203,6 +211,8 @@ class RealmITransaction extends _RealmITransaction
     return const SchemaObject(
         ObjectType.realmObject, RealmITransaction, 'RealmITransaction', [
       SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
       SchemaProperty('reference', RealmPropertyType.string),
       SchemaProperty('categoryId', RealmPropertyType.string, optional: true),
       SchemaProperty('transactionNumber', RealmPropertyType.string),

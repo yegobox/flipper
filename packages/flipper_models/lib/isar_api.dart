@@ -128,10 +128,11 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<ITransaction> manageTransaction(
       {String transactionType = 'custom', int? retailId}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    ITransaction? existTransaction = retailId != null
-        ? await pendingTransaction(retailId: retailId)
-        : await pendingTransaction(branchId: branchId);
-
+    // ITransaction? existTransaction = retailId != null
+    //     ? await pendingTransaction(retailId: retailId)
+    //     : await pendingTransaction(branchId: branchId);
+    ITransaction? existTransaction =
+        await pendingTransaction(branchId: branchId);
     if (existTransaction == null) {
       final String id = randomString();
       final transaction = ITransaction(
@@ -598,10 +599,11 @@ class IsarAPI<M> implements IsarApiInterface {
 
     List<TransactionItem> items = await transactionItems(
         transactionId: transaction.id, doneWithTransaction: false);
-
-    transaction.customerChangeDue = (cashReceived - transaction.subTotal);
+    double subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    transaction.customerChangeDue = (cashReceived - subTotal);
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
+    transaction.subTotal = subTotal;
     transaction.updatedAt = DateTime.now().toIso8601String();
 
     await update(data: transaction);

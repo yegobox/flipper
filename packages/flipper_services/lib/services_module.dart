@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/RealmSync.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -349,6 +350,11 @@ abstract class ServicesModule {
   @LazySingleton()
   SyncFirestore syncFirestore() {
     return SyncFirestore.create();
+  }
+
+  @LazySingleton()
+  SyncReaml syncRealm() {
+    return SyncReaml.create();
   }
 
   @LazySingleton()
