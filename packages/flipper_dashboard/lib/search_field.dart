@@ -114,7 +114,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     ref
                         .read(scanningModeProvider.notifier)
                         .toggleScanningMode();
-
                    
                     if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");
