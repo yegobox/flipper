@@ -73,7 +73,7 @@ class PaymentsState extends ConsumerState<Payments> {
       onPop: _routerService.pop,
       onActionButtonClicked: _routerService.pop,
       rightActionButtonName: 'Split payment',
-      icon: Icons.arrow_back,
+      icon: Icons.close,
       multi: 3,
       bottomSpacer: 52,
       title: 'Confirm Payment',

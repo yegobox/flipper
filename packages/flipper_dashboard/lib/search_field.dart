@@ -115,12 +115,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                         .read(scanningModeProvider.notifier)
                         .toggleScanningMode();
 
-                    ProxyService.isar.update(
-                        data: ref
-                            .read(pendingTransactionProvider(
-                                ProxyService.box.getBranchId()))
-                            .value
-                            ?.value);
+                   
                     if (ref.watch(scanningModeProvider)) {
                       toast("Scanning mode Activated");
                     } else {

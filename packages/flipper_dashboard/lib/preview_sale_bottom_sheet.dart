@@ -8,7 +8,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -106,7 +105,7 @@ class PreviewSaleBottomSheetState
             Padding(
               padding: EdgeInsets.all(8),
               child: BoxButton(
-                title: widget.mode != SellingMode.forSelling
+                title: widget.mode == SellingMode.forSelling
                     ? "Collect ${NumberFormat('#,###').format(totalPayable)} RWF"
                     : "Order ${NumberFormat('#,###').format(totalPayable)} RWF",
                 onTap: () {
