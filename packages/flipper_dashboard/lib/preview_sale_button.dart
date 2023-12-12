@@ -73,11 +73,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
                   _controller.forward(); // Start the animation
                   final transaction =
-                      await ProxyService.isar.pendingTransaction(
-                    branchId: ProxyService.box.getBranchId()!,
-                  );
+                      await ProxyService.isar.manageTransaction();
 
-                  if (transaction == null) {
+                  if (transaction.subTotal == 0) {
                     showToast(context, 'No item on cart!', color: Colors.red);
                     return;
                   }

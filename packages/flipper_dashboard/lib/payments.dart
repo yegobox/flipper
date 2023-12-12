@@ -330,10 +330,7 @@ class PaymentsState extends ConsumerState<Payments> {
   Future<void> confirmPayment(CoreViewModel model) async {
     ITransaction currentTransaction =
         await ProxyService.isar.manageTransaction();
-    final transaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
-    final totalPayable =
-        ref.watch(transactionItemsProvider.notifier).totalPayable;
+
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
         ? currentTransaction.subTotal
@@ -351,10 +348,10 @@ class PaymentsState extends ConsumerState<Payments> {
     }
     _routerService.navigateTo(
       PaymentConfirmationRoute(
-        totalTransactionAmount: totalPayable,
+        totalTransactionAmount: currentTransaction.subTotal,
         receiptType: receiptType,
         paymentType: paymentType!,
-        transaction: transaction.value!.value!,
+        transaction: currentTransaction,
       ),
     );
   }
