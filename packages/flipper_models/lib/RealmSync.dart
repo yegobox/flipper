@@ -138,7 +138,10 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   @override
-  void pull() {
+  Future<void> pull() async {
+    if (realm == null) {
+      await configure();
+    }
     if (realm != null) {
       final iTransactionsCollection = realm!.all<RealmITransaction>();
       final iTransactionSubscription =

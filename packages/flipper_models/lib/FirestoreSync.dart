@@ -111,9 +111,9 @@ class FirestoreSync<M extends IJsonSerializable>
   }
 
   @override
-  void pull() {
+  Future<void> pull() async {
     final int? branchId = ProxyService.box.getBranchId();
-    if (branchId == null) return;
+    if (branchId == null) return await Future.value(null);
 
     for (final collectionName in [
       'products',
