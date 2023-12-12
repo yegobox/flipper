@@ -39,6 +39,9 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
+    if (realm == null) {
+      await configure();
+    }
     if (item is ITransaction) {
       final realmITransaction = RealmITransaction(
         item.id,
