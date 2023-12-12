@@ -104,7 +104,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   }
 
   @override
-  void pull() async {
+  Future<void> pull() async {
     ProxyService.remote.listenToChanges();
   }
 
