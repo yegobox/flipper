@@ -39,6 +39,8 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         String namesString =
             itemOnTransaction.map((item) => item.name).join(',');
         json["itemName"] = namesString;
+        json["businessPhoneNumber"] = ProxyService.box.getUserPhone();
+        json["businessId"] = ProxyService.box.getBusinessId();
         if (itemOnTransaction.isEmpty)
           return null; // do not proceed if name is empty
       }
