@@ -108,14 +108,12 @@ class PreviewSaleBottomSheetState
                 title: widget.mode == SellingMode.forSelling
                     ? "Collect ${NumberFormat('#,###').format(totalPayable)} RWF"
                     : "Order ${NumberFormat('#,###').format(totalPayable)} RWF",
-                onTap: () {
+                onTap: () async {
+                  final transaction =
+                      await ProxyService.isar.manageTransaction();
                   _routerService.navigateTo(
                     PaymentsRoute(
-                      transaction: ref
-                          .read(pendingTransactionProvider(
-                              ProxyService.box.getBranchId()))
-                          .value!
-                          .value!,
+                      transaction: transaction,
                     ),
                   );
                 },
