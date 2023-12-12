@@ -1,12 +1,11 @@
+import 'package:flipper_dashboard/customers.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class AddCustomerButton extends StatelessWidget {
   AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
-  final _routerService = locator<RouterService>();
 
   final String transactionId;
   @override
@@ -39,9 +38,22 @@ class AddCustomerButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              _routerService.navigateTo(CustomersRoute(
-                transactionId: transactionId,
-              ));
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(10.0)),
+                ),
+                useRootNavigator: true,
+                builder: (BuildContext context) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: Customers(
+                      transactionId: transactionId,
+                    ),
+                  );
+                },
+              );
             },
             child: Text("Add Customer",
                 style: GoogleFonts.poppins(

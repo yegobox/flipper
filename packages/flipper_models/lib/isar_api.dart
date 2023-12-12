@@ -537,7 +537,7 @@ class IsarAPI<M> implements IsarApiInterface {
     customer!.updatedAt = DateTime.now();
     // save customer to db
     db.write((isar) {
-      isar.customers.put(customer);
+      isar.customers.onPut(customer);
     });
   }
 

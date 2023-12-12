@@ -37,12 +37,11 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   int? getUserId() {
     final userId = prefs.get('userId');
-    if (userId != null) {
-      if (userId is String && isNumeric(userId)) {
-        return int.parse(userId);
-      } else if (userId is int) {
-        return userId;
-      }
+    if (userId is String) {
+      final parsedUserId = int.tryParse(userId);
+      return parsedUserId ?? null;
+    } else if (userId is int) {
+      return userId;
     }
     return null;
   }

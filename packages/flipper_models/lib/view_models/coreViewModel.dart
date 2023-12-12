@@ -496,7 +496,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> assignToSale(
-      {required String customerId, String? transactionId}) async {
+      {required String customerId, required String transactionId}) async {
     ProxyService.isar.assingTransactionToCustomer(
         customerId: customerId, transactionId: transactionId);
   }

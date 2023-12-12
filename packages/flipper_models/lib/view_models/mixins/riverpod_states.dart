@@ -23,6 +23,20 @@ class ProductNotifier extends StateNotifier<Product?> {
   }
 }
 
+final customerSearchStringProvider =
+    StateNotifierProvider.autoDispose<CustomerSearchStringNotifier, String>(
+        (ref) {
+  return CustomerSearchStringNotifier();
+});
+
+class CustomerSearchStringNotifier extends StateNotifier<String> {
+  CustomerSearchStringNotifier() : super("");
+
+  void emitString({required String value}) {
+    state = value;
+  }
+}
+
 final searchStringProvider =
     StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
   return SearchStringNotifier();
@@ -376,19 +390,16 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     );
   }
 
-  List<Customer?>? filterCustomers(
-      List<Customer>? customers, String searchString) {
-    if (customers == null) {
-      return null;
-    }
-
+  List<Customer> filterCustomers(
+    List<Customer> customers,
+    String searchString,
+  ) {
     if (searchString.isNotEmpty) {
       return customers
           .where((customer) =>
               customer.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
     }
-
     return customers;
   }
 }
