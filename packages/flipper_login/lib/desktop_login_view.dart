@@ -1,7 +1,9 @@
+import 'package:flipper_login/loginCode.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -10,15 +12,14 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-class DesktopLoginView extends StatefulWidget {
+class DesktopLoginView extends StatefulHookConsumerWidget {
   const DesktopLoginView({Key? key}) : super(key: key);
 
   @override
-  State<DesktopLoginView> createState() => _DesktopLoginViewState();
+  _DesktopLoginViewState createState() => _DesktopLoginViewState();
 }
 
-class _DesktopLoginViewState extends State<DesktopLoginView> {
-  String? loginCode;
+class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   bool switchToPinLogin = false;
   final _routerService = locator<RouterService>();
   final double qrSize = 200.0;
@@ -26,46 +27,19 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
   final double logoSize = 100.0;
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    loginCode = null;
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final loginCode = ref.watch(loginCodeProvider);
     return ViewModelBuilder<LoginViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
       onViewModelReady: (model) {
-        DateTime now = DateTime.now();
-        setState(() {
-          loginCode = 'login-' + now.millisecondsSinceEpoch.toString();
-        });
-        if (loginCode != null) {
-          ProxyService.event.connect();
-          try {
-            ProxyService.event
-                .subscribeLoginEvent(channel: loginCode!.split('-')[1]);
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                backgroundColor: Colors.red,
-                content: Text("Failed to log in try again"),
-              ),
-            );
-          }
+        ProxyService.event.subscribeLoginEvent(channel: loginCode);
 
-          Future.delayed(const Duration(seconds: 10)).then((_) {
-            setState(() {
-              switchToPinLogin = true;
-            });
+        Future.delayed(const Duration(seconds: 10)).then((_) {
+          setState(() {
+            switchToPinLogin = true;
           });
-        }
+        });
       },
       builder: (context, model, child) {
         return Center(
@@ -76,7 +50,7 @@ class _DesktopLoginViewState extends State<DesktopLoginView> {
                 height: 250.0,
                 width: 250.0,
                 child: QrImageView(
-                  data: loginCode ?? '000',
+                  data: loginCode,
                   version: QrVersions.auto,
                   // embeddedImage:
                   //     AssetImage(logoAsset, package: "flipper_login"),
