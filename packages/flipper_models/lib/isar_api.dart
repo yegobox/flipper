@@ -245,23 +245,22 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<double>> getTransactionsAmountsSum(
+  Future<({double endOfDay, double startOfDay})> getTransactionsAmountsSum(
       {required String period}) async {
-    DateTime oldDate;
-    DateTime temporaryDate;
+    DateTime dateToCompare;
+    DateTime dateWhenTransactionTookPlace;
 
     if (period == TransactionPeriod.today) {
       DateTime tempToday = DateTime.now();
-      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+      dateToCompare = DateTime(tempToday.year, tempToday.month, tempToday.day);
     } else if (period == TransactionPeriod.thisWeek) {
-      oldDate = DateTime.now().subtract(Duration(days: 7));
+      dateToCompare = DateTime.now().subtract(Duration(days: 7));
     } else if (period == TransactionPeriod.thisMonth) {
-      oldDate = DateTime.now().subtract(Duration(days: 30));
+      dateToCompare = DateTime.now().subtract(Duration(days: 30));
     } else {
-      oldDate = DateTime.now().subtract(Duration(days: 365));
+      dateToCompare = DateTime.now().subtract(Duration(days: 365));
     }
 
-    List<double> cashInOut = [];
     double In = 0;
     double Out = 0;
     List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
@@ -275,27 +274,31 @@ class IsarAPI<M> implements IsarApiInterface {
         .findAll());
 
     for (final transaction in cashIn) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
+      // oldDate: 11:30
+      // temporaryDate  11:25
+      dateWhenTransactionTookPlace = DateTime.parse(transaction.createdAt);
+      if (dateWhenTransactionTookPlace.isBefore(dateToCompare)) {
         In = In + transaction.subTotal.toDouble();
       }
     }
-    cashInOut.add(In);
-
     List<ITransaction> cashOut = db.iTransactions
         .where()
         .statusEqualTo(COMPLETE)
         .transactionTypeEqualTo(TransactionType.cashOut)
         .findAll();
     for (final transaction in cashOut) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
+      dateWhenTransactionTookPlace = DateTime.parse(transaction.createdAt);
+      if (dateWhenTransactionTookPlace.isBefore(dateToCompare)) {
         Out = Out + transaction.subTotal.toDouble();
       }
     }
-    cashInOut.add(Out);
 
-    return cashInOut;
+    /// here we are passing endOfDay to be the total transactions that is done
+    /// in the period of time specified so it make sense to pass endOfDay as In variable
+    return (
+      endOfDay: In,
+      startOfDay: Out,
+    );
   }
 
   @override

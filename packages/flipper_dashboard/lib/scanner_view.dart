@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -146,6 +148,7 @@ class ScannViewState extends ConsumerState<ScannView> {
   }
 
   void scanToLogin({required String? result}) {
+    log(result ?? "", name: 'logiiinnnn');
     if (result != null && result.contains('-')) {
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {

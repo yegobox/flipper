@@ -138,8 +138,7 @@ class SettingPage extends StatelessWidget {
                               onPressed: (BuildContext context) async {
                                 log('here');
                                 // get active drawer
-                                List<double> sumDailyTrans = await ProxyService
-                                    .isar
+                                final data = await ProxyService.isar
                                     .getTransactionsAmountsSum(
                                         period: TransactionPeriod.today);
                                 isar.Drawers? drawer =
@@ -148,7 +147,7 @@ class SettingPage extends StatelessWidget {
                                 );
                                 if (drawer != null) {
                                   /// update the drawer with closing balance
-                                  drawer.closingBalance = sumDailyTrans[0];
+                                  drawer.closingBalance = data.endOfDay;
                                   log(drawer.closingBalance.toString(),
                                       name: 'drawerBalance');
                                   ProxyService.isar.update(data: drawer);

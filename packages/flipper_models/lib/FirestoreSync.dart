@@ -48,7 +48,8 @@ class FirestoreSync<M extends IJsonSerializable>
     final item = args[2] as T; // Retrieve item from the argument list
     final data = args[3] as Map<String, dynamic>;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    if (Platform.isWindows) {
+
+    if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );

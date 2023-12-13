@@ -112,7 +112,7 @@ abstract class IsarApiInterface {
   Future<ITransaction?> getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
-  Future<List<double>> getTransactionsAmountsSum({required String period});
+
   Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<ITransaction>> getTransactionsByCustomerId(
       {required String customerId});
@@ -259,6 +259,8 @@ abstract class IsarApiInterface {
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
+  Future<({double endOfDay, double startOfDay})> getTransactionsAmountsSum(
+      {required String period});
   Future<
       ({
         List<Stock> stocks,

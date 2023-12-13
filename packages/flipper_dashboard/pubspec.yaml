@@ -72,7 +72,6 @@ dependencies:
   flipper_ui: ^1.0.3
   flutter_windowmanager: ^0.2.0
   fluentui_system_icons: ^1.1.203
-  keyboard_visibility_pro: ^0.0.1
   battery_plus: ^4.1.0
   easy_sidemenu:
     git:

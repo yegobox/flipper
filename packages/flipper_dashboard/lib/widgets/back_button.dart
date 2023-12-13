@@ -11,7 +11,7 @@ class BackButton extends StatelessWidget {
     return SizedBox(
       height: 80,
       width: 200,
-      child: OutlinedButton(
+      child: TextButton(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -25,7 +25,7 @@ class BackButton extends StatelessWidget {
         style: primaryButtonStyle.copyWith(
           shape: MaterialStateProperty.all(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(2.0),
+              borderRadius: BorderRadius.circular(0.0),
             ),
           ),
         ),

@@ -15,7 +15,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
+import 'ribbon.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
@@ -81,23 +81,28 @@ class ProductViewState extends ConsumerState<ProductView> {
     double searchFieldWidth,
   ) {
     final scannMode = ref.watch(scanningModeProvider);
-    return KeyboardVisibility(
-      onChanged: (bool keyboardVisible) {
-        if (!keyboardVisible) {
-          _searchFocusNode.unfocus();
-        }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Check if the width is greater than a certain threshold (e.g., for large screens)
+        bool isLargeScreen = constraints.maxWidth > 600;
+
+        return CustomScrollView(
+          slivers: [
+            isLargeScreen
+                ? SliverToBoxAdapter(child: IconRow())
+                : SliverToBoxAdapter(
+                    child: SizedBox()), // Use SizedBox for mobile
+            buildStickyHeader(searchFieldWidth),
+            scannMode
+                ? buildVariantList(context, model)
+                : buildProductList(context, model),
+            //todo when re-enabling discounts, remember it is causing black screen error
+            // as there might be some loop that isn't well
+            // buildDiscountsList(context, model),
+          ],
+        );
       },
-      child: CustomScrollView(
-        slivers: [
-          buildStickyHeader(searchFieldWidth),
-          scannMode
-              ? buildVariantList(context, model)
-              : buildProductList(context, model),
-          //todo when re-enabling discounts, remember it is causing black screen error
-          // as there might be some loop that isn't well
-          // buildDiscountsList(context, model),
-        ],
-      ),
     );
   }
 
