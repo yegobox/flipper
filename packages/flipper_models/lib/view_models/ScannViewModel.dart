@@ -95,12 +95,16 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
   }
 
   setRetailPrice({required String price}) {
-    retailPrice = double.parse(price);
+    try {
+      retailPrice = double.parse(price);
+    } catch (e) {}
     notifyListeners();
   }
 
   setSupplyPrice({required String price}) {
-    supplyPrice = double.parse(price);
+    try {
+      supplyPrice = double.parse(price);
+    } catch (e) {}
     notifyListeners();
   }
 }
