@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'dart:ui';
-
+import 'dart:developer';
+import 'dart:io';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,9 +48,12 @@ class FirestoreSync<M extends IJsonSerializable>
     final item = args[2] as T; // Retrieve item from the argument list
     final data = args[3] as Map<String, dynamic>;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    if (Platform.isWindows) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+
     final String collectionName = getCollectionName<T>();
     final collectionRef = FirebaseFirestore.instance.collection(collectionName);
     try {
