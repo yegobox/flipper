@@ -33,7 +33,8 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
       onViewModelReady: (model) {
-        ProxyService.event.subscribeLoginEvent(channel: loginCode);
+        ProxyService.event
+            .subscribeLoginEvent(channel: loginCode.split('-')[1]);
 
         Future.delayed(const Duration(seconds: 10)).then((_) {
           setState(() {
