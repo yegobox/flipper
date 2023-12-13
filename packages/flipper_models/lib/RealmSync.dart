@@ -2,6 +2,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/sync_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
 import 'package:realm/realm.dart';
@@ -18,16 +19,19 @@ class RealmSync<M extends IJsonSerializable>
   Realm? realm;
   @override
   Future<void> configure() async {
+    int? branchId = ProxyService.box.getBranchId();
     if (realm == null) {
       final app = App(AppConfiguration('application-0-hwctb'));
       final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
       realm = Realm(Configuration.flexibleSync(
           user, [RealmITransaction.schema, RealmITransactionItem.schema]));
       realm!.subscriptions.update((mutableSubscriptions) {
-        mutableSubscriptions.add(realm!.all<RealmITransaction>());
-        mutableSubscriptions.add(realm!.all<RealmITransactionItem>());
+        mutableSubscriptions.add(
+            realm!.query<RealmITransaction>(r'branchId == $0', [branchId]));
+        mutableSubscriptions.add(
+            realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]));
       });
-      return;
+      await realm!.subscriptions.waitForSynchronization();
     }
   }
 
