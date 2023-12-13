@@ -70,7 +70,7 @@ class RealmSync<M extends IJsonSerializable>
 
       // Save _RealmITransaction to the Realm database
       await realm!.write(() {
-        realm!.add<RealmITransaction>(realmITransaction);
+        realm!.add<RealmITransaction>(realmITransaction, update: true);
       });
     }
 
@@ -132,7 +132,7 @@ class RealmSync<M extends IJsonSerializable>
 
       // Save _RealmITransaction to the Realm database
       await realm!.write(() {
-        realm!.add<RealmITransactionItem>(realmITransactionItem);
+        realm!.add<RealmITransactionItem>(realmITransactionItem, update: true);
       });
     }
   }
