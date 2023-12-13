@@ -1,3 +1,7 @@
+// ignore_for_file: unused_result
+
+import 'dart:async';
+
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.dialogs.dart';
@@ -26,8 +30,6 @@ class Devices extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final deviceListAsyncValue = ref.watch(deviceListProvider);
-    // ignore: unused_result
-    ref.refresh(deviceListProvider.future);
 
     return SafeArea(
       child: Scaffold(
@@ -171,6 +173,7 @@ class Devices extends ConsumerWidget {
                                 variant: DialogType.logOut,
                                 title: 'Log out',
                                 data: deviceList[index]);
+                            ref.refresh(deviceListProvider);
                           },
                         ),
                       );

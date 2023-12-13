@@ -107,8 +107,8 @@ class EventService implements EventInterface {
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device =
-            await ProxyService.isar.getDevice(phone: loginData.phone);
+        Device? device = await ProxyService.isar.getDevice(
+            phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
           await ProxyService.isar
               .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
@@ -168,11 +168,10 @@ class EventService implements EventInterface {
     log('userId ${ProxyService.box.getUserId()}');
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
-      log("received device aha!");
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device =
-          await ProxyService.isar.getDevice(phone: deviceEvent.phone);
+      Device? device = await ProxyService.isar.getDevice(
+          phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
         await ProxyService.isar.create(

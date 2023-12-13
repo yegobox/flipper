@@ -24,7 +24,6 @@ class LogOut extends StackedView<LogoutModel> {
     LogoutModel viewModel,
     Widget? child,
   ) {
-    // TODO: add handling of desktop case to show logout option
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       backgroundColor: Colors.white,
@@ -103,15 +102,12 @@ class LogOut extends StackedView<LogoutModel> {
                           });
 
                           try {
-                            await ProxyService.remote
-                                .hardDelete(
-                                    id: device.id, collectionName: 'devices')
-                                .then((value) {
-                              ProxyService.isar.delete(
-                                endPoint: 'device',
-                                id: device.id,
-                              );
-                            });
+                            await ProxyService.remote.hardDelete(
+                                id: device.id, collectionName: 'devices');
+                            await ProxyService.isar.delete(
+                              endPoint: 'device',
+                              id: device.id,
+                            );
                           } catch (e) {}
                           completer(DialogResponse(confirmed: true));
                         }

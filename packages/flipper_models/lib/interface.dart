@@ -245,7 +245,8 @@ abstract class IsarApiInterface {
   Future<void> patchSocialSetting({required Setting setting});
   Future<Setting?> getSocialSetting();
 
-  Future<Device?> getDevice({required String phone});
+  Future<Device?> getDevice(
+      {required String phone, required String linkingCode});
   Future<Device?> getDeviceById({required String id});
   Future<List<Device>> getDevices({required int businessId});
   Future<List<Device>> unpublishedDevices({required int businessId});

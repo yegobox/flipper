@@ -2718,13 +2718,16 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Device?> getDevice({required String phone}) async {
+  Future<Device?> getDevice(
+      {required String phone, required String linkingCode}) async {
     // get device from isar with linking code and return it
     return db.read((isar) => isar.devices
         .where()
         .phoneEqualTo(phone)
         .and()
         .deletedAtIsNull()
+        .and()
+        .linkingCodeEqualTo(linkingCode)
         .findFirst());
   }
 
