@@ -58,7 +58,7 @@ dependencies:
 
   # final pb = PocketBase('http://example.com', authStore: store);
   # TODO: take advantage of pb.backups.upload(file) for backup of database
-  pocketbase: ^0.15.1
+  pocketbase: ^0.17.0
   get_it: ^7.6.0
   injectable: ^2.3.0
   flipper_routing: ^0.0.1-dev.3

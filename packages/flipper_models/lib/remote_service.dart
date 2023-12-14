@@ -389,7 +389,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               socialEvent.record!, branchId, businessId, 'socials');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('stocks').subscribe("*", (stockEvent) async {
         if (stockEvent.action == "create" ||
@@ -398,7 +398,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               stockEvent.record!, branchId, businessId, 'stocks');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('variants').subscribe("*", (variantEvent) async {
         if (variantEvent.action == "create" ||
@@ -407,7 +407,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               variantEvent.record!, branchId, businessId, 'variants');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('products').subscribe("*", (productEvent) async {
         if (productEvent.action == "create" ||
@@ -416,7 +416,8 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               productEvent.record!, branchId, businessId, 'products');
         }
-      });
+      }, filter: "branchId == ${branchId}");
+
 
       pb!.collection('devices').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
@@ -425,7 +426,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'devices');
         }
-      });
+      }, filter: "branchId == ${branchId}");
       pb!.collection('rra').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
             deviceEvent.action == "update" ||
@@ -433,7 +434,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'rra');
         }
-      });
+      }, filter: "branchId == ${branchId}");
     }
 
     // Add the return statement at the end of the method
