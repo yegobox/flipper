@@ -16,12 +16,9 @@ class ReceiptUI extends StatefulHookConsumerWidget {
 class ReceiptUIState extends ConsumerState<ReceiptUI> {
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return Scaffold(
       body: ViewModelBuilder.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value?.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {
           return PreviewSaleBottomSheet(
             reverse: false,

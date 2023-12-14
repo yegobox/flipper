@@ -28,10 +28,10 @@ Widget PaymentTicketManager(
     model: model,
     payable: PayableView(
       model: model,
-      onClick: () {
-        if (model.currentTransaction != null) {
-          _routerService.navigateTo(
-              PaymentsRoute(transaction: model.currentTransaction!));
+      onClick: () async {
+        final transaction = await ProxyService.isar.manageTransaction();
+        if (transaction.subTotal == 0) {
+          _routerService.navigateTo(PaymentsRoute(transaction: transaction));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -40,7 +40,6 @@ Widget PaymentTicketManager(
           );
         }
       },
-      duePay: model.currentTransaction?.subTotal,
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.isar.manageTransaction();
         showModalBottomSheet(

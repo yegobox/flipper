@@ -27,7 +27,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
-    // final currentTransaction = ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    // final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {

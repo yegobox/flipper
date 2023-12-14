@@ -125,9 +125,9 @@ class IconRow extends StatelessWidget {
             );
             if (drawer != null) {
               /// update the drawer with closing balance
-              drawer.closingBalance = data.endOfDay;
+              drawer.closingBalance = data.income;
 
-              ProxyService.isar.update(data: drawer);
+              await ProxyService.isar.update(data: drawer);
             }
             _routerService
                 .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));

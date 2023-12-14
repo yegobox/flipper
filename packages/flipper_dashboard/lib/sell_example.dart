@@ -657,14 +657,12 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getVariants(productId: widget.product.id);
         },
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value?.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             backgroundColor: Colors.white,

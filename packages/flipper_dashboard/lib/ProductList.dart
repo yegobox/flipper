@@ -67,8 +67,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                             addToMenu: (item) async {
                               Variant variant = item as Variant;
                               ITransaction? iTransaction = ref
-                                  .read(pendingTransactionProvider(
-                                      variant.branchId))
+                                  .read(pendingTransactionProvider)
                                   .value
                                   ?.value;
                               await model.saveTransaction(

@@ -143,11 +143,13 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> pull() async {
+    int branchId = ProxyService.box.getBranchId()!;
     if (realm == null) {
       await configure();
     }
     if (realm != null) {
-      final iTransactionsCollection = realm!.all<RealmITransaction>();
+      final iTransactionsCollection =
+          realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
       final iTransactionSubscription =
           iTransactionsCollection.changes.listen((changes) {
         for (final result in changes.results) {
@@ -156,7 +158,8 @@ class RealmSync<M extends IJsonSerializable>
         }
       });
 
-      final iTransactionsItemCollection = realm!.all<RealmITransactionItem>();
+      final iTransactionsItemCollection =
+          realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
       final iTransactionItemSubscription =
           iTransactionsItemCollection.changes.listen((changes) {
         for (final result in changes.results) {

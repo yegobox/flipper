@@ -83,11 +83,11 @@ final variantsProvider = FutureProvider.autoDispose
   return variants;
 });
 
-final pendingTransactionProvider = FutureProvider.autoDispose
-    .family<AsyncValue<ITransaction>, int?>((ref, retailId) async {
+final pendingTransactionProvider =
+    FutureProvider.autoDispose<AsyncValue<ITransaction>>((ref) async {
   try {
     ITransaction pendingTransaction =
-        await ProxyService.isar.manageTransaction(retailId: retailId);
+        await ProxyService.isar.manageTransaction();
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);

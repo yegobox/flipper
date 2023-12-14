@@ -61,11 +61,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value?.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Container(

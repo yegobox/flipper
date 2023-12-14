@@ -97,6 +97,17 @@ class ITransaction extends IJsonSerializable {
     return _$ITransactionFromJson(json);
   }
 
+  // Add methods to check type
+  bool isIncome() {
+    return this.transactionType == "cashIn" ||
+        this == "sale" ||
+        this == "onlineSale";
+  }
+
+  bool isExpense() {
+    return this.transactionType == "cashOut";
+  }
+
   @override
   Map<String, dynamic> toJson() => _$ITransactionToJson(this);
 }

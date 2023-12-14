@@ -51,6 +51,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
 class KeyPadViewState extends ConsumerState<KeyPadView> {
   @override
   Widget build(BuildContext context) {
+    final transaction = ref.watch(pendingTransactionProvider);
     Widget plusOrSubmit;
     if (widget.transactionMode == false) {
       plusOrSubmit = Expanded(
@@ -85,7 +86,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           onTap: () async {
             log("Key: " + widget.model.key);
             HapticFeedback.lightImpact();
-            if ((widget.model.currentTransaction != null) &&
+            if ((transaction.value!.value!.subTotal == 0) &&
                 ((widget.model.key != '0') &&
                     (widget.model.key != '0.0') &&
                     (widget.model.key != '0.00'))) {

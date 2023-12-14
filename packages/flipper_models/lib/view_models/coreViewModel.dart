@@ -22,10 +22,7 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
-  ITransaction? currentTransaction;
-  CoreViewModel({ITransaction? transaction}) {
-    currentTransaction = transaction;
-  }
+  CoreViewModel() {}
 
   String? getSetting() {
     klocale =
@@ -119,12 +116,6 @@ class CoreViewModel extends FlipperBaseModel
         break;
 
       case '+':
-        for (TransactionItem item in items) {
-          /// mark the item on the transaction as true so next time we will create new one
-          /// instead of updating existing one
-          item.doneWithTransaction = true;
-          await ProxyService.isar.update(data: item);
-        }
         ProxyService.keypad.reset();
 
         break;
@@ -405,7 +396,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    ITransaction cbTransaction = currentTransaction!;
+    final transaction = await ProxyService.isar.manageTransaction();
+    ITransaction cbTransaction = transaction;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
     cbTransaction.transactionType = cbTransactionType;
@@ -443,11 +435,12 @@ class CoreViewModel extends FlipperBaseModel
       {required String phoneNumber,
       required double cashReceived,
       required String paymentType}) async {
+    final transaction = await ProxyService.isar.manageTransaction();
     await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isar.collectPayment(
         cashReceived: cashReceived,
-        transaction: currentTransaction!,
+        transaction: transaction,
         paymentType: paymentType);
     return "PaymentRecorded";
   }
@@ -456,7 +449,7 @@ class CoreViewModel extends FlipperBaseModel
       {required String paymentType, required ITransaction transaction}) async {
     await ProxyService.isar.collectPayment(
         cashReceived: keypad.cashReceived,
-        transaction: currentTransaction!,
+        transaction: transaction,
         paymentType: paymentType);
   }
 
@@ -507,8 +500,9 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
+    final currentTransaction = await ProxyService.isar.manageTransaction();
     ITransaction? transaction =
-        await ProxyService.isar.getTransactionById(id: currentTransaction!.id);
+        await ProxyService.isar.getTransactionById(id: currentTransaction.id);
     // Map map = transaction!;
     transaction!.note = note;
     ProxyService.isar.update(data: transaction);
@@ -818,8 +812,9 @@ class CoreViewModel extends FlipperBaseModel
   Customer? get customer => app.customer;
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
-  void deleteCustomer(String id, Function callback) {
-    if (currentTransaction!.customerId == null) {
+  Future<void> deleteCustomer(String id, Function callback) async {
+    final transaction = await ProxyService.isar.manageTransaction();
+    if (transaction.customerId == null) {
       ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {
       callback("Can't delete the customer");

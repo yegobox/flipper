@@ -126,7 +126,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITransaction> manageTransaction(
-      {String transactionType = 'custom', int? retailId}) async {
+      {String? transactionType, int? retailId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     // ITransaction? existTransaction = retailId != null
     //     ? await pendingTransaction(retailId: retailId)
@@ -143,7 +143,7 @@ class IsarAPI<M> implements IsarApiInterface {
         action: AppActions.created,
         transactionNumber: randomString(),
         status: PENDING,
-        transactionType: transactionType,
+        transactionType: transactionType ?? TransactionType.custom,
         subTotal: 0,
         cashReceived: 0,
         updatedAt: DateTime.now().toIso8601String(),
@@ -245,66 +245,8 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<({double endOfDay, double startOfDay})> getTransactionsAmountsSum(
+  Future<({double income, double expense})> getTransactionsAmountsSum(
       {required String period}) async {
-    DateTime dateToCompare;
-    DateTime dateWhenTransactionTookPlace;
-
-    if (period == TransactionPeriod.today) {
-      DateTime tempToday = DateTime.now();
-      dateToCompare = DateTime(tempToday.year, tempToday.month, tempToday.day);
-    } else if (period == TransactionPeriod.thisWeek) {
-      dateToCompare = DateTime.now().subtract(Duration(days: 7));
-    } else if (period == TransactionPeriod.thisMonth) {
-      dateToCompare = DateTime.now().subtract(Duration(days: 30));
-    } else {
-      dateToCompare = DateTime.now().subtract(Duration(days: 365));
-    }
-
-    double In = 0;
-    double Out = 0;
-    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashIn)
-        .or()
-        .transactionTypeEqualTo(TransactionType.sale)
-        .or()
-        .transactionTypeEqualTo(TransactionType.custom)
-        .findAll());
-
-    for (final transaction in cashIn) {
-      // oldDate: 11:30
-      // temporaryDate  11:25
-      dateWhenTransactionTookPlace = DateTime.parse(transaction.createdAt);
-      if (dateWhenTransactionTookPlace.isBefore(dateToCompare)) {
-        In = In + transaction.subTotal.toDouble();
-      }
-    }
-    List<ITransaction> cashOut = db.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashOut)
-        .findAll();
-    for (final transaction in cashOut) {
-      dateWhenTransactionTookPlace = DateTime.parse(transaction.createdAt);
-      if (dateWhenTransactionTookPlace.isBefore(dateToCompare)) {
-        Out = Out + transaction.subTotal.toDouble();
-      }
-    }
-
-    /// here we are passing endOfDay to be the total transactions that is done
-    /// in the period of time specified so it make sense to pass endOfDay as In variable
-    return (
-      endOfDay: In,
-      startOfDay: Out,
-    );
-  }
-
-  @override
-  Future<List<double>> getLocalTransactionsAmountsSum(
-      {required String period}) async {
-    final branchId = ProxyService.box.getBranchId()!;
     DateTime oldDate;
     DateTime temporaryDate;
 
@@ -319,41 +261,27 @@ class IsarAPI<M> implements IsarApiInterface {
       oldDate = DateTime.now().subtract(Duration(days: 365));
     }
 
-    List<double> cashInOut = [];
-    double In = 0;
-    double Out = 0;
-    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashIn)
-        .or()
-        .transactionTypeEqualTo(TransactionType.sale)
-        .or()
-        .transactionTypeEqualTo(TransactionType.custom)
-        .branchIdEqualTo(branchId)
-        .findAll());
-    for (final transaction in cashIn) {
+    List<ITransaction> transactions = await transactionsFuture();
+
+    List<ITransaction> filteredTransactions = [];
+    for (final transaction in transactions) {
       temporaryDate = DateTime.parse(transaction.createdAt);
       if (temporaryDate.isAfter(oldDate)) {
-        In = In + transaction.subTotal.toDouble();
+        filteredTransactions.add(transaction);
       }
     }
-    cashInOut.add(In);
 
-    List<ITransaction> cashOut = db.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashOut)
-        .findAll();
-    for (final transaction in cashOut) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
-        Out = Out + transaction.subTotal.toDouble();
+    double sum_cash_in = 0;
+    double sum_cash_out = 0;
+    for (final transaction in filteredTransactions) {
+      if (transaction.transactionType == 'Cash Out') {
+        sum_cash_out = transaction.subTotal + sum_cash_out;
+      } else {
+        sum_cash_in = transaction.subTotal + sum_cash_in;
       }
     }
-    cashInOut.add(Out);
 
-    return cashInOut;
+    return (income: sum_cash_in, expense: sum_cash_out);
   }
 
   @override
@@ -607,6 +535,9 @@ class IsarAPI<M> implements IsarApiInterface {
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
     transaction.subTotal = subTotal;
+
+    /// refresh created as well to reflect when this transaction was created and completed
+    transaction.createdAt = DateTime.now().toIso8601String();
     transaction.updatedAt = DateTime.now().toIso8601String();
 
     await update(data: transaction);
@@ -2858,11 +2789,16 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<TransactionItem>> transactionItems(
       {required String transactionId,
       required bool doneWithTransaction}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.read((isar) => db.transactionItems
         .where()
         .transactionIdEqualTo(transactionId)
         .and()
         .doneWithTransactionEqualTo(doneWithTransaction)
+        .and()
+        .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull()
         .findAll());
   }
 
@@ -3087,12 +3023,16 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<TransactionItem>> transactionItemsFuture() async {
     ITransaction transaction = await manageTransaction();
-
+    int branchId = ProxyService.box.getBranchId()!;
     return await db.read((isar) => isar.transactionItems
         .where()
         .transactionIdEqualTo(transaction.id)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
+        .and()
+        .doneWithTransactionEqualTo(false)
         .findAll());
   }
 

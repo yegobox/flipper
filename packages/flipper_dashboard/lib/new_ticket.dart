@@ -43,12 +43,9 @@ class NewTicketState extends ConsumerState<NewTicket>
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
     return SafeArea(
         child: ViewModelBuilder<CoreViewModel>.reactive(
-            viewModelBuilder: () =>
-                CoreViewModel(transaction: currentTransaction.value?.value),
+            viewModelBuilder: () => CoreViewModel(),
             onViewModelReady: (model) async {},
             builder: (context, model, child) {
               return Scaffold(

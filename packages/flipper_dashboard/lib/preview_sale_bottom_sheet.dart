@@ -34,21 +34,17 @@ class PreviewSaleBottomSheetState
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(
-          transaction: ref
-              .watch(pendingTransactionProvider(ProxyService.box.getBranchId()))
-              .value
-              ?.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         final totalPayable =
             ref.watch(transactionItemsProvider.notifier).totalPayable;
         ref.read(transactionItemsProvider.notifier).updatePendingTransaction();
-
+        final transaction = ref.watch(pendingTransactionProvider);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             widget.mode == SellingMode.forSelling
-                ? AddCustomerButton(transactionId: model.currentTransaction!.id)
+                ? AddCustomerButton(transactionId: transaction.value!.value!.id)
                 : SizedBox.shrink(),
             ListView(
               reverse: widget.reverse,
@@ -59,10 +55,8 @@ class PreviewSaleBottomSheetState
                 ...buildItems(
                   context: context,
                   callback: (item) async {
-                    model.currentTransaction!.subTotal =
-                        model.currentTransaction!.subTotal;
                     await ProxyService.isar.update(
-                      data: model.currentTransaction,
+                      data: transaction,
                     );
                     model.deleteTransactionItem(
                       id: item.id,
@@ -98,12 +92,11 @@ class PreviewSaleBottomSheetState
                       ),
                     ),
                   ),
-                SizedBox(height: 100),
               ],
             ),
             Spacer(),
             Padding(
-              padding: EdgeInsets.all(8),
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
               child: BoxButton(
                 title: widget.mode == SellingMode.forSelling
                     ? "Collect ${NumberFormat('#,###').format(totalPayable)} RWF"

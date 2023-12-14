@@ -147,7 +147,7 @@ class SettingPage extends StatelessWidget {
                                 );
                                 if (drawer != null) {
                                   /// update the drawer with closing balance
-                                  drawer.closingBalance = data.endOfDay;
+                                  drawer.closingBalance = data.income;
                                   log(drawer.closingBalance.toString(),
                                       name: 'drawerBalance');
                                   ProxyService.isar.update(data: drawer);

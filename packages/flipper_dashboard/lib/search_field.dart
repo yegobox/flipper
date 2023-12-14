@@ -63,11 +63,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(
-          transaction: ref
-              .watch(pendingTransactionProvider(ProxyService.box.getBranchId()))
-              .value
-              ?.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,

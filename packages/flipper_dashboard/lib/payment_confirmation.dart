@@ -40,8 +40,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -98,7 +97,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                         stream: model.getCustomer(
-                            transactionId: model.currentTransaction!.id),
+                            transactionId: currentTransaction.value!.value!.id),
                         builder: (context, snapshot) {
                           return Column(
                             children: [
@@ -334,7 +333,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             }
           }
         },
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value?.value));
+        viewModelBuilder: () => CoreViewModel());
   }
 }

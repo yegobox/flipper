@@ -8,12 +8,10 @@ import 'package:flutter/material.dart';
 class PayableView extends StatelessWidget {
   const PayableView(
       {Key? key,
-      this.duePay = 0,
       required this.onClick,
       required this.ticketHandler,
       required this.model})
       : super(key: key);
-  final double? duePay;
   final Function onClick;
   final Function ticketHandler;
   final CoreViewModel model;

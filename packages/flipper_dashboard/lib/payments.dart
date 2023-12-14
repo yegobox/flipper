@@ -50,8 +50,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(ProxyService.box.getBranchId()));
+    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -63,8 +62,7 @@ class PaymentsState extends ConsumerState<Payments> {
         );
       },
       onViewModelReady: (model) => model.updatePayable(),
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value?.value),
+      viewModelBuilder: () => CoreViewModel(),
     );
   }
 
