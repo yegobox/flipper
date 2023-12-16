@@ -244,6 +244,15 @@ class IsarAPI<M> implements IsarApiInterface {
     return Future.value(200);
   }
 
+  /// Sums the total income and expense amounts from transactions within a given time period.
+  ///
+  /// The `period` parameter specifies the time period to filter transactions by. Valid values are:
+  /// - 'Today' - Transactions from today
+  /// - 'This Week' - Transactions from the last 7 days
+  /// - 'This Month' - Transactions from the last 30 days
+  /// - 'This Year' - Transactions from the last 365 days
+  ///
+  /// Returns a map with the total `income` and `expense` amounts.
   @override
   Future<({double income, double expense})> getTransactionsAmountsSum(
       {required String period}) async {
@@ -2870,6 +2879,11 @@ class IsarAPI<M> implements IsarApiInterface {
         .read((isar) => db.eBMs.where().branchIdEqualTo(branchId).findFirst());
   }
 
+  /// Retrieves unsynced data from the local database for the current branch.
+  ///
+  /// Returns a map containing unsynced lists for stocks, variants, products,
+  /// favorites, devices, transactions, and transaction items. Filters for entities
+  /// that have been created, updated, or deleted since last sync.
   @override
   Future<
       ({
@@ -2982,6 +2996,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .asyncMap((event) => event.first));
   }
 
+  /// Retrieves a list of transactions from the database based on the provided filters.
+  ///
+  /// Status, transaction type, and branch ID can be optionally filtered. Cash out transactions can be isolated.
+  /// Pending transactions can optionally be included.
+  ///
+  /// The filtered query is executed against the database and the matching transactions are returned.
   @override
   Future<List<ITransaction>> transactionsFuture({
     String? status,
@@ -3384,5 +3404,25 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<SyncRecord>> syncedModels({required int branchId}) async {
     return db.read(
         (isar) => isar.syncRecords.where().branchIdEqualTo(branchId).findAll());
+  }
+
+  List<ITransaction> findAndFilter(
+      List<ITransaction> transactions, int branchId) {
+    return transactions
+        .where((transaction) => transaction.retailerId != branchId)
+        .toList();
+  }
+
+  @override
+  Stream<List<ITransaction>> orders({required int branchId}) {
+    return db.read(
+      (isar) => isar.iTransactions
+          .where()
+          .branchIdEqualTo(branchId)
+          .and()
+          .statusEqualTo(PENDING)
+          .watch(fireImmediately: true)
+          .map((transactions) => findAndFilter(transactions, branchId)),
+    );
   }
 }

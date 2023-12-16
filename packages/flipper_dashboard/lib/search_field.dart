@@ -62,6 +62,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
+    final orders = ref.watch(ordersStreamProvider);
+
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
@@ -138,12 +140,16 @@ class SearchFieldState extends ConsumerState<SearchField> {
                               .toggleReceiveOrder();
                           _routerService.navigateTo(OrdersRoute());
                         },
-                        icon: badges.Badge(
-                          badgeContent:
-                              Text('3', style: TextStyle(color: Colors.white)),
-                          child: Icon(FluentIcons.cart_24_regular,
-                              color: Colors.blue),
-                        ),
+                        icon: switch (orders) {
+                          AsyncData(:final value) => badges.Badge(
+                              badgeContent: Text(value.length.toString(),
+                                  style: TextStyle(color: Colors.white)),
+                              child: Icon(FluentIcons.cart_24_regular,
+                                  color: Colors.blue),
+                            ),
+                          AsyncError() => Text("0"),
+                          _ => const Text("0")
+                        },
                       )
                     : SizedBox.shrink(),
                 IconButton(

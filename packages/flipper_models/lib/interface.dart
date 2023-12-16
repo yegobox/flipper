@@ -12,7 +12,6 @@ abstract class IsarApiInterface {
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({required int businessId});
   Future<double> stocks({String? productId, String? variantId});
-  // Stream<Stock> stockByVariantIdStream({required String variantId});
   Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
@@ -21,6 +20,7 @@ abstract class IsarApiInterface {
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({String? prodIndex});
+  Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({String? prodIndex});
   Future<Stock> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required int branchId});

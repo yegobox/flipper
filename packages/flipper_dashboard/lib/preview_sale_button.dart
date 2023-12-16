@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -41,6 +42,52 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     ).animate(_controller);
   }
 
+  void _handleOrderFlow(BuildContext context, CoreViewModel model) {
+    /// navigate to Comfirm page
+    /// to handle the order flow
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Comfirm(),
+      ),
+    );
+  }
+
+  void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
+    HapticFeedback.lightImpact();
+    model.keyboardKeyPressed(key: '+');
+
+    _controller.forward(); // Start the animation
+
+    final transaction = await ProxyService.isar.manageTransaction();
+
+    if (transaction.subTotal == 0) {
+      showToast(context, 'No item on cart!', color: Colors.red);
+      return;
+    }
+
+    model.keypad.setTransaction(transaction);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+      ),
+      useRootNavigator: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.only(top: 20.0),
+          child: PreviewSaleBottomSheet(mode: widget.mode),
+        );
+      },
+    );
+
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+    _controller.reverse();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.reactive(
@@ -63,41 +110,11 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: () async {
-                  HapticFeedback.lightImpact();
-                  model.keyboardKeyPressed(key: '+');
-
-                  _controller.forward(); // Start the animation
-                  final transaction =
-                      await ProxyService.isar.manageTransaction();
-
-                  if (transaction.subTotal == 0) {
-                    showToast(context, 'No item on cart!', color: Colors.red);
-                    return;
-                  }
-
-                  model.keypad.setTransaction(transaction);
-
-                  showModalBottomSheet(
-                    context: context,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(10.0)),
-                    ),
-                    useRootNavigator: true,
-                    builder: (BuildContext context) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 20.0),
-                        child: PreviewSaleBottomSheet(mode: widget.mode),
-                      );
-                    },
-                  );
-
-                  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-                    systemNavigationBarColor: Colors.transparent,
-                    systemNavigationBarIconBrightness: Brightness.light,
-                  ));
-                  _controller.reverse();
+                // help me to extract the code from onPressed to a separate function
+                onPressed: () {
+                  widget.mode == SellingMode.forSelling
+                      ? _handleSaleFlow(context, model)
+                      : _handleOrderFlow(context, model);
                 },
                 child: Text(
                   widget.wording == null

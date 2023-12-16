@@ -13,6 +13,7 @@ export 'package:flipper_dashboard/security.dart';
 export 'package:flipper_dashboard/transactions.dart';
 export 'package:flipper_dashboard/apps.dart';
 export 'package:flipper_dashboard/no_net.dart';
+export 'package:flipper_dashboard/Comfirm.dart';
 export 'package:flipper_dashboard/payment_confirmation.dart';
 export 'package:flipper_dashboard/create/add_category.dart';
 export 'package:flipper_dashboard/create/add_variation.dart';

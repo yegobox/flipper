@@ -149,7 +149,7 @@ class RealmSync<M extends IJsonSerializable>
     }
     if (realm != null) {
       final iTransactionsCollection =
-          realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
+          realm!.query<RealmITransaction>('branchId == \$0', [branchId]);
       final iTransactionSubscription =
           iTransactionsCollection.changes.listen((changes) {
         for (final result in changes.results) {
@@ -159,7 +159,7 @@ class RealmSync<M extends IJsonSerializable>
       });
 
       final iTransactionsItemCollection =
-          realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+          realm!.query<RealmITransactionItem>('branchId == \$0', [branchId]);
       final iTransactionItemSubscription =
           iTransactionsItemCollection.changes.listen((changes) {
         for (final result in changes.results) {

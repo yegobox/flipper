@@ -227,7 +227,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       log(e.toString());
       return null;
     } on ClientException catch (e) {
-      log(e.toString());
+      log("Client error could not create item ${collection['id']} and ${collection['action']}");
       return null;
     } catch (e) {
       return null;
@@ -417,7 +417,6 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
               productEvent.record!, branchId, businessId, 'products');
         }
       }, filter: "branchId == ${branchId}");
-
 
       pb!.collection('devices').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
