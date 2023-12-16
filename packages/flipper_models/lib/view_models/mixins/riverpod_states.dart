@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -83,11 +84,11 @@ final variantsProvider = FutureProvider.autoDispose
   return variants;
 });
 
-final pendingTransactionProvider =
-    FutureProvider.autoDispose<AsyncValue<ITransaction>>((ref) async {
+final pendingTransactionProvider = FutureProvider.autoDispose
+    .family<AsyncValue<ITransaction>, String>((ref, mode) async {
   try {
     ITransaction pendingTransaction =
-        await ProxyService.isar.manageTransaction();
+        await ProxyService.isar.manageTransaction(transactionType: mode);
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
@@ -97,28 +98,35 @@ final pendingTransactionProvider =
 //      return ProxyService.isar.transactionItemsFuture();
 // });
 // Use a const constructor for the StateNotifierProvider to avoid unnecessary rebuilds
-final transactionItemsProvider = StateNotifierProvider.autoDispose<
-    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>>(
-  (ref) {
-    return TransactionItemsNotifier();
+final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
+    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, String>(
+  (ref, currentTransaction) {
+    return TransactionItemsNotifier(currentTransaction: currentTransaction);
   },
 );
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  TransactionItemsNotifier() : super(AsyncLoading()) {
-    _loadItems();
+  TransactionItemsNotifier({required String currentTransaction})
+      : super(AsyncLoading()) {
+    loadItems(currentTransaction: currentTransaction);
   }
 
-  Future<void> _loadItems() async {
+  Future<List<TransactionItem>> loadItems(
+      {required String currentTransaction}) async {
     try {
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
-      final items = await ProxyService.isar.transactionItemsFuture();
+      final items = await ProxyService.isar
+          .transactionItemsFuture(transactionId: currentTransaction);
       state = AsyncData(items);
+
+      return items;
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
+
+      throw error;
     }
   }
 
@@ -126,7 +134,8 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       // Await the future and store the result in a local variable
-      final transaction = await ProxyService.isar.manageTransaction();
+      final transaction = await ProxyService.isar
+          .manageTransaction(transactionType: TransactionType.custom);
 
       transaction.subTotal = totalPayable;
       await ProxyService.isar.update(data: transaction);

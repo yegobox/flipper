@@ -67,11 +67,10 @@ mixin TransactionMixin {
       await ProxyService.isar.update(data: item);
       return;
     }
-    int branchId = ProxyService.box.getBranchId()!;
     // Create a new transaction item
     TransactionItem newItem = TransactionItem(
       id: randomString(),
-      branchId: branchId,
+      branchId: variation.branchId,
       lastTouched: DateTime.now(),
       action: AppActions.created,
       qty: isCustom ? 1.0 : quantity,

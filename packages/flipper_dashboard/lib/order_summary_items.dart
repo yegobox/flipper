@@ -3,15 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:riverpod/src/common.dart';
 
 List<Widget> buildItems({
   required Function(TransactionItem) callback,
   required BuildContext context,
-  required AsyncValue<List<TransactionItem>> items,
+  required List<TransactionItem> items,
 }) {
   // Check if the list is empty.
-  if (items.value!.isEmpty) {
+  if (items.isEmpty) {
     return [
       Column(
         children: [
@@ -30,7 +29,7 @@ List<Widget> buildItems({
   }
 
   // Create a list of widgets for each item in the list.
-  return items.value!.map((item) {
+  return items.map((item) {
     return Slidable(
       key: ValueKey(item.id),
       endActionPane: ActionPane(

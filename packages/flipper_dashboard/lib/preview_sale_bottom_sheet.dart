@@ -3,6 +3,7 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,9 +20,12 @@ import 'order_summary_items.dart';
 class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
   final bool reverse;
   final SellingMode mode;
-  const PreviewSaleBottomSheet(
-      {Key? key, this.reverse = false, this.mode = SellingMode.forSelling})
-      : super(key: key);
+
+  const PreviewSaleBottomSheet({
+    Key? key,
+    this.reverse = false,
+    this.mode = SellingMode.forSelling,
+  }) : super(key: key);
 
   @override
   PreviewSaleBottomSheetState createState() => PreviewSaleBottomSheetState();
@@ -30,16 +34,23 @@ class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
 class PreviewSaleBottomSheetState
     extends ConsumerState<PreviewSaleBottomSheet> {
   final _routerService = locator<RouterService>();
+  final _numberFormat = NumberFormat('#,###');
+  late final transactionProvider =
+      pendingTransactionProvider(TransactionType.custom);
 
   @override
   Widget build(BuildContext context) {
+    final transaction = ref.watch(transactionProvider);
+    final transactionItemsNotifier = ref
+        .watch(transactionItemsProvider(transaction.value!.value!.id).notifier);
+
+    final totalPayable = transactionItemsNotifier.totalPayable;
+
+    transactionItemsNotifier.updatePendingTransaction();
+
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final totalPayable =
-            ref.watch(transactionItemsProvider.notifier).totalPayable;
-        ref.read(transactionItemsProvider.notifier).updatePendingTransaction();
-        final transaction = ref.watch(pendingTransactionProvider);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -55,16 +66,20 @@ class PreviewSaleBottomSheetState
                 ...buildItems(
                   context: context,
                   callback: (item) async {
-                    await ProxyService.isar.update(
-                      data: transaction,
-                    );
+                    await ProxyService.isar.update(data: transaction);
                     model.deleteTransactionItem(
                       id: item.id,
                       context: context,
                     );
-                    ref.refresh(transactionItemsProvider);
+                    ref.refresh(
+                      transactionItemsProvider(transaction.value!.value!.id),
+                    );
                   },
-                  items: ref.watch(transactionItemsProvider),
+                  items: ref
+                      .watch(
+                        transactionItemsProvider(transaction.value!.value!.id),
+                      )
+                      .value!,
                 ),
                 if (model.totalDiscount > 0)
                   ListTile(
@@ -81,10 +96,7 @@ class PreviewSaleBottomSheetState
                       ),
                     ),
                     trailing: Text(
-                      '- RWF ' +
-                          NumberFormat('#,###')
-                              .format(model.totalDiscount)
-                              .toString(),
+                      '- RWF ' + _numberFormat.format(model.totalDiscount),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
@@ -99,11 +111,12 @@ class PreviewSaleBottomSheetState
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
               child: BoxButton(
                 title: widget.mode == SellingMode.forSelling
-                    ? "Collect ${NumberFormat('#,###').format(totalPayable)} RWF"
-                    : "Order ${NumberFormat('#,###').format(totalPayable)} RWF",
+                    ? "Collect ${_numberFormat.format(totalPayable)} RWF"
+                    : "Order ${_numberFormat.format(totalPayable)} RWF",
                 onTap: () async {
-                  final transaction =
-                      await ProxyService.isar.manageTransaction();
+                  final transaction = await ProxyService.isar.manageTransaction(
+                    transactionType: TransactionType.custom,
+                  );
                   _routerService.navigateTo(
                     PaymentsRoute(
                       transaction: transaction,

@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/sales_buttons_controller.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -29,7 +30,8 @@ Widget PaymentTicketManager(
     payable: PayableView(
       model: model,
       onClick: () async {
-        final transaction = await ProxyService.isar.manageTransaction();
+        final transaction = await ProxyService.isar
+            .manageTransaction(transactionType: TransactionType.custom);
         if (transaction.subTotal == 0) {
           _routerService.navigateTo(PaymentsRoute(transaction: transaction));
         } else {
@@ -41,7 +43,8 @@ Widget PaymentTicketManager(
         }
       },
       ticketHandler: () async {
-        ITransaction transaction = await ProxyService.isar.manageTransaction();
+        ITransaction transaction = await ProxyService.isar
+            .manageTransaction(transactionType: TransactionType.custom);
         showModalBottomSheet(
           backgroundColor: Colors.red,
           context: context,

@@ -58,7 +58,8 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
     _controller.forward(); // Start the animation
 
-    final transaction = await ProxyService.isar.manageTransaction();
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
 
     if (transaction.subTotal == 0) {
       showToast(context, 'No item on cart!', color: Colors.red);
@@ -90,6 +91,8 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -118,8 +121,8 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                 },
                 child: Text(
                   widget.wording == null
-                      ? "Preview Sale ${ref.watch(transactionItemsProvider.notifier).counts != 0 ? "(${ref.watch(transactionItemsProvider.notifier).counts})" : ""}"
-                      : "Preview Cart ${ref.watch(transactionItemsProvider.notifier).counts != 0 ? "(${ref.watch(transactionItemsProvider.notifier).counts})" : ""}",
+                      ? "Preview Sale ${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length})" : ""}"
+                      : "Preview Cart ${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length})" : ""}",
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,

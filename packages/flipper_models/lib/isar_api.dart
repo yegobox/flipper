@@ -126,24 +126,24 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITransaction> manageTransaction(
-      {String? transactionType, int? retailId}) async {
+      {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
     // ITransaction? existTransaction = retailId != null
-    //     ? await pendingTransaction(retailId: retailId)
-    //     : await pendingTransaction(branchId: branchId);
-    ITransaction? existTransaction =
-        await pendingTransaction(branchId: branchId);
+    //     ? await pendingTransaction(retailId: retailId,transactionType:transactionType)
+    //     : await pendingTransaction(branchId: branchId,transactionType:transactionType);
+    ITransaction? existTransaction = await pendingTransaction(
+        branchId: branchId, transactionType: transactionType);
     if (existTransaction == null) {
       final String id = randomString();
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        retailerId: retailId ?? branchId,
+        supplierId: branchId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
         status: PENDING,
-        transactionType: transactionType ?? TransactionType.custom,
+        transactionType: transactionType,
         subTotal: 0,
         cashReceived: 0,
         updatedAt: DateTime.now().toIso8601String(),
@@ -170,8 +170,8 @@ class IsarAPI<M> implements IsarApiInterface {
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    ITransaction? existTransaction =
-        await pendingTransaction(branchId: branchId);
+    ITransaction? existTransaction = await pendingTransaction(
+        branchId: branchId, transactionType: transactionType);
 
     int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
@@ -179,7 +179,7 @@ class IsarAPI<M> implements IsarApiInterface {
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        retailerId: businessId,
+        supplierId: businessId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -1568,23 +1568,15 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITransaction?> pendingTransaction(
-      {int? branchId, int? retailId}) async {
-    if (branchId != null) {
-      return db.read((isar) => isar.iTransactions
-          .where()
-          .statusEqualTo(PENDING)
-          .and()
-          .branchIdEqualTo(branchId)
-          .findFirst());
-    } else if (retailId != null) {
-      return db.read((isar) => isar.iTransactions
-          .where()
-          .statusEqualTo(PENDING)
-          .and()
-          .retailerIdEqualTo(retailId)
-          .findFirst());
-    }
-    return null;
+      {required int branchId, required String transactionType}) async {
+    return db.read((isar) => isar.iTransactions
+        .where()
+        .statusEqualTo(PENDING)
+        .and()
+        .branchIdEqualTo(branchId)
+        .and()
+        .transactionTypeEqualTo(transactionType)
+        .findFirst());
   }
 
   @override
@@ -3041,12 +3033,12 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<TransactionItem>> transactionItemsFuture() async {
-    ITransaction transaction = await manageTransaction();
+  Future<List<TransactionItem>> transactionItemsFuture(
+      {required String transactionId}) async {
     int branchId = ProxyService.box.getBranchId()!;
     return await db.read((isar) => isar.transactionItems
         .where()
-        .transactionIdEqualTo(transaction.id)
+        .transactionIdEqualTo(transactionId)
         .and()
         .deletedAtIsNull()
         .and()
@@ -3409,7 +3401,7 @@ class IsarAPI<M> implements IsarApiInterface {
   List<ITransaction> findAndFilter(
       List<ITransaction> transactions, int branchId) {
     return transactions
-        .where((transaction) => transaction.retailerId != branchId)
+        .where((transaction) => transaction.supplierId == branchId)
         .toList();
   }
 
@@ -3418,8 +3410,6 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read(
       (isar) => isar.iTransactions
           .where()
-          .branchIdEqualTo(branchId)
-          .and()
           .statusEqualTo(PENDING)
           .watch(fireImmediately: true)
           .map((transactions) => findAndFilter(transactions, branchId)),

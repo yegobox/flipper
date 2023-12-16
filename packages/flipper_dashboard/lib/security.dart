@@ -23,7 +23,6 @@ class SecurityState extends ConsumerState<Security> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async => await model.createPin(),

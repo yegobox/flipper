@@ -40,7 +40,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -283,7 +284,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                       // refresh transactions
                                       model.keyboardKeyPressed(key: 'C');
 
-                                      ref.refresh(transactionItemsProvider);
+                                      ref.refresh(transactionItemsProvider(
+                                          currentTransaction.value!.value!.id));
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },

@@ -29,7 +29,6 @@ class CustomersState extends ConsumerState<Customers> {
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     final customersRef =
         ref.watch(customersProvider(ProxyService.box.getBranchId()!));
 

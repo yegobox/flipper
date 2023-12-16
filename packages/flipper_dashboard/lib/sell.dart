@@ -29,7 +29,6 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
@@ -39,7 +38,8 @@ class SellState extends ConsumerState<Sell> {
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final pendingTransaction = ref.watch(pendingTransactionProvider);
+        final pendingTransaction =
+            ref.watch(pendingTransactionProvider(TransactionType.custom));
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -69,7 +69,8 @@ class SellState extends ConsumerState<Sell> {
                     background: Colors.red);
               }
               // ignore: unused_result
-              ref.refresh(transactionItemsProvider);
+              ref.refresh(transactionItemsProvider(
+                  pendingTransaction.value!.value!.id));
               _routerService.pop();
             },
             icon: Icons.close,

@@ -95,7 +95,6 @@ class CheckOutState extends ConsumerState<CheckOut>
             );
           });
     } else {
-      final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {

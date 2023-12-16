@@ -101,7 +101,7 @@ const ITransactionSchema = IsarGeneratedSchema(
         type: IsarType.dateTime,
       ),
       IsarPropertySchema(
-        name: 'retailerId',
+        name: 'supplierId',
         type: IsarType.long,
       ),
     ],
@@ -193,7 +193,7 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
   }
   IsarCore.writeLong(writer, 20,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 21, object.retailerId ?? -9223372036854775808);
+  IsarCore.writeLong(writer, 21, object.supplierId ?? -9223372036854775808);
   return Isar.fastHash(object.id);
 }
 
@@ -255,13 +255,13 @@ ITransaction deserializeITransaction(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
-  final int? _retailerId;
+  final int? _supplierId;
   {
     final value = IsarCore.readLong(reader, 21);
     if (value == -9223372036854775808) {
-      _retailerId = null;
+      _supplierId = null;
     } else {
-      _retailerId = value;
+      _supplierId = value;
     }
   }
   final object = ITransaction(
@@ -285,7 +285,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     action: _action,
     ticketName: _ticketName,
     deletedAt: _deletedAt,
-    retailerId: _retailerId,
+    supplierId: _supplierId,
   );
   return object;
 }
@@ -385,7 +385,7 @@ sealed class _ITransactionUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? retailerId,
+    int? supplierId,
   });
 }
 
@@ -416,7 +416,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? retailerId = ignore,
+    Object? supplierId = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -440,7 +440,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
           if (action != ignore) 18: action as String?,
           if (ticketName != ignore) 19: ticketName as String?,
           if (deletedAt != ignore) 20: deletedAt as DateTime?,
-          if (retailerId != ignore) 21: retailerId as int?,
+          if (supplierId != ignore) 21: supplierId as int?,
         }) >
         0;
   }
@@ -468,7 +468,7 @@ sealed class _ITransactionUpdateAll {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? retailerId,
+    int? supplierId,
   });
 }
 
@@ -499,7 +499,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? retailerId = ignore,
+    Object? supplierId = ignore,
   }) {
     return collection.updateProperties(id, {
       if (reference != ignore) 2: reference as String?,
@@ -521,7 +521,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (retailerId != ignore) 21: retailerId as int?,
+      if (supplierId != ignore) 21: supplierId as int?,
     });
   }
 }
@@ -553,7 +553,7 @@ sealed class _ITransactionQueryUpdate {
     String? action,
     String? ticketName,
     DateTime? deletedAt,
-    int? retailerId,
+    int? supplierId,
   });
 }
 
@@ -584,7 +584,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? retailerId = ignore,
+    Object? supplierId = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (reference != ignore) 2: reference as String?,
@@ -606,7 +606,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
       if (action != ignore) 18: action as String?,
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (retailerId != ignore) 21: retailerId as int?,
+      if (supplierId != ignore) 21: supplierId as int?,
     });
   }
 }
@@ -645,7 +645,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
     Object? action = ignore,
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
-    Object? retailerId = ignore,
+    Object? supplierId = ignore,
   }) {
     final q = query.build();
     try {
@@ -669,7 +669,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
         if (action != ignore) 18: action as String?,
         if (ticketName != ignore) 19: ticketName as String?,
         if (deletedAt != ignore) 20: deletedAt as DateTime?,
-        if (retailerId != ignore) 21: retailerId as int?,
+        if (supplierId != ignore) 21: supplierId as int?,
       });
     } finally {
       q.close();
@@ -3863,21 +3863,21 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdIsNull() {
+      supplierIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 21));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdIsNotNull() {
+      supplierIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 21));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdEqualTo(
+      supplierIdEqualTo(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3891,7 +3891,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdGreaterThan(
+      supplierIdGreaterThan(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3905,7 +3905,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdGreaterThanOrEqualTo(
+      supplierIdGreaterThanOrEqualTo(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3919,7 +3919,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdLessThan(
+      supplierIdLessThan(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3933,7 +3933,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdLessThanOrEqualTo(
+      supplierIdLessThanOrEqualTo(
     int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -3947,7 +3947,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      retailerIdBetween(
+      supplierIdBetween(
     int? lower,
     int? upper,
   ) {
@@ -4338,14 +4338,14 @@ extension ITransactionQuerySortBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByRetailerId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortBySupplierId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      sortByRetailerIdDesc() {
+      sortBySupplierIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
     });
@@ -4626,14 +4626,14 @@ extension ITransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByRetailerId() {
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenBySupplierId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
-      thenByRetailerIdDesc() {
+      thenBySupplierIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(21, sort: Sort.desc);
     });
@@ -4776,7 +4776,7 @@ extension ITransactionQueryWhereDistinct
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
-      distinctByRetailerId() {
+      distinctBySupplierId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(21);
     });
@@ -4907,7 +4907,7 @@ extension ITransactionQueryProperty1
     });
   }
 
-  QueryBuilder<ITransaction, int?, QAfterProperty> retailerIdProperty() {
+  QueryBuilder<ITransaction, int?, QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5047,7 +5047,7 @@ extension ITransactionQueryProperty2<R>
     });
   }
 
-  QueryBuilder<ITransaction, (R, int?), QAfterProperty> retailerIdProperty() {
+  QueryBuilder<ITransaction, (R, int?), QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5190,7 +5190,7 @@ extension ITransactionQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITransaction, (R1, R2, int?), QOperations> retailerIdProperty() {
+  QueryBuilder<ITransaction, (R1, R2, int?), QOperations> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
@@ -5213,7 +5213,7 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       cashReceived: (json['cashReceived'] as num).toDouble(),
       customerChangeDue: (json['customerChangeDue'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
-      retailerId: json['retailerId'] as int?,
+      supplierId: json['supplierId'] as int?,
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
       customerId: json['customerId'] as String?,
@@ -5248,7 +5248,7 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'action': instance.action,
       'ticketName': instance.ticketName,
       'deletedAt': ITransaction._dateTimeToJson(instance.deletedAt),
-      'retailerId': instance.retailerId,
+      'supplierId': instance.supplierId,
     };
 
 // **************************************************************************

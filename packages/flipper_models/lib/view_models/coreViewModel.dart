@@ -104,8 +104,8 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> keyboardKeyPressed({required String key}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
-    ITransaction? pendingTransaction =
-        await ProxyService.isar.manageTransaction();
+    ITransaction? pendingTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: pendingTransaction.id, doneWithTransaction: false);
 
@@ -396,7 +396,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    final transaction = await ProxyService.isar.manageTransaction();
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     ITransaction cbTransaction = transaction;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
@@ -435,7 +436,8 @@ class CoreViewModel extends FlipperBaseModel
       {required String phoneNumber,
       required double cashReceived,
       required String paymentType}) async {
-    final transaction = await ProxyService.isar.manageTransaction();
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isar.collectPayment(
@@ -500,7 +502,8 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
-    final currentTransaction = await ProxyService.isar.manageTransaction();
+    final currentTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     ITransaction? transaction =
         await ProxyService.isar.getTransactionById(id: currentTransaction.id);
     // Map map = transaction!;
@@ -813,7 +816,8 @@ class CoreViewModel extends FlipperBaseModel
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(String id, Function callback) async {
-    final transaction = await ProxyService.isar.manageTransaction();
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     if (transaction.customerId == null) {
       ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {

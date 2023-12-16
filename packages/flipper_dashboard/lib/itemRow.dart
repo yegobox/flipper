@@ -12,6 +12,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -238,7 +239,7 @@ class RowItem extends StatelessWidget {
     );
   }
 
-  void onRowClick(BuildContext context) {
+  Future<void> onRowClick(BuildContext context) async {
     if (addFavoriteMode != null && addFavoriteMode == true) {
       String? position = positionString[favIndex!];
       showDialog(
@@ -287,6 +288,10 @@ class RowItem extends StatelessWidget {
         },
       );
     } else {
+      // copy variant.name to clipboard, handy tool when want to copy name for some use.
+      if (variant != null) {
+        await Clipboard.setData(ClipboardData(text: variant!.name));
+      }
       if (variant == null) {
         _routerService.navigateTo(SellRoute(product: product!));
       }

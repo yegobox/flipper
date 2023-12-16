@@ -587,10 +587,10 @@ class SellState extends ConsumerState<Sell> {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id!);
+            model.loadVariantStock(variantId: variant.id);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id!);
+            model.toggleCheckbox(variantId: variant.id);
           },
           child: Container(
             child: Padding(
@@ -604,7 +604,7 @@ class SellState extends ConsumerState<Sell> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id!),
+                          future: model.getVariant(variantId: variant.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -636,7 +636,7 @@ class SellState extends ConsumerState<Sell> {
                           Container(
                             child: Radio(
                               // toggleable: true,
-                              value: variant.id!,
+                              value: variant.id,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),
@@ -657,7 +657,6 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getVariants(productId: widget.product.id);

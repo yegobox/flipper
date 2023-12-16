@@ -2,6 +2,8 @@
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -41,11 +43,20 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                           model: model,
                           addToMenu: (item) async {
                             Variant variant = item as Variant;
+
+                            /// get a cash out pending transaction
+                            /// because after this is approved by supplier it will be in
+                            /// cash out for retailer and cash in for supplier
+
                             ITransaction? iTransaction = ref
-                                .read(pendingTransactionProvider)
+                                .read(pendingTransactionProvider(
+                                    TransactionType.cashOut))
                                 .value
                                 ?.value;
-                            // use cartListProvider to add the variant to it
+                            iTransaction!.supplierId = variant.branchId;
+
+                            await ProxyService.isar.update(data: iTransaction);
+
                             // add item to cart
                             ref
                                 .read(cartListProvider.notifier)
@@ -59,8 +70,9 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 currentStock: 1.0,
                                 amountTotal: variant.retailPrice,
                                 customItem: false,
-                                pendingTransaction: iTransaction!);
-                            ref.refresh(transactionItemsProvider);
+                                pendingTransaction: iTransaction);
+                            ref.refresh(
+                                transactionItemsProvider(iTransaction.id));
                           },
                         );
                       },

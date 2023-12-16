@@ -5,7 +5,8 @@ import 'package:flipper_services/constants.dart';
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<Tenant>> signup({required Map business});
-  Future<ITransaction?> pendingTransaction({int? branchId, int? retailId});
+  Future<ITransaction?> pendingTransaction(
+      {required int branchId, required String transactionType});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({required int userId});
@@ -66,8 +67,7 @@ abstract class IsarApiInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<ITransaction> manageTransaction(
-      {String transactionType = 'custom', int? retailId});
+  Future<ITransaction> manageTransaction({required String transactionType});
 
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType});
@@ -186,7 +186,8 @@ abstract class IsarApiInterface {
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
       {required String transactionId, required bool doneWithTransaction});
-  Future<List<TransactionItem>> transactionItemsFuture();
+  Future<List<TransactionItem>> transactionItemsFuture(
+      { required String transactionId});
   Future<Variant?> getVariantById({required String id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(

@@ -67,7 +67,7 @@ class RealmSync<M extends IJsonSerializable>
         lastTouched: item.lastTouched,
         note: item.note,
         receiptType: item.receiptType,
-        retailerId: item.retailerId,
+        retailerId: item.supplierId,
         ticketName: item.ticketName,
         updatedAt: item.updatedAt,
       );
@@ -185,7 +185,7 @@ class RealmSync<M extends IJsonSerializable>
       cashReceived: result.cashReceived,
       customerChangeDue: result.customerChangeDue,
       createdAt: result.createdAt,
-      retailerId: result.retailerId,
+      supplierId: result.retailerId,
       id: result.id,
       lastTouched: result.lastTouched,
       action: result.action,

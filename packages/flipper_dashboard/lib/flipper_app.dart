@@ -104,7 +104,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => CoreViewModel(),
@@ -131,7 +130,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
                 );
             AppService.cleanedData.listen((data) async {
               log("listened to data");
-              final pendingTransaction = ref.watch(pendingTransactionProvider);
+              final pendingTransaction =
+                  ref.watch(pendingTransactionProvider(TransactionType.custom));
               log(data);
               List<String> parts = data.split(':');
               String firstPart = parts[0];

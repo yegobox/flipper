@@ -75,8 +75,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
           onFieldSubmitted: (value) async {
             _textSubject.add(value);
 
-            ITransaction currentTransaction =
-                await ProxyService.isar.manageTransaction();
+            ITransaction currentTransaction = await ProxyService.isar
+                .manageTransaction(transactionType: TransactionType.custom);
             if (ref.watch(scanningModeProvider) && value.isNotEmpty) {
               Variant? variant = await ProxyService.isar.variant(name: value);
               if (variant != null) {
@@ -89,7 +89,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     customItem: false,
                     pendingTransaction: currentTransaction,
                     currentStock: stock.currentStock);
-                ref.refresh(transactionItemsProvider);
+                ref.refresh(transactionItemsProvider(currentTransaction.id));
                 ref.refresh(searchStringProvider);
               }
             }

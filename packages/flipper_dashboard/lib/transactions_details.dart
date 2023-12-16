@@ -179,7 +179,6 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {

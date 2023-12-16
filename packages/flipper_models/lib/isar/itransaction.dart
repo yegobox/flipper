@@ -41,7 +41,7 @@ class ITransaction extends IJsonSerializable {
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
-  int? retailerId;
+  int? supplierId;
 
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
@@ -65,7 +65,7 @@ class ITransaction extends IJsonSerializable {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
-    required this.retailerId,
+    required this.supplierId,
     this.receiptType,
     this.updatedAt,
     this.customerId,

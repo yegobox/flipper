@@ -277,7 +277,6 @@ class TransactionsState extends ConsumerState<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           Drawers? drawer = await ProxyService.isar

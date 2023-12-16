@@ -15,6 +15,9 @@ class Orders extends StatefulHookConsumerWidget {
   OrdersState createState() => OrdersState();
 }
 
+/// note: when creating a transaction, it is created as my transaction
+/// when it is received on other hand it will be cloned or copied so that it appear on both end
+
 class OrdersState extends ConsumerState<Orders> {
   @override
   Widget build(BuildContext context) {

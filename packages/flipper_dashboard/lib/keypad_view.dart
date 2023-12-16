@@ -5,6 +5,7 @@ library pos;
 import 'dart:developer';
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -51,7 +52,8 @@ class KeyPadView extends StatefulHookConsumerWidget {
 class KeyPadViewState extends ConsumerState<KeyPadView> {
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(pendingTransactionProvider);
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     Widget plusOrSubmit;
     if (widget.transactionMode == false) {
       plusOrSubmit = Expanded(
@@ -60,7 +62,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           onTap: () async {
             HapticFeedback.lightImpact();
             await widget.model.keyboardKeyPressed(key: '+');
-            ref.refresh(transactionItemsProvider);
+            ref.refresh(transactionItemsProvider(transaction.value!.value!.id));
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -216,7 +218,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '1');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -239,7 +242,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '2');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -264,7 +268,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '3');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -295,7 +300,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '4');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -318,7 +324,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '5');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -341,7 +348,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '6');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -372,7 +380,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '7');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -397,7 +406,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '8');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -420,7 +430,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '9');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -451,7 +462,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: 'C');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -474,7 +486,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     onTap: () async {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '0');
-                      ref.refresh(transactionItemsProvider);
+                      ref.refresh(transactionItemsProvider(
+                          transaction.value!.value!.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -503,11 +516,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   void HandleTransactionFromCashBook() async {
     /// this will close the keypad
     widget.model.newTransactionPressed = false;
-
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     await widget.model.keyboardKeyPressed(key: '+');
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
-    ref.refresh(transactionItemsProvider);
+    ref.refresh(transactionItemsProvider(transaction.value!.value!.id));
   }
 }
 

@@ -50,7 +50,6 @@ class PaymentsState extends ConsumerState<Payments> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -79,15 +78,19 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Widget _buildBody(CoreViewModel model) {
-    final totalPayable =
-        ref.watch(transactionItemsProvider.notifier).totalPayable;
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
+    final totalPayable = ref
+        .watch(transactionItemsProvider(transaction.value!.value!.id))
+        .value!
+        .fold(0, (int sum, item) => sum + item.price.toInt());
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 145),
-        _buildAmountSection(totalPayable),
+        _buildAmountSection(totalPayable.toDouble()),
         Spacer(),
         _buildPaymentButtons(model),
         const SizedBox(height: 10),
@@ -326,8 +329,8 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
-    ITransaction currentTransaction =
-        await ProxyService.isar.manageTransaction();
+    ITransaction currentTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
 
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty

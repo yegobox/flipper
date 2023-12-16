@@ -357,7 +357,7 @@ void customSnackBar(GlobalKey<ScaffoldState> _scaffoldKey, String msg,
   if (_scaffoldKey.currentState == null) {
     return;
   }
-  final SnackBar snackBar = SnackBar(
+  SnackBar(
     backgroundColor: backgroundColor,
     content: Text(
       msg,
