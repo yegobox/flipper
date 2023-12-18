@@ -62,7 +62,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           onTap: () async {
             HapticFeedback.lightImpact();
             await widget.model.keyboardKeyPressed(key: '+');
-            ref.refresh(transactionItemsProvider(transaction.value!.value!.id));
+            ref.refresh(transactionItemsProvider(transaction.value?.value?.id));
           },
           child: Container(
             height: MediaQuery.of(context).size.height *
@@ -219,7 +219,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '1');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -243,7 +243,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '2');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -269,7 +269,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '3');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -301,7 +301,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '4');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -325,7 +325,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '5');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -349,7 +349,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '6');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -381,7 +381,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '7');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -407,7 +407,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '8');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -431,7 +431,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '9');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                       height: MediaQuery.of(context).size.height *
@@ -463,7 +463,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: 'C');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -487,7 +487,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                       HapticFeedback.lightImpact();
                       await widget.model.keyboardKeyPressed(key: '0');
                       ref.refresh(transactionItemsProvider(
-                          transaction.value!.value!.id));
+                          transaction.value?.value?.id));
                     },
                     child: Container(
                         height: MediaQuery.of(context).size.height *
@@ -521,7 +521,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     await widget.model.keyboardKeyPressed(key: '+');
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
-    ref.refresh(transactionItemsProvider(transaction.value!.value!.id));
+    ref.refresh(transactionItemsProvider(transaction.value?.value?.id));
   }
 }
 

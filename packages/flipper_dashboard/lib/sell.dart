@@ -70,7 +70,7 @@ class SellState extends ConsumerState<Sell> {
               }
               // ignore: unused_result
               ref.refresh(transactionItemsProvider(
-                  pendingTransaction.value!.value!.id));
+                  pendingTransaction.value?.value?.id));
               _routerService.pop();
             },
             icon: Icons.close,

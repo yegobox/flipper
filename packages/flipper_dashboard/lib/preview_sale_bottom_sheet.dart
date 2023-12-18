@@ -34,7 +34,10 @@ class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
 class PreviewSaleBottomSheetState
     extends ConsumerState<PreviewSaleBottomSheet> {
   final _routerService = locator<RouterService>();
-  final _numberFormat = NumberFormat('#,###');
+  final _numberFormat = NumberFormat.currency(
+    locale: 'en', // e.g., 'en_US' for English (United States)
+    symbol: ' RWF',
+  );
   late final transactionProvider =
       pendingTransactionProvider(TransactionType.custom);
 
@@ -42,7 +45,7 @@ class PreviewSaleBottomSheetState
   Widget build(BuildContext context) {
     final transaction = ref.watch(transactionProvider);
     final transactionItemsNotifier = ref
-        .watch(transactionItemsProvider(transaction.value!.value!.id).notifier);
+        .watch(transactionItemsProvider(transaction.value?.value?.id).notifier);
 
     final totalPayable = transactionItemsNotifier.totalPayable;
 
@@ -55,7 +58,7 @@ class PreviewSaleBottomSheetState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             widget.mode == SellingMode.forSelling
-                ? AddCustomerButton(transactionId: transaction.value!.value!.id)
+                ? AddCustomerButton(transactionId: transaction.value?.value?.id)
                 : SizedBox.shrink(),
             ListView(
               reverse: widget.reverse,
@@ -72,12 +75,12 @@ class PreviewSaleBottomSheetState
                       context: context,
                     );
                     ref.refresh(
-                      transactionItemsProvider(transaction.value!.value!.id),
+                      transactionItemsProvider(transaction.value?.value?.id),
                     );
                   },
                   items: ref
                       .watch(
-                        transactionItemsProvider(transaction.value!.value!.id),
+                        transactionItemsProvider(transaction.value?.value?.id),
                       )
                       .value!,
                 ),
@@ -111,8 +114,8 @@ class PreviewSaleBottomSheetState
               padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
               child: BoxButton(
                 title: widget.mode == SellingMode.forSelling
-                    ? "Collect ${_numberFormat.format(totalPayable)} RWF"
-                    : "Order ${_numberFormat.format(totalPayable)} RWF",
+                    ? "Collect ${_numberFormat.format(totalPayable)} "
+                    : "Order ${_numberFormat.format(totalPayable)} ",
                 onTap: () async {
                   final transaction = await ProxyService.isar.manageTransaction(
                     transactionType: TransactionType.custom,

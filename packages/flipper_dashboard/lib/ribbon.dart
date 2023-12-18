@@ -1,4 +1,6 @@
+import 'package:flipper_dashboard/Stock.dart';
 import 'package:flipper_dashboard/custom_widgets.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +106,24 @@ class IconRow extends StatelessWidget {
           onPressed: () {
             // Perform some action when the button is pressed
             showAlert(context, onPressedOk: () {}, title: "Comming soon");
+          },
+        ),
+
+        IconButton(
+          icon: IconText(
+            icon: Icons.sync,
+            text: 'Stock',
+          ),
+          iconSize: 100.0,
+          padding: EdgeInsets.zero,
+          onPressed: () {
+            // Perform some action when the button is pressed
+            // showAlert(context, onPressedOk: () {}, title: "Comming soon");
+            // Navigator.of(context).push(
+            //   MaterialPageRoute(
+            //     builder: (context) => Stock(),
+            //   ),
+            // );
           },
         ),
 

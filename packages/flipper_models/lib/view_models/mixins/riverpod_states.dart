@@ -94,14 +94,12 @@ final pendingTransactionProvider = FutureProvider.autoDispose
     return AsyncError(error, StackTrace.current);
   }
 });
-// final productsProvider = FutureProvider((ref) async {
-//      return ProxyService.isar.transactionItemsFuture();
-// });
-// Use a const constructor for the StateNotifierProvider to avoid unnecessary rebuilds
+
 final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
-    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, String>(
+    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, String?>(
   (ref, currentTransaction) {
-    return TransactionItemsNotifier(currentTransaction: currentTransaction);
+    return TransactionItemsNotifier(
+        currentTransaction: currentTransaction ?? "0");
   },
 );
 

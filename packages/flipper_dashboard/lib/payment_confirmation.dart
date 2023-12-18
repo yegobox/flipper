@@ -98,7 +98,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                       left: 0,
                       child: StreamBuilder<Customer?>(
                         stream: model.getCustomer(
-                            transactionId: currentTransaction.value!.value!.id),
+                            transactionId: currentTransaction.value?.value?.id),
                         builder: (context, snapshot) {
                           return Column(
                             children: [
@@ -285,7 +285,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                       model.keyboardKeyPressed(key: 'C');
 
                                       ref.refresh(transactionItemsProvider(
-                                          currentTransaction.value!.value!.id));
+                                          currentTransaction.value?.value?.id));
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },

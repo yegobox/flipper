@@ -81,7 +81,7 @@ class PaymentsState extends ConsumerState<Payments> {
     final transaction =
         ref.watch(pendingTransactionProvider(TransactionType.custom));
     final totalPayable = ref
-        .watch(transactionItemsProvider(transaction.value!.value!.id))
+        .watch(transactionItemsProvider(transaction.value?.value?.id))
         .value!
         .fold(0, (int sum, item) => sum + item.price.toInt());
 

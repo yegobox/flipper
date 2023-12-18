@@ -1,13 +1,11 @@
 import 'package:flipper_dashboard/customers.dart';
-import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class AddCustomerButton extends StatelessWidget {
   AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
 
-  final String transactionId;
+  final String? transactionId;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -49,7 +47,7 @@ class AddCustomerButton extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(top: 20.0),
                     child: Customers(
-                      transactionId: transactionId,
+                      transactionId: transactionId ?? "0",
                     ),
                   );
                 },

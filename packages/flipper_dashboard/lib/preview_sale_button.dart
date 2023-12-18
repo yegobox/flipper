@@ -37,8 +37,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
     _buttonColorTween = ColorTween(
       begin: primaryButtonStyle.backgroundColor?.resolve(Set.of([])),
-      end: _buttonColor
-          .withOpacity(0.8), // Change this to the desired pressed color
+      end: _buttonColor.withOpacity(0.8),
     ).animate(_controller);
   }
 
@@ -91,8 +90,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
-    final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+    final transaction = widget.mode == SellingMode.forOrdering
+        ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
+        : ref.watch(pendingTransactionProvider(TransactionType.custom));
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -121,8 +121,8 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                 },
                 child: Text(
                   widget.wording == null
-                      ? "Preview Sale ${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length})" : ""}"
-                      : "Preview Cart ${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value!.value!.id)).value!.length})" : ""}",
+                      ? "Preview Sale ${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length})" : ""}"
+                      : "Preview Cart ${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length})" : ""}",
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,

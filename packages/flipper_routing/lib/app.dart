@@ -209,6 +209,6 @@ class App {}
 // }
 // TODO: when get time implement this: https://app.posthog.com/ (login with richard github account)
 // https://pub.dev/packages/side_navigation
-
+//TODO: realm crud https://medium.com/@alperenekin/another-mobile-database-option-realm-database-for-flutter-f269763b79ef
 // Login Pins
 // YEGOBOX: 31658
