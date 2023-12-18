@@ -28,16 +28,30 @@ class FirestoreSync<M extends IJsonSerializable>
     }
     Map<String, dynamic> data = item.toJson();
 
-    //TODO: get secretId from remoteConfig once is supported on windows as well
-    data['secretId'] = "111";
-    ReceivePort receivePort = ReceivePort();
-    await Isolate.spawn(
-      saveItem<T>,
-      [rootIsolateToken, receivePort.sendPort, item, data],
-    );
-    receivePort.listen((message) {
-      print('Message from isolate: $message');
-    });
+    /// isolate is not working proper on android, so no need of isolate on mobile then
+    if (Platform.isAndroid || Platform.isIOS) {
+      final String collectionName = getCollectionName<T>();
+      final collectionRef =
+          FirebaseFirestore.instance.collection(collectionName);
+      try {
+        final doc = collectionRef.doc(getItemId<T>(item));
+
+        await doc.set(data, SetOptions(merge: true));
+      } catch (e) {
+        print('Error: $e');
+        // Send an error message back to the main thread
+      }
+    } else {
+      data['secretId'] = "111";
+      ReceivePort receivePort = ReceivePort();
+      await Isolate.spawn(
+        saveItem<T>,
+        [rootIsolateToken, receivePort.sendPort, item, data],
+      );
+      receivePort.listen((message) {
+        print('Message from isolate: $message');
+      });
+    }
   }
 
   Future<void> saveItem<T extends IJsonSerializable>(List<dynamic> args) async {
