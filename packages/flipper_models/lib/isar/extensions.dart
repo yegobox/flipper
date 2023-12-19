@@ -53,13 +53,12 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
       if (object is Drawers) {
         ProxyService.syncFirestore.onSave<Drawers>(item: object);
       }
-    } else {
-      if (object is TransactionItem) {
-        ProxyService.realm.onSave<TransactionItem>(item: object);
-      }
-      if (object is ITransaction) {
-        ProxyService.realm.onSave<ITransaction>(item: object);
-      }
+    }
+    if (object is TransactionItem) {
+      ProxyService.realm.onSave<TransactionItem>(item: object);
+    }
+    if (object is ITransaction) {
+      ProxyService.realm.onSave<ITransaction>(item: object);
     }
   }
 }

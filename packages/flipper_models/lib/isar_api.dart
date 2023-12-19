@@ -538,7 +538,9 @@ class IsarAPI<M> implements IsarApiInterface {
     transaction.status = COMPLETE;
 
     List<TransactionItem> items = await transactionItems(
-        transactionId: transaction.id, doneWithTransaction: false);
+        transactionId: transaction.id,
+        doneWithTransaction: false,
+        active: true);
     double subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
     transaction.customerChangeDue = (cashReceived - subTotal);
     transaction.paymentType = paymentType;
@@ -2787,23 +2789,6 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<TransactionItem>> transactionItems(
-      {required String transactionId,
-      required bool doneWithTransaction}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar) => db.transactionItems
-        .where()
-        .transactionIdEqualTo(transactionId)
-        .and()
-        .doneWithTransactionEqualTo(doneWithTransaction)
-        .and()
-        .branchIdEqualTo(branchId)
-        .and()
-        .deletedAtIsNull()
-        .findAll());
-  }
-
-  @override
   Future<Stock?> addStockToVariant({required Variant variant}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Stock stock = Stock(
@@ -3033,18 +3018,22 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<TransactionItem>> transactionItemsFuture(
-      {required String transactionId}) async {
+  Future<List<TransactionItem>> transactionItems(
+      {required String transactionId,
+      required bool doneWithTransaction,
+      required bool active}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return await db.read((isar) => isar.transactionItems
+    return db.read((isar) => db.transactionItems
         .where()
         .transactionIdEqualTo(transactionId)
         .and()
-        .deletedAtIsNull()
+        .doneWithTransactionEqualTo(doneWithTransaction)
         .and()
         .branchIdEqualTo(branchId)
         .and()
-        .doneWithTransactionEqualTo(false)
+        .deletedAtIsNull()
+        .and()
+        .activeEqualTo(active)
         .findAll());
   }
 

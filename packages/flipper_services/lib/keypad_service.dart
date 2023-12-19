@@ -83,7 +83,9 @@ class KeyPadService with ListenableServiceMixin {
 
     if (transaction != null) {
       List<TransactionItem> items = await ProxyService.isar.transactionItems(
-          transactionId: transaction.id, doneWithTransaction: false);
+          transactionId: transaction.id,
+          doneWithTransaction: false,
+          active: true);
       _countTransactionItems.value = items.length;
     }
     _transaction.value = transaction;

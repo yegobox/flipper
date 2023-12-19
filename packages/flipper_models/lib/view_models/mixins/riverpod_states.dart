@@ -116,8 +116,10 @@ class TransactionItemsNotifier
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
-      final items = await ProxyService.isar
-          .transactionItemsFuture(transactionId: currentTransaction);
+      final items = await ProxyService.isar.transactionItems(
+          transactionId: currentTransaction,
+          doneWithTransaction: false,
+          active: true);
       state = AsyncData(items);
 
       return items;

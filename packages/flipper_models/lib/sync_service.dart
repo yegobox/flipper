@@ -36,7 +36,9 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
       if (endpoint == "transactions") {
         List<TransactionItem> itemOnTransaction = await ProxyService.isar
             .transactionItems(
-                transactionId: json["id"], doneWithTransaction: true);
+                transactionId: json["id"],
+                doneWithTransaction: true,
+                active: true);
         String namesString =
             itemOnTransaction.map((item) => item.name).join(',');
         json["itemName"] = namesString;

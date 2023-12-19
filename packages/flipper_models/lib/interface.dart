@@ -185,9 +185,8 @@ abstract class IsarApiInterface {
 
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId, required bool doneWithTransaction});
-  Future<List<TransactionItem>> transactionItemsFuture(
-      { required String transactionId});
+      {required String transactionId, required bool doneWithTransaction,required bool active});
+
   Future<Variant?> getVariantById({required String id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(

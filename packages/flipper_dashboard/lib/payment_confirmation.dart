@@ -124,6 +124,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                                   await ProxyService.isar
                                                       .transactionItems(
                                                 doneWithTransaction: false,
+                                                active: true,
                                                 transactionId:
                                                     widget.transaction.id,
                                               );
@@ -311,7 +312,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             List<TransactionItem> items = await ProxyService.isar
                 .transactionItems(
                     transactionId: widget.transaction.id,
-                    doneWithTransaction: false);
+                    doneWithTransaction: false,
+                    active: true);
 
             final bool isDone = await model.generateRRAReceipt(
                 items: items,
