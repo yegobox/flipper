@@ -222,15 +222,67 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       await getInstance();
     }
     try {
+      collection['action'] = AppActions.updatedLocally;
       return await pb!.collection(collectionName).create(body: collection);
     } on SocketException catch (e) {
       log(e.toString());
+
+      /// returning null here was casing the item to be updated locally as done
+      /// syncing yet it was not done on remote server
+      /// so moving [collection['action'] = AppActions.updatedLocally;] avoid the issue
       return null;
     } on ClientException catch (e) {
       log("Client error could not create item ${collection['id']} and ${collection['action']}");
+      updateItemLocally(collectionName, collection);
+
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  void updateItemLocally(
+      String collectionName, Map<String, dynamic> collection) {
+    if (collectionName == "products") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Product.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "stocks") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Stock.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "variants") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Variant.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+
+    if (collectionName == "transactions") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = ITransaction.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "socials") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Social.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "favorites") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Favorite.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "devices") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Device.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "transactionItems") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = TransactionItem.fromJson(collection);
+      ProxyService.isar.update(data: json);
     }
   }
 
@@ -245,6 +297,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
     }
     try {
       // Record is empty
+      data['action'] = AppActions.updatedLocally;
       return await pb!.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
       log(e.toString());

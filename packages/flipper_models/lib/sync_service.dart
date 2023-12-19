@@ -23,6 +23,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   }
 
   Future<Map<String, dynamic>?> _push(M model) async {
+    log('Start sending data to server', name: 'sync');
     Type modelType = model.runtimeType;
 
     // Use the model type to get the corresponding endpoint from the map
@@ -78,13 +79,12 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         final lastTouched = DateTime.now().toIso8601String();
 
         json['lastTouched'] = lastTouched;
-        json['action'] = AppActions.updatedLocally;
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
       } else if (json['action'] == AppActions.created) {
         //change action when sending to remote to avoid pulling it next time with create
         // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
-        json['action'] = AppActions.updatedLocally;
+
         final lastTouched = DateTime.now().toIso8601String();
 
         json['lastTouched'] = lastTouched;
@@ -129,7 +129,6 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
 
   @override
   Future<void> localChanges() async {
-    log('Start sending data to server', name: 'sync');
     final data = await ProxyService.isar.getUnSyncedData();
     for (Product product in data.products) {
       if (product.action != AppActions.remote && product.name != TEMP_PRODUCT) {
