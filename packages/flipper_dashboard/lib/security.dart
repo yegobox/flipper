@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';

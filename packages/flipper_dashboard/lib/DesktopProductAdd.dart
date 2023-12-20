@@ -376,7 +376,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             DataColumn(label: Text('Quantity')),
                             DataColumn(label: Text('Action')),
                           ],
-                          rows: model.scannedVariants.map((variant) {
+                          rows: model.scannedVariants.reversed.map((variant) {
                             return DataRow(cells: [
                               DataCell(Text(variant.name)),
                               DataCell(
