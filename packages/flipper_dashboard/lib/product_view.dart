@@ -348,9 +348,6 @@ class ProductViewState extends ConsumerState<ProductView> {
                         favIndex: widget.favIndex,
                         edit: (productId) {
                           if (Platform.isWindows || isDesktopOrWeb) {
-                            // showAlert(context,
-                            //     onPressedOk: () {},
-                            //     title: "Edit on desktop coming soon");
                             showDialog(
                               barrierDismissible: false,
                               context: context,
