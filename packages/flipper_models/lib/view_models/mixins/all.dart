@@ -1,6 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/locator.dart';

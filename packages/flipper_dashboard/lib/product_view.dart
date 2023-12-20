@@ -1,5 +1,6 @@
 import 'dart:developer';
-
+import 'dart:io';
+import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -344,9 +345,15 @@ class ProductViewState extends ConsumerState<ProductView> {
                             (widget.favIndex != null) ? true : false,
                         favIndex: widget.favIndex,
                         edit: (productId) {
-                          _routerService.navigateTo(
-                            AddProductViewRoute(productId: productId),
-                          );
+                          if (Platform.isWindows || isDesktopOrWeb) {
+                            showAlert(context,
+                                onPressedOk: () {},
+                                title: "Edit on desktop coming soon");
+                          } else {
+                            _routerService.navigateTo(
+                              AddProductViewRoute(productId: productId),
+                            );
+                          }
                         },
                         delete: (productId) async {
                           await model.deleteProduct(productId: productId);

@@ -1,5 +1,8 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
+import 'package:flipper_models/realm/realmProduct.dart';
+import 'package:flipper_models/realm/realmVariant.dart';
+import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -23,8 +26,13 @@ class RealmSync<M extends IJsonSerializable>
     if (realm == null) {
       final app = App(AppConfiguration('application-0-hwctb'));
       final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
-      realm = Realm(Configuration.flexibleSync(
-          user, [RealmITransaction.schema, RealmITransactionItem.schema]));
+      realm = Realm(Configuration.flexibleSync(user, [
+        RealmITransaction.schema,
+        RealmITransactionItem.schema,
+        RealmProduct.schema,
+        RealmVariant.schema,
+        RealmStock.schema,
+      ]));
       realm!.subscriptions.update((mutableSubscriptions) {
         mutableSubscriptions.add(
             realm!.query<RealmITransaction>(r'branchId == $0', [branchId]));
@@ -149,6 +157,136 @@ class RealmSync<M extends IJsonSerializable>
           realm?.add(realmITransactionItem);
         } else {
           realm?.add<RealmITransactionItem>(findableObject.first, update: true);
+        }
+      });
+    }
+    if (item is Product) {
+      final realmProduct = RealmProduct(
+        item.id,
+        ObjectId(), // Auto-generate ObjectId for realmId
+        item.name,
+        item.color,
+        item.businessId,
+        item.branchId,
+        item.action,
+        description: item.description,
+        taxId: item.taxId,
+        supplierId: item.supplierId,
+        categoryId: item.categoryId,
+        createdAt: item.createdAt,
+        unit: item.unit,
+        imageUrl: item.imageUrl,
+        expiryDate: item.expiryDate,
+        barCode: item.barCode,
+        nfcEnabled: item.nfcEnabled,
+        bindedToTenantId: item.bindedToTenantId,
+        isFavorite: item.isFavorite,
+        lastTouched: item.lastTouched, // Update lastTouched timestamp
+      );
+      final findableObject = realm!.query<RealmProduct>(r'id == $0', [item.id]);
+      // Save _RealmITransaction to the Realm database
+      await realm?.write(() {
+        if (findableObject.isEmpty) {
+          // Transaction doesn't exist, add it
+          realm?.add(realmProduct);
+        } else {
+          realm?.add<RealmProduct>(findableObject.first, update: true);
+        }
+      });
+    }
+    if (item is Variant) {
+      final realmVariant = RealmVariant(
+        ObjectId(), // Auto-generate ObjectId for realmId
+        item.name,
+        item.color,
+        item.sku,
+        item.productId,
+        item.unit,
+        item.productName,
+        item.branchId,
+        item.isTaxExempted,
+        item.action,
+        item.id,
+        item.retailPrice,
+        item.supplyPrice,
+        dftPrc: item.dftPrc,
+        taxName: item.taxName,
+        taxPercentage: item.taxPercentage,
+        isrcAplcbYn: item.isrcAplcbYn,
+        modrId: item.modrId,
+        rsdQty: item.rsdQty,
+        taxTyCd: item.taxTyCd,
+        bcd: item.bcd,
+        itemClsCd: item.itemClsCd,
+        itemTyCd: item.itemTyCd,
+        itemStdNm: item.itemStdNm,
+        addInfo: item.addInfo,
+        pkg: item.pkg,
+        useYn: item.useYn,
+        regrNm: item.regrNm,
+        modrNm: item.modrNm,
+        itemNm: item.itemNm,
+        lastTouched: item.lastTouched,
+        deletedAt: item.deletedAt,
+        tin: item.tin,
+        bhfId: item.bhfId,
+        regrId: item.regrId,
+        orgnNatCd: item.orgnNatCd,
+        itemSeq: item.itemSeq,
+        itemCd: item.itemCd,
+        isrccCd: item.isrccCd,
+        pkgUnitCd: item.pkgUnitCd,
+        qtyUnitCd: item.qtyUnitCd,
+        isrccNm: item.isrccNm,
+        qty: item.qty,
+        isrcRt: item.isrcRt,
+        prc: item.prc,
+        isrcAmt: item.isrcAmt,
+        splyAmt: item.splyAmt,
+      );
+
+      final findableObject = realm!.query<RealmVariant>(r'id == $0', [item.id]);
+
+      await realm?.write(() {
+        if (findableObject.isEmpty) {
+          // Variant doesn't exist, add it
+          realm?.add(realmVariant);
+        } else {
+          // Variant exists, update it
+          realm?.add<RealmVariant>(findableObject.first, update: true);
+        }
+      });
+    }
+    if (item is Stock) {
+      final realmStock = RealmStock(
+        item.id,
+        ObjectId(), // Auto-generate ObjectId for realmId
+        item.branchId,
+        item.variantId,
+        item.currentStock,
+        item.productId,
+        item.action,
+        lowStock: item.lowStock,
+        canTrackingStock: item.canTrackingStock,
+        showLowStockAlert: item.showLowStockAlert,
+        active: item.active,
+        value: item.value,
+        rsdQty: item.rsdQty,
+        supplyPrice: item.supplyPrice,
+        retailPrice: item.retailPrice,
+        lastTouched: item.lastTouched,
+        deletedAt: item.deletedAt,
+      );
+
+      final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
+
+      await realm?.write(() {
+        if (findableObject.isEmpty) {
+          // Stock doesn't exist, add it
+          realm?.add(realmStock);
+        } else {
+          // Stock exists, update it
+          realm?.add<RealmStock>(findableObject.first, update: true);
         }
       });
     }

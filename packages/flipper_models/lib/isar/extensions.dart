@@ -60,5 +60,16 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     if (object is ITransaction) {
       ProxyService.realm.onSave<ITransaction>(item: object);
     }
+
+    if (object is Product) {
+      ProxyService.realm.onSave<Product>(item: object);
+    }
+
+    if (object is Stock) {
+      ProxyService.realm.onSave<Stock>(item: object);
+    }
+    if (object is Variant) {
+      ProxyService.realm.onSave<Variant>(item: object);
+    }
   }
 }
