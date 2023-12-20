@@ -183,9 +183,19 @@ abstract class IsarApiInterface {
 
   Future<List<Product>> productsFuture({required int branchId});
 
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  });
+
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId, required bool doneWithTransaction,required bool active});
+      {required String transactionId,
+      required bool doneWithTransaction,
+      required bool active});
 
   Future<Variant?> getVariantById({required String id});
   Future<bool> isTaxEnabled();

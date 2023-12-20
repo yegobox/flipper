@@ -428,3 +428,14 @@ final ordersStreamProvider =
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.isar.orders(branchId: branchId);
 });
+
+final transactionsStreamProvider =
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  // Retrieve the transaction status from the provider container, if needed
+
+  // Use ProxyService to get the IsarStream of transactions
+  final transactionsStream = ProxyService.isar.transactionsStream();
+
+  // Return the stream
+  return transactionsStream;
+});

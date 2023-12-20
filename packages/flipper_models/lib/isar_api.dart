@@ -3018,6 +3018,45 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  }) {
+    final isarQuery =
+        db.iTransactions.where().statusEqualTo(status ?? COMPLETE);
+
+    if (isCashOut) {
+      isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
+    } else {
+      isarQuery
+          .and()
+          .transactionTypeEqualTo(TransactionType.cashIn)
+          .or()
+          .transactionTypeEqualTo(TransactionType.sale)
+          .or()
+          .transactionTypeEqualTo(TransactionType.custom)
+          .or()
+          .transactionTypeEqualTo(TransactionType.onlineSale);
+    }
+
+    if (branchId != null) {
+      isarQuery.and().branchIdEqualTo(branchId);
+    } else {
+      branchId = ProxyService.box.getBranchId()!;
+      isarQuery.and().branchIdEqualTo(branchId);
+    }
+
+    return db.read((isar) => isarQuery
+        .and()
+        .deletedAtIsNull()
+        .watch()
+        .map((transactions) => transactions));
+  }
+
+  @override
   Future<List<TransactionItem>> transactionItems(
       {required String transactionId,
       required bool doneWithTransaction,
