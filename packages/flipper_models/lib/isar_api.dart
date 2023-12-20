@@ -431,9 +431,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addVariant({required List<Variant> variations}) async {
-    String id = randomString();
     db.write((isar) {
       for (Variant variation in variations) {
+        String id = randomString();
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
         variation.itemClsCd = "5020230602";

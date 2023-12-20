@@ -20,8 +20,8 @@ class RealmITransactionItem extends _RealmITransactionItem
     int branchId,
     double remainingStock,
     String createdAt,
-    String id,
     String updatedAt,
+    String id,
     bool isTaxExempted, {
     String? modrNm,
     String? itemCd,
@@ -47,18 +47,19 @@ class RealmITransactionItem extends _RealmITransactionItem
     String? qtyUnitCd,
     double? totAmt,
     String? isrccCd,
+    bool? isRefunded,
     String? isrccNm,
     double? dftPrc,
     String? isrcRt,
-    bool? isRefunded,
-    String? taxTyCd,
     double? discount,
+    String? taxTyCd,
+    String? type,
     String? bcd,
     String? modrId,
     String? itemClsCd,
-    String? type,
-    String? itemStdNm,
     bool? doneWithTransaction,
+    String? itemStdNm,
+    bool? active,
     String? orgnNatCd,
     double? dcRt,
     String? pkg,
@@ -74,6 +75,7 @@ class RealmITransactionItem extends _RealmITransactionItem
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'remainingStock', remainingStock);
     RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'updatedAt', updatedAt);
     RealmObjectBase.set(this, 'itemCd', itemCd);
     RealmObjectBase.set(this, 'prc', prc);
     RealmObjectBase.set(this, 'tin', tin);
@@ -97,21 +99,21 @@ class RealmITransactionItem extends _RealmITransactionItem
     RealmObjectBase.set(this, 'regrNm', regrNm);
     RealmObjectBase.set(this, 'qtyUnitCd', qtyUnitCd);
     RealmObjectBase.set(this, 'totAmt', totAmt);
-    RealmObjectBase.set(this, 'updatedAt', updatedAt);
-    RealmObjectBase.set(this, 'isrccCd', isrccCd);
     RealmObjectBase.set(this, 'isTaxExempted', isTaxExempted);
+    RealmObjectBase.set(this, 'isrccCd', isrccCd);
+    RealmObjectBase.set(this, 'isRefunded', isRefunded);
     RealmObjectBase.set(this, 'isrccNm', isrccNm);
     RealmObjectBase.set(this, 'dftPrc', dftPrc);
     RealmObjectBase.set(this, 'isrcRt', isrcRt);
-    RealmObjectBase.set(this, 'isRefunded', isRefunded);
-    RealmObjectBase.set(this, 'taxTyCd', taxTyCd);
     RealmObjectBase.set(this, 'discount', discount);
+    RealmObjectBase.set(this, 'taxTyCd', taxTyCd);
+    RealmObjectBase.set(this, 'type', type);
     RealmObjectBase.set(this, 'bcd', bcd);
     RealmObjectBase.set(this, 'modrId', modrId);
     RealmObjectBase.set(this, 'itemClsCd', itemClsCd);
-    RealmObjectBase.set(this, 'type', type);
-    RealmObjectBase.set(this, 'itemStdNm', itemStdNm);
     RealmObjectBase.set(this, 'doneWithTransaction', doneWithTransaction);
+    RealmObjectBase.set(this, 'itemStdNm', itemStdNm);
+    RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'orgnNatCd', orgnNatCd);
     RealmObjectBase.set(this, 'dcRt', dcRt);
     RealmObjectBase.set(this, 'pkg', pkg);
@@ -180,6 +182,12 @@ class RealmITransactionItem extends _RealmITransactionItem
       RealmObjectBase.get<String>(this, 'createdAt') as String;
   @override
   set createdAt(String value) => RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  String get updatedAt =>
+      RealmObjectBase.get<String>(this, 'updatedAt') as String;
+  @override
+  set updatedAt(String value) => RealmObjectBase.set(this, 'updatedAt', value);
 
   @override
   String? get itemCd => RealmObjectBase.get<String>(this, 'itemCd') as String?;
@@ -311,10 +319,11 @@ class RealmITransactionItem extends _RealmITransactionItem
   set totAmt(double? value) => RealmObjectBase.set(this, 'totAmt', value);
 
   @override
-  String get updatedAt =>
-      RealmObjectBase.get<String>(this, 'updatedAt') as String;
+  bool get isTaxExempted =>
+      RealmObjectBase.get<bool>(this, 'isTaxExempted') as bool;
   @override
-  set updatedAt(String value) => RealmObjectBase.set(this, 'updatedAt', value);
+  set isTaxExempted(bool value) =>
+      RealmObjectBase.set(this, 'isTaxExempted', value);
 
   @override
   String? get isrccCd =>
@@ -323,11 +332,10 @@ class RealmITransactionItem extends _RealmITransactionItem
   set isrccCd(String? value) => RealmObjectBase.set(this, 'isrccCd', value);
 
   @override
-  bool get isTaxExempted =>
-      RealmObjectBase.get<bool>(this, 'isTaxExempted') as bool;
+  bool? get isRefunded =>
+      RealmObjectBase.get<bool>(this, 'isRefunded') as bool?;
   @override
-  set isTaxExempted(bool value) =>
-      RealmObjectBase.set(this, 'isTaxExempted', value);
+  set isRefunded(bool? value) => RealmObjectBase.set(this, 'isRefunded', value);
 
   @override
   String? get isrccNm =>
@@ -346,10 +354,10 @@ class RealmITransactionItem extends _RealmITransactionItem
   set isrcRt(String? value) => RealmObjectBase.set(this, 'isrcRt', value);
 
   @override
-  bool? get isRefunded =>
-      RealmObjectBase.get<bool>(this, 'isRefunded') as bool?;
+  double? get discount =>
+      RealmObjectBase.get<double>(this, 'discount') as double?;
   @override
-  set isRefunded(bool? value) => RealmObjectBase.set(this, 'isRefunded', value);
+  set discount(double? value) => RealmObjectBase.set(this, 'discount', value);
 
   @override
   String? get taxTyCd =>
@@ -358,10 +366,9 @@ class RealmITransactionItem extends _RealmITransactionItem
   set taxTyCd(String? value) => RealmObjectBase.set(this, 'taxTyCd', value);
 
   @override
-  double? get discount =>
-      RealmObjectBase.get<double>(this, 'discount') as double?;
+  String? get type => RealmObjectBase.get<String>(this, 'type') as String?;
   @override
-  set discount(double? value) => RealmObjectBase.set(this, 'discount', value);
+  set type(String? value) => RealmObjectBase.set(this, 'type', value);
 
   @override
   String? get bcd => RealmObjectBase.get<String>(this, 'bcd') as String?;
@@ -380,9 +387,11 @@ class RealmITransactionItem extends _RealmITransactionItem
   set itemClsCd(String? value) => RealmObjectBase.set(this, 'itemClsCd', value);
 
   @override
-  String? get type => RealmObjectBase.get<String>(this, 'type') as String?;
+  bool? get doneWithTransaction =>
+      RealmObjectBase.get<bool>(this, 'doneWithTransaction') as bool?;
   @override
-  set type(String? value) => RealmObjectBase.set(this, 'type', value);
+  set doneWithTransaction(bool? value) =>
+      RealmObjectBase.set(this, 'doneWithTransaction', value);
 
   @override
   String? get itemStdNm =>
@@ -391,11 +400,9 @@ class RealmITransactionItem extends _RealmITransactionItem
   set itemStdNm(String? value) => RealmObjectBase.set(this, 'itemStdNm', value);
 
   @override
-  bool? get doneWithTransaction =>
-      RealmObjectBase.get<bool>(this, 'doneWithTransaction') as bool?;
+  bool? get active => RealmObjectBase.get<bool>(this, 'active') as bool?;
   @override
-  set doneWithTransaction(bool? value) =>
-      RealmObjectBase.set(this, 'doneWithTransaction', value);
+  set active(bool? value) => RealmObjectBase.set(this, 'active', value);
 
   @override
   String? get orgnNatCd =>
@@ -439,6 +446,7 @@ class RealmITransactionItem extends _RealmITransactionItem
       SchemaProperty('branchId', RealmPropertyType.int),
       SchemaProperty('remainingStock', RealmPropertyType.double),
       SchemaProperty('createdAt', RealmPropertyType.string),
+      SchemaProperty('updatedAt', RealmPropertyType.string),
       SchemaProperty('itemCd', RealmPropertyType.string, optional: true),
       SchemaProperty('prc', RealmPropertyType.double, optional: true),
       SchemaProperty('tin', RealmPropertyType.int, optional: true),
@@ -463,22 +471,22 @@ class RealmITransactionItem extends _RealmITransactionItem
       SchemaProperty('regrNm', RealmPropertyType.string, optional: true),
       SchemaProperty('qtyUnitCd', RealmPropertyType.string, optional: true),
       SchemaProperty('totAmt', RealmPropertyType.double, optional: true),
-      SchemaProperty('updatedAt', RealmPropertyType.string),
-      SchemaProperty('isrccCd', RealmPropertyType.string, optional: true),
       SchemaProperty('isTaxExempted', RealmPropertyType.bool),
+      SchemaProperty('isrccCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('isRefunded', RealmPropertyType.bool, optional: true),
       SchemaProperty('isrccNm', RealmPropertyType.string, optional: true),
       SchemaProperty('dftPrc', RealmPropertyType.double, optional: true),
       SchemaProperty('isrcRt', RealmPropertyType.string, optional: true),
-      SchemaProperty('isRefunded', RealmPropertyType.bool, optional: true),
-      SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
       SchemaProperty('discount', RealmPropertyType.double, optional: true),
+      SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('type', RealmPropertyType.string, optional: true),
       SchemaProperty('bcd', RealmPropertyType.string, optional: true),
       SchemaProperty('modrId', RealmPropertyType.string, optional: true),
       SchemaProperty('itemClsCd', RealmPropertyType.string, optional: true),
-      SchemaProperty('type', RealmPropertyType.string, optional: true),
-      SchemaProperty('itemStdNm', RealmPropertyType.string, optional: true),
       SchemaProperty('doneWithTransaction', RealmPropertyType.bool,
           optional: true),
+      SchemaProperty('itemStdNm', RealmPropertyType.string, optional: true),
+      SchemaProperty('active', RealmPropertyType.bool, optional: true),
       SchemaProperty('orgnNatCd', RealmPropertyType.string, optional: true),
       SchemaProperty('dcRt', RealmPropertyType.double, optional: true),
       SchemaProperty('pkg', RealmPropertyType.string, optional: true),

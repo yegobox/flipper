@@ -31,6 +31,7 @@ class _RealmITransactionItem {
 
   /// property to help us adding new item to transaction
   bool? doneWithTransaction;
+  bool? active;
 
   // RRA fields
   // discount rate

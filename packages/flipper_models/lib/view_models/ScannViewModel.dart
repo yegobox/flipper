@@ -107,4 +107,19 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
     } catch (e) {}
     notifyListeners();
   }
+
+  void updateVariantQuantity(String id, double newQuantity) {
+    try {
+      // Find the variant with the specified id
+      Variant variant =
+          scannedVariants.firstWhere((variant) => variant.id == id);
+
+      // If the variant is found, update its quantity
+      variant.qty = newQuantity;
+      notifyListeners();
+    } catch (e) {
+      // Handle the exception if the variant is not found
+      print('Variant with ID $id not found.');
+    }
+  }
 }
