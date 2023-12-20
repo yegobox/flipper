@@ -1,7 +1,5 @@
 library flipper_login;
 
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';

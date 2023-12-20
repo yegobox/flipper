@@ -299,6 +299,7 @@ class RealmSync<M extends IJsonSerializable>
       await configure();
     }
     if (realm != null) {
+      // Subscribe to changes for transactions
       final iTransactionsCollection =
           realm!.query<RealmITransaction>('branchId == \$0', [branchId]);
       final iTransactionSubscription =
@@ -309,6 +310,7 @@ class RealmSync<M extends IJsonSerializable>
         }
       });
 
+      // Subscribe to changes for transaction items
       final iTransactionsItemCollection =
           realm!.query<RealmITransactionItem>('branchId == \$0', [branchId]);
       final iTransactionItemSubscription =
@@ -319,8 +321,44 @@ class RealmSync<M extends IJsonSerializable>
         }
       });
 
-      iTransactionSubscription.cancel();
-      iTransactionItemSubscription.cancel();
+      // Subscribe to changes for products
+      final iProductsCollection =
+          realm!.query<RealmProduct>('branchId == \$0', [branchId]);
+      final iProductSubscription =
+          iProductsCollection.changes.listen((changes) {
+        for (final result in changes.results) {
+          final productModel = createProductModel(result);
+          handleItem(model: productModel, branchId: result.branchId);
+        }
+      });
+
+      // Subscribe to changes for variants
+      final iVariantsCollection =
+          realm!.query<RealmVariant>('branchId == \$0', [branchId]);
+      final iVariantSubscription =
+          iVariantsCollection.changes.listen((changes) {
+        for (final result in changes.results) {
+          final variantModel = createVariantModel(result);
+          handleItem(model: variantModel, branchId: result.branchId);
+        }
+      });
+
+      // Subscribe to changes for stocks
+      final iStocksCollection =
+          realm!.query<RealmStock>('branchId == \$0', [branchId]);
+      final iStockSubscription = iStocksCollection.changes.listen((changes) {
+        for (final result in changes.results) {
+          final stockModel = createStockModel(result);
+          handleItem(model: stockModel, branchId: result.branchId);
+        }
+      });
+
+      // Cancel subscriptions when done
+      // iTransactionSubscription.cancel();
+      // iTransactionItemSubscription.cancel();
+      // iProductSubscription.cancel();
+      // iVariantSubscription.cancel();
+      // iStockSubscription.cancel();
     }
   }
 
@@ -340,6 +378,104 @@ class RealmSync<M extends IJsonSerializable>
       id: result.id,
       lastTouched: result.lastTouched,
       action: result.action,
+    );
+  }
+
+  Variant createVariantModel(RealmVariant realmVariant) {
+    return Variant(
+      dftPrc: realmVariant.dftPrc,
+      name: realmVariant.name,
+      color: realmVariant.color,
+      sku: realmVariant.sku,
+      productId: realmVariant.productId,
+      unit: realmVariant.unit,
+      productName: realmVariant.productName,
+      branchId: realmVariant.branchId,
+      taxName: realmVariant.taxName,
+      taxPercentage: realmVariant.taxPercentage,
+      isTaxExempted: realmVariant.isTaxExempted,
+      isrcAplcbYn: realmVariant.isrcAplcbYn,
+      modrId: realmVariant.modrId,
+      rsdQty: realmVariant.rsdQty,
+      action: realmVariant.action,
+      id: realmVariant.id,
+      taxTyCd: realmVariant.taxTyCd,
+      bcd: realmVariant.bcd,
+      itemClsCd: realmVariant.itemClsCd,
+      itemTyCd: realmVariant.itemTyCd,
+      itemStdNm: realmVariant.itemStdNm,
+      addInfo: realmVariant.addInfo,
+      pkg: realmVariant.pkg,
+      useYn: realmVariant.useYn,
+      regrNm: realmVariant.regrNm,
+      modrNm: realmVariant.modrNm,
+      itemNm: realmVariant.itemNm,
+      lastTouched: realmVariant.lastTouched,
+      retailPrice: realmVariant.retailPrice,
+      deletedAt: realmVariant.deletedAt,
+      tin: realmVariant.tin,
+      bhfId: realmVariant.bhfId,
+      regrId: realmVariant.regrId,
+      orgnNatCd: realmVariant.orgnNatCd,
+      itemSeq: realmVariant.itemSeq,
+      itemCd: realmVariant.itemCd,
+      isrccCd: realmVariant.isrccCd,
+      pkgUnitCd: realmVariant.pkgUnitCd,
+      supplyPrice: realmVariant.supplyPrice,
+      qtyUnitCd: realmVariant.qtyUnitCd,
+      isrccNm: realmVariant.isrccNm,
+      qty: realmVariant.qty,
+      isrcRt: realmVariant.isrcRt,
+      prc: realmVariant.prc,
+      isrcAmt: realmVariant.isrcAmt,
+      splyAmt: realmVariant.splyAmt,
+    );
+  }
+
+  Stock createStockModel(RealmStock realmStock) {
+    return Stock(
+      id: realmStock.id,
+      branchId: realmStock.branchId,
+      variantId: realmStock.variantId,
+      lowStock: realmStock.lowStock,
+      currentStock: realmStock.currentStock,
+      canTrackingStock: realmStock.canTrackingStock,
+      showLowStockAlert: realmStock.showLowStockAlert,
+      productId: realmStock.productId,
+      active: realmStock.active,
+      value: realmStock.value,
+      rsdQty: realmStock.rsdQty,
+      supplyPrice: realmStock.supplyPrice,
+      retailPrice: realmStock.retailPrice,
+      lastTouched: realmStock.lastTouched,
+      action: realmStock.action,
+      deletedAt: realmStock.deletedAt,
+    );
+  }
+
+  Product createProductModel(RealmProduct realmProduct) {
+    return Product(
+      id: realmProduct.id,
+      name: realmProduct.name,
+      description: realmProduct.description,
+      taxId: realmProduct.taxId,
+      color: realmProduct.color,
+      businessId: realmProduct.businessId,
+      branchId: realmProduct.branchId,
+      supplierId: realmProduct.supplierId,
+      categoryId: realmProduct.categoryId,
+      createdAt: realmProduct.createdAt,
+      unit: realmProduct.unit,
+      imageUrl: realmProduct.imageUrl,
+      expiryDate: realmProduct.expiryDate,
+      barCode: realmProduct.barCode,
+      nfcEnabled: realmProduct.nfcEnabled,
+      bindedToTenantId: realmProduct.bindedToTenantId,
+      isFavorite: realmProduct.isFavorite,
+      lastTouched: realmProduct.lastTouched,
+      action: realmProduct.action,
+      deletedAt: realmProduct.deletedAt,
+      searchMatch: realmProduct.searchMatch ?? false,
     );
   }
 
