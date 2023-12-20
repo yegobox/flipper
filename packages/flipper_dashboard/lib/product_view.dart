@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
@@ -346,9 +348,16 @@ class ProductViewState extends ConsumerState<ProductView> {
                         favIndex: widget.favIndex,
                         edit: (productId) {
                           if (Platform.isWindows || isDesktopOrWeb) {
-                            showAlert(context,
-                                onPressedOk: () {},
-                                title: "Edit on desktop coming soon");
+                            // showAlert(context,
+                            //     onPressedOk: () {},
+                            //     title: "Edit on desktop coming soon");
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (context) => OptionModal(
+                                child: ProductEntryScreen(productId: productId),
+                              ),
+                            );
                           } else {
                             _routerService.navigateTo(
                               AddProductViewRoute(productId: productId),

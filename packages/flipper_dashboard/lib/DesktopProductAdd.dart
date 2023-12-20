@@ -32,7 +32,8 @@ class QuantityCell extends StatelessWidget {
 }
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
-  const ProductEntryScreen({super.key});
+  const ProductEntryScreen({super.key, this.productId});
+  final String? productId;
 
   @override
   ProductEntryScreenState createState() => ProductEntryScreenState();
@@ -180,8 +181,30 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
-        Product product = await model.createProduct(name: TEMP_PRODUCT);
-        ref.read(productProvider.notifier).emitProduct(value: product);
+        if (widget.productId != null) {
+          // Load existing product if productId is given
+          Product product =
+              await model.getProduct(productId: widget.productId!);
+          ref.read(productProvider.notifier).emitProduct(value: product);
+
+          // Populate product name with the name of the product being edited
+          productNameController.text = product.name;
+
+          // Populate variants related to the product
+          List<Variant> variants = await ProxyService.isar
+              .getVariantByProductId(productId: widget.productId!);
+          model.scannedVariants = variants;
+
+          // If there are variants, set the color to the color of the first variant
+          if (variants.isNotEmpty) {
+            pickerColor = Color(int.parse(variants.first.color, radix: 16));
+          }
+        } else {
+          // If productId is not given, create a new product
+          Product product = await model.createProduct(name: TEMP_PRODUCT);
+          ref.read(productProvider.notifier).emitProduct(value: product);
+        }
+
         model.initialize();
       },
       builder: (context, model, child) {
@@ -293,7 +316,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: TextField(
+                    child: TextFormField(
+                      textInputAction: TextInputAction.next,
                       controller: retailPriceController,
                       onChanged: (value) => model.setRetailPrice(price: value),
                       decoration: InputDecoration(
@@ -309,7 +333,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: TextField(
+                    child: TextFormField(
+                      textInputAction: TextInputAction.next,
                       controller: supplyPriceController,
                       onChanged: (value) => model.setSupplyPrice(price: value),
                       decoration: InputDecoration(
@@ -364,64 +389,113 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 200,
-                    child: ListView(
-                      children: [
-                        DataTable(
-                          columns: const [
-                            DataColumn(label: Text('Variant Name')),
-                            DataColumn(label: Text('Price')),
-                            DataColumn(label: Text('Created At')),
-                            DataColumn(label: Text('Quantity')),
-                            DataColumn(label: Text('Action')),
-                          ],
-                          rows: model.scannedVariants.reversed.map((variant) {
-                            return DataRow(cells: [
-                              DataCell(Text(variant.name)),
-                              DataCell(
-                                Text(variant.retailPrice.toStringAsFixed(2)),
-                              ),
-                              DataCell(
-                                Text(variant.lastTouched == null
-                                    ? ''
-                                    : variant.lastTouched!
-                                        .toUtc()
-                                        .toIso8601String()),
-                              ),
-                              DataCell(
-                                // Custom widget for displaying and editing quantity
-                                QuantityCell(
-                                  quantity: variant.qty,
-                                  onEdit: () {
-                                    // Add your logic for editing the quantity here
-                                    // You may use a dialog or another UI element for editing
-                                    _showEditQuantityDialog(
-                                      context,
-                                      variant,
-                                      model,
-                                      () {
-                                        // Callback to regain focus on TextFormField
-                                        FocusScope.of(context).requestFocus(
-                                            scannedInputFocusNode);
+                  Stack(
+                    children: [
+                      SizedBox(
+                        height: 200,
+                        child: ListView(
+                          children: [
+                            DataTable(
+                              columns: const [
+                                DataColumn(label: Text('Variant Name')),
+                                DataColumn(label: Text('Price')),
+                                DataColumn(label: Text('Created At')),
+                                DataColumn(label: Text('Quantity')),
+                                DataColumn(label: Text('Action')),
+                              ],
+                              rows:
+                                  model.scannedVariants.reversed.map((variant) {
+                                return DataRow(cells: [
+                                  DataCell(Text(variant.name)),
+                                  DataCell(
+                                    Text(
+                                        variant.retailPrice.toStringAsFixed(2)),
+                                  ),
+                                  DataCell(
+                                    Text(variant.lastTouched == null
+                                        ? ''
+                                        : variant.lastTouched!
+                                            .toUtc()
+                                            .toIso8601String()),
+                                  ),
+                                  DataCell(
+                                    // Custom widget for displaying and editing quantity
+                                    QuantityCell(
+                                      quantity: variant.qty,
+                                      onEdit: () {
+                                        // Add your logic for editing the quantity here
+                                        // You may use a dialog or another UI element for editing
+                                        _showEditQuantityDialog(
+                                          context,
+                                          variant,
+                                          model,
+                                          () {
+                                            // Callback to regain focus on TextFormField
+                                            FocusScope.of(context).requestFocus(
+                                                scannedInputFocusNode);
+                                          },
+                                        );
                                       },
-                                    );
-                                  },
-                                ),
-                              ),
-                              DataCell(
-                                ElevatedButton(
-                                  onPressed: () {
-                                    model.removeVariant(id: variant.id);
-                                  },
-                                  child: const Text('Delete'),
-                                ),
-                              ),
-                            ]);
-                          }).toList(),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        model.removeVariant(id: variant.id);
+                                      },
+                                      child: const Text('Delete'),
+                                    ),
+                                  ),
+                                ]);
+                              }).toList(),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Display a confirmation dialog or perform any other action
+                            bool confirmed = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Confirm Deletion'),
+                                  content: Text(
+                                      'Are you sure you want to delete all variants?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false);
+                                      },
+                                      child: Text('Cancel'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: Text('Delete'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            // If user confirmed, call model.deleteAllVariants()
+                            if (confirmed == true) {
+                              model.deleteAllVariants();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red, // Background color
+                            foregroundColor: Colors.white, // Text color
+                          ),
+                          child: const Text('Delete'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

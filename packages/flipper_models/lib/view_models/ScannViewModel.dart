@@ -1,14 +1,14 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:stacked/stacked.dart';
 
 import 'mixins/_product.dart';
 
-class ScannViewModel extends BaseViewModel with ProductMixin {
+class ScannViewModel extends ProductViewModel with ProductMixin {
   List<Variant> scannedVariants = [];
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
@@ -121,5 +121,15 @@ class ScannViewModel extends BaseViewModel with ProductMixin {
       // Handle the exception if the variant is not found
       print('Variant with ID $id not found.');
     }
+  }
+
+  Future<void> deleteAllVariants() async {
+    // Assuming that each variant has a unique ID
+    for (var variant in scannedVariants) {
+      await ProxyService.isar.delete(id: variant.id, endPoint: 'variant');
+    }
+
+    scannedVariants.clear();
+    notifyListeners();
   }
 }
