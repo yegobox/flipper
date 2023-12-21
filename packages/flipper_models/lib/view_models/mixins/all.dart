@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/keypad_service.dart';
@@ -65,6 +67,7 @@ mixin SharebleMethods {
     return Stream.fromFuture(
             ProxyService.isar.transactionsFuture(status: transactionStatus))
         .asyncExpand((items) async* {
+      // log(items.toString());
       yield items;
     });
   }

@@ -174,7 +174,6 @@ class _GaugePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    log(redAngle.toString(), name: "redAngle");
 
     final greyPaint = Paint()
       ..color = Colors.grey

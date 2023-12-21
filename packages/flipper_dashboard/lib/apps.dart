@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -174,6 +176,7 @@ class _AppsState extends ConsumerState<Apps> {
                 Padding(
                   padding: const EdgeInsets.only(top: 85.0),
                   child: _buildGauge(context, ref),
+                  // child: _buildGaugeOldImpl(context, widget.model),
                 ),
                 SizedBox(
                   height: 340,
@@ -295,6 +298,7 @@ class _AppsState extends ConsumerState<Apps> {
 
   List<ITransaction> _filterTransactionsByPeriod(
       List<ITransaction> transactions, String transactionPeriod) {
+    log(transactions.length.toString(), name: 'render transactions on gauge');
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
         .where((transaction) =>
@@ -335,64 +339,64 @@ class _AppsState extends ConsumerState<Apps> {
     );
   }
 
-  // Widget _buildGauge(BuildContext context, CoreViewModel model) {
-  //   return StreamBuilder<List<ITransaction>>(
-  //     initialData: null,
-  //     stream: model.getTransactions(),
-  //     builder: (context, snapshot) {
-  //       if (!snapshot.hasData) {
-  //         return SemiCircleGauge(
-  //           dataOnGreenSide: 0,
-  //           dataOnRedSide: 0,
-  //           startPadding: 0,
-  //           profitType: profitType,
-  //         );
-  //       } else {
-  //         final transactions = snapshot.data!;
-  //         DateTime oldDate;
-  //         DateTime temporaryDate;
+  Widget _buildGaugeOldImpl(BuildContext context, CoreViewModel model) {
+    return StreamBuilder<List<ITransaction>>(
+      initialData: null,
+      stream: model.getTransactions(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SemiCircleGauge(
+            dataOnGreenSide: 0,
+            dataOnRedSide: 0,
+            startPadding: 0,
+            profitType: profitType,
+          );
+        } else {
+          final transactions = snapshot.data!;
+          DateTime oldDate;
+          DateTime temporaryDate;
 
-  //         if (transactionPeriod == 'Today') {
-  //           DateTime tempToday = DateTime.now();
-  //           oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
-  //         } else if (transactionPeriod == 'This Week') {
-  //           oldDate = DateTime.now().subtract(Duration(days: 7));
-  //           oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-  //         } else if (transactionPeriod == 'This Month') {
-  //           oldDate = DateTime.now().subtract(Duration(days: 30));
-  //           oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-  //         } else {
-  //           oldDate = DateTime.now().subtract(Duration(days: 365));
-  //           oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-  //         }
+          if (transactionPeriod == 'Today') {
+            oldDate = DateTime.now();
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else if (transactionPeriod == 'This Week') {
+            oldDate = DateTime.now().subtract(Duration(days: 7));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else if (transactionPeriod == 'This Month') {
+            oldDate = DateTime.now().subtract(Duration(days: 30));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          } else {
+            oldDate = DateTime.now().subtract(Duration(days: 365));
+            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
+          }
 
-  //         List<ITransaction> filteredTransactions = [];
-  //         for (final transaction in transactions) {
-  //           temporaryDate = DateTime.parse(transaction.createdAt);
-  //           if (temporaryDate.isAfter(oldDate)) {
-  //             filteredTransactions.add(transaction);
-  //           }
-  //         }
+          List<ITransaction> filteredTransactions = [];
+          for (final transaction in transactions) {
+            temporaryDate = DateTime.parse(transaction.createdAt);
+            if (temporaryDate.isAfter(oldDate)) {
+              filteredTransactions.add(transaction);
+            }
+          }
 
-  //         double sum_cash_in = 0;
-  //         double sum_cash_out = 0;
-  //         for (final transaction in filteredTransactions) {
-  //           if (transaction.transactionType == 'Cash Out') {
-  //             sum_cash_out = transaction.subTotal + sum_cash_out;
-  //           } else {
-  //             sum_cash_in = transaction.subTotal + sum_cash_in;
-  //           }
-  //         }
-  //         return SemiCircleGauge(
-  //           dataOnGreenSide: sum_cash_in,
-  //           dataOnRedSide: sum_cash_out,
-  //           startPadding: 0,
-  //           profitType: profitType,
-  //         );
-  //       }
-  //     },
-  //   );
-  // }
+          double sum_cash_in = 0;
+          double sum_cash_out = 0;
+          for (final transaction in filteredTransactions) {
+            if (transaction.transactionType == 'Cash Out') {
+              sum_cash_out = transaction.subTotal + sum_cash_out;
+            } else {
+              sum_cash_in = transaction.subTotal + sum_cash_in;
+            }
+          }
+          return SemiCircleGauge(
+            dataOnGreenSide: sum_cash_in,
+            dataOnRedSide: sum_cash_out,
+            startPadding: 0,
+            profitType: profitType,
+          );
+        }
+      },
+    );
+  }
 
   Widget PeriodDropDown() {
     return DropdownButton<String>(

@@ -3049,11 +3049,8 @@ class IsarAPI<M> implements IsarApiInterface {
       isarQuery.and().branchIdEqualTo(branchId);
     }
 
-    return db.read((isar) => isarQuery
-        .and()
-        .deletedAtIsNull()
-        .watch()
-        .map((transactions) => transactions));
+    return db.read((isar) =>
+        isarQuery.and().deletedAtIsNull().watch(fireImmediately: true));
   }
 
   @override

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -435,7 +437,7 @@ final transactionsStreamProvider =
 
   // Use ProxyService to get the IsarStream of transactions
   final transactionsStream = ProxyService.isar.transactionsStream();
-
+  
   // Return the stream
   return transactionsStream;
 });
