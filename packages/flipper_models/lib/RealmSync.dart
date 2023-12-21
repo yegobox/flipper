@@ -38,6 +38,15 @@ class RealmSync<M extends IJsonSerializable>
             realm!.query<RealmITransaction>(r'branchId == $0', [branchId]));
         mutableSubscriptions.add(
             realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]));
+
+        mutableSubscriptions
+            .add(realm!.query<RealmProduct>(r'branchId == $0', [branchId]));
+
+        mutableSubscriptions
+            .add(realm!.query<RealmVariant>(r'branchId == $0', [branchId]));
+
+        mutableSubscriptions
+            .add(realm!.query<RealmStock>(r'branchId == $0', [branchId]));
       });
       await realm!.subscriptions.waitForSynchronization();
     }
@@ -82,12 +91,12 @@ class RealmSync<M extends IJsonSerializable>
       final findableObject =
           realm!.query<RealmITransaction>(r'id == $0', [item.id]);
       // Save _RealmITransaction to the Realm database
-      await realm?.write(() {
+      await realm!.write(() {
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm?.add(realmITransaction);
+          realm!.add(realmITransaction);
         } else {
-          realm?.add<RealmITransaction>(findableObject.first, update: true);
+          realm!.add<RealmITransaction>(findableObject.first, update: true);
         }
       });
     }
@@ -151,12 +160,12 @@ class RealmSync<M extends IJsonSerializable>
       final findableObject =
           realm!.query<RealmITransactionItem>(r'id == $0', [item.id]);
       // Save _RealmITransaction to the Realm database
-      await realm?.write(() {
+      await realm!.write(() {
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm?.add(realmITransactionItem);
+          realm!.add(realmITransactionItem);
         } else {
-          realm?.add<RealmITransactionItem>(findableObject.first, update: true);
+          realm!.add<RealmITransactionItem>(findableObject.first, update: true);
         }
       });
     }
@@ -185,12 +194,14 @@ class RealmSync<M extends IJsonSerializable>
       );
       final findableObject = realm!.query<RealmProduct>(r'id == $0', [item.id]);
       // Save _RealmITransaction to the Realm database
-      await realm?.write(() {
+      realm!.refresh();
+      await realm!.write(() {
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm?.add(realmProduct);
+          final o = realm!.add(realmProduct);
+          print(o);
         } else {
-          realm?.add<RealmProduct>(findableObject.first, update: true);
+          realm!.add<RealmProduct>(findableObject.first, update: true);
         }
       });
     }
@@ -247,13 +258,13 @@ class RealmSync<M extends IJsonSerializable>
 
       final findableObject = realm!.query<RealmVariant>(r'id == $0', [item.id]);
 
-      await realm?.write(() {
+      await realm!.write(() {
         if (findableObject.isEmpty) {
           // Variant doesn't exist, add it
-          realm?.add(realmVariant);
+          realm!.add(realmVariant);
         } else {
           // Variant exists, update it
-          realm?.add<RealmVariant>(findableObject.first, update: true);
+          realm!.add<RealmVariant>(findableObject.first, update: true);
         }
       });
     }
@@ -280,13 +291,13 @@ class RealmSync<M extends IJsonSerializable>
 
       final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
 
-      await realm?.write(() {
+      await realm!.write(() {
         if (findableObject.isEmpty) {
           // Stock doesn't exist, add it
-          realm?.add(realmStock);
+          realm!.add(realmStock);
         } else {
           // Stock exists, update it
-          realm?.add<RealmStock>(findableObject.first, update: true);
+          realm!.add<RealmStock>(findableObject.first, update: true);
         }
       });
     }
