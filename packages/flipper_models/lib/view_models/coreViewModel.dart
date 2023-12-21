@@ -24,6 +24,13 @@ class CoreViewModel extends FlipperBaseModel
   bool handlingConfirm = false;
   CoreViewModel() {}
 
+  List<String> transactionPeriodOptions = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year",
+  ];
+   List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -101,11 +108,12 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  Future<void> keyboardKeyPressed({required String key}) async {
+  Future<void> keyboardKeyPressed(
+      {required String key, String? transactionType = 'custom'}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
     ITransaction? pendingTransaction = await ProxyService.isar
-        .manageTransaction(transactionType: TransactionType.custom);
+        .manageTransaction(transactionType: transactionType!);
 
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created

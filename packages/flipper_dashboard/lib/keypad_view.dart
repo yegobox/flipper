@@ -30,7 +30,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
       required this.model,
       this.isBigScreen = false,
       this.transactionMode = false,
-      this.transactionType = 'n/a'})
+      this.transactionType = 'custom'})
       : super(key: key);
 
   KeyPadView.cashBookMode(
@@ -53,7 +53,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(widget.transactionType));
     Widget plusOrSubmit;
     if (widget.transactionMode == false) {
       plusOrSubmit = Expanded(
@@ -87,54 +87,39 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           splashColor: Color(0xFFDFF0FF),
           onTap: () async {
             log("Key: " + widget.model.key);
-            HapticFeedback.lightImpact();
-            if ((transaction.value!.value!.subTotal == 0) &&
-                ((widget.model.key != '0') &&
-                    (widget.model.key != '0.0') &&
-                    (widget.model.key != '0.00'))) {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Save ${widget.transactionType} transaction'),
-                    content:
-                        Text('Are you sure you want to save this transaction?'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text('Cancel'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      TextButton(
-                        child: Text('Confirm'),
-                        onPressed: () {
-                          HandleTransactionFromCashBook();
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            } else {
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text('Alert'),
-                    content: Text('Please enter an amount.'),
-                    actions: <Widget>[
-                      TextButton(
-                        child: Text('Close'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
+            widget.model.keypad.setCashReceived(
+                amount: double.tryParse(widget.model.key) ?? 0.0);
+            bool confirmed = await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Save ${widget.transactionType} transaction'),
+                  content:
+                      Text('Are you sure you want to save this transaction?'),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                    TextButton(
+                      child: Text('Confirm'),
+                      onPressed: () {
+                        HandleTransactionFromCashBook();
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+            if (confirmed) {
+              await widget.model.keyboardKeyPressed(key: '+');
+
+              await widget.model.collectPayment(
+                  paymentType: 'Cash', transaction: transaction.value!.value!);
+              HapticFeedback.lightImpact();
             }
           },
           child: Container(
