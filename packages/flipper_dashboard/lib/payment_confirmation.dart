@@ -282,7 +282,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           onPressed: () {
             // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));
-            _routerService.navigateTo(FlipperAppRoute());
+            _routerService.clearStackAndShow(FlipperAppRoute());
           },
           child: Text("Return to Home",
               style: const TextStyle(color: Colors.white)),
