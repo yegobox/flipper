@@ -12,6 +12,8 @@ import 'customappbar.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:intl/intl.dart';
 
+import 'package:flipper_ui/flipper_ui.dart';
+
 class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation({
     Key? key,
@@ -202,7 +204,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         SizedBox(height: 13),
         buildPoweredByRow(),
         SizedBox(height: 10),
-        buildReturnToHomeButton(),
+        buildReturnToHomeButton(model),
       ],
     );
   }
@@ -272,27 +274,21 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     );
   }
 
-  Widget buildReturnToHomeButton() {
+  Widget buildReturnToHomeButton(CoreViewModel model) {
     return Padding(
       padding: EdgeInsets.only(left: 19.0, right: 19),
       child: SizedBox(
         height: 60,
         width: double.infinity,
-        child: OutlinedButton(
-          onPressed: () {
+        child: BoxButton(
+          busy: model.handlingConfirm,
+          onTap: () {
+            model.handlingConfirm = true;
             // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
-          child: Text("Return to Home",
-              style: const TextStyle(color: Colors.white)),
-          style: primaryButtonStyle.copyWith(
-            shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-              (states) => RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-          ),
+          title: "Return to Home",
         ),
       ),
     );
