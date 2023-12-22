@@ -312,9 +312,9 @@ class RealmSync<M extends IJsonSerializable>
     if (realm != null) {
       // Subscribe to changes for transactions
       final iTransactionsCollection =
-          realm!.query<RealmITransaction>('branchId == \$0', [branchId]);
-      final iTransactionSubscription =
-          iTransactionsCollection.changes.listen((changes) {
+          realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
+
+      iTransactionsCollection.changes.listen((changes) {
         for (final result in changes.results) {
           final transactionModel = createTransactionModel(result);
           handleItem(model: transactionModel, branchId: result.branchId);
@@ -323,9 +323,9 @@ class RealmSync<M extends IJsonSerializable>
 
       // Subscribe to changes for transaction items
       final iTransactionsItemCollection =
-          realm!.query<RealmITransactionItem>('branchId == \$0', [branchId]);
-      final iTransactionItemSubscription =
-          iTransactionsItemCollection.changes.listen((changes) {
+          realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+
+      iTransactionsItemCollection.changes.listen((changes) {
         for (final result in changes.results) {
           final transactionModel = createTransactionItemModel(result);
           handleItem(model: transactionModel, branchId: result.branchId);
@@ -334,9 +334,9 @@ class RealmSync<M extends IJsonSerializable>
 
       // Subscribe to changes for products
       final iProductsCollection =
-          realm!.query<RealmProduct>('branchId == \$0', [branchId]);
-      final iProductSubscription =
-          iProductsCollection.changes.listen((changes) {
+          realm!.query<RealmProduct>(r'branchId == $0', [branchId]);
+
+      iProductsCollection.changes.listen((changes) {
         for (final result in changes.results) {
           final productModel = createProductModel(result);
           handleItem(model: productModel, branchId: result.branchId);
@@ -345,9 +345,9 @@ class RealmSync<M extends IJsonSerializable>
 
       // Subscribe to changes for variants
       final iVariantsCollection =
-          realm!.query<RealmVariant>('branchId == \$0', [branchId]);
-      final iVariantSubscription =
-          iVariantsCollection.changes.listen((changes) {
+          realm!.query<RealmVariant>(r'branchId == $0', [branchId]);
+
+      iVariantsCollection.changes.listen((changes) {
         for (final result in changes.results) {
           final variantModel = createVariantModel(result);
           handleItem(model: variantModel, branchId: result.branchId);
@@ -356,8 +356,8 @@ class RealmSync<M extends IJsonSerializable>
 
       // Subscribe to changes for stocks
       final iStocksCollection =
-          realm!.query<RealmStock>('branchId == \$0', [branchId]);
-      final iStockSubscription = iStocksCollection.changes.listen((changes) {
+          realm!.query<RealmStock>(r'branchId == $0', [branchId]);
+      iStocksCollection.changes.listen((changes) {
         for (final result in changes.results) {
           final stockModel = createStockModel(result);
           handleItem(model: stockModel, branchId: result.branchId);

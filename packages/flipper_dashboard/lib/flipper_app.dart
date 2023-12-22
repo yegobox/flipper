@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:async';
 import 'dart:developer';
 
@@ -108,6 +110,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         // fireOnViewModelReadyOnce: true,
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
+          final currentTransaction =
+              ref.watch(pendingTransactionProvider(TransactionType.custom));
+          ref.refresh(
+              transactionItemsProvider(currentTransaction.value?.value?.id));
           initializeApplicationIfRequired();
           //get default tenant
           model.defaultTenant();

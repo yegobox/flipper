@@ -4,27 +4,75 @@ library pos;
 
 import 'dart:developer';
 
+import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:universal_platform/universal_platform.dart';
-import 'package:flutter/services.dart';
-import 'package:flipper_models/isar_models.dart';
 import 'package:intl/intl.dart';
-import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:universal_platform/universal_platform.dart';
 
-final isWindows = UniversalPlatform.isWindows;
 final isMacOs = UniversalPlatform.isMacOS;
+final isWindows = UniversalPlatform.isWindows;
 
 class AlwaysDisabledFocusNode extends FocusNode {
   @override
   bool get hasFocus => false;
 }
 
+class KeyboardKey extends StatefulHookConsumerWidget {
+  final String value;
+  final CoreViewModel model;
+  const KeyboardKey({
+    Key? key,
+    required this.model,
+    required this.value,
+  }) : super(key: key);
+
+  @override
+  KeyboardKeyState createState() => KeyboardKeyState();
+}
+
+class KeyboardKeyState extends ConsumerState<KeyboardKey> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 100,
+      height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
+      child: InkWell(
+        onTap: () async =>
+            {await widget.model.keyboardKeyPressed(key: widget.value)},
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: const Color.fromRGBO(0, 0, 0, 0.2),
+              width: 0,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              widget.value,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 30, fontWeight: FontWeight.normal),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 // ignore: must_be_immutable
 class KeyPadView extends StatefulHookConsumerWidget {
+  final CoreViewModel model;
+
+  final bool isBigScreen;
+  final bool transactionMode;
+  final String transactionType;
   KeyPadView(
       {Key? key,
       required this.model,
@@ -32,7 +80,6 @@ class KeyPadView extends StatefulHookConsumerWidget {
       this.transactionMode = false,
       this.transactionType = 'custom'})
       : super(key: key);
-
   KeyPadView.cashBookMode(
       {Key? key,
       required this.model,
@@ -40,10 +87,6 @@ class KeyPadView extends StatefulHookConsumerWidget {
       required this.transactionMode,
       required this.transactionType})
       : super(key: key);
-  final CoreViewModel model;
-  final bool isBigScreen;
-  final bool transactionMode;
-  final String transactionType;
 
   @override
   KeyPadViewState createState() => KeyPadViewState();
@@ -115,7 +158,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               },
             );
             if (confirmed) {
-              if (int.tryParse(widget.model.key) == null || int.tryParse(widget.model.key)==0) {
+              if (int.tryParse(widget.model.key) == null ||
+                  int.tryParse(widget.model.key) == 0) {
                 return;
               }
               await widget.model.keyboardKeyPressed(key: '+');
@@ -505,54 +549,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     /// this will close the keypad
     widget.model.newTransactionPressed = false;
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(widget.transactionType));
     await widget.model.keyboardKeyPressed(key: '+');
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
     ref.refresh(transactionItemsProvider(transaction.value?.value?.id));
-  }
-}
-
-class KeyboardKey extends StatefulHookConsumerWidget {
-  const KeyboardKey({
-    Key? key,
-    required this.model,
-    required this.value,
-  }) : super(key: key);
-  final String value;
-  final CoreViewModel model;
-
-  @override
-  KeyboardKeyState createState() => KeyboardKeyState();
-}
-
-class KeyboardKeyState extends ConsumerState<KeyboardKey> {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 100,
-      height: MediaQuery.of(context).size.height * 0.2, // 20% of screen height
-      child: InkWell(
-        onTap: () async =>
-            {await widget.model.keyboardKeyPressed(key: widget.value)},
-        child: Container(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: const Color.fromRGBO(0, 0, 0, 0.2),
-              width: 0,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              widget.value,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(fontSize: 30, fontWeight: FontWeight.normal),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

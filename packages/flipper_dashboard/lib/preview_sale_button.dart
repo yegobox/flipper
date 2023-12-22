@@ -2,13 +2,12 @@ import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+
 import 'preview_sale_bottom_sheet.dart';
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
@@ -53,19 +52,8 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
     HapticFeedback.lightImpact();
-    model.keyboardKeyPressed(key: '+');
 
-    _controller.forward(); // Start the animation
-
-    final transaction = await ProxyService.isar
-        .manageTransaction(transactionType: TransactionType.custom);
-
-    if (transaction.subTotal == 0) {
-      showToast(context, 'No item on cart!', color: Colors.red);
-      return;
-    }
-
-    model.keypad.setTransaction(transaction);
+    _controller.forward();
 
     showModalBottomSheet(
       context: context,
@@ -115,6 +103,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                 ),
                 // help me to extract the code from onPressed to a separate function
                 onPressed: () {
+                  // ignore: unused_result
+                  ref.refresh(
+                      transactionItemsProvider(transaction.value?.value?.id));
                   widget.mode == SellingMode.forSelling
                       ? _handleSaleFlow(context, model)
                       : _handleOrderFlow(context, model);

@@ -281,12 +281,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(4)))),
-                                    onPressed: () async {
+                                    onPressed: () {
                                       // refresh transactions
-                                      model.keyboardKeyPressed(key: 'C');
-
-                                      ref.refresh(transactionItemsProvider(
-                                          currentTransaction.value?.value?.id));
                                       _routerService
                                           .navigateTo(FlipperAppRoute());
                                     },
