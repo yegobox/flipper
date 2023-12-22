@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
