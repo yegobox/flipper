@@ -248,6 +248,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 shadowColor: pickerColor.withOpacity(1),
                                 elevation: 0,
                               )),
+                          SizedBox(width: 10),
                           ElevatedButton(
                             onPressed: () async {
                               /// check if the user has added variant
@@ -283,6 +284,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               }
                             },
                             child: const Text('Save'),
+                          ),
+                          SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: () async {
+                              Navigator.maybePop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red, // Background color
+                              foregroundColor: Colors.white, // Text color
+                            ),
+                            child: const Text('Close'),
                           )
                         ],
                       ),

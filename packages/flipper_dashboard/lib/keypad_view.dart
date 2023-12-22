@@ -115,6 +115,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               },
             );
             if (confirmed) {
+              if (int.tryParse(widget.model.key) == null || int.tryParse(widget.model.key)==0) {
+                return;
+              }
               await widget.model.keyboardKeyPressed(key: '+');
 
               await widget.model.collectPayment(
