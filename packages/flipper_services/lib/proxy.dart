@@ -1,5 +1,6 @@
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/RealmSync.dart';
+import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -67,9 +68,11 @@ final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final RemoteInterface _remote = getIt<RemoteInterface>();
+final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
 
 abstract class ProxyService {
   static RemoteInterface get remote => _remote;
+  static HttpClientInterface get httpClient => _httpClient;
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;

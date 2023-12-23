@@ -6,7 +6,6 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/socials_http_client.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,12 +16,9 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:path_provider/path_provider.dart';
-import 'flipper_http_client.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
 class IsarAPI<M> implements IsarApiInterface {
-  FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
-  SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
   late Isar db;
@@ -506,7 +502,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// or the user might scann for too long which can result into multiple checkin
     /// to avoid that we add a flag to checkin then if we fail we remove it to enable next check in attempt
     // ProxyService.box.write(key: 'checkIn', value: 'checkIn');
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/attendance"),
       body: jsonEncode({
         "businessId": businessId,
@@ -592,7 +588,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Voucher?> consumeVoucher({required int voucherCode}) async {
-    final http.Response response = await flipperHttpClient.patch(
+    final http.Response response = await ProxyService.httpClient.patch(
       Uri.parse("$apihub/v2/api/voucher"),
       body: jsonEncode(
         <String, int>{'id': voucherCode},
@@ -613,7 +609,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await getBusiness();
     String docName = business!.name! + '- Report';
 
-    await flipperHttpClient.post(
+    await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/createSheetDocument"),
       body: jsonEncode({"title": docName, "shareToEmail": email}),
     );
@@ -634,7 +630,7 @@ class IsarAPI<M> implements IsarApiInterface {
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
     String defaultApp = ProxyService.box.getDefaultApp();
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/pin"),
       body: jsonEncode(
         <String, dynamic>{
@@ -934,7 +930,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = db.write((isar) {
       return isar.business.get(businessId);
     });
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/createAttendanceDoc"),
       body: jsonEncode({
         "title": business!.name! + '-' + 'Attendance',
@@ -969,8 +965,8 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.business.where().idEqualTo(id).findFirst();
     });
     if (business != null) return business;
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
+    final http.Response response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       int id = randomNumber();
       Business business = Business.fromJson(json.decode(response.body));
@@ -1158,7 +1154,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Business> getOnlineBusiness({required int userId}) async {
-    final response = await flipperHttpClient
+    final response = await ProxyService.httpClient
         .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
     if (response.statusCode == 401) {
@@ -1276,7 +1272,7 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
-      final response = await flipperHttpClient
+      final response = await ProxyService.httpClient
           .get(Uri.parse("$apihub/v2/api/subscription/$userId"));
       if (response.statusCode == 200) {
         Subscription? sub = Subscription.fromJson(json.decode(response.body));
@@ -1367,7 +1363,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Tenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch}) async {
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/tenant"),
       body: jsonEncode({
         "phoneNumber": phoneNumber,
@@ -1410,7 +1406,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Tenant>> signup({required Map business}) async {
     log(jsonEncode(business));
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
     );
@@ -1461,7 +1457,7 @@ class IsarAPI<M> implements IsarApiInterface {
       phoneNumber = '+' + phoneNumber;
     }
 
-    final response = await flipperHttpClient.post(
+    final response = await ProxyService.httpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body: jsonEncode(
         <String, String>{'phoneNumber': phoneNumber},
@@ -1940,7 +1936,7 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.business.put(business);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/business/${business.id}"),
         body: jsonEncode(business.toJson()),
       );
@@ -1953,7 +1949,7 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.branchs.put(data);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/branch/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
@@ -1965,7 +1961,7 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.counters.onPut(data);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/counter/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
@@ -1990,7 +1986,7 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.branchs.put(data);
       });
       try {
-        await flipperHttpClient.patch(
+        await ProxyService.httpClient.patch(
           Uri.parse("$apihub/v2/api/branch/${data.id}"),
           body: jsonEncode(data.toJson()),
         );
@@ -2003,14 +1999,14 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is User) {
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/user"),
         body: jsonEncode(data.toJson()),
       );
       return response.statusCode;
     }
     if (data is ITenant) {
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
@@ -2035,8 +2031,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> userNameAvailable({required String name}) async {
-    final response =
-        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
+    final response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
   }
 
@@ -2243,8 +2239,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
     String id = businessId.toString();
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+    final http.Response response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/v2/api/tenant/$id"));
     if (response.statusCode == 200) {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
@@ -2337,7 +2333,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> loadCounterFromOnline({required int businessId}) async {
-    final http.Response response = await flipperHttpClient
+    final http.Response response = await ProxyService.httpClient
         .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
 
     if (response.statusCode == 200) {
@@ -2469,7 +2465,7 @@ class IsarAPI<M> implements IsarApiInterface {
       await appService.isLoggedIn();
       List<Conversation> scheduledMessages = await getScheduleMessages();
       for (Conversation message in scheduledMessages) {
-        final http.Response response = await socialsHttpClient.post(
+        final http.Response response = await ProxyService.httpClient.post(
           Uri.parse("$commApi/reply"),
           body: json.encode(message.toJson()),
         );
@@ -2511,7 +2507,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<int> registerOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    final http.Response response = await socialsHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$commApi/register"),
       body: json.encode({"email": phoneNumberOrEmail, "password": password}),
     );
@@ -2569,7 +2565,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    final http.Response response = await socialsHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$commApi/login"),
       body: json.encode({"email": phoneNumberOrEmail, "password": password}),
     );
@@ -2591,7 +2587,7 @@ class IsarAPI<M> implements IsarApiInterface {
   /// If the user's phone number is not available, it returns `null`.
   /// It first checks if the setting is available in the `isar.settings` database using the user's phone number.
   /// If the setting is found, it returns the setting.
-  /// If the setting is not found in the database, it makes an HTTP GET request to the socialsHttpClient
+  /// If the setting is not found in the database, it makes an HTTP GET request to the ProxyService.httpClient
   /// to fetch the setting from the specified API endpoint.
   /// If the HTTP response status code is 200, it converts the response body to a `Setting` object
   /// using `Setting.fromJson()` and then saves it using the `create()` function.
@@ -2623,7 +2619,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     Future.delayed(Duration(seconds: 20));
     final Uri uri = Uri.parse("$commApi/settings/$number");
-    final http.Response response = await socialsHttpClient.get(uri);
+    final http.Response response = await ProxyService.httpClient.get(uri);
 
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
@@ -2640,7 +2636,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
     // await Future.delayed(Duration(seconds: 20));
     int businessId = ProxyService.box.getBusinessId()!;
-    final http.Response response = await socialsHttpClient.patch(
+    final http.Response response = await ProxyService.httpClient.patch(
         Uri.parse("$commApi/settings"),
         body: json.encode(
             {"businessId": businessId, "deviceToken": setting.deviceToken}));
@@ -2726,7 +2722,7 @@ class IsarAPI<M> implements IsarApiInterface {
     String? paginationCreatedAt = ProxyService.box.paginationCreatedAt();
     int? paginationId = ProxyService.box.paginationId();
 
-    final response = await socialsHttpClient.get(Uri.parse(
+    final response = await ProxyService.httpClient.get(Uri.parse(
         '${commApi}/messages/${businessId}?pageSize=${pageSize}&createdAt=${paginationCreatedAt}&id=${paginationId}'));
 
     if (response.statusCode == 200) {
@@ -2778,7 +2774,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId}) async {
-    final response = await socialsHttpClient.patch(
+    final response = await ProxyService.httpClient.patch(
       Uri.parse("$commApi/contacts/${businessId}"),
       body: jsonEncode(contact),
     );

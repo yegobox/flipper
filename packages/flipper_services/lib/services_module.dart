@@ -1,7 +1,10 @@
 import 'dart:developer';
 
 import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/RealmSync.dart';
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -53,6 +56,8 @@ import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/isar_api.dart';
 
+import 'package:http/http.dart' as http;
+
 @module
 abstract class ServicesModule {
   @preResolve
@@ -62,6 +67,15 @@ abstract class ServicesModule {
     } catch (e) {
       // Handle the error or retry logic here
       return await Future.error(e);
+    }
+  }
+
+  @preResolve
+  Future<HttpClientInterface> get httpClient async {
+    if ((const bool.fromEnvironment('Test', defaultValue: false) == false)) {
+      return MockHttpClient();
+    } else {
+      return FlipperHttpClient(http.Client());
     }
   }
 

@@ -44,7 +44,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
   }
 
   void _handleTextChange() {
-    _hasText = widget.controller.text.isNotEmpty;
+    setState(() {
+      _hasText = widget.controller.text.isNotEmpty;
+    });
   }
 
   void _processDebouncedValue(String value) {
@@ -181,6 +183,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   }
 
   void _clearSearchText() {
+    ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
   }
