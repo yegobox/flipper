@@ -213,3 +213,6 @@ class App {}
 // Login Pins
 // YEGOBOX: 31658
 // TODO:https://github.com/bdlukaa/fluent_ui/issues/150
+// TODO:Flipper pitch https://www.mongodb.com/blog/post/how-enhance-inventory-management-real-time-data-strategies?utm_campaign=realtimedata&utm_source=youtube&utm_medium=organic_social
+// TODO:https://www.mongodb.com/developer/products/atlas/build-inventory-management-system-using-mongodb-atlas/?utm_campaign=inventorymgmt&utm_source=youtube&utm_medium=organic_social
+//TODO: https://github.com/mongodb-industry-solutions/Inventory_mgmt

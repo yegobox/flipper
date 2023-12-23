@@ -310,6 +310,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     List<Product> products,
   ) {
+    final matchedProduct = ref.watch(matchedProductProvider);
     return Column(
       children: [
         for (int index = 0; index < products.length; index++)
@@ -392,8 +393,11 @@ class ProductViewState extends ConsumerState<ProductView> {
                     },
                   );
                 },
-                body: ref.read(variantsProvider(productId)).when(
-                      loading: () => Center(child: CircularProgressIndicator()),
+                body: ref
+                    .watch(variantsProvider(
+                        matchedProduct == null ? "0" : matchedProduct.id))
+                    .when(
+                      loading: () => Text("searching..."),
                       error: (error, stackTrace) => Text(error.toString()),
                       data: (variants) => ListView.builder(
                         shrinkWrap: true,

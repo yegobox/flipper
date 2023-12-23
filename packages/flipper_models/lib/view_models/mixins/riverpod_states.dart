@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -213,6 +213,21 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   }
 }
 
+final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
+  final productsState =
+      ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+  return productsState.maybeWhen(
+    data: (products) {
+      try {
+        return products.firstWhere((product) => product.searchMatch == true);
+      } catch (e) {
+        return null; // Return null if no matching product is found
+      }
+    },
+    orElse: () => null,
+  );
+});
+
 final productsProvider = StateNotifierProvider.autoDispose
     .family<ProductsNotifier, AsyncValue<List<Product>>, int>((ref, branchId) {
   final productsNotifier = ProductsNotifier(branchId, ref);
@@ -240,73 +255,50 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       data: (currentData) {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id) {
-            p.searchMatch = !p.searchMatch;
+          if (p.id == product.id && !p.searchMatch) {
+            p.searchMatch = true;
           } else {
             // Set searchMatch to false for other products
             p.searchMatch = false;
           }
           return p;
         }).toList();
-        state = AsyncData(updatedProducts);
+
+        // Check if the products list actually changed before updating the state
+        if (!listEquals(currentData, updatedProducts)) {
+          state = AsyncData(updatedProducts);
+        }
       },
       orElse: () {},
     );
   }
 
-  Future<void> loadProducts(
-      {required String searchString, required bool scannMode}) async {
+  Future<void> loadProducts({
+    required String searchString,
+    required bool scannMode,
+  }) async {
     try {
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
-      // if (scannMode) {
-      //TODO:work on auto-expanding the product row when a search is match
-      /// search variant using name
-      // Variant? variant = await ProxyService.isar.variant(name: searchString);
-      // if (variant != null) {
-      // log(variant.name);
-      // log(variant.productId);
-      // Product? associatedProduct =
-      //     await ProxyService.isar.getProduct(id: variant.productId);
-      // if (associatedProduct != null) {
-      //   for (Product product in products) {
-      //     log(product.name.toLowerCase());
-      //     log(product.id.toLowerCase());
-      //     log(associatedProduct.name.toLowerCase());
-      //     if (product.name.toLowerCase() ==
-      //         associatedProduct.name.toLowerCase()) {
-      /// if the product is found, call expanded with the product
-      // products = products
-      //     .where((product) => product.name
-      //         .toLowerCase()
-      //         .contains(associatedProduct.name))
-      //     .toList();
-      // print('Before calling expanded with associatedProduct:');
-      // expanded(associatedProduct);
-      // ref
-      //     .read(productsProvider(ProxyService.box.getBranchId()!)
-      //         .notifier)
-      //     .expanded(associatedProduct);
-      // saveTransaction(
-      //     variationId: variant.id,
-      //     amountTotal: variant.retailPrice,
-      //     customItem: false);
 
-      //         print('After calling expanded');
-      //       }
-      //     }
-      //   }
-      // }
-      // } else {
       if (searchString.isNotEmpty) {
-        products = products
+        // Search for products that match the search string
+        List<Product> matchingProducts = products
             .where((product) =>
                 product.name.toLowerCase().contains(searchString.toLowerCase()))
             .toList();
-        // }
-      }
 
-      state = AsyncData(products);
+        state = AsyncData(matchingProducts);
+
+        if (matchingProducts.isNotEmpty) {
+          // If there's at least one matching product, expand the first one
+          Product matchingProduct = matchingProducts.first;
+          expanded(matchingProduct);
+        }
+      } else {
+        // If the search string is empty, return the entire list of products
+        state = AsyncData(products);
+      }
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
     }
@@ -437,7 +429,7 @@ final transactionsStreamProvider =
 
   // Use ProxyService to get the IsarStream of transactions
   final transactionsStream = ProxyService.isar.transactionsStream();
-  
+
   // Return the stream
   return transactionsStream;
 });
