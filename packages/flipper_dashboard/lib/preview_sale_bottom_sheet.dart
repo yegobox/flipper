@@ -6,6 +6,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -15,7 +16,6 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'add_customer_button.dart';
-import 'order_summary_items.dart';
 
 class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
   final bool reverse;
@@ -38,6 +38,111 @@ class PreviewSaleBottomSheetState
     locale: 'en', // e.g., 'en_US' for English (United States)
     symbol: ' RWF',
   );
+
+  List<Widget> buildItems({
+    required Function(TransactionItem) delete,
+    required BuildContext context,
+    required List<TransactionItem> items,
+  }) {
+    // Check if the list is empty.
+    if (items.isEmpty) {
+      return [
+        Column(
+          children: [
+            SizedBox(height: 120),
+            Text(
+              'Current transaction has no items',
+              style: GoogleFonts.poppins(
+                fontSize: 19,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ];
+    }
+
+    // Create a list of widgets for each item in the list.
+    return items.map((item) {
+      return Card(
+        // change border radios of the card
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(4.0), // Adjust the value as needed
+        ),
+        child: Slidable(
+          key: ValueKey(item.id),
+          endActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) =>
+                    delete(item), // Added the context argument
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          startActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) =>
+                    delete(item), // Added the context argument
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+            trailing: Text(
+              'RWF ${NumberFormat('#,###').format(item.price * item.qty)}',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400,
+                fontSize: 15,
+                color: Colors.black,
+              ),
+            ),
+            leading: Container(
+              width: 100, // Set your preferred width
+              child: Text(
+                item.name.substring(0, 10),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            title: Container(
+              width: 100, // Set your preferred width
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.close,
+                    color: Colors.black,
+                    size: 16.0,
+                  ),
+                  const Text(' '),
+                  Text(
+                    item.qty.toInt().toString(),
+                  ),
+                ],
+              ),
+            ),
+            onTap: () => null, //removed calling callback
+          ),
+        ),
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +172,8 @@ class PreviewSaleBottomSheetState
               children: [
                 ...buildItems(
                   context: context,
-                  callback: (item) async {
-                    await ProxyService.isar.update(data: transaction);
+                  delete: (item) async {
+                    //await ProxyService.isar.update(data: transaction);
                     model.deleteTransactionItem(
                       id: item.id,
                       context: context,
@@ -83,53 +188,60 @@ class PreviewSaleBottomSheetState
                       )
                       .value!,
                 ),
-                if (model.totalDiscount > 0)
-                  ListTile(
-                    contentPadding: const EdgeInsets.only(
-                      left: 40.0,
-                      right: 40.0,
-                    ),
-                    title: Text(
-                      'Discounts',
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: Colors.black,
-                      ),
-                    ),
-                    trailing: Text(
-                      '- RWF ' + _numberFormat.format(model.totalDiscount),
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
+                if (model.totalDiscount > 0) buildDiscounts(model),
               ],
             ),
             Spacer(),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: BoxButton(
-                title: widget.mode == SellingMode.forSelling
-                    ? "Collect ${_numberFormat.format(totalPayable)} "
-                    : "Order ${_numberFormat.format(totalPayable)} ",
-                onTap: () async {
-                  final transaction = await ProxyService.isar.manageTransaction(
-                    transactionType: TransactionType.custom,
-                  );
-                  _routerService.navigateTo(
-                    PaymentsRoute(
-                      transaction: transaction,
-                    ),
-                  );
-                },
-              ),
-            ),
+            buildPayable(totalPayable),
           ],
         );
       },
+    );
+  }
+
+  Padding buildPayable(double totalPayable) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: BoxButton(
+        title: widget.mode == SellingMode.forSelling
+            ? "Collect ${_numberFormat.format(totalPayable)} "
+            : "Order ${_numberFormat.format(totalPayable)} ",
+        onTap: () async {
+          final transaction = await ProxyService.isar.manageTransaction(
+            transactionType: TransactionType.custom,
+          );
+          _routerService.navigateTo(
+            PaymentsRoute(
+              transaction: transaction,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  ListTile buildDiscounts(CoreViewModel model) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(
+        left: 40.0,
+        right: 40.0,
+      ),
+      title: Text(
+        'Discounts',
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: Colors.black,
+        ),
+      ),
+      trailing: Text(
+        '- RWF ' + _numberFormat.format(model.totalDiscount),
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: Colors.black,
+        ),
+      ),
     );
   }
 }

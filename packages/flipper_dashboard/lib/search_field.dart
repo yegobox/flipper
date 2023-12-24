@@ -61,7 +61,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
-
+//"wjiyfl2g336pp13"
     if (value.isNotEmpty) {
       Variant? variant = await ProxyService.isar.variant(name: value);
       if (variant != null) {
@@ -77,6 +77,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
           pendingTransaction: currentTransaction,
           currentStock: stock.currentStock,
         );
+        await model.keyboardKeyPressed(key: '+');
+        ref.refresh(pendingTransactionProvider(TransactionType.custom).future);
         ref.refresh(transactionItemsProvider(currentTransaction.id));
         ref.refresh(searchStringProvider);
       }

@@ -58,6 +58,9 @@ mixin TransactionMixin {
       item.qty += quantity.toDouble();
       item.price = amountTotal / quantity;
 
+      /// this is to automatically show item in shoping cart
+      item.active = true;
+
       List<TransactionItem> items = await ProxyService.isar.transactionItems(
           transactionId: pendingTransaction.id,
           doneWithTransaction: false,
@@ -119,7 +122,7 @@ mixin TransactionMixin {
         modrNm: variation.modrNm,
         remainingStock: currentStock - quantity,
         doneWithTransaction: false,
-        active: false);
+        active: true);
 
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
         transactionId: pendingTransaction.id,
