@@ -2,7 +2,6 @@
 
 import 'dart:developer';
 import 'package:flipper_services/proxy.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -30,7 +29,6 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
-  final _textSubject = BehaviorSubject<String>();
 
   @override
   void initState() {
@@ -38,9 +36,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     _hasText = false;
     _focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
-    _textSubject
-        .debounceTime(Duration(seconds: 0))
-        .listen(_processDebouncedValue);
   }
 
   void _handleTextChange() {
@@ -49,20 +44,20 @@ class SearchFieldState extends ConsumerState<SearchField> {
     });
   }
 
-  void _processDebouncedValue(String value) {
+  void _processDebouncedValue(String value, CoreViewModel model) {
     log('Processing value: $value', name: 'logic');
     ref.read(searchStringProvider.notifier).emitString(value: value);
 
     _focusNode.requestFocus();
 
     if (ref.read(scanningModeProvider)) {
-      _handleScanningMode(value);
+      _handleScanningMode(value, model);
     }
 
     ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
   }
 
-  void _handleScanningMode(String value) async {
+  void _handleScanningMode(String value, CoreViewModel model) async {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
@@ -75,14 +70,13 @@ class SearchFieldState extends ConsumerState<SearchField> {
         ITransaction currentTransaction = await ProxyService.isar
             .manageTransaction(transactionType: TransactionType.custom);
 
-        await CoreViewModel().saveTransaction(
+        await model.saveTransaction(
           variation: variant,
           amountTotal: variant.retailPrice,
           customItem: false,
           pendingTransaction: currentTransaction,
           currentStock: stock.currentStock,
         );
-
         ref.refresh(transactionItemsProvider(currentTransaction.id));
         ref.refresh(searchStringProvider);
       }
@@ -92,7 +86,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
   @override
   void dispose() {
     _focusNode.dispose();
-    _textSubject.close();
     super.dispose();
   }
 
@@ -111,8 +104,12 @@ class SearchFieldState extends ConsumerState<SearchField> {
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
           // onFieldSubmitted: (value) => _textSubject.add(value),
-          onFieldSubmitted: isScanningMode ? _processDebouncedValue : null,
-          onChanged: isScanningMode ? null : _processDebouncedValue,
+          onFieldSubmitted: isScanningMode
+              ? (value) => _processDebouncedValue(value, model)
+              : null,
+          onChanged: isScanningMode
+              ? null
+              : (value) => _processDebouncedValue(value, model),
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),

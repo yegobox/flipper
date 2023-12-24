@@ -38,12 +38,11 @@ class PreviewSaleBottomSheetState
     locale: 'en', // e.g., 'en_US' for English (United States)
     symbol: ' RWF',
   );
-  late final transactionProvider =
-      pendingTransactionProvider(TransactionType.custom);
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(transactionProvider);
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     final transactionItemsNotifier = ref
         .watch(transactionItemsProvider(transaction.value?.value?.id).notifier);
 

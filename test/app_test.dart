@@ -25,7 +25,7 @@ void main() {
     loc.locator.registerLazySingleton(() => mockHttpClient);
   });
 
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('App start and runs', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const StartUpView());
 
