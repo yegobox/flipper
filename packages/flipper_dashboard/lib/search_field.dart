@@ -61,7 +61,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
-//"wjiyfl2g336pp13"
     if (value.isNotEmpty) {
       Variant? variant = await ProxyService.isar.variant(name: value);
       if (variant != null) {

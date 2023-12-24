@@ -158,44 +158,48 @@ class PreviewSaleBottomSheetState
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            widget.mode == SellingMode.forSelling
-                ? AddCustomerButton(transactionId: transaction.value?.value?.id)
-                : SizedBox.shrink(),
-            ListView(
-              reverse: widget.reverse,
-              shrinkWrap: true,
-              controller: ModalScrollController.of(context),
-              physics: const ClampingScrollPhysics(),
-              children: [
-                ...buildItems(
-                  context: context,
-                  delete: (item) async {
-                    //await ProxyService.isar.update(data: transaction);
-                    model.deleteTransactionItem(
-                      id: item.id,
-                      context: context,
-                    );
-                    ref.refresh(
-                      transactionItemsProvider(transaction.value?.value?.id),
-                    );
-                  },
-                  items: ref
-                      .watch(
-                        transactionItemsProvider(transaction.value?.value?.id),
-                      )
-                      .value!,
-                ),
-                if (model.totalDiscount > 0) buildDiscounts(model),
-              ],
-            ),
-            Spacer(),
-            buildPayable(totalPayable),
-          ],
-        );
+        return transactionListView(transaction, context, model, totalPayable);
       },
+    );
+  }
+
+  Column transactionListView(AsyncValue<AsyncValue<ITransaction>> transaction,
+      BuildContext context, CoreViewModel model, double totalPayable) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        widget.mode == SellingMode.forSelling
+            ? AddCustomerButton(transactionId: transaction.value?.value?.id)
+            : SizedBox.shrink(),
+        ListView(
+          reverse: widget.reverse,
+          shrinkWrap: true,
+          controller: ModalScrollController.of(context),
+          physics: const ClampingScrollPhysics(),
+          children: [
+            ...buildItems(
+              context: context,
+              delete: (item) async {
+                model.deleteTransactionItem(
+                  id: item.id,
+                  context: context,
+                );
+                ref.refresh(
+                  transactionItemsProvider(transaction.value?.value?.id),
+                );
+              },
+              items: ref
+                  .watch(
+                    transactionItemsProvider(transaction.value?.value?.id),
+                  )
+                  .value!,
+            ),
+            if (model.totalDiscount > 0) buildDiscounts(model),
+          ],
+        ),
+        Spacer(),
+        buildPayable(totalPayable),
+      ],
     );
   }
 
