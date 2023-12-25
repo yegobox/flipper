@@ -135,7 +135,7 @@ class App {}
 ///rm -rf open-sources/form_bloc
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
-///git submodule add https://github.com/Cavin6080/form_bloc.git open-sources/form_bloc
+///git submodule add https://github.com/yegobox/form_bloc.git open-sources/form_bloc
 
 /// find ./ -name pubspec.lock -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
