@@ -36,4 +36,23 @@ class _RealmStock {
   DateTime? deletedAt;
 
   // ... constructors and other methods remain the same
+  void updateProperties(RealmStock other) {
+    id = other.id;
+    realmId = other.realmId;
+    branchId = other.branchId;
+    variantId = other.variantId;
+    lowStock = other.lowStock;
+    currentStock = other.currentStock;
+    canTrackingStock = other.canTrackingStock;
+    showLowStockAlert = other.showLowStockAlert;
+    productId = other.productId;
+    active = other.active;
+    value = other.value;
+    rsdQty = other.rsdQty;
+    supplyPrice = other.supplyPrice;
+    retailPrice = other.retailPrice;
+    lastTouched = other.lastTouched;
+    action = other.action;
+    deletedAt = other.deletedAt;
+  }
 }

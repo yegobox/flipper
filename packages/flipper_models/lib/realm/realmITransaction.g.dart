@@ -31,7 +31,7 @@ class RealmITransaction extends _RealmITransaction
     DateTime? lastTouched,
     String? ticketName,
     DateTime? deletedAt,
-    int? retailerId,
+    int? supplierId,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -54,7 +54,7 @@ class RealmITransaction extends _RealmITransaction
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'ticketName', ticketName);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
-    RealmObjectBase.set(this, 'retailerId', retailerId);
+    RealmObjectBase.set(this, 'supplierId', supplierId);
   }
 
   RealmITransaction._();
@@ -192,9 +192,9 @@ class RealmITransaction extends _RealmITransaction
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
-  int? get retailerId => RealmObjectBase.get<int>(this, 'retailerId') as int?;
+  int? get supplierId => RealmObjectBase.get<int>(this, 'supplierId') as int?;
   @override
-  set retailerId(int? value) => RealmObjectBase.set(this, 'retailerId', value);
+  set supplierId(int? value) => RealmObjectBase.set(this, 'supplierId', value);
 
   @override
   Stream<RealmObjectChanges<RealmITransaction>> get changes =>
@@ -233,7 +233,7 @@ class RealmITransaction extends _RealmITransaction
       SchemaProperty('action', RealmPropertyType.string),
       SchemaProperty('ticketName', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
-      SchemaProperty('retailerId', RealmPropertyType.int, optional: true),
+      SchemaProperty('supplierId', RealmPropertyType.int, optional: true),
     ]);
   }
 }

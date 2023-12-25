@@ -62,4 +62,53 @@ class _RealmVariant {
   DateTime? deletedAt;
 
   // ... constructors and other methods remain the same
+  void updateProperties(RealmVariant other) {
+    id = other.id;
+    realmId = other.realmId;
+    name = other.name;
+    color = other.color;
+    sku = other.sku;
+    productId = other.productId;
+    unit = other.unit;
+    productName = other.productName;
+    branchId = other.branchId;
+    taxName = other.taxName;
+    taxPercentage = other.taxPercentage;
+    isTaxExempted = other.isTaxExempted;
+    itemSeq = other.itemSeq;
+    isrccCd = other.isrccCd;
+    isrccNm = other.isrccNm;
+    isrcRt = other.isrcRt;
+    isrcAmt = other.isrcAmt;
+    taxTyCd = other.taxTyCd;
+    bcd = other.bcd;
+    itemClsCd = other.itemClsCd;
+    itemTyCd = other.itemTyCd;
+    itemStdNm = other.itemStdNm;
+    orgnNatCd = other.orgnNatCd;
+    pkg = other.pkg;
+    itemCd = other.itemCd;
+    pkgUnitCd = other.pkgUnitCd;
+    qtyUnitCd = other.qtyUnitCd;
+    itemNm = other.itemNm;
+    qty = other.qty;
+    prc = other.prc;
+    splyAmt = other.splyAmt;
+    tin = other.tin;
+    bhfId = other.bhfId;
+    dftPrc = other.dftPrc;
+    addInfo = other.addInfo;
+    isrcAplcbYn = other.isrcAplcbYn;
+    useYn = other.useYn;
+    regrId = other.regrId;
+    regrNm = other.regrNm;
+    modrId = other.modrId;
+    modrNm = other.modrNm;
+    rsdQty = other.rsdQty;
+    lastTouched = other.lastTouched;
+    supplyPrice = other.supplyPrice;
+    retailPrice = other.retailPrice;
+    action = other.action;
+    deletedAt = other.deletedAt;
+  }
 }

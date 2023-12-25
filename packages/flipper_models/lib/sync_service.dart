@@ -115,7 +115,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
     /// fix@issue where the createdAt synced on server is older compared to when a transaction was completed.
     transaction.updatedAt = DateTime.now().toIso8601String();
     transaction.createdAt = DateTime.now().toIso8601String();
-    if (transaction.action != AppActions.remote) {
+    if (transaction.action != AppActions.updatedLocally) {
       Map<String, dynamic>? variantRecord = await _push(transaction as M);
       if (variantRecord != null && variantRecord.isNotEmpty) {
         ITransaction trans = ITransaction.fromJson(variantRecord);
@@ -133,7 +133,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   Future<void> localChanges() async {
     final data = await ProxyService.isar.getUnSyncedData();
     for (Product product in data.products) {
-      if (product.action != AppActions.remote && product.name != TEMP_PRODUCT) {
+      if (product.action != AppActions.updatedLocally && product.name != TEMP_PRODUCT) {
         Map<String, dynamic>? record = await _push(product as M);
 
         if (record != null && record.isNotEmpty) {
@@ -148,12 +148,12 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         List<Variant> variants = await ProxyService.isar.variants(
             branchId: ProxyService.box.getBranchId()!, productId: product.id);
         for (Variant variant in variants) {
-          if (variant.action != AppActions.remote) {
+          if (variant.action != AppActions.updatedLocally) {
             Map<String, dynamic>? variantRecord = await _push(variant as M);
             if (variantRecord != null && variantRecord.isNotEmpty) {
               Variant va = Variant.fromJson(variantRecord);
 
-              va.action = AppActions.remote;
+              va.action = AppActions.updatedLocally;
               await ProxyService.isar.update(data: va);
             }
 
@@ -181,7 +181,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
       await _pushTransactions(transaction);
     }
     for (TransactionItem item in data.transactionItems) {
-      if (item.action != AppActions.remote) {
+      if (item.action != AppActions.updatedLocally) {
         Map<String, dynamic>? stockRecord = await _push(item as M);
         if (stockRecord != null && stockRecord.isNotEmpty) {
           TransactionItem iItem = TransactionItem.fromJson(stockRecord);
@@ -194,7 +194,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
     }
 
     for (Favorite favorite in data.favorites) {
-      if (favorite.action != AppActions.remote) {
+      if (favorite.action != AppActions.updatedLocally) {
         Map<String, dynamic>? record = await _push(favorite as M);
 
         if (record != null && record.isNotEmpty) {
@@ -208,7 +208,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
 
     /// pushing devices
     for (Device device in data.devices) {
-      if (device.action != AppActions.remote) {
+      if (device.action != AppActions.updatedLocally) {
         Map<String, dynamic>? record = await _push(device as M);
 
         if (record != null && record.isNotEmpty) {

@@ -37,5 +37,28 @@ class _RealmITransaction {
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
-  int? retailerId;
+  int? supplierId;
+
+  void updateProperties(RealmITransaction other) {
+    reference = other.reference;
+    transactionNumber = other.transactionNumber;
+    branchId = other.branchId;
+    status = other.status;
+    transactionType = other.transactionType;
+    subTotal = other.subTotal;
+    paymentType = other.paymentType;
+    cashReceived = other.cashReceived;
+    customerChangeDue = other.customerChangeDue;
+    createdAt = other.createdAt;
+    action = other.action;
+    categoryId = other.categoryId;
+    customerId = other.customerId;
+    deletedAt = other.deletedAt;
+    lastTouched = other.lastTouched;
+    note = other.note;
+    receiptType = other.receiptType;
+    supplierId = other.supplierId;
+    ticketName = other.ticketName;
+    updatedAt = other.updatedAt;
+  }
 }
