@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
 import 'package:flipper_models/realm/realmProduct.dart';
@@ -5,6 +7,7 @@ import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/sync_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
@@ -64,6 +67,7 @@ class RealmSync<M extends IJsonSerializable>
       await configure();
     }
     if (item is ITransaction) {
+      if (item.action == AppActions.updatedLocally) return;
       final realmITransaction = RealmITransaction(
         item.id,
         ObjectId(),
@@ -88,20 +92,44 @@ class RealmSync<M extends IJsonSerializable>
         ticketName: item.ticketName,
         updatedAt: item.updatedAt,
       );
-      final findableObject =
-          realm!.query<RealmITransaction>(r'id == $0', [item.id]);
+
       // Save _RealmITransaction to the Realm database
       await realm!.write(() {
+        final findableObject =
+            realm!.query<RealmITransaction>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm!.add(realmITransaction);
+          realm!.add(realmITransaction, update: true);
         } else {
-          realm!.add<RealmITransaction>(findableObject.first, update: true);
+          findableObject.first.reference = realmITransaction.reference;
+          findableObject.first.transactionNumber =
+              realmITransaction.transactionNumber;
+          findableObject.first.branchId = realmITransaction.branchId;
+          findableObject.first.status = realmITransaction.status;
+          findableObject.first.transactionType =
+              realmITransaction.transactionType;
+          findableObject.first.subTotal = realmITransaction.subTotal;
+          findableObject.first.paymentType = realmITransaction.paymentType;
+          findableObject.first.cashReceived = realmITransaction.cashReceived;
+          findableObject.first.customerChangeDue =
+              realmITransaction.customerChangeDue;
+          findableObject.first.createdAt = realmITransaction.createdAt;
+          findableObject.first.action = realmITransaction.action;
+          findableObject.first.categoryId = realmITransaction.categoryId;
+          findableObject.first.customerId = realmITransaction.customerId;
+          findableObject.first.deletedAt = realmITransaction.deletedAt;
+          findableObject.first.lastTouched = realmITransaction.lastTouched;
+          findableObject.first.note = realmITransaction.note;
+          findableObject.first.receiptType = realmITransaction.receiptType;
+          findableObject.first.retailerId = realmITransaction.retailerId;
+          findableObject.first.ticketName = realmITransaction.ticketName;
+          findableObject.first.updatedAt = realmITransaction.updatedAt;
         }
       });
     }
 
     if (item is TransactionItem) {
+      if (item.action == AppActions.updatedLocally) return;
       final realmITransactionItem = RealmITransactionItem(
         ObjectId(),
         item.name,
@@ -157,19 +185,34 @@ class RealmSync<M extends IJsonSerializable>
         useYn: item.useYn,
       );
 
-      final findableObject =
-          realm!.query<RealmITransactionItem>(r'id == $0', [item.id]);
       // Save _RealmITransaction to the Realm database
       await realm!.write(() {
+        final findableObject =
+            realm!.query<RealmITransactionItem>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm!.add(realmITransactionItem);
+          realm!.add(realmITransactionItem, update: true);
         } else {
-          realm!.add<RealmITransactionItem>(findableObject.first, update: true);
+          findableObject.first.action = realmITransactionItem.action;
+          findableObject.first.branchId = realmITransactionItem.branchId;
+          findableObject.first.remainingStock =
+              realmITransactionItem.remainingStock;
+          findableObject.first.createdAt = realmITransactionItem.createdAt;
+          findableObject.first.name = realmITransactionItem.name;
+          findableObject.first.transactionId =
+              realmITransactionItem.transactionId;
+          findableObject.first.variantId = realmITransactionItem.variantId;
+          findableObject.first.qty = realmITransactionItem.qty;
+          findableObject.first.price = realmITransactionItem.price;
+          findableObject.first.id = realmITransactionItem.id;
+          findableObject.first.updatedAt = realmITransactionItem.updatedAt;
+          findableObject.first.isTaxExempted =
+              realmITransactionItem.isTaxExempted;
         }
       });
     }
     if (item is Product) {
+      if (item.action == AppActions.updatedLocally) return;
       final realmProduct = RealmProduct(
         item.id,
         ObjectId(), // Auto-generate ObjectId for realmId
@@ -192,20 +235,26 @@ class RealmSync<M extends IJsonSerializable>
         isFavorite: item.isFavorite,
         lastTouched: item.lastTouched, // Update lastTouched timestamp
       );
-      final findableObject = realm!.query<RealmProduct>(r'id == $0', [item.id]);
+
       // Save _RealmITransaction to the Realm database
       realm!.refresh();
       await realm!.write(() {
+        final findableObject =
+            realm!.query<RealmProduct>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
           final o = realm!.add(realmProduct);
           print(o);
         } else {
-          realm!.add<RealmProduct>(findableObject.first, update: true);
+          findableObject.first.action = realmProduct.action;
+          findableObject.first.branchId = realmProduct.branchId;
+          findableObject.first.name = realmProduct.name;
+          findableObject.first.color = realmProduct.color;
         }
       });
     }
     if (item is Variant) {
+      if (item.action == AppActions.updatedLocally) return;
       final realmVariant = RealmVariant(
         ObjectId(), // Auto-generate ObjectId for realmId
         item.name,
@@ -256,19 +305,56 @@ class RealmSync<M extends IJsonSerializable>
         splyAmt: item.splyAmt,
       );
 
-      final findableObject = realm!.query<RealmVariant>(r'id == $0', [item.id]);
-
       await realm!.write(() {
+        final findableObject =
+            realm!.query<RealmVariant>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Variant doesn't exist, add it
           realm!.add(realmVariant);
         } else {
           // Variant exists, update it
-          realm!.add<RealmVariant>(findableObject.first, update: true);
+          findableObject.first.action = realmVariant.action;
+          findableObject.first.branchId = realmVariant.branchId;
+          findableObject.first.name = realmVariant.name;
+          findableObject.first.color = realmVariant.color;
+          findableObject.first.sku = realmVariant.sku;
+          findableObject.first.productId = realmVariant.productId;
+          findableObject.first.unit = realmVariant.unit;
+          findableObject.first.productName = realmVariant.productName;
+          findableObject.first.isTaxExempted = realmVariant.isTaxExempted;
+          findableObject.first.id = realmVariant.id;
+          findableObject.first.retailPrice = realmVariant.retailPrice;
+          findableObject.first.supplyPrice = realmVariant.supplyPrice;
+          findableObject.first.dftPrc = realmVariant.dftPrc;
+          findableObject.first.taxName = realmVariant.taxName;
+          findableObject.first.taxPercentage = realmVariant.taxPercentage;
+          findableObject.first.isrcAplcbYn = realmVariant.isrcAplcbYn;
+          findableObject.first.modrId = realmVariant.modrId;
+          findableObject.first.rsdQty = realmVariant.rsdQty;
+          findableObject.first.taxTyCd = realmVariant.taxTyCd;
+          findableObject.first.bcd = realmVariant.bcd;
+          findableObject.first.itemClsCd = realmVariant.itemClsCd;
+          findableObject.first.itemTyCd = realmVariant.itemTyCd;
+          findableObject.first.itemStdNm = realmVariant.itemStdNm;
+          findableObject.first.addInfo = realmVariant.addInfo;
+          findableObject.first.pkg = realmVariant.pkg;
+          findableObject.first.useYn = realmVariant.useYn;
+          findableObject.first.regrNm = realmVariant.regrNm;
+          findableObject.first.modrNm = realmVariant.modrNm;
+          findableObject.first.itemNm = realmVariant.itemNm;
+          findableObject.first.tin = realmVariant.tin;
+          findableObject.first.bhfId = realmVariant.bhfId;
+          findableObject.first.regrId = realmVariant.regrId;
+          findableObject.first.orgnNatCd = realmVariant.orgnNatCd;
+          findableObject.first.itemSeq = realmVariant.itemSeq;
+          findableObject.first.itemCd = realmVariant.itemCd;
+          findableObject.first.pkgUnitCd = realmVariant.pkgUnitCd;
+          findableObject.first.qtyUnitCd = realmVariant.qtyUnitCd;
         }
       });
     }
     if (item is Stock) {
+      if (item.action == AppActions.updatedLocally) return;
       final realmStock = RealmStock(
         item.id,
         ObjectId(), // Auto-generate ObjectId for realmId
@@ -289,15 +375,26 @@ class RealmSync<M extends IJsonSerializable>
         deletedAt: item.deletedAt,
       );
 
-      final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
-
       await realm!.write(() {
+        final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Stock doesn't exist, add it
           realm!.add(realmStock);
         } else {
           // Stock exists, update it
-          realm!.add<RealmStock>(findableObject.first, update: true);
+          findableObject.first.action = realmStock.action;
+          findableObject.first.branchId = realmStock.branchId;
+          findableObject.first.variantId = realmStock.variantId;
+          findableObject.first.currentStock = realmStock.currentStock;
+          findableObject.first.productId = realmStock.productId;
+          findableObject.first.lowStock = realmStock.lowStock;
+          findableObject.first.canTrackingStock = realmStock.canTrackingStock;
+          findableObject.first.showLowStockAlert = realmStock.showLowStockAlert;
+          findableObject.first.active = realmStock.active;
+          findableObject.first.value = realmStock.value;
+          findableObject.first.rsdQty = realmStock.rsdQty;
+          findableObject.first.supplyPrice = realmStock.supplyPrice;
+          findableObject.first.retailPrice = realmStock.retailPrice;
         }
       });
     }

@@ -544,7 +544,7 @@ class IsarAPI<M> implements IsarApiInterface {
     transaction.subTotal = subTotal;
 
     /// refresh created as well to reflect when this transaction was created and completed
-    transaction.createdAt = DateTime.now().toIso8601String();
+
     transaction.updatedAt = DateTime.now().toIso8601String();
 
     await update(data: transaction);

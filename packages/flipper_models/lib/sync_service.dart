@@ -122,7 +122,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
 
         /// keep the local ID unchanged to avoid complication
         trans.id = transaction.id;
-        trans.action = AppActions.remote;
+        trans.action = AppActions.updatedLocally;
 
         await ProxyService.isar.update(data: trans);
       }
@@ -139,7 +139,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         if (record != null && record.isNotEmpty) {
           Product product = Product.fromJson(record);
 
-          product.action = AppActions.remote;
+          product.action = AppActions.updatedLocally;
           await ProxyService.isar.update(data: product);
           // await Future.delayed(Duration(seconds: 20));
         }
@@ -164,7 +164,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
             if (stockRecord != null && stockRecord.isNotEmpty) {
               Stock s = Stock.fromJson(stockRecord);
 
-              s.action = AppActions.remote;
+              s.action = AppActions.updatedLocally;
 
               await ProxyService.isar.update(data: s);
             }
@@ -186,7 +186,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         if (stockRecord != null && stockRecord.isNotEmpty) {
           TransactionItem iItem = TransactionItem.fromJson(stockRecord);
 
-          iItem.action = AppActions.remote;
+          iItem.action = AppActions.updatedLocally;
 
           await ProxyService.isar.update(data: iItem);
         }
@@ -200,7 +200,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         if (record != null && record.isNotEmpty) {
           Favorite fav = Favorite.fromJson(record);
 
-          fav.action = AppActions.remote;
+          fav.action = AppActions.updatedLocally;
           await ProxyService.isar.update(data: fav);
         }
       }
@@ -214,7 +214,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         if (record != null && record.isNotEmpty) {
           Device dev = Device.fromJson(record);
 
-          dev.action = AppActions.remote;
+          dev.action = AppActions.updatedLocally;
           await ProxyService.isar.update(data: dev);
         }
       }

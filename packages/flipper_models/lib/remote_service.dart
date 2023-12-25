@@ -42,7 +42,7 @@ mixin HandleItemMixin {
           localStock.lastTouched != null &&
           remoteStock.lastTouched
               .isFutureDateCompareTo(localStock.lastTouched)) {
-        remoteStock.action = AppActions.updated;
+        remoteStock.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteStock);
       }
     }
@@ -57,7 +57,7 @@ mixin HandleItemMixin {
           localVariant.lastTouched != null &&
           remoteVariant.lastTouched
               .isFutureDateCompareTo(localVariant.lastTouched)) {
-        remoteVariant.action = AppActions.updated;
+        remoteVariant.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteVariant);
       }
     }
@@ -72,7 +72,7 @@ mixin HandleItemMixin {
           localProduct.lastTouched != null &&
           remoteProduct.lastTouched
               .isFutureDateCompareTo(localProduct.lastTouched)) {
-        remoteProduct.action = AppActions.updated;
+        remoteProduct.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteProduct);
       }
     }
@@ -87,7 +87,7 @@ mixin HandleItemMixin {
           localDevice.lastTouched != null &&
           remoteDevice.lastTouched
               .isFutureDateCompareTo(localDevice.lastTouched)) {
-        localDevice.action = AppActions.updated;
+        localDevice.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: localDevice);
       }
     }
@@ -102,6 +102,7 @@ mixin HandleItemMixin {
       } else if (localSocial != null &&
           remoteSocial.lastTouched
               .isFutureDateCompareTo(localSocial.lastTouched)) {
+        remoteSocial.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteSocial);
       }
     }
@@ -128,6 +129,7 @@ mixin HandleItemMixin {
       } else if (localEbm != null &&
           ebm.lastTouched != null &&
           ebm.lastTouched.isFutureDateCompareTo(localEbm.lastTouched)) {
+        ebm.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: ebm);
       }
     }
@@ -142,6 +144,7 @@ mixin HandleItemMixin {
       } else if (localTransaction != null &&
           remoteTransaction.lastTouched
               .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        remoteTransaction.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteTransaction);
       }
     }
@@ -155,6 +158,7 @@ mixin HandleItemMixin {
         await ProxyService.isar.create(data: remoteTransactionItem);
       } else if (remoteTransactionItem.lastTouched
           .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        remoteTransactionItem.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteTransactionItem);
       }
     }

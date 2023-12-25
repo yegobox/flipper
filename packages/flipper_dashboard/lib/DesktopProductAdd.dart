@@ -189,6 +189,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name;
+          model.setProductName(name: product.name);
 
           // Populate variants related to the product
           List<Variant> variants = await ProxyService.isar
