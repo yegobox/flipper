@@ -14,4 +14,3 @@ cd .. && cd flutter_slidable && git checkout dev && git pull origin dev
 # cd .. && cd flutter_launcher_icons && git checkout master && git pull origin master
 cd .. && cd flutter_datetime_picker && git checkout master && git pull origin master
 cd .. && cd flutter_luban && git checkout master && git pull origin master
-cd .. && cd form_block && git checkout stable && git pull origin stable

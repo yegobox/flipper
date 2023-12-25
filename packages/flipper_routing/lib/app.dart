@@ -128,13 +128,15 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/plus_plugins
+// git submodule deinit -f open-sources/form_bloc
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/plus_plugins
-///git rm -rf open-sources/plus_plugins
-///rm -rf open-sources/plus_plugins
+///git submodule deinit -f open-sources/form_bloc
+///git rm -rf open-sources/form_bloc
+///rm -rf open-sources/form_bloc
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
+///git submodule add https://github.com/Cavin6080/form_bloc.git open-sources/form_bloc
+
 /// find ./ -name pubspec.lock -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
 /// https://developer.apple.com/in-app-purchase/
