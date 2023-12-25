@@ -128,11 +128,11 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/plus_plugins
+// git submodule deinit -f open-sources/form_block
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/plus_plugins
-///git rm -rf open-sources/plus_plugins
-///rm -rf open-sources/plus_plugins
+///git submodule deinit -f open-sources/form_block
+///git rm -rf open-sources/form_block
+///rm -rf open-sources/form_block
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
 /// find ./ -name pubspec.lock -type f -delete
