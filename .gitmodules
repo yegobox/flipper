@@ -54,6 +54,3 @@
 	path = open-sources/flipper-turbo
 	url = https://github.com/yegobox/flipper-turbo
 	branch = uat
-[submodule "open-sources/form_bloc"]
-	path = open-sources/form_bloc
-	url = https://github.com/Cavin6080/form_bloc.git
