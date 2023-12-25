@@ -60,14 +60,7 @@ class ProductService with ListenableServiceMixin {
     return await ProxyService.isar.getProductByBarCode(barCode: code);
   }
 
-  List<Stock?> _stocks = [];
-  List<Stock?> get stocks => _stocks;
-  Future<List<Stock?>> loadStockByProductId({required String productId}) async {
-    _stocks = await ProxyService.isar.stocks(productId: productId);
-    return stocks;
-  }
-
   ProductService() {
-    listenToReactiveValues([_barCode, _stocks]);
+    listenToReactiveValues([_barCode]);
   }
 }

@@ -5,14 +5,14 @@ import 'package:flipper_services/constants.dart';
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
   Future<List<Tenant>> signup({required Map business});
-  Future<ITransaction?> pendingTransaction({required int branchId});
+  Future<ITransaction?> pendingTransaction(
+      {required int branchId, required String transactionType});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({required int userId});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({required int businessId});
-  Future<List<Stock?>> stocks({required String productId});
-  // Stream<Stock> stockByVariantIdStream({required String variantId});
+  Future<double> stocks({String? productId, String? variantId});
   Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
@@ -21,6 +21,7 @@ abstract class IsarApiInterface {
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({String? prodIndex});
+  Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({String? prodIndex});
   Future<Stock> stockByVariantId({required String variantId});
   Future<List<PColor>> colors({required int branchId});
@@ -66,9 +67,7 @@ abstract class IsarApiInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<ITransaction> manageTransaction({
-    String transactionType = 'custom',
-  });
+  Future<ITransaction> manageTransaction({required String transactionType});
 
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType});
@@ -113,8 +112,6 @@ abstract class IsarApiInterface {
   Future<ITransaction?> getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
-  Future<List<double>> getTransactionsAmountsSum({required String period});
-  Future<List<double>> getLocalTransactionsAmountsSum({required String period});
   Stream<List<ITransaction>> getTransactionsByCustomerId(
       {required String customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
@@ -186,10 +183,20 @@ abstract class IsarApiInterface {
 
   Future<List<Product>> productsFuture({required int branchId});
 
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  });
+
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId, required bool doneWithTransaction});
-  Future<List<TransactionItem>> transactionItemsFuture();
+      {required String transactionId,
+      required bool doneWithTransaction,
+      required bool active});
+
   Future<Variant?> getVariantById({required String id});
   Future<bool> isTaxEnabled();
   Future<Receipt?> createReceipt(
@@ -246,7 +253,8 @@ abstract class IsarApiInterface {
   Future<void> patchSocialSetting({required Setting setting});
   Future<Setting?> getSocialSetting();
 
-  Future<Device?> getDevice({required String phone});
+  Future<Device?> getDevice(
+      {required String phone, required String linkingCode});
   Future<Device?> getDeviceById({required String id});
   Future<List<Device>> getDevices({required int businessId});
   Future<List<Device>> unpublishedDevices({required int businessId});
@@ -260,6 +268,8 @@ abstract class IsarApiInterface {
   Future<Stock?> addStockToVariant({required Variant variant});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
 
+  Future<({double income, double expense})> getTransactionsAmountsSum(
+      {required String period});
   Future<
       ({
         List<Stock> stocks,

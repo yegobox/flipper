@@ -1,26 +1,30 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'add_customer_button.dart';
-import 'order_summary_items.dart';
 
 class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
   final bool reverse;
+  final SellingMode mode;
 
   const PreviewSaleBottomSheet({
     Key? key,
     this.reverse = false,
+    this.mode = SellingMode.forSelling,
   }) : super(key: key);
 
   @override
@@ -30,121 +34,218 @@ class PreviewSaleBottomSheet extends StatefulHookConsumerWidget {
 class PreviewSaleBottomSheetState
     extends ConsumerState<PreviewSaleBottomSheet> {
   final _routerService = locator<RouterService>();
-  @override
-  Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
-    return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
-      builder: (context, model, child) {
-        final transactionItems = ref.watch(transactionItemsProvider);
-        final pendingTransaction = ref.watch(pendingTransactionProvider);
-        final saleCounts = transactionItems.value?.length;
-        final totalPayable =
-            ref.watch(transactionItemsProvider.notifier).totalPayable;
-        return Material(
-          color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-          child: CupertinoPageScaffold(
-            backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
-            navigationBar: CupertinoNavigationBar(
-              backgroundColor:
-                  CupertinoTheme.of(context).scaffoldBackgroundColor,
-              leading: SizedBox.shrink(),
-              middle: Row(
+  final _numberFormat = NumberFormat.currency(
+    locale: 'en', // e.g., 'en_US' for English (United States)
+    symbol: ' RWF',
+  );
+
+  List<Widget> buildItems({
+    required Function(TransactionItem) delete,
+    required BuildContext context,
+    required List<TransactionItem> items,
+  }) {
+    // Check if the list is empty.
+    if (items.isEmpty) {
+      return [
+        Column(
+          children: [
+            SizedBox(height: 120),
+            Text(
+              'Current transaction has no items',
+              style: GoogleFonts.poppins(
+                fontSize: 19,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ];
+    }
+
+    // Create a list of widgets for each item in the list.
+    return items.map((item) {
+      return Card(
+        // change border radios of the card
+        shape: RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.circular(4.0), // Adjust the value as needed
+        ),
+        child: Slidable(
+          key: ValueKey(item.id),
+          endActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) =>
+                    delete(item), // Added the context argument
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          startActionPane: ActionPane(
+            motion: const ScrollMotion(),
+            children: [
+              SlidableAction(
+                onPressed: (context) =>
+                    delete(item), // Added the context argument
+                backgroundColor: const Color(0xFFFE4A49),
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+            trailing: Text(
+              'RWF ${NumberFormat('#,###').format(item.price * item.qty)}',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400,
+                fontSize: 15,
+                color: Colors.black,
+              ),
+            ),
+            leading: Container(
+              width: 100, // Set your preferred width
+              child: Text(
+                item.name.substring(0, 10),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 15,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            title: Container(
+              width: 100, // Set your preferred width
+              child: Row(
                 children: [
+                  const Icon(
+                    Icons.close,
+                    color: Colors.black,
+                    size: 16.0,
+                  ),
+                  const Text(' '),
                   Text(
-                    "Preview Sale ${saleCounts != 0 ? "($saleCounts)" : ""}",
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Color.fromARGB(255, 17, 1, 1),
-                    ),
+                    item.qty.toInt().toString(),
                   ),
                 ],
               ),
-              trailing: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Icon(Icons.close),
-              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ListView(
-                    reverse: widget.reverse,
-                    shrinkWrap: true,
-                    controller: ModalScrollController.of(context),
-                    physics: const ClampingScrollPhysics(),
-                    children: [
-                      AddCustomerButton(
-                        transactionId: model.currentTransaction!.id,
-                      ),
-                      ...buildItems(
-                        context: context,
-                        callback: (item) async {
-                          model.currentTransaction!.subTotal =
-                              model.currentTransaction!.subTotal;
-                          await ProxyService.isar.update(
-                            data: model.currentTransaction,
-                          );
-                          model.deleteTransactionItem(
-                            id: item.id,
-                            context: context,
-                          );
-                          // ignore: unused_result
-                          ref.refresh(transactionItemsProvider);
-                        },
-                        items: transactionItems.value ?? [],
-                      ),
-                      if (model.totalDiscount > 0)
-                        ListTile(
-                          contentPadding: const EdgeInsets.only(
-                            left: 40.0,
-                            right: 40.0,
-                          ),
-                          title: Text(
-                            'Discounts',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                          trailing: Text(
-                            '- RWF ' +
-                                NumberFormat('#,###')
-                                    .format(model.totalDiscount)
-                                    .toString(),
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 100),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(8),
-                  child: BoxButton(
-                    title: "Collect ${totalPayable} RWF",
-                    onTap: () {
-                      _routerService.navigateTo(
-                        PaymentsRoute(
-                          transaction: pendingTransaction.value!,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
+            onTap: () => null, //removed calling callback
           ),
-        );
+        ),
+      );
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
+    final transactionItemsNotifier = ref
+        .watch(transactionItemsProvider(transaction.value?.value?.id).notifier);
+
+    final totalPayable = transactionItemsNotifier.totalPayable;
+
+    transactionItemsNotifier.updatePendingTransaction();
+
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, child) {
+        return transactionListView(transaction, context, model, totalPayable);
       },
+    );
+  }
+
+  Column transactionListView(AsyncValue<AsyncValue<ITransaction>> transaction,
+      BuildContext context, CoreViewModel model, double totalPayable) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        widget.mode == SellingMode.forSelling
+            ? AddCustomerButton(transactionId: transaction.value?.value?.id)
+            : SizedBox.shrink(),
+        ListView(
+          reverse: widget.reverse,
+          shrinkWrap: true,
+          controller: ModalScrollController.of(context),
+          physics: const ClampingScrollPhysics(),
+          children: [
+            ...buildItems(
+              context: context,
+              delete: (item) async {
+                model.deleteTransactionItem(
+                  id: item.id,
+                  context: context,
+                );
+                ref.refresh(
+                  transactionItemsProvider(transaction.value?.value?.id),
+                );
+              },
+              items: ref
+                  .watch(
+                    transactionItemsProvider(transaction.value?.value?.id),
+                  )
+                  .value!,
+            ),
+            if (model.totalDiscount > 0) buildDiscounts(model),
+          ],
+        ),
+        Spacer(),
+        buildPayable(totalPayable),
+      ],
+    );
+  }
+
+  Padding buildPayable(double totalPayable) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      child: BoxButton(
+        title: widget.mode == SellingMode.forSelling
+            ? "Collect ${_numberFormat.format(totalPayable)} "
+            : "Order ${_numberFormat.format(totalPayable)} ",
+        onTap: () async {
+          final transaction = await ProxyService.isar.manageTransaction(
+            transactionType: TransactionType.custom,
+          );
+          _routerService.navigateTo(
+            PaymentsRoute(
+              transaction: transaction,
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  ListTile buildDiscounts(CoreViewModel model) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(
+        left: 40.0,
+        right: 40.0,
+      ),
+      title: Text(
+        'Discounts',
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: Colors.black,
+        ),
+      ),
+      trailing: Text(
+        '- RWF ' + _numberFormat.format(model.totalDiscount),
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w600,
+          fontSize: 15,
+          color: Colors.black,
+        ),
+      ),
     );
   }
 }

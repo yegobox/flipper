@@ -1,7 +1,6 @@
-import 'dart:developer';
-
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -30,7 +29,6 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
@@ -38,10 +36,10 @@ class SellState extends ConsumerState<Sell> {
         model.toggleCheckbox(variantId: '-1');
         await model.getVariants(productId: widget.product.id);
       },
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final pendingTransaction = ref.watch(pendingTransactionProvider);
+        final pendingTransaction =
+            ref.watch(pendingTransactionProvider(TransactionType.custom));
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -56,15 +54,23 @@ class SellState extends ConsumerState<Sell> {
             disableButton: false,
             showActionButton: true,
             onActionButtonClicked: () async {
+              Stock? stock = await ProxyService.isar
+                  .stockByVariantId(variantId: model.checked);
+              Variant? variant =
+                  await ProxyService.isar.getVariantById(id: model.checked);
               bool saved = await model.saveTransaction(
-                  variationId: model.checked,
+                  variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
-                  pendingTransaction: pendingTransaction.value!);
+                  currentStock: stock.currentStock,
+                  pendingTransaction: pendingTransaction.value!.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
+              // ignore: unused_result
+              ref.refresh(transactionItemsProvider(
+                  pendingTransaction.value?.value?.id));
               _routerService.pop();
             },
             icon: Icons.close,

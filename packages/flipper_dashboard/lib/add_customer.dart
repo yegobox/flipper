@@ -1,6 +1,5 @@
 library flipper_login;
 
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -60,10 +59,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SingleChildScrollView(
           child: Container(

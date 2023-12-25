@@ -1,4 +1,62 @@
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+// import 'package:flipper_services/proxy.dart';
+// import 'package:flutter/material.dart';
+// import 'package:hooks_riverpod/hooks_riverpod.dart';
+// import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+// import 'package:flipper_services/constants.dart';
+// import 'package:flipper_services/app_service.dart';
+
+// import 'package:flipper_dashboard/init_app.dart';
+// // import 'package:flutter/services.dart';
+// import 'dart:async';
+
+// class FlipperApp extends StatefulHookConsumerWidget {
+//   const FlipperApp({Key? key}) : super(key: key);
+
+//   @override
+//   FlipperAppState createState() => FlipperAppState();
+// }
+
+// class FlipperAppState extends ConsumerState<FlipperApp>
+//     with WidgetsBindingObserver {
+//   Future<void> _disableScreenshots() async {
+//     if (!isDesktopOrWeb) {
+//       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+//     }
+//   }
+
+//   void initializeApplicationIfRequired() {
+//     if (ProxyService.box.getBranchId() != null &&
+//         ProxyService.box.getBusinessId() != null &&
+//         ProxyService.box.getUserId() != null) {
+//       InitApp.init();
+
+//       try {
+//         ProxyService.remote.listenToChanges();
+//       } catch (e) {}
+//     }
+//   }
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     initializeApplicationIfRequired();
+//     if (isAndroid && ProxyService.remoteConfig.enableTakingScreenShoot()) {
+//       _disableScreenshots();
+//     }
+//   }
+
+//   @override
+//   void dispose() {
+//     AppService.cleanedDataController.close();
+//     super.dispose();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Text("Hello world");
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -527,10 +585,10 @@ class SellState extends ConsumerState<Sell> {
         child: InkWell(
           onTap: () {
             //load stock of this variant
-            model.loadVariantStock(variantId: variant.id!);
+            model.loadVariantStock(variantId: variant.id);
             model.keypad
                 .setAmount(amount: variant.retailPrice * model.quantity);
-            model.toggleCheckbox(variantId: variant.id!);
+            model.toggleCheckbox(variantId: variant.id);
           },
           child: Container(
             child: Padding(
@@ -544,7 +602,7 @@ class SellState extends ConsumerState<Sell> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       FutureBuilder<Variant?>(
-                          future: model.getVariant(variantId: variant.id!),
+                          future: model.getVariant(variantId: variant.id),
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? Expanded(
@@ -576,7 +634,7 @@ class SellState extends ConsumerState<Sell> {
                           Container(
                             child: Radio(
                               // toggleable: true,
-                              value: variant.id!,
+                              value: variant.id,
                               groupValue: model.checked,
                               onChanged: (value) {},
                             ),
@@ -597,13 +655,11 @@ class SellState extends ConsumerState<Sell> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           await model.getVariants(productId: widget.product.id);
         },
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             backgroundColor: Colors.white,

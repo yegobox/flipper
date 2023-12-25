@@ -40,45 +40,42 @@ class LoginViewModel extends FlipperBaseModel {
   Future<void> desktopLogin({
     required String pinCode,
   }) async {
-    setIsprocessing(value: true);
+    try {
+      setIsprocessing(value: true);
 
-    Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
-    setIsprocessing(value: false);
-    if (pin != null) {
-      ProxyService.box.writeInt(key: 'businessId', value: pin.businessId);
+      Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
+
+      // Update local storage values
+      ProxyService.box.writeInt(key: 'businessId', value: pin!.businessId);
       ProxyService.box.writeInt(key: 'branchId', value: pin.branchId);
       ProxyService.box.writeString(key: 'userId', value: pin.userId);
       ProxyService.box.writeString(key: 'userPhone', value: pin.phoneNumber);
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
+
+      // Perform user login
       await ProxyService.isar.login(
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
-      try {
-        await FirebaseAuth.instance.signOut();
-        await FirebaseAuth.instance.signInAnonymously();
-        log('getting instance');
-        final auth = FirebaseAuth.instance;
 
-        if (auth.currentUser != null) {
-          if (ProxyService.box.getDefaultApp() == "2") {
-            _routerService.navigateTo(SocialHomeViewRoute());
-          } else {
-            openDrawer();
-          }
-        }
-      } catch (e) {
-        // log(s.toString());
-        if (ProxyService.box.getDefaultApp() == "2") {
+      // Clear and re-sign in with Firebase anonymously
+      await FirebaseAuth.instance.signOut();
+      await FirebaseAuth.instance.signInAnonymously();
+
+      // Check if a logged-in Firebase user exists
+      final auth = FirebaseAuth.instance;
+      if (auth.currentUser != null) {
+        // Navigate based on the default app setting
+        final defaultApp = ProxyService.box.getDefaultApp();
+        if (defaultApp == "2") {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           openDrawer();
         }
       }
-    } else {
+    } catch (error) {
       setIsprocessing(value: false);
-      // show stacked snackbar
-      throw 'Invalid pin';
+      throw error;
     }
   }
 

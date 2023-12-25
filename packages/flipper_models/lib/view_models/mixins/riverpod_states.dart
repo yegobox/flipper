@@ -1,4 +1,7 @@
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,8 +26,22 @@ class ProductNotifier extends StateNotifier<Product?> {
   }
 }
 
+final customerSearchStringProvider =
+    StateNotifierProvider.autoDispose<CustomerSearchStringNotifier, String>(
+        (ref) {
+  return CustomerSearchStringNotifier();
+});
+
+class CustomerSearchStringNotifier extends StateNotifier<String> {
+  CustomerSearchStringNotifier() : super("");
+
+  void emitString({required String value}) {
+    state = value;
+  }
+}
+
 final searchStringProvider =
-    StateNotifierProvider<SearchStringNotifier, String>((ref) {
+    StateNotifierProvider.autoDispose<SearchStringNotifier, String>((ref) {
   return SearchStringNotifier();
 });
 
@@ -32,67 +49,101 @@ class SearchStringNotifier extends StateNotifier<String> {
   SearchStringNotifier() : super("");
 
   void emitString({required String value}) {
-    if (value.isNotEmpty) {
-      state = value;
-    }
+    state = value;
   }
 }
 
-final pendingTransactionProvider =
-    StateNotifierProvider<PendingTransactionNotifier, AsyncValue<ITransaction>>(
-        (ref) {
-  final pendingTransactionNotifier = PendingTransactionNotifier();
+enum SellingMode {
+  forOrdering,
+  forHere,
+  forSelling,
+  // Add other modes as needed
+}
 
-  pendingTransactionNotifier.pendingTransaction();
-
-  return pendingTransactionNotifier;
+// Change the argument type to SellingMode
+final sellingModeProvider =
+    StateNotifierProvider.autoDispose<SellingModeNotifier, SellingMode>((ref) {
+  return SellingModeNotifier();
 });
 
-class PendingTransactionNotifier
-    extends StateNotifier<AsyncValue<ITransaction>> {
-  PendingTransactionNotifier() : super(AsyncLoading());
+class SellingModeNotifier extends StateNotifier<SellingMode> {
+  // Declare an optional named parameter with a default value
+  SellingModeNotifier({SellingMode mode = SellingMode.forSelling})
+      : super(mode);
 
-  Future<void> pendingTransaction() async {
-    try {
-      state = AsyncLoading();
-      ITransaction pendingTransaction =
-          await ProxyService.isar.manageTransaction();
-      state = AsyncData(pendingTransaction);
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
-    }
+  SellingMode setSellingMode(SellingMode mode) {
+    state = mode;
+    return state;
   }
 }
 
-final transactionItemsProvider = StateNotifierProvider<TransactionItemsNotifier,
-    AsyncValue<List<TransactionItem>>>((ref) {
-  final itemNotifier = TransactionItemsNotifier();
-  itemNotifier.items();
+final variantsProvider = FutureProvider.autoDispose
+    .family<List<Variant>, String?>((ref, productId) async {
+  // Fetch the list of variants from a remote service.
+  final variants = await ProxyService.isar.variants(
+      branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
 
-  return itemNotifier;
+  return variants;
 });
+
+final pendingTransactionProvider = FutureProvider.autoDispose
+    .family<AsyncValue<ITransaction>, String>((ref, mode) async {
+  try {
+    ITransaction pendingTransaction =
+        await ProxyService.isar.manageTransaction(transactionType: mode);
+    return AsyncData(pendingTransaction);
+  } catch (error) {
+    return AsyncError(error, StackTrace.current);
+  }
+});
+
+final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
+    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, String?>(
+  (ref, currentTransaction) {
+    return TransactionItemsNotifier(
+        currentTransaction: currentTransaction ?? "0");
+  },
+);
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  TransactionItemsNotifier() : super(AsyncLoading());
+  TransactionItemsNotifier({required String currentTransaction})
+      : super(AsyncLoading()) {
+    loadItems(currentTransaction: currentTransaction);
+  }
 
-  Future<void> items() async {
+  Future<List<TransactionItem>> loadItems(
+      {required String currentTransaction}) async {
     try {
       state = AsyncLoading();
-      List<TransactionItem> items =
-          await ProxyService.isar.transactionItemsFuture();
+
+      // Await the future and store the result in a local variable
+      final items = await ProxyService.isar.transactionItems(
+          transactionId: currentTransaction,
+          doneWithTransaction: false,
+          active: true);
       state = AsyncData(items);
+
+      return items;
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
+
+      throw error;
     }
   }
 
-  /// keep pending transaction with update subtotal
+  /// Keep pending transaction with updated subtotal
   Future<void> updatePendingTransaction() async {
-    ITransaction iTransaction = await ProxyService.isar.manageTransaction();
+    try {
+      // Await the future and store the result in a local variable
+      final transaction = await ProxyService.isar
+          .manageTransaction(transactionType: TransactionType.custom);
 
-    iTransaction.subTotal = totalPayable;
-    ProxyService.isar.update(data: iTransaction);
+      transaction.subTotal = totalPayable;
+      await ProxyService.isar.update(data: transaction);
+    } catch (error) {
+      // Handle error
+    }
   }
 
   int get counts {
@@ -114,19 +165,19 @@ class TransactionItemsNotifier
   }
 }
 
-final outerVariantsProvider = StateNotifierProviderFamily<OuterVariantsNotifier,
-    AsyncValue<List<Variant>>, int>((ref, branchId) {
+final outerVariantsProvider = StateNotifierProvider.autoDispose
+    .family<OuterVariantsNotifier, AsyncValue<List<Variant>>, int>(
+        (ref, branchId) {
   final productsNotifier = OuterVariantsNotifier(branchId);
-
   final scannMode = ref.watch(scanningModeProvider);
   final searchString = ref.watch(searchStringProvider);
-  final pendingTransaction = ref.watch(pendingTransactionProvider);
   if (scannMode) {
     productsNotifier.loadVariants(
-        scannMode: scannMode,
-        searchString: searchString,
-        pendingTransaction: pendingTransaction);
+      scannMode: scannMode,
+      searchString: searchString,
+    );
   }
+
   return productsNotifier;
 });
 
@@ -136,9 +187,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
   Future<void> loadVariants(
-      {required bool scannMode,
-      required String searchString,
-      required AsyncValue<ITransaction> pendingTransaction}) async {
+      {required bool scannMode, required String searchString}) async {
     try {
       final allVariants = await ProxyService.isar.variants(
         branchId: ProxyService.box.getBranchId()!,
@@ -154,14 +203,6 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
           : allVariants;
 
       // If there's a match, save the transaction for the first matched variant
-      if (filteredVariants.isNotEmpty) {
-        final variant = filteredVariants.first;
-        await saveTransaction(
-            variationId: variant.id,
-            amountTotal: variant.retailPrice,
-            customItem: false,
-            pendingTransaction: pendingTransaction.value!);
-      }
 
       // Update the state with the filtered list of variants.
       state = AsyncValue.data(filteredVariants);
@@ -172,8 +213,23 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   }
 }
 
-final productsProvider = StateNotifierProviderFamily<ProductsNotifier,
-    AsyncValue<List<Product>>, int>((ref, branchId) {
+final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
+  final productsState =
+      ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+  return productsState.maybeWhen(
+    data: (products) {
+      try {
+        return products.firstWhere((product) => product.searchMatch == true);
+      } catch (e) {
+        return null; // Return null if no matching product is found
+      }
+    },
+    orElse: () => null,
+  );
+});
+
+final productsProvider = StateNotifierProvider.autoDispose
+    .family<ProductsNotifier, AsyncValue<List<Product>>, int>((ref, branchId) {
   final productsNotifier = ProductsNotifier(branchId, ref);
   final searchString = ref.watch(searchStringProvider);
   final scannMode = ref.watch(scanningModeProvider);
@@ -199,73 +255,50 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       data: (currentData) {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id) {
-            p.searchMatch = !p.searchMatch;
+          if (p.id == product.id && !p.searchMatch) {
+            p.searchMatch = true;
           } else {
             // Set searchMatch to false for other products
             p.searchMatch = false;
           }
           return p;
         }).toList();
-        state = AsyncData(updatedProducts);
+
+        // Check if the products list actually changed before updating the state
+        if (!listEquals(currentData, updatedProducts)) {
+          state = AsyncData(updatedProducts);
+        }
       },
       orElse: () {},
     );
   }
 
-  Future<void> loadProducts(
-      {required String searchString, required bool scannMode}) async {
+  Future<void> loadProducts({
+    required String searchString,
+    required bool scannMode,
+  }) async {
     try {
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
-      // if (scannMode) {
-      //TODO: work on auto-expanding the product row when a search is match
-      /// search variant using name
-      // Variant? variant = await ProxyService.isar.variant(name: searchString);
-      // if (variant != null) {
-      // log(variant.name);
-      // log(variant.productId);
-      // Product? associatedProduct =
-      //     await ProxyService.isar.getProduct(id: variant.productId);
-      // if (associatedProduct != null) {
-      //   for (Product product in products) {
-      //     log(product.name.toLowerCase());
-      //     log(product.id.toLowerCase());
-      //     log(associatedProduct.name.toLowerCase());
-      //     if (product.name.toLowerCase() ==
-      //         associatedProduct.name.toLowerCase()) {
-      /// if the product is found, call expanded with the product
-      // products = products
-      //     .where((product) => product.name
-      //         .toLowerCase()
-      //         .contains(associatedProduct.name))
-      //     .toList();
-      // print('Before calling expanded with associatedProduct:');
-      // expanded(associatedProduct);
-      // ref
-      //     .read(productsProvider(ProxyService.box.getBranchId()!)
-      //         .notifier)
-      //     .expanded(associatedProduct);
-      // saveTransaction(
-      //     variationId: variant.id,
-      //     amountTotal: variant.retailPrice,
-      //     customItem: false);
 
-      //         print('After calling expanded');
-      //       }
-      //     }
-      //   }
-      // }
-      // } else {
       if (searchString.isNotEmpty) {
-        products = products
+        // Search for products that match the search string
+        List<Product> matchingProducts = products
             .where((product) =>
                 product.name.toLowerCase().contains(searchString.toLowerCase()))
             .toList();
-        // }
-      }
 
-      state = AsyncData(products);
+        state = AsyncData(matchingProducts);
+
+        if (matchingProducts.isNotEmpty) {
+          // If there's at least one matching product, expand the first one
+          Product matchingProduct = matchingProducts.first;
+          expanded(matchingProduct);
+        }
+      } else {
+        // If the search string is empty, return the entire list of products
+        state = AsyncData(products);
+      }
     } catch (error) {
       state = AsyncError(error, StackTrace.current);
     }
@@ -289,41 +322,9 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }
 }
 
-final variantsProvider = StateNotifierProviderFamily<VariantsNotifier,
-    AsyncValue<List<Variant>>, String?>((ref, productId) {
-  final variantsNotifier = VariantsNotifier(productId);
-  ref.onDispose(() => variantsNotifier.dispose());
-
-  // Fetch and update the list of variants.
-  variantsNotifier.variants();
-
-  return variantsNotifier;
-});
-
-class VariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>> {
-  final String? productId;
-
-  VariantsNotifier(this.productId) : super(AsyncLoading());
-
-  Future<void> variants() async {
-    // Fetch the list of variants from a remote service.
-    final variants = await ProxyService.isar.variants(
-        branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
-
-    // Update the state with the list of variants.
-    state = AsyncValue.data(variants);
-  }
-
-  @override
-  void dispose() {
-    // Dispose of any resources that were used to fetch and update the list of variants.
-    super.dispose();
-  }
-}
-
 // scanning
 final scanningModeProvider =
-    StateNotifierProvider<ScanningModeNotifier, bool>((ref) {
+    StateNotifierProvider.autoDispose<ScanningModeNotifier, bool>((ref) {
   return ScanningModeNotifier();
 });
 
@@ -392,28 +393,43 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
     );
   }
 
-  List<Customer?>? filterCustomers(
-      List<Customer>? customers, String searchString) {
-    if (customers == null) {
-      return null;
-    }
-
+  List<Customer> filterCustomers(
+    List<Customer> customers,
+    String searchString,
+  ) {
     if (searchString.isNotEmpty) {
       return customers
           .where((customer) =>
               customer.name.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
     }
-
     return customers;
   }
 }
 
-final customersProvider = StateNotifierProviderFamily<CustomersNotifier,
-    AsyncValue<List<Customer>>, int>((ref, branchId) {
+final customersProvider = StateNotifierProvider.autoDispose
+    .family<CustomersNotifier, AsyncValue<List<Customer>>, int>(
+        (ref, branchId) {
   final customersNotifier = CustomersNotifier(branchId);
   final searchString = ref.watch(searchStringProvider);
   customersNotifier.loadCustomers(searchString: searchString);
 
   return customersNotifier;
+});
+
+final ordersStreamProvider =
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  int branchId = ProxyService.box.getBranchId() ?? 0;
+  return ProxyService.isar.orders(branchId: branchId);
+});
+
+final transactionsStreamProvider =
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  // Retrieve the transaction status from the provider container, if needed
+
+  // Use ProxyService to get the IsarStream of transactions
+  final transactionsStream = ProxyService.isar.transactionsStream();
+
+  // Return the stream
+  return transactionsStream;
 });

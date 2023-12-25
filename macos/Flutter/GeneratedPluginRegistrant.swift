@@ -29,6 +29,7 @@ import location_macos
 import package_info_plus
 import path_provider_foundation
 import printing
+import realm
 import screen_retriever
 import sentry_flutter
 import share_plus
@@ -66,6 +67,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FLTPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FLTPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
   PrintingPlugin.register(with: registry.registrar(forPlugin: "PrintingPlugin"))
+  RealmPlugin.register(with: registry.registrar(forPlugin: "RealmPlugin"))
   ScreenRetrieverPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverPlugin"))
   SentryFlutterPlugin.register(with: registry.registrar(forPlugin: "SentryFlutterPlugin"))
   SharePlusMacosPlugin.register(with: registry.registrar(forPlugin: "SharePlusMacosPlugin"))

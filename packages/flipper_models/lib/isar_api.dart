@@ -6,7 +6,6 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/socials_http_client.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,12 +16,9 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:path_provider/path_provider.dart';
-import 'flipper_http_client.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
 class IsarAPI<M> implements IsarApiInterface {
-  FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
-  SocialsHttpClient socialsHttpClient = SocialsHttpClient(http.Client());
   late String apihub;
   late String commApi;
   late Isar db;
@@ -125,21 +121,20 @@ class IsarAPI<M> implements IsarApiInterface {
   /// those change will stay on local, so I need to work on them as well.
 
   @override
-  Future<ITransaction> manageTransaction({
-    String transactionType = 'custom',
-  }) async {
+  Future<ITransaction> manageTransaction(
+      {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-
-    ITransaction? existTransaction =
-        await pendingTransaction(branchId: branchId);
-
+    // ITransaction? existTransaction = retailId != null
+    //     ? await pendingTransaction(retailId: retailId,transactionType:transactionType)
+    //     : await pendingTransaction(branchId: branchId,transactionType:transactionType);
+    ITransaction? existTransaction = await pendingTransaction(
+        branchId: branchId, transactionType: transactionType);
     if (existTransaction == null) {
       final String id = randomString();
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        businessOwnerId: businessId,
+        supplierId: branchId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -171,8 +166,8 @@ class IsarAPI<M> implements IsarApiInterface {
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    ITransaction? existTransaction =
-        await pendingTransaction(branchId: branchId);
+    ITransaction? existTransaction = await pendingTransaction(
+        branchId: branchId, transactionType: transactionType);
 
     int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
@@ -180,7 +175,7 @@ class IsarAPI<M> implements IsarApiInterface {
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        businessOwnerId: businessId,
+        supplierId: businessId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),
@@ -225,7 +220,14 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<ITransaction?> getTransactionById({required String id}) async {
-    return db.read((isar) => isar.iTransactions.get(id));
+    int branchId = ProxyService.box.getBranchId()!;
+    return db
+        .read((isar) => isar.iTransactions
+            .where()
+            .idEqualTo(id)
+            .and()
+            .branchIdEqualTo(branchId))
+        .findFirst();
   }
 
   //Delete a favorite
@@ -238,64 +240,18 @@ class IsarAPI<M> implements IsarApiInterface {
     return Future.value(200);
   }
 
+  /// Sums the total income and expense amounts from transactions within a given time period.
+  ///
+  /// The `period` parameter specifies the time period to filter transactions by. Valid values are:
+  /// - 'Today' - Transactions from today
+  /// - 'This Week' - Transactions from the last 7 days
+  /// - 'This Month' - Transactions from the last 30 days
+  /// - 'This Year' - Transactions from the last 365 days
+  ///
+  /// Returns a map with the total `income` and `expense` amounts.
   @override
-  Future<List<double>> getTransactionsAmountsSum(
+  Future<({double income, double expense})> getTransactionsAmountsSum(
       {required String period}) async {
-    DateTime oldDate;
-    DateTime temporaryDate;
-
-    if (period == TransactionPeriod.today) {
-      DateTime tempToday = DateTime.now();
-      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
-    } else if (period == TransactionPeriod.thisWeek) {
-      oldDate = DateTime.now().subtract(Duration(days: 7));
-    } else if (period == TransactionPeriod.thisMonth) {
-      oldDate = DateTime.now().subtract(Duration(days: 30));
-    } else {
-      oldDate = DateTime.now().subtract(Duration(days: 365));
-    }
-
-    List<double> cashInOut = [];
-    double In = 0;
-    double Out = 0;
-    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashIn)
-        .or()
-        .transactionTypeEqualTo(TransactionType.sale)
-        .or()
-        .transactionTypeEqualTo(TransactionType.custom)
-        .findAll());
-
-    for (final transaction in cashIn) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
-        In = In + transaction.subTotal.toDouble();
-      }
-    }
-    cashInOut.add(In);
-
-    List<ITransaction> cashOut = db.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashOut)
-        .findAll();
-    for (final transaction in cashOut) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
-        Out = Out + transaction.subTotal.toDouble();
-      }
-    }
-    cashInOut.add(Out);
-
-    return cashInOut;
-  }
-
-  @override
-  Future<List<double>> getLocalTransactionsAmountsSum(
-      {required String period}) async {
-    final branchId = ProxyService.box.getBranchId()!;
     DateTime oldDate;
     DateTime temporaryDate;
 
@@ -310,41 +266,27 @@ class IsarAPI<M> implements IsarApiInterface {
       oldDate = DateTime.now().subtract(Duration(days: 365));
     }
 
-    List<double> cashInOut = [];
-    double In = 0;
-    double Out = 0;
-    List<ITransaction> cashIn = db.read((isar) => isar.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashIn)
-        .or()
-        .transactionTypeEqualTo(TransactionType.sale)
-        .or()
-        .transactionTypeEqualTo(TransactionType.custom)
-        .branchIdEqualTo(branchId)
-        .findAll());
-    for (final transaction in cashIn) {
+    List<ITransaction> transactions = await transactionsFuture();
+
+    List<ITransaction> filteredTransactions = [];
+    for (final transaction in transactions) {
       temporaryDate = DateTime.parse(transaction.createdAt);
       if (temporaryDate.isAfter(oldDate)) {
-        In = In + transaction.subTotal.toDouble();
+        filteredTransactions.add(transaction);
       }
     }
-    cashInOut.add(In);
 
-    List<ITransaction> cashOut = db.iTransactions
-        .where()
-        .statusEqualTo(COMPLETE)
-        .transactionTypeEqualTo(TransactionType.cashOut)
-        .findAll();
-    for (final transaction in cashOut) {
-      temporaryDate = DateTime.parse(transaction.createdAt);
-      if (temporaryDate.isAfter(oldDate)) {
-        Out = Out + transaction.subTotal.toDouble();
+    double sum_cash_in = 0;
+    double sum_cash_out = 0;
+    for (final transaction in filteredTransactions) {
+      if (transaction.transactionType == 'Cash Out') {
+        sum_cash_out = transaction.subTotal + sum_cash_out;
+      } else {
+        sum_cash_in = transaction.subTotal + sum_cash_in;
       }
     }
-    cashInOut.add(Out);
 
-    return cashInOut;
+    return (income: sum_cash_in, expense: sum_cash_out);
   }
 
   @override
@@ -352,6 +294,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Favorite? fav = db.read((isar) =>
         isar.favorites.where().favIndexEqualTo(data.favIndex!).findFirst());
     if (fav == null) {
+      data.id = db.favorites.autoIncrement();
       db.write((db) {
         db.favorites.put(data);
       });
@@ -484,9 +427,9 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addVariant({required List<Variant> variations}) async {
-    String id = randomString();
     db.write((isar) {
       for (Variant variation in variations) {
+        String id = randomString();
         // save variation to db
         // FIXMEneed to know if all item will have same itemClsCd
         variation.itemClsCd = "5020230602";
@@ -530,7 +473,7 @@ class IsarAPI<M> implements IsarApiInterface {
     customer!.updatedAt = DateTime.now();
     // save customer to db
     db.write((isar) {
-      isar.customers.put(customer);
+      isar.customers.onPut(customer);
     });
   }
 
@@ -559,7 +502,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// or the user might scann for too long which can result into multiple checkin
     /// to avoid that we add a flag to checkin then if we fail we remove it to enable next check in attempt
     // ProxyService.box.write(key: 'checkIn', value: 'checkIn');
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/attendance"),
       body: jsonEncode({
         "businessId": businessId,
@@ -591,11 +534,17 @@ class IsarAPI<M> implements IsarApiInterface {
     transaction.status = COMPLETE;
 
     List<TransactionItem> items = await transactionItems(
-        transactionId: transaction.id, doneWithTransaction: false);
-
-    transaction.customerChangeDue = (cashReceived - transaction.subTotal);
+        transactionId: transaction.id,
+        doneWithTransaction: false,
+        active: true);
+    double subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    transaction.customerChangeDue = (cashReceived - subTotal);
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
+    transaction.subTotal = subTotal;
+
+    /// refresh created as well to reflect when this transaction was created and completed
+
     transaction.updatedAt = DateTime.now().toIso8601String();
 
     await update(data: transaction);
@@ -639,7 +588,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Voucher?> consumeVoucher({required int voucherCode}) async {
-    final http.Response response = await flipperHttpClient.patch(
+    final http.Response response = await ProxyService.httpClient.patch(
       Uri.parse("$apihub/v2/api/voucher"),
       body: jsonEncode(
         <String, int>{'id': voucherCode},
@@ -660,7 +609,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = await getBusiness();
     String docName = business!.name! + '- Report';
 
-    await flipperHttpClient.post(
+    await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/createSheetDocument"),
       body: jsonEncode({"title": docName, "shareToEmail": email}),
     );
@@ -681,7 +630,7 @@ class IsarAPI<M> implements IsarApiInterface {
     int businessId = ProxyService.box.getBusinessId()!;
     String phoneNumber = ProxyService.box.getUserPhone()!;
     String defaultApp = ProxyService.box.getDefaultApp();
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/pin"),
       body: jsonEncode(
         <String, dynamic>{
@@ -831,7 +780,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (color != null) {
             color.deletedAt = deletionTime;
             color.action = AppActions.deleted;
-            isar.pColors.put(color);
+            isar.pColors.onPut(color);
             return true;
           }
           return false;
@@ -855,7 +804,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (category != null) {
             category.deletedAt = deletionTime;
             category.action = AppActions.deleted;
-            isar.categorys.put(category);
+            isar.categorys.onPut(category);
             return true;
           }
           return false;
@@ -903,7 +852,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (setting != null) {
             setting.deletedAt = deletionTime;
             setting.action = AppActions.deleted;
-            isar.settings.put(setting);
+            isar.settings.onPut(setting);
             return true;
           }
           return false;
@@ -943,7 +892,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (transactionItems != null) {
             transactionItems.deletedAt = deletionTime;
             transactionItems.action = AppActions.deleted;
-            isar.transactionItems.put(transactionItems);
+            isar.transactionItems.onPut(transactionItems);
             return true;
           }
           return false;
@@ -955,7 +904,7 @@ class IsarAPI<M> implements IsarApiInterface {
           if (customer != null) {
             customer.deletedAt = deletionTime;
             customer.action = AppActions.deleted;
-            isar.customers.put(customer);
+            isar.customers.onPut(customer);
             return true;
           }
           return false;
@@ -981,7 +930,7 @@ class IsarAPI<M> implements IsarApiInterface {
     Business? business = db.write((isar) {
       return isar.business.get(businessId);
     });
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/createAttendanceDoc"),
       body: jsonEncode({
         "title": business!.name! + '-' + 'Attendance',
@@ -1016,8 +965,8 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.business.where().idEqualTo(id).findFirst();
     });
     if (business != null) return business;
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
+    final http.Response response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       int id = randomNumber();
       Business business = Business.fromJson(json.decode(response.body));
@@ -1205,7 +1154,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Business> getOnlineBusiness({required int userId}) async {
-    final response = await flipperHttpClient
+    final response = await ProxyService.httpClient
         .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
     if (response.statusCode == 401) {
@@ -1235,17 +1184,27 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<TransactionItem?> getTransactionItemById({required String id}) async {
-    return db.transactionItems.get(id);
+    return db.transactionItems
+        .where()
+        .idEqualTo(id)
+        .and()
+        .branchIdEqualTo(ProxyService.box.getBranchId()!)
+        .findFirst();
   }
 
   @override
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required String variantId, required String? transactionId}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.transactionItems
         .where()
         .variantIdEqualTo(variantId)
         .and()
         .transactionIdEqualTo(transactionId!)
+        .and()
+        .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .findFirst();
   }
 
@@ -1262,15 +1221,21 @@ class IsarAPI<M> implements IsarApiInterface {
   /// we still need to create & get pin
   @override
   Future<Pin?> getPin({required String pin}) async {
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/pin/$pin"));
-    if (response.statusCode == 200) {
-      return Pin.fromJson(json.decode(response.body));
+    final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
+
+    try {
+      final http.Response response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        return Pin.fromJson(json.decode(response.body));
+      } else if (response.statusCode == 404) {
+        throw ErrorReadingFromYBServer(term: response.body);
+      } else {
+        throw ErrorReadingFromYBServer(term: response.body);
+      }
+    } catch (error) {
+      throw ErrorReadingFromYBServer(term: error.toString());
     }
-    if (response.statusCode == 404) {
-      return null;
-    }
-    throw ErrorReadingFromYBServer(term: 'Failed to load pin');
   }
 
   @override
@@ -1307,7 +1272,7 @@ class IsarAPI<M> implements IsarApiInterface {
       return isar.subscriptions.where().userIdEqualTo(userId).findFirst();
     });
     if (local == null) {
-      final response = await flipperHttpClient
+      final response = await ProxyService.httpClient
           .get(Uri.parse("$apihub/v2/api/subscription/$userId"));
       if (response.statusCode == 200) {
         Subscription? sub = Subscription.fromJson(json.decode(response.body));
@@ -1348,6 +1313,8 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.products.clear();
       isar.variants.clear();
       isar.stocks.clear();
+      isar.iTransactions.clear();
+      isar.transactionItems.clear();
     });
   }
 
@@ -1396,7 +1363,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Tenant> saveTenant(String phoneNumber, String name,
       {required Business business, required Branch branch}) async {
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/tenant"),
       body: jsonEncode({
         "phoneNumber": phoneNumber,
@@ -1439,7 +1406,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Tenant>> signup({required Map business}) async {
     log(jsonEncode(business));
-    final http.Response response = await flipperHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
     );
@@ -1490,7 +1457,7 @@ class IsarAPI<M> implements IsarApiInterface {
       phoneNumber = '+' + phoneNumber;
     }
 
-    final response = await flipperHttpClient.post(
+    final response = await ProxyService.httpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body: jsonEncode(
         <String, String>{'phoneNumber': phoneNumber},
@@ -1598,12 +1565,15 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<ITransaction?> pendingTransaction({required int branchId}) async {
+  Future<ITransaction?> pendingTransaction(
+      {required int branchId, required String transactionType}) async {
     return db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(PENDING)
         .and()
         .branchIdEqualTo(branchId)
+        .and()
+        .transactionTypeEqualTo(transactionType)
         .findFirst());
   }
 
@@ -1678,9 +1648,29 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Stock?>> stocks({required String productId}) async {
-    return db.read(
-        (isar) => isar.stocks.where().productIdEqualTo(productId).findAll());
+  Future<double> stocks({String? productId, String? variantId}) async {
+    double totalStock = 0.0;
+
+    // If productId is given, compute the total stock for all variants and return it
+    // Otherwise, get the stock for a single variant based on variantId
+    if (productId != null) {
+      // Query Isar database to find all stocks with a matching productId
+      final stocks = await db.read(
+        (isar) => isar.stocks.where().productIdEqualTo(productId).findAll(),
+      );
+
+      // Sum up the stock quantities for all variants with the given productId
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    } else if (variantId != null) {
+      // Query Isar database to find all stocks with a matching variantId
+      final stocks = await db.read(
+        (isar) => isar.stocks.where().variantIdEqualTo(variantId).findAll(),
+      );
+
+      // Sum up the stock quantities for the variant with the given variantId
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    }
+    return totalStock;
   }
 
   @override
@@ -1886,7 +1876,7 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITransaction) {
-      log('updating how often', name: 'try');
+      log(data.toJson().toString(), name: 'UpdatingTransaction');
       final transaction = data;
       db.write((isar) {
         isar.iTransactions.onPut(transaction);
@@ -1895,19 +1885,19 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Category) {
       final transaction = data;
       db.write((isar) {
-        isar.categorys.put(transaction);
+        isar.categorys.onPut(transaction);
       });
     }
     if (data is IUnit) {
       final unit = data;
       db.write((isar) {
-        isar.iUnits.put(unit);
+        isar.iUnits.onPut(unit);
       });
     }
     if (data is PColor) {
       final color = data;
       db.write((isar) {
-        isar.pColors.put(color);
+        isar.pColors.onPut(color);
       });
     }
     if (data is TransactionItem) {
@@ -1928,7 +1918,7 @@ class IsarAPI<M> implements IsarApiInterface {
           ..bhfId = ebm.bhfId
           ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
-        isar.business.put(business!);
+        isar.business.onPut(business!);
       });
     }
     if (data is Token) {
@@ -1938,7 +1928,7 @@ class IsarAPI<M> implements IsarApiInterface {
         ..businessId = token.businessId
         ..type = token.type;
       db.write((isar) {
-        db.tokens.put(token);
+        db.tokens.onPut(token);
       });
     }
     if (data is Business) {
@@ -1946,7 +1936,7 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.business.put(business);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/business/${business.id}"),
         body: jsonEncode(business.toJson()),
       );
@@ -1959,7 +1949,7 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.branchs.put(data);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/branch/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
@@ -1969,9 +1959,9 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Counter) {
       db.write((isar) {
-        isar.counters.put(data);
+        isar.counters.onPut(data);
       });
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/counter/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
@@ -1979,7 +1969,7 @@ class IsarAPI<M> implements IsarApiInterface {
         log(response.body, name: 'response.body');
         Counter counter = Counter.fromRawJson(response.body);
         db.write((isar) {
-          isar.counters.put(data
+          isar.counters.onPut(data
             ..branchId = counter.branchId
             ..businessId = counter.businessId
             ..receiptType = counter.receiptType
@@ -1996,7 +1986,7 @@ class IsarAPI<M> implements IsarApiInterface {
         isar.branchs.put(data);
       });
       try {
-        await flipperHttpClient.patch(
+        await ProxyService.httpClient.patch(
           Uri.parse("$apihub/v2/api/branch/${data.id}"),
           body: jsonEncode(data.toJson()),
         );
@@ -2005,24 +1995,24 @@ class IsarAPI<M> implements IsarApiInterface {
     if (data is Drawers) {
       final drawer = data;
       db.write((isar) {
-        isar.drawers.put(drawer);
+        isar.drawers.onPut(drawer);
       });
     }
     if (data is User) {
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/user"),
         body: jsonEncode(data.toJson()),
       );
       return response.statusCode;
     }
     if (data is ITenant) {
-      final response = await flipperHttpClient.patch(
+      final response = await ProxyService.httpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
       if (response.statusCode == 200) {
         db.write((isar) {
-          isar.iTenants.put(data);
+          isar.iTenants.onPut(data);
         });
       }
       return response.statusCode;
@@ -2041,8 +2031,8 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> userNameAvailable({required String name}) async {
-    final response =
-        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
+    final response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
   }
 
@@ -2071,6 +2061,8 @@ class IsarAPI<M> implements IsarApiInterface {
           .productIdEqualTo(productId)
           .and()
           .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
           .findAll());
     } else {
       return db.read((isar) => isar.variants
@@ -2078,6 +2070,10 @@ class IsarAPI<M> implements IsarApiInterface {
           .branchIdEqualTo(branchId)
           .and()
           .deletedAtIsNull()
+          .and()
+          .retailPriceGreaterThan(0)
+          .and()
+          .supplyPriceGreaterThan(0)
           .findAll());
     }
   }
@@ -2243,8 +2239,8 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
     String id = businessId.toString();
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+    final http.Response response = await ProxyService.httpClient
+        .get(Uri.parse("$apihub/v2/api/tenant/$id"));
     if (response.statusCode == 200) {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
@@ -2337,7 +2333,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<void> loadCounterFromOnline({required int businessId}) async {
-    final http.Response response = await flipperHttpClient
+    final http.Response response = await ProxyService.httpClient
         .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
 
     if (response.statusCode == 200) {
@@ -2469,7 +2465,7 @@ class IsarAPI<M> implements IsarApiInterface {
       await appService.isLoggedIn();
       List<Conversation> scheduledMessages = await getScheduleMessages();
       for (Conversation message in scheduledMessages) {
-        final http.Response response = await socialsHttpClient.post(
+        final http.Response response = await ProxyService.httpClient.post(
           Uri.parse("$commApi/reply"),
           body: json.encode(message.toJson()),
         );
@@ -2511,7 +2507,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<int> registerOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    final http.Response response = await socialsHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$commApi/register"),
       body: json.encode({"email": phoneNumberOrEmail, "password": password}),
     );
@@ -2569,7 +2565,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password}) async {
-    final http.Response response = await socialsHttpClient.post(
+    final http.Response response = await ProxyService.httpClient.post(
       Uri.parse("$commApi/login"),
       body: json.encode({"email": phoneNumberOrEmail, "password": password}),
     );
@@ -2591,7 +2587,7 @@ class IsarAPI<M> implements IsarApiInterface {
   /// If the user's phone number is not available, it returns `null`.
   /// It first checks if the setting is available in the `isar.settings` database using the user's phone number.
   /// If the setting is found, it returns the setting.
-  /// If the setting is not found in the database, it makes an HTTP GET request to the socialsHttpClient
+  /// If the setting is not found in the database, it makes an HTTP GET request to the ProxyService.httpClient
   /// to fetch the setting from the specified API endpoint.
   /// If the HTTP response status code is 200, it converts the response body to a `Setting` object
   /// using `Setting.fromJson()` and then saves it using the `create()` function.
@@ -2623,7 +2619,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     Future.delayed(Duration(seconds: 20));
     final Uri uri = Uri.parse("$commApi/settings/$number");
-    final http.Response response = await socialsHttpClient.get(uri);
+    final http.Response response = await ProxyService.httpClient.get(uri);
 
     if (response.statusCode == 200) {
       Setting setting = Setting.fromJson(jsonDecode(response.body));
@@ -2640,7 +2636,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// so we need to wait 20 seconds to make another call, I will need to investigate on server later
     // await Future.delayed(Duration(seconds: 20));
     int businessId = ProxyService.box.getBusinessId()!;
-    final http.Response response = await socialsHttpClient.patch(
+    final http.Response response = await ProxyService.httpClient.patch(
         Uri.parse("$commApi/settings"),
         body: json.encode(
             {"businessId": businessId, "deviceToken": setting.deviceToken}));
@@ -2652,13 +2648,16 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Device?> getDevice({required String phone}) async {
+  Future<Device?> getDevice(
+      {required String phone, required String linkingCode}) async {
     // get device from isar with linking code and return it
     return db.read((isar) => isar.devices
         .where()
         .phoneEqualTo(phone)
         .and()
         .deletedAtIsNull()
+        .and()
+        .linkingCodeEqualTo(linkingCode)
         .findFirst());
   }
 
@@ -2723,7 +2722,7 @@ class IsarAPI<M> implements IsarApiInterface {
     String? paginationCreatedAt = ProxyService.box.paginationCreatedAt();
     int? paginationId = ProxyService.box.paginationId();
 
-    final response = await socialsHttpClient.get(Uri.parse(
+    final response = await ProxyService.httpClient.get(Uri.parse(
         '${commApi}/messages/${businessId}?pageSize=${pageSize}&createdAt=${paginationCreatedAt}&id=${paginationId}'));
 
     if (response.statusCode == 200) {
@@ -2775,7 +2774,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<bool> updateContact(
       {required Map<String, dynamic> contact, required int businessId}) async {
-    final response = await socialsHttpClient.patch(
+    final response = await ProxyService.httpClient.patch(
       Uri.parse("$commApi/contacts/${businessId}"),
       body: jsonEncode(contact),
     );
@@ -2783,18 +2782,6 @@ class IsarAPI<M> implements IsarApiInterface {
       return false;
     }
     return true;
-  }
-
-  @override
-  Future<List<TransactionItem>> transactionItems(
-      {required String transactionId,
-      required bool doneWithTransaction}) async {
-    return db.read((isar) => db.transactionItems
-        .where()
-        .transactionIdEqualTo(transactionId)
-        .and()
-        .doneWithTransactionEqualTo(doneWithTransaction)
-        .findAll());
   }
 
   @override
@@ -2865,6 +2852,11 @@ class IsarAPI<M> implements IsarApiInterface {
         .read((isar) => db.eBMs.where().branchIdEqualTo(branchId).findFirst());
   }
 
+  /// Retrieves unsynced data from the local database for the current branch.
+  ///
+  /// Returns a map containing unsynced lists for stocks, variants, products,
+  /// favorites, devices, transactions, and transaction items. Filters for entities
+  /// that have been created, updated, or deleted since last sync.
   @override
   Future<
       ({
@@ -2977,6 +2969,12 @@ class IsarAPI<M> implements IsarApiInterface {
         .asyncMap((event) => event.first));
   }
 
+  /// Retrieves a list of transactions from the database based on the provided filters.
+  ///
+  /// Status, transaction type, and branch ID can be optionally filtered. Cash out transactions can be isolated.
+  /// Pending transactions can optionally be included.
+  ///
+  /// The filtered query is executed against the database and the matching transactions are returned.
   @override
   Future<List<ITransaction>> transactionsFuture({
     String? status,
@@ -2997,7 +2995,9 @@ class IsarAPI<M> implements IsarApiInterface {
           .or()
           .transactionTypeEqualTo(TransactionType.sale)
           .or()
-          .transactionTypeEqualTo(TransactionType.custom);
+          .transactionTypeEqualTo(TransactionType.custom)
+          .or()
+          .transactionTypeEqualTo(TransactionType.onlineSale);
     }
 
     if (branchId != null) {
@@ -3007,27 +3007,66 @@ class IsarAPI<M> implements IsarApiInterface {
       isarQuery.and().branchIdEqualTo(branchId);
     }
 
-    final transactions = await db.read((isar) => isarQuery.findAll());
+    final transactions =
+        await db.read((isar) => isarQuery.and().deletedAtIsNull().findAll());
 
     return transactions;
   }
 
   @override
-  Future<List<TransactionItem>> transactionItemsFuture() async {
-    List<ITransaction> transactions = await transactionsFuture(status: PENDING);
-    final List<TransactionItem> allItems = [];
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  }) {
+    final isarQuery =
+        db.iTransactions.where().statusEqualTo(status ?? COMPLETE);
 
-    for (final transaction in transactions) {
-      final items = await db.read((isar) => isar.transactionItems
-          .where()
-          .transactionIdEqualTo(transaction.id)
+    if (isCashOut) {
+      isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
+    } else {
+      isarQuery
           .and()
-          .deletedAtIsNull()
-          .findAll());
-      allItems.addAll(items);
+          .transactionTypeEqualTo(TransactionType.cashIn)
+          .or()
+          .transactionTypeEqualTo(TransactionType.sale)
+          .or()
+          .transactionTypeEqualTo(TransactionType.custom)
+          .or()
+          .transactionTypeEqualTo(TransactionType.onlineSale);
     }
 
-    return allItems.isNotEmpty ? allItems : <TransactionItem>[];
+    if (branchId != null) {
+      isarQuery.and().branchIdEqualTo(branchId);
+    } else {
+      branchId = ProxyService.box.getBranchId()!;
+      isarQuery.and().branchIdEqualTo(branchId);
+    }
+
+    return db.read((isar) =>
+        isarQuery.and().deletedAtIsNull().watch(fireImmediately: true));
+  }
+
+  @override
+  Future<List<TransactionItem>> transactionItems(
+      {required String transactionId,
+      required bool doneWithTransaction,
+      required bool active}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    return db.read((isar) => db.transactionItems
+        .where()
+        .transactionIdEqualTo(transactionId)
+        .and()
+        .doneWithTransactionEqualTo(doneWithTransaction)
+        .and()
+        .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull()
+        .and()
+        .activeEqualTo(active)
+        .findAll());
   }
 
   @override
@@ -3378,5 +3417,23 @@ class IsarAPI<M> implements IsarApiInterface {
   Future<List<SyncRecord>> syncedModels({required int branchId}) async {
     return db.read(
         (isar) => isar.syncRecords.where().branchIdEqualTo(branchId).findAll());
+  }
+
+  List<ITransaction> findAndFilter(
+      List<ITransaction> transactions, int branchId) {
+    return transactions
+        .where((transaction) => transaction.supplierId == branchId)
+        .toList();
+  }
+
+  @override
+  Stream<List<ITransaction>> orders({required int branchId}) {
+    return db.read(
+      (isar) => isar.iTransactions
+          .where()
+          .statusEqualTo(PENDING)
+          .watch(fireImmediately: true)
+          .map((transactions) => findAndFilter(transactions, branchId)),
+    );
   }
 }

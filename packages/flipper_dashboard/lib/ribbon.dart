@@ -1,4 +1,13 @@
+import 'package:flipper_dashboard/Stock.dart';
+import 'package:flipper_dashboard/custom_widgets.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
 
 // Create a custom IconText widget that displays an icon and a text below it, with a border and a background color
 class IconText extends StatelessWidget {
@@ -18,7 +27,7 @@ class IconText extends StatelessWidget {
       // Use decoration to set the border and the background color of the container
       decoration: BoxDecoration(
         // border: Border.all(width: 1.0, color: Colors.grey),
-        color: Colors.black,
+        color: Color(0xff006AFE),
       ),
       // Use child to add a column widget inside the container
       child: Column(
@@ -61,21 +70,7 @@ class IconRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Use IconButton to wrap each IconText and provide a callback for onPressed
-        IconButton(
-          // Use IconText to display each icon and text with a border and a background color
-          icon: IconText(
-            icon: Icons.search,
-            text: 'Search',
-          ),
-          // Use iconSize to set the size of the icon button
-          iconSize: 100.0,
-          // Use padding to set the space around the icon button
-          padding: EdgeInsets.zero,
-          // Use onPressed to perform some action when the button is pressed
-          onPressed: () {
-            // Perform some action when the button is pressed
-          },
-        ),
+
         IconButton(
           icon: IconText(
             icon: Icons.transfer_within_a_station,
@@ -85,6 +80,7 @@ class IconRow extends StatelessWidget {
           padding: EdgeInsets.zero,
           onPressed: () {
             // Perform some action when the button is pressed
+            showAlert(context, onPressedOk: () {}, title: "Comming soon");
           },
         ),
         IconButton(
@@ -96,6 +92,7 @@ class IconRow extends StatelessWidget {
           padding: EdgeInsets.zero,
           onPressed: () {
             // Perform some action when the button is pressed
+            showAlert(context, onPressedOk: () {}, title: "Comming soon");
           },
         ),
 
@@ -108,17 +105,25 @@ class IconRow extends StatelessWidget {
           padding: EdgeInsets.zero,
           onPressed: () {
             // Perform some action when the button is pressed
+            showAlert(context, onPressedOk: () {}, title: "Comming soon");
           },
         ),
+
         IconButton(
           icon: IconText(
-            icon: Icons.cancel,
-            text: 'Cancel',
+            icon: Icons.sync,
+            text: 'Stock',
           ),
           iconSize: 100.0,
           padding: EdgeInsets.zero,
           onPressed: () {
             // Perform some action when the button is pressed
+            // showAlert(context, onPressedOk: () {}, title: "Comming soon");
+            // Navigator.of(context).push(
+            //   MaterialPageRoute(
+            //     builder: (context) => Stock(),
+            //   ),
+            // );
           },
         ),
 
@@ -126,12 +131,26 @@ class IconRow extends StatelessWidget {
         IconButton(
           icon: IconText(
             icon: Icons.payment,
-            text: 'Payment',
+            text: 'EOD',
           ),
           iconSize: 100.0,
           padding: EdgeInsets.zero,
-          onPressed: () {
+          onPressed: () async {
+            final _routerService = locator<RouterService>();
             // Perform some action when the button is pressed
+            final data = await ProxyService.isar
+                .getTransactionsAmountsSum(period: TransactionPeriod.today);
+            isar.Drawers? drawer = await ProxyService.isar.getDrawer(
+              cashierId: ProxyService.box.getBusinessId()!,
+            );
+            if (drawer != null) {
+              /// update the drawer with closing balance
+              drawer.closingBalance = data.income;
+
+              await ProxyService.isar.update(data: drawer);
+            }
+            _routerService
+                .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));
           },
         ),
       ],

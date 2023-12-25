@@ -3,6 +3,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -42,11 +43,9 @@ class NewTicketState extends ConsumerState<NewTicket>
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return SafeArea(
         child: ViewModelBuilder<CoreViewModel>.reactive(
-            viewModelBuilder: () =>
-                CoreViewModel(transaction: currentTransaction.value),
+            viewModelBuilder: () => CoreViewModel(),
             onViewModelReady: (model) async {},
             builder: (context, model, child) {
               return Scaffold(

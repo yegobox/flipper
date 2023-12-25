@@ -1634,3 +1634,9 @@ Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'lastTouched': instance.lastTouched?.toIso8601String(),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

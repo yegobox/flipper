@@ -38,7 +38,7 @@ export 'isar/social_token.dart';
 export 'isar/conversation.dart';
 export 'isar/business_type.dart';
 export 'package:uuid/uuid.dart';
-export 'isar/drawer.dart';
+export 'isar/drawers.dart';
 export 'isar/userActivity.dart';
 export 'exceptions.dart';
 export 'isar/extensions.dart';

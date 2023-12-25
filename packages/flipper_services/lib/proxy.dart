@@ -1,4 +1,6 @@
 import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/RealmSync.dart';
+import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -55,6 +57,7 @@ final LNotification _notification = getIt<LNotification>();
 final Review _review = getIt<Review>();
 final Sync _syncApi = getIt<Sync>();
 final SyncFirestore _syncFirestore = getIt<SyncFirestore>();
+final SyncReaml _syncRealm = getIt<SyncReaml>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
@@ -65,9 +68,11 @@ final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final RemoteInterface _remote = getIt<RemoteInterface>();
+final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
 
 abstract class ProxyService {
   static RemoteInterface get remote => _remote;
+  static HttpClientInterface get httpClient => _httpClient;
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
@@ -95,6 +100,7 @@ abstract class ProxyService {
   static Review get review => _review;
   static Sync get sync => _syncApi;
   static SyncFirestore get syncFirestore => _syncFirestore;
+  static SyncReaml get realm => _syncRealm;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

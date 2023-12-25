@@ -34,10 +34,8 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   @override
   Widget build(BuildContext context) {
     final isScanningMode = ref.watch(scanningModeProvider);
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, child) {
           return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {

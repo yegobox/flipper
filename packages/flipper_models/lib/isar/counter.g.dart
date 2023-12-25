@@ -1493,3 +1493,9 @@ Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
       'curRcptNo': instance.curRcptNo,
       'lastTouched': instance.lastTouched?.toIso8601String(),
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

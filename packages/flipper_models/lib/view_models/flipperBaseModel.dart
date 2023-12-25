@@ -1,3 +1,4 @@
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -13,20 +14,16 @@ class FlipperBaseModel extends ReactiveViewModel {
 
   final _routerService = locator<RouterService>();
   void openDrawer() {
-    Drawers? drawer = Drawers()
-      ..cashierId = ProxyService.box.getBusinessId()!
-      ..closingBalance = 0
-      ..tradeName = ProxyService.app.business.name
-      ..nsSaleCount = 0
-      ..trSaleCount = 0
-      ..psSaleCount = 0
-      ..incompleteSale = 0
-      ..totalCsSaleIncome = 0
-      ..totalNsSaleIncome = 0
-      ..csSaleCount = 0
-      ..nrSaleCount = 0
-      ..openingDateTime = DateTime.now().toIso8601String()
-      ..open = true;
+    Drawers drawer = Drawers(
+      id: randomString(),
+      openingBalance: 0.0,
+      closingBalance: 0.0,
+      cashierId: ProxyService.box.getBusinessId()!,
+      tradeName: ProxyService.app.business.name,
+      openingDateTime: DateTime.now().toIso8601String(),
+      open: true,
+    );
+
     _routerService.navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
   }
 

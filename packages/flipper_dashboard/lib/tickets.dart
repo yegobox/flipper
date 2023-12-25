@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'new_ticket.dart';
 
 class Tickets extends StatefulHookConsumerWidget {
   const Tickets({super.key, this.transaction});
@@ -38,7 +39,6 @@ class TicketsState extends ConsumerState<Tickets>
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         builder: (context, model, child) {
           return SafeArea(
@@ -87,8 +87,22 @@ class TicketsState extends ConsumerState<Tickets>
                                   color: Color(0xff006AFE))),
                           onPressed: () {
                             if (widget.transaction != null) {
-                              _routerService.navigateTo(NewTicketRoute(
-                                  transaction: widget.transaction!));
+                              showModalBottomSheet(
+                                backgroundColor: Colors.red,
+                                context: context,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(10.0)),
+                                ),
+                                useRootNavigator: true,
+                                builder: (BuildContext context) {
+                                  return Padding(
+                                    padding: EdgeInsets.only(top: 20.0),
+                                    child: NewTicket(
+                                        transaction: widget.transaction!),
+                                  );
+                                },
+                              );
                             }
                           },
                         ),
@@ -159,7 +173,6 @@ class TicketsState extends ConsumerState<Tickets>
         onViewModelReady: (model) {
           model.updatePayable();
         },
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value));
+        viewModelBuilder: () => CoreViewModel());
   }
 }

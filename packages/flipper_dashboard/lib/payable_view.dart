@@ -8,12 +8,10 @@ import 'package:flutter/material.dart';
 class PayableView extends StatelessWidget {
   const PayableView(
       {Key? key,
-      this.duePay = 0,
       required this.onClick,
       required this.ticketHandler,
       required this.model})
       : super(key: key);
-  final double? duePay;
   final Function onClick;
   final Function ticketHandler;
   final CoreViewModel model;
@@ -29,27 +27,7 @@ class PayableView extends StatelessWidget {
               child: SizedBox(
             height: 64,
             child: TextButton(
-              style: ButtonStyle(
-                shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                  (states) => RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    if (states.contains(MaterialState.hovered)) {
-                      return Colors.blue.withOpacity(0.04);
-                    }
-                    if (states.contains(MaterialState.focused) ||
-                        states.contains(MaterialState.pressed)) {
-                      return Colors.blue.withOpacity(0.12);
-                    }
-                    return null; // Defer to the widget's default.
-                  },
-                ),
-              ),
+              style: secondaryButtonStyle,
               onPressed: () {
                 ticketHandler();
               },

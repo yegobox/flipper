@@ -2,6 +2,7 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -28,14 +29,15 @@ class SaleIndicator extends StatefulHookConsumerWidget {
 class SaleIndicatorState extends ConsumerState<SaleIndicator> {
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
     return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {
           return Row(children: [
             StreamBuilder<List<TransactionItem>>(
-              stream: model.transactionItemsStream(),
+              stream: model.transactionItemsStream(
+                  transaction: transaction.value!.value!),
               builder: (context, snapshot) {
                 final List<TransactionItem> transactionItems =
                     snapshot.data ?? [];

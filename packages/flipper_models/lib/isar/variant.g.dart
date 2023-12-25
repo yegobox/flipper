@@ -11287,7 +11287,7 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       retailPrice: (json['retailPrice'] as num).toDouble(),
       isTaxExempted: json['isTaxExempted'] as bool,
       action: json['action'] as String,
-      color: json['color'] as String,
+      color: Variant._colorFromJson(json['color']),
       id: json['id'] as String,
       taxName: json['taxName'] as String? ?? 'N/A',
       taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0,
@@ -11375,3 +11375,9 @@ Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
       'retailPrice': instance.retailPrice,
       'action': instance.action,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

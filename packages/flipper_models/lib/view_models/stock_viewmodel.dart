@@ -1,11 +1,10 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/stock.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 
 class StockViewModel extends BaseViewModel {
-  List<Stock?> _stocks = [];
+  double _stocks = 0.0;
   get stocks => _stocks;
 
   loadStockByProductId({required String productId}) async {

@@ -1,7 +1,10 @@
 import 'dart:developer';
-
+import 'dart:io';
+import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
@@ -15,7 +18,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:keyboard_visibility_pro/keyboard_visibility_pro.dart';
+import 'ribbon.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
@@ -58,13 +61,9 @@ class ProductViewState extends ConsumerState<ProductView> {
 
   @override
   Widget build(BuildContext context) {
-    final productsRef =
-        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
-    final variantsRef =
-        ref.watch(outerVariantsProvider(ProxyService.box.getBranchId()!));
     final searchKeyword = ref.watch(searchStringProvider);
     final scannMode = ref.watch(scanningModeProvider);
-    return ViewModelBuilder<ProductViewModel>.reactive(
+    return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
@@ -74,107 +73,126 @@ class ProductViewState extends ConsumerState<ProductView> {
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
         double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildRowView(
-            context, model, productsRef, searchFieldWidth, variantsRef);
+        return buildRowView(context, model, searchFieldWidth);
       },
     );
   }
 
   Widget buildRowView(
-      BuildContext context,
-      ProductViewModel model,
-      AsyncValue<List<Product>> productsRef,
-      double searchFieldWidth,
-      AsyncValue<List<Variant>> variantsRef) {
+    BuildContext context,
+    ProductViewModel model,
+    double searchFieldWidth,
+  ) {
     final scannMode = ref.watch(scanningModeProvider);
-    return KeyboardVisibility(
-      onChanged: (bool keyboardVisible) {
-        if (!keyboardVisible) {
-          _searchFocusNode.unfocus();
-        }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Check if the width is greater than a certain threshold (e.g., for large screens)
+        bool isLargeScreen = constraints.maxWidth > 600;
+
+        return CustomScrollView(
+          slivers: [
+            isLargeScreen
+                ? SliverToBoxAdapter(child: IconRow())
+                : SliverToBoxAdapter(
+                    child: SizedBox()), // Use SizedBox for mobile
+            buildStickyHeader(searchFieldWidth),
+            scannMode
+                ? buildVariantList(context, model)
+                : buildProductList(context, model),
+            //todo when re-enabling discounts, remember it is causing black screen error
+            // as there might be some loop that isn't well
+            // buildDiscountsList(context, model),
+          ],
+        );
       },
-      child: CustomScrollView(
-        slivers: [
-          buildStickyHeader(searchFieldWidth),
-          scannMode
-              ? buildVariantList(context, model, variantsRef)
-              : buildProductList(context, model, productsRef),
-          //todo when re-enabling discounts, remember it is causing black screen error
-          // as there might be some loop that isn't well
-          // buildDiscountsList(context, model),
-        ],
-      ),
     );
   }
 
-  SliverList buildVariantList(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Variant>> variantsRef) {
+  SliverList buildVariantList(
+    BuildContext context,
+    ProductViewModel model,
+  ) {
     return SliverList(
       delegate: SliverChildListDelegate([
         SizedBox(height: 8),
-        buildVariantsSection(context, model, variantsRef),
+        buildVariantsSection(context, model),
       ]),
     );
   }
 
-  Widget buildVariantsSection(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Variant>> variantsRef) {
+  Widget buildVariantsSection(
+    BuildContext context,
+    ProductViewModel model,
+  ) {
     return Center(
       child: Center(
-          child: switch (variantsRef) {
-        AsyncData(:final value) => Column(
-            children: [
-              buildVariantRows(context, model, value),
-            ],
-          ),
-        AsyncError(:final error) => Text('error: $error'),
-        _ => const CircularProgressIndicator(),
-      }),
+        child: ref
+            .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
+            .when(
+              data: (variants) {
+                return Column(
+                  children: [
+                    for (int index = 0; index < variants.length; index++)
+                      buildVariantRow(context, model, variants[index]),
+                  ],
+                );
+              },
+              error: (error, e) => Text('error: $error'),
+              loading: () => const CircularProgressIndicator(),
+            ),
+      ),
     );
   }
 
-  Widget buildVariantRows(
+  Widget buildVariantRow(
     BuildContext context,
     ProductViewModel model,
-    List<Variant> variants,
+    Variant variant,
   ) {
-    return Column(
-      children: [
-        for (int index = 0; index < variants.length; index++)
-          Container(
-            child: FutureBuilder<List<Stock?>>(
-              future: model.productService.loadStockByProductId(
-                productId: variants[index].productId,
-              ),
-              builder: (BuildContext context, stocks) {
-                return RowItem(
-                  color: "#d63031", // Replace with actual color
-                  stocks: stocks.data ?? [],
-                  model: model,
-                  variant: variants[index],
-                  name: variants[index].name,
-                  edit: (productId) {
-                    _routerService.navigateTo(
-                      AddProductViewRoute(productId: productId),
-                    );
-                  },
+    return Container(
+      child: FutureBuilder<double>(
+        future: ProxyService.isar.stocks(variantId: variant.id),
+        builder: (BuildContext context, stock) {
+          print(stock);
+          if (stock == 0) {
+            return SizedBox.shrink();
+          } else {
+            return buildRowItem(context, model, variant, stock.data ?? 0.0);
+          }
+        },
+      ),
+    );
+  }
 
-                  delete: (variantId) async {
-                    log(variantId, name: 'deleting');
-                    ProxyService.isar
-                        .delete(id: variantId, endPoint: 'variant');
-                    // ignore: unused_result
-                    ref.refresh(
-                        outerVariantsProvider(ProxyService.box.getBranchId()!));
-                  },
-                  enableNfc: (product) {
-                    // Handle NFC functionality
-                  },
-                );
-              },
-            ),
-          ),
-      ],
+  Widget buildRowItem(
+    BuildContext context,
+    ProductViewModel model,
+    Variant variant,
+    double stock,
+  ) {
+    return RowItem(
+      color: "#d63031", // Replace with actual color
+      stock: stock,
+      model: model,
+      variant: variant,
+      name: variant.name,
+      edit: (productId) {
+        _routerService.navigateTo(
+          AddProductViewRoute(productId: productId),
+        );
+      },
+      delete: (variantId) async {
+        log(variantId, name: 'deleting');
+        ProxyService.isar.delete(id: variantId, endPoint: 'variant');
+        // ignore: unused_result
+        ref.refresh(
+          outerVariantsProvider(ProxyService.box.getBranchId()!),
+        );
+      },
+      enableNfc: (product) {
+        // Handle NFC functionality
+      },
     );
   }
 
@@ -237,18 +255,18 @@ class ProductViewState extends ConsumerState<ProductView> {
         : SizedBox.shrink();
   }
 
-  SliverList buildProductList(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Product>> productsRef) {
+  SliverList buildProductList(BuildContext context, ProductViewModel model) {
     return SliverList(
       delegate: SliverChildListDelegate([
         SizedBox(height: 8),
-        buildProductsSection(context, model, productsRef),
+        buildProductsSection(context, model),
       ]),
     );
   }
 
-  Widget buildProductsSection(BuildContext context, ProductViewModel model,
-      AsyncValue<List<Product>> productsRef) {
+  Widget buildProductsSection(BuildContext context, ProductViewModel model) {
+    final productsRef =
+        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
     return Center(
       child: Center(
         child: switch (productsRef) {
@@ -292,6 +310,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     List<Product> products,
   ) {
+    final matchedProduct = ref.watch(matchedProductProvider);
     return Column(
       children: [
         for (int index = 0; index < products.length; index++)
@@ -314,25 +333,34 @@ class ProductViewState extends ConsumerState<ProductView> {
               ExpansionPanel(
                 headerBuilder: (BuildContext context, bool isExpanded) {
                   final product = products[index];
-                  return FutureBuilder<List<Stock?>>(
-                    future: model.productService.loadStockByProductId(
-                      productId: product.id,
-                    ),
-                    builder: (BuildContext context, stocks) {
+                  return FutureBuilder<double>(
+                    future: ProxyService.isar.stocks(productId: product.id),
+                    builder: (BuildContext context, stock) {
                       return RowItem(
                         color: product.color,
-                        stocks: stocks.data ?? [],
+                        stock: stock.data ?? 0.0,
                         model: model,
                         product: product,
                         name: product.name,
+                        addToMenu: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
                             (widget.favIndex != null) ? true : false,
                         favIndex: widget.favIndex,
                         edit: (productId) {
-                          _routerService.navigateTo(
-                            AddProductViewRoute(productId: productId),
-                          );
+                          if (Platform.isWindows || isDesktopOrWeb) {
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder: (context) => OptionModal(
+                                child: ProductEntryScreen(productId: productId),
+                              ),
+                            );
+                          } else {
+                            _routerService.navigateTo(
+                              AddProductViewRoute(productId: productId),
+                            );
+                          }
                         },
                         delete: (productId) async {
                           await model.deleteProduct(productId: productId);
@@ -365,8 +393,11 @@ class ProductViewState extends ConsumerState<ProductView> {
                     },
                   );
                 },
-                body: ref.read(variantsProvider(productId)).when(
-                      loading: () => Center(child: CircularProgressIndicator()),
+                body: ref
+                    .watch(variantsProvider(
+                        matchedProduct == null ? "0" : matchedProduct.id))
+                    .when(
+                      loading: () => Text("searching..."),
                       error: (error, stackTrace) => Text(error.toString()),
                       data: (variants) => ListView.builder(
                         shrinkWrap: true,

@@ -1,4 +1,5 @@
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -27,23 +28,48 @@ extension ColorExtension on Color {
 extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
   void onPut(OBJ object) {
     put(object);
-    if (object is Product) {
-      ProxyService.syncFirestore.onSave<Product>(item: object);
-    }
-    if (object is Variant) {
-      ProxyService.syncFirestore.onSave<Variant>(item: object);
-    }
-    if (object is Stock) {
-      ProxyService.syncFirestore.onSave<Stock>(item: object);
-    }
-    if (object is Device) {
-      ProxyService.syncFirestore.onSave<Device>(item: object);
-    }
-    if (object is ITransaction) {
-      ProxyService.syncFirestore.onSave<ITransaction>(item: object);
+
+    ///TODO: re-enable this when cloud_firestore is stable
+    /// https://github.com/firebase/flutterfire/issues/11933
+    if (!isWindows) {
+      if (object is Product) {
+        ProxyService.syncFirestore.onSave<Product>(item: object);
+      }
+      if (object is Variant) {
+        ProxyService.syncFirestore.onSave<Variant>(item: object);
+      }
+      if (object is Stock) {
+        ProxyService.syncFirestore.onSave<Stock>(item: object);
+      }
+      if (object is Device) {
+        ProxyService.syncFirestore.onSave<Device>(item: object);
+      }
+      if (object is ITransaction) {
+        ProxyService.syncFirestore.onSave<ITransaction>(item: object);
+      }
+      if (object is TransactionItem) {
+        ProxyService.syncFirestore.onSave<TransactionItem>(item: object);
+      }
+      if (object is Drawers) {
+        ProxyService.syncFirestore.onSave<Drawers>(item: object);
+      }
     }
     if (object is TransactionItem) {
-      ProxyService.syncFirestore.onSave<TransactionItem>(item: object);
+      ProxyService.realm.onSave<TransactionItem>(item: object);
+    }
+    if (object is ITransaction) {
+      ProxyService.realm.onSave<ITransaction>(item: object);
+    }
+
+    if (object is Product) {
+      ProxyService.realm.onSave<Product>(item: object);
+    }
+
+    if (object is Stock) {
+      ProxyService.realm.onSave<Stock>(item: object);
+    }
+    if (object is Variant) {
+      ProxyService.realm.onSave<Variant>(item: object);
     }
   }
 }

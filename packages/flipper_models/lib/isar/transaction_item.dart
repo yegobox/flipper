@@ -5,7 +5,6 @@ import 'package:pocketbase/pocketbase.dart';
 import 'DateTimeConverter.dart';
 part 'transaction_item.g.dart';
 
-
 @JsonSerializable()
 @Collection()
 class TransactionItem extends IJsonSerializable {
@@ -27,6 +26,7 @@ class TransactionItem extends IJsonSerializable {
 
   /// property to help us adding new item to transaction
   bool? doneWithTransaction;
+  bool? active;
 
   // RRA fields
   // discount rate
@@ -124,6 +124,7 @@ class TransactionItem extends IJsonSerializable {
     required this.isTaxExempted,
     this.isRefunded,
     this.doneWithTransaction,
+    this.active,
     this.dcRt,
     this.dcAmt,
     this.taxblAmt,

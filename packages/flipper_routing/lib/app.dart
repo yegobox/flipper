@@ -59,6 +59,7 @@ import 'all_routes.dart';
     CustomRoute(page: SettingPage),
     CustomRoute(page: Transactions),
     CustomRoute(page: Security),
+    CustomRoute(page: Comfirm),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),
@@ -80,7 +81,7 @@ class App {}
 // TODO: https://developer.android.com/studio/preview/features#device-mirroring-giraffe
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
-// ` dart run build_runner build --delete-conflicting-outputs`
+// `dart run build_runner build --delete-conflicting-outputs`
 // While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
@@ -206,4 +207,12 @@ class App {}
 //     onLayout: (PdfPageFormat format) async => pdf.save(),
 //   );
 // }
-
+// TODO: when get time implement this: https://app.posthog.com/ (login with richard github account)
+// https://pub.dev/packages/side_navigation
+//TODO: realm crud https://medium.com/@alperenekin/another-mobile-database-option-realm-database-for-flutter-f269763b79ef
+// Login Pins
+// YEGOBOX: 31658
+// TODO:https://github.com/bdlukaa/fluent_ui/issues/150
+// TODO:Flipper pitch https://www.mongodb.com/blog/post/how-enhance-inventory-management-real-time-data-strategies?utm_campaign=realtimedata&utm_source=youtube&utm_medium=organic_social
+// TODO:https://www.mongodb.com/developer/products/atlas/build-inventory-management-system-using-mongodb-atlas/?utm_campaign=inventorymgmt&utm_source=youtube&utm_medium=organic_social
+//TODO: https://github.com/mongodb-industry-solutions/Inventory_mgmt

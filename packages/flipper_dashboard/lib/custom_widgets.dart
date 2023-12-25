@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -330,28 +331,17 @@ Widget customAlert(BuildContext context,
     content: Text(title, style: const TextStyle(color: Colors.black45)),
     actions: <Widget>[
       TextButton(
-        style: ButtonStyle(
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
-            if (states.contains(MaterialState.focused)) return Colors.grey;
-            return Colors.grey; // Defer to the widget's default.
-          }),
-        ),
+        style: primaryButtonStyle,
         onPressed: () {
           Navigator.pop(context);
         },
-        child: Text(cancelText),
+        child: Text(
+          cancelText,
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       TextButton(
-        style: ButtonStyle(
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
-            if (states.contains(MaterialState.focused))
-              return Theme.of(context).primaryColor;
-            return Theme.of(context)
-                .primaryColor; // Defer to the widget's default.
-          }),
-        ),
+        style: secondaryButtonStyle,
         onPressed: () {
           Navigator.pop(context);
           onPressedOk();
@@ -367,7 +357,7 @@ void customSnackBar(GlobalKey<ScaffoldState> _scaffoldKey, String msg,
   if (_scaffoldKey.currentState == null) {
     return;
   }
-  final SnackBar snackBar = SnackBar(
+  SnackBar(
     backgroundColor: backgroundColor,
     content: Text(
       msg,

@@ -41,3 +41,9 @@ Map<String, dynamic> _$TenantToJson(Tenant instance) => <String, dynamic>{
       'pin': instance.pin,
       'isDefault': instance.isDefault,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

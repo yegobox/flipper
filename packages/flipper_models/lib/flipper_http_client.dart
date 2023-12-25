@@ -1,10 +1,11 @@
+import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
 
-class FlipperHttpClient extends http.BaseClient {
+class FlipperHttpClient extends http.BaseClient implements HttpClientInterface {
   final http.Client _inner;
 
   // ignore: sort_constructors_first
@@ -12,14 +13,28 @@ class FlipperHttpClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     /// token,userId can be null when is desktop login with pin
-    String? token = ProxyService.box.getBearerToken();
-    int? userId = ProxyService.box.getUserId();
+    String? token;
+    if (ProxyService.box.getDefaultApp() == 2) {
+      token = ProxyService.box.whatsAppToken();
+    } else {
+      token = ProxyService.box.getBearerToken();
+    }
 
-    var headers = {
-      'Content-Type': 'application/json',
-      'Authorization': '$token',
-      'userId': userId == null ? "" : userId.toString()
-    };
+    int? userId = ProxyService.box.getUserId();
+    Map<String, String> headers;
+    if (token == null) {
+      headers = {
+        'Content-Type': 'application/json',
+        'userId': userId == null ? "" : userId.toString()
+      };
+    } else {
+      headers = {
+        'Content-Type': 'application/json',
+        'Authorization': '$token',
+        'userId': userId == null ? "" : userId.toString()
+      };
+    }
+
     request.headers.addAll(headers);
 
     const retries = 3;
@@ -31,6 +46,9 @@ class FlipperHttpClient extends http.BaseClient {
 
       return response;
     } on SocketException catch (e) {
+      print('Failed to connect: ${e.message}');
+      throw Exception('Failed to connect: ${e.message}');
+    } on HandshakeException catch (e) {
       print('Failed to connect: ${e.message}');
       throw Exception('Failed to connect: ${e.message}');
     } catch (error, stackTrace) {

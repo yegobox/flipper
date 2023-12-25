@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -8,6 +9,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
+
+import 'package:flipper_dashboard/widgets/back_button.dart' as back;
+import 'package:intl/intl.dart';
 
 class DrawerScreen extends StatefulWidget {
   const DrawerScreen({Key? key, required this.open, required this.drawer})
@@ -36,6 +40,14 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Widget build(BuildContext context) {
     bool isProcessing = false;
     return Scaffold(
+      appBar: CustomAppBar(
+        closeButton: CLOSEBUTTON.WIDGET,
+        isDividerVisible: false,
+        customLeadingWidget: back.BackButton(),
+        onPop: () async {
+          _routerService.back();
+        },
+      ),
       body: Align(
         alignment: Alignment.center,
         child: SizedBox(
@@ -65,6 +77,10 @@ class _DrawerScreenState extends State<DrawerScreen> {
     );
   }
 
+  String _formatClosingBalance(double balance) {
+    return "${NumberFormat.currency(locale: 'en', symbol: 'RWF ').format(balance)}";
+  }
+
   Widget buildHeader() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,9 +95,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
         ),
         if (widget.open == "close") ...[
           Padding(
-            padding: const EdgeInsets.only(left: 80.0),
+            padding: const EdgeInsets.only(left: 50.0),
             child: Text(
-              "with ${widget.drawer.closingBalance} RWF",
+              _formatClosingBalance(widget.drawer.closingBalance),
               style: GoogleFonts.poppins(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,
@@ -89,6 +105,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
               ),
             ),
           ),
+          SizedBox(height: 10)
         ],
         if (widget.open != "close") ...[
           Padding(

@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -56,11 +57,16 @@ class StartupViewModel extends FlipperBaseModel {
         log(stackTrace.toString(), name: 'runStartupLogic');
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
-        _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+        if (Platform.isWindows) {
+          await ProxyService.isar.logOut();
+          _routerService.clearStackAndShow(LoginViewRoute());
+        } else {
+          _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+        }
       } else {
         log(e.toString(), name: 'runStartupLogic');
         log(stackTrace.toString(), name: 'runStartupLogic');
-        ProxyService.isar.logOut();
+        await ProxyService.isar.logOut();
         //remove startup view from the stack
         _routerService.clearStackAndShow(LoginViewRoute());
       }

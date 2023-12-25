@@ -46,7 +46,6 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final productRef = ref.watch(productProvider);
     return ViewModelBuilder<ProductViewModel>.reactive(
       onViewModelReady: (model) async {
         // Reset barcode on initialization.
@@ -93,12 +92,17 @@ class AddProductViewState extends ConsumerState<AddProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        return WillPopScope(
-          onWillPop: () async {
-            return onWillPop(
-                context: context,
-                navigationPurpose: NavigationPurpose.back,
-                message: 'You have unsaved product, do you want to discard?');
+        return PopScope(
+          canPop: false,
+          onPopInvoked: (bool didPop) {
+            if (didPop) {
+              return;
+            }
+            onWillPop(
+              context: context,
+              navigationPurpose: NavigationPurpose.back,
+              message: 'You have unsaved product, do you want to discard?',
+            );
           },
           child: Scaffold(
             appBar: CustomAppBar(
@@ -157,7 +161,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       model.product == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: productRef!.color,
+                              currentColor: ref.watch(productProvider)!.color,
                               product: model.product,
                             ),
                       Text(

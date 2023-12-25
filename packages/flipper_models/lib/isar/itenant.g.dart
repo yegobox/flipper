@@ -2765,3 +2765,9 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'sessionActive': instance.sessionActive,
       'isDefault': instance.isDefault,
     };
+
+// **************************************************************************
+// RealmObjectGenerator
+// **************************************************************************
+
+// ignore_for_file: type=lint

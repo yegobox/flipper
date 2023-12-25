@@ -8,16 +8,13 @@ import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/src/consumer.dart';
 import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
-import 'package:riverpod/src/common.dart';
 import 'package:stacked/stacked.dart';
 
 import 'mixins/all.dart';
@@ -25,11 +22,15 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
-  ITransaction? currentTransaction;
-  CoreViewModel({ITransaction? transaction}) {
-    currentTransaction = transaction;
-  }
+  CoreViewModel() {}
 
+  List<String> transactionPeriodOptions = [
+    "Today",
+    "This Week",
+    "This Month",
+    "This Year",
+  ];
+   List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -107,40 +108,44 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  void keyboardKeyPressed({required String key, required WidgetRef ref}) async {
+  Future<void> keyboardKeyPressed(
+      {required String key, String? transactionType = 'custom'}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
 
-    ITransaction? pendingTransaction =
-        await ProxyService.isar.manageTransaction();
+    ITransaction? pendingTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: transactionType!);
+
+    /// query for an item that is not active so we can edit it
+    /// if the item is not available it will be created
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: pendingTransaction.id, doneWithTransaction: false);
+        transactionId: pendingTransaction.id,
+        doneWithTransaction: false,
+        active: false);
 
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction);
-        ref.refresh(transactionItemsProvider);
+
         break;
 
       case '+':
         for (TransactionItem item in items) {
           /// mark the item on the transaction as true so next time we will create new one
           /// instead of updating existing one
-          item.doneWithTransaction = true;
+          item.active = true;
           await ProxyService.isar.update(data: item);
         }
         ProxyService.keypad.reset();
-        ref.refresh(transactionItemsProvider);
+
         break;
       default:
         ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
-          ref.refresh(transactionItemsProvider);
         } else if (ProxyService.keypad.key.length > 1) {
           handleMultipleDigitKey(items, pendingTransaction);
-          ref.refresh(transactionItemsProvider.notifier);
         }
-        ref.refresh(transactionItemsProvider.notifier);
+
         break;
     }
   }
@@ -158,7 +163,9 @@ class CoreViewModel extends FlipperBaseModel
 
     List<TransactionItem> updatedItems = await ProxyService.isar
         .transactionItems(
-            transactionId: pendingTransaction.id, doneWithTransaction: false);
+            transactionId: pendingTransaction.id,
+            doneWithTransaction: false,
+            active: true);
     pendingTransaction.subTotal =
         updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -168,8 +175,6 @@ class CoreViewModel extends FlipperBaseModel
     ITransaction? updatedTransaction =
         await ProxyService.isar.getTransactionById(id: pendingTransaction.id);
     keypad.setTransaction(updatedTransaction);
-
-    rebuildUi();
   }
 
   void handleSingleDigitKey(
@@ -195,10 +200,14 @@ class CoreViewModel extends FlipperBaseModel
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
       items = await ProxyService.isar.transactionItems(
-          transactionId: pendingTransaction.id, doneWithTransaction: false);
+          transactionId: pendingTransaction.id,
+          doneWithTransaction: false,
+          active: true);
     } else {
       items = await ProxyService.isar.transactionItems(
-          transactionId: pendingTransaction.id, doneWithTransaction: false);
+          transactionId: pendingTransaction.id,
+          doneWithTransaction: false,
+          active: true);
     }
 
     pendingTransaction.subTotal =
@@ -232,7 +241,9 @@ class CoreViewModel extends FlipperBaseModel
         existTransactionItem.price = amount / 1; // price of one unit
 
         List<TransactionItem> items = await ProxyService.isar.transactionItems(
-            transactionId: pendingTransaction.id, doneWithTransaction: false);
+            transactionId: pendingTransaction.id,
+            doneWithTransaction: false,
+            active: true);
         pendingTransaction.subTotal =
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -243,7 +254,9 @@ class CoreViewModel extends FlipperBaseModel
             amount, variation, name, pendingTransaction, stock);
 
         List<TransactionItem> items = await ProxyService.isar.transactionItems(
-            transactionId: pendingTransaction.id, doneWithTransaction: false);
+            transactionId: pendingTransaction.id,
+            doneWithTransaction: false,
+            active: true);
         pendingTransaction.subTotal =
             items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -251,8 +264,6 @@ class CoreViewModel extends FlipperBaseModel
         newItem.action = AppActions.created;
         await ProxyService.isar
             .addTransactionItem(transaction: pendingTransaction, item: newItem);
-
-        notifyListeners();
       }
     } else {
       TransactionItem item = items.last;
@@ -284,6 +295,7 @@ class CoreViewModel extends FlipperBaseModel
       branchId: branchId,
       discount: 0.0,
       doneWithTransaction: false,
+      active: false,
       transactionId: pendingTransaction.id,
       createdAt: DateTime.now().toString(),
       updatedAt: DateTime.now().toString(),
@@ -414,7 +426,9 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    ITransaction cbTransaction = currentTransaction!;
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
+    ITransaction cbTransaction = transaction;
     cbTransaction.cashReceived = cbTransaction.subTotal;
     cbTransaction.customerChangeDue = 0;
     cbTransaction.transactionType = cbTransactionType;
@@ -434,7 +448,9 @@ class CoreViewModel extends FlipperBaseModel
 
     List<TransactionItem> cbTransactionItems = await ProxyService.isar
         .transactionItems(
-            transactionId: cbTransaction.id, doneWithTransaction: false);
+            transactionId: cbTransaction.id,
+            doneWithTransaction: false,
+            active: true);
 
     for (var item in cbTransactionItems) {
       item.doneWithTransaction = true;
@@ -452,11 +468,13 @@ class CoreViewModel extends FlipperBaseModel
       {required String phoneNumber,
       required double cashReceived,
       required String paymentType}) async {
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     await ProxyService.isar
         .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isar.collectPayment(
         cashReceived: cashReceived,
-        transaction: currentTransaction!,
+        transaction: transaction,
         paymentType: paymentType);
     return "PaymentRecorded";
   }
@@ -465,7 +483,7 @@ class CoreViewModel extends FlipperBaseModel
       {required String paymentType, required ITransaction transaction}) async {
     await ProxyService.isar.collectPayment(
         cashReceived: keypad.cashReceived,
-        transaction: currentTransaction!,
+        transaction: transaction,
         paymentType: paymentType);
   }
 
@@ -502,7 +520,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> assignToSale(
-      {required String customerId, String? transactionId}) async {
+      {required String customerId, required String transactionId}) async {
     ProxyService.isar.assingTransactionToCustomer(
         customerId: customerId, transactionId: transactionId);
   }
@@ -516,8 +534,10 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
+    final currentTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
     ITransaction? transaction =
-        await ProxyService.isar.getTransactionById(id: currentTransaction!.id);
+        await ProxyService.isar.getTransactionById(id: currentTransaction.id);
     // Map map = transaction!;
     transaction!.note = note;
     ProxyService.isar.update(data: transaction);
@@ -568,7 +588,9 @@ class CoreViewModel extends FlipperBaseModel
     if (keypad.transaction == null) return 0.0;
 
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: keypad.transaction!.id, doneWithTransaction: false);
+        transactionId: keypad.transaction!.id,
+        doneWithTransaction: false,
+        active: true);
 
     num? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
@@ -827,8 +849,10 @@ class CoreViewModel extends FlipperBaseModel
   Customer? get customer => app.customer;
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
-  void deleteCustomer(String id, Function callback) {
-    if (currentTransaction!.customerId == null) {
+  Future<void> deleteCustomer(String id, Function callback) async {
+    final transaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
+    if (transaction.customerId == null) {
       ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
     } else {
       callback("Can't delete the customer");
@@ -868,8 +892,7 @@ class CoreViewModel extends FlipperBaseModel
   /// []
 
   Future<void> sellWithCard(
-      {required int tenantId,
-      required AsyncValue<ITransaction> pendingTransaction}) async {
+      {required int tenantId, required ITransaction pendingTransaction}) async {
     Product? product =
         await ProxyService.isar.findProductByTenantId(tenantId: tenantId);
 
@@ -882,11 +905,14 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
     toggleCheckbox(variantId: variants.first.id);
     increaseQty(callback: (quantity) {}, custom: true);
+    Variant? variant = await ProxyService.isar.getVariantById(id: checked);
+    Stock? stock = await ProxyService.isar.stockByVariantId(variantId: checked);
     await saveTransaction(
-        variationId: checked,
+        variation: variant!,
         amountTotal: amountTotal,
         customItem: false,
-        pendingTransaction: pendingTransaction.value!);
+        currentStock: stock.currentStock,
+        pendingTransaction: pendingTransaction);
   }
 
   List<Branch> branches = [];

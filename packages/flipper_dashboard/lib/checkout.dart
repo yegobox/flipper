@@ -35,6 +35,9 @@ class CheckOutState extends ConsumerState<CheckOut>
   @override
   void initState() {
     super.initState();
+    ref
+        .read(sellingModeProvider.notifier)
+        .setSellingMode(SellingMode.forSelling);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -63,11 +66,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
-          viewModelBuilder: () =>
-              CoreViewModel(transaction: currentTransaction.value),
+          viewModelBuilder: () => CoreViewModel(),
           builder: (context, model, child) {
             return FadeTransition(
               opacity: _animation,
@@ -94,17 +95,20 @@ class CheckOutState extends ConsumerState<CheckOut>
             );
           });
     } else {
-      final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          return WillPopScope(
-            onWillPop: () async {
-              return onWillPop(
-                  context: context,
-                  navigationPurpose: NavigationPurpose.home,
-                  message: 'Do you want to go home?');
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) {
+              if (didPop) {
+                return;
+              }
+              onWillPop(
+                context: context,
+                navigationPurpose: NavigationPurpose.home,
+                message: 'Do you want to go home?',
+              );
             },
             child: Stack(
               children: [

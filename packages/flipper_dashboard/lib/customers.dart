@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -27,13 +28,12 @@ class CustomersState extends ConsumerState<Customers> {
 
   @override
   Widget build(BuildContext context) {
-    final searchKeyword = ref.watch(searchStringProvider);
-    final currentTransaction = ref.watch(pendingTransactionProvider);
+    final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef =
         ref.watch(customersProvider(ProxyService.box.getBranchId()!));
+
     return ViewModelBuilder<CoreViewModel>.reactive(
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SafeArea(
           child: Scaffold(
@@ -62,13 +62,13 @@ class CustomersState extends ConsumerState<Customers> {
                       //clear the
                       _searchController.clear();
                       ref
-                          .read(searchStringProvider.notifier)
+                          .read(customerSearchStringProvider.notifier)
                           .emitString(value: "");
                     },
                     placeholder: 'Search for a customer',
                     onChanged: (value) {
                       ref
-                          .read(searchStringProvider.notifier)
+                          .read(customerSearchStringProvider.notifier)
                           .emitString(value: value);
                     },
                   ),
@@ -81,20 +81,43 @@ class CustomersState extends ConsumerState<Customers> {
                       const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
                   child: BoxButton(
                     title: ref
-                                .read(customersProvider(
-                                        ProxyService.box.getBranchId()!)
-                                    .notifier)
-                                .filterCustomers(customersRef.asData?.value,
-                                    searchKeyword) ==
-                            null
-                        ? 'Create Customer "${searchKeyword}"'
-                        : 'Add Customer',
-                    onTap: () {
-                      _showModalBottomSheet(
-                        context,
-                        widget.transactionId ?? '0',
-                        searchKeyword,
-                      );
+                            .read(customersProvider(
+                                    ProxyService.box.getBranchId()!)
+                                .notifier)
+                            .filterCustomers(
+                                customersRef.asData!.value, searchKeyword)
+                            .isEmpty
+                        ? 'Create Customer ${searchKeyword}'
+                        : 'Add ${searchKeyword} To sale',
+                    onTap: () async {
+                      if (ref
+                          .read(
+                              customersProvider(ProxyService.box.getBranchId()!)
+                                  .notifier)
+                          .filterCustomers(
+                              customersRef.asData!.value, searchKeyword)
+                          .isEmpty) {
+                        _showModalBottomSheet(
+                          context,
+                          widget.transactionId!,
+                          searchKeyword,
+                        );
+                      } else {
+                        final customer = ref
+                            .read(customersProvider(
+                                    ProxyService.box.getBranchId()!)
+                                .notifier)
+                            .filterCustomers(
+                                customersRef.asData!.value, searchKeyword)
+                            .first;
+                        await model.assignToSale(
+                          customerId: customer.id,
+                          transactionId: widget.transactionId!,
+                        );
+                        showAlert(context,
+                            onPressedOk: () {},
+                            title: "Customer added to sale!");
+                      }
                     },
                   ),
                 ),
@@ -116,21 +139,16 @@ class CustomersState extends ConsumerState<Customers> {
           children: customers
               .map(
                 (customer) => Slidable(
-                  // ... (rest of your code)
                   child: GestureDetector(
                     onTap: () async {
                       await model.assignToSale(
                         customerId: customer.id,
-                        transactionId: widget.transactionId,
+                        transactionId: widget.transactionId!,
                       );
                       model.app.setCustomer(customer);
                       model.getTransactionById();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.red,
-                          content: Text("Customer added to sale"),
-                        ),
-                      );
+                      showAlert(context,
+                          onPressedOk: () {}, title: "Customer added to sale!");
                     },
                     onLongPress: () {},
                     child: Column(

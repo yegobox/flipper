@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
@@ -23,7 +22,6 @@ class SecurityState extends ConsumerState<Security> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async => await model.createPin(),
@@ -40,8 +38,7 @@ class SecurityState extends ConsumerState<Security> {
             ),
             backgroundColor: Theme.of(context).canvasColor,
             body: ViewModelBuilder<CoreViewModel>.reactive(
-                viewModelBuilder: () =>
-                    CoreViewModel(transaction: currentTransaction.value),
+                viewModelBuilder: () => CoreViewModel(),
                 builder: (a, model, c) {
                   return SafeArea(
                     child: Column(

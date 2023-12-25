@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -177,10 +176,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         },
       );
     } else {
-      final currentTransaction = ref.watch(pendingTransactionProvider);
       return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

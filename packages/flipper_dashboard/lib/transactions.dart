@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -277,7 +276,6 @@ class TransactionsState extends ConsumerState<Transactions> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         onViewModelReady: (model) async {
           Drawers? drawer = await ProxyService.isar
@@ -288,8 +286,7 @@ class TransactionsState extends ConsumerState<Transactions> {
             zlist = _zTransactions(drawer: drawer!);
           });
         },
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
           return Scaffold(
             appBar: CustomAppBar(

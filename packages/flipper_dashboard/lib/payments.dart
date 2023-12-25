@@ -50,7 +50,6 @@ class PaymentsState extends ConsumerState<Payments> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -62,8 +61,7 @@ class PaymentsState extends ConsumerState<Payments> {
         );
       },
       onViewModelReady: (model) => model.updatePayable(),
-      viewModelBuilder: () =>
-          CoreViewModel(transaction: currentTransaction.value),
+      viewModelBuilder: () => CoreViewModel(),
     );
   }
 
@@ -72,7 +70,7 @@ class PaymentsState extends ConsumerState<Payments> {
       onPop: _routerService.pop,
       onActionButtonClicked: _routerService.pop,
       rightActionButtonName: 'Split payment',
-      icon: Icons.arrow_back,
+      icon: Icons.close,
       multi: 3,
       bottomSpacer: 52,
       title: 'Confirm Payment',
@@ -80,15 +78,19 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Widget _buildBody(CoreViewModel model) {
-    final totalPayable =
-        ref.watch(transactionItemsProvider.notifier).totalPayable;
+    final transaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
+    final totalPayable = ref
+        .watch(transactionItemsProvider(transaction.value?.value?.id))
+        .value!
+        .fold(0, (int sum, item) => sum + item.price.toInt());
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 145),
-        _buildAmountSection(totalPayable),
+        _buildAmountSection(totalPayable.toDouble()),
         Spacer(),
         _buildPaymentButtons(model),
         const SizedBox(height: 10),
@@ -327,17 +329,17 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
-    final transaction = ref.watch(pendingTransactionProvider);
-    final totalPayable =
-        ref.watch(transactionItemsProvider.notifier).totalPayable;
+    ITransaction currentTransaction = await ProxyService.isar
+        .manageTransaction(transactionType: TransactionType.custom);
+
     model.handlingConfirm = true;
-    await model.collectPayment(
-        paymentType: paymentType!, transaction: currentTransaction.value!);
     double amount = _cash.text.isEmpty
-        ? model.currentTransaction!.subTotal
+        ? currentTransaction.subTotal
         : double.parse(_cash.text);
     model.keypad.setCashReceived(amount: amount);
+    await model.collectPayment(
+        paymentType: paymentType!, transaction: currentTransaction);
+
     String receiptType = "ns";
     if (ProxyService.box.isPoroformaMode()) {
       receiptType = ReceiptType.ps;
@@ -347,10 +349,10 @@ class PaymentsState extends ConsumerState<Payments> {
     }
     _routerService.navigateTo(
       PaymentConfirmationRoute(
-        totalTransactionAmount: totalPayable,
+        totalTransactionAmount: currentTransaction.subTotal,
         receiptType: receiptType,
         paymentType: paymentType!,
-        transaction: transaction.value!,
+        transaction: currentTransaction,
       ),
     );
   }

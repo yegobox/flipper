@@ -179,15 +179,14 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   final _routerService = locator<RouterService>();
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(
                   transactionId: widget.transaction.id,
-                  doneWithTransaction: true);
+                  doneWithTransaction: true,
+                  active: true);
 
           model.completedTransactionItemsList = items;
         },
@@ -390,7 +389,9 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   Future<void> refund(String id, CoreViewModel model) async {
     ProxyService.isar.refund(itemId: id);
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: widget.transaction.id, doneWithTransaction: false);
+        transactionId: widget.transaction.id,
+        doneWithTransaction: true,
+        active: true);
 
     model.completedTransactionItemsList = items;
   }

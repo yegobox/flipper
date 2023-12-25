@@ -107,28 +107,29 @@ class EventService implements EventInterface {
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device =
-            await ProxyService.isar.getDevice(phone: loginData.phone);
-
-        if (device == null) {
-          await ProxyService.isar.create(
-              data: Device(
-                  id: randomString(),
-                  pubNubPublished: false,
-                  branchId: loginData.branchId,
-                  businessId: loginData.businessId,
-                  action: AppActions.created,
-                  defaultApp: loginData.defaultApp,
-                  phone: loginData.phone,
-                  userId: loginData.userId,
-                  linkingCode: loginData.linkingCode,
-                  deviceName: deviceName,
-                  deviceVersion: deviceVersion));
-        }
-        await ProxyService.isar
-            .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
-        keepTryingPublishDevice();
-        await FirebaseAuth.instance.signInAnonymously();
+        Device? device = await ProxyService.isar.getDevice(
+            phone: loginData.phone, linkingCode: loginData.linkingCode);
+        try {
+          await ProxyService.isar
+              .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
+          if (device == null) {
+            await ProxyService.isar.create(
+                data: Device(
+                    id: randomString(),
+                    pubNubPublished: false,
+                    branchId: loginData.branchId,
+                    businessId: loginData.businessId,
+                    action: AppActions.created,
+                    defaultApp: loginData.defaultApp,
+                    phone: loginData.phone,
+                    userId: loginData.userId,
+                    linkingCode: loginData.linkingCode,
+                    deviceName: deviceName,
+                    deviceVersion: deviceVersion));
+          }
+          keepTryingPublishDevice();
+          await FirebaseAuth.instance.signInAnonymously();
+        } catch (e) {}
       });
     } catch (e) {
       rethrow;
@@ -167,11 +168,10 @@ class EventService implements EventInterface {
     log('userId ${ProxyService.box.getUserId()}');
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
-      log("received device aha!");
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device =
-          await ProxyService.isar.getDevice(phone: deviceEvent.phone);
+      Device? device = await ProxyService.isar.getDevice(
+          phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
         await ProxyService.isar.create(

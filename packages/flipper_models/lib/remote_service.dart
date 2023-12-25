@@ -42,7 +42,7 @@ mixin HandleItemMixin {
           localStock.lastTouched != null &&
           remoteStock.lastTouched
               .isFutureDateCompareTo(localStock.lastTouched)) {
-        remoteStock.action = AppActions.updated;
+        remoteStock.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteStock);
       }
     }
@@ -57,7 +57,7 @@ mixin HandleItemMixin {
           localVariant.lastTouched != null &&
           remoteVariant.lastTouched
               .isFutureDateCompareTo(localVariant.lastTouched)) {
-        remoteVariant.action = AppActions.updated;
+        remoteVariant.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteVariant);
       }
     }
@@ -72,7 +72,7 @@ mixin HandleItemMixin {
           localProduct.lastTouched != null &&
           remoteProduct.lastTouched
               .isFutureDateCompareTo(localProduct.lastTouched)) {
-        remoteProduct.action = AppActions.updated;
+        remoteProduct.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteProduct);
       }
     }
@@ -87,7 +87,7 @@ mixin HandleItemMixin {
           localDevice.lastTouched != null &&
           remoteDevice.lastTouched
               .isFutureDateCompareTo(localDevice.lastTouched)) {
-        localDevice.action = AppActions.updated;
+        localDevice.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: localDevice);
       }
     }
@@ -102,6 +102,7 @@ mixin HandleItemMixin {
       } else if (localSocial != null &&
           remoteSocial.lastTouched
               .isFutureDateCompareTo(localSocial.lastTouched)) {
+        remoteSocial.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteSocial);
       }
     }
@@ -128,6 +129,7 @@ mixin HandleItemMixin {
       } else if (localEbm != null &&
           ebm.lastTouched != null &&
           ebm.lastTouched.isFutureDateCompareTo(localEbm.lastTouched)) {
+        ebm.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: ebm);
       }
     }
@@ -142,6 +144,7 @@ mixin HandleItemMixin {
       } else if (localTransaction != null &&
           remoteTransaction.lastTouched
               .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        remoteTransaction.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteTransaction);
       }
     }
@@ -155,6 +158,7 @@ mixin HandleItemMixin {
         await ProxyService.isar.create(data: remoteTransactionItem);
       } else if (remoteTransactionItem.lastTouched
           .isFutureDateCompareTo(localTransaction.lastTouched)) {
+        remoteTransactionItem.action = AppActions.updatedLocally;
         await ProxyService.isar.update(data: remoteTransactionItem);
       }
     }
@@ -197,13 +201,14 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
     }
   }
 
-  Future<RemoteInterface> retryConnect() async {
+  Future<RemoteInterface?> retryConnect() async {
     await Future.delayed(Duration(seconds: 5));
     try {
       await pb!.admins.authWithPassword('info@yegobox.com', '5nUeS5TjpArcSGd');
       return this;
     } catch (e) {
-      throw Exception("Failed to initialize RemoteInterface.");
+      //throw Exception("Failed to initialize RemoteInterface.");
+      return null;
     }
   }
 
@@ -221,15 +226,67 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
       await getInstance();
     }
     try {
+      collection['action'] = AppActions.updatedLocally;
       return await pb!.collection(collectionName).create(body: collection);
     } on SocketException catch (e) {
       log(e.toString());
+
+      /// returning null here was casing the item to be updated locally as done
+      /// syncing yet it was not done on remote server
+      /// so moving [collection['action'] = AppActions.updatedLocally;] avoid the issue
       return null;
     } on ClientException catch (e) {
-      log(e.toString());
+      log("Client error could not create item ${collection['id']} and ${collection['action']}");
+      updateItemLocally(collectionName, collection);
+
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  void updateItemLocally(
+      String collectionName, Map<String, dynamic> collection) {
+    if (collectionName == "products") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Product.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "stocks") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Stock.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "variants") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Variant.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+
+    if (collectionName == "transactions") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = ITransaction.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "socials") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Social.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "favorites") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Favorite.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "devices") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = Device.fromJson(collection);
+      ProxyService.isar.update(data: json);
+    }
+    if (collectionName == "transactionItems") {
+      collection['action'] = AppActions.updatedLocally;
+      final json = TransactionItem.fromJson(collection);
+      ProxyService.isar.update(data: json);
     }
   }
 
@@ -244,6 +301,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
     }
     try {
       // Record is empty
+      data['action'] = AppActions.updatedLocally;
       return await pb!.collection(collectionName).update(recordId, body: data);
     } on SocketException catch (e) {
       log(e.toString());
@@ -388,7 +446,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               socialEvent.record!, branchId, businessId, 'socials');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('stocks').subscribe("*", (stockEvent) async {
         if (stockEvent.action == "create" ||
@@ -397,7 +455,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               stockEvent.record!, branchId, businessId, 'stocks');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('variants').subscribe("*", (variantEvent) async {
         if (variantEvent.action == "create" ||
@@ -406,7 +464,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               variantEvent.record!, branchId, businessId, 'variants');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('products').subscribe("*", (productEvent) async {
         if (productEvent.action == "create" ||
@@ -415,7 +473,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               productEvent.record!, branchId, businessId, 'products');
         }
-      });
+      }, filter: "branchId == ${branchId}");
 
       pb!.collection('devices').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
@@ -424,7 +482,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'devices');
         }
-      });
+      }, filter: "branchId == ${branchId}");
       pb!.collection('rra').subscribe("*", (deviceEvent) async {
         if (deviceEvent.action == "create" ||
             deviceEvent.action == "update" ||
@@ -432,7 +490,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
           await handleRemoteData(
               deviceEvent.record!, branchId, businessId, 'rra');
         }
-      });
+      }, filter: "branchId == ${branchId}");
     }
 
     // Add the return statement at the end of the method

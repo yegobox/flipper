@@ -1,26 +1,23 @@
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_dashboard/customers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 class AddCustomerButton extends StatelessWidget {
   AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
-  final _routerService = locator<RouterService>();
 
-  final String transactionId;
+  final String? transactionId;
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(19.0, 10, 19.0, 0),
+      padding: const EdgeInsets.fromLTRB(10.0, 0, 10.0, 0),
       child: SizedBox(
-        height: 40,
+        height: 60,
         width: double.infinity,
         child: TextButton(
             style: ButtonStyle(
               shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                 (states) => RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(4.0),
                 ),
               ),
               backgroundColor:
@@ -39,9 +36,22 @@ class AddCustomerButton extends StatelessWidget {
               ),
             ),
             onPressed: () {
-              _routerService.navigateTo(CustomersRoute(
-                transactionId: transactionId,
-              ));
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.vertical(top: Radius.circular(10.0)),
+                ),
+                useRootNavigator: true,
+                builder: (BuildContext context) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20.0),
+                    child: Customers(
+                      transactionId: transactionId ?? "0",
+                    ),
+                  );
+                },
+              );
             },
             child: Text("Add Customer",
                 style: GoogleFonts.poppins(

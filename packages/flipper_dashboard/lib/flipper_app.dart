@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:async';
 import 'dart:developer';
 
@@ -98,22 +100,20 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         ProxyService.box.getBusinessId() != null &&
         ProxyService.box.getUserId() != null) {
       InitApp.init();
-
-      try {
-        ProxyService.remote.listenToChanges();
-      } catch (e) {}
     }
   }
 
   List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
-    final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
         // fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () =>
-            CoreViewModel(transaction: currentTransaction.value),
+        viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
+          final currentTransaction =
+              ref.watch(pendingTransactionProvider(TransactionType.custom));
+          ref.refresh(
+              transactionItemsProvider(currentTransaction.value?.value?.id));
           initializeApplicationIfRequired();
           //get default tenant
           model.defaultTenant();
@@ -136,14 +136,15 @@ class FlipperAppState extends ConsumerState<FlipperApp>
                 );
             AppService.cleanedData.listen((data) async {
               log("listened to data");
-              final pendingTransaction = ref.watch(pendingTransactionProvider);
+              final pendingTransaction =
+                  ref.watch(pendingTransactionProvider(TransactionType.custom));
               log(data);
               List<String> parts = data.split(':');
               String firstPart = parts[0];
 
               await model.sellWithCard(
                   tenantId: int.parse(firstPart),
-                  pendingTransaction: pendingTransaction);
+                  pendingTransaction: pendingTransaction.value!.value!);
               showToast(context, 'Sale recorded successfully.');
             });
           }
@@ -157,108 +158,120 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           }
         },
         builder: (context, model, child) {
-          return RawKeyboardListener(
-            focusNode: FocusNode(),
-            autofocus: true,
-            onKey: (event) {
-              final key = event.logicalKey;
-              if (event is RawKeyDownEvent) {
-                if (keys.contains(key)) return;
-                setState(() {
-                  keys.add(key);
-                });
-                return model.handleKeyBoardEvents(event: event);
-              } else {
-                setState(() {
-                  keys.remove(key);
-                });
+          return PopScope(
+            canPop: false,
+            onPopInvoked: (bool didPop) {
+              if (didPop) {
+                return;
               }
             },
-            child: Scaffold(
-              appBar: AppBar(
-                title: Center(
-                    child: Text(
-                  ProxyService.status.statusText.value ?? "",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white,
-                  ),
-                )),
-                backgroundColor: ProxyService.status.statusColor.value,
-                automaticallyImplyLeading: false,
-                toolbarHeight:
-                    ProxyService.status.statusText.value?.isNotEmpty == true
-                        ? 25
-                        : 0,
-              ),
-              body: StreamBuilder<ITenant?>(
-                  stream: ProxyService.isar.authState(
-                    branchId: ProxyService.box.getBranchId() ?? 0,
-                  ),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData &&
-                        !(snapshot.data!.sessionActive == null
-                            ? false
-                            : snapshot.data!.sessionActive!)) {
-                      SchedulerBinding.instance.addPostFrameCallback((_) async {
-                        // removeOverlay(_overlayEntry!);
-                        if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
+            child: RawKeyboardListener(
+              focusNode: FocusNode(),
+              autofocus: true,
+              onKey: (event) {
+                final key = event.logicalKey;
+                if (event is RawKeyDownEvent) {
+                  if (keys.contains(key)) return;
+                  setState(() {
+                    keys.add(key);
+                  });
+                  return model.handleKeyBoardEvents(event: event);
+                } else {
+                  setState(() {
+                    keys.remove(key);
+                  });
+                }
+              },
+              child: Scaffold(
+                appBar: AppBar(
+                  title: Center(
+                      child: Text(
+                    ProxyService.status.statusText.value ?? "",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                    ),
+                  )),
+                  backgroundColor: ProxyService.status.statusColor.value,
+                  automaticallyImplyLeading: false,
+                  toolbarHeight:
+                      ProxyService.status.statusText.value?.isNotEmpty == true
+                          ? 25
+                          : 0,
+                ),
+                body: StreamBuilder<ITenant?>(
+                    stream: ProxyService.isar.authState(
+                      branchId: ProxyService.box.getBranchId() ?? 0,
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData &&
+                          !(snapshot.data!.sessionActive == null
+                              ? false
+                              : snapshot.data!.sessionActive!)) {
+                        SchedulerBinding.instance
+                            .addPostFrameCallback((_) async {
+                          // removeOverlay(_overlayEntry!);
+                          if (ProxyService.remoteConfig
+                                  .isLocalAuthAvailable() &&
 
-                            /// this is to ensure that it will not prompt the pin for a user who did not set the pin
-                            (snapshot.data!.pin != null &&
-                                snapshot.data!.pin != 0)) {
-                          /// the bellow commented line worked before very well
-                          // _overlayEntry = insertOverlay(context: context, model: model);
-                          /// we have a returning user that want to login using the pin set
-                          List<ITenant> tenants = await ProxyService.isar
-                              .tenants(
-                                  businessId:
-                                      ProxyService.box.getBusinessId()!);
-                          screenLock(
-                            context: context,
-                            correctString: model.passCode,
-                            canCancel: false,
-                            // inputController: ,
-                            onUnlocked: () async {
-                              log('onUnlocked');
-                              ITenant? tenant = await ProxyService.isar
-                                  .getTenantBYPin(
-                                      pin: int.tryParse(model.passCode) ?? 0);
-                              model.weakUp(
-                                  userId: tenant!.userId, pin: model.passCode);
-                              Navigator.of(context).maybePop();
-                            },
-                            onValidate: (input) async {
-                              for (ITenant tenant in tenants) {
-                                log(tenant.pin.toString(), name: 'given pins');
-                                if (input
-                                    .allMatches(tenant.pin.toString())
-                                    .isNotEmpty) {
-                                  model.passCode = input;
-                                  return true;
+                              /// this is to ensure that it will not prompt the pin for a user who did not set the pin
+                              (snapshot.data!.pin != null &&
+                                  snapshot.data!.pin != 0)) {
+                            /// the bellow commented line worked before very well
+                            // _overlayEntry = insertOverlay(context: context, model: model);
+                            /// we have a returning user that want to login using the pin set
+                            List<ITenant> tenants = await ProxyService.isar
+                                .tenants(
+                                    businessId:
+                                        ProxyService.box.getBusinessId()!);
+                            screenLock(
+                              context: context,
+                              correctString: model.passCode,
+                              canCancel: false,
+                              // inputController: ,
+                              onUnlocked: () async {
+                                log('onUnlocked');
+                                ITenant? tenant = await ProxyService.isar
+                                    .getTenantBYPin(
+                                        pin: int.tryParse(model.passCode) ?? 0);
+                                model.weakUp(
+                                    userId: tenant!.userId,
+                                    pin: model.passCode);
+                                Navigator.of(context).maybePop();
+                              },
+                              onValidate: (input) async {
+                                for (ITenant tenant in tenants) {
+                                  log(tenant.pin.toString(),
+                                      name: 'given pins');
+                                  if (input
+                                      .allMatches(tenant.pin.toString())
+                                      .isNotEmpty) {
+                                    model.passCode = input;
+                                    return true;
+                                  }
+                                  return false;
                                 }
-                                return false;
-                              }
-                              return true;
-                            },
-                          );
-                        }
-                      });
-                    } else if (snapshot.hasData &&
-                        snapshot.data!.sessionActive!) {
-                      model.passCode = snapshot.data!.pin.toString();
+                                return true;
+                              },
+                            );
+                          }
+                        });
+                      } else if (snapshot.hasData &&
+                          snapshot.data!.sessionActive!) {
+                        model.passCode = snapshot.data!.pin.toString();
 
-                      ///old code kept here for reference!
-                      // removeOverlay(_overlayEntry!);
-                    }
-                    return AppLayoutDrawer(
-                      controller: controller,
-                      tabSelected: tabselected,
-                      // model: model,
-                      focusNode: focusNode,
-                    );
-                  }),
+                        ///old code kept here for reference!
+                        // removeOverlay(_overlayEntry!);
+                      }
+                      return AppLayoutDrawer(
+                        controller: controller,
+                        tabSelected: tabselected,
+                        // model: model,
+                        focusNode: focusNode,
+                      );
+                    }),
+              ),
             ),
           );
         });

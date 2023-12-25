@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/sales_buttons_controller.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -13,6 +14,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'settings.dart';
+import 'tickets.dart';
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 // ignore: non_constant_identifier_names
@@ -27,10 +29,11 @@ Widget PaymentTicketManager(
     model: model,
     payable: PayableView(
       model: model,
-      onClick: () {
-        if (model.currentTransaction != null) {
-          _routerService.navigateTo(
-              PaymentsRoute(transaction: model.currentTransaction!));
+      onClick: () async {
+        final transaction = await ProxyService.isar
+            .manageTransaction(transactionType: TransactionType.custom);
+        if (transaction.subTotal == 0) {
+          _routerService.navigateTo(PaymentsRoute(transaction: transaction));
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
@@ -39,10 +42,23 @@ Widget PaymentTicketManager(
           );
         }
       },
-      duePay: model.currentTransaction?.subTotal,
       ticketHandler: () async {
-        ITransaction transaction = await ProxyService.isar.manageTransaction();
-        _routerService.navigateTo(TicketsRoute(transaction: transaction));
+        ITransaction transaction = await ProxyService.isar
+            .manageTransaction(transactionType: TransactionType.custom);
+        showModalBottomSheet(
+          backgroundColor: Colors.red,
+          context: context,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+          ),
+          useRootNavigator: true,
+          builder: (BuildContext context) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 20.0),
+              child: Tickets(transaction: transaction),
+            );
+          },
+        );
       },
     ),
     controller: controller,

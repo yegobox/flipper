@@ -49,8 +49,12 @@ mixin SharebleMethods {
     });
   }
 
-  Stream<List<TransactionItem>> transactionItemsStream() {
-    return Stream.fromFuture(ProxyService.isar.transactionItemsFuture())
+  Stream<List<TransactionItem>> transactionItemsStream(
+      {required ITransaction transaction}) {
+    return Stream.fromFuture(ProxyService.isar.transactionItems(
+            transactionId: transaction.id,
+            doneWithTransaction: false,
+            active: false))
         .asyncExpand((items) async* {
       yield items;
     });
@@ -61,6 +65,7 @@ mixin SharebleMethods {
     return Stream.fromFuture(
             ProxyService.isar.transactionsFuture(status: transactionStatus))
         .asyncExpand((items) async* {
+      // log(items.toString());
       yield items;
     });
   }

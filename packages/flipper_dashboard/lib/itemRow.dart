@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -39,21 +41,22 @@ class RowItem extends StatelessWidget {
   final Function edit;
   final Function enableNfc;
   final ProductViewModel model;
-  final List<Stock?> stocks;
+  final double stock;
   final Variant? variant;
   final Product? product;
   final bool? addFavoriteMode;
   final int? favIndex;
   final _routerService = locator<RouterService>();
-
+  final Function? addToMenu;
   RowItem({
     Key? key,
     required this.color,
     required this.name,
-    required this.stocks,
-    required this.delete,
-    required this.edit,
-    required this.enableNfc,
+    required this.stock,
+    this.addToMenu = _defaultFunction,
+    this.delete = _defaultFunction,
+    this.edit = _defaultFunction,
+    this.enableNfc = _defaultFunction,
     required this.model,
     this.imageUrl,
     this.variant,
@@ -61,6 +64,10 @@ class RowItem extends StatelessWidget {
     this.addFavoriteMode,
     this.favIndex,
   }) : super(key: key);
+
+  static _defaultFunction() {
+    print("no function provided for the action");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,19 +96,22 @@ class RowItem extends StatelessWidget {
                         style: const TextStyle(color: Colors.black),
                       ),
                       Text(
-                        _getStockText(),
+                        "${stock}",
                         style: const TextStyle(color: Colors.black),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(width: 10),
-                if (product != null) _buildPrices(),
+                _buildPrices(),
               ],
             ),
           ),
           startActionPane: _buildStartActionPane(),
-          endActionPane: _buildEndActionPane(),
+
+          /// when add to menu is given then we have one swiping option therefore
+          /// disable the bellow swipe
+          endActionPane: addToMenu == null ? null : _buildEndActionPane(),
         ),
       ],
     );
@@ -112,7 +122,7 @@ class RowItem extends StatelessWidget {
       width: 58,
       child: imageUrl?.isEmpty ?? true
           ? TextDrawable(
-              backgroundColor: HexColor(color),
+              backgroundColor: HexColor(color.isEmpty ? "#FF0000" : color),
               text: name,
               isTappable: true,
               onTap: null,
@@ -134,38 +144,33 @@ class RowItem extends StatelessWidget {
     );
   }
 
-  String _getStockText() {
-    return stocks.isNotEmpty
-        ? 'In stock: ${stocks.first!.currentStock}'
-        : 'In stock: 0.0';
-  }
-
   Widget _buildPrices() {
     return Container(
       width: 80,
-      child: StreamBuilder<List<Variant>>(
-        stream: ProxyService.isar.geVariantStreamByProductId(
-          productId: product!.id,
+      child: FutureBuilder<List<Variant>>(
+        future: ProxyService.isar.getVariantByProductId(
+          productId: product?.id ?? "0",
         ),
         builder: (context, snapshot) {
-          if (snapshot.data?.isNotEmpty == true && snapshot.data!.length > 1) {
-            return const Text(
-              ' Prices',
-              style: TextStyle(color: Colors.black),
-            );
-          } else {
-            if (stocks.isNotEmpty && stocks.first!.retailPrice != null) {
-              return Text(
-                'RWF ${stocks.first!.retailPrice}',
-                style: const TextStyle(color: Colors.black),
-              );
-            } else {
-              return const Text(
-                'RWF ',
-                style: TextStyle(color: Colors.black),
-              );
-            }
+          if (snapshot.hasError) {
+            return SizedBox.shrink();
           }
+
+          final variants = snapshot.data;
+
+          if (variant != null) {
+            return Text(
+              'RWF ${NumberFormat('#,###').format(variant!.retailPrice)}',
+              style: const TextStyle(color: Colors.black),
+            );
+          } else if (variants != null && variants.isNotEmpty) {
+            return Text(
+              'RWF ${NumberFormat('#,###').format(variants.first.retailPrice)}',
+              style: const TextStyle(color: Colors.black),
+            );
+          }
+
+          return SizedBox.shrink();
         },
       ),
     );
@@ -179,11 +184,15 @@ class RowItem extends StatelessWidget {
       children: [
         SlidableAction(
           onPressed: (_) {
-            delete(product?.id ?? variant?.id);
+            addToMenu == null
+                ? delete(product?.id ?? variant?.id)
+                : addToMenu!(product ?? variant);
           },
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,
-          icon: FluentIcons.delete_20_regular,
+          icon: addToMenu == null
+              ? FluentIcons.delete_20_regular
+              : FluentIcons.cart_24_regular,
           label: '',
         ),
         if (variant == null)
@@ -230,7 +239,7 @@ class RowItem extends StatelessWidget {
     );
   }
 
-  void onRowClick(BuildContext context) {
+  Future<void> onRowClick(BuildContext context) async {
     if (addFavoriteMode != null && addFavoriteMode == true) {
       String? position = positionString[favIndex!];
       showDialog(
@@ -271,30 +280,18 @@ class RowItem extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                    const Color(0xff006AFE),
-                  ),
-                  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.hovered)) {
-                        return Colors.blue.withOpacity(0.04);
-                      }
-                      if (states.contains(MaterialState.focused) ||
-                          states.contains(MaterialState.pressed)) {
-                        return Colors.blue.withOpacity(0.12);
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pop(false),
+                style: primaryButtonStyle,
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           );
         },
       );
     } else {
+      // copy variant.name to clipboard, handy tool when want to copy name for some use.
+      if (variant != null) {
+        await Clipboard.setData(ClipboardData(text: variant!.name));
+      }
       if (variant == null) {
         _routerService.navigateTo(SellRoute(product: product!));
       }

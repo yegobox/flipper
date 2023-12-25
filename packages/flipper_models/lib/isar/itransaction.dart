@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:pocketbase/pocketbase.dart';
@@ -42,7 +41,7 @@ class ITransaction extends IJsonSerializable {
   DateTime? deletedAt;
 
   // fields when a transaction is created for ordering system
-  int businessOwnerId;
+  int? supplierId;
 
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
@@ -66,7 +65,7 @@ class ITransaction extends IJsonSerializable {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
-    required this.businessOwnerId,
+    required this.supplierId,
     this.receiptType,
     this.updatedAt,
     this.customerId,
@@ -98,13 +97,17 @@ class ITransaction extends IJsonSerializable {
     return _$ITransactionFromJson(json);
   }
 
-  @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = _$ITransactionToJson(this);
-
-    data['businessPhoneNumber'] = ProxyService.box.getUserPhone();
-    data['businessId'] = ProxyService.box.getBusinessId();
-
-    return data;
+  // Add methods to check type
+  bool isIncome() {
+    return this.transactionType == "cashIn" ||
+        this == "sale" ||
+        this == "onlineSale";
   }
+
+  bool isExpense() {
+    return this.transactionType == "cashOut";
+  }
+
+  @override
+  Map<String, dynamic> toJson() => _$ITransactionToJson(this);
 }

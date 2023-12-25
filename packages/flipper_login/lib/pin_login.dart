@@ -95,7 +95,7 @@ class _PinLoginState extends State<PinLogin> {
                                                         .floating,
                                                     backgroundColor: Colors.red,
                                                     content: Text(
-                                                      "Could not login with this pin.",
+                                                      "Pin not found.",
                                                       style: primaryTextStyle,
                                                     ),
                                                   ),
@@ -104,26 +104,24 @@ class _PinLoginState extends State<PinLogin> {
                                                   is ErrorReadingFromYBServer) {
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
-                                                  const SnackBar(
+                                                  SnackBar(
                                                     width: 250,
                                                     behavior: SnackBarBehavior
                                                         .floating,
                                                     backgroundColor: Colors.red,
-                                                    content: Text(
-                                                        "Could not login with this pin."),
+                                                    content: Text(e.term),
                                                   ),
                                                 );
                                               } else {
                                                 log(e.toString());
                                                 ScaffoldMessenger.of(context)
                                                     .showSnackBar(
-                                                  const SnackBar(
+                                                  SnackBar(
                                                     width: 250,
                                                     behavior: SnackBarBehavior
                                                         .floating,
                                                     backgroundColor: Colors.red,
-                                                    content: Text(
-                                                        "Could not login with this pin."),
+                                                    content: Text(e.toString()),
                                                   ),
                                                 );
                                               }

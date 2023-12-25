@@ -4,10 +4,8 @@ description: >
 version: 1.0.3
 repository: https://github.com/yegobox/packages
 
-
 environment:
   sdk: ">=3.0.0"
-
 
 dependencies:
   flutter:
@@ -24,4 +22,4 @@ dependencies:
       path: plugins/window_size
       ref: 6c66ad23ee79749f30a8eece542cf54eaf157ed8
 dependency_overrides:
-  http: ^1.1.0
+  http: ^1.1.2
