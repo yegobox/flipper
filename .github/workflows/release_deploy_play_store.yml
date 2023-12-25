@@ -122,7 +122,6 @@ jobs:
           git config --global user.name "YEGOBOX"
           git config --global credential.helper store
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
