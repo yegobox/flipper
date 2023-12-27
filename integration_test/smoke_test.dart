@@ -114,10 +114,8 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 2)); // Wait some time
-
     // Verify that our counter starts at 0.
-    expect(find.text('A revolutionary business software ...'), findsOneWidget);
+    expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
 
     // Test additional functionality...
   });
