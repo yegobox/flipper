@@ -6,6 +6,7 @@ import 'package:flipper_models/RealmSync.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/marketing.dart';
+import 'package:flipper_models/mocks/isarApiMock.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -25,6 +26,7 @@ import 'package:flipper_services/in_app_review.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/mobile_upload.dart';
+import 'package:flipper_services/mocks/SharedPreferenceStorageMock.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/remote_config_service.dart';
@@ -216,16 +218,6 @@ abstract class ServicesModule {
   @LazySingleton()
   KeyPadService get keypadService;
 
-  @preResolve
-  Future<LocalStorage> get box async {
-    // return await SharedPreferenceStorage().initializePreferences();
-    if (isWeb) {
-      return BoxStorage();
-    } else {
-      return await SharedPreferenceStorage().initializePreferences();
-    }
-  }
-
   @LazySingleton()
   Status get status {
     late Status status;
@@ -246,6 +238,20 @@ abstract class ServicesModule {
   @LazySingleton()
   SentryServiceInterface sentry() {
     return SentryService();
+  }
+
+  @preResolve
+  Future<LocalStorage> get box async {
+    if ((const bool.fromEnvironment('Test', defaultValue: false) == false) &&
+        !kDebugMode) {
+      if (isWeb) {
+        return BoxStorage();
+      } else {
+        return await SharedPreferenceStorage().initializePreferences();
+      }
+    } else {
+      return await SharedPreferenceStorageMock().initializePreferences();
+    }
   }
 
   @preResolve
@@ -289,7 +295,7 @@ abstract class ServicesModule {
 
       /// removed iisar: isar bellow will add it back when we have a test relying on isar database
       // return await FakeApi().getInstance();
-      return await IsarAPI().getInstance();
+      return await IsarAPIMock().getInstance();
     }
   }
 
