@@ -218,3 +218,11 @@ class App {}
 // TODO:Flipper pitch https://www.mongodb.com/blog/post/how-enhance-inventory-management-real-time-data-strategies?utm_campaign=realtimedata&utm_source=youtube&utm_medium=organic_social
 // TODO:https://www.mongodb.com/developer/products/atlas/build-inventory-management-system-using-mongodb-atlas/?utm_campaign=inventorymgmt&utm_source=youtube&utm_medium=organic_social
 //TODO: https://github.com/mongodb-industry-solutions/Inventory_mgmt
+//TODO: thing to consider when building entreprise dashboard https://ui.shadcn.com/docs/installation/laravel
+// TODO: https://www.youtube.com/watch?v=G7lZBKFFnls
+// TODO: colapsible sidebar https://github.com/DrunkOnBytes/flutter_collapsible_sidebar
+// https://pub.dev/packages/sidebarx
+// https://medevel.com/flutter-17-ui/
+// https://pub.dev/packages/awesome_snackbar_content
+// https://pub.dev/packages/responsive_framework
+// https://pub.dev/packages/timelines

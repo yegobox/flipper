@@ -37,9 +37,11 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             .subscribeLoginEvent(channel: loginCode.split('-')[1]);
 
         Future.delayed(const Duration(seconds: 10)).then((_) {
-          setState(() {
-            switchToPinLogin = true;
-          });
+          if (mounted) {
+            setState(() {
+              switchToPinLogin = true;
+            });
+          }
         });
       },
       builder: (context, model, child) {

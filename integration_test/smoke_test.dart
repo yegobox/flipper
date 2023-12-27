@@ -2,29 +2,41 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flipper_models/mocks/isarApiMock.dart';
 import 'package:flipper_rw/StateObserver.dart';
+import 'package:flipper_rw/firebase_options.dart';
 import 'package:flipper_rw/flipper_localize/lib/flipper_localize.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:flipper_rw/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
-import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_dashboard/startup_view.dart'; // Import the relevant file
+// Import the relevant file
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
 import 'package:nock/nock.dart';
 import 'package:overlay_support/overlay_support.dart';
+
+import 'package:integration_test/integration_test.dart';
+import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
+
+import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 // https://stackoverflow.com/questions/69248403/flutter-widget-testing-with-httpclient
 //https://pub.dev/packages/nock
 //https://github.com/nock/nock?tab=readme-ov-file#how-does-it-work
 //https://designer.mocky.io/
+//flutter test -d windows integration_test/smoke_test.dart
 void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   // Mock the HTTP client at the ViewModel level
   setUpAll(nock.init);
 
@@ -37,6 +49,20 @@ void main() {
     setupDialogUi();
     setupBottomSheetUi();
     loc.locator.registerLazySingleton(() => IsarAPIMock());
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    if (isAndroid || isIos && !isWeb) {
+      await NotificationsCubit.initialize(
+        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
+      );
+    }
+
+    HttpOverrides.global = MyHttpOverrides();
+    ByteData data =
+        await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
+    SecurityContext.defaultContext
+        .setTrustedCertificatesBytes(data.buffer.asUint8List());
   });
 
   testWidgets('App start and runs', (WidgetTester tester) async {
@@ -87,6 +113,8 @@ void main() {
         ),
       ),
     ));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 2)); // Wait some time
 
     // Verify that our counter starts at 0.
     expect(find.text('A revolutionary business software ...'), findsOneWidget);

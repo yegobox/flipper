@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.1176879448084+1703674260
+version: 1.170.1178583122345+1703680462
 
 #......
 # The packages below are just refrences for what packages being used
@@ -105,12 +105,13 @@ dev_dependencies:
   riverpod_lint: ^2.3.7
   mockito: ^5.4.2
   test:
+  flutter_test:
+    sdk: flutter
   integration_test:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  flutter_test:
-    sdk: flutter
+  
 dependency_overrides:
   http: ^1.1.2
 flutter_launcher_icons:
@@ -142,7 +143,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.247.0
+  msix_version: 1.170.248.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

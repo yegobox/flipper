@@ -620,9 +620,8 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<void> logOut() {
-    // TODO: implement logOut
-    throw UnimplementedError();
+  Future<void> logOut() async {
+    /// mock this function
   }
 
   @override

@@ -27,20 +27,17 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   int? getBranchId() {
-    // TODO: implement getBranchId
-    throw UnimplementedError();
+    return null;
   }
 
   @override
   int? getBusinessId() {
-    // TODO: implement getBusinessId
-    throw UnimplementedError();
+    return null;
   }
 
   @override
   String getDefaultApp() {
-    // TODO: implement getDefaultApp
-    throw UnimplementedError();
+    return "1";
   }
 
   @override
