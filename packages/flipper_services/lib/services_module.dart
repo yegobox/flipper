@@ -74,7 +74,7 @@ abstract class ServicesModule {
 
   @preResolve
   Future<HttpClientInterface> get httpClient async {
-    if ((const bool.fromEnvironment('Test', defaultValue: false) == false)) {
+    if ((const bool.fromEnvironment('Test') == true)) {
       return MockHttpClient();
     } else {
       return FlipperHttpClient(http.Client());
@@ -242,8 +242,7 @@ abstract class ServicesModule {
 
   @preResolve
   Future<LocalStorage> get box async {
-    if ((const bool.fromEnvironment('Test', defaultValue: false) == false) &&
-        !kDebugMode) {
+    if ((const bool.fromEnvironment('Test') == true)) {
       if (isWeb) {
         return BoxStorage();
       } else {
@@ -258,44 +257,13 @@ abstract class ServicesModule {
   @LazySingleton()
   Future<IsarApiInterface> isarApi() async {
     //first check if we are in testing mode.
-    if ((const bool.fromEnvironment('Test', defaultValue: false) == false) &&
-        !kDebugMode) {
-      log('in prod mode');
-      return await IsarAPI().getInstance();
-    } else {
+    if ((const bool.fromEnvironment('Test') == true)) {
       log("in test mode");
-      // late Isar isar;
-      // isar = await openTempIsar([
-      //   OrderSchema,
-      //   BusinessSchema,
-      //   BranchSchema,
-      //   OrderItemSchema,
-      //   ProductSchema,
-      //   VariantSchema,
-      //   ProfileSchema,
-      //   SubscriptionSchema,
-      //   IPointSchema,
-      //   StockSchema,
-      //   FeatureSchema,
-      //   VoucherSchema,
-      //   PColorSchema,
-      //   CategorySchema,
-      //   IUnitSchema,
-      //   SettingSchema,
-      //   DiscountSchema,
-      //   CustomerSchema,
-      //   PinSchema,
-      //   ReceiptSchema,
-      //   DrawersSchema,
-      //   ITenantSchema,
-      //   PermissionSchema,
-      //   CounterSchema,
-      //   TokenSchema
-      // ]);
-
-      /// removed iisar: isar bellow will add it back when we have a test relying on isar database
-      // return await FakeApi().getInstance();
       return await IsarAPIMock().getInstance();
+    } else {
+      log('in prod mode');
+
+      return await IsarAPI().getInstance();
     }
   }
 
