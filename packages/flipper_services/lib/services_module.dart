@@ -36,7 +36,6 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'WindowLocationService.dart';
@@ -241,15 +240,12 @@ abstract class ServicesModule {
   }
 
   @preResolve
+  @LazySingleton()
   Future<LocalStorage> get box async {
     if ((const bool.fromEnvironment('Test') == true)) {
-      if (isWeb) {
-        return BoxStorage();
-      } else {
-        return await SharedPreferenceStorage().initializePreferences();
-      }
-    } else {
       return await SharedPreferenceStorageMock().initializePreferences();
+    } else {
+      return await SharedPreferenceStorage().initializePreferences();
     }
   }
 

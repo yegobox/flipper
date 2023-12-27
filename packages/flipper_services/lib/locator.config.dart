@@ -81,7 +81,7 @@ extension GetItInjectableX on _i1.GetIt {
     gh.lazySingleton<_i15.KeyPadService>(() => servicesModule.keypadService);
     gh.lazySingleton<_i16.LNotification>(() => servicesModule.notification);
     gh.lazySingleton<_i17.Language>(() => servicesModule.languageService);
-    await gh.factoryAsync<_i18.LocalStorage>(
+    await gh.lazySingletonAsync<_i18.LocalStorage>(
       () => servicesModule.box,
       preResolve: true,
     );
