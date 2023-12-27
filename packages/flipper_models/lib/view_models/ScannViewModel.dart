@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';

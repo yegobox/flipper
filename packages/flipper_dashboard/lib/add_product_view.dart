@@ -65,7 +65,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         // Start locking the save button.
         widget.productId == null
             ? model.setName(name: ' ')
-            : model.product?.name;
+            : ref.read(productProvider)?.name;
 
         // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
@@ -134,13 +134,13 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                 await model.updateRegularVariant(
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
-                    productId: model.product?.id);
+                    productId: ref.read(productProvider)?.id);
 
                 await model.updateRegularVariant(
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
-                    productId: model.product?.id);
+                    productId: ref.read(productProvider)?.id);
 
                 _routerService.clearStackAndShow(CheckOutRoute(
                   isBigScreen: false,
@@ -158,11 +158,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     key: _sub,
                     child: Column(children: <Widget>[
                       verticalSpaceSmall,
-                      model.product == null
+                      ref.read(productProvider) == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: ref.watch(productProvider)!.color,
-                              product: model.product,
+                              currentColor: ref.read(productProvider)!.color,
+                              product: ref.read(productProvider),
                             ),
                       Text(
                         'Product',
@@ -203,10 +203,10 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       const CenterDivider(
                         width: double.infinity,
                       ),
-                      model.product == null
+                      ref.read(productProvider) == null
                           ? const SizedBox.shrink()
                           : SectionSelectUnit(
-                              product: model.product!,
+                              product: ref.read(productProvider)!,
                               type: 'product',
                             ),
                       verticalSpaceSmall,
@@ -221,7 +221,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               model.lockButton(false);
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
-                                  productId: model.product?.id);
+                                  productId: ref.read(productProvider)?.id);
                             } else {
                               model.lockButton(true);
                             }
@@ -240,7 +240,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             if (parsedValue != null) {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
-                                  productId: model.product?.id);
+                                  productId: ref.read(productProvider)?.id);
                             } else {
                               return '.';
                             }
@@ -254,13 +254,17 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                           width: double.infinity,
                           child: TextButton(
                             child: Text(
-                                (model.product == null ||
-                                        (model.product != null &&
-                                            model.product!.expiryDate == null))
+                                (ref.read(productProvider) == null ||
+                                        (ref.read(productProvider) != null &&
+                                            ref
+                                                    .read(productProvider)!
+                                                    .expiryDate ==
+                                                null))
                                     ? 'Expiry Date'
                                     : 'Expires at ' +
-                                        formatter.format(DateTime.tryParse(
-                                                model.product!.expiryDate!) ??
+                                        formatter.format(DateTime.tryParse(ref
+                                                .read(productProvider)!
+                                                .expiryDate!) ??
                                             DateTime.now()),
                                 style: GoogleFonts.poppins(
                                   fontSize: 16.0,
@@ -304,7 +308,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       verticalSpaceSmall,
                       StreamBuilder<List<Variant>>(
                         stream: ProxyService.isar.geVariantStreamByProductId(
-                            productId: model.product?.id ?? '0'),
+                            productId: ref.read(productProvider)?.id ?? '0'),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -344,7 +348,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: model.product!.id);
+                                  productId: ref.read(productProvider)!.id);
                             },
                           ),
                         ),
