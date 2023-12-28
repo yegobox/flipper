@@ -99,6 +99,8 @@ dependencies:
   swipe_to_complete: ^0.0.1
   badges: ^3.1.2
   community_charts_flutter: ^1.0.2
+  fluent_ui: ^4.8.2
+  dropdown_search: ^5.0.6
 dependency_overrides:
   http: ^1.1.2
 flutter:

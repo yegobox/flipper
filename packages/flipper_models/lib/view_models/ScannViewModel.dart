@@ -46,7 +46,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
         sku: variantName,
         productId: product.id,
         color: currentColor,
-        unit: 'item',
+        unit: 'Per Item',
         productName: productName ?? product.name,
         branchId: branchId,
         supplyPrice: supplyPrice,
@@ -130,5 +130,21 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
 
     scannedVariants.clear();
     notifyListeners();
+  }
+
+  void updateVariantUnit(String id, String? selectedUnit) {
+    try {
+      // Find the variant with the specified id
+      Variant variant =
+          scannedVariants.firstWhere((variant) => variant.id == id);
+
+      // If the variant is found, update its unit
+      variant.unit =
+          selectedUnit ?? 'Per Item'; // Default value if selectedUnit is null
+      notifyListeners();
+    } catch (e) {
+      // Handle the exception if the variant is not found
+      print('Variant with ID $id not found.');
+    }
   }
 }

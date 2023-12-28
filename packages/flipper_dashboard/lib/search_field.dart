@@ -188,7 +188,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
 
   void _handleAddProduct() {
     showDialog(
-      barrierDismissible: false,
+      barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
         child: isDesktopOrWeb ? ProductEntryScreen() : AddProductButtons(),

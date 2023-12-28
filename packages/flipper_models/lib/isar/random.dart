@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flipper_models/hash/flipperId.dart';
+
 ///In this case, the function generates a string of length 15 using
 ///letters and digits, which means there are a total of 36 possible
 ///characters for each position in the string. Therefore, the total
@@ -18,11 +20,18 @@ import 'dart:math';
 /// if the function is called 100,000 times, the probability of generating
 /// the same string twice is approximately 1 in 10^12, which is a very low probability.
 
+//  final hexString = FlipperId().hexString;
+//   return hexString.substring(0, 14) + Random().nextInt(10).toString();
 String randomString() {
   final random = Random();
-  const chars = '123defghijklmnopqrstuvwxyz0123456789';
-  return String.fromCharCodes(Iterable.generate(
+  String chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' +
+          DateTime.now().microsecondsSinceEpoch.toString();
+  String s = String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
+
+  print('Generated string: $s');
+  return s;
 }
 
 int randomNumber() {
@@ -35,6 +44,6 @@ int randomNumber() {
     }
     number = number + digit.toString();
   }
-  print('Generated string: $number');
+  print('Generated number: $number');
   return int.parse(number);
 }

@@ -433,3 +433,18 @@ final transactionsStreamProvider =
   // Return the stream
   return transactionsStream;
 });
+
+final unitsProvider =
+    FutureProvider.autoDispose<AsyncValue<List<IUnit>>>((ref) async {
+  try {
+    final branchId = ProxyService.box.getBranchId()!;
+
+    // Check if units are already present in the database
+    final existingUnits = await ProxyService.isar.units(branchId: branchId);
+
+    return AsyncData(existingUnits);
+  } catch (error) {
+    // Return AsyncError with error and stack trace
+    return AsyncError(error, StackTrace.current);
+  }
+});

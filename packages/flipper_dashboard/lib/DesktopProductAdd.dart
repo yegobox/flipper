@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dropdown_search/dropdown_search.dart';
 
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -173,6 +174,49 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       onDialogClosed();
       return true;
     });
+  }
+
+  Widget _buildUnitDropdown(
+      BuildContext context, Variant variant, ScannViewModel model) {
+    final unitsAsyncValue = ref.watch(unitsProvider);
+
+    return unitsAsyncValue.when(
+      data: (units) {
+        return Container(
+          width: double.infinity, // Adjust the width as needed
+          child: DropdownSearch<String>(
+            items: units.asData!.value.map((unit) => unit.name).toList(),
+            selectedItem: variant.unit,
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+              ),
+            ),
+            popupProps: PopupPropsMultiSelection.modalBottomSheet(
+              isFilterOnline: true,
+              showSelectedItems: true,
+              showSearchBox: true,
+              searchFieldProps: TextFieldProps(
+                  decoration: InputDecoration(border: OutlineInputBorder())),
+              modalBottomSheetProps: ModalBottomSheetProps(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            onChanged: (selectedUnit) {
+              // Update the unit in your model or wherever you store it
+              model.updateVariantUnit(variant.id, selectedUnit!);
+            },
+          ),
+        );
+      },
+      loading: () =>
+          const CircularProgressIndicator(), // Show a loading indicator
+      error: (error, stackTrace) =>
+          Text('Error: $error'), // Show an error message
+    );
   }
 
   @override
@@ -414,42 +458,42 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 DataColumn(label: Text('Price')),
                                 DataColumn(label: Text('Created At')),
                                 DataColumn(label: Text('Quantity')),
+                                DataColumn(label: Text('Unit of Measure')),
                                 DataColumn(label: Text('Action')),
                               ],
                               rows:
                                   model.scannedVariants.reversed.map((variant) {
                                 return DataRow(cells: [
                                   DataCell(Text(variant.name)),
+                                  DataCell(Text(
+                                      variant.retailPrice.toStringAsFixed(2))),
                                   DataCell(
                                     Text(
-                                        variant.retailPrice.toStringAsFixed(2)),
+                                      variant.lastTouched == null
+                                          ? ''
+                                          : variant.lastTouched!
+                                              .toUtc()
+                                              .toIso8601String(),
+                                    ),
                                   ),
                                   DataCell(
-                                    Text(variant.lastTouched == null
-                                        ? ''
-                                        : variant.lastTouched!
-                                            .toUtc()
-                                            .toIso8601String()),
-                                  ),
-                                  DataCell(
-                                    // Custom widget for displaying and editing quantity
                                     QuantityCell(
                                       quantity: variant.qty,
                                       onEdit: () {
-                                        // Add your logic for editing the quantity here
-                                        // You may use a dialog or another UI element for editing
                                         _showEditQuantityDialog(
                                           context,
                                           variant,
                                           model,
                                           () {
-                                            // Callback to regain focus on TextFormField
                                             FocusScope.of(context).requestFocus(
                                                 scannedInputFocusNode);
                                           },
                                         );
                                       },
                                     ),
+                                  ),
+                                  DataCell(
+                                    _buildUnitDropdown(context, variant, model),
                                   ),
                                   DataCell(
                                     ElevatedButton(

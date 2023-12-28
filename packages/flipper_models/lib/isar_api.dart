@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'dart:convert';
@@ -1712,8 +1713,22 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {
+   
+    final existingUnits = await db.read(
+      (isar) => isar.iUnits.where().branchIdEqualTo(branchId).findAll(),
+    );
+
+    // If units are already present, return them
+    if (existingUnits.isNotEmpty) {
+      return existingUnits;
+    }
+
+    // If units are not present, add them and return the added units
+    await addUnits(units: mockUnits);
+
     return db.read(
-        (isar) => isar.iUnits.where().branchIdEqualTo(branchId).findAll());
+      (isar) => isar.iUnits.where().branchIdEqualTo(branchId).findAll(),
+    );
   }
 
   @override
