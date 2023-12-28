@@ -43,10 +43,11 @@ class CronService {
   Future<void> schedule() async {
     await _setupFirebase();
     await _setupRealm();
-    if (!isWeb) {
-      ProxyService.realm.pull();
-    }
+
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
+      if (!isWeb) {
+        ProxyService.realm.pull();
+      }
       await _syncPushData();
     });
 
