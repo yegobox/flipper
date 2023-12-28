@@ -39,18 +39,49 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   int tabselected = 0;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();
+  List<LogicalKeyboardKey> keys = [];
 
-  Future<void> _disableScreenshots() async {
+  @override
+  void initState() {
+    super.initState();
+    _initLogic();
+  }
+
+  void _initLogic() {
+    _disableScreenshots();
+    _startNFC();
+    initializeApplicationIfRequired();
+    _requestPermissions();
+  }
+
+  Future<void> _startNFC() async {
+    if (!isDesktopOrWeb &&
+        (isAndroid || isIos) &&
+        await NfcManager.instance.isAvailable()) {
+      AppService().nfc.stopNfc();
+      AppService().nfc.startNFC(
+            callback: (nfcData) {
+              AppService.cleanedDataController
+                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+            },
+            textData: "",
+            write: false,
+          );
+    }
+  }
+
+  void _disableScreenshots() async {
     if (!kDebugMode && !isDesktopOrWeb) {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    if (isAndroid && ProxyService.remoteConfig.enableTakingScreenShoot()) {
-      _disableScreenshots();
+  void _requestPermissions() async {
+    if (!isWindows) {
+      await [
+        permission.Permission.storage,
+        permission.Permission.manageExternalStorage
+      ].request();
     }
   }
 
@@ -60,39 +91,27 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     super.dispose();
   }
 
-  Future<void> nfc() async {
-    if (!isDesktopOrWeb) {
-      if ((isAndroid || isIos) && await NfcManager.instance.isAvailable()) {
-        // This code will run every 1 second while the app is in the foreground
-        AppService().nfc.stopNfc();
-        AppService().nfc.startNFC(
-              callback: (nfcData) {
-                AppService.cleanedDataController
-                    .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-              },
-              textData: "",
-              write: false,
-            );
-      }
-    }
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
-      // AppLifecycleState.
       case AppLifecycleState.resumed:
-        nfc();
-        ProxyService.sync.push();
+        _handleResumedState();
         break;
       case AppLifecycleState.paused:
-        // AppService.cleanedDataController.close();
-        ProxyService.sync.push();
+        _handlePausedState();
         break;
       default:
         ProxyService.sync.push();
         break;
     }
+  }
+
+  void _handleResumedState() {
+    ProxyService.sync.push();
+  }
+
+  void _handlePausedState() {
+    ProxyService.sync.push();
   }
 
   void initializeApplicationIfRequired() {
@@ -103,177 +122,193 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     }
   }
 
-  List<LogicalKeyboardKey> keys = [];
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
-        // fireOnViewModelReadyOnce: true,
-        viewModelBuilder: () => CoreViewModel(),
-        onViewModelReady: (model) async {
-          final currentTransaction =
-              ref.watch(pendingTransactionProvider(TransactionType.custom));
-          ref.refresh(
-              transactionItemsProvider(currentTransaction.value?.value?.id));
-          initializeApplicationIfRequired();
-          //get default tenant
-          model.defaultTenant();
-          ProxyService.isar.refreshSession(
-              branchId: ProxyService.box.getBranchId()!,
-              refreshRate: kDebugMode
-                  ? 10
-                  : ProxyService.remoteConfig.sessionTimeOutMinutes());
+      viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) async {
+        _viewModelReadyLogic(model);
+      },
+      builder: (context, model, child) {
+        return _buildScaffold(context, model);
+      },
+    );
+  }
 
-          /// if there is current order ongoing show them when the app starts
-          ProxyService.dynamicLink.handleDynamicLink(context);
-          if (isAndroid || isIos) {
-            AppService().nfc.startNFC(
-                  callback: (nfcData) {
-                    AppService.cleanedDataController.add(
-                        nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-                  },
-                  textData: "",
-                  write: false,
-                );
-            AppService.cleanedData.listen((data) async {
-              log("listened to data");
-              final pendingTransaction =
-                  ref.watch(pendingTransactionProvider(TransactionType.custom));
-              log(data);
-              List<String> parts = data.split(':');
-              String firstPart = parts[0];
+  void _viewModelReadyLogic(CoreViewModel model) {
+    final currentTransaction =
+        ref.watch(pendingTransactionProvider(TransactionType.custom));
+    ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
+    initializeApplicationIfRequired();
+    model.defaultTenant();
+    ProxyService.isar.refreshSession(
+      branchId: ProxyService.box.getBranchId()!,
+      refreshRate:
+          kDebugMode ? 10 : ProxyService.remoteConfig.sessionTimeOutMinutes(),
+    );
 
-              await model.sellWithCard(
-                  tenantId: int.parse(firstPart),
-                  pendingTransaction: pendingTransaction.value!.value!);
-              showToast(context, 'Sale recorded successfully.');
-            });
-          }
+    ProxyService.dynamicLink.handleDynamicLink(context);
 
-          model.loadReport();
-          if (!isWindows) {
-            await [
-              permission.Permission.storage,
-              permission.Permission.manageExternalStorage
-            ].request();
-          }
+    if ((isAndroid || isIos)) {
+      _startNFCForModel(model);
+    }
+
+    model.loadReport();
+
+    if (!isWindows) {
+      _requestStoragePermissions();
+    }
+  }
+
+  void _startNFCForModel(CoreViewModel model) {
+    AppService().nfc.startNFC(
+          callback: (nfcData) {
+            AppService.cleanedDataController
+                .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+          },
+          textData: "",
+          write: false,
+        );
+
+    AppService.cleanedData.listen((data) async {
+      log("listened to data");
+      final pendingTransaction =
+          ref.watch(pendingTransactionProvider(TransactionType.custom));
+      log(data);
+      List<String> parts = data.split(':');
+      String firstPart = parts[0];
+
+      await model.sellWithCard(
+        tenantId: int.parse(firstPart),
+        pendingTransaction: pendingTransaction.value!.value!,
+      );
+
+      showToast(context, 'Sale recorded successfully.');
+    });
+  }
+
+  void _requestStoragePermissions() async {
+    await [
+      permission.Permission.storage,
+      permission.Permission.manageExternalStorage
+    ].request();
+  }
+
+  Widget _buildScaffold(BuildContext context, CoreViewModel model) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (bool didPop) {
+        if (didPop) {
+          return;
+        }
+      },
+      child: RawKeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKey: (event) {
+          _handleKeyEvent(model, event);
         },
-        builder: (context, model, child) {
-          return PopScope(
-            canPop: false,
-            onPopInvoked: (bool didPop) {
-              if (didPop) {
-                return;
-              }
+        child: Scaffold(
+          appBar: _buildAppBar(),
+          body: StreamBuilder<ITenant?>(
+            stream: ProxyService.isar
+                .authState(branchId: ProxyService.box.getBranchId() ?? 0),
+            builder: (context, snapshot) {
+              return _buildAppLayoutDrawer(context, model, snapshot);
             },
-            child: RawKeyboardListener(
-              focusNode: FocusNode(),
-              autofocus: true,
-              onKey: (event) {
-                final key = event.logicalKey;
-                if (event is RawKeyDownEvent) {
-                  if (keys.contains(key)) return;
-                  setState(() {
-                    keys.add(key);
-                  });
-                  return model.handleKeyBoardEvents(event: event);
-                } else {
-                  setState(() {
-                    keys.remove(key);
-                  });
-                }
-              },
-              child: Scaffold(
-                appBar: AppBar(
-                  title: Center(
-                      child: Text(
-                    ProxyService.status.statusText.value ?? "",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.w300,
-                      color: Colors.white,
-                    ),
-                  )),
-                  backgroundColor: ProxyService.status.statusColor.value,
-                  automaticallyImplyLeading: false,
-                  toolbarHeight:
-                      ProxyService.status.statusText.value?.isNotEmpty == true
-                          ? 25
-                          : 0,
-                ),
-                body: StreamBuilder<ITenant?>(
-                    stream: ProxyService.isar.authState(
-                      branchId: ProxyService.box.getBranchId() ?? 0,
-                    ),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData &&
-                          !(snapshot.data!.sessionActive == null
-                              ? false
-                              : snapshot.data!.sessionActive!)) {
-                        SchedulerBinding.instance
-                            .addPostFrameCallback((_) async {
-                          // removeOverlay(_overlayEntry!);
-                          if (ProxyService.remoteConfig
-                                  .isLocalAuthAvailable() &&
+          ),
+        ),
+      ),
+    );
+  }
 
-                              /// this is to ensure that it will not prompt the pin for a user who did not set the pin
-                              (snapshot.data!.pin != null &&
-                                  snapshot.data!.pin != 0)) {
-                            /// the bellow commented line worked before very well
-                            // _overlayEntry = insertOverlay(context: context, model: model);
-                            /// we have a returning user that want to login using the pin set
-                            List<ITenant> tenants = await ProxyService.isar
-                                .tenants(
-                                    businessId:
-                                        ProxyService.box.getBusinessId()!);
-                            screenLock(
-                              context: context,
-                              correctString: model.passCode,
-                              canCancel: false,
-                              // inputController: ,
-                              onUnlocked: () async {
-                                log('onUnlocked');
-                                ITenant? tenant = await ProxyService.isar
-                                    .getTenantBYPin(
-                                        pin: int.tryParse(model.passCode) ?? 0);
-                                model.weakUp(
-                                    userId: tenant!.userId,
-                                    pin: model.passCode);
-                                Navigator.of(context).maybePop();
-                              },
-                              onValidate: (input) async {
-                                for (ITenant tenant in tenants) {
-                                  log(tenant.pin.toString(),
-                                      name: 'given pins');
-                                  if (input
-                                      .allMatches(tenant.pin.toString())
-                                      .isNotEmpty) {
-                                    model.passCode = input;
-                                    return true;
-                                  }
-                                  return false;
-                                }
-                                return true;
-                              },
-                            );
-                          }
-                        });
-                      } else if (snapshot.hasData &&
-                          snapshot.data!.sessionActive!) {
-                        model.passCode = snapshot.data!.pin.toString();
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Center(
+        child: Text(
+          ProxyService.status.statusText.value ?? "",
+          style: GoogleFonts.poppins(
+            fontSize: 16.0,
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      backgroundColor: ProxyService.status.statusColor.value,
+      automaticallyImplyLeading: false,
+      toolbarHeight:
+          ProxyService.status.statusText.value?.isNotEmpty == true ? 25 : 0,
+    );
+  }
 
-                        ///old code kept here for reference!
-                        // removeOverlay(_overlayEntry!);
-                      }
-                      return AppLayoutDrawer(
-                        controller: controller,
-                        tabSelected: tabselected,
-                        // model: model,
-                        focusNode: focusNode,
-                      );
-                    }),
-              ),
-            ),
-          );
-        });
+  Widget _buildAppLayoutDrawer(BuildContext context, CoreViewModel model,
+      AsyncSnapshot<ITenant?> snapshot) {
+    if (snapshot.hasData &&
+        !(snapshot.data!.sessionActive == null
+            ? false
+            : snapshot.data!.sessionActive!)) {
+      _handleSessionInactive(context, model, snapshot.data!);
+    } else if (snapshot.hasData && snapshot.data!.sessionActive!) {
+      model.passCode = snapshot.data!.pin.toString();
+    }
+
+    return AppLayoutDrawer(
+      controller: controller,
+      tabSelected: tabselected,
+      focusNode: focusNode,
+    );
+  }
+
+  void _handleSessionInactive(
+      BuildContext context, CoreViewModel model, ITenant tenant) {
+    SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
+          (tenant.pin != null && tenant.pin != 0)) {
+        _showLocalAuthOverlay(context, model);
+      }
+    });
+  }
+
+  Future<void> _showLocalAuthOverlay(
+      BuildContext context, CoreViewModel model) async {
+    List<ITenant> tenants = await ProxyService.isar
+        .tenants(businessId: ProxyService.box.getBusinessId()!);
+    screenLock(
+      context: context,
+      correctString: model.passCode,
+      canCancel: false,
+      onUnlocked: () async {
+        ITenant? tenant = await ProxyService.isar
+            .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
+        model.weakUp(userId: tenant!.userId, pin: model.passCode);
+        Navigator.of(context).maybePop();
+      },
+      onValidate: (input) async {
+        for (ITenant tenant in tenants) {
+          log(tenant.pin.toString(), name: 'given pins');
+          if (input.allMatches(tenant.pin.toString()).isNotEmpty) {
+            model.passCode = input;
+            return true;
+          }
+          return false;
+        }
+        return true;
+      },
+    );
+  }
+
+  void _handleKeyEvent(CoreViewModel model, RawKeyEvent event) {
+    final key = event.logicalKey;
+    if (event is RawKeyDownEvent) {
+      if (keys.contains(key)) return;
+      setState(() {
+        keys.add(key);
+      });
+      model.handleKeyBoardEvents(event: event);
+    } else {
+      setState(() {
+        keys.remove(key);
+      });
+    }
   }
 }
