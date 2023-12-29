@@ -360,12 +360,13 @@ class IsarAPI<M> implements IsarApiInterface {
     int branchId = ProxyService.box.getBranchId()!;
     db.write((isar) {
       for (Map map in units) {
-        final unit = IUnit()
-          ..active = map['active']
-          ..value = map['value']
-          ..id = randomString()
-          ..name = map['name']
-          ..branchId = branchId;
+        final unit = IUnit(
+            active: map['active'],
+            branchId: branchId,
+            id: randomString(),
+            name: map['name'],
+            value: map['value']);
+
         // save unit to db
         isar.iUnits.put(unit);
       }
@@ -1485,7 +1486,7 @@ class IsarAPI<M> implements IsarApiInterface {
         key: 'userId',
         value: user.id,
       );
-      recordUserActivity(userId: user.id, activity: 'login');
+
       if (user.tenants.isEmpty) {
         throw BusinessNotFoundException(
             term:
@@ -1713,7 +1714,6 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<IUnit>> units({required int branchId}) async {
-   
     final existingUnits = await db.read(
       (isar) => isar.iUnits.where().branchIdEqualTo(branchId).findAll(),
     );
@@ -1734,8 +1734,6 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<T?> create<T>({required T data}) async {
     /// update user activity model
-    int userId = ProxyService.box.getUserId()!;
-    recordUserActivity(userId: userId, activity: 'create');
 
     /// end with updating user activity
     if (data is Conversation) {
@@ -1850,7 +1848,6 @@ class IsarAPI<M> implements IsarApiInterface {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
-    recordUserActivity(userId: userId, activity: 'create');
 
     /// end updating user activity
     // int branchId = ProxyService.box.getBranchId()!;

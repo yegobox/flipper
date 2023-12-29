@@ -26,6 +26,7 @@ extension ColorExtension on Color {
 }
 
 extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
+  OBJ? onGet(ID id) => getAll([id]).firstOrNull;
   void onPut(OBJ object) {
     put(object);
 
@@ -53,6 +54,9 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
       if (object is Drawers) {
         ProxyService.syncFirestore.onSave<Drawers>(item: object);
       }
+      if (object is IUnit) {
+        ProxyService.syncFirestore.onSave<IUnit>(item: object);
+      }
     }
     if (object is TransactionItem) {
       ProxyService.realm.onSave<TransactionItem>(item: object);
@@ -70,6 +74,9 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     }
     if (object is Variant) {
       ProxyService.realm.onSave<Variant>(item: object);
+    }
+    if (object is IUnit) {
+      ProxyService.syncFirestore.onSave<IUnit>(item: object);
     }
   }
 }

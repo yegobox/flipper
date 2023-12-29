@@ -52,18 +52,17 @@ class ForceDataEntryService {
       '#a29bfe'
     ];
 
-    final PColor color = PColor(
-        id: randomString(),
-        colors: colors,
-        branchId: branchId,
-        lastTouched: DateTime.now(),
-        action: AppActions.created,
-        name: "#d63031",
-        active: false);
-
     int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);
     if (kColors.isEmpty) {
+      final PColor color = PColor(
+          id: randomString(),
+          colors: colors,
+          branchId: branchId,
+          lastTouched: DateTime.now(),
+          action: AppActions.created,
+          name: "#d63031",
+          active: false);
       await ProxyService.isar.create<PColor>(data: color);
     }
     List<IUnit> kUnits = await ProxyService.isar.units(branchId: branchid);

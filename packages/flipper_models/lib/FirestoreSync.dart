@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
@@ -27,6 +28,7 @@ class FirestoreSync<M extends IJsonSerializable>
       return;
     }
     Map<String, dynamic> data = item.toJson();
+    if (data['action'] == AppActions.updatedLocally) return;
 
     /// isolate is not working proper on android, so no need of isolate on mobile then
     if (Platform.isAndroid || Platform.isIOS) {

@@ -33,7 +33,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 //https://pub.dev/packages/nock
 //https://github.com/nock/nock?tab=readme-ov-file#how-does-it-work
 //https://designer.mocky.io/
-//flutter test -d windows integration_test/smoke_test.dart
+//flutter test --dart-define=Test=true -d windows integration_test/smoke_test.dart
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,7 +65,7 @@ void main() {
         .setTrustedCertificatesBytes(data.buffer.asUint8List());
   });
 
-  testWidgets('App start and runs', (WidgetTester tester) async {
+  testWidgets('App start and runs windows', (WidgetTester tester) async {
     // int? userId = ProxyService.box.getUserId();
     // final interceptor =
     //     nock("https://apihub.yegobox.com/v2/api").get("/businessUserId/$userId")
@@ -115,6 +115,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     // Verify that our counter starts at 0.
+
     expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
 
     // Test additional functionality...

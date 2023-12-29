@@ -23,7 +23,6 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   }
 
   Future<Map<String, dynamic>?> _push(M model) async {
-    log('Start sending data to server', name: 'sync');
     Type modelType = model.runtimeType;
 
     // Use the model type to get the corresponding endpoint from the map
@@ -71,6 +70,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
       RecordModel? result = null;
 
       if (json['action'] == AppActions.updated) {
+        log('Start sending data to server updated action', name: 'sync');
         final lastTouched = DateTime.now().toIso8601String();
 
         json['lastTouched'] = lastTouched;
@@ -78,12 +78,15 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
       } else if (json['action'] == AppActions.deleted) {
+        log('Start sending data to server deleted action', name: 'sync');
         final lastTouched = DateTime.now().toIso8601String();
 
         json['lastTouched'] = lastTouched;
+
         result = await ProxyService.remote
             .update(data: json, collectionName: endpoint, recordId: json['id']);
       } else if (json['action'] == AppActions.created) {
+        log('Start sending data to server created action', name: 'sync');
         //change action when sending to remote to avoid pulling it next time with create
         // this means we won't perform unnecessary action on item that is neither updated,deleted or created.
 
@@ -133,7 +136,8 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   Future<void> localChanges() async {
     final data = await ProxyService.isar.getUnSyncedData();
     for (Product product in data.products) {
-      if (product.action != AppActions.updatedLocally && product.name != TEMP_PRODUCT) {
+      if (product.action != AppActions.updatedLocally &&
+          product.name != TEMP_PRODUCT) {
         Map<String, dynamic>? record = await _push(product as M);
 
         if (record != null && record.isNotEmpty) {

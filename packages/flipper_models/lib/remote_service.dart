@@ -511,7 +511,7 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
     // Update the 'action' property in the copied JSON
     /// we change action from remote fetched data to remote
     /// so that we don't push these data back when property has not changed
-    jsonData['action'] = AppActions.remote;
+    jsonData['action'] = AppActions.updatedLocally;
     switch (collectionName) {
       case 'stocks':
         await handleItem(model: Stock.fromJson(jsonData), branchId: branchId);

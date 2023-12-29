@@ -61,6 +61,7 @@ class StartupViewModel extends FlipperBaseModel {
           await ProxyService.isar.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         } else {
+          await ProxyService.isar.logOut();
           _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
         }
       } else {

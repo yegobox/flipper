@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
+import 'package:flipper_models/realm/realmIUnit.dart';
 import 'package:flipper_models/realm/realmProduct.dart';
 import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/realm/realmStock.dart';
@@ -18,6 +19,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   Future<void> onSave<T extends IJsonSerializable>({required T item});
   factory SyncReaml.create() => RealmSync<M>();
   Future<void> configure();
+  T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
 }
 
 class RealmSync<M extends IJsonSerializable>
@@ -36,6 +38,7 @@ class RealmSync<M extends IJsonSerializable>
         RealmProduct.schema,
         RealmVariant.schema,
         RealmStock.schema,
+        RealmIUnit.schema
       ]));
       realm!.subscriptions.update((mutableSubscriptions) {
         mutableSubscriptions.add(
@@ -56,6 +59,15 @@ class RealmSync<M extends IJsonSerializable>
       /// removed await on bellow line because when it is in bootstrap, it might freeze the app
       realm!.subscriptions.waitForSynchronization();
     }
+  }
+
+  @override
+  T? findObject<T extends RealmObject>(String query, List<dynamic> arguments) {
+    final results = realm!.query<T>(query, arguments);
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+    return null;
   }
 
   @override
@@ -112,6 +124,8 @@ class RealmSync<M extends IJsonSerializable>
 
     if (item is TransactionItem) {
       // Save _RealmITransaction to the Realm database
+      if (item.action == AppActions.updatedLocally) return;
+
       await realm!.write(() {
         if (item.action == AppActions.updatedLocally) return;
         final realmITransactionItem = RealmITransactionItem(
@@ -315,6 +329,30 @@ class RealmSync<M extends IJsonSerializable>
         }
       });
     }
+    if (item is IUnit) {
+      await realm!.write(() {
+        IUnit data = item;
+        final realmUnit = RealmIUnit(
+          ObjectId(),
+          data.id, // Auto-generate ObjectId for realmId
+          data.branchId,
+          data.name,
+          data.value,
+          data.active,
+        );
+
+        final findableObject = realm!.query<RealmIUnit>(r'id == $0', [data.id]);
+
+        if (findableObject.isEmpty) {
+          // Unit doesn't exist, add it
+          realm!.add(realmUnit);
+        } else {
+          // Unit exists, update it
+          RealmIUnit existingUnit = findableObject.first;
+          existingUnit.updateProperties(realmUnit);
+        }
+      });
+    }
   }
 
   @override
@@ -377,13 +415,6 @@ class RealmSync<M extends IJsonSerializable>
           handleItem(model: stockModel, branchId: result.branchId);
         }
       });
-
-      // Cancel subscriptions when done
-      // iTransactionSubscription.cancel();
-      // iTransactionItemSubscription.cancel();
-      // iProductSubscription.cancel();
-      // iVariantSubscription.cancel();
-      // iStockSubscription.cancel();
     }
   }
 
