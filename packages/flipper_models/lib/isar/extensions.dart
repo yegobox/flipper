@@ -32,7 +32,8 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
 
     ///TODO: re-enable this when cloud_firestore is stable
     /// https://github.com/firebase/flutterfire/issues/11933
-    if (!isWindows) {
+    if (ProxyService.remoteConfig.isFirestoreEnabled() &&
+        ProxyService.remoteConfig.isSyncAvailable()) {
       if (object is Product) {
         ProxyService.syncFirestore.onSave<Product>(item: object);
       }
@@ -58,25 +59,27 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
         ProxyService.syncFirestore.onSave<IUnit>(item: object);
       }
     }
-    if (object is TransactionItem) {
-      ProxyService.realm.onSave<TransactionItem>(item: object);
-    }
-    if (object is ITransaction) {
-      ProxyService.realm.onSave<ITransaction>(item: object);
-    }
+    if (ProxyService.remoteConfig.isSyncAvailable()) {
+      if (object is TransactionItem) {
+        ProxyService.realm.onSave<TransactionItem>(item: object);
+      }
+      if (object is ITransaction) {
+        ProxyService.realm.onSave<ITransaction>(item: object);
+      }
 
-    if (object is Product) {
-      ProxyService.realm.onSave<Product>(item: object);
-    }
+      if (object is Product) {
+        ProxyService.realm.onSave<Product>(item: object);
+      }
 
-    if (object is Stock) {
-      ProxyService.realm.onSave<Stock>(item: object);
-    }
-    if (object is Variant) {
-      ProxyService.realm.onSave<Variant>(item: object);
-    }
-    if (object is IUnit) {
-      ProxyService.syncFirestore.onSave<IUnit>(item: object);
+      if (object is Stock) {
+        ProxyService.realm.onSave<Stock>(item: object);
+      }
+      if (object is Variant) {
+        ProxyService.realm.onSave<Variant>(item: object);
+      }
+      if (object is IUnit) {
+        ProxyService.syncFirestore.onSave<IUnit>(item: object);
+      }
     }
   }
 }

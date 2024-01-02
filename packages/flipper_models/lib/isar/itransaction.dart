@@ -65,7 +65,7 @@ class ITransaction extends IJsonSerializable {
     required this.cashReceived,
     required this.customerChangeDue,
     required this.createdAt,
-    required this.supplierId,
+    this.supplierId,
     this.receiptType,
     this.updatedAt,
     this.customerId,

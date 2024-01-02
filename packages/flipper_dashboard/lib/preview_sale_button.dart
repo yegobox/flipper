@@ -1,11 +1,13 @@
 import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
 import 'preview_sale_bottom_sheet.dart';
@@ -41,13 +43,18 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   }
 
   void _handleOrderFlow(BuildContext context, CoreViewModel model) {
-    /// navigate to Comfirm page
-    /// to handle the order flow
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => Comfirm(),
-      ),
-    );
+    final cartItem = ref.read(productFromSupplier);
+
+    if (cartItem.value != null && cartItem.value!.isNotEmpty) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => Comfirm(),
+        ),
+      );
+    } else {
+      //TODO: show a notification toast
+      toast("There is no item on cart");
+    }
   }
 
   void _handleSaleFlow(BuildContext context, CoreViewModel model) async {

@@ -34,4 +34,5 @@ abstract class Remote {
   Widget bannerAd();
   bool enableTakingScreenShoot();
   bool isOrderFeatureOrderEnabled();
+  bool isFirestoreEnabled();
 }

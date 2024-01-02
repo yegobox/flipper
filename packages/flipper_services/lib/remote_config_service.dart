@@ -40,7 +40,8 @@ class RemoteConfigService implements Remote {
       "sessionTimeOutMinutes": 10,
       "isLocalAuthAvailable": true,
       "enableTakingScreenShoot": true,
-      "isOrderFeatureOrderEnabled": true
+      "isOrderFeatureOrderEnabled": true,
+      "isFirestoreEnabled": false
     });
   }
 
@@ -55,6 +56,10 @@ class RemoteConfigService implements Remote {
     } catch (e) {}
   }
 
+   @override
+  bool isFirestoreEnabled() {
+    return remoteConfig.getBool('isFirestoreEnabled');
+  }
   @override
   bool isChatAvailable() {
     if (kDebugMode) {
@@ -421,6 +426,10 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isOrderFeatureOrderEnabled() {
+    return false;
+  }
+  @override
+  bool isFirestoreEnabled() {
     return false;
   }
 }

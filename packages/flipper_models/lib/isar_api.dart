@@ -137,7 +137,6 @@ class IsarAPI<M> implements IsarApiInterface {
       final transaction = ITransaction(
         lastTouched: DateTime.now(),
         id: id,
-        supplierId: branchId,
         reference: randomString(),
         action: AppActions.created,
         transactionNumber: randomString(),

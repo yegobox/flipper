@@ -35,12 +35,19 @@ class _ComfirmState extends ConsumerState<Comfirm>
               builder: (context) {
                 return NewSwiper(
                   type: SwiperType.horizontal,
-                  callback: () => showBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return Text("hello bottom");
-                    },
-                  ),
+                  callback: () {
+                    ///TODO: complete this order ready for send to supplier
+                    /// take current Transaction update it with supplier Id from whom
+                    /// we are ordering from
+                    /// when approving order, the approver change TransactionType to
+                    /// orderOnline so that it is a cash in for him and cash out for retailer
+                    showBottomSheet(
+                      context: context,
+                      builder: (context) {
+                        return Text("hello bottom");
+                      },
+                    );
+                  },
                 );
               },
             ),
