@@ -485,6 +485,8 @@ class IsarAPI<M> implements IsarApiInterface {
       isar.stocks.onPut(stock);
 
       variant.qty = variation.qty!;
+      variant.retailPrice = variation.retailPrice;
+      variant.supplyPrice = variation.supplyPrice;
 
       isar.variants.onPut(variant);
     } else {
