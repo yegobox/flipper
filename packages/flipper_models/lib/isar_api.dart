@@ -430,29 +430,86 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<int> addVariant({required List<Variant> variations}) async {
-    db.write((isar) {
-      for (Variant variation in variations) {
-        String id = randomString();
-        // save variation to db
-        // FIXMEneed to know if all item will have same itemClsCd
-        variation.itemClsCd = "5020230602";
-        variation.pkg = "1";
-        variation.id = id;
-        isar.variants.onPut(variation);
-        final stock = Stock(
-            id: id,
-            lastTouched: DateTime.now(),
-            branchId: ProxyService.box.getBranchId()!,
-            variantId: id,
-            action: AppActions.created,
-            retailPrice: variation.retailPrice,
-            currentStock: variation.qty!,
-            productId: variation.productId)
-          ..active = false;
-        isar.stocks.onPut(stock);
+    int branchId = ProxyService.box.getBranchId()!;
+
+    db.write(
+      (isar) {
+        for (Variant variation in variations) {
+          _processVariant(isar, branchId, variation);
+        }
+      },
+    );
+
+    return 200;
+  }
+
+  Future<void> _processVariant(
+    Isar isar,
+    int branchId,
+    Variant variation,
+  ) async {
+    String stockId = randomString();
+    Variant? variant =
+        isar.variants.where().idEqualTo(variation.id).findFirst();
+
+    if (variant != null) {
+      Stock? stock = db.stocks
+          .where()
+          .variantIdEqualTo(variation.id)
+          .and()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .findFirst();
+
+      if (stock == null) {
+        final newStock = Stock(
+          id: stockId,
+          lastTouched: DateTime.now(),
+          branchId: branchId,
+          variantId: variation.id,
+          action: AppActions.created,
+          retailPrice: variation.retailPrice,
+          currentStock: variation.qty!,
+          productId: variation.productId,
+        )..active = false;
+
+        isar.stocks.onPut(newStock);
       }
-    });
-    return Future.value(200);
+
+      stock!.currentStock = variation.qty!;
+      log(variation.qty!.toString(), name: 'Incoming updated quantity');
+
+      stock.action = AppActions.updated;
+
+      isar.stocks.onPut(stock);
+
+      variant.qty = variation.qty!;
+
+      isar.variants.onPut(variant);
+    } else {
+      String variationId = randomString();
+      String stockId = randomString();
+
+      variation.itemClsCd = "5020230602";
+      variation.pkg = "1";
+      variation.id = variationId;
+
+      isar.variants.onPut(variation);
+
+      final newStock = Stock(
+        id: stockId,
+        lastTouched: DateTime.now(),
+        branchId: branchId,
+        variantId: variationId,
+        action: AppActions.created,
+        retailPrice: variation.retailPrice,
+        currentStock: variation.qty!,
+        productId: variation.productId,
+      )..active = true;
+
+      isar.stocks.onPut(newStock);
+    }
   }
 
   @override
@@ -1266,6 +1323,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .variantIdEqualTo(variantId)
         .and()
         .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull()
         .findFirst();
   }
 
@@ -1295,7 +1354,11 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Variant>> getVariantByProductId(
       {required String productId}) async {
-    return db.variants.where().productIdEqualTo(productId).findAll();
+    return db.variants
+        .where()
+        .productIdEqualTo(productId)
+        .deletedAtIsNull()
+        .findAll();
   }
 
   @override

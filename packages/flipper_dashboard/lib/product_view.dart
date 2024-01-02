@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
-import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';

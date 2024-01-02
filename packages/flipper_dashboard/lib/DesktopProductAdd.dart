@@ -234,10 +234,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           // Populate product name with the name of the product being edited
           productNameController.text = product.name;
           model.setProductName(name: product.name);
-
+          // model.scannedVariants = [];
           // Populate variants related to the product
           List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);
+
           model.scannedVariants = variants;
 
           // If there are variants, set the color to the color of the first variant

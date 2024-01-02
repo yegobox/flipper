@@ -88,6 +88,8 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
 
     if (index != -1) {
       // If the variant is found, remove it from the list
+      Variant matchedVariant = scannedVariants[index];
+      ProxyService.isar.delete(id: matchedVariant.id, endPoint: 'variant');
       scannedVariants.removeAt(index);
       notifyListeners();
     }

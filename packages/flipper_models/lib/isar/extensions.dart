@@ -32,7 +32,8 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
 
     ///TODO: re-enable this when cloud_firestore is stable
     /// https://github.com/firebase/flutterfire/issues/11933
-    if (ProxyService.remoteConfig.isFirestoreEnabled() &&
+    if (!isWindows &&
+        ProxyService.remoteConfig.isFirestoreEnabled() &&
         ProxyService.remoteConfig.isSyncAvailable()) {
       if (object is Product) {
         ProxyService.syncFirestore.onSave<Product>(item: object);
