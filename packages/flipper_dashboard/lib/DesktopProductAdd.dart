@@ -219,6 +219,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
+  Color getColorFromHex(String hexColor) {
+    hexColor = hexColor.replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor;
+    }
+    return Color(int.parse(hexColor, radix: 16));
+  }
+
   @override
   Widget build(BuildContext context) {
     final productRef = ref.watch(productProvider);
@@ -243,7 +251,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // If there are variants, set the color to the color of the first variant
           if (variants.isNotEmpty) {
-            pickerColor = getColorFromHex(variants.first.color);
+            // pickerColor = getColorFromHex(variants.first.color);
+            pickerColor = Color(int.parse(variants.first.color, radix: 16));
           }
         } else {
           // If productId is not given, create a new product
