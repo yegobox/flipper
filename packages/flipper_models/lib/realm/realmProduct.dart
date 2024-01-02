@@ -36,28 +36,26 @@ class _RealmProduct {
   bool? searchMatch;
 
   void updateProperties(RealmProduct other) {
-  id = other.id;
-  realmId = other.realmId;
-  name = other.name;
-  description = other.description;
-  taxId = other.taxId;
-  color = other.color;
-  businessId = other.businessId;
-  branchId = other.branchId;
-  supplierId = other.supplierId;
-  categoryId = other.categoryId;
-  createdAt = other.createdAt;
-  unit = other.unit;
-  imageUrl = other.imageUrl;
-  expiryDate = other.expiryDate;
-  barCode = other.barCode;
-  nfcEnabled = other.nfcEnabled;
-  bindedToTenantId = other.bindedToTenantId;
-  isFavorite = other.isFavorite;
-  lastTouched = other.lastTouched;
-  action = other.action;
-  deletedAt = other.deletedAt;
-  searchMatch = other.searchMatch;
-}
-
+    id = other.id;
+    name = other.name;
+    description = other.description;
+    taxId = other.taxId;
+    color = other.color;
+    businessId = other.businessId;
+    branchId = other.branchId;
+    supplierId = other.supplierId;
+    categoryId = other.categoryId;
+    createdAt = other.createdAt;
+    unit = other.unit;
+    imageUrl = other.imageUrl;
+    expiryDate = other.expiryDate;
+    barCode = other.barCode;
+    nfcEnabled = other.nfcEnabled;
+    bindedToTenantId = other.bindedToTenantId;
+    isFavorite = other.isFavorite;
+    lastTouched = other.lastTouched;
+    action = other.action;
+    deletedAt = other.deletedAt;
+    searchMatch = other.searchMatch;
+  }
 }

@@ -99,7 +99,6 @@ class _RealmITransactionItem {
   DateTime? deletedAt;
   void updateProperties(RealmITransactionItem other) {
     id = other.id;
-    realmId = other.realmId;
     name = other.name;
     transactionId = other.transactionId;
     variantId = other.variantId;

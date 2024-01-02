@@ -38,7 +38,6 @@ class _RealmStock {
   // ... constructors and other methods remain the same
   void updateProperties(RealmStock other) {
     id = other.id;
-    realmId = other.realmId;
     branchId = other.branchId;
     variantId = other.variantId;
     lowStock = other.lowStock;

@@ -64,7 +64,6 @@ class _RealmVariant {
   // ... constructors and other methods remain the same
   void updateProperties(RealmVariant other) {
     id = other.id;
-    realmId = other.realmId;
     name = other.name;
     color = other.color;
     sku = other.sku;
