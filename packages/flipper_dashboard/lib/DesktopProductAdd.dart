@@ -247,7 +247,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);
 
-          model.scannedVariants = variants;
+          model.setScannedVariants(variants);
 
           // If there are variants, set the color to the color of the first variant
           if (variants.isNotEmpty) {

@@ -18,6 +18,11 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
     notifyListeners();
   }
 
+  setScannedVariants(List<Variant> variants) {
+    scannedVariants = variants;
+    notifyListeners();
+  }
+
   void onAddVariant({
     required String variantName,
     required bool isTaxExempted,
