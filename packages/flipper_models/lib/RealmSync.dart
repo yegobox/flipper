@@ -53,10 +53,12 @@ class RealmSync<M extends IJsonSerializable>
 
         mutableSubscriptions
             .add(realm!.query<RealmStock>(r'branchId == $0', [branchId]));
+        mutableSubscriptions
+            .add(realm!.query<RealmIUnit>(r'branchId == $0', [branchId]));
       });
 
       /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-      realm!.subscriptions.waitForSynchronization();
+      await realm!.subscriptions.waitForSynchronization();
     }
   }
 
