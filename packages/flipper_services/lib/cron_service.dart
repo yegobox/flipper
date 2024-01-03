@@ -44,10 +44,11 @@ class CronService {
     await _setupFirebase();
     await _setupRealm();
 
+    /// pull does not have to wait as soon as we connect start pulling from realm.
+    if (!isWeb) {
+      ProxyService.realm.pull();
+    }
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
-      if (!isWeb) {
-        ProxyService.realm.pull();
-      }
       await _syncPushData();
     });
 

@@ -1,4 +1,5 @@
 // ignore: unused_import
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_models/isar_models.dart';
@@ -361,6 +362,7 @@ class RealmSync<M extends IJsonSerializable>
     if (realm == null) {
       await configure();
     }
+    log("start pulling data",name:"RealmSync pull");
     if (realm != null) {
       // Subscribe to changes for transactions
       final iTransactionsCollection =
@@ -368,6 +370,7 @@ class RealmSync<M extends IJsonSerializable>
 
       iTransactionsCollection.changes.listen((changes) {
         for (final result in changes.results) {
+          log("pulling RealmITransaction",name:"RealmSync pull");
           final transactionModel = createTransactionModel(result);
           handleItem(model: transactionModel, branchId: result.branchId);
         }
