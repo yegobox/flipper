@@ -42,13 +42,12 @@ export 'package:flipper_dashboard/orders.dart';
 
 export 'package:flipper_login/pin_login.dart';
 export 'package:flipper_login/signup_view.dart';
-export 'package:flipper_login/login.dart';
+export 'package:flipper_login/login_view.dart';
 export 'package:flipper_login/desktop_login_view.dart';
+export 'package:flipper_login/widgets/AuthOptionPage.dart';
 
-export 'package:flipper_login/landing.dart';
-export 'package:flipper_login/signin_page.dart';
-export 'package:flipper_login/country_picking_page.dart';
-export 'package:flipper_login/phone_input_screen.dart';
+export 'package:flipper_login/widgets/country_picking_page.dart';
+export 'package:flipper_login/widgets/phone_input_screen.dart';
 
 export 'package:flipper_models/view_models/gate.dart';
 export 'package:flipper_socials/ui/views/home/home_view.dart';

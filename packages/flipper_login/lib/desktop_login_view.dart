@@ -1,4 +1,4 @@
-import 'package:flipper_login/loginCode.dart';
+import 'package:flipper_login/auth_code.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   @override
   Widget build(BuildContext context) {
-    final loginCode = ref.watch(loginCodeProvider);
+    final loginCode = ref.watch(authCode);
     return ViewModelBuilder<LoginViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),

@@ -13,8 +13,10 @@ dependencies:
   get_it: ^7.6.0
   stacked: ^3.4.1+1
   flipper_services: ^1.0.0
+  meta: ^1.11.0
 dependency_overrides:
   http: ^1.1.2
+  meta: ^1.11.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

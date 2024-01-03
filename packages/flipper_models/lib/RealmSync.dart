@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
@@ -10,7 +9,6 @@ import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
@@ -83,8 +81,6 @@ class RealmSync<M extends IJsonSerializable>
       await configure();
     }
     if (item is ITransaction) {
-      if (item.action == AppActions.updatedLocally) return;
-
       // Save _RealmITransaction to the Realm database
       await realm!.write(() {
         final realmITransaction = RealmITransaction(
@@ -125,10 +121,8 @@ class RealmSync<M extends IJsonSerializable>
 
     if (item is TransactionItem) {
       // Save _RealmITransaction to the Realm database
-      if (item.action == AppActions.updatedLocally) return;
 
       await realm!.write(() {
-        if (item.action == AppActions.updatedLocally) return;
         final realmITransactionItem = RealmITransactionItem(
           ObjectId(),
           item.name,
@@ -195,8 +189,6 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Product) {
-      if (item.action == AppActions.updatedLocally) return;
-
       await realm!.write(() {
         final realmProduct = RealmProduct(
           item.id,
@@ -233,8 +225,6 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Variant) {
-      if (item.action == AppActions.updatedLocally) return;
-
       await realm!.write(() {
         final realmVariant = RealmVariant(
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -297,8 +287,6 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Stock) {
-      if (item.action == AppActions.updatedLocally) return;
-
       await realm!.write(() {
         final realmStock = RealmStock(
           item.id,
@@ -362,7 +350,7 @@ class RealmSync<M extends IJsonSerializable>
     if (realm == null) {
       await configure();
     }
-    log("start pulling data",name:"RealmSync pull");
+    log("start pulling data", name: "RealmSync pull");
     if (realm != null) {
       // Subscribe to changes for transactions
       final iTransactionsCollection =
@@ -370,7 +358,7 @@ class RealmSync<M extends IJsonSerializable>
 
       iTransactionsCollection.changes.listen((changes) {
         for (final result in changes.results) {
-          log("pulling RealmITransaction",name:"RealmSync pull");
+          log("pulling RealmITransaction", name: "RealmSync pull");
           final transactionModel = createTransactionModel(result);
           handleItem(model: transactionModel, branchId: result.branchId);
         }

@@ -1,17 +1,27 @@
 library flipper_login;
 
-import 'package:flipper_login/colors.dart';
-import 'package:flipper_login/signup_login_buttons.dart';
+import 'package:flipper_login/widgets/signup_login_buttons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flipper_services/proxy.dart';
 
-class MobileLogin extends StatefulWidget {
-  @override
-  State<MobileLogin> createState() => _MobileLoginState();
+class HexColor extends Color {
+  HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
+  static int _getColorFromHex(String hexColor) {
+    hexColor = hexColor.toUpperCase().replaceAll('#', '');
+    if (hexColor.length == 6) {
+      hexColor = 'FF' + hexColor;
+    }
+    return int.parse(hexColor, radix: 16);
+  }
 }
 
-class _MobileLoginState extends State<MobileLogin> {
+class MobileLoginView extends StatefulWidget {
+  @override
+  State<MobileLoginView> createState() => _MobileLoginViewState();
+}
+
+class _MobileLoginViewState extends State<MobileLoginView> {
   Future<bool> _onWillPop() async {
     return false;
   }
@@ -39,7 +49,7 @@ class _MobileLoginState extends State<MobileLogin> {
       child: Column(
         children: <Widget>[
           Container(
-            color: AppColors.mainColor,
+            color: HexColor('#955be9'),
             width: double.infinity,
             // height: 400,
             child: Column(

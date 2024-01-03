@@ -189,10 +189,11 @@ class PreviewSaleBottomSheetState
                 );
               },
               items: ref
-                  .watch(
-                    transactionItemsProvider(transaction.value?.value?.id),
-                  )
-                  .value!,
+                      .watch(
+                        transactionItemsProvider(transaction.value?.value?.id),
+                      )
+                      .value ??
+                  [],
             ),
             if (model.totalDiscount > 0) buildDiscounts(model),
           ],

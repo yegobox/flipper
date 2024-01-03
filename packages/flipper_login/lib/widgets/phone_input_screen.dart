@@ -8,9 +8,9 @@ import 'package:flutter/widgets.dart';
 
 import 'phone_input_view.dart' as view;
 
-import 'internal/responsive_page.dart' as b;
-import 'widgets/internal/universal_page_route.dart';
-import 'widgets/internal/universal_scaffold.dart';
+import '../internal/responsive_page.dart' as b;
+import 'internal/universal_page_route.dart';
+import 'universal_scaffold.dart';
 
 /// A screen displaying a fully styled phone number entry screen, with a country-code
 /// picker.

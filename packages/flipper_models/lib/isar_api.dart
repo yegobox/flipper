@@ -1957,7 +1957,6 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is ITransaction) {
-      log(data.toJson().toString(), name: 'UpdatingTransaction');
       final transaction = data;
       db.write((isar) {
         isar.iTransactions.onPut(transaction);
@@ -3109,7 +3108,7 @@ class IsarAPI<M> implements IsarApiInterface {
       isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
     } else {
       isarQuery
-          .and()
+          .or()
           .transactionTypeEqualTo(TransactionType.cashIn)
           .or()
           .transactionTypeEqualTo(TransactionType.sale)

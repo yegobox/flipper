@@ -3,7 +3,7 @@ library flipper_login;
 import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'desktop_login_view.dart';
-import 'mobile.dart';
+import 'mobile_login_view.dart';
 
 class LoginView extends StatelessWidget {
   @override
@@ -11,7 +11,7 @@ class LoginView extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: UniversalPlatform.isAndroid
-          ? SingleChildScrollView(child: MobileLogin())
+          ? SingleChildScrollView(child: MobileLoginView())
           : SingleChildScrollView(child: DesktopLoginView()),
     );
   }

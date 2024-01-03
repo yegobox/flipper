@@ -103,6 +103,7 @@ dependencies:
   dropdown_search: ^5.0.6
 dependency_overrides:
   http: ^1.1.2
+  meta: ^1.11.0
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

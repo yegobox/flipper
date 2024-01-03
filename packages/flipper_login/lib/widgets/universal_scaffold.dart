@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../../platform_widget.dart';
+import 'platform_widget.dart';
 
 class UniversalScaffold extends PlatformWidget {
   final Widget body;

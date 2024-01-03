@@ -4,14 +4,6 @@
 // StackedRouterGenerator
 // **************************************************************************
 
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
-// **************************************************************************
-// StackedRouterGenerator
-// **************************************************************************
-//
-// ignore_for_file: type=lint
-
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:ui' as _i7;
 
@@ -20,14 +12,15 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i5;
 import 'package:flipper_models/isar_models.dart' as _i8;
 import 'package:flutter/material.dart' as _i4;
 import 'package:stacked/stacked.dart' as _i3;
-import 'package:stacked_services/stacked_services.dart' as _i1;
+import 'package:stacked_services/stacked_services.dart' as _i2;
 
-import 'all_routes.dart' as _i2;
+import 'all_routes.dart' as _i1;
 
-final stackedRouter = StackedRouterWeb(_i1.StackedService.navigatorKey);
+final stackedRouter =
+    StackedRouterWeb(navigatorKey: _i2.StackedService.navigatorKey);
 
 class StackedRouterWeb extends _i3.RootStackRouter {
-  StackedRouterWeb([_i4.GlobalKey<_i4.NavigatorState>? navigatorKey])
+  StackedRouterWeb({_i4.GlobalKey<_i4.NavigatorState>? navigatorKey})
       : super(navigatorKey);
 
   @override
@@ -37,7 +30,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const StartUpViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.StartUpView(
+        child: _i1.StartUpView(
           key: args.key,
           invokeLogin: args.invokeLogin,
         ),
@@ -50,7 +43,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const SignUpViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.SignUpView(
+        child: _i1.SignUpView(
           key: args.key,
           countryNm: args.countryNm,
         ),
@@ -61,7 +54,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     FlipperAppRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.FlipperApp(),
+        child: const _i1.FlipperApp(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -69,25 +62,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     LoginViewRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.LoginView(),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    LandingRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
-      return _i3.CustomPage<dynamic>(
-        routeData: routeData,
-        child: _i2.Landing(key: args.key),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    AuthOptionPageRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
-        routeData: routeData,
-        child: _i2.AuthOptionPage(),
+        child: _i1.LoginView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -95,7 +70,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     CountryPickerRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.CountryPicker(),
+        child: const _i1.CountryPicker(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -104,7 +79,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<PhoneInputScreenArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.PhoneInputScreen(
+        child: _i1.PhoneInputScreen(
           key: args.key,
           action: args.action,
           actions: args.actions,
@@ -124,12 +99,20 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    AuthOptionPageRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.AuthOptionPage(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
           orElse: () => const AddProductViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddProductView(
+        child: _i1.AddProductView(
           key: args.key,
           productId: args.productId,
         ),
@@ -141,7 +124,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<AddToFavoritesArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddToFavorites(
+        child: _i1.AddToFavorites(
           key: args.key,
           favoriteIndex: args.favoriteIndex,
           existingFavs: args.existingFavs,
@@ -155,7 +138,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const AddDiscountArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddDiscount(
+        child: _i1.AddDiscount(
           key: args.key,
           discount: args.discount,
         ),
@@ -167,7 +150,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<ListCategoriesArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ListCategories(
+        child: _i1.ListCategories(
           key: args.key,
           categories: args.categories,
           modeOfOperation: args.modeOfOperation,
@@ -181,7 +164,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<ColorTileArgs>(orElse: () => const ColorTileArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ColorTile(key: args.key),
+        child: _i1.ColorTile(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -190,7 +173,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<ReceiveStockArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ReceiveStock(
+        child: _i1.ReceiveStock(
           key: args.key,
           variantId: args.variantId,
           existingStock: args.existingStock,
@@ -203,7 +186,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<AddVariationArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddVariation(
+        child: _i1.AddVariation(
           key: args.key,
           productId: args.productId,
         ),
@@ -216,7 +199,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const AddCategoryArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.AddCategory(key: args.key),
+        child: _i1.AddCategory(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -225,7 +208,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<ListUnitsArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ListUnits(
+        child: _i1.ListUnits(
           key: args.key,
           type: args.type,
         ),
@@ -237,7 +220,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<SellArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Sell(
+        child: _i1.Sell(
           key: args.key,
           product: args.product,
         ),
@@ -249,7 +232,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<PaymentsArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Payments(
+        child: _i1.Payments(
           key: args.key,
           transaction: args.transaction,
         ),
@@ -261,7 +244,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<PaymentConfirmationArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.PaymentConfirmation(
+        child: _i1.PaymentConfirmation(
           key: args.key,
           totalTransactionAmount: args.totalTransactionAmount,
           transaction: args.transaction,
@@ -276,7 +259,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<TransactionDetailArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.TransactionDetail(
+        child: _i1.TransactionDetail(
           key: args.key,
           transaction: args.transaction,
         ),
@@ -287,7 +270,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SettingsScreenRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.SettingsScreen(),
+        child: _i1.SettingsScreen(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -297,7 +280,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const SwitchBranchViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.SwitchBranchView(key: args.key),
+        child: _i1.SwitchBranchView(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -307,7 +290,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<ScannViewArgs>(orElse: () => const ScannViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ScannView(
+        child: _i1.ScannView(
           key: args.key,
           intent: args.intent,
           useLatestImplementation: args.useLatestImplementation,
@@ -321,7 +304,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.OrderView(key: args.key),
+        child: _i1.OrderView(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -329,7 +312,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     OrdersRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Orders(),
+        child: const _i1.Orders(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -337,7 +320,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     InAppBrowserRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.InAppBrowser(),
+        child: const _i1.InAppBrowser(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -347,7 +330,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<CustomersArgs>(orElse: () => const CustomersArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Customers(
+        child: _i1.Customers(
           key: args.key,
           transactionId: args.transactionId,
         ),
@@ -359,7 +342,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<NoNetArgs>(orElse: () => const NoNetArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.NoNet(key: args.key),
+        child: _i1.NoNet(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -369,7 +352,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<PinLoginArgs>(orElse: () => const PinLoginArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.PinLogin(key: args.key),
+        child: _i1.PinLogin(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -379,7 +362,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<DevicesArgs>(orElse: () => const DevicesArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Devices(
+        child: _i1.Devices(
           key: args.key,
           pin: args.pin,
         ),
@@ -390,7 +373,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     TaxConfigurationRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.TaxConfiguration(),
+        child: const _i1.TaxConfiguration(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -398,7 +381,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     PrintingRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Printing(),
+        child: const _i1.Printing(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -406,7 +389,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     BackUpRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.BackUp(),
+        child: const _i1.BackUp(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -414,7 +397,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     LoginChoicesRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.LoginChoices(),
+        child: const _i1.LoginChoices(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -422,7 +405,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     TenantAddRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.TenantAdd(),
+        child: const _i1.TenantAdd(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -430,7 +413,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SocialHomeViewRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.SocialHomeView(),
+        child: const _i1.SocialHomeView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -439,7 +422,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<DrawerScreenArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.DrawerScreen(
+        child: _i1.DrawerScreen(
           key: args.key,
           open: args.open,
           drawer: args.drawer,
@@ -451,7 +434,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     ChatListViewRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.ChatListView(),
+        child: const _i1.ChatListView(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -460,7 +443,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<ConversationHistoryArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.ConversationHistory(
+        child: _i1.ConversationHistory(
           key: args.key,
           conversationId: args.conversationId,
         ),
@@ -473,7 +456,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<TicketsArgs>(orElse: () => const TicketsArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Tickets(
+        child: _i1.Tickets(
           key: args.key,
           transaction: args.transaction,
         ),
@@ -485,7 +468,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<NewTicketArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.NewTicket(
+        child: _i1.NewTicket(
           key: args.key,
           transaction: args.transaction,
         ),
@@ -497,7 +480,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<AppsArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Apps(
+        child: _i1.Apps(
           key: args.key,
           controller: args.controller,
           isBigScreen: args.isBigScreen,
@@ -511,7 +494,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<CheckOutArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.CheckOut(
+        child: _i1.CheckOut(
           key: args.key,
           isBigScreen: args.isBigScreen,
         ),
@@ -523,7 +506,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       final args = routeData.argsAs<CashbookArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Cashbook(
+        child: _i1.Cashbook(
           key: args.key,
           isBigScreen: args.isBigScreen,
         ),
@@ -536,7 +519,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           orElse: () => const SettingPageArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.SettingPage(key: args.key),
+        child: _i1.SettingPage(key: args.key),
         opaque: true,
         barrierDismissible: false,
       );
@@ -544,7 +527,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     TransactionsRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i2.Transactions(),
+        child: const _i1.Transactions(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -554,7 +537,15 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           routeData.argsAs<SecurityArgs>(orElse: () => const SecurityArgs());
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i2.Security(key: args.key),
+        child: _i1.Security(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    ComfirmRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.Comfirm(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -580,20 +571,16 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/login-view',
         ),
         _i3.RouteConfig(
-          LandingRoute.name,
-          path: '/Landing',
-        ),
-        _i3.RouteConfig(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
-        ),
-        _i3.RouteConfig(
           CountryPickerRoute.name,
           path: '/country-picker',
         ),
         _i3.RouteConfig(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
+        ),
+        _i3.RouteConfig(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
         ),
         _i3.RouteConfig(
           AddProductViewRoute.name,
@@ -755,11 +742,15 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           SecurityRoute.name,
           path: '/Security',
         ),
+        _i3.RouteConfig(
+          ComfirmRoute.name,
+          path: '/Comfirm',
+        ),
       ];
 }
 
 /// generated route for
-/// [_i2.StartUpView]
+/// [_i1.StartUpView]
 class StartUpViewRoute extends _i3.PageRouteInfo<StartUpViewArgs> {
   StartUpViewRoute({
     _i4.Key? key,
@@ -793,7 +784,7 @@ class StartUpViewArgs {
 }
 
 /// generated route for
-/// [_i2.SignUpView]
+/// [_i1.SignUpView]
 class SignUpViewRoute extends _i3.PageRouteInfo<SignUpViewArgs> {
   SignUpViewRoute({
     _i4.Key? key,
@@ -827,7 +818,7 @@ class SignUpViewArgs {
 }
 
 /// generated route for
-/// [_i2.FlipperApp]
+/// [_i1.FlipperApp]
 class FlipperAppRoute extends _i3.PageRouteInfo<void> {
   const FlipperAppRoute()
       : super(
@@ -839,7 +830,7 @@ class FlipperAppRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.LoginView]
+/// [_i1.LoginView]
 class LoginViewRoute extends _i3.PageRouteInfo<void> {
   const LoginViewRoute()
       : super(
@@ -851,43 +842,7 @@ class LoginViewRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.Landing]
-class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
-  LandingRoute({_i4.Key? key})
-      : super(
-          LandingRoute.name,
-          path: '/Landing',
-          args: LandingArgs(key: key),
-        );
-
-  static const String name = 'Landing';
-}
-
-class LandingArgs {
-  const LandingArgs({this.key});
-
-  final _i4.Key? key;
-
-  @override
-  String toString() {
-    return 'LandingArgs{key: $key}';
-  }
-}
-
-/// generated route for
-/// [_i2.AuthOptionPage]
-class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
-  const AuthOptionPageRoute()
-      : super(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
-        );
-
-  static const String name = 'AuthOptionPage';
-}
-
-/// generated route for
-/// [_i2.CountryPicker]
+/// [_i1.CountryPicker]
 class CountryPickerRoute extends _i3.PageRouteInfo<void> {
   const CountryPickerRoute()
       : super(
@@ -899,7 +854,7 @@ class CountryPickerRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.PhoneInputScreen]
+/// [_i1.PhoneInputScreen]
 class PhoneInputScreenRoute extends _i3.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
     _i4.Key? key,
@@ -1007,7 +962,19 @@ class PhoneInputScreenArgs {
 }
 
 /// generated route for
-/// [_i2.AddProductView]
+/// [_i1.AuthOptionPage]
+class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
+  const AuthOptionPageRoute()
+      : super(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
+        );
+
+  static const String name = 'AuthOptionPage';
+}
+
+/// generated route for
+/// [_i1.AddProductView]
 class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
   AddProductViewRoute({
     _i4.Key? key,
@@ -1041,7 +1008,7 @@ class AddProductViewArgs {
 }
 
 /// generated route for
-/// [_i2.AddToFavorites]
+/// [_i1.AddToFavorites]
 class AddToFavoritesRoute extends _i3.PageRouteInfo<AddToFavoritesArgs> {
   AddToFavoritesRoute({
     _i4.Key? key,
@@ -1080,7 +1047,7 @@ class AddToFavoritesArgs {
 }
 
 /// generated route for
-/// [_i2.AddDiscount]
+/// [_i1.AddDiscount]
 class AddDiscountRoute extends _i3.PageRouteInfo<AddDiscountArgs> {
   AddDiscountRoute({
     _i4.Key? key,
@@ -1114,7 +1081,7 @@ class AddDiscountArgs {
 }
 
 /// generated route for
-/// [_i2.ListCategories]
+/// [_i1.ListCategories]
 class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
     _i4.Key? key,
@@ -1153,7 +1120,7 @@ class ListCategoriesArgs {
 }
 
 /// generated route for
-/// [_i2.ColorTile]
+/// [_i1.ColorTile]
 class ColorTileRoute extends _i3.PageRouteInfo<ColorTileArgs> {
   ColorTileRoute({_i4.Key? key})
       : super(
@@ -1177,7 +1144,7 @@ class ColorTileArgs {
 }
 
 /// generated route for
-/// [_i2.ReceiveStock]
+/// [_i1.ReceiveStock]
 class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
     _i4.Key? key,
@@ -1216,7 +1183,7 @@ class ReceiveStockArgs {
 }
 
 /// generated route for
-/// [_i2.AddVariation]
+/// [_i1.AddVariation]
 class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
   AddVariationRoute({
     _i4.Key? key,
@@ -1250,7 +1217,7 @@ class AddVariationArgs {
 }
 
 /// generated route for
-/// [_i2.AddCategory]
+/// [_i1.AddCategory]
 class AddCategoryRoute extends _i3.PageRouteInfo<AddCategoryArgs> {
   AddCategoryRoute({_i4.Key? key})
       : super(
@@ -1274,7 +1241,7 @@ class AddCategoryArgs {
 }
 
 /// generated route for
-/// [_i2.ListUnits]
+/// [_i1.ListUnits]
 class ListUnitsRoute extends _i3.PageRouteInfo<ListUnitsArgs> {
   ListUnitsRoute({
     _i4.Key? key,
@@ -1308,7 +1275,7 @@ class ListUnitsArgs {
 }
 
 /// generated route for
-/// [_i2.Sell]
+/// [_i1.Sell]
 class SellRoute extends _i3.PageRouteInfo<SellArgs> {
   SellRoute({
     _i4.Key? key,
@@ -1342,7 +1309,7 @@ class SellArgs {
 }
 
 /// generated route for
-/// [_i2.Payments]
+/// [_i1.Payments]
 class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
@@ -1376,7 +1343,7 @@ class PaymentsArgs {
 }
 
 /// generated route for
-/// [_i2.PaymentConfirmation]
+/// [_i1.PaymentConfirmation]
 class PaymentConfirmationRoute
     extends _i3.PageRouteInfo<PaymentConfirmationArgs> {
   PaymentConfirmationRoute({
@@ -1426,7 +1393,7 @@ class PaymentConfirmationArgs {
 }
 
 /// generated route for
-/// [_i2.TransactionDetail]
+/// [_i1.TransactionDetail]
 class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
     _i4.Key? key,
@@ -1460,7 +1427,7 @@ class TransactionDetailArgs {
 }
 
 /// generated route for
-/// [_i2.SettingsScreen]
+/// [_i1.SettingsScreen]
 class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
   const SettingsScreenRoute()
       : super(
@@ -1472,7 +1439,7 @@ class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.SwitchBranchView]
+/// [_i1.SwitchBranchView]
 class SwitchBranchViewRoute extends _i3.PageRouteInfo<SwitchBranchViewArgs> {
   SwitchBranchViewRoute({_i4.Key? key})
       : super(
@@ -1496,7 +1463,7 @@ class SwitchBranchViewArgs {
 }
 
 /// generated route for
-/// [_i2.ScannView]
+/// [_i1.ScannView]
 class ScannViewRoute extends _i3.PageRouteInfo<ScannViewArgs> {
   ScannViewRoute({
     _i4.Key? key,
@@ -1535,7 +1502,7 @@ class ScannViewArgs {
 }
 
 /// generated route for
-/// [_i2.OrderView]
+/// [_i1.OrderView]
 class OrderViewRoute extends _i3.PageRouteInfo<OrderViewArgs> {
   OrderViewRoute({_i4.Key? key})
       : super(
@@ -1559,7 +1526,7 @@ class OrderViewArgs {
 }
 
 /// generated route for
-/// [_i2.Orders]
+/// [_i1.Orders]
 class OrdersRoute extends _i3.PageRouteInfo<void> {
   const OrdersRoute()
       : super(
@@ -1571,7 +1538,7 @@ class OrdersRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.InAppBrowser]
+/// [_i1.InAppBrowser]
 class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
   const InAppBrowserRoute()
       : super(
@@ -1583,7 +1550,7 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.Customers]
+/// [_i1.Customers]
 class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
     _i4.Key? key,
@@ -1617,7 +1584,7 @@ class CustomersArgs {
 }
 
 /// generated route for
-/// [_i2.NoNet]
+/// [_i1.NoNet]
 class NoNetRoute extends _i3.PageRouteInfo<NoNetArgs> {
   NoNetRoute({_i4.Key? key})
       : super(
@@ -1641,7 +1608,7 @@ class NoNetArgs {
 }
 
 /// generated route for
-/// [_i2.PinLogin]
+/// [_i1.PinLogin]
 class PinLoginRoute extends _i3.PageRouteInfo<PinLoginArgs> {
   PinLoginRoute({_i4.Key? key})
       : super(
@@ -1665,7 +1632,7 @@ class PinLoginArgs {
 }
 
 /// generated route for
-/// [_i2.Devices]
+/// [_i1.Devices]
 class DevicesRoute extends _i3.PageRouteInfo<DevicesArgs> {
   DevicesRoute({
     _i4.Key? key,
@@ -1699,7 +1666,7 @@ class DevicesArgs {
 }
 
 /// generated route for
-/// [_i2.TaxConfiguration]
+/// [_i1.TaxConfiguration]
 class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
   const TaxConfigurationRoute()
       : super(
@@ -1711,7 +1678,7 @@ class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.Printing]
+/// [_i1.Printing]
 class PrintingRoute extends _i3.PageRouteInfo<void> {
   const PrintingRoute()
       : super(
@@ -1723,7 +1690,7 @@ class PrintingRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.BackUp]
+/// [_i1.BackUp]
 class BackUpRoute extends _i3.PageRouteInfo<void> {
   const BackUpRoute()
       : super(
@@ -1735,7 +1702,7 @@ class BackUpRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.LoginChoices]
+/// [_i1.LoginChoices]
 class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
   const LoginChoicesRoute()
       : super(
@@ -1747,7 +1714,7 @@ class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.TenantAdd]
+/// [_i1.TenantAdd]
 class TenantAddRoute extends _i3.PageRouteInfo<void> {
   const TenantAddRoute()
       : super(
@@ -1759,7 +1726,7 @@ class TenantAddRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.SocialHomeView]
+/// [_i1.SocialHomeView]
 class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
   const SocialHomeViewRoute()
       : super(
@@ -1771,7 +1738,7 @@ class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.DrawerScreen]
+/// [_i1.DrawerScreen]
 class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
     _i4.Key? key,
@@ -1810,7 +1777,7 @@ class DrawerScreenArgs {
 }
 
 /// generated route for
-/// [_i2.ChatListView]
+/// [_i1.ChatListView]
 class ChatListViewRoute extends _i3.PageRouteInfo<void> {
   const ChatListViewRoute()
       : super(
@@ -1822,7 +1789,7 @@ class ChatListViewRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.ConversationHistory]
+/// [_i1.ConversationHistory]
 class ConversationHistoryRoute
     extends _i3.PageRouteInfo<ConversationHistoryArgs> {
   ConversationHistoryRoute({
@@ -1857,7 +1824,7 @@ class ConversationHistoryArgs {
 }
 
 /// generated route for
-/// [_i2.Tickets]
+/// [_i1.Tickets]
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
@@ -1891,7 +1858,7 @@ class TicketsArgs {
 }
 
 /// generated route for
-/// [_i2.NewTicket]
+/// [_i1.NewTicket]
 class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
@@ -1925,7 +1892,7 @@ class NewTicketArgs {
 }
 
 /// generated route for
-/// [_i2.Apps]
+/// [_i1.Apps]
 class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
   AppsRoute({
     _i4.Key? key,
@@ -1969,7 +1936,7 @@ class AppsArgs {
 }
 
 /// generated route for
-/// [_i2.CheckOut]
+/// [_i1.CheckOut]
 class CheckOutRoute extends _i3.PageRouteInfo<CheckOutArgs> {
   CheckOutRoute({
     _i4.Key? key,
@@ -2003,7 +1970,7 @@ class CheckOutArgs {
 }
 
 /// generated route for
-/// [_i2.Cashbook]
+/// [_i1.Cashbook]
 class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
   CashbookRoute({
     _i4.Key? key,
@@ -2037,7 +2004,7 @@ class CashbookArgs {
 }
 
 /// generated route for
-/// [_i2.SettingPage]
+/// [_i1.SettingPage]
 class SettingPageRoute extends _i3.PageRouteInfo<SettingPageArgs> {
   SettingPageRoute({_i4.Key? key})
       : super(
@@ -2061,7 +2028,7 @@ class SettingPageArgs {
 }
 
 /// generated route for
-/// [_i2.Transactions]
+/// [_i1.Transactions]
 class TransactionsRoute extends _i3.PageRouteInfo<void> {
   const TransactionsRoute()
       : super(
@@ -2073,7 +2040,7 @@ class TransactionsRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i2.Security]
+/// [_i1.Security]
 class SecurityRoute extends _i3.PageRouteInfo<SecurityArgs> {
   SecurityRoute({_i4.Key? key})
       : super(
@@ -2093,5 +2060,1241 @@ class SecurityArgs {
   @override
   String toString() {
     return 'SecurityArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i1.Comfirm]
+class ComfirmRoute extends _i3.PageRouteInfo<void> {
+  const ComfirmRoute()
+      : super(
+          ComfirmRoute.name,
+          path: '/Comfirm',
+        );
+
+  static const String name = 'Comfirm';
+}
+
+extension RouterStateExtension on _i2.RouterService {
+  Future<dynamic> navigateToStartUpView({
+    _i4.Key? key,
+    bool? invokeLogin,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      StartUpViewRoute(
+        key: key,
+        invokeLogin: invokeLogin,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSignUpView({
+    _i4.Key? key,
+    String? countryNm = "Rwanda",
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      SignUpViewRoute(
+        key: key,
+        countryNm: countryNm,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToFlipperApp(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToLoginView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const LoginViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToCountryPicker(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const CountryPickerRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPhoneInputScreen({
+    _i4.Key? key,
+    _i5.AuthAction? action,
+    List<_i5.FirebaseUIAction>? actions,
+    _i6.FirebaseAuth? auth,
+    required String countryCode,
+    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
+    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+      double,
+    )? headerBuilder,
+    double? headerMaxExtent,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+    )? sideBuilder,
+    _i7.TextDirection? desktopLayoutDirection,
+    double breakpoint = 500,
+    _i6.MultiFactorSession? multiFactorSession,
+    _i6.PhoneMultiFactorInfo? mfaHint,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      PhoneInputScreenRoute(
+        key: key,
+        action: action,
+        actions: actions,
+        auth: auth,
+        countryCode: countryCode,
+        subtitleBuilder: subtitleBuilder,
+        footerBuilder: footerBuilder,
+        headerBuilder: headerBuilder,
+        headerMaxExtent: headerMaxExtent,
+        sideBuilder: sideBuilder,
+        desktopLayoutDirection: desktopLayoutDirection,
+        breakpoint: breakpoint,
+        multiFactorSession: multiFactorSession,
+        mfaHint: mfaHint,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAuthOptionPage(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AuthOptionPageRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAddProductView({
+    _i4.Key? key,
+    String? productId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AddProductViewRoute(
+        key: key,
+        productId: productId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAddToFavorites({
+    _i4.Key? key,
+    required int favoriteIndex,
+    required List<String> existingFavs,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AddToFavoritesRoute(
+        key: key,
+        favoriteIndex: favoriteIndex,
+        existingFavs: existingFavs,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAddDiscount({
+    _i4.Key? key,
+    _i8.Discount? discount,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AddDiscountRoute(
+        key: key,
+        discount: discount,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToListCategories({
+    _i4.Key? key,
+    required List<_i8.Category>? categories,
+    required String? modeOfOperation,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ListCategoriesRoute(
+        key: key,
+        categories: categories,
+        modeOfOperation: modeOfOperation,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToColorTile({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ColorTileRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToReceiveStock({
+    _i4.Key? key,
+    required String variantId,
+    String? existingStock,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ReceiveStockRoute(
+        key: key,
+        variantId: variantId,
+        existingStock: existingStock,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAddVariation({
+    _i4.Key? key,
+    required String productId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AddVariationRoute(
+        key: key,
+        productId: productId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAddCategory({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AddCategoryRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToListUnits({
+    _i4.Key? key,
+    required String type,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ListUnitsRoute(
+        key: key,
+        type: type,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSell({
+    _i4.Key? key,
+    required _i8.Product product,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      SellRoute(
+        key: key,
+        product: product,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPayments({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      PaymentsRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPaymentConfirmation({
+    _i4.Key? key,
+    required double totalTransactionAmount,
+    required _i8.ITransaction transaction,
+    required String paymentType,
+    String? receiptType = "ns",
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      PaymentConfirmationRoute(
+        key: key,
+        totalTransactionAmount: totalTransactionAmount,
+        transaction: transaction,
+        paymentType: paymentType,
+        receiptType: receiptType,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToTransactionDetail({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      TransactionDetailRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSettingsScreen(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const SettingsScreenRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSwitchBranchView({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      SwitchBranchViewRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToScannView({
+    _i4.Key? key,
+    String intent = 'selling',
+    bool useLatestImplementation = false,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ScannViewRoute(
+        key: key,
+        intent: intent,
+        useLatestImplementation: useLatestImplementation,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToOrderView({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      OrderViewRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToOrders(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const OrdersRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToInAppBrowser(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const InAppBrowserRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToCustomers({
+    _i4.Key? key,
+    String? transactionId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      CustomersRoute(
+        key: key,
+        transactionId: transactionId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToNoNet({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      NoNetRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPinLogin({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      PinLoginRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToDevices({
+    _i4.Key? key,
+    int? pin,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      DevicesRoute(
+        key: key,
+        pin: pin,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToTaxConfiguration(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const TaxConfigurationRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToPrinting(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const PrintingRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToBackUp(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const BackUpRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToLoginChoices(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const LoginChoicesRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToTenantAdd(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const TenantAddRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSocialHomeView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const SocialHomeViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToDrawerScreen({
+    _i4.Key? key,
+    required String open,
+    required _i8.Drawers drawer,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      DrawerScreenRoute(
+        key: key,
+        open: open,
+        drawer: drawer,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToChatListView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const ChatListViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToConversationHistory({
+    _i4.Key? key,
+    required String conversationId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      ConversationHistoryRoute(
+        key: key,
+        conversationId: conversationId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToTickets({
+    _i4.Key? key,
+    _i8.ITransaction? transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      TicketsRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToNewTicket({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      NewTicketRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToApps({
+    _i4.Key? key,
+    required _i4.TextEditingController controller,
+    required bool isBigScreen,
+    required _i8.CoreViewModel model,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      AppsRoute(
+        key: key,
+        controller: controller,
+        isBigScreen: isBigScreen,
+        model: model,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToCheckOut({
+    _i4.Key? key,
+    required bool isBigScreen,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      CheckOutRoute(
+        key: key,
+        isBigScreen: isBigScreen,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToCashbook({
+    _i4.Key? key,
+    required bool isBigScreen,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      CashbookRoute(
+        key: key,
+        isBigScreen: isBigScreen,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSettingPage({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      SettingPageRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToTransactions(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const TransactionsRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToSecurity({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      SecurityRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToComfirm(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const ComfirmRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithStartUpView({
+    _i4.Key? key,
+    bool? invokeLogin,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      StartUpViewRoute(
+        key: key,
+        invokeLogin: invokeLogin,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSignUpView({
+    _i4.Key? key,
+    String? countryNm = "Rwanda",
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      SignUpViewRoute(
+        key: key,
+        countryNm: countryNm,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithFlipperApp(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const FlipperAppRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithLoginView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const LoginViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithCountryPicker(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const CountryPickerRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPhoneInputScreen({
+    _i4.Key? key,
+    _i5.AuthAction? action,
+    List<_i5.FirebaseUIAction>? actions,
+    _i6.FirebaseAuth? auth,
+    required String countryCode,
+    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
+    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+      double,
+    )? headerBuilder,
+    double? headerMaxExtent,
+    _i4.Widget Function(
+      _i4.BuildContext,
+      _i4.BoxConstraints,
+    )? sideBuilder,
+    _i7.TextDirection? desktopLayoutDirection,
+    double breakpoint = 500,
+    _i6.MultiFactorSession? multiFactorSession,
+    _i6.PhoneMultiFactorInfo? mfaHint,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      PhoneInputScreenRoute(
+        key: key,
+        action: action,
+        actions: actions,
+        auth: auth,
+        countryCode: countryCode,
+        subtitleBuilder: subtitleBuilder,
+        footerBuilder: footerBuilder,
+        headerBuilder: headerBuilder,
+        headerMaxExtent: headerMaxExtent,
+        sideBuilder: sideBuilder,
+        desktopLayoutDirection: desktopLayoutDirection,
+        breakpoint: breakpoint,
+        multiFactorSession: multiFactorSession,
+        mfaHint: mfaHint,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAuthOptionPage(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AuthOptionPageRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddProductView({
+    _i4.Key? key,
+    String? productId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AddProductViewRoute(
+        key: key,
+        productId: productId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddToFavorites({
+    _i4.Key? key,
+    required int favoriteIndex,
+    required List<String> existingFavs,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AddToFavoritesRoute(
+        key: key,
+        favoriteIndex: favoriteIndex,
+        existingFavs: existingFavs,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddDiscount({
+    _i4.Key? key,
+    _i8.Discount? discount,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AddDiscountRoute(
+        key: key,
+        discount: discount,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithListCategories({
+    _i4.Key? key,
+    required List<_i8.Category>? categories,
+    required String? modeOfOperation,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ListCategoriesRoute(
+        key: key,
+        categories: categories,
+        modeOfOperation: modeOfOperation,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithColorTile({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ColorTileRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithReceiveStock({
+    _i4.Key? key,
+    required String variantId,
+    String? existingStock,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ReceiveStockRoute(
+        key: key,
+        variantId: variantId,
+        existingStock: existingStock,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddVariation({
+    _i4.Key? key,
+    required String productId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AddVariationRoute(
+        key: key,
+        productId: productId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddCategory({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AddCategoryRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithListUnits({
+    _i4.Key? key,
+    required String type,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ListUnitsRoute(
+        key: key,
+        type: type,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSell({
+    _i4.Key? key,
+    required _i8.Product product,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      SellRoute(
+        key: key,
+        product: product,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPayments({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      PaymentsRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPaymentConfirmation({
+    _i4.Key? key,
+    required double totalTransactionAmount,
+    required _i8.ITransaction transaction,
+    required String paymentType,
+    String? receiptType = "ns",
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      PaymentConfirmationRoute(
+        key: key,
+        totalTransactionAmount: totalTransactionAmount,
+        transaction: transaction,
+        paymentType: paymentType,
+        receiptType: receiptType,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithTransactionDetail({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      TransactionDetailRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSettingsScreen(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const SettingsScreenRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSwitchBranchView({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      SwitchBranchViewRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithScannView({
+    _i4.Key? key,
+    String intent = 'selling',
+    bool useLatestImplementation = false,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ScannViewRoute(
+        key: key,
+        intent: intent,
+        useLatestImplementation: useLatestImplementation,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithOrderView({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      OrderViewRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithOrders(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const OrdersRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithInAppBrowser(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const InAppBrowserRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithCustomers({
+    _i4.Key? key,
+    String? transactionId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      CustomersRoute(
+        key: key,
+        transactionId: transactionId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithNoNet({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      NoNetRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPinLogin({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      PinLoginRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithDevices({
+    _i4.Key? key,
+    int? pin,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      DevicesRoute(
+        key: key,
+        pin: pin,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithTaxConfiguration(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const TaxConfigurationRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPrinting(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const PrintingRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithBackUp(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const BackUpRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithLoginChoices(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const LoginChoicesRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithTenantAdd(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const TenantAddRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSocialHomeView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const SocialHomeViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithDrawerScreen({
+    _i4.Key? key,
+    required String open,
+    required _i8.Drawers drawer,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      DrawerScreenRoute(
+        key: key,
+        open: open,
+        drawer: drawer,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithChatListView(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const ChatListViewRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithConversationHistory({
+    _i4.Key? key,
+    required String conversationId,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      ConversationHistoryRoute(
+        key: key,
+        conversationId: conversationId,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithTickets({
+    _i4.Key? key,
+    _i8.ITransaction? transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      TicketsRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithNewTicket({
+    _i4.Key? key,
+    required _i8.ITransaction transaction,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      NewTicketRoute(
+        key: key,
+        transaction: transaction,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithApps({
+    _i4.Key? key,
+    required _i4.TextEditingController controller,
+    required bool isBigScreen,
+    required _i8.CoreViewModel model,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      AppsRoute(
+        key: key,
+        controller: controller,
+        isBigScreen: isBigScreen,
+        model: model,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithCheckOut({
+    _i4.Key? key,
+    required bool isBigScreen,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      CheckOutRoute(
+        key: key,
+        isBigScreen: isBigScreen,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithCashbook({
+    _i4.Key? key,
+    required bool isBigScreen,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      CashbookRoute(
+        key: key,
+        isBigScreen: isBigScreen,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSettingPage({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      SettingPageRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithTransactions(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const TransactionsRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithSecurity({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      SecurityRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithComfirm(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const ComfirmRoute(),
+      onFailure: onFailure,
+    );
   }
 }

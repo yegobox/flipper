@@ -12,10 +12,9 @@ import 'all_routes.dart';
 
     //Login Routes
     CustomRoute(page: LoginView),
-    CustomRoute(page: Landing),
-    CustomRoute(page: AuthOptionPage),
     CustomRoute(page: CountryPicker),
     CustomRoute(page: PhoneInputScreen),
+    CustomRoute(page: AuthOptionPage),
     //End of login routes
 
     CustomRoute(page: AddProductView),
@@ -226,3 +225,4 @@ class App {}
 // https://pub.dev/packages/awesome_snackbar_content
 // https://pub.dev/packages/responsive_framework
 // https://pub.dev/packages/timelines
+// FLIPPER-0028373737373
