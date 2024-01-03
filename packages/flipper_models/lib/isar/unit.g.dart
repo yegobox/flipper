@@ -102,23 +102,27 @@ IUnit deserializeIUnit(IsarReader reader) {
   _value = IsarCore.readString(reader, 4) ?? '';
   final bool _active;
   _active = IsarCore.readBool(reader, 5);
+  final DateTime? _lastTouched;
+  {
+    final value = IsarCore.readLong(reader, 6);
+    if (value == -9223372036854775808) {
+      _lastTouched = null;
+    } else {
+      _lastTouched =
+          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
+    }
+  }
+  final String _action;
+  _action = IsarCore.readString(reader, 7) ?? '';
   final object = IUnit(
     id: _id,
     branchId: _branchId,
     name: _name,
     value: _value,
     active: _active,
+    lastTouched: _lastTouched,
+    action: _action,
   );
-  {
-    final value = IsarCore.readLong(reader, 6);
-    if (value == -9223372036854775808) {
-      object.lastTouched = null;
-    } else {
-      object.lastTouched =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
-  object.action = IsarCore.readString(reader, 7) ?? '';
   {
     final value = IsarCore.readLong(reader, 8);
     if (value == -9223372036854775808) {
@@ -1762,12 +1766,11 @@ IUnit _$IUnitFromJson(Map<String, dynamic> json) => IUnit(
       name: json['name'] as String,
       value: json['value'] as String,
       active: json['active'] as bool,
-    )
-      ..deletedAt = json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String)
-      ..lastTouched = IUnit._dateTimeFromJson(json['lastTouched'] as String?)
-      ..action = json['action'] as String;
+      action: json['action'] as String,
+      lastTouched: IUnit._dateTimeFromJson(json['lastTouched'] as String?),
+    )..deletedAt = json['deletedAt'] == null
+        ? null
+        : DateTime.parse(json['deletedAt'] as String);
 
 Map<String, dynamic> _$IUnitToJson(IUnit instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
