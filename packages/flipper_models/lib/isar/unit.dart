@@ -32,13 +32,14 @@ class IUnit extends IJsonSerializable {
   }
 
   // contructor
-  IUnit({
-    required this.id,
-    required this.branchId,
-    required this.name,
-    required this.value,
-    required this.active,
-  });
+  IUnit(
+      {required this.id,
+      required this.branchId,
+      required this.name,
+      required this.value,
+      required this.active,
+      required this.action,
+      this.lastTouched});
   // toString()
   @override
   String toString() {

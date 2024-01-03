@@ -364,6 +364,8 @@ class IsarAPI<M> implements IsarApiInterface {
             branchId: branchId,
             id: randomString(),
             name: map['name'],
+            action: AppActions.created,
+            lastTouched: DateTime.now(),
             value: map['value']);
 
         // save unit to db
