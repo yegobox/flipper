@@ -137,9 +137,9 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+#  find ./ -name pubspec.lock -type f -delete
+#  find ./ -name pubspec_overrides.yaml -type f -delete
       - run: |
-          find ./ -name pubspec.lock -type f -delete
-          find ./ -name pubspec_overrides.yaml -type f -delete
           dart pub global activate melos 2.9.0
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
