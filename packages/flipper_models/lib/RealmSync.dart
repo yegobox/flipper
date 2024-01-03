@@ -9,6 +9,7 @@ import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/sync_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
@@ -191,6 +192,12 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Product) {
+      /// there is cases where more than one device is editing the temp product
+      /// this is when a product is in creation mode and not yet done, when this is synced to the
+      /// cloud then other user might start editting the same product which is edited by another user
+      /// to handle that case then we simply do not send this product to the cloud to make sure the user edit the product that he/she owns at
+      /// the moment of creation
+      if (item.name == TEMP_PRODUCT) return;
       await realm!.write(() {
         final realmProduct = RealmProduct(
           item.id,

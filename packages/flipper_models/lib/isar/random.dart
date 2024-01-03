@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:flipper_models/hash/flipperId.dart';
-
 ///In this case, the function generates a string of length 15 using
 ///letters and digits, which means there are a total of 36 possible
 ///characters for each position in the string. Therefore, the total

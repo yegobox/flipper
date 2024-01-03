@@ -813,7 +813,10 @@ class IsarAPI<M> implements IsarApiInterface {
     return db.read((isar) => isar.products
         .where()
         .nameEqualTo(name)
+        .and()
         .businessIdEqualTo(businessId)
+        .and()
+        .deletedAtIsNull()
         .findFirst());
   }
 
@@ -1358,11 +1361,13 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Variant>> getVariantByProductId(
       {required String productId}) async {
-    return db.variants
-        .where()
-        .productIdEqualTo(productId)
-        .deletedAtIsNull()
-        .findAll();
+    return db.read((isar) {
+      return isar.variants
+          .where()
+          .productIdEqualTo(productId)
+          .deletedAtIsNull()
+          .findAll();
+    });
   }
 
   @override

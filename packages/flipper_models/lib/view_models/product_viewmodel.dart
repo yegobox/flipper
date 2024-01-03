@@ -111,14 +111,16 @@ class ProductViewModel extends FlipperBaseModel
 
     /// create a temp product or return it if it exists
     Product product = await ProxyService.isar.createProduct(
-        product: Product(
-            id: randomString(),
-            name: TEMP_PRODUCT,
-            action: AppActions.created,
-            lastTouched: DateTime.now(),
-            businessId: ProxyService.box.getBusinessId()!,
-            color: COLOR,
-            branchId: ProxyService.box.getBranchId()!));
+      product: Product(
+        id: randomString(),
+        name: TEMP_PRODUCT,
+        action: AppActions.created,
+        lastTouched: DateTime.now(),
+        businessId: ProxyService.box.getBusinessId()!,
+        color: COLOR,
+        branchId: ProxyService.box.getBranchId()!,
+      ),
+    );
 
     setCurrentProduct(currentProduct: product);
     kProductName = product.name;

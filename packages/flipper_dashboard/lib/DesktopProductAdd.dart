@@ -245,6 +245,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       onViewModelReady: (model) async {
         if (widget.productId != null) {
           // Load existing product if productId is given
+          model.inUpdateProcess = true;
           Product product =
               await model.getProduct(productId: widget.productId!);
           ref.read(productProvider.notifier).emitProduct(value: product);
@@ -252,7 +253,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           // Populate product name with the name of the product being edited
           productNameController.text = product.name;
           model.setProductName(name: product.name);
-         
+
           // Populate variants related to the product
           List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);

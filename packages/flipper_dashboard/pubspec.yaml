@@ -56,7 +56,7 @@ dependencies:
 
   connectivity_plus: ^5.0.2
   flipper_data_table: ^1.0.0-dev.2
-  device_info_plus: ^9.1.0
+  device_info_plus: ^9.1.1
   provider: ^6.0.2
   gap: ^2.0.0
   barcode: ^2.2.0

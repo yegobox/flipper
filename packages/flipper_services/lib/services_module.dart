@@ -11,6 +11,7 @@ import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/whatsapp.dart';
+
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -58,9 +59,15 @@ import 'package:universal_platform/universal_platform.dart';
 import 'package:flipper_models/isar_api.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
 abstract class ServicesModule {
+  @LazySingleton()
+  dev.Device get device {
+    return dev.DeviceIdService();
+  }
+
   @preResolve
   Future<RemoteInterface> get remoteApi async {
     try {

@@ -21,6 +21,7 @@ import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/sentry_service.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/status.dart';
+import 'DeviceIdService.dart';
 import 'abstractions/api.dart';
 import 'abstractions/dynamic_link.dart';
 import 'abstractions/location.dart';
@@ -69,6 +70,7 @@ final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final RemoteInterface _remote = getIt<RemoteInterface>();
 final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
+final Device _device = getIt<Device>();
 
 abstract class ProxyService {
   static RemoteInterface get remote => _remote;
@@ -107,4 +109,5 @@ abstract class ProxyService {
   static Messaging get messaging => _messaging;
   static Status get status => _status;
   static SentryServiceInterface get sentry => _sentry;
+  static Device get device => _device;
 }
