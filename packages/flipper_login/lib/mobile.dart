@@ -1,17 +1,17 @@
 library flipper_login;
 
 import 'package:flipper_login/colors.dart';
-import 'package:flipper_login/widgets/signup_login_buttons.dart';
+import 'package:flipper_login/signup_login_buttons.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flipper_services/proxy.dart';
 
-class MobileLoginView extends StatefulWidget {
+class MobileLogin extends StatefulWidget {
   @override
-  State<MobileLoginView> createState() => _MobileLoginViewState();
+  State<MobileLogin> createState() => _MobileLoginState();
 }
 
-class _MobileLoginViewState extends State<MobileLoginView> {
+class _MobileLoginState extends State<MobileLogin> {
   Future<bool> _onWillPop() async {
     return false;
   }

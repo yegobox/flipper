@@ -1,4 +1,4 @@
-import 'package:flipper_login/auth_code.dart';
+import 'package:flipper_login/loginCode.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
@@ -28,7 +28,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   @override
   Widget build(BuildContext context) {
-    final loginCode = ref.watch(authCode);
+    final loginCode = ref.watch(loginCodeProvider);
     return ViewModelBuilder<LoginViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
@@ -81,15 +81,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
               Padding(
                 padding: const EdgeInsets.only(left: 120.0),
                 child: SizedBox(
-                  width: 450,
-                  child: Text(
-                    'Log in to Flipper by QR Code',
-                    style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 20,
-                        color: Colors.black),
-                  ),
-                ),
+                    width: 450,
+                    child: Text(
+                      'Log in to Flipper by QR Code',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          color: Colors.black),
+                    )),
               ),
               SizedBox(height: 10),
               SizedBox(

@@ -62,7 +62,25 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     LoginViewRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.LoginView(),
+        child: const _i1.LoginView(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    LandingRoute.name: (routeData) {
+      final args =
+          routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.Landing(key: args.key),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    AuthOptionPageRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.AuthOptionPage(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -95,14 +113,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           multiFactorSession: args.multiFactorSession,
           mfaHint: args.mfaHint,
         ),
-        opaque: true,
-        barrierDismissible: false,
-      );
-    },
-    AuthOptionPageRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
-        routeData: routeData,
-        child: _i1.AuthOptionPage(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -571,16 +581,20 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/login-view',
         ),
         _i3.RouteConfig(
+          LandingRoute.name,
+          path: '/Landing',
+        ),
+        _i3.RouteConfig(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
+        ),
+        _i3.RouteConfig(
           CountryPickerRoute.name,
           path: '/country-picker',
         ),
         _i3.RouteConfig(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
-        ),
-        _i3.RouteConfig(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
         ),
         _i3.RouteConfig(
           AddProductViewRoute.name,
@@ -842,6 +856,42 @@ class LoginViewRoute extends _i3.PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [_i1.Landing]
+class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
+  LandingRoute({_i4.Key? key})
+      : super(
+          LandingRoute.name,
+          path: '/Landing',
+          args: LandingArgs(key: key),
+        );
+
+  static const String name = 'Landing';
+}
+
+class LandingArgs {
+  const LandingArgs({this.key});
+
+  final _i4.Key? key;
+
+  @override
+  String toString() {
+    return 'LandingArgs{key: $key}';
+  }
+}
+
+/// generated route for
+/// [_i1.AuthOptionPage]
+class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
+  const AuthOptionPageRoute()
+      : super(
+          AuthOptionPageRoute.name,
+          path: '/auth-option-page',
+        );
+
+  static const String name = 'AuthOptionPage';
+}
+
+/// generated route for
 /// [_i1.CountryPicker]
 class CountryPickerRoute extends _i3.PageRouteInfo<void> {
   const CountryPickerRoute()
@@ -959,18 +1009,6 @@ class PhoneInputScreenArgs {
   String toString() {
     return 'PhoneInputScreenArgs{key: $key, action: $action, actions: $actions, auth: $auth, countryCode: $countryCode, subtitleBuilder: $subtitleBuilder, footerBuilder: $footerBuilder, headerBuilder: $headerBuilder, headerMaxExtent: $headerMaxExtent, sideBuilder: $sideBuilder, desktopLayoutDirection: $desktopLayoutDirection, breakpoint: $breakpoint, multiFactorSession: $multiFactorSession, mfaHint: $mfaHint}';
   }
-}
-
-/// generated route for
-/// [_i1.AuthOptionPage]
-class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
-  const AuthOptionPageRoute()
-      : super(
-          AuthOptionPageRoute.name,
-          path: '/auth-option-page',
-        );
-
-  static const String name = 'AuthOptionPage';
 }
 
 /// generated route for
@@ -2120,6 +2158,26 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
+  Future<dynamic> navigateToLanding({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      LandingRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAuthOptionPage(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AuthOptionPageRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> navigateToCountryPicker(
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return navigateTo(
@@ -2169,14 +2227,6 @@ extension RouterStateExtension on _i2.RouterService {
         multiFactorSession: multiFactorSession,
         mfaHint: mfaHint,
       ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> navigateToAuthOptionPage(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
-    return navigateTo(
-      const AuthOptionPageRoute(),
       onFailure: onFailure,
     );
   }
@@ -2731,6 +2781,26 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
+  Future<dynamic> replaceWithLanding({
+    _i4.Key? key,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      LandingRoute(
+        key: key,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAuthOptionPage(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AuthOptionPageRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithCountryPicker(
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return replaceWith(
@@ -2780,14 +2850,6 @@ extension RouterStateExtension on _i2.RouterService {
         multiFactorSession: multiFactorSession,
         mfaHint: mfaHint,
       ),
-      onFailure: onFailure,
-    );
-  }
-
-  Future<dynamic> replaceWithAuthOptionPage(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
-    return replaceWith(
-      const AuthOptionPageRoute(),
       onFailure: onFailure,
     );
   }

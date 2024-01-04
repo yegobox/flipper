@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
@@ -7,7 +9,7 @@ import 'package:flutter/widgets.dart' hide Title;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-import 'title.dart';
+import './widgets/internal/title.dart';
 import 'universal_button.dart';
 
 typedef SMSCodeRequestedCallback = void Function(

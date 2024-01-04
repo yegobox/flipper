@@ -1,8 +1,8 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
-import 'package:flipper_login/widgets/update_email.dart';
-import 'package:flipper_login/widgets/update_printer_settings.dart';
+import 'package:flipper_login/update_email.dart';
+import 'package:flipper_login/update_printer_settings.dart';
 import 'languages_screen.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';

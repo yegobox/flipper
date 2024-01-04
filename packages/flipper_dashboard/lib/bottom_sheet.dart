@@ -11,7 +11,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 
-import 'package:flipper_login/widgets/update_email.dart';
+import 'package:flipper_login/update_email.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 Widget header({required String title, required BuildContext context}) {
