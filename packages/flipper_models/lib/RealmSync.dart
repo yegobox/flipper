@@ -1,6 +1,7 @@
 // ignore: unused_import
 import 'dart:developer';
-
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
 import 'package:flipper_models/realm/realmIUnit.dart';
@@ -26,20 +27,35 @@ class RealmSync<M extends IJsonSerializable>
     with HandleItemMixin
     implements SyncReaml<M> {
   late Realm realm;
+
+  Future<String> absolutePath(String fileName) async {
+    final appDocsDirectory = await getApplicationDocumentsDirectory();
+    final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
+    if (!Directory(realmDirectory).existsSync()) {
+      await Directory(realmDirectory).create(recursive: true);
+    }
+    return "$realmDirectory/$fileName";
+  }
+
   @override
   Future<void> configure() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    final app = App(AppConfiguration('application-0-hwctb'));
+    final app = App(AppConfiguration('devicesync-ifwtd'));
     final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
-    final config = Configuration.flexibleSync(user, [
-      RealmITransaction.schema,
-      RealmITransactionItem.schema,
-      RealmProduct.schema,
-      RealmVariant.schema,
-      RealmStock.schema,
-      RealmIUnit.schema
-    ]);
+    final config = Configuration.flexibleSync(
+      user,
+      [
+        RealmITransaction.schema,
+        RealmITransactionItem.schema,
+        RealmProduct.schema,
+        RealmVariant.schema,
+        RealmStock.schema,
+        RealmIUnit.schema
+      ],
+      // path: await absolutePath("db_"),
+    );
+    // realm = await Realm.open(config);
     CancellationToken token = CancellationToken();
 
     // Cancel the open operation after 30 seconds.
@@ -65,29 +81,27 @@ class RealmSync<M extends IJsonSerializable>
       // and automatically sync changes in the background when the device is online.
       realm = await Realm(config);
     }
+    final transaction =
+        realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
+    final transactionItem =
+        realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+    final product = realm.query<RealmProduct>(r'branchId == $0', [branchId]);
+    final variant = realm.query<RealmVariant>(r'branchId == $0', [branchId]);
+    final stock = realm.query<RealmStock>(r'branchId == $0', [branchId]);
+    final unit = realm.query<RealmIUnit>(r'branchId == $0', [branchId]);
 
-    realm.subscriptions.update((mutableSubscriptions) {
-      mutableSubscriptions
-          .add(realm.query<RealmITransaction>(r'branchId == $0', [branchId]));
-      mutableSubscriptions.add(
-          realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]));
-
-      mutableSubscriptions
-          .add(realm.query<RealmProduct>(r'branchId == $0', [branchId]));
-
-      mutableSubscriptions
-          .add(realm.query<RealmVariant>(r'branchId == $0', [branchId]));
-
-      mutableSubscriptions
-          .add(realm.query<RealmStock>(r'branchId == $0', [branchId]));
-      mutableSubscriptions
-          .add(realm.query<RealmIUnit>(r'branchId == $0', [branchId]));
+    realm.subscriptions.update((sub) {
+      sub.add(transaction);
+      sub.add(transactionItem);
+      sub.add(product);
+      sub.add(variant);
+      sub.add(stock);
+      sub.add(unit);
     });
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
     await realm.subscriptions.waitForSynchronization();
     await realm.syncSession.waitForDownload();
-    await realm.syncSession.waitForUpload();
   }
 
   @override
