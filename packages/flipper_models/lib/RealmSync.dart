@@ -60,6 +60,8 @@ class RealmSync<M extends IJsonSerializable>
 
       /// removed await on bellow line because when it is in bootstrap, it might freeze the app
       await realm!.subscriptions.waitForSynchronization();
+      await realm!.syncSession.waitForDownload();
+      await realm!.syncSession.waitForUpload();
     }
   }
 
