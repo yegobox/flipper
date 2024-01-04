@@ -12,7 +12,7 @@ class LoginView extends StatelessWidget {
       resizeToAvoidBottomInset: true,
       body: UniversalPlatform.isAndroid
           ? SingleChildScrollView(child: MobileLoginView())
-          : SingleChildScrollView(child: DesktopLoginView()),
+          : DesktopLoginView(),
     );
   }
 }

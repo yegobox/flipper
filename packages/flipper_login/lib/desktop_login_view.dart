@@ -81,14 +81,15 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
               Padding(
                 padding: const EdgeInsets.only(left: 120.0),
                 child: SizedBox(
-                    width: 450,
-                    child: Text(
-                      'Log in to Flipper by QR Code',
-                      style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 20,
-                          color: Colors.black),
-                    )),
+                  width: 450,
+                  child: Text(
+                    'Log in to Flipper by QR Code',
+                    style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 20,
+                        color: Colors.black),
+                  ),
+                ),
               ),
               SizedBox(height: 10),
               SizedBox(
