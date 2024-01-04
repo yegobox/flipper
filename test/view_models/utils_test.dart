@@ -10,14 +10,14 @@ void main() {
       final currentDate = DateTime.now();
       final futureDate = DateTime.now().add(const Duration(days: 1));
 
-      expect(currentDate.isFutureDateCompareTo(futureDate), isTrue);
+      expect(currentDate.isNewDateCompareTo(futureDate), isTrue);
     });
 
     test('isFutureDateCompareTo should return true when current date is equal',
         () {
       final currentDate = DateTime.now();
 
-      expect(currentDate.isFutureDateCompareTo(currentDate), isFalse);
+      expect(currentDate.isNewDateCompareTo(currentDate), isFalse);
     });
 
     test(
@@ -26,14 +26,14 @@ void main() {
       final currentDate = DateTime.now();
       final pastDate = DateTime.now().subtract(const Duration(days: 1));
 
-      expect(currentDate.isFutureDateCompareTo(pastDate), isFalse);
+      expect(currentDate.isNewDateCompareTo(pastDate), isFalse);
     });
 
     test('isFutureDateCompareTo should return false when comparing with null',
         () {
       final currentDate = DateTime.now();
 
-      expect(currentDate.isFutureDateCompareTo(null), isFalse);
+      expect(currentDate.isNewDateCompareTo(null), isFalse);
     });
   });
   test('Removes negative number from end of string', () {

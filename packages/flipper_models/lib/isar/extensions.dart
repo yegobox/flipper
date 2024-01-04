@@ -4,16 +4,16 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 extension DateTimeExtensions on DateTime {
-  bool isFutureDateCompareTo(DateTime? other) {
+  bool isNewDateCompareTo(DateTime? other) {
     if (other == null) return false;
     return compareTo(other) > 0;
   }
 }
 
 extension NullableDateTimeExtensions on DateTime? {
-  bool isFutureDateCompareTo(DateTime? other) {
+  bool isNewDateCompareTo(DateTime? other) {
     if (this == null) return false;
-    return this!.isFutureDateCompareTo(other);
+    return this?.isNewDateCompareTo(other) ?? false;
   }
 }
 
