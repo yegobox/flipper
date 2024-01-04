@@ -10,9 +10,8 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      body: UniversalPlatform.isAndroid
-          ? SingleChildScrollView(child: MobileLoginView())
-          : DesktopLoginView(),
+      body:
+          UniversalPlatform.isAndroid ? MobileLoginView() : DesktopLoginView(),
     );
   }
 }
