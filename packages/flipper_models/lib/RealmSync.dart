@@ -32,14 +32,22 @@ class RealmSync<M extends IJsonSerializable>
     if (realm == null) {
       final app = App(AppConfiguration('application-0-hwctb'));
       final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
-      realm = Realm(Configuration.flexibleSync(user, [
+      final config = Configuration.flexibleSync(user, [
         RealmITransaction.schema,
         RealmITransactionItem.schema,
         RealmProduct.schema,
         RealmVariant.schema,
         RealmStock.schema,
         RealmIUnit.schema
-      ]));
+      ]);
+      try {
+        // If the device is online, download changes and then open the realm.
+        realm = await Realm.open(config);
+      } catch (e) {
+        // If the device is offline, open the realm immediately
+        // and automatically sync changes in the background when the device is online.
+        realm = await Realm(config);
+      }
       realm!.subscriptions.update((mutableSubscriptions) {
         mutableSubscriptions.add(
             realm!.query<RealmITransaction>(r'branchId == $0', [branchId]));
