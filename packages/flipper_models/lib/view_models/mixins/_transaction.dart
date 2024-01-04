@@ -60,7 +60,7 @@ mixin TransactionMixin {
 
       /// this is to automatically show item in shoping cart
       item.active = true;
-
+      await ProxyService.isar.update(data: item);
       List<TransactionItem> items = await ProxyService.isar.transactionItems(
           transactionId: pendingTransaction.id,
           doneWithTransaction: false,
@@ -69,7 +69,7 @@ mixin TransactionMixin {
           items.fold(0, (a, b) => a + (b.price * b.qty));
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingTransaction);
-      await ProxyService.isar.update(data: item);
+
       return;
     }
     // Create a new transaction item

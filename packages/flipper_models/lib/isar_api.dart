@@ -1713,15 +1713,27 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Stock> stockByVariantId({required String variantId}) async {
+  Future<Stock> stockByVariantId(
+      {required String variantId, bool nonZeroValue = false}) async {
     int branchId = ProxyService.box.getBranchId()!;
     await assignStockToVariant(variantId: variantId);
-    return db.read((isar) => isar.stocks
-        .where()
-        .variantIdEqualTo(variantId)
-        .and()
-        .branchIdEqualTo(branchId)
-        .findFirst())!;
+    if (nonZeroValue) {
+      return db.read((isar) => isar.stocks
+          .where()
+          .variantIdEqualTo(variantId)
+          .and()
+          .branchIdEqualTo(branchId)
+          .and()
+          .retailPriceGreaterThan(0)
+          .findFirst())!;
+    } else {
+      return db.read((isar) => isar.stocks
+          .where()
+          .variantIdEqualTo(variantId)
+          .and()
+          .branchIdEqualTo(branchId)
+          .findFirst())!;
+    }
   }
 
   @override

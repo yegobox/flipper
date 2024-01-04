@@ -813,7 +813,8 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Stock> stockByVariantId({required String variantId}) {
+  Future<Stock> stockByVariantId(
+      {required String variantId, bool nonZeroValue = false}) {
     // TODO: implement stockByVariantId
     throw UnimplementedError();
   }

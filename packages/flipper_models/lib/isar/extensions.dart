@@ -79,8 +79,9 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
         ProxyService.realm.onSave<Variant>(item: object);
       }
       if (object is IUnit) {
-        ProxyService.syncFirestore.onSave<IUnit>(item: object);
+        ProxyService.realm.onSave<IUnit>(item: object);
       }
+      ProxyService.realm.realm.subscriptions.waitForSynchronization();
     }
   }
 }

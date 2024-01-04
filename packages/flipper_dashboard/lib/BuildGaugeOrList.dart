@@ -9,7 +9,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_services/proxy.dart';
 
 Widget BuildGaugeOrList(
     {required BuildContext context,

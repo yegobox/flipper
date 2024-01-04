@@ -23,7 +23,8 @@ abstract class IsarApiInterface {
   Stream<List<Product>> productStreams({String? prodIndex});
   Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({String? prodIndex});
-  Future<Stock> stockByVariantId({required String variantId});
+  Future<Stock> stockByVariantId(
+      {required String variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Future<Category?> activeCategory({required int branchId});

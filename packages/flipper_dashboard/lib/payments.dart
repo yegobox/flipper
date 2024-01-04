@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -78,19 +77,14 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Widget _buildBody(CoreViewModel model) {
-    final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
-    final totalPayable = ref
-        .watch(transactionItemsProvider(transaction.value?.value?.id))
-        .value!
-        .fold(0, (int sum, item) => sum + item.price.toInt());
+    final totalPayable = widget.transaction.subTotal;
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 145),
-        _buildAmountSection(totalPayable.toDouble()),
+        _buildAmountSection(totalPayable),
         Spacer(),
         _buildPaymentButtons(model),
         const SizedBox(height: 10),
@@ -104,7 +98,7 @@ class PaymentsState extends ConsumerState<Payments> {
     return Column(
       children: [
         Text(
-          'FRw ' + NumberFormat('#,###').format(totalPayable),
+          'RWF ' + NumberFormat('#,###').format(totalPayable),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w400,
             fontSize: 20,
@@ -329,16 +323,14 @@ class PaymentsState extends ConsumerState<Payments> {
   }
 
   Future<void> confirmPayment(CoreViewModel model) async {
-    ITransaction currentTransaction = await ProxyService.isar
-        .manageTransaction(transactionType: TransactionType.custom);
-
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
-        ? currentTransaction.subTotal
+        ? widget.transaction.subTotal
         : double.parse(_cash.text);
-    model.keypad.setCashReceived(amount: amount);
     await model.collectPayment(
-        paymentType: paymentType!, transaction: currentTransaction);
+        paymentType: paymentType!,
+        transaction: widget.transaction,
+        amountReceived: amount);
 
     String receiptType = "ns";
     if (ProxyService.box.isPoroformaMode()) {
@@ -349,10 +341,10 @@ class PaymentsState extends ConsumerState<Payments> {
     }
     _routerService.navigateTo(
       PaymentConfirmationRoute(
-        totalTransactionAmount: currentTransaction.subTotal,
+        totalTransactionAmount: widget.transaction.subTotal,
         receiptType: receiptType,
         paymentType: paymentType!,
-        transaction: currentTransaction,
+        transaction: widget.transaction,
       ),
     );
   }

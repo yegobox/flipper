@@ -165,7 +165,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               await widget.model.keyboardKeyPressed(key: '+');
 
               await widget.model.collectPayment(
-                  paymentType: 'Cash', transaction: transaction.value!.value!);
+                paymentType: 'Cash',
+                transaction: transaction.value!.value!,
+                amountReceived: double.parse(widget.model.key),
+              );
               HapticFeedback.lightImpact();
             }
           },

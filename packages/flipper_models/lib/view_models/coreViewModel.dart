@@ -30,7 +30,7 @@ class CoreViewModel extends FlipperBaseModel
     "This Month",
     "This Year",
   ];
-   List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
+  List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -480,11 +480,14 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> collectPayment(
-      {required String paymentType, required ITransaction transaction}) async {
+      {required String paymentType,
+      required ITransaction transaction,
+      required double amountReceived}) async {
     await ProxyService.isar.collectPayment(
-        cashReceived: keypad.cashReceived,
-        transaction: transaction,
-        paymentType: paymentType);
+      cashReceived: amountReceived,
+      transaction: transaction,
+      paymentType: paymentType,
+    );
   }
 
   void registerLocation() async {

@@ -19,15 +19,16 @@ import 'package:realm/realm.dart';
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   Future<void> onSave<T extends IJsonSerializable>({required T item});
   factory SyncReaml.create() => RealmSync<M>();
-  Future<void> configure();
+  Future<Realm> configure();
+  late Realm realm;
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
 }
 
 class RealmSync<M extends IJsonSerializable>
     with HandleItemMixin
     implements SyncReaml<M> {
+  @override
   late Realm realm;
-
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
@@ -38,7 +39,7 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> configure() async {
+  Future<Realm> configure() async {
     int? branchId = ProxyService.box.getBranchId();
 
     final app = App(AppConfiguration('devicesync-ifwtd'));
@@ -102,6 +103,7 @@ class RealmSync<M extends IJsonSerializable>
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
     await realm.subscriptions.waitForSynchronization();
     await realm.syncSession.waitForDownload();
+    return realm;
   }
 
   @override
