@@ -41,7 +41,8 @@ class RemoteConfigService implements Remote {
       "isLocalAuthAvailable": true,
       "enableTakingScreenShoot": true,
       "isOrderFeatureOrderEnabled": true,
-      "isFirestoreEnabled": false
+      "isFirestoreEnabled": false,
+      "isHttpSyncAvailable": false
     });
   }
 
@@ -56,10 +57,11 @@ class RemoteConfigService implements Remote {
     } catch (e) {}
   }
 
-   @override
+  @override
   bool isFirestoreEnabled() {
     return remoteConfig.getBool('isFirestoreEnabled');
   }
+
   @override
   bool isChatAvailable() {
     if (kDebugMode) {
@@ -255,6 +257,11 @@ class RemoteConfigService implements Remote {
   bool isOrderFeatureOrderEnabled() {
     return remoteConfig.getBool('isOrderFeatureOrderEnabled');
   }
+
+  @override
+  bool isHttpSyncAvailable() {
+    return remoteConfig.getBool('isHttpSyncAvailable');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
@@ -428,8 +435,14 @@ class RemoteConfigWindows implements Remote {
   bool isOrderFeatureOrderEnabled() {
     return false;
   }
+
   @override
   bool isFirestoreEnabled() {
+    return false;
+  }
+
+  @override
+  bool isHttpSyncAvailable() {
     return false;
   }
 }

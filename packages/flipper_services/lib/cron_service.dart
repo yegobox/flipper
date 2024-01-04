@@ -92,13 +92,15 @@ class CronService {
   }
 
   Future<void> _syncPullData() async {
-    if (ProxyService.remoteConfig.isSyncAvailable()) {
+    if (ProxyService.remoteConfig.isSyncAvailable() &&
+        ProxyService.remoteConfig.isHttpSyncAvailable()) {
       ProxyService.sync.pull();
     }
   }
 
   Future<void> _syncPushData() async {
-    if (ProxyService.remoteConfig.isSyncAvailable()) {
+    if (ProxyService.remoteConfig.isSyncAvailable() &&
+        ProxyService.remoteConfig.isHttpSyncAvailable()) {
       await ProxyService.sync.push();
       await _runRemoteHttpsIsolate();
       ProxyService.messaging

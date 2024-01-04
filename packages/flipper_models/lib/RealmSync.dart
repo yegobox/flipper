@@ -25,57 +25,74 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 class RealmSync<M extends IJsonSerializable>
     with HandleItemMixin
     implements SyncReaml<M> {
-  Realm? realm;
+  late Realm realm;
   @override
   Future<void> configure() async {
     int? branchId = ProxyService.box.getBranchId();
-    if (realm == null) {
-      final app = App(AppConfiguration('application-0-hwctb'));
-      final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
-      final config = Configuration.flexibleSync(user, [
-        RealmITransaction.schema,
-        RealmITransactionItem.schema,
-        RealmProduct.schema,
-        RealmVariant.schema,
-        RealmStock.schema,
-        RealmIUnit.schema
-      ]);
-      try {
-        // If the device is online, download changes and then open the realm.
-        realm = await Realm.open(config);
-      } catch (e) {
-        // If the device is offline, open the realm immediately
-        // and automatically sync changes in the background when the device is online.
-        realm = await Realm(config);
-      }
-      realm!.subscriptions.update((mutableSubscriptions) {
-        mutableSubscriptions.add(
-            realm!.query<RealmITransaction>(r'branchId == $0', [branchId]));
-        mutableSubscriptions.add(
-            realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]));
 
-        mutableSubscriptions
-            .add(realm!.query<RealmProduct>(r'branchId == $0', [branchId]));
+    final app = App(AppConfiguration('application-0-hwctb'));
+    final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
+    final config = Configuration.flexibleSync(user, [
+      RealmITransaction.schema,
+      RealmITransactionItem.schema,
+      RealmProduct.schema,
+      RealmVariant.schema,
+      RealmStock.schema,
+      RealmIUnit.schema
+    ]);
+    CancellationToken token = CancellationToken();
 
-        mutableSubscriptions
-            .add(realm!.query<RealmVariant>(r'branchId == $0', [branchId]));
+    // Cancel the open operation after 30 seconds.
+    // Alternatively, you could display a loading dialog and bind the cancellation
+    // to a button the user can click to stop the wait.
+    Future<void>.delayed(
+      const Duration(seconds: 30),
+      () => token.cancel(
+        CancelledException(
+          cancellationReason: "Realm took too long to open",
+        ),
+      ),
+    );
 
-        mutableSubscriptions
-            .add(realm!.query<RealmStock>(r'branchId == $0', [branchId]));
-        mutableSubscriptions
-            .add(realm!.query<RealmIUnit>(r'branchId == $0', [branchId]));
-      });
+    // If realm does not open after 30 seconds with asynchronous Realm.open(),
+    // open realm immediately with Realm() and try to sync data in the background.
 
-      /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-      await realm!.subscriptions.waitForSynchronization();
-      await realm!.syncSession.waitForDownload();
-      await realm!.syncSession.waitForUpload();
+    try {
+      realm = await Realm.open(config, cancellationToken: token);
+    } on CancelledException catch (err) {
+      print(err.cancellationReason); // prints "Realm took too long to open"
+      // If the opening is cancelled, open the realm immediately
+      // and automatically sync changes in the background when the device is online.
+      realm = await Realm(config);
     }
+
+    realm.subscriptions.update((mutableSubscriptions) {
+      mutableSubscriptions
+          .add(realm.query<RealmITransaction>(r'branchId == $0', [branchId]));
+      mutableSubscriptions.add(
+          realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]));
+
+      mutableSubscriptions
+          .add(realm.query<RealmProduct>(r'branchId == $0', [branchId]));
+
+      mutableSubscriptions
+          .add(realm.query<RealmVariant>(r'branchId == $0', [branchId]));
+
+      mutableSubscriptions
+          .add(realm.query<RealmStock>(r'branchId == $0', [branchId]));
+      mutableSubscriptions
+          .add(realm.query<RealmIUnit>(r'branchId == $0', [branchId]));
+    });
+
+    /// removed await on bellow line because when it is in bootstrap, it might freeze the app
+    await realm.subscriptions.waitForSynchronization();
+    await realm.syncSession.waitForDownload();
+    await realm.syncSession.waitForUpload();
   }
 
   @override
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments) {
-    final results = realm!.query<T>(query, arguments);
+    final results = realm.query<T>(query, arguments);
     if (results.isNotEmpty) {
       return results.first;
     }
@@ -90,12 +107,9 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
-    if (realm == null) {
-      await configure();
-    }
     if (item is ITransaction) {
       // Save _RealmITransaction to the Realm database
-      await realm!.write(() {
+      await realm.write(() {
         final realmITransaction = RealmITransaction(
           item.id,
           ObjectId(),
@@ -121,10 +135,10 @@ class RealmSync<M extends IJsonSerializable>
           updatedAt: item.updatedAt,
         );
         final findableObject =
-            realm!.query<RealmITransaction>(r'id == $0', [item.id]);
+            realm.query<RealmITransaction>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm!.add(realmITransaction, update: true);
+          realm.add(realmITransaction, update: true);
         } else {
           RealmITransaction existingTransaction = findableObject.first;
           existingTransaction.updateProperties(realmITransaction);
@@ -135,7 +149,7 @@ class RealmSync<M extends IJsonSerializable>
     if (item is TransactionItem) {
       // Save _RealmITransaction to the Realm database
 
-      await realm!.write(() {
+      await realm.write(() {
         final realmITransactionItem = RealmITransactionItem(
           ObjectId(),
           item.name,
@@ -191,10 +205,10 @@ class RealmSync<M extends IJsonSerializable>
           useYn: item.useYn,
         );
         final findableObject =
-            realm!.query<RealmITransactionItem>(r'id == $0', [item.id]);
+            realm.query<RealmITransactionItem>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm!.add(realmITransactionItem, update: true);
+          realm.add(realmITransactionItem, update: true);
         } else {
           RealmITransactionItem existingTransaction = findableObject.first;
           existingTransaction.updateProperties(realmITransactionItem);
@@ -208,7 +222,7 @@ class RealmSync<M extends IJsonSerializable>
       /// to handle that case then we simply do not send this product to the cloud to make sure the user edit the product that he/she owns at
       /// the moment of creation
       if (item.name == TEMP_PRODUCT) return;
-      await realm!.write(() {
+      await realm.write(() {
         final realmProduct = RealmProduct(
           item.id,
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -232,10 +246,10 @@ class RealmSync<M extends IJsonSerializable>
           lastTouched: item.lastTouched, // Update lastTouched timestamp
         );
         final findableObject =
-            realm!.query<RealmProduct>(r'id == $0', [item.id]);
+            realm.query<RealmProduct>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          final o = realm!.add(realmProduct);
+          final o = realm.add(realmProduct);
           print(o);
         } else {
           RealmProduct existingTransaction = findableObject.first;
@@ -244,7 +258,7 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Variant) {
-      await realm!.write(() {
+      await realm.write(() {
         final realmVariant = RealmVariant(
           ObjectId(), // Auto-generate ObjectId for realmId
           item.name,
@@ -295,10 +309,10 @@ class RealmSync<M extends IJsonSerializable>
           splyAmt: item.splyAmt,
         );
         final findableObject =
-            realm!.query<RealmVariant>(r'id == $0', [item.id]);
+            realm.query<RealmVariant>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Variant doesn't exist, add it
-          realm!.add(realmVariant);
+          realm.add(realmVariant);
         } else {
           RealmVariant existingTransaction = findableObject.first;
           existingTransaction.updateProperties(realmVariant);
@@ -306,7 +320,7 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is Stock) {
-      await realm!.write(() {
+      await realm.write(() {
         final realmStock = RealmStock(
           item.id,
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -326,10 +340,10 @@ class RealmSync<M extends IJsonSerializable>
           lastTouched: item.lastTouched,
           deletedAt: item.deletedAt,
         );
-        final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
+        final findableObject = realm.query<RealmStock>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Stock doesn't exist, add it
-          realm!.add(realmStock);
+          realm.add(realmStock);
         } else {
           // Stock exists, update it
           RealmStock existingTransaction = findableObject.first;
@@ -338,7 +352,7 @@ class RealmSync<M extends IJsonSerializable>
       });
     }
     if (item is IUnit) {
-      await realm!.write(() {
+      await realm.write(() {
         IUnit data = item;
         final realmUnit = RealmIUnit(
           ObjectId(),
@@ -349,11 +363,11 @@ class RealmSync<M extends IJsonSerializable>
           data.active,
         );
 
-        final findableObject = realm!.query<RealmIUnit>(r'id == $0', [data.id]);
+        final findableObject = realm.query<RealmIUnit>(r'id == $0', [data.id]);
 
         if (findableObject.isEmpty) {
           // Unit doesn't exist, add it
-          realm!.add(realmUnit);
+          realm.add(realmUnit);
         } else {
           // Unit exists, update it
           RealmIUnit existingUnit = findableObject.first;
@@ -366,66 +380,63 @@ class RealmSync<M extends IJsonSerializable>
   @override
   Future<void> pull() async {
     int branchId = ProxyService.box.getBranchId()!;
-    if (realm == null) {
-      await configure();
-    }
+
     log("start pulling data", name: "RealmSync pull");
-    if (realm != null) {
-      // Subscribe to changes for transactions
-      final iTransactionsCollection =
-          realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
 
-      iTransactionsCollection.changes.listen((changes) {
-        for (final result in changes.results) {
-          log("pulling RealmITransaction", name: "RealmSync pull");
-          final transactionModel = createTransactionModel(result);
-          handleItem(model: transactionModel, branchId: result.branchId);
-        }
-      });
+    // Subscribe to changes for transactions
+    final iTransactionsCollection =
+        realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
 
-      // Subscribe to changes for transaction items
-      final iTransactionsItemCollection =
-          realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+    iTransactionsCollection.changes.listen((changes) {
+      for (final result in changes.results) {
+        log("pulling RealmITransaction", name: "RealmSync pull");
+        final transactionModel = createTransactionModel(result);
+        handleItem(model: transactionModel, branchId: result.branchId);
+      }
+    });
 
-      iTransactionsItemCollection.changes.listen((changes) {
-        for (final result in changes.results) {
-          final transactionModel = createTransactionItemModel(result);
-          handleItem(model: transactionModel, branchId: result.branchId);
-        }
-      });
+    // Subscribe to changes for transaction items
+    final iTransactionsItemCollection =
+        realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
 
-      // Subscribe to changes for products
-      final iProductsCollection =
-          realm!.query<RealmProduct>(r'branchId == $0', [branchId]);
+    iTransactionsItemCollection.changes.listen((changes) {
+      for (final result in changes.results) {
+        final transactionModel = createTransactionItemModel(result);
+        handleItem(model: transactionModel, branchId: result.branchId);
+      }
+    });
 
-      iProductsCollection.changes.listen((changes) {
-        for (final result in changes.results) {
-          final productModel = createProductModel(result);
-          handleItem(model: productModel, branchId: result.branchId);
-        }
-      });
+    // Subscribe to changes for products
+    final iProductsCollection =
+        realm.query<RealmProduct>(r'branchId == $0', [branchId]);
 
-      // Subscribe to changes for variants
-      final iVariantsCollection =
-          realm!.query<RealmVariant>(r'branchId == $0', [branchId]);
+    iProductsCollection.changes.listen((changes) {
+      for (final result in changes.results) {
+        final productModel = createProductModel(result);
+        handleItem(model: productModel, branchId: result.branchId);
+      }
+    });
 
-      iVariantsCollection.changes.listen((changes) {
-        for (final result in changes.results) {
-          final variantModel = createVariantModel(result);
-          handleItem(model: variantModel, branchId: result.branchId);
-        }
-      });
+    // Subscribe to changes for variants
+    final iVariantsCollection =
+        realm.query<RealmVariant>(r'branchId == $0', [branchId]);
 
-      // Subscribe to changes for stocks
-      final iStocksCollection =
-          realm!.query<RealmStock>(r'branchId == $0', [branchId]);
-      iStocksCollection.changes.listen((changes) {
-        for (final result in changes.results) {
-          final stockModel = createStockModel(result);
-          handleItem(model: stockModel, branchId: result.branchId);
-        }
-      });
-    }
+    iVariantsCollection.changes.listen((changes) {
+      for (final result in changes.results) {
+        final variantModel = createVariantModel(result);
+        handleItem(model: variantModel, branchId: result.branchId);
+      }
+    });
+
+    // Subscribe to changes for stocks
+    final iStocksCollection =
+        realm.query<RealmStock>(r'branchId == $0', [branchId]);
+    iStocksCollection.changes.listen((changes) {
+      for (final result in changes.results) {
+        final stockModel = createStockModel(result);
+        handleItem(model: stockModel, branchId: result.branchId);
+      }
+    });
   }
 
   ITransaction createTransactionModel(RealmITransaction result) {

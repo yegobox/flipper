@@ -35,4 +35,5 @@ abstract class Remote {
   bool enableTakingScreenShoot();
   bool isOrderFeatureOrderEnabled();
   bool isFirestoreEnabled();
+  bool isHttpSyncAvailable();
 }
