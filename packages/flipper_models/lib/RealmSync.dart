@@ -42,7 +42,8 @@ class RealmSync<M extends IJsonSerializable>
   Future<Realm> configure() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    final app = App(AppConfiguration('devicesync-ifwtd'));
+    final app = App(AppConfiguration('devicesync-ifwtd',
+        baseUrl: Uri.parse("https://realm.mongodb.com")));
     final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
     final config = Configuration.flexibleSync(
       user,
@@ -82,6 +83,18 @@ class RealmSync<M extends IJsonSerializable>
       // and automatically sync changes in the background when the device is online.
       realm = await Realm(config);
     }
+
+    if (realm.subscriptions.isEmpty) {
+      updateSubscription(branchId);
+    }
+
+    /// removed await on bellow line because when it is in bootstrap, it might freeze the app
+    await realm.subscriptions.waitForSynchronization();
+    await realm.syncSession.waitForDownload();
+    return realm;
+  }
+
+  void updateSubscription(int? branchId) {
     final transaction =
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
     final transactionItem =
@@ -92,18 +105,14 @@ class RealmSync<M extends IJsonSerializable>
     final unit = realm.query<RealmIUnit>(r'branchId == $0', [branchId]);
 
     realm.subscriptions.update((sub) {
-      sub.add(transaction);
-      sub.add(transactionItem);
-      sub.add(product);
-      sub.add(variant);
-      sub.add(stock);
-      sub.add(unit);
+      sub.clear();
+      sub.add(transaction, name: "transactions");
+      sub.add(transactionItem, name: "transactionItems");
+      sub.add(product, name: "iProduct");
+      sub.add(variant, name: "iVariant");
+      sub.add(stock, name: "iStock");
+      sub.add(unit, name: "iUnit");
     });
-
-    /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-    await realm.subscriptions.waitForSynchronization();
-    await realm.syncSession.waitForDownload();
-    return realm;
   }
 
   @override
@@ -123,6 +132,8 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
+    //TODO: when action is updated_locally do not do anything but wait for a 1 week to introduce the changes
+    // before the system full get all defaulted update on devices
     if (item is ITransaction) {
       // Save _RealmITransaction to the Realm database
       await realm.write(() {

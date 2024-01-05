@@ -99,7 +99,6 @@ class ProductViewModel extends FlipperBaseModel
   String kProductName = 'null';
   Future<Product> getProduct({String? productId}) async {
     if (productId != null) {
-      inUpdateProcess = true;
       Product? product = await ProxyService.isar.getProduct(id: productId);
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
@@ -293,9 +292,13 @@ class ProductViewModel extends FlipperBaseModel
 
   /// When called should check the related product's variant and set the retail and or supply price
   /// of related stock
-  Future<void> updateRegularVariant(
-      {double? supplyPrice, double? retailPrice, String? productId}) async {
-    Product? product = await ProxyService.isar.getProduct(id: productId!);
+  Future<void> updateRegularVariant({
+    required bool inUpdateProcess,
+    String? productId,
+    double? supplyPrice,
+    double? retailPrice,
+  }) async {
+    Product? product = await ProxyService.isar.getProduct(id: productId ?? "0");
     List<Variant> variants = await ProxyService.isar.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
     if (supplyPrice != null) {

@@ -245,7 +245,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       onViewModelReady: (model) async {
         if (widget.productId != null) {
           // Load existing product if productId is given
-          model.inUpdateProcess = true;
+
           Product product =
               await model.getProduct(productId: widget.productId!);
           ref.read(productProvider.notifier).emitProduct(value: product);
@@ -329,8 +329,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
                                     model.currentColor = pickerColor.toHex();
                                     Product? product = await model.saveProduct(
-                                      mproduct: productRef!,
-                                    );
+                                        mproduct: productRef!,
+                                        inUpdateProcess:
+                                            widget.productId != null);
                                     ref
                                         .read(productsProvider(
                                                 ProxyService.box.getBranchId()!)

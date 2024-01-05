@@ -122,7 +122,9 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
                 Product product =
                     await model.getProduct(productId: widget.productId);
-                await model.saveProduct(mproduct: product);
+                await model.saveProduct(
+                    mproduct: product,
+                    inUpdateProcess: widget.productId != null);
 
                 ref
                     .read(productsProvider(ProxyService.box.getBranchId()!)
@@ -132,11 +134,13 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                 ]);
                 // Re-update the product default variant with retail price.
                 await model.updateRegularVariant(
+                    inUpdateProcess: true,
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
                     productId: ref.read(productProvider)?.id);
 
                 await model.updateRegularVariant(
+                    inUpdateProcess: true,
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
@@ -221,6 +225,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               model.lockButton(false);
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
+                                  inUpdateProcess: true,
                                   productId: ref.read(productProvider)?.id);
                             } else {
                               model.lockButton(true);
@@ -240,6 +245,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             if (parsedValue != null) {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
+                                  inUpdateProcess: true,
                                   productId: ref.read(productProvider)?.id);
                             } else {
                               return '.';

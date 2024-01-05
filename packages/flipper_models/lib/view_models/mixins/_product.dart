@@ -7,7 +7,7 @@ import 'package:flipper_services/locator.dart' as loc;
 
 mixin ProductMixin {
   String? productName;
-  bool inUpdateProcess = false;
+
   final ProductService productService = loc.getIt<ProductService>();
   String currentColor = '#0984e3';
 
@@ -19,7 +19,8 @@ mixin ProductMixin {
   }
 
   /// Add a product into the system
-  Future<Product?> saveProduct({required Product mproduct}) async {
+  Future<Product?> saveProduct(
+      {required Product mproduct, required bool inUpdateProcess}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
 
@@ -45,7 +46,7 @@ mixin ProductMixin {
 
     for (Variant variant in variants) {
       variant.productName = productName!;
-      variant.retailPrice = variant.retailPrice;
+
       variant.productId = mproduct.id;
       variant.pkgUnitCd = "NT";
       variant.action =

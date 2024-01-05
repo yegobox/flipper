@@ -480,6 +480,7 @@ class IsarAPI<M> implements IsarApiInterface {
       }
 
       stock!.currentStock = variation.qty!;
+
       log(variation.qty!.toString(), name: 'Incoming updated quantity');
 
       stock.action = AppActions.updated;
@@ -489,6 +490,7 @@ class IsarAPI<M> implements IsarApiInterface {
       variant.qty = variation.qty!;
       variant.retailPrice = variation.retailPrice;
       variant.supplyPrice = variation.supplyPrice;
+      variant.action = AppActions.updated;
 
       isar.variants.onPut(variant);
     } else {
@@ -498,7 +500,7 @@ class IsarAPI<M> implements IsarApiInterface {
       variation.itemClsCd = "5020230602";
       variation.pkg = "1";
       variation.id = variationId;
-
+      variation.action = AppActions.created;
       isar.variants.onPut(variation);
 
       final newStock = Stock(

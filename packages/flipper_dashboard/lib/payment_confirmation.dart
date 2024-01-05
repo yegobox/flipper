@@ -42,9 +42,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
-
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -58,7 +55,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
-            body: buildBody(context, model, currentTransaction.value!),
+            body: buildBody(context, model, widget.transaction),
           ),
         );
       },
@@ -102,7 +99,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   }
 
   Widget buildBody(BuildContext context, CoreViewModel model,
-      AsyncValue<ITransaction?> currentTransaction) {
+      ITransaction currentTransaction) {
     return SizedBox(
       width: double.infinity,
       child: Stack(
@@ -147,7 +144,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             left: 0,
             child: StreamBuilder<Customer?>(
               stream: model.getCustomer(
-                transactionId: currentTransaction.value!.id,
+                transactionId: currentTransaction.id,
               ),
               builder: (context, snapshot) {
                 return buildBottomButtons(context, model);
