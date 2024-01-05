@@ -341,7 +341,7 @@ class PaymentsState extends ConsumerState<Payments> {
     }
     _routerService.navigateTo(
       PaymentConfirmationRoute(
-        totalTransactionAmount: widget.transaction.subTotal,
+        cashReceived: amount,
         receiptType: receiptType,
         paymentType: paymentType!,
         transaction: widget.transaction,

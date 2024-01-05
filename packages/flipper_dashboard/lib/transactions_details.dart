@@ -282,7 +282,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
                                   onPressed: () {
                                     _routerService.navigateTo(
                                         PaymentConfirmationRoute(
-                                            totalTransactionAmount:
+                                            cashReceived:
                                                 widget.transaction.subTotal,
                                             receiptType: ReceiptType.cs,
                                             paymentType:

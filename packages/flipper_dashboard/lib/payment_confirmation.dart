@@ -17,13 +17,13 @@ import 'package:flipper_ui/flipper_ui.dart';
 class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation({
     Key? key,
-    required this.totalTransactionAmount,
+    required this.cashReceived,
     required this.transaction,
     required this.paymentType,
     this.receiptType = "ns",
   }) : super(key: key);
 
-  final double totalTransactionAmount;
+  final double cashReceived;
   final ITransaction transaction;
   final String? receiptType;
   final String paymentType;
@@ -127,8 +127,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 ),
                 const SizedBox(height: 40),
                 Text(
-                  'RWF ' +
-                      NumberFormat('#,###').format(model.keypad.cashReceived),
+                  'RWF ' + NumberFormat('#,###').format(widget.cashReceived),
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w400,
                     fontSize: 18,
