@@ -484,6 +484,7 @@ class IsarAPI<M> implements IsarApiInterface {
       log(variation.qty!.toString(), name: 'Incoming updated quantity');
 
       stock.action = AppActions.updated;
+      stock.lastTouched = DateTime.now();
 
       isar.stocks.onPut(stock);
 
@@ -491,6 +492,7 @@ class IsarAPI<M> implements IsarApiInterface {
       variant.retailPrice = variation.retailPrice;
       variant.supplyPrice = variation.supplyPrice;
       variant.action = AppActions.updated;
+      variant.lastTouched = DateTime.now();
 
       isar.variants.onPut(variant);
     } else {

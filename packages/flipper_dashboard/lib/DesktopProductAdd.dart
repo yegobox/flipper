@@ -324,8 +324,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                   toast('No Product saved!');
                                 } else {
                                   if (model.productName != null) {
+                                    if (widget.productId != null) {
+                                      // we are in edit mode assing all variants with
+                                      // default supply price and retail
+                                      await model.bulkUpdateVariants(true);
+                                    }
                                     await model.addVariant(
-                                        variations: model.scannedVariants);
+                                      variations: model.scannedVariants,
+                                    );
 
                                     model.currentColor = pickerColor.toHex();
                                     Product? product = await model.saveProduct(
@@ -444,6 +450,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         _inputTimer = Timer(const Duration(seconds: 1), () {
                           if (scannedInput.isNotEmpty) {
                             model.onAddVariant(
+                              editmode: widget.productId != null,
                               variantName: scannedInput,
                               isTaxExempted: false,
                               product: productRef!,

@@ -23,14 +23,16 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
     notifyListeners();
   }
 
-  void onAddVariant({
-    required String variantName,
-    required bool isTaxExempted,
-    required Product product,
-  }) {
+  void onAddVariant(
+      {required String variantName,
+      required bool isTaxExempted,
+      required Product product,
+      required bool editmode}) {
     int branchId = ProxyService.box.getBranchId()!;
 
-    // Check if the variant with the same name already exists
+    /// scan item if the same item is scanned more than once
+    /// then its quantity will be incremented otherwise if the item is not found
+    /// a new item will be created and added to the scannedVariants list
     for (var variant in scannedVariants) {
       if (variant.name == variantName) {
         // If found, update it
@@ -152,6 +154,21 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
     } catch (e) {
       // Handle the exception if the variant is not found
       print('Variant with ID $id not found.');
+    }
+  }
+
+  Future<void> bulkUpdateVariants(bool editmode) async {
+    if (editmode) {
+      final variantsLength = scannedVariants.length;
+
+      // loop through all variants and update all with retailPrice and supplyPrice
+      for (var i = 0; i < variantsLength; i++) {
+        // If found, update it
+        scannedVariants[i].retailPrice = retailPrice;
+        scannedVariants[i].supplyPrice = supplyPrice;
+        scannedVariants[i].qty = (scannedVariants[i].qty ?? 0);
+        notifyListeners();
+      }
     }
   }
 }
