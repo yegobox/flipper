@@ -76,6 +76,11 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
   }
 }
 
+final stockByVariantIdProvider =
+    StreamProvider.autoDispose.family<double, String>((ref, variantId) {
+  return ProxyService.isar.getStockStream(variantId: variantId);
+});
+
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, String?>((ref, productId) async {
   // Fetch the list of variants from a remote service.

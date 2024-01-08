@@ -968,4 +968,10 @@ class IsarAPIMock<M> implements IsarApiInterface {
   Future<IsarApiInterface> getInstance() async {
     return this;
   }
+  
+  @override
+  Stream<double> getStockStream({String? productId, String? variantId}) {
+    // TODO: implement getStockStream
+    throw UnimplementedError();
+  }
 }

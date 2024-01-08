@@ -13,6 +13,7 @@ abstract class IsarApiInterface {
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({required int businessId});
   Future<double> stocks({String? productId, String? variantId});
+  Stream<double> getStockStream({String? productId, String? variantId});
   Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
@@ -42,9 +43,7 @@ abstract class IsarApiInterface {
   Future<Variant?> variant({String? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
-  Future<int> addVariant({
-    required List<Variant> variations
-  });
+  Future<int> addVariant({required List<Variant> variations});
 
   Future<int> addFavorite({required Favorite data});
   Future<List<Favorite>> getFavorites();

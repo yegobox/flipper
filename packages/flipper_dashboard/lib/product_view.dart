@@ -149,18 +149,18 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     Variant variant,
   ) {
-    return Container(
-      child: FutureBuilder<double>(
-        future: ProxyService.isar.stocks(variantId: variant.id),
-        builder: (BuildContext context, stock) {
-          print(stock);
-          if (stock == 0) {
-            return SizedBox.shrink();
-          } else {
-            return buildRowItem(context, model, variant, stock.data ?? 0.0);
-          }
-        },
-      ),
+    final stockStream = ref.watch(stockByVariantIdProvider(variant.id));
+
+    return stockStream.when(
+      data: (double stock) {
+        if (stock == 0) {
+          return SizedBox.shrink();
+        } else {
+          return buildRowItem(context, model, variant, stock);
+        }
+      },
+      error: (dynamic error, stackTrace) => Text(error.toString()),
+      loading: () => CircularProgressIndicator(),
     );
   }
 

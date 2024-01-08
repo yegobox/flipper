@@ -472,6 +472,7 @@ class IsarAPI<M> implements IsarApiInterface {
           variantId: variation.id,
           action: AppActions.created,
           retailPrice: variation.retailPrice,
+          supplyPrice: variation.supplyPrice,
           currentStock: variation.qty!,
           productId: variation.productId,
         )..active = false;
@@ -1737,6 +1738,26 @@ class IsarAPI<M> implements IsarApiInterface {
           .and()
           .branchIdEqualTo(branchId)
           .findFirst())!;
+    }
+  }
+
+  @override
+  Stream<double> getStockStream({String? productId, String? variantId}) async* {
+    while (true) {
+      double totalStock = 0.0;
+      if (productId != null) {
+        final stocks = db.read(
+          (isar) => isar.stocks.where().productIdEqualTo(productId).findAll(),
+        );
+        totalStock = stocks.fold(0.0, (sum, stock) => sum + stock.currentStock);
+      } else if (variantId != null) {
+        final stocks = db.read(
+          (isar) => isar.stocks.where().variantIdEqualTo(variantId).findAll(),
+        );
+        totalStock = stocks.fold(0.0, (sum, stock) => sum + stock.currentStock);
+      }
+      yield totalStock;
+      await Future.delayed(Duration(seconds: 1));
     }
   }
 
@@ -3179,8 +3200,10 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Stream<List<ITransaction>> getTransactionsByCustomerId(
       {required String customerId}) async* {
-    yield* db.read((isar) =>
-        isar.iTransactions.where().customerIdEqualTo(customerId).watch());
+    yield* db.read((isar) => isar.iTransactions
+        .where()
+        .customerIdEqualTo(customerId)
+        .watch(fireImmediately: true));
   }
 
   @override
