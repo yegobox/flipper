@@ -258,6 +258,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           List<Variant> variants = await ProxyService.isar
               .getVariantByProductId(productId: widget.productId!);
 
+          /// populate the supplyPrice and retailPrice of the first item
+          /// this in assumption that all variants added has same supply and retail price
+          /// but this will change in future when we support for variant to have different
+          /// prices
+          supplyPriceController.text = variants.first.supplyPrice.toString();
+          retailPriceController.text = variants.first.retailPrice.toString();
+
           model.setScannedVariants(variants);
 
           // If there are variants, set the color to the color of the first variant
