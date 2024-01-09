@@ -615,7 +615,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// refresh created as well to reflect when this transaction was created and completed
 
     transaction.updatedAt = DateTime.now().toIso8601String();
-    transaction.lastTouched = DateTime.now().toLocal();
+    transaction.lastTouched = DateTime.parse(DateTime.now().toIso8601String());
 
     await update(data: transaction);
 
