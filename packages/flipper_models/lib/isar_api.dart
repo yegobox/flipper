@@ -485,7 +485,7 @@ class IsarAPI<M> implements IsarApiInterface {
       log(variation.qty!.toString(), name: 'Incoming updated quantity');
 
       stock.action = AppActions.updated;
-      stock.lastTouched = DateTime.now();
+      stock.lastTouched = DateTime.now().toLocal();
 
       isar.stocks.onPut(stock);
 
@@ -493,7 +493,7 @@ class IsarAPI<M> implements IsarApiInterface {
       variant.retailPrice = variation.retailPrice;
       variant.supplyPrice = variation.supplyPrice;
       variant.action = AppActions.updated;
-      variant.lastTouched = DateTime.now();
+      variant.lastTouched = DateTime.now().toLocal();
 
       isar.variants.onPut(variant);
     } else {
@@ -615,7 +615,7 @@ class IsarAPI<M> implements IsarApiInterface {
     /// refresh created as well to reflect when this transaction was created and completed
 
     transaction.updatedAt = DateTime.now().toIso8601String();
-    transaction.lastTouched = DateTime.now();
+    transaction.lastTouched = DateTime.now().toLocal();
 
     await update(data: transaction);
 
@@ -1976,7 +1976,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Product) {
       Product product = data;
-      product.lastTouched = DateTime.now();
+      product.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.products.onPut(product);
       });
@@ -1989,21 +1989,21 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Variant) {
       Variant variant = data;
-      variant.lastTouched = DateTime.now();
+      variant.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.variants.onPut(variant);
       });
     }
     if (data is Stock) {
       Stock stock = data;
-      stock.lastTouched = DateTime.now();
+      stock.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.stocks.onPut(stock);
       });
     }
     if (data is ITransaction) {
       final transaction = data;
-      transaction.lastTouched = DateTime.now();
+      transaction.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.iTransactions.onPut(transaction);
       });
@@ -2027,7 +2027,7 @@ class IsarAPI<M> implements IsarApiInterface {
       });
     }
     if (data is TransactionItem) {
-      data.lastTouched = DateTime.now();
+      data.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.transactionItems.onPut(data);
       });
@@ -2121,7 +2121,7 @@ class IsarAPI<M> implements IsarApiInterface {
     }
     if (data is Drawers) {
       final drawer = data;
-      drawer.lastTouched = DateTime.now();
+      drawer.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
         isar.drawers.onPut(drawer);
       });

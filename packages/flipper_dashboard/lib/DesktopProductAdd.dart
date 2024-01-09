@@ -507,7 +507,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                       variant.lastTouched == null
                                           ? ''
                                           : variant.lastTouched!
-                                              .toUtc()
+                                              .toLocal()
                                               .toIso8601String(),
                                     ),
                                   ),
