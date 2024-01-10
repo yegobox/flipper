@@ -40,12 +40,17 @@ jobs:
         with:
           flutter-version: '3.13.6' # firebase_auth_desktop is broken with 3.10.6
           channel: "stable"
-
       - name: Setup Git Credentials
-        uses: de-vri-es/setup-git-credentials@v2.0.10
-        with:
-          credentials: ${{ secrets.GIT_CREDENTIALS }}
-          enableSchannel: true  # Enable this if running on Windows
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper manager
+      # - name: Setup Git Credentials
+      #   uses: de-vri-es/setup-git-credentials@v2.0.10
+      #   with:
+      #     credentials: ${{ secrets.GIT_CREDENTIALS }}
 
       - run: git submodule update --init
 
