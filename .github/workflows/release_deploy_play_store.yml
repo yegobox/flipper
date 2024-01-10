@@ -28,37 +28,27 @@ env:
   PASSWORD: ${{ secrets.DB_PASSWORD }}
 jobs:
   testing:
-    name: Unit Testing
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
       - uses: actions/setup-java@v1
         with:
           java-version: "8.x"
+
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.13.6' #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: '3.13.6' # firebase_auth_desktop is broken with 3.10.6
           channel: "stable"
-      - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --global user.email "info@yegobox.com"
-          git config --global user.name "YEGOBOX"
-          
-          # Use Git Credential Manager for Windows to store credentials
-          git-credential-manager-core configure
-          
-          # Store the token in the credential manager
-          git-credential-manager-core store https://github.com "${PAT_TOKEN}"
 
-          # Configure Git to use the credential manager
-          git config --global credential.helper manager
-
-          # Verify the configuration
-          git-credential-manager-core list
+      - name: Setup Git Credentials
+        uses: git-actions/setup-git-credentials@v2
+        with:
+          credentials: ${{ secrets.PAT_TOKEN }}
+          enableSchannel: true  # Enable this if running on Windows
 
       - run: git submodule update --init
+
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> web/index.html
@@ -68,6 +58,7 @@ jobs:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
