@@ -128,7 +128,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.16.0'
-              channel: 'stable'
+            channel: 'stable'
        # Run integration test
       - name: Run Flutter Driver tests
         uses: reactivecircus/android-emulator-runner@v2
