@@ -45,8 +45,19 @@ jobs:
         run: |
           git config --global user.email "info@yegobox.com"
           git config --global user.name "YEGOBOX"
-          git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+          
+          # Use Git Credential Manager for Windows to store credentials
+          git-credential-manager-core configure
+          
+          # Store the token in the credential manager
+          git-credential-manager-core store https://github.com "${PAT_TOKEN}"
+
+          # Configure Git to use the credential manager
+          git config --global credential.helper manager
+
+          # Verify the configuration
+          git-credential-manager-core list
+
       - run: git submodule update --init
       - name: Configure Missing files
         run: |
