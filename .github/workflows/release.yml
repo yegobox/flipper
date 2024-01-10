@@ -42,7 +42,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.16.0' # firebase_auth_desktop is broken with 3.10.6
+          flutter-version: '3.16.0' 
           channel: "stable"
      
       - run: git submodule update --init
@@ -69,7 +69,7 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
-    needs: [unit-testing]
+    # needs: [unit-testing]
     runs-on: windows-latest
     steps:
       - run: git config --global core.autocrlf false
@@ -111,46 +111,44 @@ jobs:
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
-          flutter test --dart-define=Test=true -d windows integration_test/smoke_test.dart
-  # android_integration_test:
-  #   runs-on: macos-13
-  #   timeout-minutes: 30
+          flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
-  #   strategy:
-  #     matrix:
-  #       android-api-level: [ 21, 26, 32 ]
-
-  #   steps:
-  #     - name: "Checkout repository"
-  #       uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-  #     - name: "Install Flutter"
-  #       run: ./.github/workflows/scripts/install-flutter.sh stable
-  #     - name: "Install Tools"
-  #       run: ./.github/workflows/scripts/install-tools.sh
-
-  #     # Required for Android builds
-  #     - uses: actions/setup-java@v3
-  #       with:
-  #         distribution: "temurin"
-  #         java-version: "11"
-
-  #     - name: "Bootstrap Workspace"
-  #       run: melos bootstrap --scope="$PLUGIN_SCOPE"
-
-  #     - name: "Android Integration Test"
-  #       uses: reactivecircus/android-emulator-runner@v2
-  #       with:
-  #         api-level: ${{ matrix.android-api-level }}
-  #         cores: 3
-  #         target: google_apis
-  #         arch: x86_64
-  #         force-avd-creation: false
-  #         profile: Nexus 5X
-  #         script: ./.github/workflows/scripts/integration-test.sh android share_plus_example
+  android-integration-test:
+    name: run integration test on Android emulator
+    runs-on: macOS-latest
+    strategy:
+      matrix:
+        api-level: [33]
+        target: [playstore]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '8.x'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.16.0'
+              channel: 'stable'
+       # Run integration test
+      - name: Run Flutter Driver tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          target: ${{ matrix.target }}
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          profile: Nexus 6
+          script: flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
+       # Update screenshot to artifact
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v1
+        with:
+          name: screenshot
+          path: ${{ matrix.path }}screenshots/
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing,integration-testing-windows]
+    needs: [unit-testing,integration-testing-windows,android-integration-test]
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
