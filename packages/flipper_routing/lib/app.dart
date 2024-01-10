@@ -229,3 +229,4 @@ class App {}
 /// TODO: once this issue is closed https://github.com/realm/realm-dart/issues/1451
 /// i.e new realm 1.7 released then I shall move realm in separate isolate
 /// to improve the UI blocking that is currently happening when realm is busy in flipper app
+///TODO: automatic release on windows store https://github.com/marketplace/actions/windows-store-publish
