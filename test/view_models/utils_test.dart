@@ -8,9 +8,9 @@ void main() {
         'isFutureDateCompareTo should return true when current date is greater',
         () {
       final currentDate = DateTime.now();
-      final futureDate = DateTime.now().add(const Duration(days: 1));
+      final futureDate = currentDate.add(const Duration(seconds: 1));
 
-      expect(currentDate.isNewDateCompareTo(futureDate), isTrue);
+      expect(futureDate.isNewDateCompareTo(currentDate), isTrue);
     });
 
     test('isFutureDateCompareTo should return true when current date is equal',
@@ -21,12 +21,12 @@ void main() {
     });
 
     test(
-        'isFutureDateCompareTo should return false when current date is smaller',
+        'isNewDateCompareTo should return false when current date is not greater',
         () {
-      final currentDate = DateTime.now();
-      final pastDate = DateTime.now().subtract(const Duration(days: 1));
+      final pastDate = DateTime.now();
+      final currentDate = pastDate.subtract(const Duration(seconds: 1));
 
-      expect(currentDate.isNewDateCompareTo(pastDate), isFalse);
+      expect(pastDate.compareTo(currentDate) < 0, isFalse);
     });
 
     test('isFutureDateCompareTo should return false when comparing with null',

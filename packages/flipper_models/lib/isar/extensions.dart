@@ -3,17 +3,10 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
-extension DateTimeExtensions on DateTime {
+extension DateTimeExtensions on DateTime? {
   bool isNewDateCompareTo(DateTime? other) {
-    if (other == null) return false;
-    return compareTo(other) > 0;
-  }
-}
-
-extension NullableDateTimeExtensions on DateTime? {
-  bool isNewDateCompareTo(DateTime? other) {
-    if (this == null) return false;
-    return this?.isNewDateCompareTo(other) ?? false;
+    if (this == null || other == null) return false;
+    return this!.compareTo(other) > 0;
   }
 }
 
