@@ -105,7 +105,7 @@ class RealmSync<M extends IJsonSerializable>
     final unit = realm.query<RealmIUnit>(r'branchId == $0', [branchId]);
 
     realm.subscriptions.update((sub) {
-      sub.clear();
+      // sub.clear();
       sub.add(transaction, name: "transactions");
       sub.add(transactionItem, name: "transactionItems");
       sub.add(product, name: "iProduct");

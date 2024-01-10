@@ -116,7 +116,8 @@ void main() {
     await tester.pumpAndSettle();
     // Verify that our counter starts at 0.
 
-    expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
+    expect(find.text('Create Account'), findsOneWidget);
+    expect(find.text('Sign In'), findsOneWidget);
 
     // Test additional functionality...
   });
