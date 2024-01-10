@@ -138,6 +138,19 @@ jobs:
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
       - name: submodule init
         run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          git config --global core.autocrlf false
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
