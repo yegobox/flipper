@@ -142,7 +142,6 @@ jobs:
         run: git submodule update --init
       - name: Configure Missing files
         run: |
-          echo "$GOOGLE_SERVICE_JSON" >> app/google-services.json
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
@@ -154,7 +153,21 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - name: Configure Keystore
+        run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "storeFile=key.jks" >> key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+        working-directory: android
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
