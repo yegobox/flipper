@@ -128,6 +128,16 @@ jobs:
         with:
           flutter-version: "3.16.0" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
+      - name: Configure Git with PAT
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper store
+          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+      - name: submodule init
+        run: git submodule update --init
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
