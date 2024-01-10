@@ -142,7 +142,7 @@ jobs:
         run: git submodule update --init
       - name: Configure Missing files
         run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$GOOGLE_SERVICE_JSON" >> app/google-services.json
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
