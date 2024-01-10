@@ -142,6 +142,7 @@ jobs:
         run: git submodule update --init
       - name: Configure Missing files
         run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
@@ -153,6 +154,7 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
       - run: |
           dart pub global activate melos 2.9.0
           melos bootstrap
