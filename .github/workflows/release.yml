@@ -128,6 +128,9 @@ jobs:
         with:
           flutter-version: "3.16.0" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
+      - run: |
+          dart pub global activate melos 2.9.0
+          melos bootstrap
        # Run integration test
       - name: Run Flutter Driver tests
         uses: reactivecircus/android-emulator-runner@v2
