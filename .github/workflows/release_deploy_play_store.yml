@@ -48,6 +48,7 @@ jobs:
       - run: git submodule update --init
 
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
@@ -94,6 +95,7 @@ jobs:
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
+        shell: bash
         run: |
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
@@ -181,7 +183,6 @@ jobs:
       - name: submodule init
         run: git submodule update --init
       - name: Configure Missing files
-        shell: bash
         run: |
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
