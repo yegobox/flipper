@@ -44,7 +44,7 @@ jobs:
       - name: Setup Git Credentials
         uses: de-vri-es/setup-git-credentials@v2.0.10
         with:
-          token: ${{ secrets.PAT_TOKEN }}
+          credentials: ${{ secrets.GIT_CREDENTIALS }}
           enableSchannel: true  # Enable this if running on Windows
 
       - run: git submodule update --init
