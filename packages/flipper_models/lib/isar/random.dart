@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:uuid/uuid.dart';
 
 ///In this case, the function generates a string of length 15 using
 ///letters and digits, which means there are a total of 36 possible
@@ -22,12 +23,19 @@ import 'dart:math';
 //   return hexString.substring(0, 14) + Random().nextInt(10).toString();
 String randomString() {
   final random = Random();
-  String chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' +
-          DateTime.now().microsecondsSinceEpoch.toString();
+  final uuid = Uuid();
+  final chars = uuid.v4().replaceAll("-", "") +
+      DateTime.now().microsecondsSinceEpoch.toString() +
+      DateTime.now()
+          .subtract(const Duration(milliseconds: 100))
+          .microsecondsSinceEpoch
+          .toString() +
+      DateTime.now()
+          .subtract(const Duration(milliseconds: 200))
+          .microsecondsSinceEpoch
+          .toString();
   String s = String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-
   print('Generated string: $s');
   return s;
 }

@@ -42,6 +42,7 @@ dependencies:
   dio: ^4.0.6
   # adding realm to replace firestore on desktop in transporting data to cloud
   realm: ^1.6.1
+  uuid: ^4.3.3
   
 dependency_overrides:
   http: ^1.1.2

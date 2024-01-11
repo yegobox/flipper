@@ -28,42 +28,18 @@ import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flipper_rw/main.dart' as app;
 
 // https://stackoverflow.com/questions/69248403/flutter-widget-testing-with-httpclient
 //https://pub.dev/packages/nock
 //https://github.com/nock/nock?tab=readme-ov-file#how-does-it-work
 //https://designer.mocky.io/
-//flutter test --dart-define=Test=true -d windows integration_test/smoke_test.dart
+//flutter test --dart-define=Test=true -d R58MC1HCNFT integration_test/smoke_android_test.dart
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized()
+      as IntegrationTestWidgetsFlutterBinding;
   // Mock the HTTP client at the ViewModel level
   setUpAll(nock.init);
-
-  setUp(() async {
-    nock.cleanAll();
-    await initDependencies();
-    loc.setupLocator(
-      stackedRouter: stackedRouter,
-    );
-    setupDialogUi();
-    setupBottomSheetUi();
-    loc.locator.registerLazySingleton(() => IsarAPIMock());
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (isAndroid || isIos && !isWeb) {
-      await NotificationsCubit.initialize(
-        flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
-      );
-    }
-
-    HttpOverrides.global = MyHttpOverrides();
-    ByteData data =
-        await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
-    SecurityContext.defaultContext
-        .setTrustedCertificatesBytes(data.buffer.asUint8List());
-  });
 
   testWidgets('App start and runs windows', (WidgetTester tester) async {
     // int? userId = ProxyService.box.getUserId();
@@ -76,48 +52,17 @@ void main() {
 
     // expect(interceptor.isDone, true);
     // Build our app and trigger a frame.
-    await tester.pumpWidget(ProviderScope(
-      observers: [StateObserver()],
-      child: OverlaySupport.global(
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: true,
-          title: 'flipper',
-          // Define the light theme for the app, based on defined colors and
-          // properties above.
-          //TODOimplement my own as this is killing design
-          // theme: GThemeGenerator.generate(),
-          // darkTheme: GThemeGenerator.generateDark(),
-          theme: ThemeData(
-            textTheme: GoogleFonts.poppinsTextTheme(),
-          ),
-          localizationsDelegates: [
-            FirebaseUILocalizations.withDefaultOverrides(
-              const LabelOverrides(),
-            ),
-            const FlipperLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            CountryLocalizations.delegate
-          ],
-          supportedLocales: const [
-            Locale('en'), // English
-            Locale('es'), // Spanish
-          ],
-          locale: const Locale('en'),
-          // locale: model
-          //     .languageService.locale,
-          // themeMode: model.settingService.themeMode.value,
-          themeMode: ThemeMode.system,
-          routerDelegate: stackedRouter.delegate(),
-          routeInformationParser: stackedRouter.defaultRouteParser(),
-        ),
-      ),
-    ));
+    app.main();
+    // This is required prior to taking the screenshot (Android only).
+    await binding.convertFlutterSurfaceToImage();
+
     await tester.pumpAndSettle();
     // Verify that our counter starts at 0.
 
     expect(find.text('Create Account'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
+
+    await binding.takeScreenshot('screenshot-1');
 
     // Test additional functionality...
   });
