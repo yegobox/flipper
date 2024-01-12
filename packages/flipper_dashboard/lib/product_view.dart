@@ -181,9 +181,10 @@ class ProductViewState extends ConsumerState<ProductView> {
           AddProductViewRoute(productId: productId),
         );
       },
-      delete: (variantId) async {
-        log(variantId, name: 'deleting');
-        ProxyService.isar.delete(id: variantId, endPoint: 'variant');
+      delete: (id) async {
+        
+        ProxyService.isar.delete(id: id, endPoint: 'product');
+        ProxyService.isar.delete(id: id, endPoint: 'variant');
         // ignore: unused_result
         ref.refresh(
           outerVariantsProvider(ProxyService.box.getBranchId()!),
