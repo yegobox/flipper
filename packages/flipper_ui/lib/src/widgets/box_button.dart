@@ -12,6 +12,7 @@ class BoxButton extends StatelessWidget {
   final bool outline;
   final Widget? leading;
   final double borderRadius;
+  final Key? key;
 
   const BoxButton({
     Key? key,
@@ -22,6 +23,7 @@ class BoxButton extends StatelessWidget {
     this.onTap,
     this.leading,
   })  : outline = false,
+        key = key,
         super(key: key);
 
   const BoxButton.outline({
@@ -29,15 +31,19 @@ class BoxButton extends StatelessWidget {
     this.onTap,
     this.leading,
     this.borderRadius = 8,
+    Key? key,
   })  : disabled = false,
         busy = false,
-        outline = true;
+        outline = true,
+        key = key,
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: AnimatedContainer(
+        key: key, // Use the provided key
         duration: Duration(milliseconds: 350),
         width: double.infinity,
         height: 60,
