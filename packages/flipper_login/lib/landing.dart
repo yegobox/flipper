@@ -84,6 +84,7 @@ class _LandingState extends State<Landing> {
       ),
     )
   ];
+  final signInButtonKey = Key('signInButtonKey');
 
   @override
   Widget build(BuildContext context) {
@@ -183,6 +184,7 @@ class _LandingState extends State<Landing> {
                   width: 368,
                   height: 68,
                   child: OutlinedButton(
+                    key: signInButtonKey,
                     style: primaryButtonStyle.copyWith(
                         shape:
                             MaterialStateProperty.resolveWith<OutlinedBorder>(

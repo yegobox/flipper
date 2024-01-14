@@ -36,6 +36,21 @@ void main() {
         expect(find.text('Create Account'), findsOneWidget);
         expect(find.text('Sign In'), findsOneWidget);
 
+        // Tap on the "Sign In" button
+        await tester.tap(find.byKey(const Key('signInButtonKey')));
+        await tester.pumpAndSettle();
+        // test expect to see list of sign in/up options
+
+        expect(find.text("Phone Number"), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('phoneNumberLogin')), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('googleLogin')), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.byKey(const Key('microsoftLogin')), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.text("How would you like to proceed?"), findsOneWidget);
+
         await binding.takeScreenshot('screenshot-1');
 
         // Test additional functionality...
