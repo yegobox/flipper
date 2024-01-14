@@ -25,8 +25,26 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('pinLogin')));
+        await tester.pumpAndSettle();
+
+        // Verify that the PIN text field is rendered within the Form
+        expect(find.byType(Form), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.byType(TextFormField), findsOneWidget);
+        await tester.pumpAndSettle();
+        // Simulate entering an empty PIN
+        await tester.enterText(find.byType(TextFormField), '');
+        // Verify that the validator error message is displayed
+        expect(find.text('PIN is required'), findsOneWidget);
+        // Simulate entering a non-empty PIN
+        await tester.enterText(find.byType(TextFormField), '1234');
+        await tester.pumpAndSettle();
+        // Verify that the error message is no longer displayed
+        expect(find.text('PIN is required'), findsNothing);
+        await tester.pumpAndSettle();
       });
-      // Test additional functionality...
     });
   });
 }
