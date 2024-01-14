@@ -181,10 +181,14 @@ class ProductViewState extends ConsumerState<ProductView> {
           AddProductViewRoute(productId: productId),
         );
       },
-      delete: (id) async {
-        
-        ProxyService.isar.delete(id: id, endPoint: 'product');
-        ProxyService.isar.delete(id: id, endPoint: 'variant');
+      deleteProduct: (id, type) async {
+        if (type is Product) {
+          ProxyService.isar.delete(id: id, endPoint: 'product');
+        }
+        if (type is Variant) {
+          ProxyService.isar.delete(id: id, endPoint: 'variant');
+        }
+
         // ignore: unused_result
         ref.refresh(
           outerVariantsProvider(ProxyService.box.getBranchId()!),
@@ -362,7 +366,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                             );
                           }
                         },
-                        delete: (productId) async {
+                        deleteProduct: (productId) async {
                           await model.deleteProduct(productId: productId);
                           ref
                               .read(

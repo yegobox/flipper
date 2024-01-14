@@ -23,6 +23,7 @@ class HexColor extends Color {
     return int.parse(hexColor, radix: 16);
   }
 }
+
 Map<int, String> positionString = {
   0: 'first',
   1: 'second',
@@ -46,7 +47,7 @@ class RowItem extends StatelessWidget {
   final String color;
   final String name;
   final String? imageUrl;
-  final Function delete;
+  final Function deleteProduct;
   final Function edit;
   final Function enableNfc;
   final ProductViewModel model;
@@ -63,7 +64,7 @@ class RowItem extends StatelessWidget {
     required this.name,
     required this.stock,
     this.addToMenu = _defaultFunction,
-    this.delete = _defaultFunction,
+    this.deleteProduct = _defaultFunction,
     this.edit = _defaultFunction,
     this.enableNfc = _defaultFunction,
     required this.model,
@@ -194,7 +195,7 @@ class RowItem extends StatelessWidget {
         SlidableAction(
           onPressed: (_) {
             addToMenu == null
-                ? delete(product?.id ?? variant?.id)
+                ? deleteProduct(product?.id ?? variant?.id)
                 : addToMenu!(product ?? variant);
           },
           backgroundColor: const Color(0xFFFE4A49),

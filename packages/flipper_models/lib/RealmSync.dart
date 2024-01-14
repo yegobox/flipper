@@ -136,7 +136,7 @@ class RealmSync<M extends IJsonSerializable>
     // before the system full get all defaulted update on devices
     if (item is ITransaction) {
       // Save _RealmITransaction to the Realm database
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         final realmITransaction = RealmITransaction(
           item.id,
@@ -169,7 +169,7 @@ class RealmSync<M extends IJsonSerializable>
           realm.add(realmITransaction);
         } else {
           RealmITransaction existingTransaction = findableObject.first;
-          if (existingTransaction.action == AppActions.updatedLocally) return;
+          if (existingTransaction.action == AppActions.synchronized) return;
           existingTransaction.updateProperties(realmITransaction);
         }
       });
@@ -177,7 +177,7 @@ class RealmSync<M extends IJsonSerializable>
 
     if (item is TransactionItem) {
       // Save _RealmITransaction to the Realm database
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         final realmITransactionItem = RealmITransactionItem(
           ObjectId(),
@@ -240,7 +240,7 @@ class RealmSync<M extends IJsonSerializable>
           realm.add(realmITransactionItem);
         } else {
           RealmITransactionItem existingTransaction = findableObject.first;
-          if (existingTransaction.action == AppActions.updatedLocally) return;
+          if (existingTransaction.action == AppActions.synchronized) return;
           existingTransaction.updateProperties(realmITransactionItem);
         }
       });
@@ -252,7 +252,7 @@ class RealmSync<M extends IJsonSerializable>
       /// to handle that case then we simply do not send this product to the cloud to make sure the user edit the product that he/she owns at
       /// the moment of creation
       if (item.name == TEMP_PRODUCT) return;
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         final realmProduct = RealmProduct(
           item.id,
@@ -284,13 +284,13 @@ class RealmSync<M extends IJsonSerializable>
           print(o);
         } else {
           RealmProduct existingTransaction = findableObject.first;
-          if (existingTransaction.action == AppActions.updatedLocally) return;
+          if (existingTransaction.action == AppActions.synchronized) return;
           existingTransaction.updateProperties(realmProduct);
         }
       });
     }
     if (item is Variant) {
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         final realmVariant = RealmVariant(
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -348,13 +348,13 @@ class RealmSync<M extends IJsonSerializable>
           realm.add(realmVariant);
         } else {
           RealmVariant existingTransaction = findableObject.first;
-          if (existingTransaction.action == AppActions.updatedLocally) return;
+          if (existingTransaction.action == AppActions.synchronized) return;
           existingTransaction.updateProperties(realmVariant);
         }
       });
     }
     if (item is Stock) {
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         final realmStock = RealmStock(
           item.id,
@@ -382,13 +382,13 @@ class RealmSync<M extends IJsonSerializable>
         } else {
           // Stock exists, update it
           RealmStock existingTransaction = findableObject.first;
-          if (existingTransaction.action == AppActions.updatedLocally) return;
+          if (existingTransaction.action == AppActions.synchronized) return;
           existingTransaction.updateProperties(realmStock);
         }
       });
     }
     if (item is IUnit) {
-      if (item.action == AppActions.updatedLocally) return;
+      if (item.action == AppActions.synchronized) return;
       await realm.write(() {
         IUnit data = item;
         final realmUnit = RealmIUnit(

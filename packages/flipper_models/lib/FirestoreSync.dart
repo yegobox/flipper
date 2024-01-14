@@ -28,7 +28,7 @@ class FirestoreSync<M extends IJsonSerializable>
       return;
     }
     Map<String, dynamic> data = item.toJson();
-    if (data['action'] == AppActions.updatedLocally) return;
+    if (data['action'] == AppActions.synchronized) return;
 
     /// isolate is not working proper on android, so no need of isolate on mobile then
     if (Platform.isAndroid || Platform.isIOS) {

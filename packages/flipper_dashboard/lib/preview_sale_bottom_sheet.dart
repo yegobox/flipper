@@ -39,109 +39,84 @@ class PreviewSaleBottomSheetState
     symbol: ' RWF',
   );
 
-  List<Widget> buildItems({
+  Widget buildItem({
     required Function(TransactionItem) delete,
     required BuildContext context,
-    required List<TransactionItem> items,
+    required TransactionItem item,
   }) {
-    // Check if the list is empty.
-    if (items.isEmpty) {
-      return [
-        Column(
+    return Card(
+      elevation: 0.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2.0),
+      ),
+      child: Slidable(
+        key: ValueKey(item.id),
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
           children: [
-            SizedBox(height: 120),
-            Text(
-              'Current transaction has no items',
-              style: GoogleFonts.poppins(
-                fontSize: 19,
-                fontWeight: FontWeight.w400,
-                color: Colors.black,
-              ),
+            SlidableAction(
+              onPressed: (context) => delete(item),
+              backgroundColor: const Color(0xFFFE4A49),
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
             ),
           ],
         ),
-      ];
-    }
-
-    // Create a list of widgets for each item in the list.
-    return items.map((item) {
-      return Card(
-        // change border radios of the card
-        shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(4.0), // Adjust the value as needed
+        startActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) => delete(item),
+              backgroundColor: const Color(0xFFFE4A49),
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ],
         ),
-        child: Slidable(
-          key: ValueKey(item.id),
-          endActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              SlidableAction(
-                onPressed: (context) =>
-                    delete(item), // Added the context argument
-                backgroundColor: const Color(0xFFFE4A49),
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
-              ),
-            ],
+        child: ListTile(
+          contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
+          trailing: Text(
+            'RWF ${NumberFormat('#,###').format(item.price * item.qty)}',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w400,
+              fontSize: 15,
+              color: Colors.black,
+            ),
           ),
-          startActionPane: ActionPane(
-            motion: const ScrollMotion(),
-            children: [
-              SlidableAction(
-                onPressed: (context) =>
-                    delete(item), // Added the context argument
-                backgroundColor: const Color(0xFFFE4A49),
-                foregroundColor: Colors.white,
-                icon: Icons.delete,
-                label: 'Delete',
-              ),
-            ],
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
-            trailing: Text(
-              'RWF ${NumberFormat('#,###').format(item.price * item.qty)}',
+          leading: Container(
+            width: 100,
+            child: Text(
+              item.name.substring(0, 10),
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,
                 fontSize: 15,
                 color: Colors.black,
               ),
             ),
-            leading: Container(
-              width: 100, // Set your preferred width
-              child: Text(
-                item.name.substring(0, 10),
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 15,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            title: Container(
-              width: 100, // Set your preferred width
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.close,
-                    color: Colors.black,
-                    size: 16.0,
-                  ),
-                  const Text(' '),
-                  Text(
-                    item.qty.toInt().toString(),
-                  ),
-                ],
-              ),
-            ),
-            onTap: () => null, //removed calling callback
           ),
+          title: Container(
+            width: 100,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.close,
+                  color: Colors.black,
+                  size: 16.0,
+                ),
+                const Text(' '),
+                Text(
+                  item.qty.toInt().toString(),
+                ),
+              ],
+            ),
+          ),
+          onTap: () => null,
         ),
-      );
-    }).toList();
+      ),
+    );
   }
 
   @override
@@ -171,34 +146,44 @@ class PreviewSaleBottomSheetState
         widget.mode == SellingMode.forSelling
             ? AddCustomerButton(transactionId: transaction.value?.value?.id)
             : SizedBox.shrink(),
-        ListView(
-          reverse: widget.reverse,
-          shrinkWrap: true,
-          controller: ModalScrollController.of(context),
-          physics: const ClampingScrollPhysics(),
-          children: [
-            ...buildItems(
-              context: context,
-              delete: (item) async {
-                model.deleteTransactionItem(
-                  id: item.id,
-                  context: context,
-                );
-                ref.refresh(
-                  transactionItemsProvider(transaction.value?.value?.id),
-                );
-              },
-              items: ref
+        Expanded(
+          child: ListView.builder(
+            reverse: widget.reverse,
+            shrinkWrap: true,
+            itemCount: (ref
+                        .watch(
+                          transactionItemsProvider(
+                              transaction.value?.value?.id),
+                        )
+                        .value ??
+                    [])
+                .length,
+            controller: ModalScrollController.of(context),
+            physics: const ClampingScrollPhysics(),
+            itemBuilder: (context, index) {
+              final item = (ref
                       .watch(
                         transactionItemsProvider(transaction.value?.value?.id),
                       )
                       .value ??
-                  [],
-            ),
-            if (model.totalDiscount > 0) buildDiscounts(model),
-          ],
+                  [])[index];
+
+              return buildItem(
+                context: context,
+                delete: (item) async {
+                  model.deleteTransactionItem(
+                    id: item.id,
+                    context: context,
+                  );
+                  ref.refresh(
+                    transactionItemsProvider(transaction.value?.value?.id),
+                  );
+                },
+                item: item,
+              );
+            },
+          ),
         ),
-        Spacer(),
         buildPayable(totalPayable),
       ],
     );

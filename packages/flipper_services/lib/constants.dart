@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppActions {
   static const String updated = "updated";
-  static const String updatedLocally = "updated_locally";
+  static const String synchronized = "synchronized";
   static const String deleted = "deleted";
   static const String created = "created";
   static const String defaultCategory = "default";
@@ -205,10 +205,10 @@ abstract class AppIcons {
       '$path/$kPackageId-symbolic-with-notification-badge.ico';
 }
 
- Color getColorFromHex(String hexColor) {
-    hexColor = hexColor.replaceAll("#", "");
-    if (hexColor.length == 6) {
-      hexColor = "FF" + hexColor;
-    }
-    return Color(int.parse(hexColor, radix: 16));
+Color getColorFromHex(String hexColor) {
+  hexColor = hexColor.replaceAll("#", "");
+  if (hexColor.length == 6) {
+    hexColor = "FF" + hexColor;
   }
+  return Color(int.parse(hexColor, radix: 16));
+}
