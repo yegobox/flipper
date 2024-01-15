@@ -43,6 +43,7 @@ class AuthOptionPage extends StatelessWidget {
           width: 368,
           height: 68,
           child: OutlinedButton(
+            key: Key("phoneNumberLogin"),
             style: primaryButtonStyle.copyWith(
                 shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                     (states) => RoundedRectangleBorder(
@@ -83,6 +84,7 @@ class AuthOptionPage extends StatelessWidget {
                             4), // Add border radius to match IconButton's shape
                       ),
                       child: IconButton(
+                         key: Key("googleLogin"),
                         onPressed: () async {
                           final provider = GoogleAuthProvider();
                           final user =
@@ -134,6 +136,7 @@ class AuthOptionPage extends StatelessWidget {
                     width: 368,
                     height: 68,
                     child: Container(
+                       key: Key("microsoftLogin"),
                       decoration: BoxDecoration(
                         boxShadow: [
                           BoxShadow(

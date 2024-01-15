@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 // Import the relevant file
 import 'package:nock/nock.dart';
-import 'package:flutter/foundation.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_rw/main.dart' as app;
@@ -30,7 +29,7 @@ void main() {
         await tester.pumpAndSettle();
         await tester.pumpAndSettle();
         await tester.pumpAndSettle();
-
+        await binding.takeScreenshot('screenshot-1');
         FlutterError.onError = originalOnError;
 
         expect(find.text('Create Account'), findsOneWidget);
@@ -51,10 +50,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text("How would you like to proceed?"), findsOneWidget);
 
-        await binding.takeScreenshot('screenshot-1');
+        await tester.pumpAndSettle();
+        await binding.takeScreenshot('screenshot-2');
 
         // Test additional functionality...
       });
-    }, timeout: Timeout.none);
+    });
   });
 }
