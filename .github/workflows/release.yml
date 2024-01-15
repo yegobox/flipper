@@ -176,11 +176,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           target: ${{ matrix.target }}
-          emulator-boot-timeout: 1800
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           profile: Nexus 6
           script: flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
+          emulator-boot-timeout: 1800
        # Update screenshot to artifact
       # - name: Upload screenshots
       #   if: always()
