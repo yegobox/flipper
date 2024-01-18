@@ -365,7 +365,7 @@ class FakeApi extends IsarAPI implements IsarApiInterface {
   }
 
   @override
-  Future<int> update<T>({required T data}) async {
+  Future<int> update<T>({required T data, bool localUpdate = false}) async {
     // int branchId = ProxyService.box.getBranchId()!;
     if (data is Product) {
       Product product = data;

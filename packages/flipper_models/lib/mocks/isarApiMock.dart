@@ -929,7 +929,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> update<T>({required T data}) {
+  Future<int> update<T>({required T data, bool localUpdate = false}) {
     // TODO: implement update
     throw UnimplementedError();
   }

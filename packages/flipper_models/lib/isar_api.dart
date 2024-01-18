@@ -1995,7 +1995,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   /// @Deprecated [endpoint] don't give the endpoint params
   @override
-  Future<int> update<T>({required T data}) async {
+  Future<int> update<T>({required T data, bool localUpdate = false}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
@@ -2006,41 +2006,65 @@ class IsarAPI<M> implements IsarApiInterface {
       Device device = data;
 
       db.write((isar) {
-        isar.devices.onPut(device);
+        if (localUpdate) {
+          isar.devices.onUpdate(device);
+        } else {
+          isar.devices.onPut(device);
+        }
       });
     }
     if (data is Social) {
       Social social = data;
 
       db.write((isar) {
-        isar.socials.put(social);
+        if (localUpdate) {
+          isar.socials.onUpdate(social);
+        } else {
+          isar.socials.onPut(social);
+        }
       });
     }
     if (data is Product) {
       Product product = data;
       product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
       db.write((isar) {
-        isar.products.onPut(product);
+        if (localUpdate) {
+          isar.products.onUpdate(product);
+        } else {
+          isar.products.onPut(product);
+        }
       });
     }
     if (data is Favorite) {
       Favorite fav = data;
       db.write((isar) {
-        isar.favorites.onPut(fav);
+        if (localUpdate) {
+          isar.favorites.onUpdate(fav);
+        } else {
+          isar.favorites.onPut(fav);
+        }
       });
     }
     if (data is Variant) {
       Variant variant = data;
       variant.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
       db.write((isar) {
-        isar.variants.onPut(variant);
+        if (localUpdate) {
+          isar.variants.onUpdate(variant);
+        } else {
+          isar.variants.onPut(variant);
+        }
       });
     }
     if (data is Stock) {
       Stock stock = data;
       stock.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
       db.write((isar) {
-        isar.stocks.onPut(stock);
+        if (localUpdate) {
+          isar.stocks.onUpdate(stock);
+        } else {
+          isar.stocks.onPut(stock);
+        }
       });
     }
     if (data is ITransaction) {
@@ -2048,31 +2072,51 @@ class IsarAPI<M> implements IsarApiInterface {
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
       db.write((isar) {
-        isar.iTransactions.onPut(transaction);
+        if (localUpdate) {
+          isar.iTransactions.onUpdate(transaction);
+        } else {
+          isar.iTransactions.onPut(transaction);
+        }
       });
     }
     if (data is Category) {
-      final transaction = data;
+      final category = data;
       db.write((isar) {
-        isar.categorys.onPut(transaction);
+        if (localUpdate) {
+          isar.categorys.onUpdate(category);
+        } else {
+          isar.categorys.onPut(category);
+        }
       });
     }
     if (data is IUnit) {
       final unit = data;
       db.write((isar) {
-        isar.iUnits.onPut(unit);
+        if (localUpdate) {
+          isar.iUnits.onUpdate(unit);
+        } else {
+          isar.iUnits.onPut(unit);
+        }
       });
     }
     if (data is PColor) {
       final color = data;
       db.write((isar) {
-        isar.pColors.onPut(color);
+        if (localUpdate) {
+          isar.pColors.onUpdate(color);
+        } else {
+          isar.pColors.onPut(color);
+        }
       });
     }
     if (data is TransactionItem) {
       data.lastTouched = DateTime.now().toLocal();
       db.write((isar) {
-        isar.transactionItems.onPut(data);
+        if (localUpdate) {
+          isar.transactionItems.onUpdate(data);
+        } else {
+          isar.transactionItems.onPut(data);
+        }
       });
     }
     if (data is EBM) {
@@ -2088,7 +2132,11 @@ class IsarAPI<M> implements IsarApiInterface {
           ..bhfId = ebm.bhfId
           ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
-        isar.business.onPut(business!);
+        if (localUpdate) {
+          isar.business.onUpdate(business!);
+        } else {
+          isar.business.onPut(business!);
+        }
       });
     }
     if (data is Token) {
@@ -2098,7 +2146,11 @@ class IsarAPI<M> implements IsarApiInterface {
         ..businessId = token.businessId
         ..type = token.type;
       db.write((isar) {
-        db.tokens.onPut(token);
+        if (localUpdate) {
+          db.tokens.onUpdate(token);
+        } else {
+          db.tokens.onPut(token);
+        }
       });
     }
     if (data is Business) {

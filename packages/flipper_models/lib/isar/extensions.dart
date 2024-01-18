@@ -22,6 +22,13 @@ extension ColorExtension on Color {
 
 extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
   OBJ? onGet(ID id) => getAll([id]).firstOrNull;
+
+  /// this create a standard local update withour necessarily calling
+  /// our sync service such as realm or firestore
+  void onUpdate(OBJ object) {
+    put(object);
+  }
+
   void onPut(OBJ object) {
     put(object);
 

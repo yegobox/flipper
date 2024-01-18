@@ -31,7 +31,7 @@ abstract class IsarApiInterface {
   Future<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   Future<T?> create<T>({required T data});
-  Future<int> update<T>({required T data});
+  Future<int> update<T>({required T data, bool localUpdate = false});
 
   Future<bool> delete({required String id, String? endPoint});
   Future<PColor?> getColor({required String id, String? endPoint});
@@ -117,7 +117,7 @@ abstract class IsarApiInterface {
       {required String customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({ String? productId});
+  Future<List<Variant>> getVariantByProductId({String? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});

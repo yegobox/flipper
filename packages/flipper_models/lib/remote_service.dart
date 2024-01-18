@@ -32,7 +32,7 @@ mixin HandleItemMixin {
   Future<void> handleItem<T>({required T model, required int branchId}) async {
     if (model is Stock) {
       Stock remoteStock = Stock.fromJson(model.toJson());
-
+      remoteStock.action = AppActions.synchronized;
       Stock? localStock =
           await ProxyService.isar.getStockById(id: remoteStock.id);
 
@@ -42,11 +42,12 @@ mixin HandleItemMixin {
           localStock.lastTouched != null &&
           remoteStock.lastTouched.isNewDateCompareTo(localStock.lastTouched)) {
         remoteStock.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteStock);
+        await ProxyService.isar.update(data: remoteStock, localUpdate: true);
       }
     }
     if (model is Variant) {
       Variant remoteVariant = Variant.fromJson(model.toJson());
+      remoteVariant.action = AppActions.synchronized;
       Variant? localVariant =
           await ProxyService.isar.getVariantById(id: remoteVariant.id);
 
@@ -57,11 +58,12 @@ mixin HandleItemMixin {
           remoteVariant.lastTouched
               .isNewDateCompareTo(localVariant.lastTouched)) {
         remoteVariant.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteVariant);
+        await ProxyService.isar.update(data: remoteVariant, localUpdate: true);
       }
     }
     if (model is Product) {
       Product remoteProduct = Product.fromJson(model.toJson());
+      remoteProduct.action = AppActions.synchronized;
       Product? localProduct =
           await ProxyService.isar.getProduct(id: remoteProduct.id);
 
@@ -72,11 +74,12 @@ mixin HandleItemMixin {
           remoteProduct.lastTouched
               .isNewDateCompareTo(localProduct.lastTouched)) {
         remoteProduct.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteProduct);
+        await ProxyService.isar.update(data: remoteProduct, localUpdate: true);
       }
     }
     if (model is Device) {
       Device remoteDevice = Device.fromJson(model.toJson());
+      remoteDevice.action = AppActions.synchronized;
       Device? localDevice =
           await ProxyService.isar.getDeviceById(id: remoteDevice.id);
 
@@ -87,11 +90,12 @@ mixin HandleItemMixin {
           remoteDevice.lastTouched
               .isNewDateCompareTo(localDevice.lastTouched)) {
         localDevice.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: localDevice);
+        await ProxyService.isar.update(data: localDevice, localUpdate: true);
       }
     }
     if (model is Social) {
       Social remoteSocial = Social.fromJson(model.toJson());
+      remoteSocial.action = AppActions.synchronized;
       Social? localSocial =
           await ProxyService.isar.getSocialById(id: remoteSocial.id);
 
@@ -102,14 +106,14 @@ mixin HandleItemMixin {
           remoteSocial.lastTouched
               .isNewDateCompareTo(localSocial.lastTouched)) {
         remoteSocial.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteSocial);
+        await ProxyService.isar.update(data: remoteSocial, localUpdate: true);
       }
     }
     if (model is EBM) {
       EBM ebm = EBM.fromJson(model.toJson());
       EBM? localEbm =
           await ProxyService.isar.getEbmByBranchId(branchId: ebm.branchId);
-
+      ebm.action = AppActions.synchronized;
       if (localEbm == null &&
           ebm.businessId == ProxyService.box.getBusinessId()) {
         ebm.lastTouched = DateTime.now();
@@ -124,16 +128,17 @@ mixin HandleItemMixin {
         business.taxServerUrl = ebm.taxServerUrl;
         business.tinNumber = ebm.tinNumber;
         business.dvcSrlNo = ebm.dvcSrlNo;
-        ProxyService.isar.update(data: business);
+        ProxyService.isar.update(data: business, localUpdate: true);
       } else if (localEbm != null &&
           ebm.lastTouched != null &&
           ebm.lastTouched.isNewDateCompareTo(localEbm.lastTouched)) {
         ebm.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: ebm);
+        await ProxyService.isar.update(data: ebm, localUpdate: true);
       }
     }
     if (model is ITransaction) {
       ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
+      remoteTransaction.action = AppActions.synchronized;
       ITransaction? localTransaction =
           await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
 
@@ -144,12 +149,14 @@ mixin HandleItemMixin {
           remoteTransaction.lastTouched
               .isNewDateCompareTo(localTransaction.lastTouched)) {
         remoteTransaction.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteTransaction);
+        await ProxyService.isar
+            .update(data: remoteTransaction, localUpdate: true);
       }
     }
     if (model is TransactionItem) {
       TransactionItem? remoteTransactionItem =
           TransactionItem.fromJson(model.toJson());
+      remoteTransactionItem.action = AppActions.synchronized;
       TransactionItem? localTransaction = await ProxyService.isar
           .getTransactionItemById(id: remoteTransactionItem.id);
 
@@ -158,7 +165,8 @@ mixin HandleItemMixin {
       } else if (remoteTransactionItem.lastTouched
           .isNewDateCompareTo(localTransaction.lastTouched)) {
         remoteTransactionItem.action = AppActions.synchronized;
-        await ProxyService.isar.update(data: remoteTransactionItem);
+        await ProxyService.isar
+            .update(data: remoteTransactionItem, localUpdate: true);
       }
     }
   }
