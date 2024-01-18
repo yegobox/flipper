@@ -35,6 +35,9 @@ if (keystorePropertiesFile.exists()) {
 android {
     // compileSdkVersion flutter.compileSdkVersion
     compileSdkVersion 33
+    testOptions {
+        execution "ANDROIDX_TEST_ORCHESTRATOR"
+    }
 
     compileOptions {
           sourceCompatibility JavaVersion.VERSION_1_8
@@ -58,6 +61,9 @@ android {
         targetSdkVersion 33
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        testInstrumentationRunner "pl.leancode.patrol.PatrolJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: "true"
+
     }
     signingConfigs {
        
@@ -93,4 +99,6 @@ dependencies {
   // Add the dependency for the Firebase Authentication library
   // When using the BoM, you don't specify versions in Firebase library dependencies
     implementation 'com.google.firebase:firebase-auth-ktx'
+    androidTestUtil "androidx.test:orchestrator:1.4.2"
+
 }

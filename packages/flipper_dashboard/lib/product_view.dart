@@ -182,11 +182,11 @@ class ProductViewState extends ConsumerState<ProductView> {
         );
       },
       deleteProduct: (id, type) async {
-        if (type is Product) {
-          ProxyService.isar.delete(id: id, endPoint: 'product');
+        if (type == 'product') {
+          ProxyService.isar.delete(id: id!, endPoint: 'product');
         }
-        if (type is Variant) {
-          ProxyService.isar.delete(id: id, endPoint: 'variant');
+        if (type == 'variant') {
+          ProxyService.isar.delete(id: id!, endPoint: 'variant');
         }
 
         // ignore: unused_result
@@ -366,8 +366,8 @@ class ProductViewState extends ConsumerState<ProductView> {
                             );
                           }
                         },
-                        deleteProduct: (productId) async {
-                          await model.deleteProduct(productId: productId);
+                        deleteProduct: (productId, type) async {
+                          await model.deleteProduct(productId: productId!);
                           ref
                               .read(
                                 productsProvider(

@@ -101,18 +101,13 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         _handlePausedState();
         break;
       default:
-        ProxyService.sync.push();
         break;
     }
   }
 
-  void _handleResumedState() {
-    ProxyService.sync.push();
-  }
+  void _handleResumedState() {}
 
-  void _handlePausedState() {
-    ProxyService.sync.push();
-  }
+  void _handlePausedState() {}
 
   void initializeApplicationIfRequired() {
     if (ProxyService.box.getBranchId() != null &&

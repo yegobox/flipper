@@ -49,6 +49,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
       Variant(
         name: variantName,
         retailPrice: retailPrice,
+        supplyPrice: supplyPrice,
         id: randomString(),
         sku: variantName,
         productId: product.id,
@@ -56,7 +57,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin {
         unit: 'Per Item',
         productName: productName ?? product.name,
         branchId: branchId,
-        supplyPrice: supplyPrice,
         isTaxExempted: isTaxExempted,
         action: AppActions.created,
         lastTouched: DateTime.now(),

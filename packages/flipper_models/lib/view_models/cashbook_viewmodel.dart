@@ -21,7 +21,7 @@ class CashbookViewModel extends ProductViewModel with SharebleMethods {
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
-    ProxyService.sync.push();
+
     if (target != null) {
       return target.id;
     }

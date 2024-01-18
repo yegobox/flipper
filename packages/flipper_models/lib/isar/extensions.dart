@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -25,56 +27,61 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
 
     ///TODO: re-enable this when cloud_firestore is stable
     /// https://github.com/firebase/flutterfire/issues/11933
+    /// https://github.com/flutter/flutter/issues/134346
     if (!isWindows &&
         ProxyService.remoteConfig.isFirestoreEnabled() &&
         ProxyService.remoteConfig.isSyncAvailable()) {
-      if (object is Product) {
-        ProxyService.syncFirestore.onSave<Product>(item: object);
-      }
-      if (object is Variant) {
-        ProxyService.syncFirestore.onSave<Variant>(item: object);
-      }
-      if (object is Stock) {
-        ProxyService.syncFirestore.onSave<Stock>(item: object);
-      }
-      if (object is Device) {
-        ProxyService.syncFirestore.onSave<Device>(item: object);
-      }
+      // if (object is Product) {
+      //   ProxyService.syncFirestore.onSave<Product>(item: object);
+      // }
+      // if (object is Variant) {
+      //   ProxyService.syncFirestore.onSave<Variant>(item: object);
+      // }
+      // if (object is Stock) {
+      //   ProxyService.syncFirestore.onSave<Stock>(item: object);
+      // }
+      // if (object is Device) {
+      //   ProxyService.syncFirestore.onSave<Device>(item: object);
+      // }
       if (object is ITransaction) {
         ProxyService.syncFirestore.onSave<ITransaction>(item: object);
       }
       if (object is TransactionItem) {
         ProxyService.syncFirestore.onSave<TransactionItem>(item: object);
       }
-      if (object is Drawers) {
-        ProxyService.syncFirestore.onSave<Drawers>(item: object);
-      }
-      if (object is IUnit) {
-        ProxyService.syncFirestore.onSave<IUnit>(item: object);
-      }
+      // if (object is Drawers) {
+      //   ProxyService.syncFirestore.onSave<Drawers>(item: object);
+      // }
+      // if (object is IUnit) {
+      //   ProxyService.syncFirestore.onSave<IUnit>(item: object);
+      // }
     }
     if (ProxyService.remoteConfig.isSyncAvailable()) {
       if (object is TransactionItem) {
+        log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<TransactionItem>(item: object);
       }
       if (object is ITransaction) {
+        log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<ITransaction>(item: object);
       }
 
       if (object is Product) {
+        log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<Product>(item: object);
       }
 
       if (object is Stock) {
+        log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<Stock>(item: object);
       }
       if (object is Variant) {
+        log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<Variant>(item: object);
       }
       if (object is IUnit) {
         ProxyService.realm.onSave<IUnit>(item: object);
       }
-      ProxyService.realm.realm.subscriptions.waitForSynchronization();
     }
   }
 }

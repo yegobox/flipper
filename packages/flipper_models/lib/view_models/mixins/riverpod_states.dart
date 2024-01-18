@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
@@ -285,23 +287,29 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       List<Product> products =
           await ProxyService.isar.productsFuture(branchId: branchId);
 
+      // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
-        // Search for products that match the search string
-        List<Product> matchingProducts = products
-            .where((product) =>
-                product.name.toLowerCase().contains(searchString.toLowerCase()))
-            .toList();
+        List<Product?> additionalProducts =
+            await ProxyService.isar.getProductByName(name: searchString);
+        log(additionalProducts.toString());
+        // Filter out null products and cast non-null products to Product type
+        products.addAll(additionalProducts
+            .where((product) => product != null)
+            .map((product) => product as Product));
+      }
 
-        state = AsyncData(matchingProducts);
+      // Apply search filter to the merged list
+      List<Product> matchingProducts = products
+          .where((product) =>
+              product.name.toLowerCase().contains(searchString.toLowerCase()))
+          .toList();
 
-        if (matchingProducts.isNotEmpty) {
-          // If there's at least one matching product, expand the first one
-          Product matchingProduct = matchingProducts.first;
-          expanded(matchingProduct);
-        }
-      } else {
-        // If the search string is empty, return the entire list of products
-        state = AsyncData(products);
+      state = AsyncData(matchingProducts);
+
+      if (matchingProducts.isNotEmpty) {
+        // If there's at least one matching product, expand the first one
+        Product matchingProduct = matchingProducts.first;
+        expanded(matchingProduct);
       }
     } catch (error) {
       state = AsyncError(error, StackTrace.current);

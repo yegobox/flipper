@@ -27,7 +27,7 @@ class FavoriteViewModel extends ProductViewModel {
     Favorite? target = await getFavoriteByIndex(favIndex);
     await ProxyService.isar.deleteFavoriteByIndex(favIndex: favIndex);
     notifyListeners();
-    ProxyService.sync.push();
+
     if (target != null) {
       return target.productId!;
     }

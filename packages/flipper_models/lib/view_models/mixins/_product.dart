@@ -56,7 +56,6 @@ mixin ProductMixin {
         ProxyService.tax.saveItem(variation: variant);
       }
     }
-    ProxyService.sync.push();
 
     return await ProxyService.isar.getProduct(id: mproduct.id);
   }

@@ -570,7 +570,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({required String productId}) {
+  Future<List<Variant>> getVariantByProductId({String? productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
@@ -968,10 +968,16 @@ class IsarAPIMock<M> implements IsarApiInterface {
   Future<IsarApiInterface> getInstance() async {
     return this;
   }
-  
+
   @override
   Stream<double> getStockStream({String? productId, String? variantId}) {
     // TODO: implement getStockStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Product?>> getProductByName({required String name}) {
+    // TODO: implement getProductByName
     throw UnimplementedError();
   }
 }

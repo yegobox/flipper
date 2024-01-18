@@ -47,6 +47,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   void _processDebouncedValue(String value, CoreViewModel model) {
     log('Processing value: $value', name: 'logic');
     ref.read(searchStringProvider.notifier).emitString(value: value);
+    // search product by name an if found add it to the current list
 
     _focusNode.requestFocus();
 

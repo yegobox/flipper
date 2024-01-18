@@ -42,12 +42,15 @@ Map<int, String> positionString = {
   14: 'fifteenth',
   15: 'sixteenth'
 };
+typedef void DeleteProductFunction(String? id, String type);
+typedef void DeleteVariantFunction(String? id, String type);
 
 class RowItem extends StatelessWidget {
   final String color;
   final String name;
   final String? imageUrl;
-  final Function deleteProduct;
+  final DeleteProductFunction deleteProduct;
+  final DeleteVariantFunction deleteVariant;
   final Function edit;
   final Function enableNfc;
   final ProductViewModel model;
@@ -65,6 +68,7 @@ class RowItem extends StatelessWidget {
     required this.stock,
     this.addToMenu = _defaultFunction,
     this.deleteProduct = _defaultFunction,
+    this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
     this.enableNfc = _defaultFunction,
     required this.model,
@@ -75,7 +79,7 @@ class RowItem extends StatelessWidget {
     this.favIndex,
   }) : super(key: key);
 
-  static _defaultFunction() {
+  static _defaultFunction(String? id, String type) {
     print("no function provided for the action");
   }
 
@@ -159,28 +163,28 @@ class RowItem extends StatelessWidget {
       width: 80,
       child: FutureBuilder<List<Variant>>(
         future: ProxyService.isar.getVariantByProductId(
-          productId: product?.id ?? "0",
+          productId: product?.id,
         ),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return SizedBox.shrink();
           }
 
-          final variants = snapshot.data;
+          final variants = snapshot.data ?? [];
 
-          if (variant != null) {
-            return Text(
-              'RWF ${NumberFormat('#,###').format(variant!.retailPrice)}',
-              style: const TextStyle(color: Colors.black),
-            );
-          } else if (variants != null && variants.isNotEmpty) {
-            return Text(
-              'RWF ${NumberFormat('#,###').format(variants.first.retailPrice)}',
-              style: const TextStyle(color: Colors.black),
-            );
+          double firstNonZeroRetailPrice = 0;
+
+          for (var variant in variants) {
+            if (variant.retailPrice != 0) {
+              firstNonZeroRetailPrice = variant.retailPrice;
+              break;
+            }
           }
 
-          return SizedBox.shrink();
+          return Text(
+            'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
+            style: const TextStyle(color: Colors.black),
+          );
         },
       ),
     );
@@ -194,9 +198,15 @@ class RowItem extends StatelessWidget {
       children: [
         SlidableAction(
           onPressed: (_) {
-            addToMenu == null
-                ? deleteProduct(product?.id ?? variant?.id)
-                : addToMenu!(product ?? variant);
+            if (addToMenu == null) {
+              if (product?.id == null) {
+                deleteVariant(variant?.id, 'variant');
+              } else {
+                deleteProduct(product?.id, 'product');
+              }
+            } else {
+              addToMenu!(product ?? variant);
+            }
           },
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,

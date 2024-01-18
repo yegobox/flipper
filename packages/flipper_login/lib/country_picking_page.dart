@@ -20,14 +20,13 @@ class _CountryPickerState extends State<CountryPicker> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      // backgroundColor: Colors.red,
+      key: Key('countryPicker'),
       body: Stack(
         children: [
           Positioned(
             top: 8,
             left: 0,
             child: IconButton(
-              // minWidth: 10,
               onPressed: () {
                 final _routerService = locator<RouterService>();
                 _routerService.navigateTo(AuthOptionPageRoute());
@@ -106,6 +105,7 @@ class _CountryPickerState extends State<CountryPicker> {
                 width: 368,
                 height: 68,
                 child: OutlinedButton(
+                  key: Key('Continue'),
                   style: primaryButtonStyle.copyWith(
                       shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
                           (states) => RoundedRectangleBorder(

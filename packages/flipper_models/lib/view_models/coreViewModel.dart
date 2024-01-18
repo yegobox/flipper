@@ -933,7 +933,7 @@ class CoreViewModel extends FlipperBaseModel
     await ProxyService.isar
         .deleteTransactionByIndex(transactionIndex: transactionIndex);
     notifyListeners();
-    ProxyService.sync.push();
+
     if (target != null) {
       return target.id;
     }

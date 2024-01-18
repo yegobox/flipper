@@ -355,7 +355,7 @@ class ProductViewModel extends FlipperBaseModel
 
     int res = await ProxyService.isar.addFavorite(data: favorite);
     rebuildUi();
-    ProxyService.sync.push();
+
     return res;
   }
 

@@ -35,8 +35,7 @@ class CronService {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     await initDependencies();
-    await ProxyService.sync.push();
-    ProxyService.sync.pull();
+    await ProxyService.sync.pull();
     sendPort.send('Done sending data to http server');
   }
 
@@ -101,7 +100,6 @@ class CronService {
   Future<void> _syncPushData() async {
     if (ProxyService.remoteConfig.isSyncAvailable() &&
         ProxyService.remoteConfig.isHttpSyncAvailable()) {
-      await ProxyService.sync.push();
       await _runRemoteHttpsIsolate();
       ProxyService.messaging
           .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();

@@ -17,9 +17,7 @@ abstract class IJsonSerializable {
 class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
   @override
   Future<void> push() async {
-    try {
-      await localChanges();
-    } catch (e) {}
+    await localChanges();
   }
 
   Future<Map<String, dynamic>?> _push(M model) async {

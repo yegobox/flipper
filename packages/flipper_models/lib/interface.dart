@@ -56,6 +56,7 @@ abstract class IsarApiInterface {
 
   Future<Product?> getProduct({required String id});
   Future<Product?> getProductByBarCode({required String barCode});
+  Future<List<Product?>> getProductByName({required String name});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product> createProduct(
@@ -116,7 +117,7 @@ abstract class IsarApiInterface {
       {required String customerId});
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({required String productId});
+  Future<List<Variant>> getVariantByProductId({ String? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
