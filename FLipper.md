@@ -3,6 +3,4 @@
 A revolutionary business and personal software for personal finance, stock management for business, and many other features for both business and personal
 
 
-
-
 <!--- Eraser file: https://app.eraser.io/workspace/9kmY7qVZeocxWLPNLjNE --->
