@@ -118,6 +118,7 @@ abstract class IsarApiInterface {
   Future<int> deleteTransactionByIndex({required String transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({String? productId});
+  Stream<List<Variant>> getVariantByProductIdStream({String? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
