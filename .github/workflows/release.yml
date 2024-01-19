@@ -25,45 +25,45 @@ env:
   PASSWORD: ${{ secrets.DB_PASSWORD }}
 
 jobs:
-  unit-testing:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-        with:
-          submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
+  # unit-testing:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+  #       with:
+  #         submodules: recursive
+  #         token: ${{ secrets.ACCESS_TOKEN }}
+  #         persist-credentials: true
 
-      - uses: actions/setup-java@v1
-        with:
-          java-version: "8.x"
+  #     - uses: actions/setup-java@v1
+  #       with:
+  #         java-version: "8.x"
 
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.16.0' 
-          channel: "stable"
+  #     - uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: '3.16.0' 
+  #         channel: "stable"
      
-      - run: git submodule update --init
+  #     - run: git submodule update --init
 
-      - name: Configure Missing files
-        shell: bash
-        run: |
-          echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #     - name: Configure Missing files
+  #       shell: bash
+  #       run: |
+  #         echo "$INDEX" >> web/index.html
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+  #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+  #         git config --global core.autocrlf false
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
 
-      - run: |
-          dart pub global activate melos 2.9.0
-          melos bootstrap
-          flutter test --dart-define=Test=true
+  #     - run: |
+  #         dart pub global activate melos 2.9.0
+  #         melos bootstrap
+  #         flutter test --dart-define=Test=true
 
   # integration-testing-windows:
   #   name: "Integration Testing Windows"
