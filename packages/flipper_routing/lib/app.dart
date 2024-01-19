@@ -233,3 +233,6 @@ class App {}
 /// to improve the UI blocking that is currently happening when realm is busy in flipper app
 ///TODO: automatic release on windows store https://github.com/marketplace/actions/windows-store-publish
 ///https://yashgarg.dev/pensieve/flutter-testing/
+///TODO:-
+///work on updating the stock value should not override instead should add
+///also consider signs..

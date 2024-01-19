@@ -3719,4 +3719,14 @@ class IsarAPI<M> implements IsarApiInterface {
         .deletedAtIsNull()
         .findAll();
   }
+
+  @override
+  Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
+    return db.variants
+        .where()
+        .productIdEqualTo(productId ?? "")
+        .and()
+        .deletedAtIsNull()
+        .watch(fireImmediately: true);
+  }
 }

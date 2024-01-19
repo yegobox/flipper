@@ -980,4 +980,10 @@ class IsarAPIMock<M> implements IsarApiInterface {
     // TODO: implement getProductByName
     throw UnimplementedError();
   }
+
+  @override
+  Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
+    // TODO: implement getVariantByProductIdStream
+    throw UnimplementedError();
+  }
 }

@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -45,7 +47,7 @@ Map<int, String> positionString = {
 typedef void DeleteProductFunction(String? id, String type);
 typedef void DeleteVariantFunction(String? id, String type);
 
-class RowItem extends StatelessWidget {
+class RowItem extends StatefulHookConsumerWidget {
   final String color;
   final String name;
   final String? imageUrl;
@@ -59,7 +61,6 @@ class RowItem extends StatelessWidget {
   final Product? product;
   final bool? addFavoriteMode;
   final int? favIndex;
-  final _routerService = locator<RouterService>();
   final Function? addToMenu;
   RowItem({
     Key? key,
@@ -84,6 +85,13 @@ class RowItem extends StatelessWidget {
   }
 
   @override
+  _RowItemState createState() => _RowItemState();
+}
+
+class _RowItemState extends ConsumerState<RowItem> {
+  final _routerService = locator<RouterService>();
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
@@ -91,7 +99,7 @@ class RowItem extends StatelessWidget {
           height: 0.5,
         ),
         Slidable(
-          key: Key('slidable-${product?.id ?? variant?.id}'),
+          key: Key('slidable-${widget.product?.id ?? widget.variant?.id}'),
           child: InkWell(
             onTap: () {
               onRowClick(context);
@@ -106,11 +114,11 @@ class RowItem extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        name,
+                        widget.name,
                         style: const TextStyle(color: Colors.black),
                       ),
                       Text(
-                        "${stock}",
+                        "${widget.stock}",
                         style: const TextStyle(color: Colors.black),
                       ),
                     ],
@@ -125,7 +133,8 @@ class RowItem extends StatelessWidget {
 
           /// when add to menu is given then we have one swiping option therefore
           /// disable the bellow swipe
-          endActionPane: addToMenu == null ? null : _buildEndActionPane(),
+          endActionPane:
+              widget.addToMenu == null ? null : _buildEndActionPane(),
         ),
       ],
     );
@@ -134,16 +143,17 @@ class RowItem extends StatelessWidget {
   Widget _buildImage() {
     return SizedBox(
       width: 58,
-      child: imageUrl?.isEmpty ?? true
+      child: widget.imageUrl?.isEmpty ?? true
           ? TextDrawable(
-              backgroundColor: HexColor(color.isEmpty ? "#FF0000" : color),
-              text: name,
+              backgroundColor:
+                  HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
+              text: widget.name,
               isTappable: true,
               onTap: null,
               boxShape: BoxShape.rectangle,
             )
           : CachedNetworkImage(
-              imageUrl: imageUrl!,
+              imageUrl: widget.imageUrl!,
               imageBuilder: (context, imageProvider) => Container(
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -159,79 +169,75 @@ class RowItem extends StatelessWidget {
   }
 
   Widget _buildPrices() {
-    return Container(
-      width: 80,
-      child: FutureBuilder<List<Variant>>(
-        future: ProxyService.isar.getVariantByProductId(
-          productId: product?.id,
-        ),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return SizedBox.shrink();
+    final variants =
+        ref.watch(variantsStreamProvider(widget.product?.id ?? ""));
+
+    return variants.when(
+      data: (List<Variant> data) {
+        double firstNonZeroRetailPrice = 0;
+
+        for (var variant in data) {
+          if (variant.retailPrice != 0) {
+            firstNonZeroRetailPrice = variant.retailPrice;
+            break;
           }
+        }
 
-          final variants = snapshot.data ?? [];
-
-          double firstNonZeroRetailPrice = 0;
-
-          for (var variant in variants) {
-            if (variant.retailPrice != 0) {
-              firstNonZeroRetailPrice = variant.retailPrice;
-              break;
-            }
-          }
-
-          return Text(
+        return Container(
+          width: 80,
+          child: Text(
             'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
             style: const TextStyle(color: Colors.black),
-          );
-        },
-      ),
+          ),
+        );
+      },
+      loading: () => CircularProgressIndicator(),
+      error: (error, stack) => SizedBox.shrink(),
     );
   }
 
   ActionPane _buildStartActionPane() {
     return ActionPane(
       motion: ScrollMotion(
-        key: Key('dismissable-${product?.id ?? variant?.id}'),
+        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
       ),
       children: [
         SlidableAction(
           onPressed: (_) {
-            if (addToMenu == null) {
-              if (product?.id == null) {
-                deleteVariant(variant?.id, 'variant');
+            if (widget.addToMenu == null) {
+              if (widget.product?.id == null) {
+                widget.deleteVariant(widget.variant?.id, 'variant');
               } else {
-                deleteProduct(product?.id, 'product');
+                widget.deleteProduct(widget.product?.id, 'product');
               }
             } else {
-              addToMenu!(product ?? variant);
+              widget.addToMenu!(widget.product ?? widget.variant);
             }
           },
           backgroundColor: const Color(0xFFFE4A49),
           foregroundColor: Colors.white,
-          icon: addToMenu == null
+          icon: widget.addToMenu == null
               ? FluentIcons.delete_20_regular
               : FluentIcons.cart_24_regular,
           label: '',
         ),
-        if (variant == null)
+        if (widget.variant == null)
           SlidableAction(
             onPressed: (_) {
-              edit(product?.id ?? variant?.id);
+              widget.edit(widget.product?.id ?? widget.variant?.id);
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             icon: FluentIcons.edit_24_regular,
             label: '',
           ),
-        if (variant == null)
+        if (widget.variant == null)
           SlidableAction(
             onPressed: (_) {
-              enableNfc(product);
+              widget.enableNfc(widget.product);
             },
             backgroundColor:
-                product?.nfcEnabled == true ? Colors.blue : Colors.red,
+                widget.product?.nfcEnabled == true ? Colors.blue : Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.nfc,
             label: '',
@@ -243,12 +249,12 @@ class RowItem extends StatelessWidget {
   ActionPane _buildEndActionPane() {
     return ActionPane(
       motion: ScrollMotion(
-        key: Key('dismissable-${product?.id ?? variant?.id}'),
+        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
       ),
       children: [
         SlidableAction(
           onPressed: (_) {
-            edit(product?.id ?? variant?.id);
+            widget.edit(widget.product?.id ?? widget.variant?.id);
           },
           backgroundColor: Colors.blue,
           foregroundColor: Colors.white,
@@ -260,15 +266,15 @@ class RowItem extends StatelessWidget {
   }
 
   Future<void> onRowClick(BuildContext context) async {
-    if (addFavoriteMode != null && addFavoriteMode == true) {
-      String? position = positionString[favIndex!];
+    if (widget.addFavoriteMode != null && widget.addFavoriteMode == true) {
+      String? position = positionString[widget.favIndex!];
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Confirm Favorite'),
             content: Text(
-              'You are about to add $name to your $position favorite position.\n\nDo you approve?',
+              'You are about to add ${widget.name} to your $position favorite position.\n\nDo you approve?',
             ),
             actions: <Widget>[
               OutlinedButton(
@@ -282,11 +288,11 @@ class RowItem extends StatelessWidget {
                 ),
                 style: primaryButtonStyle,
                 onPressed: () => {
-                  model.addFavorite(
-                    favIndex: favIndex!,
-                    productId: product!.id,
+                  widget.model.addFavorite(
+                    favIndex: widget.favIndex!,
+                    productId: widget.product!.id,
                   ),
-                  model.rebuildUi(),
+                  widget.model.rebuildUi(),
                   Navigator.of(context).pop(),
                   Navigator.of(context).pop(),
                 },
@@ -309,11 +315,11 @@ class RowItem extends StatelessWidget {
       );
     } else {
       // copy variant.name to clipboard, handy tool when want to copy name for some use.
-      if (variant != null) {
-        await Clipboard.setData(ClipboardData(text: variant!.name));
+      if (widget.variant != null) {
+        await Clipboard.setData(ClipboardData(text: widget.variant!.name));
       }
-      if (variant == null) {
-        _routerService.navigateTo(SellRoute(product: product!));
+      if (widget.variant == null) {
+        _routerService.navigateTo(SellRoute(product: widget.product!));
       }
     }
   }

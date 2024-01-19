@@ -429,6 +429,11 @@ final customersProvider = StateNotifierProvider.autoDispose
   return customersNotifier;
 });
 
+final variantsStreamProvider =
+    StreamProvider.autoDispose.family<List<Variant>, String>((ref, productId) {
+  return ProxyService.isar.getVariantByProductIdStream(productId: productId);
+});
+
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;

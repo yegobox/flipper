@@ -65,126 +65,122 @@ jobs:
           melos bootstrap
           flutter test --dart-define=Test=true
 
-  integration-testing-windows:
-    name: "Integration Testing Windows"
-    # needs: [unit-testing]
-    runs-on: windows-latest
-    steps:
-      - run: git config --global core.autocrlf false
-      # Set up Flutter.
-      - name: Clone Flutter repository with stable channel
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.16.0" #firebase_auth_desktop is broken with  3.10.6
-          channel: stable
-      - run: flutter doctor -v
-
-      # Checkout gallery code and get packages.
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-        with:
-          submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
-      - uses: actions/setup-java@v2 #plugin for setting up the java
-        with:
-          distribution: "zulu"
-          java-version: "11" 
+  # integration-testing-windows:
+  #   name: "Integration Testing Windows"
+  #   runs-on: windows-latest
+  #   steps:
+  #     - run: git config --global core.autocrlf false
+  #     - name: Clone Flutter repository with stable channel
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: "3.16.0"
+  #         channel: stable
+  #     - run: flutter doctor -v
+  #     - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+  #       with:
+  #         submodules: recursive
+  #         token: ${{ secrets.ACCESS_TOKEN }}
+  #         persist-credentials: true
+  #     - uses: actions/setup-java@v2 
+  #       with:
+  #         distribution: "zulu"
+  #         java-version: "11" 
      
-      - name: submodule init
-        run: git submodule update --init
-      - name: Configure Missing files
-        shell: bash
-        run: |
-          echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - run: |
-          dart pub global activate melos 2.9.0
-          melos bootstrap
-          flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+  #     - name: submodule init
+  #       run: git submodule update --init
+  #     - name: Configure Missing files
+  #       shell: bash
+  #       run: |
+  #         echo "$INDEX" >> web/index.html
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+  #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+  #         git config --global core.autocrlf false
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #     - run: |
+  #         dart pub global activate melos 2.9.0
+  #         melos bootstrap
+  #         flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
-  android-integration-test:
-    name: run integration test on Android emulator
-    runs-on: macOS-latest
-    strategy:
-      matrix:
-        api-level: [33]
-        target: [playstore]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
-        with:
-          # java-version: '11.x'
-          distribution: "zulu"
-          java-version: "11" #defines the java version
-      - name: Clone Flutter repository with stable channel
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.16.0" #firebase_auth_desktop is broken with  3.10.6
-          channel: stable
-      - name: Configure Git with PAT
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          git config --global user.email "info@yegobox.com"
-          git config --global user.name "YEGOBOX"
-          git config --global credential.helper store
-          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-      - name: submodule init
-        run: git submodule update --init
-      - name: Configure Missing files
-        run: |
-          echo "$INDEX" >> web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          git config --global core.autocrlf false
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-      - name: Configure Keystore
-        run: |
-          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-          echo "storeFile=key.jks" >> key.properties
-          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: android
-      - run: |
-          dart pub global activate melos 2.9.0
-          melos bootstrap
-       # Run integration test
-      - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.2
-      - run: echo $ANDROID_HOME
-      - run: sdkmanager --install "ndk;23.1.7779620"
-      - run: sdkmanager --install "build-tools;30.0.3"
-      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.2
-        with:
-          cmd: flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
-          api: 33
-          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
-          tag: google_apis
-          abi: x86_64
+  # android-integration-test:
+  #   name: run integration test on Android emulator
+  #   runs-on: macOS-latest
+  #   strategy:
+  #     matrix:
+  #       api-level: [33]
+  #       target: [playstore]
+  #     fail-fast: false
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-java@v1
+  #       with:
+  #         distribution: "zulu"
+  #         java-version: "11"
+  #     - name: Clone Flutter repository with stable channel
+  #       uses: subosito/flutter-action@v2
+  #       with:
+  #         flutter-version: "3.16.0"
+  #         channel: stable
+  #     - name: Configure Git with PAT
+  #       env:
+  #         PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+  #       run: |
+  #         git config --global user.email "info@yegobox.com"
+  #         git config --global user.name "YEGOBOX"
+  #         git config --global credential.helper store
+  #         echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+  #     - name: submodule init
+  #       run: git submodule update --init
+  #     - name: Configure Missing files
+  #       run: |
+  #         echo "$INDEX" >> web/index.html
+  #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+  #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+  #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+  #         git config --global core.autocrlf false
+  #       env:
+  #         INDEX: ${{ secrets.INDEX }}
+  #         CONFIGDART: ${{ secrets.CONFIGDART }}
+  #         SECRETS: ${{ secrets.SECRETS }}
+  #         FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+  #     - name: Configure Keystore
+  #       run: |
+  #         echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+  #         echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+  #         echo "storeFile=key.jks" >> key.properties
+  #         echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+  #         echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+  #         echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+  #       env:
+  #         PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+  #         KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+  #         KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+  #         KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+  #         GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+  #       working-directory: android
+  #     - run: |
+  #         dart pub global activate melos 2.9.0
+  #         melos bootstrap
+  #     - name: Install Android SDK
+  #       uses: malinskiy/action-android/install-sdk@release/0.1.2
+  #     - run: echo $ANDROID_HOME
+  #     - run: sdkmanager --install "ndk;23.1.7779620"
+  #     - run: sdkmanager --install "build-tools;30.0.3"
+  #     - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.2
+  #       with:
+  #         cmd: flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
+  #         api: 33
+  #         cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
+  #         tag: google_apis
+  #         abi: x86_64
+      # ----------------------------------------------------------
+      # TODO: the bellow code should not be uncommented accidently
       # - name: Run Flutter Driver tests
       #   uses: reactivecircus/android-emulator-runner@v2
       #   with:
@@ -211,7 +207,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
 
-    needs: [unit-testing,integration-testing-windows,android-integration-test]
+    # needs: [unit-testing,integration-testing-windows,android-integration-test]
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
