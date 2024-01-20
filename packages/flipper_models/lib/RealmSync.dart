@@ -445,7 +445,7 @@ class RealmSync<M extends IJsonSerializable>
         if (!Platform.isWindows) {
           Conversation conversation = Conversation(
               userName: ProxyService.box.getUserPhone()!,
-              body: "Received new data for transaction",
+              body: "Received new  sale: ${model.subTotal}-RWF",
               avatar: "avatar",
               channelType: "channel",
               fromNumber: ProxyService.box.getUserPhone()!,
