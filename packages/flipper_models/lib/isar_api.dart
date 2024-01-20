@@ -1299,14 +1299,14 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<TransactionItem?> getTransactionItemById({required String id}) async {
-    return db.transactionItems
+    return await db.transactionItems
         .where()
         .idEqualTo(id)
         .and()
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .and()
         .deletedAtIsNull()
-        .findFirst();
+        .findFirstAsync();
   }
 
   @override
@@ -2277,12 +2277,12 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<List<Variant>> getVariantByProductId({String? productId}) async {
-    return await db.variants
+    return db.variants
         .where()
         .productIdEqualTo(productId ?? "")
         .and()
         .deletedAtIsNull()
-        .findAllAsync();
+        .findAll();
   }
 
   @override

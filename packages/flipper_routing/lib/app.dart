@@ -236,3 +236,5 @@ class App {}
 ///TODO:-
 ///work on updating the stock value should not override instead should add
 ///also consider signs..
+///https://www.youtube.com/watch?v=EIiBDoVHlNc
+///https://console.shorebird.dev/

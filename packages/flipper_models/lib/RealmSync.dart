@@ -80,6 +80,7 @@ class RealmSync<M extends IJsonSerializable>
     // open realm immediately with Realm() and try to sync data in the background.
 
     try {
+      // realm = await Realm.open(config);
       realm = await Realm.open(config, cancellationToken: token,
           onProgressCallback: (syncProgress) {
         if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
@@ -426,8 +427,6 @@ class RealmSync<M extends IJsonSerializable>
   @override
   Future<void> pull() async {
     int branchId = ProxyService.box.getBranchId()!;
-
-    log("start pulling data", name: "RealmSync pull");
 
     // Subscribe to changes for transactions
     final iTransactionsCollection =

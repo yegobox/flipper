@@ -45,7 +45,7 @@ class CronService {
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
     if (!isWeb) {
-      ProxyService.realm.pull();
+     // ProxyService.realm.pull();
     }
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();

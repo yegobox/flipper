@@ -50,7 +50,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   void _initLogic() {
     _disableScreenshots();
     _startNFC();
-    initializeApplicationIfRequired();
     _requestPermissions();
   }
 

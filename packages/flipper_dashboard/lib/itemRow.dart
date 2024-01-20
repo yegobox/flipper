@@ -169,17 +169,21 @@ class _RowItemState extends ConsumerState<RowItem> {
   }
 
   Widget _buildPrices() {
-    final variants =
-        ref.watch(variantsStreamProvider(widget.product?.id ?? ""));
+    final variants = ref.read(variantsFutureProvider(widget.product?.id ?? ""));
 
     return variants.when(
-      data: (List<Variant> data) {
+      data: (AsyncValue<List<Variant>> data) {
+        // Adjusted parameter type
         double firstNonZeroRetailPrice = 0;
 
-        for (var variant in data) {
-          if (variant.retailPrice != 0) {
-            firstNonZeroRetailPrice = variant.retailPrice;
-            break;
+        if (data.hasValue) {
+          // Ensure data is available
+          for (var variant in data.value!) {
+            // Access data using value
+            if (variant.retailPrice != 0) {
+              firstNonZeroRetailPrice = variant.retailPrice;
+              break;
+            }
           }
         }
 

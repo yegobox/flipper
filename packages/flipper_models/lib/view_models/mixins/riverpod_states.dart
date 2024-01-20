@@ -429,9 +429,11 @@ final customersProvider = StateNotifierProvider.autoDispose
   return customersNotifier;
 });
 
-final variantsStreamProvider =
-    StreamProvider.autoDispose.family<List<Variant>, String>((ref, productId) {
-  return ProxyService.isar.getVariantByProductIdStream(productId: productId);
+final variantsFutureProvider = FutureProvider.autoDispose
+    .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
+  final data =
+      await ProxyService.isar.getVariantByProductId(productId: productId);
+  return AsyncData(data);
 });
 
 final ordersStreamProvider =

@@ -37,11 +37,13 @@ mixin HandleItemMixin {
           await ProxyService.isar.getStockById(id: remoteStock.id);
 
       if (localStock == null && remoteStock.branchId == branchId) {
+        log('Stock:create', name: 'handleItem');
         await ProxyService.isar.create(data: remoteStock);
       } else if (localStock != null &&
           localStock.lastTouched != null &&
           remoteStock.lastTouched.isNewDateCompareTo(localStock.lastTouched)) {
         remoteStock.action = AppActions.synchronized;
+        log('Stock:update', name: 'handleItem');
         await ProxyService.isar.update(data: remoteStock, localUpdate: true);
       }
     }
@@ -52,12 +54,14 @@ mixin HandleItemMixin {
           await ProxyService.isar.getVariantById(id: remoteVariant.id);
 
       if (localVariant == null && remoteVariant.branchId == branchId) {
+        log('Variant:create', name: 'handleItem');
         await ProxyService.isar.create(data: remoteVariant);
       } else if (localVariant != null &&
           localVariant.lastTouched != null &&
           remoteVariant.lastTouched
               .isNewDateCompareTo(localVariant.lastTouched)) {
         remoteVariant.action = AppActions.synchronized;
+        log('Variant:update', name: 'handleItem');
         await ProxyService.isar.update(data: remoteVariant, localUpdate: true);
       }
     }
@@ -68,12 +72,14 @@ mixin HandleItemMixin {
           await ProxyService.isar.getProduct(id: remoteProduct.id);
 
       if (localProduct == null && remoteProduct.branchId == branchId) {
+        log('Product:create', name: 'handleItem');
         await ProxyService.isar.create(data: remoteProduct);
       } else if (localProduct != null &&
           localProduct.lastTouched != null &&
           remoteProduct.lastTouched
               .isNewDateCompareTo(localProduct.lastTouched)) {
         remoteProduct.action = AppActions.synchronized;
+        log('Product:update', name: 'handleItem');
         await ProxyService.isar.update(data: remoteProduct, localUpdate: true);
       }
     }
@@ -144,11 +150,13 @@ mixin HandleItemMixin {
 
       if (localTransaction == null &&
           remoteTransaction.branchId == ProxyService.box.getBranchId()) {
+        log('ITransaction:create', name: 'handleItem');
         await ProxyService.isar.create(data: remoteTransaction);
       } else if (localTransaction != null &&
           remoteTransaction.lastTouched
               .isNewDateCompareTo(localTransaction.lastTouched)) {
         remoteTransaction.action = AppActions.synchronized;
+        log('ITransaction:update', name: 'handleItem');
         await ProxyService.isar
             .update(data: remoteTransaction, localUpdate: true);
       }
@@ -161,10 +169,12 @@ mixin HandleItemMixin {
           .getTransactionItemById(id: remoteTransactionItem.id);
 
       if (localTransaction == null) {
+        log('TransactionItem:create', name: 'handleItem');
         await ProxyService.isar.create(data: remoteTransactionItem);
       } else if (remoteTransactionItem.lastTouched
           .isNewDateCompareTo(localTransaction.lastTouched)) {
         remoteTransactionItem.action = AppActions.synchronized;
+        log('TransactionItem:update', name: 'handleItem');
         await ProxyService.isar
             .update(data: remoteTransactionItem, localUpdate: true);
       }
