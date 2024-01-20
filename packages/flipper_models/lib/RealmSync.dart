@@ -450,7 +450,7 @@ class RealmSync<M extends IJsonSerializable>
               channelType: "channel",
               fromNumber: ProxyService.box.getUserPhone()!,
               toNumber: ProxyService.box.getUserPhone()!,
-              businessId: ProxyService.box.getBranchId()!);
+              businessId: ProxyService.box.getBusinessId()!);
           NotificationsCubit.instance.scheduleNotification(conversation);
         }
 
