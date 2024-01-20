@@ -48,6 +48,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
 
+  bool _savingInProgress = false;
+
   void changeColor(Color color) => setState(() => pickerColor = color);
 
   Widget pickerLayoutBuilder(
@@ -235,6 +237,64 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     return hexColorRegex.hasMatch(colorCode);
   }
 
+  void _showSaveInProgressToast() {
+    toast('Saving item in progress, please be patient!');
+  }
+
+  void _showNoProductNameToast() {
+    toast('No product name!');
+  }
+
+  void _showNoProductSavedToast() {
+    toast('No Product saved!');
+  }
+
+  Future<void> _saveProductAndVariants(
+      ScannViewModel model, BuildContext context, Product productRef) async {
+    if (model.productName == null) {
+      _showNoProductNameToast();
+      return;
+    }
+
+    if (widget.productId != null) {
+      await model.bulkUpdateVariants(true);
+    }
+
+    await model.addVariant(variations: model.scannedVariants);
+    model.currentColor = pickerColor.toHex();
+
+    Product? product = await model.saveProduct(
+      mproduct: productRef,
+      inUpdateProcess: widget.productId != null,
+    );
+
+    ref
+        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+        .addProducts(products: [
+      if (product != null) ...[product]
+    ]);
+
+    toast("Product Saved");
+    Navigator.maybePop(context);
+  }
+
+  void _onSaveButtonPressed(
+      ScannViewModel model, BuildContext context, Product product) {
+    if (!_savingInProgress) {
+      setState(() {
+        _savingInProgress = true;
+      });
+
+      if (model.scannedVariants.isEmpty) {
+        _showNoProductSavedToast();
+      } else {
+        _saveProductAndVariants(model, context, product);
+      }
+    } else {
+      _showSaveInProgressToast();
+    }
+  }
+
 // Define your default color
   Color DEFAULT_COLOR = Colors.grey;
   @override
@@ -322,46 +382,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               )),
                           SizedBox(width: 10),
                           ElevatedButton(
-                            onPressed: () async {
-                              /// check if the user has added variant
-                              /// and has added the name of the product
-                              /// if not then do not save anything and just exit
-                              if (_formKey.currentState!.validate()) {
-                                if (model.scannedVariants.isEmpty) {
-                                  toast('No Product saved!');
-                                } else {
-                                  if (model.productName != null) {
-                                    if (widget.productId != null) {
-                                      // we are in edit mode assing all variants with
-                                      // default supply price and retail
-                                      await model.bulkUpdateVariants(true);
-                                    }
-                                    await model.addVariant(
-                                      variations: model.scannedVariants,
-                                    );
-
-                                    model.currentColor = pickerColor.toHex();
-                                    Product? product = await model.saveProduct(
-                                        mproduct: productRef!,
-                                        inUpdateProcess:
-                                            widget.productId != null);
-                                    ref
-                                        .read(productsProvider(
-                                                ProxyService.box.getBranchId()!)
-                                            .notifier)
-                                        .addProducts(products: [
-                                      if (product != null) ...[product]
-                                    ]);
-
-                                    toast("Product Saved");
-                                    Navigator.maybePop(context);
-                                  } else {
-                                    toast('No product name!');
-                                  }
-                                }
-                                Navigator.maybePop(context);
-                              }
-                            },
+                            onPressed: () => _onSaveButtonPressed(
+                              model,
+                              context,
+                              productRef!,
+                            ),
                             child: const Text('Save'),
                           ),
                           SizedBox(width: 10),
