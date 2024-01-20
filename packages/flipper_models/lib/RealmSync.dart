@@ -282,6 +282,7 @@ class RealmSync<M extends IJsonSerializable>
           barCode: item.barCode,
           nfcEnabled: item.nfcEnabled,
           bindedToTenantId: item.bindedToTenantId,
+          deletedAt: item.deletedAt,
           isFavorite: item.isFavorite,
           lastTouched: item.lastTouched, // Update lastTouched timestamp
         );

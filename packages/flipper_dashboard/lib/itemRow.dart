@@ -169,35 +169,34 @@ class _RowItemState extends ConsumerState<RowItem> {
   }
 
   Widget _buildPrices() {
-    final variants =
-        ref.watch(variantsStreamProvider(widget.product?.id ?? ""));
+    return Container(
+      width: 80,
+      child: FutureBuilder<List<Variant>>(
+        future: ProxyService.isar.getVariantByProductId(
+          productId: widget.product?.id,
+        ),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return SizedBox.shrink();
+          }
 
-    return variants.when(
-      data: (AsyncValue<List<Variant>> data) {
-        // Adjusted parameter type
-        double firstNonZeroRetailPrice = 0;
+          final variants = snapshot.data ?? [];
 
-        if (data.hasValue) {
-          // Ensure data is available
-          for (var variant in data.value!) {
-            // Access data using value
+          double firstNonZeroRetailPrice = 0;
+
+          for (var variant in variants) {
             if (variant.retailPrice != 0) {
               firstNonZeroRetailPrice = variant.retailPrice;
               break;
             }
           }
-        }
 
-        return Container(
-          width: 80,
-          child: Text(
+          return Text(
             'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
             style: const TextStyle(color: Colors.black),
-          ),
-        );
-      },
-      loading: () => CircularProgressIndicator(),
-      error: (error, stack) => SizedBox.shrink(),
+          );
+        },
+      ),
     );
   }
 
