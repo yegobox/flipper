@@ -47,6 +47,9 @@ class CronService {
     if (!isWeb) {
       // ProxyService.realm.pull();
     }
+    Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+      await _heartBeatPull();
+    });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
     });
@@ -150,5 +153,13 @@ class CronService {
     if (!isWeb) {
       await ProxyService.realm.configure();
     }
+  }
+
+  Duration _getHeartBeatDuration() {
+    return Duration(seconds: kDebugMode ? 10 : 15);
+  }
+
+  _heartBeatPull() {
+    ProxyService.realm.heartBeat();
   }
 }

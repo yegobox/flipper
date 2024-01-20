@@ -1,6 +1,9 @@
 // ignore: unused_import
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'package:flipper_models/secrets.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
@@ -22,6 +25,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   factory SyncReaml.create() => RealmSync<M>();
   Future<Realm> configure();
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
+  Future<void> heartBeat();
 }
 
 class RealmSync<M extends IJsonSerializable>
@@ -442,17 +446,12 @@ class RealmSync<M extends IJsonSerializable>
           model.deletedAt = DateTime.now();
         }
         // for debugging if we are receiving data on other device mobile device
-        if (!Platform.isWindows) {
-          Conversation conversation = Conversation(
-              userName: ProxyService.box.getUserPhone()!,
-              body: "Received new  sale: ${model.subTotal}-RWF",
-              avatar: "avatar",
-              channelType: "channel",
-              fromNumber: ProxyService.box.getUserPhone()!,
-              toNumber: ProxyService.box.getUserPhone()!,
-              businessId: ProxyService.box.getBusinessId()!);
-          NotificationsCubit.instance.scheduleNotification(conversation);
-        }
+
+        Conversation conversation = Conversation.notificaton(
+            userName: ProxyService.box.getUserPhone()!,
+            body: "Received new  sale: ${model.subTotal}-RWF",
+            id: model.id);
+        NotificationsCubit.instance.scheduleNotification(conversation);
 
         handleItem(model: model, branchId: result.branchId);
       }
@@ -691,5 +690,78 @@ class RealmSync<M extends IJsonSerializable>
   Future<void> push() {
     // TODO: implement push
     throw UnimplementedError();
+  }
+
+  /// an experimental to call the mongo db api directly via api
+  /// to get changes as subscribing to the change is not getting
+  /// data to the device in time we think!
+  Future<void> heartBeat() async {
+    int branchId = ProxyService.box.getBranchId()!;
+    var headers = {
+      'api-key': AppSecrets.mongoApiSecret,
+      'Content-Type': 'application/json'
+    };
+    var request = http.Request('POST', Uri.parse(AppSecrets.mongoEndPoint));
+    request.body = json.encode({
+      "collection": "RealmITransaction",
+      "database": "flipper",
+      "dataSource": "Cluster0",
+      "filter": {"branchId": branchId},
+      "sort": {"createdAt": -1}
+    });
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      // Decode the response stream into a string
+      String jsonString = await response.stream.bytesToString();
+
+      // Parse the JSON string into a map
+      Map<String, dynamic> jsonResponse = json.decode(jsonString);
+
+      // Access the "documents" key and convert each map to an ITransaction object
+      if (jsonResponse.containsKey("documents")) {
+        List<Map<String, dynamic>> jsonList =
+            List.from(jsonResponse["documents"]);
+
+        List<ITransaction> transactions =
+            jsonList.map((jsonMap) => ITransaction.fromJson(jsonMap)).toList();
+
+        // Now you can manipulate the data in the 'transactions' list
+        for (var transaction in transactions) {
+          // Do something with each transaction
+          print(transaction.reference);
+          ITransaction? local =
+              await ProxyService.isar.getTransactionById(id: transaction.id);
+          if (local != null) {
+            Conversation conversation = Conversation.notificaton(
+                userName: ProxyService.box.getUserPhone()!,
+                body: "Received new  sale: ${transaction.subTotal}-RWF",
+                id: transaction.id);
+            NotificationsCubit.instance.scheduleNotification(conversation);
+            local = local.copyWith(
+                reference: transaction.reference,
+                categoryId: transaction.categoryId,
+                transactionNumber: transaction.transactionNumber,
+                subTotal: transaction.subTotal,
+                cashReceived: transaction.cashReceived,
+                lastTouched: transaction.lastTouched);
+            await ProxyService.isar.update(data: local, localUpdate: true);
+          } else {
+            Conversation conversation = Conversation.notificaton(
+                userName: ProxyService.box.getUserPhone()!,
+                body: "Received new  sale: ${transaction.subTotal}-RWF",
+                id: transaction.id);
+            NotificationsCubit.instance.scheduleNotification(conversation);
+            await ProxyService.isar.create(data: transaction);
+          }
+        }
+      } else {
+        print("No 'documents' key found in the response.");
+      }
+    } else {
+      print(response.reasonPhrase);
+    }
   }
 }

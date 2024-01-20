@@ -14,10 +14,10 @@ class Conversation extends IJsonSerializable {
   @JsonKey(defaultValue: 'Awesome Richie')
   String userName;
   String body;
-  String avatar;
-  String channelType;
-  String fromNumber;
-  String toNumber;
+  String? avatar;
+  String? channelType;
+  String? fromNumber;
+  String? toNumber;
   @Index()
   String? createdAt;
   String? messageType;
@@ -29,7 +29,7 @@ class Conversation extends IJsonSerializable {
 
   /// properties that are here only useful when replying
   String? businessPhoneNumber;
-  int businessId;
+  int? businessId;
 
   DateTime? scheduledAt;
 
@@ -40,26 +40,28 @@ class Conversation extends IJsonSerializable {
   DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
-  Conversation({
-    required this.userName,
-    required this.body,
-    required this.avatar,
-    required this.channelType,
-    required this.fromNumber,
-    required this.toNumber,
-    required this.businessId,
-    this.createdAt,
-    this.respondedBy,
-    this.messageType,
-    this.phoneNumberId,
-    this.conversationId,
-    this.businessPhoneNumber,
-    this.scheduledAt,
-    this.delivered,
-    this.messageId,
-    this.deletedAt,
-    this.id="0"
-  });
+  Conversation(
+      {required this.userName,
+      required this.body,
+      this.avatar,
+      this.channelType,
+      this.fromNumber,
+      this.toNumber,
+      this.businessId,
+      this.createdAt,
+      this.respondedBy,
+      this.messageType,
+      this.phoneNumberId,
+      this.conversationId,
+      this.businessPhoneNumber,
+      this.scheduledAt,
+      this.delivered,
+      this.messageId,
+      this.deletedAt,
+      this.id = "0"});
+
+  Conversation.notificaton(
+      {required this.userName, required this.body, required this.id});
 
   factory Conversation.fromRecord(RecordModel record) =>
       Conversation.fromJson(record.toJson());

@@ -110,4 +110,53 @@ class ITransaction extends IJsonSerializable {
 
   @override
   Map<String, dynamic> toJson() => _$ITransactionToJson(this);
+
+  ITransaction copyWith({
+  String? reference,
+  String? categoryId,
+  String? transactionNumber,
+  int? branchId,
+  String? status,
+  String? transactionType,
+  double? subTotal,
+  String? paymentType,
+  double? cashReceived,
+  double? customerChangeDue,
+  String? createdAt,
+  int? supplierId,
+  String? receiptType,
+  String? updatedAt,
+  String? customerId,
+  String? note,
+  String? id,
+  DateTime? lastTouched,
+  String? action,
+  String? ticketName,
+  DateTime? deletedAt,
+}) {
+  return ITransaction(
+    reference: reference ?? this.reference,
+    categoryId: categoryId ?? this.categoryId,
+    transactionNumber: transactionNumber ?? this.transactionNumber,
+    branchId: branchId ?? this.branchId,
+    status: status ?? this.status,
+    transactionType: transactionType ?? this.transactionType,
+    subTotal: subTotal ?? this.subTotal,
+    paymentType: paymentType ?? this.paymentType,
+    cashReceived: cashReceived ?? this.cashReceived,
+    customerChangeDue: customerChangeDue ?? this.customerChangeDue,
+    createdAt: createdAt ?? this.createdAt,
+    supplierId: supplierId ?? this.supplierId,
+    receiptType: receiptType ?? this.receiptType,
+    updatedAt: updatedAt ?? this.updatedAt,
+    customerId: customerId ?? this.customerId,
+    note: note ?? this.note,
+    id: id ?? this.id,
+    lastTouched: lastTouched ?? this.lastTouched,
+    action: action ?? this.action,
+    ticketName: ticketName ?? this.ticketName,
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
+}
+
 }
