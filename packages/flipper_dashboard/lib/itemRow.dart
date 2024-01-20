@@ -190,7 +190,12 @@ class _RowItemState extends ConsumerState<RowItem> {
               break;
             }
           }
-
+          if (firstNonZeroRetailPrice == 0) {
+            return Text(
+              'RWF -',
+              style: const TextStyle(color: Colors.black),
+            );
+          }
           return Text(
             'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
             style: const TextStyle(color: Colors.black),
