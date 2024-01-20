@@ -169,7 +169,8 @@ class _RowItemState extends ConsumerState<RowItem> {
   }
 
   Widget _buildPrices() {
-    final variants = ref.read(variantsFutureProvider(widget.product?.id ?? ""));
+    final variants =
+        ref.watch(variantsStreamProvider(widget.product?.id ?? ""));
 
     return variants.when(
       data: (AsyncValue<List<Variant>> data) {
