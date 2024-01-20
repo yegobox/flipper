@@ -2356,7 +2356,7 @@ class IsarAPI<M> implements IsarApiInterface {
         .and()
         .lastTouchedGreaterThan(
             DateTime.now().subtract(const Duration(days: 7)))
-        .findAll(limit: 10);
+        .findAll(limit: 7);
 
     // Filter out products with the name 'temp' or 'custom'
     final filteredProducts = allProducts
