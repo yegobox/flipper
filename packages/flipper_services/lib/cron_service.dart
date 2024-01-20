@@ -48,7 +48,9 @@ class CronService {
       // ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      await _heartBeatPull();
+      if(!Platform.isWindows){
+        await _heartBeatPull();
+      }
     });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
