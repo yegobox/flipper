@@ -15,6 +15,7 @@ import 'package:flipper_services/proxy.dart';
 import 'remote_service.dart';
 import 'sync.dart';
 import 'package:realm/realm.dart';
+import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   Future<void> onSave<T extends IJsonSerializable>({required T item});
@@ -439,6 +440,18 @@ class RealmSync<M extends IJsonSerializable>
         final model = createmodel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
+        }
+        // for debugging if we are receiving data on other device mobile device
+        if (!Platform.isWindows) {
+          Conversation conversation = Conversation(
+              userName: ProxyService.box.getUserPhone()!,
+              body: "Received new data for transaction",
+              avatar: "avatar",
+              channelType: "channel",
+              fromNumber: ProxyService.box.getUserPhone()!,
+              toNumber: ProxyService.box.getUserPhone()!,
+              businessId: ProxyService.box.getBranchId()!);
+          NotificationsCubit.instance.scheduleNotification(conversation);
         }
 
         handleItem(model: model, branchId: result.branchId);
