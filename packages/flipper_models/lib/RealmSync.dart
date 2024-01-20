@@ -436,8 +436,12 @@ class RealmSync<M extends IJsonSerializable>
     iTransactionsCollection.changes.listen((changes) {
       for (final result in changes.results) {
         log("pulling RealmITransaction", name: "RealmSync pull");
-        final transactionModel = createTransactionModel(result);
-        handleItem(model: transactionModel, branchId: result.branchId);
+        final model = createmodel(result);
+        if (model.action == AppActions.deleted && model.deletedAt == null) {
+          model.deletedAt = DateTime.now();
+        }
+
+        handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -447,8 +451,11 @@ class RealmSync<M extends IJsonSerializable>
 
     iTransactionsItemCollection.changes.listen((changes) {
       for (final result in changes.results) {
-        final transactionModel = createTransactionItemModel(result);
-        handleItem(model: transactionModel, branchId: result.branchId);
+        final model = createTransactionItemModel(result);
+        if (model.action == AppActions.deleted && model.deletedAt == null) {
+          model.deletedAt = DateTime.now();
+        }
+        handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -458,8 +465,11 @@ class RealmSync<M extends IJsonSerializable>
 
     iProductsCollection.changes.listen((changes) {
       for (final result in changes.results) {
-        final productModel = createProductModel(result);
-        handleItem(model: productModel, branchId: result.branchId);
+        final model = createProductModel(result);
+        if (model.action == AppActions.deleted && model.deletedAt == null) {
+          model.deletedAt = DateTime.now();
+        }
+        handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -469,8 +479,11 @@ class RealmSync<M extends IJsonSerializable>
 
     iVariantsCollection.changes.listen((changes) {
       for (final result in changes.results) {
-        final variantModel = createVariantModel(result);
-        handleItem(model: variantModel, branchId: result.branchId);
+        final model = createVariantModel(result);
+        if (model.action == AppActions.deleted && model.deletedAt == null) {
+          model.deletedAt = DateTime.now();
+        }
+        handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -479,13 +492,16 @@ class RealmSync<M extends IJsonSerializable>
         realm.query<RealmStock>(r'branchId == $0', [branchId]);
     iStocksCollection.changes.listen((changes) {
       for (final result in changes.results) {
-        final stockModel = createStockModel(result);
-        handleItem(model: stockModel, branchId: result.branchId);
+        final model = createStockModel(result);
+        if (model.action == AppActions.deleted && model.deletedAt == null) {
+          model.deletedAt = DateTime.now();
+        }
+        handleItem(model: model, branchId: result.branchId);
       }
     });
   }
 
-  ITransaction createTransactionModel(RealmITransaction result) {
+  ITransaction createmodel(RealmITransaction result) {
     return ITransaction(
       reference: result.reference,
       transactionNumber: result.transactionNumber,
