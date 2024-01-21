@@ -133,10 +133,38 @@ int serializeConversation(IsarWriter writer, Conversation object) {
   IsarCore.writeString(writer, 1, object.id);
   IsarCore.writeString(writer, 2, object.userName);
   IsarCore.writeString(writer, 3, object.body);
-  IsarCore.writeString(writer, 4, object.avatar);
-  IsarCore.writeString(writer, 5, object.channelType);
-  IsarCore.writeString(writer, 6, object.fromNumber);
-  IsarCore.writeString(writer, 7, object.toNumber);
+  {
+    final value = object.avatar;
+    if (value == null) {
+      IsarCore.writeNull(writer, 4);
+    } else {
+      IsarCore.writeString(writer, 4, value);
+    }
+  }
+  {
+    final value = object.channelType;
+    if (value == null) {
+      IsarCore.writeNull(writer, 5);
+    } else {
+      IsarCore.writeString(writer, 5, value);
+    }
+  }
+  {
+    final value = object.fromNumber;
+    if (value == null) {
+      IsarCore.writeNull(writer, 6);
+    } else {
+      IsarCore.writeString(writer, 6, value);
+    }
+  }
+  {
+    final value = object.toNumber;
+    if (value == null) {
+      IsarCore.writeNull(writer, 7);
+    } else {
+      IsarCore.writeString(writer, 7, value);
+    }
+  }
   {
     final value = object.createdAt;
     if (value == null) {
@@ -193,7 +221,7 @@ int serializeConversation(IsarWriter writer, Conversation object) {
       IsarCore.writeString(writer, 14, value);
     }
   }
-  IsarCore.writeLong(writer, 15, object.businessId);
+  IsarCore.writeLong(writer, 15, object.businessId ?? -9223372036854775808);
   IsarCore.writeLong(
       writer,
       16,
@@ -226,14 +254,14 @@ Conversation deserializeConversation(IsarReader reader) {
   _userName = IsarCore.readString(reader, 2) ?? '';
   final String _body;
   _body = IsarCore.readString(reader, 3) ?? '';
-  final String _avatar;
-  _avatar = IsarCore.readString(reader, 4) ?? '';
-  final String _channelType;
-  _channelType = IsarCore.readString(reader, 5) ?? '';
-  final String _fromNumber;
-  _fromNumber = IsarCore.readString(reader, 6) ?? '';
-  final String _toNumber;
-  _toNumber = IsarCore.readString(reader, 7) ?? '';
+  final String? _avatar;
+  _avatar = IsarCore.readString(reader, 4);
+  final String? _channelType;
+  _channelType = IsarCore.readString(reader, 5);
+  final String? _fromNumber;
+  _fromNumber = IsarCore.readString(reader, 6);
+  final String? _toNumber;
+  _toNumber = IsarCore.readString(reader, 7);
   final String? _createdAt;
   _createdAt = IsarCore.readString(reader, 8);
   final String? _messageType;
@@ -248,8 +276,15 @@ Conversation deserializeConversation(IsarReader reader) {
   _conversationId = IsarCore.readString(reader, 13);
   final String? _businessPhoneNumber;
   _businessPhoneNumber = IsarCore.readString(reader, 14);
-  final int _businessId;
-  _businessId = IsarCore.readLong(reader, 15);
+  final int? _businessId;
+  {
+    final value = IsarCore.readLong(reader, 15);
+    if (value == -9223372036854775808) {
+      _businessId = null;
+    } else {
+      _businessId = value;
+    }
+  }
   final DateTime? _scheduledAt;
   {
     final value = IsarCore.readLong(reader, 16);
@@ -321,13 +356,13 @@ dynamic deserializeConversationProp(IsarReader reader, int property) {
     case 3:
       return IsarCore.readString(reader, 3) ?? '';
     case 4:
-      return IsarCore.readString(reader, 4) ?? '';
+      return IsarCore.readString(reader, 4);
     case 5:
-      return IsarCore.readString(reader, 5) ?? '';
+      return IsarCore.readString(reader, 5);
     case 6:
-      return IsarCore.readString(reader, 6) ?? '';
+      return IsarCore.readString(reader, 6);
     case 7:
-      return IsarCore.readString(reader, 7) ?? '';
+      return IsarCore.readString(reader, 7);
     case 8:
       return IsarCore.readString(reader, 8);
     case 9:
@@ -343,7 +378,14 @@ dynamic deserializeConversationProp(IsarReader reader, int property) {
     case 14:
       return IsarCore.readString(reader, 14);
     case 15:
-      return IsarCore.readLong(reader, 15);
+      {
+        final value = IsarCore.readLong(reader, 15);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
     case 16:
       {
         final value = IsarCore.readLong(reader, 16);
@@ -1236,8 +1278,22 @@ extension ConversationQueryFilter
     });
   }
 
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      avatarIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      avatarIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 4));
+    });
+  }
+
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1253,7 +1309,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       avatarGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1269,7 +1325,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       avatarGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1285,7 +1341,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       avatarLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1301,7 +1357,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       avatarLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1316,8 +1372,8 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1416,8 +1472,22 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      channelTypeIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 5));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1433,7 +1503,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1449,7 +1519,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1465,7 +1535,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1481,7 +1551,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1497,8 +1567,8 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       channelTypeBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1596,8 +1666,22 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 6));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      fromNumberIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 6));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1613,7 +1697,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1629,7 +1713,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1645,7 +1729,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1661,7 +1745,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1677,8 +1761,8 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       fromNumberBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1776,8 +1860,22 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      toNumberIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 7));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      toNumberIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 7));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1793,7 +1891,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberGreaterThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1809,7 +1907,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberGreaterThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1825,7 +1923,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberLessThan(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1841,7 +1939,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberLessThanOrEqualTo(
-    String value, {
+    String? value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -1857,8 +1955,8 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       toNumberBetween(
-    String lower,
-    String upper, {
+    String? lower,
+    String? upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -3314,8 +3412,22 @@ extension ConversationQueryFilter
   }
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 15));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+      businessIdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 15));
+    });
+  }
+
+  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3329,7 +3441,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdGreaterThan(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3343,7 +3455,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdGreaterThanOrEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3357,7 +3469,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdLessThan(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3371,7 +3483,7 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdLessThanOrEqualTo(
-    int value,
+    int? value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -3385,8 +3497,8 @@ extension ConversationQueryFilter
 
   QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
       businessIdBetween(
-    int lower,
-    int upper,
+    int? lower,
+    int? upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -4723,25 +4835,25 @@ extension ConversationQueryProperty1
     });
   }
 
-  QueryBuilder<Conversation, String, QAfterProperty> avatarProperty() {
+  QueryBuilder<Conversation, String?, QAfterProperty> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Conversation, String, QAfterProperty> channelTypeProperty() {
+  QueryBuilder<Conversation, String?, QAfterProperty> channelTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Conversation, String, QAfterProperty> fromNumberProperty() {
+  QueryBuilder<Conversation, String?, QAfterProperty> fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Conversation, String, QAfterProperty> toNumberProperty() {
+  QueryBuilder<Conversation, String?, QAfterProperty> toNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
@@ -4790,7 +4902,7 @@ extension ConversationQueryProperty1
     });
   }
 
-  QueryBuilder<Conversation, int, QAfterProperty> businessIdProperty() {
+  QueryBuilder<Conversation, int?, QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -4847,26 +4959,27 @@ extension ConversationQueryProperty2<R>
     });
   }
 
-  QueryBuilder<Conversation, (R, String), QAfterProperty> avatarProperty() {
+  QueryBuilder<Conversation, (R, String?), QAfterProperty> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Conversation, (R, String), QAfterProperty>
+  QueryBuilder<Conversation, (R, String?), QAfterProperty>
       channelTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Conversation, (R, String), QAfterProperty> fromNumberProperty() {
+  QueryBuilder<Conversation, (R, String?), QAfterProperty>
+      fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Conversation, (R, String), QAfterProperty> toNumberProperty() {
+  QueryBuilder<Conversation, (R, String?), QAfterProperty> toNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
@@ -4919,7 +5032,7 @@ extension ConversationQueryProperty2<R>
     });
   }
 
-  QueryBuilder<Conversation, (R, int), QAfterProperty> businessIdProperty() {
+  QueryBuilder<Conversation, (R, int?), QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -4979,27 +5092,28 @@ extension ConversationQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Conversation, (R1, R2, String), QOperations> avatarProperty() {
+  QueryBuilder<Conversation, (R1, R2, String?), QOperations> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Conversation, (R1, R2, String), QOperations>
+  QueryBuilder<Conversation, (R1, R2, String?), QOperations>
       channelTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
   }
 
-  QueryBuilder<Conversation, (R1, R2, String), QOperations>
+  QueryBuilder<Conversation, (R1, R2, String?), QOperations>
       fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
     });
   }
 
-  QueryBuilder<Conversation, (R1, R2, String), QOperations> toNumberProperty() {
+  QueryBuilder<Conversation, (R1, R2, String?), QOperations>
+      toNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(7);
     });
@@ -5054,7 +5168,7 @@ extension ConversationQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Conversation, (R1, R2, int), QOperations> businessIdProperty() {
+  QueryBuilder<Conversation, (R1, R2, int?), QOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(15);
     });
@@ -5101,11 +5215,11 @@ extension ConversationQueryProperty3<R1, R2>
 Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
       userName: json['userName'] as String? ?? 'Awesome Richie',
       body: json['body'] as String,
-      avatar: json['avatar'] as String,
-      channelType: json['channelType'] as String,
-      fromNumber: json['fromNumber'] as String,
-      toNumber: json['toNumber'] as String,
-      businessId: json['businessId'] as int,
+      avatar: json['avatar'] as String?,
+      channelType: json['channelType'] as String?,
+      fromNumber: json['fromNumber'] as String?,
+      toNumber: json['toNumber'] as String?,
+      businessId: json['businessId'] as int?,
       createdAt: json['createdAt'] as String?,
       respondedBy: json['respondedBy'] as String?,
       messageType: json['messageType'] as String?,

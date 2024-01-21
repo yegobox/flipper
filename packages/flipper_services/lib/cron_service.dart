@@ -45,10 +45,10 @@ class CronService {
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
     if (!isWeb) {
-      // ProxyService.realm.pull();
+      ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      if(!Platform.isWindows){
+      if (!Platform.isWindows) {
         await _heartBeatPull();
       }
     });
@@ -96,10 +96,6 @@ class CronService {
   }
 
   Future<void> _syncPullData() async {
-    if (ProxyService.remoteConfig.isSyncAvailable()) {
-      ProxyService.realm.pull();
-    }
-
     if (ProxyService.remoteConfig.isSyncAvailable() &&
         ProxyService.remoteConfig.isHttpSyncAvailable()) {
       ProxyService.sync.pull();
@@ -158,10 +154,16 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 10 : 15);
+    return Duration(minutes: kDebugMode ? 1 : 5);
   }
 
-  _heartBeatPull() {
-    ProxyService.realm.heartBeat();
+  _heartBeatPull() async {
+    ProxyService.realm.close();
+    await ProxyService.realm.configure();
+    // ProxyService.realm.pull();
+    // ProxyService.realm.heartBeat();
+    if (!isWeb) {
+      ProxyService.realm.pull();
+    }
   }
 }

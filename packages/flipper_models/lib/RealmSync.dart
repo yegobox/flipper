@@ -26,6 +26,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   Future<Realm> configure();
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
   Future<void> heartBeat();
+  void close();
 }
 
 class RealmSync<M extends IJsonSerializable>
@@ -85,24 +86,22 @@ class RealmSync<M extends IJsonSerializable>
     // open realm immediately with Realm() and try to sync data in the background.
 
     try {
-      // realm = await Realm.open(config);
-      realm = await Realm.open(config, cancellationToken: token,
-          onProgressCallback: (syncProgress) {
-        if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
-          print('All bytes transferred!');
-        }
-      });
+      realm = Realm(config);
+      // realm = await Realm.open(config, cancellationToken: token,
+      //     onProgressCallback: (syncProgress) {
+      //   if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
+      //     print('All bytes transferred!');
+      //   }
+      // });
     } catch (e) {
       print(e);
-      realm = await Realm.open(config);
+      realm = Realm(config);
     }
 
     updateSubscription(branchId);
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
     await realm.subscriptions.waitForSynchronization();
-    await realm.syncSession.waitForUpload();
-    await realm.syncSession.waitForDownload();
     return realm;
   }
 
@@ -438,22 +437,24 @@ class RealmSync<M extends IJsonSerializable>
     final iTransactionsCollection =
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
 
-    iTransactionsCollection.changes.listen((changes) {
+    iTransactionsCollection.changes.listen((changes) async {
       for (final result in changes.results) {
-        log("pulling RealmITransaction", name: "RealmSync pull");
         final model = createmodel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }
         // for debugging if we are receiving data on other device mobile device
 
-        Conversation conversation = Conversation.notificaton(
-            userName: ProxyService.box.getUserPhone()!,
-            body: "Received new  sale: ${model.subTotal}-RWF",
-            id: model.id);
-        NotificationsCubit.instance.scheduleNotification(conversation);
-
-        handleItem(model: model, branchId: result.branchId);
+        // Conversation conversation = Conversation.notificaton(
+        //     userName: ProxyService.box.getUserPhone()!,
+        //     body: "Received new  sale: ${model.subTotal}-RWF",
+        //     id: model.id);
+        // NotificationsCubit.instance.scheduleNotification(conversation);
+        // testing this
+        if (model.subTotal == 3) {
+          log("We got new sale: ${model.subTotal}", name: "RealmSync pull");
+        }
+        await handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -502,13 +503,13 @@ class RealmSync<M extends IJsonSerializable>
     // Subscribe to changes for stocks
     final iStocksCollection =
         realm.query<RealmStock>(r'branchId == $0', [branchId]);
-    iStocksCollection.changes.listen((changes) {
+    iStocksCollection.changes.listen((changes) async {
       for (final result in changes.results) {
         final model = createStockModel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }
-        handleItem(model: model, branchId: result.branchId);
+        await handleItem(model: model, branchId: result.branchId);
       }
     });
   }
@@ -739,7 +740,8 @@ class RealmSync<M extends IJsonSerializable>
                 userName: ProxyService.box.getUserPhone()!,
                 body: "Received new  sale: ${transaction.subTotal}-RWF",
                 id: transaction.id);
-            NotificationsCubit.instance.scheduleNotification(conversation);
+            await NotificationsCubit.instance
+                .scheduleNotification(conversation);
             local = local.copyWith(
                 reference: transaction.reference,
                 categoryId: transaction.categoryId,
@@ -753,7 +755,8 @@ class RealmSync<M extends IJsonSerializable>
                 userName: ProxyService.box.getUserPhone()!,
                 body: "Received new  sale: ${transaction.subTotal}-RWF",
                 id: transaction.id);
-            NotificationsCubit.instance.scheduleNotification(conversation);
+            await NotificationsCubit.instance
+                .scheduleNotification(conversation);
             await ProxyService.isar.create(data: transaction);
           }
         }
@@ -763,5 +766,10 @@ class RealmSync<M extends IJsonSerializable>
     } else {
       print(response.reasonPhrase);
     }
+  }
+
+  @override
+  void close() {
+    realm.close();
   }
 }

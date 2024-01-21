@@ -62,7 +62,7 @@ class MessageDisplayMobile extends StatelessWidget {
         children: [
           // A circle avatar that shows the chat image
           CircleAvatar(
-            backgroundImage: NetworkImage(conversations![index].avatar),
+            backgroundImage: NetworkImage(conversations![index].avatar ?? ""),
             radius: 20,
           ),
           // A positioned widget that shows the channelType image at the bottom right corner
@@ -167,7 +167,7 @@ class MessagesDisplayDesktop extends StatelessWidget {
             children: [
               // A circle avatar that shows the chat image
               CircleAvatar(
-                backgroundImage: NetworkImage(chat.avatar),
+                backgroundImage: NetworkImage(chat.avatar ?? ""),
                 radius: 20,
               ),
               // A positioned widget that shows the channelType image at the bottom right corner

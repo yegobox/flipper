@@ -3002,7 +3002,7 @@ class IsarAPI<M> implements IsarApiInterface {
           createdAt = DateTime.now();
         }
         conversation.createdAt = createdAt.toIso8601String();
-        conversation.avatar = HtmlUnescape().convert(conversation.avatar);
+        conversation.avatar = HtmlUnescape().convert(conversation.avatar ?? "");
         if (localConversation == null) {
           conversation.businessPhoneNumber =
               conversation.businessPhoneNumber == null

@@ -10,7 +10,7 @@ class ConversationAdapter implements types.Message {
     return types.TextMessage(
         id: conversation.id.toString(),
         author: types.User(
-            id: conversation.fromNumber, imageUrl: conversation.avatar),
+            id: conversation.fromNumber ?? "", imageUrl: conversation.avatar),
         text: conversation.body,
         createdAt:
             DateTime.parse(conversation.createdAt!).millisecondsSinceEpoch,
@@ -18,7 +18,7 @@ class ConversationAdapter implements types.Message {
   }
 
   @override
-  types.User get author => types.User(id: conversation.fromNumber);
+  types.User get author => types.User(id: conversation.fromNumber ?? "");
 
   @override
   int? get createdAt {

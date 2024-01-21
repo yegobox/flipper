@@ -105,8 +105,9 @@ class _ChatListViewDesktopState extends State<ChatListViewDesktop>
                                                         CircleAvatar(
                                                           backgroundImage:
                                                               NetworkImage(data
-                                                                  .first
-                                                                  .avatar),
+                                                                      .first
+                                                                      .avatar ??
+                                                                  ""),
                                                           radius: 20,
                                                         ),
                                                         // A positioned widget that shows the channelType image at the bottom right corner

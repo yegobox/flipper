@@ -30,6 +30,26 @@ abstract class RemoteInterface {
 
 mixin HandleItemMixin {
   Future<void> handleItem<T>({required T model, required int branchId}) async {
+    if (model is ITransaction) {
+      ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
+      remoteTransaction.action = AppActions.synchronized;
+      ITransaction? localTransaction =
+          await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
+      log('ITransaction:prepare', name: 'handleItem');
+      if (localTransaction == null &&
+          remoteTransaction.branchId == ProxyService.box.getBranchId()) {
+        log('ITransaction:create', name: 'handleItem');
+        await ProxyService.isar.create(data: remoteTransaction);
+      } else if (localTransaction != null &&
+          remoteTransaction.lastTouched
+              .isNewDateCompareTo(localTransaction.lastTouched)) {
+        remoteTransaction.action = AppActions.synchronized;
+        log('ITransaction:update', name: 'handleItem');
+        await ProxyService.isar
+            .update(data: remoteTransaction, localUpdate: true);
+      }
+    }
+
     if (model is Stock) {
       Stock remoteStock = Stock.fromJson(model.toJson());
       remoteStock.action = AppActions.synchronized;
@@ -142,25 +162,7 @@ mixin HandleItemMixin {
         await ProxyService.isar.update(data: ebm, localUpdate: true);
       }
     }
-    if (model is ITransaction) {
-      ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
-      remoteTransaction.action = AppActions.synchronized;
-      ITransaction? localTransaction =
-          await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
 
-      if (localTransaction == null &&
-          remoteTransaction.branchId == ProxyService.box.getBranchId()) {
-        log('ITransaction:create', name: 'handleItem');
-        await ProxyService.isar.create(data: remoteTransaction);
-      } else if (localTransaction != null &&
-          remoteTransaction.lastTouched
-              .isNewDateCompareTo(localTransaction.lastTouched)) {
-        remoteTransaction.action = AppActions.synchronized;
-        log('ITransaction:update', name: 'handleItem');
-        await ProxyService.isar
-            .update(data: remoteTransaction, localUpdate: true);
-      }
-    }
     if (model is TransactionItem) {
       TransactionItem? remoteTransactionItem =
           TransactionItem.fromJson(model.toJson());

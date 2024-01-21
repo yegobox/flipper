@@ -145,21 +145,22 @@ class NotificationsCubit {
   ///
   /// This will only schedule a notification if notifications are enabled and
   /// permission has been granted.
+  bool permissionGranted = false;
   Future<void> scheduleNotification(Conversation conversation) async {
     // if (!state.enabled) {
     //   // log('Notifications are disabled. Not scheduling notification.');
     //   return;
     // }
 
-    // if (!state.permissionGranted) {
-    //   await _requestPermission();
-    //   if (!state.permissionGranted) {
-    //     // log.v(
-    //     //   'Notifications permission not granted. Not scheduling notification.',
-    //     // );
-    //     return;
-    //   }
-    // }
+    if (!permissionGranted) {
+      await _requestPermission();
+      if (!permissionGranted) {
+        print(
+          'Notifications permission not granted. Not scheduling notification.',
+        );
+        return;
+      }
+    }
 
     // The due date in local time and user-friendly format: 'March 1, 2021 12:00 AM'
     final createdAt = DateTime.parse(conversation.createdAt!).toLocal();

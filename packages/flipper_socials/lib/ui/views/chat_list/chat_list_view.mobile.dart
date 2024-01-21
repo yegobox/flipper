@@ -141,7 +141,8 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                                                         horizontal: 8.0),
                                                 child: CircleAvatar(
                                                   backgroundImage: NetworkImage(
-                                                      conversation.avatar),
+                                                      conversation.avatar ??
+                                                          ""),
                                                   radius: 30,
                                                 ),
                                               );
