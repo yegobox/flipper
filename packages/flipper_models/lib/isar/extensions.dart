@@ -64,7 +64,7 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
       // }
     }
     if (ProxyService.remoteConfig.isSyncAvailable()) {
-      await ProxyService.realm.configure();
+      //await ProxyService.realm.configure();
       if (object is TransactionItem) {
         log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<TransactionItem>(item: object);
@@ -90,7 +90,7 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
       if (object is IUnit) {
         ProxyService.realm.onSave<IUnit>(item: object);
       }
-      ProxyService.realm.close();
+     // ProxyService.realm.close();
     }
   }
 }
