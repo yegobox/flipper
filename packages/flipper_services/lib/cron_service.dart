@@ -158,8 +158,6 @@ class CronService {
   }
 
   _heartBeatPull() async {
-    ProxyService.realm.close();
-    await ProxyService.realm.configure();
     // ProxyService.realm.pull();
     // ProxyService.realm.heartBeat();
     if (!isWeb) {
