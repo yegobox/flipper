@@ -3698,16 +3698,20 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Future<Product?> getProductByBarCode({required String barCode}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.products
         .where()
         .barCodeEqualTo(barCode)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .findFirst();
   }
 
   @override
   Future<List<Product?>> getProductByName({required String name}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     return db.products
         .where()
         .nameStartsWith(name, caseSensitive: false)
@@ -3717,6 +3721,8 @@ class IsarAPI<M> implements IsarApiInterface {
         .nameEndsWith(name, caseSensitive: false)
         .and()
         .deletedAtIsNull()
+        .and()
+        .branchIdEqualTo(branchId)
         .findAll();
   }
 
