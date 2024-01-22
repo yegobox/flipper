@@ -34,12 +34,12 @@ mixin HandleItemMixin {
       ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
       remoteTransaction.action = AppActions.synchronized;
       ITransaction? localTransaction =
-          await ProxyService.isar.getTransactionById(id: remoteTransaction.id);
+          ProxyService.isar.getTransactionById(id: remoteTransaction.id);
       log('ITransaction:prepare', name: 'handleItem');
       if (localTransaction == null &&
           remoteTransaction.branchId == ProxyService.box.getBranchId()) {
         log('ITransaction:create', name: 'handleItem');
-        await ProxyService.isar.create(data: remoteTransaction);
+        ProxyService.isar.create(data: remoteTransaction);
       } else if (localTransaction != null &&
           remoteTransaction.lastTouched
               .isNewDateCompareTo(localTransaction.lastTouched)) {

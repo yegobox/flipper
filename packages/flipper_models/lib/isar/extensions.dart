@@ -29,7 +29,7 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     put(object);
   }
 
-  Future<void> onPut(OBJ object) async {
+  void onPut(OBJ object) {
     put(object);
 
     ///TODO: re-enable this when cloud_firestore is stable
@@ -90,7 +90,7 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
       if (object is IUnit) {
         ProxyService.realm.onSave<IUnit>(item: object);
       }
-     // ProxyService.realm.close();
+      // ProxyService.realm.close();
     }
   }
 }

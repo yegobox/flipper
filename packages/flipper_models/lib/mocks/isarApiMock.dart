@@ -177,7 +177,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<T?> create<T>({required T data}) {
+  T? create<T>({required T data}) {
     // TODO: implement create
     throw UnimplementedError();
   }
@@ -509,7 +509,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<ITransaction?> getTransactionById({required String id}) {
+  ITransaction? getTransactionById({required String id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }

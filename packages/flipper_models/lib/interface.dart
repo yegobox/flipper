@@ -30,7 +30,7 @@ abstract class IsarApiInterface {
   Future<List<Category>> categories({required int branchId});
   Future<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
-  Future<T?> create<T>({required T data});
+  T? create<T>({required T data});
   Future<int> update<T>({required T data, bool localUpdate = false});
 
   Future<bool> delete({required String id, String? endPoint});
@@ -110,7 +110,7 @@ abstract class IsarApiInterface {
       {required String customerId, String? transactionId});
   Future<Customer?> getCustomer({String? key, String? transactionId});
 
-  Future<ITransaction?> getTransactionById({required String id});
+  ITransaction? getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
   Stream<List<ITransaction>> getTransactionsByCustomerId(

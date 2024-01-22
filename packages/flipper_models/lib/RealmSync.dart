@@ -429,6 +429,87 @@ class RealmSync<M extends IJsonSerializable>
     // realm.close();
   }
 
+  //  @override
+  // Future<void> pull() async {
+  //   int branchId = ProxyService.box.getBranchId()!;
+
+  //   // Subscribe to changes for transactions
+  //   // Query the data directly
+  //   final iTransactionsResults =
+  //       realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
+
+  //   // Process the results
+  //   for (final result in iTransactionsResults) {
+  //     final model = createmodel(result);
+
+  //     // Handle deleted items
+  //     if (model.action == AppActions.deleted && model.deletedAt == null) {
+  //       model.deletedAt = DateTime.now();
+  //     }
+
+  //     handleItem(model: model, branchId: result.branchId);
+  //   }
+
+  //   // Subscribe to changes for transaction items
+  //   final iTransactionsItemResults =
+  //       realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+
+  //   for (final result in iTransactionsItemResults) {
+  //     final model = createTransactionItemModel(result);
+
+  //     // Handle deleted items
+  //     if (model.action == AppActions.deleted && model.deletedAt == null) {
+  //       model.deletedAt = DateTime.now();
+  //     }
+
+  //     handleItem(model: model, branchId: result.branchId);
+  //   }
+
+  //   // Subscribe to changes for products
+  //   final iProductsCollection =
+  //       realm.query<RealmProduct>(r'branchId == $0', [branchId]);
+
+  //   for (final result in iProductsCollection) {
+  //     final model = createProductModel(result);
+
+  //     // Handle deleted items
+  //     if (model.action == AppActions.deleted && model.deletedAt == null) {
+  //       model.deletedAt = DateTime.now();
+  //     }
+
+  //     handleItem(model: model, branchId: result.branchId);
+  //   }
+
+  //   // Subscribe to changes for variants
+  //   final iVariantsCollection =
+  //       realm.query<RealmVariant>(r'branchId == $0', [branchId]);
+
+  //   for (final result in iVariantsCollection) {
+  //     final model = createVariantModel(result);
+
+  //     // Handle deleted items
+  //     if (model.action == AppActions.deleted && model.deletedAt == null) {
+  //       model.deletedAt = DateTime.now();
+  //     }
+
+  //     handleItem(model: model, branchId: result.branchId);
+  //   }
+
+  //   // Subscribe to changes for stocks
+  //   final iStocksCollection =
+  //       realm.query<RealmStock>(r'branchId == $0', [branchId]);
+
+  //   for (final result in iStocksCollection) {
+  //     final model = createStockModel(result);
+
+  //     // Handle deleted items
+  //     if (model.action == AppActions.deleted && model.deletedAt == null) {
+  //       model.deletedAt = DateTime.now();
+  //     }
+
+  //     handleItem(model: model, branchId: result.branchId);
+  //   }
+  // }
   @override
   Future<void> pull() async {
     int branchId = ProxyService.box.getBranchId()!;
@@ -443,18 +524,8 @@ class RealmSync<M extends IJsonSerializable>
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }
-        // for debugging if we are receiving data on other device mobile device
 
-        // Conversation conversation = Conversation.notificaton(
-        //     userName: ProxyService.box.getUserPhone()!,
-        //     body: "Received new  sale: ${model.subTotal}-RWF",
-        //     id: model.id);
-        // NotificationsCubit.instance.scheduleNotification(conversation);
-        // testing this
-        if (model.subTotal == 3) {
-          log("We got new sale: ${model.subTotal}", name: "RealmSync pull");
-        }
-        await handleItem(model: model, branchId: result.branchId);
+        handleItem(model: model, branchId: result.branchId);
       }
     });
 
@@ -509,7 +580,7 @@ class RealmSync<M extends IJsonSerializable>
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }
-        await handleItem(model: model, branchId: result.branchId);
+        handleItem(model: model, branchId: result.branchId);
       }
     });
   }
@@ -697,6 +768,7 @@ class RealmSync<M extends IJsonSerializable>
   /// to get changes as subscribing to the change is not getting
   /// data to the device in time we think!
   Future<void> heartBeat() async {
+    log('calling heart beat');
     int branchId = ProxyService.box.getBranchId()!;
     var headers = {
       'api-key': AppSecrets.mongoApiSecret,

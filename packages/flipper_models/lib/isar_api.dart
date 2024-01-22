@@ -221,17 +221,23 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<ITransaction?> getTransactionById({required String id}) async {
+  ITransaction? getTransactionById({required String id}) {
     int branchId = ProxyService.box.getBranchId()!;
-    return db
-        .read((isar) => isar.iTransactions
-            .where()
-            .idEqualTo(id)
-            .and()
-            .branchIdEqualTo(branchId))
-        .and()
-        .deletedAtIsNull()
-        .findFirst();
+
+    // Use 'await' to wait for the completion of findFirstAsync
+    ITransaction? transaction = db.read((isar) {
+      return isar.iTransactions
+          .where()
+          .idEqualTo(id)
+          .and()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .findFirst();
+    });
+
+    // Return the unwrapped result
+    return transaction;
   }
 
   //Delete a favorite
@@ -1883,7 +1889,7 @@ class IsarAPI<M> implements IsarApiInterface {
   }
 
   @override
-  Future<T?> create<T>({required T data}) async {
+  T? create<T>({required T data}) {
     /// update user activity model
 
     /// end with updating user activity
@@ -1915,21 +1921,21 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.devices.onPut(device);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Conversation) {
       Conversation conversation = data;
       db.write((isar) {
         isar.conversations.put(conversation);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Category) {
       Category category = data;
       db.write((isar) {
         isar.categorys.put(category);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Product) {
       db.write((isar) {
@@ -1940,57 +1946,57 @@ class IsarAPI<M> implements IsarApiInterface {
       db.write((isar) {
         isar.variants.onPut(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Favorite) {
       db.write((isar) {
         isar.favorites.onPut(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Stock) {
       db.write((isar) {
         isar.stocks.onPut(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Social) {
       db.write((isar) {
         isar.socials.put(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Token) {
       db.write((isar) {
         isar.tokens.put(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is Setting) {
       db.write((isar) {
         isar.settings.put(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is EBM) {
       db.write((isar) {
         isar.eBMs.put(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is ITransaction) {
       db.write((isar) {
         isar.iTransactions.onPut(data);
       });
-      return Future.value(null);
+      return null;
     }
     if (data is TransactionItem) {
       db.write((isar) {
         isar.transactionItems.onPut(data);
       });
-      return Future.value(null);
+      return null;
     }
-    return Future.value(null);
+    return null;
   }
 
   /// @Deprecated [endpoint] don't give the endpoint params
@@ -3699,20 +3705,20 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Product?> getProductByBarCode({required String barCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.products
+    return db.read((isar)=>isar.products
         .where()
         .barCodeEqualTo(barCode)
         .and()
         .deletedAtIsNull()
         .and()
         .branchIdEqualTo(branchId)
-        .findFirst();
+        .findFirst());
   }
 
   @override
   Future<List<Product?>> getProductByName({required String name}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.products
+    return db.read((isar)=>isar.products
         .where()
         .nameStartsWith(name, caseSensitive: false)
         .or()
@@ -3723,16 +3729,17 @@ class IsarAPI<M> implements IsarApiInterface {
         .deletedAtIsNull()
         .and()
         .branchIdEqualTo(branchId)
-        .findAll();
+        .findAll());
   }
 
   @override
   Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
-    return db.variants
+    return db.read(
+        (isar) => isar.variants
         .where()
         .productIdEqualTo(productId ?? "")
         .and()
         .deletedAtIsNull()
-        .watch(fireImmediately: true);
+        .watch(fireImmediately: true));
   }
 }
