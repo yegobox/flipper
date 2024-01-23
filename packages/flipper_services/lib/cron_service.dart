@@ -45,21 +45,7 @@ class CronService {
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
     if (!isWeb) {
-      ///TODO: wait for this to move the realm https://github.com/realm/realm-dart/issues/1451
-      /// in background isolate which will fix the perofrmance issue
-      /// example how isolate can be opened https://github.com/realm/realm-dart/issues/1055
-      /// On the main thread ${https://github.com/realm/realm-dart/issues/1433}
-      // final appId = 'my-app-abcde';
-      // final app = App(AppConfiguration(appId));
-
-      // // Later
-      // await Isolate.spawn((List<Object> args) async {
-      //   final app = App.getById(appId);
-      //   final user = app.currentUser!;
-      //   final realm = Realm(FlexibleSyncConfiguration(user));
-      //   //  use realm as usual
-      // });
-      /// ProxyService.realm.pull();
+      ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       await _heartBeatPull();

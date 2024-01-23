@@ -239,3 +239,11 @@ class App {}
 ///https://www.youtube.com/watch?v=EIiBDoVHlNc
 ///https://console.shorebird.dev/
 ///https://www.youtube.com/watch?v=JRwTCKjc37o
+///https://podman.io/
+///When it is time for us to migrate to kubernetes, this should be
+///before we request production EBM.
+///https://youtu.be/MeU5_k9ssrs?t=1627
+///https://www.padok.fr/en/blog/digitalocean-kubernetes
+///https://ryderdamen.medium.com/deploying-kubernetes-web-servers-to-digital-ocean-with-tls-and-terraform-2ccba95c5a3c
+///
+///https://blog.wimwauters.com/devops/2022-02-25-digitalocean_terraform_k8s/

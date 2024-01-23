@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:html_unescape/html_unescape.dart';
@@ -20,7 +21,9 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
-class IsarAPI<M> implements IsarApiInterface {
+import 'models.dart';
+
+class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
   late String apihub;
   late String commApi;
@@ -47,45 +50,12 @@ class IsarAPI<M> implements IsarApiInterface {
       db = await Isar.open(
         // compactOnLaunch:
         //     CompactCondition(minBytes: 100, minFileSize: 100, minRatio: 2.0),
-        schemas: [
-          ITransactionSchema,
-          BusinessSchema,
-          BranchSchema,
-          TransactionItemSchema,
-          ProductSchema,
-          VariantSchema,
-          ProfileSchema,
-          SubscriptionSchema,
-          PointssSchema,
-          StockSchema,
-          FeatureSchema,
-          VoucherSchema,
-          PColorSchema,
-          CategorySchema,
-          IUnitSchema,
-          SettingSchema,
-          DiscountSchema,
-          CustomerSchema,
-          PinSchema,
-          ReceiptSchema,
-          DrawersSchema,
-          ITenantSchema,
-          PermissionSchema,
-          CounterSchema,
-          TokenSchema,
-          SocialSchema,
-          ConversationSchema,
-          DeviceSchema,
-          FavoriteSchema,
-          EBMSchema,
-          UserActivitySchema,
-          SyncRecordSchema
-        ],
+        schemas: models,
         directory: foundation.kIsWeb ? Isar.sqliteInMemory : appDocDir,
         engine: foundation.kIsWeb || Platform.isLinux
             ? IsarEngine.sqlite
             : IsarEngine.isar,
-        // name: 'flipper-db',
+        name: 'default',
       );
     } else {
       db = isa;
@@ -3705,7 +3675,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<Product?> getProductByBarCode({required String barCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar)=>isar.products
+    return db.read((isar) => isar.products
         .where()
         .barCodeEqualTo(barCode)
         .and()
@@ -3718,7 +3688,7 @@ class IsarAPI<M> implements IsarApiInterface {
   @override
   Future<List<Product?>> getProductByName({required String name}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar)=>isar.products
+    return db.read((isar) => isar.products
         .where()
         .nameStartsWith(name, caseSensitive: false)
         .or()
@@ -3734,8 +3704,7 @@ class IsarAPI<M> implements IsarApiInterface {
 
   @override
   Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
-    return db.read(
-        (isar) => isar.variants
+    return db.read((isar) => isar.variants
         .where()
         .productIdEqualTo(productId ?? "")
         .and()
