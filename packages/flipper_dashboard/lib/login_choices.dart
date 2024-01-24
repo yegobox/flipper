@@ -178,7 +178,7 @@ class _LoginChoicesState extends State<LoginChoices> {
         openingBalance: 0.0,
         closingBalance: 0.0,
         cashierId: ProxyService.box.getBusinessId()!,
-        tradeName: ProxyService.app.business.name,
+        tradeName: ProxyService.app.business!.name,
         openingDateTime: DateTime.now().toIso8601String(),
         open: true,
       );

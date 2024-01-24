@@ -26,9 +26,3 @@ Map<String, dynamic> _$IUserToJson(IUser instance) => <String, dynamic>{
       'channels': instance.channels,
       'pin': instance.pin,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

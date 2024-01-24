@@ -188,6 +188,10 @@ const BusinessSchema = IsarGeneratedSchema(
         name: 'deletedAt',
         type: IsarType.dateTime,
       ),
+      IsarPropertySchema(
+        name: 'encryptionKey',
+        type: IsarType.string,
+      ),
     ],
     indexes: [
       IsarIndexSchema(
@@ -506,6 +510,7 @@ int serializeBusiness(IsarWriter writer, Business object) {
   IsarCore.writeString(writer, 41, object.action);
   IsarCore.writeLong(writer, 42,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
+  IsarCore.writeString(writer, 43, object.encryptionKey);
   return object.id;
 }
 
@@ -662,6 +667,8 @@ Business deserializeBusiness(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
+  final String _encryptionKey;
+  _encryptionKey = IsarCore.readString(reader, 43) ?? '';
   final object = Business(
     id: _id,
     name: _name,
@@ -704,6 +711,7 @@ Business deserializeBusiness(IsarReader reader) {
     businessTypeId: _businessTypeId,
     action: _action,
     deletedAt: _deletedAt,
+    encryptionKey: _encryptionKey,
   );
   object.createdAt = IsarCore.readString(reader, 21);
   {
@@ -884,6 +892,8 @@ dynamic deserializeBusinessProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 43:
+      return IsarCore.readString(reader, 43) ?? '';
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -933,6 +943,7 @@ sealed class _BusinessUpdate {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    String? encryptionKey,
   });
 }
 
@@ -985,6 +996,7 @@ class _BusinessUpdateImpl implements _BusinessUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? encryptionKey = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -1031,6 +1043,7 @@ class _BusinessUpdateImpl implements _BusinessUpdate {
           if (lastTouched != ignore) 40: lastTouched as DateTime?,
           if (action != ignore) 41: action as String?,
           if (deletedAt != ignore) 42: deletedAt as DateTime?,
+          if (encryptionKey != ignore) 43: encryptionKey as String?,
         }) >
         0;
   }
@@ -1080,6 +1093,7 @@ sealed class _BusinessUpdateAll {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    String? encryptionKey,
   });
 }
 
@@ -1132,6 +1146,7 @@ class _BusinessUpdateAllImpl implements _BusinessUpdateAll {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? encryptionKey = ignore,
   }) {
     return collection.updateProperties(id, {
       if (name != ignore) 1: name as String?,
@@ -1176,6 +1191,7 @@ class _BusinessUpdateAllImpl implements _BusinessUpdateAll {
       if (lastTouched != ignore) 40: lastTouched as DateTime?,
       if (action != ignore) 41: action as String?,
       if (deletedAt != ignore) 42: deletedAt as DateTime?,
+      if (encryptionKey != ignore) 43: encryptionKey as String?,
     });
   }
 }
@@ -1229,6 +1245,7 @@ sealed class _BusinessQueryUpdate {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    String? encryptionKey,
   });
 }
 
@@ -1281,6 +1298,7 @@ class _BusinessQueryUpdateImpl implements _BusinessQueryUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? encryptionKey = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (name != ignore) 1: name as String?,
@@ -1325,6 +1343,7 @@ class _BusinessQueryUpdateImpl implements _BusinessQueryUpdate {
       if (lastTouched != ignore) 40: lastTouched as DateTime?,
       if (action != ignore) 41: action as String?,
       if (deletedAt != ignore) 42: deletedAt as DateTime?,
+      if (encryptionKey != ignore) 43: encryptionKey as String?,
     });
   }
 }
@@ -1385,6 +1404,7 @@ class _BusinessQueryBuilderUpdateImpl implements _BusinessQueryUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? encryptionKey = ignore,
   }) {
     final q = query.build();
     try {
@@ -1431,6 +1451,7 @@ class _BusinessQueryBuilderUpdateImpl implements _BusinessQueryUpdate {
         if (lastTouched != ignore) 40: lastTouched as DateTime?,
         if (action != ignore) 41: action as String?,
         if (deletedAt != ignore) 42: deletedAt as DateTime?,
+        if (encryptionKey != ignore) 43: encryptionKey as String?,
       });
     } finally {
       q.close();
@@ -8049,6 +8070,184 @@ extension BusinessQueryFilter
       );
     });
   }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyLessThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 43,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 43,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition> encryptionKeyMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 43,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 43,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterFilterCondition>
+      encryptionKeyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 43,
+          value: '',
+        ),
+      );
+    });
+  }
 }
 
 extension BusinessQueryObject
@@ -8830,6 +9029,27 @@ extension BusinessQuerySortBy on QueryBuilder<Business, Business, QSortBy> {
       return query.addSortBy(42, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByEncryptionKey(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        43,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> sortByEncryptionKeyDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        43,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
 }
 
 extension BusinessQuerySortThenBy
@@ -9399,6 +9619,20 @@ extension BusinessQuerySortThenBy
       return query.addSortBy(42, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Business, Business, QAfterSortBy> thenByEncryptionKey(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(43, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Business, Business, QAfterSortBy> thenByEncryptionKeyDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(43, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension BusinessQueryWhereDistinct
@@ -9685,6 +9919,13 @@ extension BusinessQueryWhereDistinct
       return query.addDistinctBy(42);
     });
   }
+
+  QueryBuilder<Business, Business, QAfterDistinct> distinctByEncryptionKey(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(43, caseSensitive: caseSensitive);
+    });
+  }
 }
 
 extension BusinessQueryProperty1
@@ -9946,6 +10187,12 @@ extension BusinessQueryProperty1
   QueryBuilder<Business, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(42);
+    });
+  }
+
+  QueryBuilder<Business, String, QAfterProperty> encryptionKeyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(43);
     });
   }
 }
@@ -10212,6 +10459,12 @@ extension BusinessQueryProperty2<R>
   QueryBuilder<Business, (R, DateTime?), QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(42);
+    });
+  }
+
+  QueryBuilder<Business, (R, String), QAfterProperty> encryptionKeyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(43);
     });
   }
 }
@@ -10484,6 +10737,13 @@ extension BusinessQueryProperty3<R1, R2>
       return query.addProperty(42);
     });
   }
+
+  QueryBuilder<Business, (R1, R2, String), QOperations>
+      encryptionKeyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(43);
+    });
+  }
 }
 
 // **************************************************************************
@@ -10492,6 +10752,7 @@ extension BusinessQueryProperty3<R1, R2>
 
 Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
       action: json['action'] as String,
+      encryptionKey: json['encryptionKey'] as String,
       name: json['name'] as String?,
       currency: json['currency'] as String?,
       categoryId: json['categoryId'] as String? ?? "1",
@@ -10588,10 +10849,5 @@ Map<String, dynamic> _$BusinessToJson(Business instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'encryptionKey': instance.encryptionKey,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

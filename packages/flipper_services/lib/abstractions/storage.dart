@@ -26,5 +26,6 @@ abstract class LocalStorage {
   String? whatsAppToken();
   String? paginationCreatedAt();
   int? paginationId();
+  String encryptionKey();
   Future<bool> clear();
 }

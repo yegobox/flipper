@@ -1032,9 +1032,3 @@ Map<String, dynamic> _$DiscountToJson(Discount instance) => <String, dynamic>{
       'amount': instance.amount,
       'branchId': instance.branchId,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

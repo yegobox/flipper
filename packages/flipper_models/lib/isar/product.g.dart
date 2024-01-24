@@ -4794,9 +4794,3 @@ Map<String, dynamic> _$ProductToJson(Product instance) => <String, dynamic>{
       'deletedAt': Product._dateTimeToJson(instance.deletedAt),
       'searchMatch': instance.searchMatch,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

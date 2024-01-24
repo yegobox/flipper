@@ -48,12 +48,14 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<Realm> configure() async {
+    log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
 
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
     final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
+    List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
         user,
         [
@@ -64,6 +66,7 @@ class RealmSync<M extends IJsonSerializable>
           RealmStock.schema,
           RealmIUnit.schema
         ],
+        // encryptionKey:key,
         path: await absolutePath("db_"),
         clientResetHandler: RecoverUnsyncedChangesHandler(
       onBeforeReset: (beforeResetRealm) {
@@ -444,9 +447,14 @@ class RealmSync<M extends IJsonSerializable>
   Future<void> pull() async {
     RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
     int branchId = ProxyService.box.getBranchId()!;
+    String key = ProxyService.box.encryptionKey();
     ReceivePort receivePort = ReceivePort();
-    await Isolate.spawn(IsolateHandler.handleRealm,
-        [rootIsolateToken, receivePort.sendPort, branchId]);
+    await Isolate.spawn(IsolateHandler.handleRealm, [
+      rootIsolateToken,
+      receivePort.sendPort,
+      branchId,
+      key,
+    ]);
     receivePort.listen((message) {
       log('Isolate: $message');
     });

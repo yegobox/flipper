@@ -3,6 +3,83 @@ import 'package:flipper_models/isar/utils.dart';
 import 'package:flipper_models/isar/extensions.dart';
 
 void main() {
+  group('String to Int List Extension Tests', () {
+    test('Converts string to int list', () {
+      String numbersString =
+          "181,47,136,193,249,163,43,178,217,160,106,37,195,197,222,10,208,172,199,252,9,61,227,135,49,185,82,247,164,230,187,79,200,147,87,203,51,146,16,56,142,119,141,106,169,60,93,67,248,82,64,122,86,122,118,219,87,74,120,253,137,116,22,93";
+
+      List<int> expectedList = [
+        181,
+        47,
+        136,
+        193,
+        249,
+        163,
+        43,
+        178,
+        217,
+        160,
+        106,
+        37,
+        195,
+        197,
+        222,
+        10,
+        208,
+        172,
+        199,
+        252,
+        9,
+        61,
+        227,
+        135,
+        49,
+        185,
+        82,
+        247,
+        164,
+        230,
+        187,
+        79,
+        200,
+        147,
+        87,
+        203,
+        51,
+        146,
+        16,
+        56,
+        142,
+        119,
+        141,
+        106,
+        169,
+        60,
+        93,
+        67,
+        248,
+        82,
+        64,
+        122,
+        86,
+        122,
+        118,
+        219,
+        87,
+        74,
+        120,
+        253,
+        137,
+        116,
+        22,
+        93
+      ];
+
+      expect(numbersString.toIntList(), equals(expectedList));
+    });
+
+    // Add more test cases if needed
+  });
   group('StringExtensions', () {
     test(
         'isFutureDateCompareTo should return true when current date is greater',

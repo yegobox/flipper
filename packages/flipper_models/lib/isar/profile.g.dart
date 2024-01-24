@@ -5524,9 +5524,3 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'deletedAt': instance.deletedAt?.toIso8601String(),
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

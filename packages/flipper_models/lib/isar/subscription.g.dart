@@ -1715,9 +1715,3 @@ Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
       'recurring': instance.recurring,
       'descriptor': instance.descriptor,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

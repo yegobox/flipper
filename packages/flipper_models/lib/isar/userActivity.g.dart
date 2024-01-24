@@ -1411,9 +1411,3 @@ Map<String, dynamic> _$UserActivityToJson(UserActivity instance) =>
       'userId': instance.userId,
       'action': instance.action,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

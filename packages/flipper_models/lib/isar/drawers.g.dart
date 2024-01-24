@@ -4412,9 +4412,3 @@ Map<String, dynamic> _$DrawersToJson(Drawers instance) => <String, dynamic>{
       'cashierId': instance.cashierId,
       'open': instance.open,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

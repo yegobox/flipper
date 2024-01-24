@@ -1589,9 +1589,12 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       log(user.id.toString(), name: 'login');
       await ProxyService.box.writeInt(
         key: 'businessId',
-        // check if businesses is empty
         value:
             user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id,
+      );
+      await ProxyService.box.writeString(
+        key: 'encryptionKey',
+        value: user.tenants.first.businesses.first.encryptionKey,
       );
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.writeString(

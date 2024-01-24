@@ -21,13 +21,15 @@ class AppService with ListenableServiceMixin {
 
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
-
-  final _business = ReactiveValue<isar.Business>(isar.Business(
-    id: randomNumber(),
-    isDefault: false,
-    action: AppActions.created,
-  ));
-  isar.Business get business => _business.value;
+  // TODO: make _business nullable when starting
+  ///isar.Business(
+  //   id: randomNumber(),
+  //   isDefault: false,
+  //   encryptionKey: "11",
+  //   action: AppActions.created,
+  // )
+  final _business = ReactiveValue<isar.Business?>(null);
+  isar.Business? get business => _business.value;
   setBusiness({required isar.Business business}) {
     _business.value = business;
   }

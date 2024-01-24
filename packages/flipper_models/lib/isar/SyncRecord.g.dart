@@ -1648,9 +1648,3 @@ Map<String, dynamic> _$SyncRecordToJson(SyncRecord instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'branchId': instance.branchId,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

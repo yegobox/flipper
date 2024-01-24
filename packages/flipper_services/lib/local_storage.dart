@@ -162,6 +162,11 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<bool> clear() async {
     return await prefs.clear();
   }
+
+  @override
+  String encryptionKey() {
+    return prefs.getString('encryptionKey')!;
+  }
 }
 
 class BoxStorage implements LocalStorage {
@@ -332,5 +337,10 @@ class BoxStorage implements LocalStorage {
   @override
   Future<bool> clear() async {
     return true;
+  }
+
+  @override
+  String encryptionKey() {
+    return box.read('encryptionKey');
   }
 }

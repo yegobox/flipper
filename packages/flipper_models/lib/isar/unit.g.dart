@@ -1782,9 +1782,3 @@ Map<String, dynamic> _$IUnitToJson(IUnit instance) => <String, dynamic>{
       'lastTouched': IUnit._dateTimeToJson(instance.lastTouched),
       'action': instance.action,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

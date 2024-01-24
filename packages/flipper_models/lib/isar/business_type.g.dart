@@ -16,9 +16,3 @@ Map<String, dynamic> _$BusinessTypeToJson(BusinessType instance) =>
       'id': instance.id,
       'typeName': instance.typeName,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

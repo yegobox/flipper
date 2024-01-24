@@ -6,7 +6,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement clear
     throw UnimplementedError();
   }
-
+  @override
+  String encryptionKey() {
+     throw UnimplementedError();
+  }
   @override
   int? currentOrderId() {
     // TODO: implement currentOrderId

@@ -23,6 +23,7 @@ part 'business.g.dart';
 class Business extends IJsonSerializable {
   Business({
     required this.action,
+    required this.encryptionKey,
     this.name,
     this.currency,
     this.categoryId = "1",
@@ -114,6 +115,9 @@ class Business extends IJsonSerializable {
 
   @Index()
   DateTime? deletedAt;
+
+  String encryptionKey;
+
   factory Business.fromRecord(RecordModel record) =>
       Business.fromJson(record.toJson());
 

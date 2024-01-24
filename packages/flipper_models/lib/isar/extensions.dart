@@ -20,6 +20,12 @@ extension ColorExtension on Color {
   }
 }
 
+extension StringToIntList on String {
+  List<int> toIntList() {
+    return this.split(',').map((e) => int.parse(e.trim())).toList();
+  }
+}
+
 extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
   OBJ? onGet(ID id) => getAll([id]).firstOrNull;
 

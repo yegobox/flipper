@@ -346,7 +346,7 @@ class CoreViewModel extends FlipperBaseModel
     return await ProxyService.isar.productsFuture(branchId: branchId);
   }
 
-  Business get businesses => app.business;
+  Business get businesses => app.business!;
   ITenant? get tenant => app.tenant;
 
   void pop() {

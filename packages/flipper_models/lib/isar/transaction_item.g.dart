@@ -12709,9 +12709,3 @@ Map<String, dynamic> _$TransactionItemToJson(TransactionItem instance) =>
       'action': instance.action,
       'branchId': instance.branchId,
     };
-
-// **************************************************************************
-// RealmObjectGenerator
-// **************************************************************************
-
-// ignore_for_file: type=lint

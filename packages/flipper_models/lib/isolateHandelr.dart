@@ -20,7 +20,7 @@ mixin IsolateHandler {
     isar = await isarK();
     // do the actual isar update
     if (value is Product) {
-      isar.write((isar) => isar.products.onPut(value));
+      isar.write((isar) => isar.products.put(value));
     }
   }
 
@@ -28,12 +28,13 @@ mixin IsolateHandler {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     final branchId = args[2] as int;
+    final encryptionKey = args[3] as String;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
     isar = await isarK();
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-
+    List<int> key = encryptionKey.toIntList();
     final config = Configuration.flexibleSync(user!, [
       RealmITransaction.schema,
       RealmITransactionItem.schema,
@@ -41,7 +42,9 @@ mixin IsolateHandler {
       RealmVariant.schema,
       RealmStock.schema,
       RealmIUnit.schema
-    ], shouldCompactCallback: ((totalSize, usedSize) {
+    ],
+        // encryptionKey: key,
+        shouldCompactCallback: ((totalSize, usedSize) {
       // Compact if the file is over 10MB in size and less than 50% 'used'
       const tenMB = 10 * 1048576;
       return (totalSize > tenMB) &&
@@ -66,7 +69,7 @@ mixin IsolateHandler {
         ITransaction? localTransaction = isar.iTransactions.get(data.id);
         if (localTransaction == null && data.branchId == branchId) {
           isar.write((isar) {
-            isar.iTransactions.onPut(data);
+            isar.iTransactions.put(data);
           });
           sendPort.send('Created transaction ${model.id}');
         } else if (localTransaction != null &&
@@ -75,7 +78,7 @@ mixin IsolateHandler {
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
-            isar.iTransactions.onUpdate(data);
+            isar.iTransactions.put(data);
           });
           sendPort.send('Updated transaction ${model.id}');
         }
@@ -98,7 +101,7 @@ mixin IsolateHandler {
         TransactionItem? localTransaction = isar.transactionItems.get(data.id);
         if (localTransaction == null && data.branchId == branchId) {
           isar.write((isar) {
-            isar.transactionItems.onPut(data);
+            isar.transactionItems.put(data);
           });
           sendPort.send('Created transactionItem ${model.id}');
         } else if (localTransaction != null &&
@@ -107,7 +110,7 @@ mixin IsolateHandler {
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
-            isar.transactionItems.onUpdate(data);
+            isar.transactionItems.put(data);
           });
           sendPort.send('Updated transactionItem ${model.id}');
         }
@@ -130,7 +133,7 @@ mixin IsolateHandler {
         Variant? localTransaction = isar.variants.get(data.id);
         if (localTransaction == null && data.branchId == branchId) {
           isar.write((isar) {
-            isar.variants.onPut(data);
+            isar.variants.put(data);
           });
           sendPort.send('Created Variant ${model.id}');
         } else if (localTransaction != null &&
@@ -139,7 +142,7 @@ mixin IsolateHandler {
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
-            isar.variants.onUpdate(data);
+            isar.variants.put(data);
           });
           sendPort.send('Updated Variant ${model.id}');
         }
@@ -161,7 +164,7 @@ mixin IsolateHandler {
         Product? localTransaction = isar.products.get(data.id);
         if (localTransaction == null && data.branchId == branchId) {
           isar.write((isar) {
-            isar.products.onPut(data);
+            isar.products.put(data);
           });
           sendPort.send('Created Product ${model.id}');
         } else if (localTransaction != null &&
@@ -170,7 +173,7 @@ mixin IsolateHandler {
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
-            isar.products.onUpdate(data);
+            isar.products.put(data);
           });
           sendPort.send('Updated Product ${model.id}');
         }
@@ -191,7 +194,7 @@ mixin IsolateHandler {
         Stock? localTransaction = isar.stocks.get(data.id);
         if (localTransaction == null && data.branchId == branchId) {
           isar.write((isar) {
-            isar.stocks.onPut(data);
+            isar.stocks.put(data);
           });
           sendPort.send('Created Stock ${model.id}');
         } else if (localTransaction != null &&
@@ -200,7 +203,7 @@ mixin IsolateHandler {
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
-            isar.stocks.onUpdate(data);
+            isar.stocks.put(data);
           });
           sendPort.send('Updated Stock ${model.id}');
         }
