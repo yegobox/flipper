@@ -35,23 +35,20 @@ mixin IsolateHandler {
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     List<int> key = encryptionKey.toIntList();
-    final config = Configuration.flexibleSync(user!, [
-      RealmITransaction.schema,
-      RealmITransactionItem.schema,
-      RealmProduct.schema,
-      RealmVariant.schema,
-      RealmStock.schema,
-      RealmIUnit.schema
-    ],
-        // encryptionKey: key,
-        shouldCompactCallback: ((totalSize, usedSize) {
-      // Compact if the file is over 10MB in size and less than 50% 'used'
-      const tenMB = 10 * 1048576;
-      return (totalSize > tenMB) &&
-          (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-    }));
+    final config = Configuration.flexibleSync(
+      user!,
+      [
+        RealmITransaction.schema,
+        RealmITransactionItem.schema,
+        RealmProduct.schema,
+        RealmVariant.schema,
+        RealmStock.schema,
+        RealmIUnit.schema
+      ],
+    );
 
-    final realm = Realm(config);
+    // final realm = Realm(config);
+    final realm = await Realm.open(config);
 
     // Subscribe to changes for transactions
     final iTransactionsCollection =

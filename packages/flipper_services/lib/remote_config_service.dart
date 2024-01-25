@@ -438,7 +438,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isFirestoreEnabled() {
-    return false;
+    return true;
   }
 
   @override
