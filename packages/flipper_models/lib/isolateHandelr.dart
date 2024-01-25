@@ -47,8 +47,8 @@ mixin IsolateHandler {
       ],
     );
 
-    // final realm = Realm(config);
-    final realm = await Realm.open(config);
+    final realm = Realm(config);
+    // final realm = await Realm.open(config);
 
     // Subscribe to changes for transactions
     final iTransactionsCollection =
