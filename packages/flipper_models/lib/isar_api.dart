@@ -1444,6 +1444,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
+    //https://github.com/firebase/flutterfire/issues/2185
+    await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
   }
 
   @override

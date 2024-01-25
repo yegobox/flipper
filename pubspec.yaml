@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.1388281594427+1706124564
+version: 1.170.1389987718992+1706172841
 
 #......
 # The packages below are just refrences for what packages being used
@@ -33,8 +33,8 @@ dependencies:
   provider: ^6.0.1
   # firebase_auth_desktop: ^1.0.2-flipper
   # firebase_core_desktop: ^1.0.2-dev
-  firebase_ui_auth: ^1.10.0
-  firebase_auth: ^4.15.3
+  firebase_ui_auth: ^1.12.1
+  firebase_auth: ^4.16.0
   google_fonts: ^6.1.0
   stacked: ^3.4.1+1
   firebase_messaging: ^14.6.2
@@ -153,7 +153,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.371.0
+  msix_version: 1.170.372.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

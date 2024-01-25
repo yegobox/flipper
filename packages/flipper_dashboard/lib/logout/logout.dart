@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'logout_model.dart';
 
 const double _graphicSize = 60;
@@ -114,6 +114,7 @@ class LogOut extends StackedView<LogoutModel> {
                       } else {
                         //this is mobile client we can safely logout without deleting devices
                         await ProxyService.isar.logOut();
+
                         viewModel.runStartupLogic(refreshCredentials: true);
                         completer(DialogResponse(confirmed: true));
                       }
