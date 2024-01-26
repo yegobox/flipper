@@ -9,6 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_ui_auth: ^1.12.1
+  firebase_ui_auth: ^1.11.0
 
   firebase_ui_localizations: ^1.9.0

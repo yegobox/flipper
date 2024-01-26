@@ -13,6 +13,9 @@ import 'package:realm/realm.dart';
 
 import 'package:flutter/services.dart';
 import 'models.dart';
+import 'dart:developer';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 mixin IsolateHandler {
   static late Isar isar;
@@ -22,6 +25,15 @@ mixin IsolateHandler {
     if (value is Product) {
       isar.write((isar) => isar.products.put(value));
     }
+  }
+
+  static Future<String> absolutePath(String fileName) async {
+    final appDocsDirectory = await getApplicationDocumentsDirectory();
+    final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
+    if (!Directory(realmDirectory).existsSync()) {
+      await Directory(realmDirectory).create(recursive: true);
+    }
+    return "$realmDirectory/$fileName";
   }
 
   static Future handleRealm(List<dynamic> args) async {
@@ -46,9 +58,11 @@ mixin IsolateHandler {
         RealmStock.schema,
         RealmIUnit.schema
       ],
+      path: await absolutePath("db_"),
     );
 
     final realm = Realm(config);
+    Realm.logger.level = RealmLogLevel.trace;
     // final realm = await Realm.open(config);
     sendPort.send('Inited realm ${branchId}');
     // Subscribe to changes for transactions

@@ -113,7 +113,7 @@ class RealmSync<M extends IJsonSerializable>
       print(e);
       realm = Realm(config);
     }
-
+    // Realm.logger.level = RealmLogLevel.trace;
     updateSubscription(branchId);
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
@@ -122,17 +122,18 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   void updateSubscription(int? branchId) {
-    final transaction =
-        realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
     final transactionItem =
         realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
     final product = realm.query<RealmProduct>(r'branchId == $0', [branchId]);
     final variant = realm.query<RealmVariant>(r'branchId == $0', [branchId]);
     final stock = realm.query<RealmStock>(r'branchId == $0', [branchId]);
     final unit = realm.query<RealmIUnit>(r'branchId == $0', [branchId]);
+
+    final transaction =
+        realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
     realm.subscriptions.update((sub) {
-      sub.clear();
+      // sub.clear();
       sub.add(transaction, name: "transactions-${branchId}", update: true);
       sub.add(transactionItem,
           name: "transactionItems-${branchId}", update: true);

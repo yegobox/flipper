@@ -1493,6 +1493,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<List<Tenant>> signup({required Map business}) async {
+    log(business.toString(), name: "Signup");
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
@@ -1539,6 +1540,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup}) async {
+    log(userPhone, name: "userPhoneLoginWith");
     String phoneNumber = userPhone;
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
@@ -1569,7 +1571,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         key: 'userId',
         value: user.id,
       );
-
+      log(user.id.toString(), name: "loggedIn");
       if (user.tenants.isEmpty) {
         throw BusinessNotFoundException(
             term:

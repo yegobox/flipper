@@ -83,16 +83,14 @@ class SignupViewModel extends ReactiveViewModel {
       notifyListeners();
       //set the startup app.
       ProxyService.box.writeString(key: defaultApp, value: businessType.id);
-      firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
+
       String? referralCode = ProxyService.box.readString(key: 'referralCode');
-      log("${firebaseUser?.phoneNumber ?? firebaseUser?.email}",
-          name: ProxyService.box.getUserId().toString());
 
       List<Tenant> tenants = await ProxyService.isar.signup(business: {
         'name': kName,
         'latitude': latitude,
         'longitude': longitude,
-        'phoneNumber': firebaseUser?.phoneNumber ?? firebaseUser?.email,
+        'phoneNumber': ProxyService.box.getUserPhone(),
         'currency': 'RW',
         'createdAt': DateTime.now().toIso8601String(),
         'userId': ProxyService.box.getUserId(),

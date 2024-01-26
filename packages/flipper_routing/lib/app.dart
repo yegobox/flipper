@@ -247,3 +247,26 @@ class App {}
 ///https://ryderdamen.medium.com/deploying-kubernetes-web-servers-to-digital-ocean-with-tls-and-terraform-2ccba95c5a3c
 ///
 ///https://blog.wimwauters.com/devops/2022-02-25-digitalocean_terraform_k8s/
+///Example of how to use completer
+/// User? _currentUser;
+//  Completer<void> _completer = Completer();
+
+// initState(){
+//  firebaseAuth.userChanges().skip(1).listen((user) {
+//       _currentUser = user;
+//       if (!_completer.isCompleted) {
+//         _completer.complete();
+//       }
+//     });
+// }
+
+
+//  Future<String?> get accessToken async {
+//     try {
+//       await _completer.future;
+//       return await _currentUser?.getIdToken(true);
+//     } catch (_) {
+//       return null;
+//     }
+//   }
+

@@ -22,7 +22,7 @@ class AppService with ListenableServiceMixin {
   final _categories = ReactiveValue<List<Category>>([]);
   List<Category> get categories => _categories.value;
   // TODO: make _business nullable when starting
-  
+
   final _business = ReactiveValue<isar.Business?>(isar.Business(
     id: randomNumber(),
     isDefault: false,
@@ -60,6 +60,7 @@ class AppService with ListenableServiceMixin {
   /// we fist log in to the business portal
   /// before we log to other apps as the business portal
   /// is the mother of all apps
+  /// 
   Future<bool> isLoggedIn() async {
     firebase.User? user = firebase.FirebaseAuth.instance.currentUser;
     int? businessId = ProxyService.box.getBusinessId();

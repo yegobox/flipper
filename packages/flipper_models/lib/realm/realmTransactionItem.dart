@@ -1,4 +1,3 @@
-import 'package:isar/isar.dart';
 import 'package:realm/realm.dart';
 
 part 'realmTransactionItem.g.dart';
@@ -10,7 +9,6 @@ class _RealmITransactionItem {
   @MapTo('_id')
   late ObjectId realmId;
   late String name;
-  @Index()
   late String transactionId;
   late String variantId;
   // quantity
