@@ -32,6 +32,7 @@ mixin IsolateHandler {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
     isar = await isarK();
+    sendPort.send('Inited isar');
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     List<int> key = encryptionKey.toIntList();
@@ -49,12 +50,12 @@ mixin IsolateHandler {
 
     final realm = Realm(config);
     // final realm = await Realm.open(config);
-
+    sendPort.send('Inited realm ${branchId}');
     // Subscribe to changes for transactions
     final iTransactionsCollection =
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
 
-    iTransactionsCollection.changes.listen((changes) async {
+    await for (final changes in iTransactionsCollection.changes) {
       for (final result in changes.results) {
         final model = createmodel(result);
 
@@ -64,13 +65,13 @@ mixin IsolateHandler {
         ITransaction data = ITransaction.fromJson(model.toJson());
         data.action = AppActions.synchronized;
         ITransaction? localTransaction = isar.iTransactions.get(data.id);
-        if (localTransaction == null && data.branchId == branchId) {
+        if (localTransaction == null) {
           isar.write((isar) {
             isar.iTransactions.put(data);
           });
           sendPort.send('Created transaction ${model.id}');
-        } else if (localTransaction != null &&
-            data.lastTouched.isNewDateCompareTo(localTransaction.lastTouched)) {
+        } else if (data.lastTouched
+            .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
@@ -80,13 +81,13 @@ mixin IsolateHandler {
           sendPort.send('Updated transaction ${model.id}');
         }
       }
-    });
+    }
 
     /// subscribe to change for
     final iTransactionsItemCollection =
         realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
 
-    iTransactionsItemCollection.changes.listen((changes) {
+    await for (final changes in iTransactionsItemCollection.changes) {
       for (final result in changes.results) {
         final model = createTransactionItemModel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
@@ -96,13 +97,13 @@ mixin IsolateHandler {
         TransactionItem data = TransactionItem.fromJson(model.toJson());
         data.action = AppActions.synchronized;
         TransactionItem? localTransaction = isar.transactionItems.get(data.id);
-        if (localTransaction == null && data.branchId == branchId) {
+        if (localTransaction == null) {
           isar.write((isar) {
             isar.transactionItems.put(data);
           });
           sendPort.send('Created transactionItem ${model.id}');
-        } else if (localTransaction != null &&
-            data.lastTouched.isNewDateCompareTo(localTransaction.lastTouched)) {
+        } else if (data.lastTouched
+            .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
@@ -112,13 +113,13 @@ mixin IsolateHandler {
           sendPort.send('Updated transactionItem ${model.id}');
         }
       }
-    });
+    }
 
     //
     final iVariantsCollection =
         realm.query<RealmVariant>(r'branchId == $0', [branchId]);
 
-    iVariantsCollection.changes.listen((changes) {
+    await for (final changes in iVariantsCollection.changes) {
       for (final result in changes.results) {
         final model = createVariantModel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
@@ -128,13 +129,13 @@ mixin IsolateHandler {
         Variant data = Variant.fromJson(model.toJson());
         data.action = AppActions.synchronized;
         Variant? localTransaction = isar.variants.get(data.id);
-        if (localTransaction == null && data.branchId == branchId) {
+        if (localTransaction == null) {
           isar.write((isar) {
             isar.variants.put(data);
           });
           sendPort.send('Created Variant ${model.id}');
-        } else if (localTransaction != null &&
-            data.lastTouched.isNewDateCompareTo(localTransaction.lastTouched)) {
+        } else if (data.lastTouched
+            .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
@@ -144,12 +145,12 @@ mixin IsolateHandler {
           sendPort.send('Updated Variant ${model.id}');
         }
       }
-    });
+    }
     //
     final iProductsCollection =
         realm.query<RealmProduct>(r'branchId == $0', [branchId]);
 
-    iProductsCollection.changes.listen((changes) {
+    await for (final changes in iProductsCollection.changes) {
       for (final result in changes.results) {
         final model = createProductModel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
@@ -159,13 +160,13 @@ mixin IsolateHandler {
         Product data = Product.fromJson(model.toJson());
         data.action = AppActions.synchronized;
         Product? localTransaction = isar.products.get(data.id);
-        if (localTransaction == null && data.branchId == branchId) {
+        if (localTransaction == null) {
           isar.write((isar) {
             isar.products.put(data);
           });
           sendPort.send('Created Product ${model.id}');
-        } else if (localTransaction != null &&
-            data.lastTouched.isNewDateCompareTo(localTransaction.lastTouched)) {
+        } else if (data.lastTouched
+            .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
@@ -175,11 +176,11 @@ mixin IsolateHandler {
           sendPort.send('Updated Product ${model.id}');
         }
       }
-    });
+    }
     //
     final iStocksCollection =
         realm.query<RealmStock>(r'branchId == $0', [branchId]);
-    iStocksCollection.changes.listen((changes) async {
+    await for (final changes in iStocksCollection.changes) {
       for (final result in changes.results) {
         final model = createStockModel(result);
         if (model.action == AppActions.deleted && model.deletedAt == null) {
@@ -189,13 +190,13 @@ mixin IsolateHandler {
         Stock data = Stock.fromJson(model.toJson());
         data.action = AppActions.synchronized;
         Stock? localTransaction = isar.stocks.get(data.id);
-        if (localTransaction == null && data.branchId == branchId) {
+        if (localTransaction == null) {
           isar.write((isar) {
             isar.stocks.put(data);
           });
           sendPort.send('Created Stock ${model.id}');
-        } else if (localTransaction != null &&
-            data.lastTouched.isNewDateCompareTo(localTransaction.lastTouched)) {
+        } else if (data.lastTouched
+            .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;
 
           data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
@@ -205,7 +206,7 @@ mixin IsolateHandler {
           sendPort.send('Updated Stock ${model.id}');
         }
       }
-    });
+    }
   }
 
   static Stock createStockModel(RealmStock realmStock) {

@@ -1493,7 +1493,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<List<Tenant>> signup({required Map business}) async {
-    log(jsonEncode(business));
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),

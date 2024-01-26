@@ -48,6 +48,7 @@ class CronService {
       ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+      ProxyService.realm.pull();
       await _heartBeatPull();
     });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
@@ -152,7 +153,7 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(minutes: kDebugMode ? 1 : 5);
+    return Duration(seconds: kDebugMode ? 30 : 60);
   }
 
   _heartBeatPull() async {
@@ -162,6 +163,6 @@ class CronService {
   static void _backgroundHeartBeat(_) {
     // This function will run in a separate isolate
     // Perform the heartBeat operation here
-    ProxyService.realm.heartBeat();
+    //ProxyService.realm.heartBeat();
   }
 }

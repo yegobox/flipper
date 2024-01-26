@@ -57,30 +57,32 @@ class RealmSync<M extends IJsonSerializable>
     final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
-        user,
-        [
-          RealmITransaction.schema,
-          RealmITransactionItem.schema,
-          RealmProduct.schema,
-          RealmVariant.schema,
-          RealmStock.schema,
-          RealmIUnit.schema
-        ],
-        // encryptionKey:key,
-        path: await absolutePath("db_"),
-        clientResetHandler: RecoverUnsyncedChangesHandler(
-      onBeforeReset: (beforeResetRealm) {
-        log("reset requested here..");
+      user,
+      [
+        RealmITransaction.schema,
+        RealmITransactionItem.schema,
+        RealmProduct.schema,
+        RealmVariant.schema,
+        RealmStock.schema,
+        RealmIUnit.schema
+      ],
+      // encryptionKey:key,
+      path: await absolutePath("db_"),
+      clientResetHandler: RecoverUnsyncedChangesHandler(
+        onBeforeReset: (beforeResetRealm) {
+          log("reset requested here..");
 
-        ///which the SDK invokes prior to the client reset.
-        ///You can use this callback to notify the user before the reset begins.
-      },
-    ), shouldCompactCallback: ((totalSize, usedSize) {
-      // Compact if the file is over 10MB in size and less than 50% 'used'
-      const tenMB = 10 * 1048576;
-      return (totalSize > tenMB) &&
-          (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-    }));
+          ///which the SDK invokes prior to the client reset.
+          ///You can use this callback to notify the user before the reset begins.
+        },
+      ),
+      // shouldCompactCallback: ((totalSize, usedSize) {
+      //   // Compact if the file is over 10MB in size and less than 50% 'used'
+      //   const tenMB = 10 * 1048576;
+      //   return (totalSize > tenMB) &&
+      //       (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+      // }),
+    );
     // realm = await Realm.open(config);
     CancellationToken token = CancellationToken();
 
