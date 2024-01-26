@@ -54,7 +54,8 @@ class RealmSync<M extends IJsonSerializable>
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
+    final user = app.currentUser ??
+        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiKey));
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
