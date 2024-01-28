@@ -554,6 +554,21 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     });
   }
 
+  
+  // get list of Business from isar where userId = userId
+  // if list is empty then get list from online
+  @override
+  Future<List<Business>> businesses({int? userId}) async {
+    List<Business> businesses = [];
+    if (userId != null) {
+      businesses = db.read((isar) => isar.business.where().userIdEqualTo(userId).findAll());
+    } else {
+      businesses = db.read((isar) => isar.business.where().findAll());
+    }
+
+    return businesses;
+  }
+
   @override
   Future<List<Branch>> branches({int? businessId}) async {
     // if in local db we have no branch fetch it from online
@@ -1243,19 +1258,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         (isar) => isar.discounts.where().branchIdEqualTo(branchId).findAll());
   }
 
-  // get list of Business from isar where userId = userId
-  // if list is empty then get list from online
-  @override
-  Future<List<Business>> businesses({int? userId}) async {
-    List<Business> businesses = [];
-    if (userId != null) {
-      businesses = db.read((isar) => isar.business.where().userIdEqualTo(userId).findAll());
-    } else {
-      businesses = db.read((isar) => isar.business.where().findAll());
-    }
-
-    return businesses;
-  }
 
   @override
   Future<Business> getOnlineBusiness({required int userId}) async {
