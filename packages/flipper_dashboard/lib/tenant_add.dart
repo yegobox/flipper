@@ -9,6 +9,7 @@ import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
+import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'customappbar.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -42,29 +43,28 @@ class _TenantAddState extends State<TenantAdd> {
               _routerService.pop();
             },
           ),
-          body: SafeArea(
-            child: SafeArea(
-              child: Stack(
-                children: [
-                  //
-                  isAddingUser
-                      ? Center(
-                          child: LoadingAnimationWidget.fallingDot(
-                            color: Colors.blueGrey,
-                            size: 100,
-                          ),
-                        )
-                      : SizedBox.shrink(),
-                  // Your existing content
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: _buildAddTenantForm(model, context),
-                  ),
-                  Spacer(),
-                  _buildTenantsList(model),
-                ],
+          body: Column(
+            children: [
+              SafeArea(
+                child: Stack(
+                  children: [
+                    isAddingUser
+                        ? Center(
+                            child: LoadingAnimationWidget.fallingDot(
+                              color: Colors.blueGrey,
+                              size: 100,
+                            ),
+                          )
+                        : SizedBox.shrink(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: _buildAddTenantForm(model, context),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              _buildTenantsList(model),
+            ],
           ),
         );
       },
@@ -93,11 +93,35 @@ class _TenantAddState extends State<TenantAdd> {
             icon: Icons.phone,
             keyboardType: TextInputType.phone,
             validator: (value) {
-              final RegExp phoneExp = RegExp(r'^\d{10}$');
-              if (value == null || !phoneExp.hasMatch(value)) {
+              // Validate email first
+              if (EmailValidatorFlutter().validateEmail(value ?? "")) {
+                // If valid email, return null (no validation error)
+                return null;
+              }
+
+              // Focus on phone number validation
+              if (value == null || value.isEmpty) {
+                return "Please enter a phone number or email address"; // Handle empty input
+              }
+
+              if (!value.startsWith("+")) {
+                return "Phone number should contain country code with + sign";
+              }
+
+              // Extract phone number without country code
+              final phoneNumberWithoutCode = value.substring(1);
+
+              // Flexible phone number validation using a more comprehensive regex
+              final phoneExp = RegExp(r'^\d{7,15}$'); // Allow 7-15 digits
+              if (!phoneExp.hasMatch(phoneNumberWithoutCode)) {
                 return "Invalid phone number";
               }
-              return null;
+              // Catch-all check for remaining invalid input
+              if (!EmailValidatorFlutter().validateEmail(value) &&
+                  !phoneExp.hasMatch(phoneNumberWithoutCode)) {
+                return "Invalid input format. Please enter a valid email address or phone number.";
+              }
+              return null; // Valid phone number
             },
           ),
           _steps != 0 && _steps != 1
@@ -114,6 +138,9 @@ class _TenantAddState extends State<TenantAdd> {
                               isAddingUser = true;
                             });
                             await _addUser(model);
+                            setState(() {
+                              isAddingUser = false;
+                            });
                           } catch (e) {
                             setState(() {
                               isAddingUser = false;
@@ -207,22 +234,61 @@ class _TenantAddState extends State<TenantAdd> {
 
   Widget _buildTenantsList(FlipperBaseModel model) {
     return Expanded(
-      child: ListView(
-        shrinkWrap: true,
-        children: model.tenants
-            .map(
-              (tenant) => ListTile(
-                onTap: () async {
-                  await _toggleNFC(tenant as Tenant, model);
-                },
-                leading: Text(tenant.name),
-                trailing: Icon(
-                  Icons.nfc,
-                  color: tenant.nfcEnabled == true ? Colors.blue : Colors.red,
+      child: Container(
+        padding: EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.0),
+            topRight: Radius.circular(20.0),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ListView(
+          shrinkWrap: true,
+          children: model.tenants
+              .map(
+                (tenant) => Card(
+                  elevation: 2.0,
+                  margin: EdgeInsets.symmetric(vertical: 8.0),
+                  child: ListTile(
+                    onTap: () async {
+                      await _toggleNFC(tenant as Tenant, model);
+                    },
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.blue,
+                      child: Text(
+                        tenant.name.substring(0, 1).toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      tenant.name,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.nfc,
+                      color:
+                          tenant.nfcEnabled == true ? Colors.blue : Colors.red,
+                    ),
+                  ),
                 ),
-              ),
-            )
-            .toList(),
+              )
+              .toList(),
+        ),
       ),
     );
   }

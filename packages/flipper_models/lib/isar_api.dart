@@ -554,14 +554,14 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     });
   }
 
-  
   // get list of Business from isar where userId = userId
   // if list is empty then get list from online
   @override
   Future<List<Business>> businesses({int? userId}) async {
     List<Business> businesses = [];
     if (userId != null) {
-      businesses = db.read((isar) => isar.business.where().userIdEqualTo(userId).findAll());
+      businesses = db.read(
+          (isar) => isar.business.where().userIdEqualTo(userId).findAll());
     } else {
       businesses = db.read((isar) => isar.business.where().findAll());
     }
@@ -1258,7 +1258,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         (isar) => isar.discounts.where().branchIdEqualTo(branchId).findAll());
   }
 
-
   @override
   Future<Business> getOnlineBusiness({required int userId}) async {
     final response = await flipperHttpClient
@@ -1493,12 +1492,60 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           phoneNumber: jTenant.phoneNumber);
 
       db.write((isar) {
-        isar.business.putAll(jTenant.businesses);
-        isar.branchs.putAll(jTenant.branches);
-        isar.permissions.putAll(jTenant.permissions);
+        for (var business in jTenant.businesses) {
+          // Check if the business with the same ID already exists
+          var existingBusiness =
+              isar.business.where().idEqualTo(business.id).findFirst();
+          if (existingBusiness != null) {
+            // Business already exists, update it
+            existingBusiness.name = business.name;
+            // Update other properties as needed
+          } else {
+            // Business doesn't exist, add it
+            isar.business.put(business);
+          }
+        }
+
+        for (var branch in jTenant.branches) {
+          // Check if the branch with the same ID already exists
+          var existingBranch =
+              isar.branchs.where().idEqualTo(branch.id).findFirst();
+          if (existingBranch != null) {
+            // Branch already exists, update it
+            existingBranch.name = branch.name;
+            // Update other properties as needed
+          } else {
+            // Branch doesn't exist, add it
+            isar.branchs.put(branch);
+          }
+        }
+
+        for (var permission in jTenant.permissions) {
+          // Check if the permission with the same ID already exists
+          var existingPermission =
+              isar.permissions.where().idEqualTo(permission.id).findFirst();
+          if (existingPermission != null) {
+            // Permission already exists, update it
+            existingPermission.name = permission.name;
+            // Update other properties as needed
+          } else {
+            // Permission doesn't exist, add it
+            isar.permissions.put(permission);
+          }
+        }
       });
+
       db.write((isar) {
-        isar.iTenants.put(iTenant);
+        //
+        var tenant = isar.iTenants
+            .where()
+            .phoneNumberEqualTo(iTenant.phoneNumber)
+            .or()
+            .emailEqualTo(iTenant.email)
+            .findFirst();
+        if (tenant == null) {
+          isar.iTenants.put(iTenant);
+        }
       });
 
       return Tenant.fromRawJson(response.body);
