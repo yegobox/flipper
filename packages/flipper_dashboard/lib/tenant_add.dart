@@ -60,6 +60,7 @@ class _TenantAddState extends State<TenantAdd> {
                     padding: const EdgeInsets.all(8.0),
                     child: _buildAddTenantForm(model, context),
                   ),
+                  Spacer(),
                   _buildTenantsList(model),
                 ],
               ),
