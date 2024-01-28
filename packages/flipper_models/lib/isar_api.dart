@@ -476,6 +476,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           retailPrice: variation.retailPrice,
           supplyPrice: variation.supplyPrice,
           currentStock: variation.qty!,
+          value: variation.qty! * variation.retailPrice,
           productId: variation.productId,
         )..active = false;
 
@@ -488,12 +489,13 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
       stock.action = AppActions.updated;
       stock.lastTouched = DateTime.now().toLocal();
-
+      stock.value = variation.qty! * variation.retailPrice;
       db.write((isar) => isar.stocks.onPut(stock));
 
       variant.qty = variation.qty!;
       variant.retailPrice = variation.retailPrice;
       variant.supplyPrice = variation.supplyPrice;
+
       variant.action = AppActions.updated;
       variant.lastTouched = DateTime.now().toLocal();
 
@@ -519,6 +521,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         retailPrice: variation.retailPrice,
         supplyPrice: variation.supplyPrice,
         currentStock: variation.qty!,
+        value: variation.qty! * variation.retailPrice,
         productId: variation.productId,
       )..active = true;
 
@@ -611,7 +614,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true);
-    double subTotal = items.fold(0, (a, b) => a + (b.price * b.qty));
+    double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
     transaction.customerChangeDue = (cashReceived - subTotal);
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
@@ -629,6 +632,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     for (TransactionItem item in items) {
       Stock? stock = await stockByVariantId(variantId: item.variantId);
       stock.currentStock = stock.currentStock - item.qty;
+      // stock value after item deduct
+      stock.value = stock.currentStock * (stock.retailPrice ?? 0.0);
       stock.action = AppActions.updated;
       item.doneWithTransaction = true;
       item.updatedAt = DateTime.now().toIso8601String();
@@ -1755,6 +1760,20 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           .and()
           .deletedAtIsNull()
           .findFirst())!;
+    }
+  }
+
+  @override
+  Stream<double> getStockValue({required int branchId}) async* {
+    //
+    while (true) {
+      double totalStock = 0.0;
+      final stocks = db.read(
+        (isar) => isar.stocks.where().branchIdEqualTo(branchId).findAll(),
+      );
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.value ?? 0));
+      yield totalStock;
+      await Future.delayed(Duration(seconds: 1));
     }
   }
 

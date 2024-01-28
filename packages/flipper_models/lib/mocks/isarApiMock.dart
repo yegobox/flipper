@@ -986,4 +986,10 @@ class IsarAPIMock<M> implements IsarApiInterface {
     // TODO: implement getVariantByProductIdStream
     throw UnimplementedError();
   }
+
+  @override
+  Stream<double> getStockValue({required int branchId}) {
+    // TODO: implement getStockValue
+    throw UnimplementedError();
+  }
 }

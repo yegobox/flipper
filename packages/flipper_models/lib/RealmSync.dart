@@ -447,21 +447,36 @@ class RealmSync<M extends IJsonSerializable>
     // realm.close();
   }
 
+  Isolate? _isolate; // Define _isolate as a nullable Isolate variable.
+
   @override
   Future<void> pull() async {
-    RootIsolateToken? rootIsolateToken = RootIsolateToken.instance;
-    int branchId = ProxyService.box.getBranchId()!;
-    String key = ProxyService.box.encryptionKey();
-    ReceivePort receivePort = ReceivePort();
-    await Isolate.spawn(IsolateHandler.handleRealm, [
-      rootIsolateToken,
-      receivePort.sendPort,
-      branchId,
-      key,
-    ]);
-    receivePort.listen((message) {
-      log('Isolate: $message');
-    });
+    try {
+      // Check for an existing isolate and close it if necessary.
+      if (_isolate != null) {
+        _isolate?.kill(priority: Isolate.immediate);
+        await Future.delayed(const Duration(microseconds: 100));
+        _isolate = null;
+      }
+
+      // Create a new isolate and handle its messages.
+      ReceivePort receivePort = ReceivePort();
+      _isolate = await Isolate.spawn(
+        IsolateHandler.handleRealm,
+        [
+          RootIsolateToken.instance,
+          receivePort.sendPort,
+          ProxyService.box.getBranchId()!,
+          ProxyService.box.encryptionKey(),
+        ],
+      );
+      receivePort.listen((message) {
+        log('Isolate: $message');
+      });
+    } catch (error) {
+      // Handle any errors that occur during isolate management.
+      log('Error managing isolates: $error');
+    }
   }
 
   @override

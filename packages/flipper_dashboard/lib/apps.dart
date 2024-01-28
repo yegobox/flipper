@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -228,7 +229,9 @@ class _AppsState extends ConsumerState<Apps> {
               height: 200,
               child: Column(
                 children: [
-                  ProxyService.remoteConfig.bannerAd(),
+                  !kDebugMode
+                      ? ProxyService.remoteConfig.bannerAd()
+                      : SizedBox.shrink(),
                   Center(
                     child: Text(
                       'FROM YEGOBOX',

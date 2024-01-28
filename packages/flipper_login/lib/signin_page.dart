@@ -9,110 +9,139 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-class AuthOptionPage extends StatelessWidget {
+class AuthOptionPage extends StatefulWidget {
+  @override
+  State<AuthOptionPage> createState() => _AuthOptionPageState();
+}
+
+class _AuthOptionPageState extends State<AuthOptionPage> {
   final _routerService = locator<RouterService>();
+
   final _authController = AuthController();
 
+  bool isAddingUser = false;
+
+  @override
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Center(
-        child: Column(
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            SizedBox(height: screenHeight * 0.1),
-            Image.asset(
-              'assets/flipper_logo.png',
-              package: 'flipper_login',
-            ),
-            SizedBox(height: screenHeight * 0.1),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                "How would you like to proceed?",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/flipper_logo.png',
+                  package: 'flipper_login',
                 ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            SizedBox(height: screenHeight * 0.1),
-            SizedBox(
-              width: 368,
-              height: 68,
-              child: OutlinedButton(
-                key: Key("phoneNumberLogin"),
-                style: primaryButtonStyle.copyWith(
-                  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
-                    (states) => RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
+                SizedBox(height: screenHeight * 0.1),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Text(
+                    "How would you like to proceed?",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.1),
+                SizedBox(
+                  width: 368,
+                  height: 68,
+                  child: OutlinedButton(
+                    key: Key("phoneNumberLogin"),
+                    style: primaryButtonStyle.copyWith(
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                        (states) => RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    onPressed: () async {
+                      setState(() {
+                        isAddingUser = true;
+                      });
+                      _routerService.clearStackAndShow(CountryPickerRoute());
+                    },
+                    child: Text(
+                      "Phone Number",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 20,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-                onPressed: () async {
-                  _routerService.clearStackAndShow(CountryPickerRoute());
-                },
-                child: Text(
-                  "Phone Number",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
+                 // SizedBox(
+            //   width: 368,
+            //   height: 68,
+            //   child: OAuthProviderButton(
+            //     variant: OAuthButtonVariant.icon,
+            //     provider:
+            //         GoogleProvider(clientId: _googleClientId, scopes: [
+            //       ga.DriveApi.driveFileScope,
+            //       ga.DriveApi.driveMetadataScope,
+            //       ga.DriveApi.driveAppdataScope,
+            //       ga.DriveApi.driveScope
+            //     ]),
+            //   ),
+            // ),
+                SizedBox(height: screenHeight * 0.02),
+                AuthButton(
+                  key: Key("googleLogin"),
+                  onPressed: () async {
+                    setState(() {
+                      isAddingUser = true;
+                    });
+                    final provider = GoogleAuthProvider();
+                    final user = await FirebaseAuth.instance
+                        .signInWithProvider(provider);
+                    if (user.user != null) {
+                      _authController.notifySignedIn();
+                      _routerService.clearStackAndShow(
+                          StartUpViewRoute(invokeLogin: true));
+                    }
+                  },
+                  iconPath: 'assets/google.svg',
                 ),
+                SizedBox(height: screenHeight * 0.02),
+                AuthButton(
+                  key: Key("microsoftLogin"),
+                  onPressed: () async {
+                    log('microsoft');
+                    setState(() {
+                      isAddingUser = true;
+                    });
+                    final provider = MicrosoftAuthProvider();
+                    provider.addScope('mail.read');
+                    final user = await FirebaseAuth.instance
+                        .signInWithProvider(provider);
+                    if (user.user != null) {
+                      _authController.notifySignedIn();
+                      _routerService.clearStackAndShow(
+                          StartUpViewRoute(invokeLogin: true));
+                    }
+                  },
+                  iconPath: 'assets/microsoft.svg',
+                ),
+              ],
+            ),
+            if (isAddingUser)
+              LoadingAnimationWidget.fallingDot(
+                color: Colors.blueGrey,
+                size: 100,
               ),
-            ),
-            SizedBox(height: screenHeight * 0.02),
-              //NOTE: The old code for google auth was not opening browser but then the entire button was not clickable
-                // SizedBox(
-                //   width: 368,
-                //   height: 68,
-                //   child: OAuthProviderButton(
-                //     variant: OAuthButtonVariant.icon,
-                //     provider:
-                //         GoogleProvider(clientId: _googleClientId, scopes: [
-                //       ga.DriveApi.driveFileScope,
-                //       ga.DriveApi.driveMetadataScope,
-                //       ga.DriveApi.driveAppdataScope,
-                //       ga.DriveApi.driveScope
-                //     ]),
-                //   ),
-                // ),
-            AuthButton(
-              key: Key("googleLogin"),
-              onPressed: () async {
-                final provider = GoogleAuthProvider();
-                final user =
-                    await FirebaseAuth.instance.signInWithProvider(provider);
-                if (user.user != null) {
-                  _authController.notifySignedIn();
-                  _routerService
-                      .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
-                }
-              },
-              iconPath: 'assets/google.svg',
-            ),
-            SizedBox(height: screenHeight * 0.02),
-            AuthButton(
-              key: Key("microsoftLogin"),
-              onPressed: () async {
-                log('microsoft');
-                final provider = MicrosoftAuthProvider();
-                provider.addScope('mail.read');
-                final user =
-                    await FirebaseAuth.instance.signInWithProvider(provider);
-                if (user.user != null) {
-                  _authController.notifySignedIn();
-                  _routerService
-                      .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
-                }
-              },
-              iconPath: 'assets/microsoft.svg',
-            ),
           ],
         ),
       ),

@@ -31,6 +31,7 @@ abstract class IsarApiInterface {
   Future<Category?> activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
+  Stream<double> getStockValue({required int branchId});
   Future<int> update<T>({required T data, bool localUpdate = false});
 
   Future<bool> delete({required String id, String? endPoint});

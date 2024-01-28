@@ -13,7 +13,6 @@ import 'package:realm/realm.dart';
 
 import 'package:flutter/services.dart';
 import 'models.dart';
-import 'dart:developer';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 

@@ -58,7 +58,7 @@ class StartupViewModel extends FlipperBaseModel {
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         if (Platform.isWindows) {
-          /// we are suppoed to come to desktop when business is registered
+          /// we are supposed to come to desktop when business is registered
           /// therefore why we logout first if we find no related business
           /// then go to login again to force the user to login with the right
           /// credential, this is likely to not happen in real environment.
