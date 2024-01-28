@@ -97,7 +97,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Branch>> branches({required int businessId}) {
+  Future<List<Branch>> branches({int? businessId}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -109,7 +109,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Business>> businesses({required int userId}) {
+  Future<List<Business>> businesses({int? userId}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }

@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
+import 'drawerB.dart';
 import 'widgets/dropdown.dart';
 import 'customappbar.dart';
 import 'widgets/mini_app_icon.dart';
@@ -103,45 +104,57 @@ class _AppsState extends ConsumerState<Apps> {
     );
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
+      drawer: MyDrawer(),
       appBar: CustomAppBar(
         isDividerVisible: false,
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
           child: FutureBuilder<ITenant?>(
-              future: ProxyService.isar
-                  .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
-              builder: (a, snapshoot) {
-                if (snapshoot.connectionState == ConnectionState.waiting ||
-                    !snapshoot.hasData) {
-                  return const SizedBox.shrink();
-                }
-                final data = snapshoot.data;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12.0),
-                  child: SizedBox(
-                      height: 40,
-                      width: 40,
-                      child: ProfileWidget(
-                        tenant: data!,
-                        sessionActive: true,
-                        size: 25,
-                        showIcon: false,
-                      )),
-                );
-              }),
+            future: ProxyService.isar
+                .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  !snapshot.hasData) {
+                return const SizedBox.shrink();
+              }
+              final data = snapshot.data;
+              return Padding(
+                padding: const EdgeInsets.only(right: 12.0),
+                child: SizedBox(
+                  height: 40,
+                  width: 40,
+                  child: ProfileWidget(
+                    tenant: data!,
+                    sessionActive: true,
+                    size: 25,
+                    showIcon: false,
+                  ),
+                ),
+              );
+            },
+          ),
         ),
-        customLeadingWidget: Container(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 12.0),
-            child: Image.asset(
-              'assets/logo.png',
-              package: 'flipper_dashboard',
-              width: 30,
-              height: 30,
+        customLeadingWidget: GestureDetector(
+          onTap: () {
+            // Open the drawer when the customLeadingWidget is tapped
+            _scaffoldKey.currentState?.openDrawer();
+          },
+          child: Container(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Image.asset(
+                'assets/logo.png',
+                package: 'flipper_dashboard',
+                width: 30,
+                height: 30,
+              ),
             ),
           ),
         ),

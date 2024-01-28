@@ -78,6 +78,10 @@ mixin IsolateHandler {
       for (final result in changes.results) {
         final model = createmodel(result);
 
+        /// avoid saving saving a pending transaction to avoid
+        /// missing out showing this transaction, when we support showing pending
+        /// transaction on different device this might change
+        if (model.status == PENDING) return;
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }

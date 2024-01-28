@@ -9,9 +9,9 @@ abstract class IsarApiInterface {
       {required int branchId, required String transactionType});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
-  Future<List<Business>> businesses({required int userId});
+  Future<List<Business>> businesses({int? userId});
   Future<Business> getOnlineBusiness({required int userId});
-  Future<List<Branch>> branches({required int businessId});
+  Future<List<Branch>> branches({int? businessId});
   Future<double> stocks({String? productId, String? variantId});
   Stream<double> getStockStream({String? productId, String? variantId});
   Future<List<ITransaction>> transactionsFuture({
