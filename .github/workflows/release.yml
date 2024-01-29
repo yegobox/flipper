@@ -211,12 +211,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
-      - run: |
-          echo "Available secrets:"
-          echo "KEYSTORE_KEY_ALIAS=${{ secrets.KEYSTORE_KEY_ALIAS }}"
-        env:
-            PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-            KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
@@ -270,6 +264,8 @@ jobs:
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode  > play_store_upload_key.txt
+          cat play_store_upload_key.txt
           echo "storeFile=key.jks" >> key.properties
           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
