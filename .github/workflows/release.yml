@@ -210,16 +210,6 @@ jobs:
     # needs: [unit-testing,integration-testing-windows,android-integration-test]
     runs-on: ubuntu-22.04
     steps:
-      - name: Cat
-        run: |
-          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --encode  > play_store_upload_key.txt
-          cat play_store_upload_key.txt
-        env:
-          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
       - run: git config --global core.autocrlf false
       # Set up Flutter.
       - name: Clone Flutter repository with stable channel

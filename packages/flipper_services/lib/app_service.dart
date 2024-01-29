@@ -60,7 +60,7 @@ class AppService with ListenableServiceMixin {
   /// we fist log in to the business portal
   /// before we log to other apps as the business portal
   /// is the mother of all apps
-  /// 
+  ///
   Future<bool> isLoggedIn() async {
     firebase.User? user = firebase.FirebaseAuth.instance.currentUser;
     int? businessId = ProxyService.box.getBusinessId();
@@ -140,6 +140,9 @@ class AppService with ListenableServiceMixin {
       bool defaultBranch = await setActiveBranch(businesses: businesses.first);
 
       if (!defaultBranch) {
+        /// when a business is registered the default branch is set automatically
+        /// which will not trigger the login choices when loggin in, this has to change to false
+        /// so it always prompt the user to chose a branch.
         throw LoginChoicesException(term: "choose default branch");
       }
     } else {

@@ -153,7 +153,7 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 30 : 60);
+    return Duration(seconds: kDebugMode ? 30 : 30);
   }
 
   _heartBeatPull() async {
