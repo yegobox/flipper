@@ -81,7 +81,7 @@ mixin IsolateHandler {
         /// avoid saving saving a pending transaction to avoid
         /// missing out showing this transaction, when we support showing pending
         /// transaction on different device this might change
-        //if (model.status == PENDING) return;
+        if (model.status == PENDING) return;
         if (model.action == AppActions.deleted && model.deletedAt == null) {
           model.deletedAt = DateTime.now();
         }
@@ -89,10 +89,12 @@ mixin IsolateHandler {
         data.action = AppActions.synchronized;
         ITransaction? localTransaction = isar.iTransactions.get(data.id);
         if (localTransaction == null) {
+          data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
           isar.write((isar) {
             isar.iTransactions.put(data);
           });
-          sendPort.send('Created transaction ${model.id}');
+
+          sendPort.send('Created transaction ${model.subTotal}');
         } else if (data.lastTouched
             .isNewDateCompareTo(localTransaction.lastTouched)) {
           data.action = AppActions.synchronized;

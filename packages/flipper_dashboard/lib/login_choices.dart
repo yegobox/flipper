@@ -161,7 +161,7 @@ class _LoginChoicesState extends State<LoginChoices> {
       if (tenants.isEmpty) {
         await ProxyService.isar.tenantsFromOnline(businessId: business.id);
       }
-      await model.app.loadCounters(business);
+      await model.app.loadTenants([business]);
       setState(() {
         _isNext = true;
       });

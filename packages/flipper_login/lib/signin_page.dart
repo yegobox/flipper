@@ -83,20 +83,20 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                     ),
                   ),
                 ),
-                 // SizedBox(
-            //   width: 368,
-            //   height: 68,
-            //   child: OAuthProviderButton(
-            //     variant: OAuthButtonVariant.icon,
-            //     provider:
-            //         GoogleProvider(clientId: _googleClientId, scopes: [
-            //       ga.DriveApi.driveFileScope,
-            //       ga.DriveApi.driveMetadataScope,
-            //       ga.DriveApi.driveAppdataScope,
-            //       ga.DriveApi.driveScope
-            //     ]),
-            //   ),
-            // ),
+                // SizedBox(
+                //   width: 368,
+                //   height: 68,
+                //   child: OAuthProviderButton(
+                //     variant: OAuthButtonVariant.icon,
+                //     provider:
+                //         GoogleProvider(clientId: _googleClientId, scopes: [
+                //       ga.DriveApi.driveFileScope,
+                //       ga.DriveApi.driveMetadataScope,
+                //       ga.DriveApi.driveAppdataScope,
+                //       ga.DriveApi.driveScope
+                //     ]),
+                //   ),
+                // ),
                 SizedBox(height: screenHeight * 0.02),
                 AuthButton(
                   key: Key("googleLogin"),
@@ -125,6 +125,8 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                     });
                     final provider = MicrosoftAuthProvider();
                     provider.addScope('mail.read');
+                    log(FirebaseAuth.instance.currentUser?.uid ?? "None",
+                        name: "microsoft");
                     final user = await FirebaseAuth.instance
                         .signInWithProvider(provider);
                     if (user.user != null) {
@@ -135,6 +137,45 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                   },
                   iconPath: 'assets/microsoft.svg',
                 ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: 368,
+                  height: 68,
+                  child: OutlinedButton(
+                    key: Key('pinLogin'),
+                    child: Text(
+                      'PIN Login',
+                      style: TextStyle(color: Color(0xff006AFE)),
+                    ),
+                    style: ButtonStyle(
+                      shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+                          (states) => RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4))),
+                      side: MaterialStateProperty.resolveWith<BorderSide>(
+                        (states) => BorderSide(
+                          color: const Color(0xff006AFE).withOpacity(0.1),
+                        ),
+                      ),
+                      backgroundColor: MaterialStateProperty.all<Color>(
+                          const Color(0xff006AFE).withOpacity(0.1)),
+                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                        (Set<MaterialState> states) {
+                          if (states.contains(MaterialState.hovered)) {
+                            return Color(0xff006AFE).withOpacity(0.5);
+                          }
+                          if (states.contains(MaterialState.focused) ||
+                              states.contains(MaterialState.pressed)) {
+                            return Color(0xff006AFE).withOpacity(0.5);
+                          }
+                          return Color(0xff006AFE).withOpacity(0.5);
+                        },
+                      ),
+                    ),
+                    onPressed: () {
+                      _routerService.navigateTo(PinLoginRoute());
+                    },
+                  ),
+                )
               ],
             ),
             if (isAddingUser)
