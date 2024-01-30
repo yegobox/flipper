@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
@@ -130,7 +131,7 @@ class AppService with ListenableServiceMixin {
     }
     await loadTenants(businesses);
     List<isar.Branch> branches = await ProxyService.isar.branches();
-    if (businesses.length > 1 || branches.length > 1) {
+    if (businesses.length > 1 || branches.length > 1 && !Platform.isWindows) {
       throw LoginChoicesException(term: "Choose default business");
     }
   }
