@@ -128,9 +128,9 @@ class AppService with ListenableServiceMixin {
         rethrow;
       }
     }
+    await loadTenants(businesses);
     List<isar.Branch> branches = await ProxyService.isar.branches();
     if (businesses.length > 1 || branches.length > 1) {
-      await loadTenants(businesses);
       throw LoginChoicesException(term: "Choose default business");
     }
   }

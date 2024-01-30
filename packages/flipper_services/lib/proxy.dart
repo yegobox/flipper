@@ -2,6 +2,7 @@ import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/RealmSync.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/remote_service.dart';
+import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
@@ -110,4 +111,5 @@ abstract class ProxyService {
   static Status get status => _status;
   static SentryServiceInterface get sentry => _sentry;
   static Device get device => _device;
+  static NotificationStream get notie => NotificationStream();
 }

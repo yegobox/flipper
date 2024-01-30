@@ -164,6 +164,7 @@ class App {}
 // draft
 // getting key hash key
 //  keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+//  keytool -list -v -keystore ./debug.keystore -alias androiddebugkey -storepass android -keypass android
 // TODO:learn more about bluetooth here https://github.com/TrackMyIndoorWorkout/TrackMyIndoorWorkout
 // TODO: resisable widget https://pub.dev/packages/resizable_widget, https://github.com/zamaniafshar/Flutter-Resizable-Widget
 // TODO: https://github.com/firebase/flutterfire/issues/11648 (this need to be fixed before updating to firebase_auth latest)
@@ -269,4 +270,11 @@ class App {}
 //       return null;
 //     }
 //   }
-
+/// users to use while testing tenant
+/// start by creating a business and add the bellow users to that business
+/// then logout and log in the users to test if when they login
+/// they are prompted to choose a business/branches to login to
+/// FYI they will have to register fully before prompted to login to the business/branch
+//+250783054002 - User A
+//+250783054874 - User B
+//+250783054801 - User C

@@ -8,27 +8,28 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/FirestoreSync.dart' as _i32;
+import 'package:flipper_models/FirestoreSync.dart' as _i33;
 import 'package:flipper_models/http_client_interface.dart' as _i14;
 import 'package:flipper_models/isar_models.dart' as _i15;
-import 'package:flipper_models/RealmSync.dart' as _i33;
-import 'package:flipper_models/remote_service.dart' as _i24;
-import 'package:flipper_models/sync.dart' as _i30;
-import 'package:flipper_models/sync_service.dart' as _i31;
-import 'package:flipper_models/tax_api.dart' as _i35;
-import 'package:flipper_models/whatsapp.dart' as _i37;
+import 'package:flipper_models/RealmSync.dart' as _i34;
+import 'package:flipper_models/remote_service.dart' as _i25;
+import 'package:flipper_models/sync.dart' as _i31;
+import 'package:flipper_models/sync_service.dart' as _i32;
+import 'package:flipper_models/tax_api.dart' as _i36;
+import 'package:flipper_models/view_models/NotificationStream.dart' as _i21;
+import 'package:flipper_models/whatsapp.dart' as _i38;
 import 'package:get_it/get_it.dart' as _i1;
 import 'package:injectable/injectable.dart' as _i2;
 
 import 'abstractions/analytic.dart' as _i3;
 import 'abstractions/dynamic_link.dart' as _i10;
 import 'abstractions/location.dart' as _i12;
-import 'abstractions/printer.dart' as _i21;
-import 'abstractions/remote.dart' as _i23;
-import 'abstractions/shareable.dart' as _i28;
+import 'abstractions/printer.dart' as _i22;
+import 'abstractions/remote.dart' as _i24;
+import 'abstractions/shareable.dart' as _i29;
 import 'abstractions/storage.dart' as _i19;
-import 'abstractions/system_time.dart' as _i34;
-import 'abstractions/upload.dart' as _i36;
+import 'abstractions/system_time.dart' as _i35;
+import 'abstractions/upload.dart' as _i37;
 import 'app_service.dart' as _i4;
 import 'billing_service.dart' as _i5;
 import 'country_service.dart' as _i6;
@@ -38,15 +39,15 @@ import 'event_interface.dart' as _i11;
 import 'firebase_messaging.dart' as _i20;
 import 'FirebaseCrashlyticService.dart' as _i7;
 import 'force_data_service.dart' as _i13;
-import 'in_app_review.dart' as _i25;
+import 'in_app_review.dart' as _i26;
 import 'keypad_service.dart' as _i16;
 import 'language_service.dart' as _i18;
 import 'local_notification_service.dart' as _i17;
-import 'product_service.dart' as _i22;
-import 'sentry_service.dart' as _i26;
-import 'services_module.dart' as _i38;
-import 'setting_service.dart' as _i27;
-import 'status.dart' as _i29;
+import 'product_service.dart' as _i23;
+import 'sentry_service.dart' as _i27;
+import 'services_module.dart' as _i39;
+import 'setting_service.dart' as _i28;
+import 'status.dart' as _i30;
 
 extension GetItInjectableX on _i1.GetIt {
 // initializes the registration of main-scope dependencies inside of GetIt
@@ -88,38 +89,39 @@ extension GetItInjectableX on _i1.GetIt {
       preResolve: true,
     );
     gh.lazySingleton<_i20.Messaging>(() => servicesModule.messaging);
-    gh.lazySingleton<_i21.Printer>(() => servicesModule.printService);
-    gh.lazySingleton<_i22.ProductService>(
+    gh.lazySingleton<_i21.NotificationStream>(() => servicesModule.notie);
+    gh.lazySingleton<_i22.Printer>(() => servicesModule.printService);
+    gh.lazySingleton<_i23.ProductService>(
         () => servicesModule.productService());
-    gh.lazySingleton<_i23.Remote>(() => servicesModule.remote);
-    await gh.factoryAsync<_i24.RemoteInterface>(
+    gh.lazySingleton<_i24.Remote>(() => servicesModule.remote);
+    await gh.factoryAsync<_i25.RemoteInterface>(
       () => servicesModule.remoteApi,
       preResolve: true,
     );
-    gh.lazySingleton<_i25.Review>(() => servicesModule.review);
-    gh.lazySingleton<_i26.SentryServiceInterface>(
+    gh.lazySingleton<_i26.Review>(() => servicesModule.review);
+    gh.lazySingleton<_i27.SentryServiceInterface>(
         () => servicesModule.sentry());
-    gh.factory<_i27.SettingsService>(() => servicesModule.settingsService);
-    gh.lazySingleton<_i28.Shareable>(() => servicesModule.share);
-    gh.lazySingleton<_i29.Status>(() => servicesModule.status);
-    gh.lazySingleton<_i30.Sync<_i31.IJsonSerializable>>(
+    gh.factory<_i28.SettingsService>(() => servicesModule.settingsService);
+    gh.lazySingleton<_i29.Shareable>(() => servicesModule.share);
+    gh.lazySingleton<_i30.Status>(() => servicesModule.status);
+    gh.lazySingleton<_i31.Sync<_i32.IJsonSerializable>>(
         () => servicesModule.sync());
-    gh.lazySingleton<_i32.SyncFirestore<_i31.IJsonSerializable>>(
+    gh.lazySingleton<_i33.SyncFirestore<_i32.IJsonSerializable>>(
         () => servicesModule.syncFirestore());
-    gh.lazySingleton<_i33.SyncReaml<_i31.IJsonSerializable>>(
+    gh.lazySingleton<_i34.SyncReaml<_i32.IJsonSerializable>>(
         () => servicesModule.syncRealm());
-    gh.lazySingleton<_i34.SystemTime>(() => servicesModule.systemTime);
-    gh.lazySingleton<_i35.TaxApi>(() => servicesModule.taxApiService);
-    gh.lazySingleton<_i36.UploadT>(() => servicesModule.upload);
-    gh.lazySingleton<_i37.WhatsApp>(() => servicesModule.whatsApp);
+    gh.lazySingleton<_i35.SystemTime>(() => servicesModule.systemTime);
+    gh.lazySingleton<_i36.TaxApi>(() => servicesModule.taxApiService);
+    gh.lazySingleton<_i37.UploadT>(() => servicesModule.upload);
+    gh.lazySingleton<_i38.WhatsApp>(() => servicesModule.whatsApp);
     return this;
   }
 }
 
-class _$ServicesModule extends _i38.ServicesModule {
+class _$ServicesModule extends _i39.ServicesModule {
   @override
   _i16.KeyPadService get keypadService => _i16.KeyPadService();
 
   @override
-  _i27.SettingsService get settingsService => _i27.SettingsService();
+  _i28.SettingsService get settingsService => _i28.SettingsService();
 }

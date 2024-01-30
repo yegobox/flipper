@@ -862,7 +862,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITenant>> tenants({required int businessId}) {
+  Future<List<ITenant>> tenants({int? businessId}) {
     // TODO: implement tenants
     throw UnimplementedError();
   }

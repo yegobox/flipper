@@ -36,7 +36,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 class RealmSync<M extends IJsonSerializable>
     with HandleItemMixin
     implements SyncReaml<M> {
-  late Realm realm;
+   Realm? realm;
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
@@ -118,36 +118,38 @@ class RealmSync<M extends IJsonSerializable>
     updateSubscription(branchId);
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-    await realm.subscriptions.waitForSynchronization();
-    return realm;
+    await realm?.subscriptions.waitForSynchronization();
+    return realm!;
   }
 
   void updateSubscription(int? branchId) {
+    if(realm==null)return;
     final transactionItem =
-        realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
-    final product = realm.query<RealmProduct>(r'branchId == $0', [branchId]);
-    final variant = realm.query<RealmVariant>(r'branchId == $0', [branchId]);
-    final stock = realm.query<RealmStock>(r'branchId == $0', [branchId]);
-    final unit = realm.query<RealmIUnit>(r'branchId == $0', [branchId]);
+        realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+    final product = realm!.query<RealmProduct>(r'branchId == $0', [branchId]);
+    final variant = realm!.query<RealmVariant>(r'branchId == $0', [branchId]);
+    final stock = realm!.query<RealmStock>(r'branchId == $0', [branchId]);
+    final unit = realm!.query<RealmIUnit>(r'branchId == $0', [branchId]);
 
     final transaction =
-        realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
+        realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
-    realm.subscriptions.update((sub) {
+    realm?.subscriptions.update((sub) {
       // sub.clear();
-      sub.add(transaction, name: "transactions-${branchId}", update: true);
-      sub.add(transactionItem,
+      sub.add(transaction!, name: "transactions-${branchId}", update: true);
+      sub.add(transactionItem!,
           name: "transactionItems-${branchId}", update: true);
-      sub.add(product, name: "iProduct-${branchId}", update: true);
-      sub.add(variant, name: "iVariant-${branchId}", update: true);
-      sub.add(stock, name: "iStock-${branchId}", update: true);
-      sub.add(unit, name: "iUnit-${branchId}", update: true);
+      sub.add(product!, name: "iProduct-${branchId}", update: true);
+      sub.add(variant!, name: "iVariant-${branchId}", update: true);
+      sub.add(stock!, name: "iStock-${branchId}", update: true);
+      sub.add(unit!, name: "iUnit-${branchId}", update: true);
     });
   }
 
   @override
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments) {
-    final results = realm.query<T>(query, arguments);
+    if(realm==null)return null;
+    final results = realm!.query<T>(query, arguments);
     if (results.isNotEmpty) {
       return results.first;
     }
@@ -164,11 +166,11 @@ class RealmSync<M extends IJsonSerializable>
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
     //TODO: when action is updated_locally do not do anything but wait for a 1 week to introduce the changes
     // before the system full get all defaulted update on devices
-
+    if(realm==null)return;
     if (item is ITransaction) {
       // Save _RealmITransaction to the Realm database
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         final realmITransaction = RealmITransaction(
           item.id,
           ObjectId(),
@@ -194,10 +196,10 @@ class RealmSync<M extends IJsonSerializable>
           updatedAt: item.updatedAt,
         );
         final findableObject =
-            realm.query<RealmITransaction>(r'id == $0', [item.id]);
+            realm!.query<RealmITransaction>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm.add(realmITransaction);
+          realm!.add(realmITransaction);
         } else {
           RealmITransaction existingTransaction = findableObject.first;
           if (existingTransaction.action == AppActions.synchronized) return;
@@ -209,7 +211,7 @@ class RealmSync<M extends IJsonSerializable>
     if (item is TransactionItem) {
       // Save _RealmITransaction to the Realm database
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         final realmITransactionItem = RealmITransactionItem(
           ObjectId(),
           item.name,
@@ -265,10 +267,10 @@ class RealmSync<M extends IJsonSerializable>
           useYn: item.useYn,
         );
         final findableObject =
-            realm.query<RealmITransactionItem>(r'id == $0', [item.id]);
+            realm!.query<RealmITransactionItem>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm.add(realmITransactionItem);
+          realm!.add(realmITransactionItem);
         } else {
           RealmITransactionItem existingTransaction = findableObject.first;
           if (existingTransaction.action == AppActions.synchronized) return;
@@ -284,7 +286,7 @@ class RealmSync<M extends IJsonSerializable>
       /// the moment of creation
       if (item.name == TEMP_PRODUCT) return;
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         final realmProduct = RealmProduct(
           item.id,
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -309,10 +311,10 @@ class RealmSync<M extends IJsonSerializable>
           lastTouched: item.lastTouched, // Update lastTouched timestamp
         );
         final findableObject =
-            realm.query<RealmProduct>(r'id == $0', [item.id]);
+            realm!.query<RealmProduct>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Transaction doesn't exist, add it
-          realm.add(realmProduct);
+          realm!.add(realmProduct);
         } else {
           RealmProduct existingTransaction = findableObject.first;
           if (existingTransaction.action == AppActions.synchronized) return;
@@ -322,7 +324,7 @@ class RealmSync<M extends IJsonSerializable>
     }
     if (item is Variant) {
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         final realmVariant = RealmVariant(
           ObjectId(), // Auto-generate ObjectId for realmId
           item.name,
@@ -373,10 +375,10 @@ class RealmSync<M extends IJsonSerializable>
           splyAmt: item.splyAmt,
         );
         final findableObject =
-            realm.query<RealmVariant>(r'id == $0', [item.id]);
+            realm!.query<RealmVariant>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Variant doesn't exist, add it
-          realm.add(realmVariant);
+          realm!.add(realmVariant);
         } else {
           RealmVariant existingTransaction = findableObject.first;
           if (existingTransaction.action == AppActions.synchronized) return;
@@ -386,7 +388,7 @@ class RealmSync<M extends IJsonSerializable>
     }
     if (item is Stock) {
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         final realmStock = RealmStock(
           item.id,
           ObjectId(), // Auto-generate ObjectId for realmId
@@ -406,10 +408,10 @@ class RealmSync<M extends IJsonSerializable>
           lastTouched: item.lastTouched,
           deletedAt: item.deletedAt,
         );
-        final findableObject = realm.query<RealmStock>(r'id == $0', [item.id]);
+        final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
           // Stock doesn't exist, add it
-          realm.add(realmStock);
+          realm!.add(realmStock);
         } else {
           // Stock exists, update it
           RealmStock existingTransaction = findableObject.first;
@@ -420,7 +422,7 @@ class RealmSync<M extends IJsonSerializable>
     }
     if (item is IUnit) {
       if (item.action == AppActions.synchronized) return;
-      realm.write(() {
+      realm!.write(() {
         IUnit data = item;
         final realmUnit = RealmIUnit(
           ObjectId(),
@@ -431,11 +433,11 @@ class RealmSync<M extends IJsonSerializable>
           data.active,
         );
 
-        final findableObject = realm.query<RealmIUnit>(r'id == $0', [data.id]);
+        final findableObject = realm!.query<RealmIUnit>(r'id == $0', [data.id]);
 
         if (findableObject.isEmpty) {
           // Unit doesn't exist, add it
-          realm.add(realmUnit);
+          realm!.add(realmUnit);
         } else {
           // Unit exists, update it
           RealmIUnit existingUnit = findableObject.first;
@@ -451,6 +453,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> pull() async {
+    if(realm==null)return;
     try {
       // Check for an existing isolate and close it if necessary.
       if (_isolate != null) {
@@ -489,6 +492,7 @@ class RealmSync<M extends IJsonSerializable>
   /// to get changes as subscribing to the change is not getting
   /// data to the device in time we think!
   Future<void> heartBeat() async {
+    if(realm==null)return;
     log('calling heart beat');
     int branchId = ProxyService.box.getBranchId()!;
     var headers = {
@@ -563,6 +567,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   void close() {
-    realm.close();
+    if(realm==null)return null;
+    realm!.close();
   }
 }

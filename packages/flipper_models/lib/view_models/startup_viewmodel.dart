@@ -11,6 +11,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+import 'NotificationStream.dart';
+
 class StartupViewModel extends FlipperBaseModel {
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
@@ -28,7 +30,6 @@ class StartupViewModel extends FlipperBaseModel {
         log("refreshCredentials");
         await appService.isLoggedIn();
       }
-      log("refreshCredentials bellow");
       await appService.appInit();
       log("User " + ProxyService.box.getUserId().toString(),
           name: 'runStartupLogic');
@@ -55,6 +56,7 @@ class StartupViewModel extends FlipperBaseModel {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         log(stackTrace.toString(), name: 'runStartupLogic');
+        await ProxyService.isar.logOut();
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         if (Platform.isWindows) {
@@ -62,6 +64,8 @@ class StartupViewModel extends FlipperBaseModel {
           /// therefore why we logout first if we find no related business
           /// then go to login again to force the user to login with the right
           /// credential, this is likely to not happen in real environment.
+
+           ProxyService.notie.sendData('Could not login business with user ${ProxyService.box.getUserId()} not found!');
           await ProxyService.isar.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         } else {

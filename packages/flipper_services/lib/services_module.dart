@@ -10,6 +10,7 @@ import 'package:flipper_models/mocks/isarApiMock.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
+import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -66,6 +67,11 @@ abstract class ServicesModule {
   @LazySingleton()
   dev.Device get device {
     return dev.DeviceIdService();
+  }
+
+  @LazySingleton()
+  NotificationStream get notie {
+    return NotificationStream();
   }
 
   @preResolve

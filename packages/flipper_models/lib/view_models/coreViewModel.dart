@@ -879,13 +879,22 @@ class CoreViewModel extends FlipperBaseModel
     app.setTenant(tenant: tenant);
   }
 
-  void setDefaultBusiness({required Business business}) {
+  Future<void> setDefaultBusiness({required Business business}) async {
     app.setBusiness(business: business);
+    List<Business> businesses = await ProxyService.isar.businesses();
+    for(Business business in businesses){
+      await ProxyService.isar.update(data: business..isDefault = false);
+    }
     ProxyService.isar.update(data: business..isDefault = true);
     ProxyService.box.writeInt(key: 'businessId', value: business.id);
   }
 
-  void setDefaultBranch({required Branch branch}) {
+  Future<void> setDefaultBranch({required Branch branch}) async {
+    //first set other branch to not active
+    List<Branch> branches =await ProxyService.isar.branches();
+    for(Branch branch in branches){
+      await ProxyService.isar.update(data: branch..isDefault = false);
+    }
     ProxyService.isar.update(data: branch..isDefault = true);
     ProxyService.box.writeInt(key: 'branchId', value: branch.id);
   }

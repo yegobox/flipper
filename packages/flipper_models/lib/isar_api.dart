@@ -1459,6 +1459,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
+    await firebase.FirebaseAuth.instance.signOut();
     //https://github.com/firebase/flutterfire/issues/2185
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
   }
@@ -1496,12 +1497,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           // Check if the business with the same ID already exists
           var existingBusiness =
               isar.business.where().idEqualTo(business.id).findFirst();
-          if (existingBusiness != null) {
-            // Business already exists, update it
-            existingBusiness.name = business.name;
-            // Update other properties as needed
-          } else {
-            // Business doesn't exist, add it
+          if (existingBusiness == null) {
             isar.business.put(business);
           }
         }
@@ -1510,12 +1506,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           // Check if the branch with the same ID already exists
           var existingBranch =
               isar.branchs.where().idEqualTo(branch.id).findFirst();
-          if (existingBranch != null) {
-            // Branch already exists, update it
-            existingBranch.name = branch.name;
-            // Update other properties as needed
-          } else {
-            // Branch doesn't exist, add it
+          if (existingBranch == null) {
             isar.branchs.put(branch);
           }
         }
@@ -1524,11 +1515,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           // Check if the permission with the same ID already exists
           var existingPermission =
               isar.permissions.where().idEqualTo(permission.id).findFirst();
-          if (existingPermission != null) {
-            // Permission already exists, update it
-            existingPermission.name = permission.name;
-            // Update other properties as needed
-          } else {
+          if (existingPermission == null) {
             // Permission doesn't exist, add it
             isar.permissions.put(permission);
           }
@@ -1536,13 +1523,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       });
 
       db.write((isar) {
-        //
-        var tenant = isar.iTenants
-            .where()
-            .phoneNumberEqualTo(iTenant.phoneNumber)
-            .or()
-            .emailEqualTo(iTenant.email)
-            .findFirst();
+        var tenant = isar.iTenants.where().idEqualTo(iTenant.id).findFirst();
         if (tenant == null) {
           isar.iTenants.put(iTenant);
         }
@@ -2548,16 +2529,20 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITenant>> tenants({required int businessId}) async {
-    return db.read((isar) =>
-        isar.iTenants.where().businessIdEqualTo(businessId).findAll());
+  Future<List<ITenant>> tenants({ int? businessId}) async {
+    return db.read((isar) {
+        if(businessId !=null){
+     return isar.iTenants.where().businessIdEqualTo(businessId).findAll();
+    }else{
+      return isar.iTenants.where().findAll();
+    }});
   }
 
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
-    String id = businessId.toString();
+
     final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$id"));
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;

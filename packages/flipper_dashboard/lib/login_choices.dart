@@ -30,13 +30,8 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
-          int? userId = ProxyService.box.getUserId();
           List<Business> _b =
-              await ProxyService.isar.businesses(userId: userId!);
-          if (_b.isEmpty) {
-            await ProxyService.isar.logOut();
-            _routerService.clearStackAndShow(LoginViewRoute());
-          }
+              await ProxyService.isar.businesses();
 
           setState(() {
             _businesses = _b;
@@ -161,7 +156,6 @@ class _LoginChoicesState extends State<LoginChoices> {
       if (tenants.isEmpty) {
         await ProxyService.isar.tenantsFromOnline(businessId: business.id);
       }
-      await model.app.loadTenants([business]);
       setState(() {
         _isNext = true;
       });
