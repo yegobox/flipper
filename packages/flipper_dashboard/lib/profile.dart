@@ -20,12 +20,12 @@ import 'package:stacked/stacked.dart';
 class ProfileWidget extends StatefulWidget {
   const ProfileWidget({
     super.key,
-    required this.tenant,
+    required this.branch,
     required this.sessionActive,
     this.showIcon = true,
     this.size = 50,
   });
-  final ITenant tenant;
+  final Branch branch;
   final double? size;
   final bool showIcon;
   final bool sessionActive;
@@ -101,7 +101,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
                               callBack: (res) async {
                                 if (res == "500") return;
                               },
-                              id: widget.tenant.businessId,
+                              id: widget.branch.businessId,
                             );
                           },
                         ),
@@ -130,7 +130,7 @@ class PDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
       future:
-          ProxyService.isar.getBusiness(businessId: widget.tenant.businessId),
+          ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         // final data = snapshot.data;
         // final hasImage = data?.imageUrl != null;
@@ -154,7 +154,8 @@ class PDesktop extends StatelessWidget {
                     ),
                   ],
               child: GmailLikeLetter(
-                  tenant: widget.tenant,
+                  key: Key(widget.branch.id.toString()),
+                  branch: widget.branch,
                   size: widget.size,
                   sessionActive: widget.sessionActive)
               // TODO: re-enable bellow coded once showing profile pic on client is fully supported
@@ -224,7 +225,7 @@ class PMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
       future:
-          ProxyService.isar.getBusiness(businessId: widget.tenant.businessId),
+          ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
         // ignore: unused_local_variable
@@ -246,7 +247,8 @@ class PMobile extends StatelessWidget {
             //TODO: remove negation from !hasImage if profile image is fully supported
             // removed if from showing it because it need more work to follow ContinuousRectangleBorder specs
             child: GmailLikeLetter(
-              tenant: widget.tenant,
+              key: Key(widget.branch.id.toString()),
+              branch: widget.branch,
               sessionActive: sessionActive,
               size: widget.size,
             ),

@@ -28,4 +28,5 @@ abstract class LocalStorage {
   int? paginationId();
   String encryptionKey();
   Future<bool> clear();
+  Future<bool> authComplete();
 }

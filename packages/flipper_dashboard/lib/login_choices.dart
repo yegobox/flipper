@@ -18,144 +18,121 @@ class LoginChoices extends StatefulWidget {
 
 class _LoginChoicesState extends State<LoginChoices> {
   List<Business> _businesses = [];
-
   bool _isNext = false;
-  bool _businessChoosen = false;
-  final bool _chooseBranch = false;
+  bool _businessChosen = false;
+  bool _businessCheckbox = false; // Separate variable for business ListView
+  bool _branchCheckbox = false; // Separate variable for branch ListView
+
   final _routerService = locator<RouterService>();
 
   @override
   Widget build(BuildContext context) {
-    // final currentTransaction = ref.watch(pendingTransactionProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
-        onViewModelReady: (model) async {
-          List<Business> _b =
-              await ProxyService.isar.businesses();
-
-          setState(() {
-            _businesses = _b;
-          });
-        },
-        builder: (context, model, child) {
-          return Scaffold(
-            body: SafeArea(
-              child: Padding(
-                  padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * 0.1),
-                  child: !_isNext
-                      ? Column(
-                          children: [
-                            Text(
-                              _isNext ? "Choose a Branch" : "Choose a business",
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                            ListView(
-                              shrinkWrap: true,
-                              children: _businesses
-                                  .map((e) => Card(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(0.0),
-                                        ),
-                                        margin: const EdgeInsets.fromLTRB(
-                                            8.0, 20, 8, 0),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: <Widget>[
-                                                Text(
-                                                  e.name!,
-                                                  style: GoogleFonts.poppins(
-                                                    fontSize: 16.0,
-                                                    fontWeight: FontWeight.w500,
-                                                    color: Colors.black,
-                                                  ),
-                                                ), //Text
-
-                                                Checkbox(
-                                                  value: _chooseBranch,
-                                                  onChanged: (value) async {
-                                                    await chooseBusiness(
-                                                        value, model, e);
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ))
-                                  .toList(),
-                            )
-                          ],
-                        )
-                      : Column(
-                          children: [
-                            const Text("Choose a branch"),
-                            ListView(
-                                shrinkWrap: true,
-                                children: model.branches
-                                    .map((e) => Card(
-                                          margin: const EdgeInsets.fromLTRB(
-                                              120.0, 20, 120, 0),
-                                          child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceAround,
-                                                children: <Widget>[
-                                                  Text(
-                                                    e.name!,
-                                                    style: const TextStyle(
-                                                        fontSize: 17.0),
-                                                  ), //Text
-
-                                                  Checkbox(
-                                                    value: _chooseBranch,
-                                                    onChanged: (value) async {
-                                                      await chooseBranch(
-                                                          value, model, e);
-                                                    },
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ))
-                                    .toList()),
-                          ],
-                        )),
-            ),
-          );
+      viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) async {
+        List<Business> _b = await ProxyService.isar.businesses();
+        List<Branch> branches = await ProxyService.isar.branches();
+        model.branchesList(branches);
+        setState(() {
+          _businesses = _b;
         });
+      },
+      builder: (context, model, child) {
+        return Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                vertical: MediaQuery.of(context).size.height * 0.1,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    _isNext ? "Choose a Branch" : "Choose a business",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                  Expanded(
+                    child: _isNext
+                        ? _buildBranchListView(model)
+                        : _buildBusinessListView(model),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBusinessListView(CoreViewModel model) {
+    return ListView.builder(
+      itemCount: _businesses.length,
+      itemBuilder: (context, index) {
+        Business business = _businesses[index];
+        return ListTile(
+          tileColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          title: Text(
+            business.name!,
+            style: GoogleFonts.poppins(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w500,
+              color: Colors.black,
+            ),
+          ),
+          trailing: Checkbox(
+            value: _businessCheckbox, // Use the correct variable here
+            onChanged: (value) async {
+              await chooseBusiness(value, model, business);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBranchListView(CoreViewModel model) {
+    return ListView.builder(
+      itemCount: model.branches.length,
+      itemBuilder: (context, index) {
+        Branch branch = model.branches[index];
+        return ListTile(
+          tileColor: Colors.white,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          title: Text(
+            branch.name!,
+            style: TextStyle(fontSize: 17.0),
+          ),
+          trailing: Checkbox(
+            value: _branchCheckbox, // Use the correct variable here
+            onChanged: (value) async {
+              await chooseBranch(value, model, branch);
+            },
+          ),
+        );
+      },
+    );
   }
 
   Future<void> chooseBusiness(
-      bool? value, CoreViewModel model, Business business) async {
-    _businessChoosen = value!;
-    if (_businessChoosen) {
+      bool? value,
+      CoreViewModel model,
+      Business business,
+      ) async {
+    _businessChosen = value!;
+    if (_businessChosen) {
       model.setDefaultBusiness(business: business);
       print(business.id);
 
-      model.branchesList(
-          await ProxyService.isar.branches(businessId: business.id));
-      List<ITenant> tenants =
-          await ProxyService.isar.tenants(businessId: business.id);
-      if (tenants.isEmpty) {
-        await ProxyService.isar.tenantsFromOnline(businessId: business.id);
+      List<Business> businesses = await ProxyService.isar.businesses();
+      for(Business business in businesses){
+        await ProxyService.isar.update(data: business..isDefault=false);
       }
+      await ProxyService.isar.update(data: business..isDefault=true);
       setState(() {
         _isNext = true;
       });
@@ -163,8 +140,20 @@ class _LoginChoicesState extends State<LoginChoices> {
   }
 
   Future<void> chooseBranch(
-      bool? value, CoreViewModel model, Branch branch) async {
+      bool? value,
+      CoreViewModel model,
+      Branch branch,
+      ) async {
     model.setDefaultBranch(branch: branch);
+
+    List<Branch> branches = await ProxyService.isar.branches();
+    for(Branch branch in branches){
+      await ProxyService.isar.update(data: branch..isDefault=false);
+    }
+    await ProxyService.isar.update(data: branch..isDefault=true);
+
+    ProxyService.box.writeBool(key: "authComplete", value: true);
+
     if (await ProxyService.isar
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
       Drawers drawer = Drawers(

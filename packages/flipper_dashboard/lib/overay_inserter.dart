@@ -33,26 +33,22 @@ OverlayEntry insertOverlay(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      FutureBuilder<ITenant?>(
-                        future: ProxyService.isar.getTenantBYUserId(
-                          userId: ProxyService.box.getUserId()!,
-                        ),
+                      FutureBuilder<Branch?>(
+                        future: ProxyService.isar.activeBranch(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.waiting ||
                               !snapshot.hasData) {
                             return SizedBox.shrink();
                           }
-                          ITenant tenant = snapshot.data!;
+                          Branch branch = snapshot.data!;
                           return Padding(
                             padding: const EdgeInsets.only(
                                 bottom: 12.0), // Adjust spacing
                             child: ProfileWidget(
-                              tenant: tenant,
+                              branch: branch,
                               size: 25,
-                              sessionActive: tenant.sessionActive == null
-                                  ? false
-                                  : tenant.sessionActive!,
+                              sessionActive: branch.isDefault,
                               showIcon: false,
                             ),
                           );

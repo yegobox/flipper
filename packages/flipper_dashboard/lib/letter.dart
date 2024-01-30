@@ -14,12 +14,14 @@ final List<Color> colors = [
 ];
 
 class GmailLikeLetter extends StatefulWidget {
-  const GmailLikeLetter(
-      {super.key,
-      required this.tenant,
-      this.size = 100,
-      required this.sessionActive});
-  final ITenant tenant;
+  const GmailLikeLetter({
+    required Key key,
+    required this.branch,
+    this.size = 100,
+    required this.sessionActive,
+  }) : super(key: key);
+
+  final Branch branch;
   final double? size;
   final bool sessionActive;
 
@@ -46,6 +48,7 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
+      key: ValueKey(widget.branch.id), // Use a unique key for each instance
       radius: widget.size,
       backgroundColor: Colors.white,
       child: SizedBox(
@@ -55,16 +58,18 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
           width: 100,
           height: 100,
           decoration: ShapeDecoration(
-              shape: ContinuousRectangleBorder(
-                  side: BorderSide(width: 1, color: Colors.white),
-                  borderRadius: BorderRadius.circular(80.0)),
-              color: colors[Random().nextInt(colors.length)],
-              shadows: []),
+            shape: ContinuousRectangleBorder(
+              side: BorderSide(width: 1, color: Colors.white),
+              borderRadius: BorderRadius.circular(80.0),
+            ),
+            color: colors[Random().nextInt(colors.length)],
+            shadows: [],
+          ),
           child: Center(
             child: Text(
-              widget.sessionActive && widget.tenant.name.length > 0
-                  ? widget.tenant.name.substring(0, 2).toUpperCase()
-                  : 'O', // O stands for sessions time out
+              widget.sessionActive && widget.branch.name!.length > 0
+                  ? widget.branch.name!.substring(0, 2).toUpperCase()
+                  : 'O',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.white,

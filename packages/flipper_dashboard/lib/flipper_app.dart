@@ -134,7 +134,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         ref.watch(pendingTransactionProvider(TransactionType.custom));
     ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
     initializeApplicationIfRequired();
-    model.defaultTenant();
+    model.defaultBranch();
     ProxyService.isar.refreshSession(
       branchId: ProxyService.box.getBranchId()!,
       refreshRate:

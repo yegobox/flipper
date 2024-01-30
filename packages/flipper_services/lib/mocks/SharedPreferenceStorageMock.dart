@@ -171,4 +171,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
   Future<LocalStorage> initializePreferences() async {
     return this;
   }
+
+  @override
+  Future<bool> authComplete() {
+    // TODO: implement authComplete
+    throw UnimplementedError();
+  }
 }

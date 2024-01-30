@@ -347,7 +347,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Business get businesses => app.business!;
-  ITenant? get tenant => app.tenant;
+  Branch? get branch => app.branch;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -870,13 +870,12 @@ class CoreViewModel extends FlipperBaseModel
   /// one default tenant
   /// Finally, the function sets the tenant on the `app` object.
 
-  void defaultTenant() async {
-    final userId = ProxyService.box.getUserId()!;
-    final tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
-    if (tenant == null) {
-      throw Exception("could not find tenant with ${userId}");
+  void defaultBranch() async {
+    final branch = await ProxyService.isar.activeBranch();
+    if (branch == null) {
+      throw Exception("no active branch");
     }
-    app.setTenant(tenant: tenant);
+    app.setActiveBranch(branch: branch);
   }
 
   Future<void> setDefaultBusiness({required Business business}) async {
@@ -900,7 +899,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   /// a method that listen on given tenantId and perform a sale to a POS
-  /// this work with nfc card tapped on supported devices to perfom sales
+  /// this work with nfc card tapped on supported devices to perform sales
   /// []
 
   Future<void> sellWithCard(

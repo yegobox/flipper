@@ -992,4 +992,10 @@ class IsarAPIMock<M> implements IsarApiInterface {
     // TODO: implement getStockValue
     throw UnimplementedError();
   }
+
+  @override
+  Future<Branch?> activeBranch() {
+    // TODO: implement activeBranch
+    throw UnimplementedError();
+  }
 }

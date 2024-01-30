@@ -167,6 +167,11 @@ class SharedPreferenceStorage implements LocalStorage {
   String encryptionKey() {
     return prefs.getString('encryptionKey')!;
   }
+
+  @override
+  Future<bool> authComplete()async {
+    return await prefs.getBool("authComplete")??false;
+  }
 }
 
 class BoxStorage implements LocalStorage {
@@ -342,5 +347,11 @@ class BoxStorage implements LocalStorage {
   @override
   String encryptionKey() {
     return box.read('encryptionKey');
+  }
+
+  @override
+  Future<bool> authComplete() {
+    // TODO: implement authComplete
+    throw UnimplementedError();
   }
 }

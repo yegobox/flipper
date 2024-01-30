@@ -34,11 +34,11 @@ class AppService with ListenableServiceMixin {
     _business.value = business;
   }
 
-  final _tenant = ReactiveValue<isar.ITenant?>(null);
-  isar.ITenant? get tenant => _tenant.value;
+  final _branch = ReactiveValue<isar.Branch?>(null);
+  isar.Branch? get branch => _branch.value;
 
-  setTenant({required isar.ITenant tenant}) {
-    _tenant.value = tenant;
+  setActiveBranch({required isar.Branch branch}) {
+    _branch.value = branch;
   }
 
   final _customer = ReactiveValue<Customer?>(null);
@@ -131,7 +131,8 @@ class AppService with ListenableServiceMixin {
     }
     await loadTenants(businesses);
     List<isar.Branch> branches = await ProxyService.isar.branches();
-    if (businesses.length > 1 || branches.length > 1 && !Platform.isWindows) {
+    bool authComplete = await ProxyService.box.authComplete();
+    if ((businesses.length > 1 || branches.length > 1) && !Platform.isWindows && ! authComplete) {
       throw LoginChoicesException(term: "Choose default business");
     }
   }

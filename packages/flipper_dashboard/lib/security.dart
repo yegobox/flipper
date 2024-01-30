@@ -46,7 +46,7 @@ class SecurityState extends ConsumerState<Security> {
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: ProfileWidget(
-                              tenant: model.tenant!, sessionActive: true),
+                              branch: model.branch!, sessionActive: true),
                         ),
                         SizedBox(height: 10),
                         Flexible(

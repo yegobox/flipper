@@ -1456,6 +1456,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
     ProxyService.box.remove(key: 'defaultApp');
+    ProxyService.box.remove(key: 'authComplete');
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
@@ -3779,5 +3780,12 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .and()
         .deletedAtIsNull()
         .watch(fireImmediately: true));
+  }
+
+  @override
+  Future<Branch?> activeBranch() async{
+    return db.read((isar) => isar.branchs
+        .where()
+        .isDefaultEqualTo(true).findFirst());
   }
 }

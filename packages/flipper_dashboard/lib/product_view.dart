@@ -82,7 +82,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     double searchFieldWidth,
   ) {
-    final scannMode = ref.watch(scanningModeProvider);
+    final scanMode = ref.watch(scanningModeProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -96,7 +96,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                 : SliverToBoxAdapter(
                     child: SizedBox()), // Use SizedBox for mobile
             buildStickyHeader(searchFieldWidth),
-            scannMode
+            scanMode
                 ? buildVariantList(context, model)
                 : buildProductList(context, model),
             //todo when re-enabling discounts, remember it is causing black screen error
@@ -239,18 +239,16 @@ class ProductViewState extends ConsumerState<ProductView> {
 
   Widget buildProfileWidget() {
     return isDesktopOrWeb
-        ? FutureBuilder<ITenant?>(
-            future: ProxyService.isar.getTenantBYUserId(
-              userId: ProxyService.box.getUserId() ?? 0,
-            ),
-            builder: (a, snapshoot) {
-              if (snapshoot.connectionState == ConnectionState.waiting ||
-                  !snapshoot.hasData) {
+        ? FutureBuilder<Branch?>(
+            future: ProxyService.isar.activeBranch(),
+            builder: (a, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting ||
+                  !snapshot.hasData) {
                 return SizedBox.shrink();
               }
-              final data = snapshoot.data;
+              final data = snapshot.data;
               return ProfileWidget(
-                tenant: data!,
+                branch: data!,
                 size: 25,
                 sessionActive: true,
               );
