@@ -85,14 +85,43 @@ class _LoginChoicesState extends State<LoginChoices> {
             ),
           ),
           trailing: Checkbox(
-            value: _businessCheckbox, // Use the correct variable here
+            value: business.active, // Use the correct variable here
             onChanged: (value) async {
-              await chooseBusiness(value, model, business);
+              await chooseBusiness(model, business);
             },
           ),
         );
       },
     );
+  }
+  Future<void> chooseBusiness(
+      CoreViewModel model,
+      Business selectedBusiness,
+      ) async {
+
+      model.setDefaultBusiness(business: selectedBusiness);
+
+      for (int i = 0; i < _businesses.length; i++) {
+        Business currentBusiness = _businesses[i];
+
+        _businesses[i] = Business.copy(
+          currentBusiness,
+          active: currentBusiness.id == selectedBusiness.id,
+          name: currentBusiness.name,
+          // Specify new values for additional properties if needed
+          action: currentBusiness.action,
+          encryptionKey: currentBusiness.encryptionKey,
+        );
+
+         ProxyService.isar.update(data: _businesses[i]);
+      }
+
+      await ProxyService.box.writeInt(key: "businessId", value: selectedBusiness.id);
+      await Future.delayed(Duration(seconds: 3));
+    setState(() {
+        _isNext = true;
+    });
+
   }
 
   Widget _buildBranchListView(CoreViewModel model) {
@@ -108,9 +137,9 @@ class _LoginChoicesState extends State<LoginChoices> {
             style: TextStyle(fontSize: 17.0),
           ),
           trailing: Checkbox(
-            value: _branchCheckbox, // Use the correct variable here
+            value: branch.active, // Use the correct variable here
             onChanged: (value) async {
-              await chooseBranch(value, model, branch);
+              await chooseBranch( model, branch);
             },
           ),
         );
@@ -118,44 +147,30 @@ class _LoginChoicesState extends State<LoginChoices> {
     );
   }
 
-  Future<void> chooseBusiness(
-      bool? value,
-      CoreViewModel model,
-      Business business,
-      ) async {
-    _businessChosen = value!;
-    if (_businessChosen) {
-      model.setDefaultBusiness(business: business);
-      print(business.id);
-
-      List<Business> businesses = await ProxyService.isar.businesses();
-      for(Business business in businesses){
-        await ProxyService.isar.update(data: business..isDefault=false);
-      }
-      await ProxyService.isar.update(data: business..isDefault=true);
-      setState(() {
-        _isNext = true;
-      });
-    }
-  }
-
   Future<void> chooseBranch(
-      bool? value,
       CoreViewModel model,
       Branch branch,
       ) async {
     model.setDefaultBranch(branch: branch);
 
-    List<Branch> branches = await ProxyService.isar.branches();
-    for(Branch branch in branches){
-      await ProxyService.isar.update(data: branch..isDefault=false);
+    for (int i = 0; i < model.branches.length; i++) {
+      Branch currentBranch = model.branches[i];
+
+      model.branches[i] = Branch.copy(
+        currentBranch,
+        active: currentBranch.id == branch.id,
+        name: currentBranch.name,
+      );
+
+       ProxyService.isar.update(data: model.branches[i]);
     }
-    await ProxyService.isar.update(data: branch..isDefault=true);
 
     ProxyService.box.writeBool(key: "authComplete", value: true);
 
     if (await ProxyService.isar
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
+      _routerService.navigateTo(FlipperAppRoute());
+    }else{
       Drawers drawer = Drawers(
         id: randomString(),
         openingBalance: 0.0,
@@ -169,8 +184,5 @@ class _LoginChoicesState extends State<LoginChoices> {
       _routerService
           .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
     }
-    LoginInfo().isLoggedIn = true;
-
-    _routerService.navigateTo(FlipperAppRoute());
   }
 }

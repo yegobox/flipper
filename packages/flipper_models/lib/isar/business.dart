@@ -22,6 +22,7 @@ part 'business.g.dart';
 @Collection()
 class Business extends IJsonSerializable {
   Business({
+    required this.id,
     required this.action,
     required this.encryptionKey,
     this.name,
@@ -61,10 +62,18 @@ class Business extends IJsonSerializable {
     this.taxEnabled,
     this.taxServerUrl,
     this.isDefault,
-    required this.id,
+
     this.businessTypeId,
     this.deletedAt,
   });
+
+  Business.copy(Business original,
+      {bool? active, String? action, String? encryptionKey,String? name})
+      : id = original.id,
+        name = name?? original.name,
+        action = action ?? original.action,
+        encryptionKey = encryptionKey ?? original.encryptionKey,
+        active = active ?? original.active;
   late int id;
   String? name;
   String? currency;

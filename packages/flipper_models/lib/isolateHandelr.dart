@@ -43,7 +43,7 @@ mixin IsolateHandler {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
     isar = await isarK();
-    sendPort.send('Inited isar');
+
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     List<int> key = encryptionKey.toIntList();
@@ -67,6 +67,7 @@ mixin IsolateHandler {
     );
 
     final realm = Realm(config);
+    sendPort.send('Inited isar');
     Realm.logger.level = RealmLogLevel.trace;
     // final realm = await Realm.open(config);
     sendPort.send('Inited realm ${branchId}');

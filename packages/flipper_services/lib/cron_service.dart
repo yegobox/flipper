@@ -48,8 +48,8 @@ class CronService {
       ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      ProxyService.realm.pull();
-      await _heartBeatPull();
+
+      //await _heartBeatPull();
     });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();

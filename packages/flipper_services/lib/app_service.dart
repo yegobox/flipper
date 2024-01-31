@@ -138,11 +138,12 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> loadTenants(List<Business> businesses) async {
+    bool authComplete = await ProxyService.box.authComplete();
     // Check for internet connectivity
     var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult == ConnectivityResult.none || authComplete) {
       // No internet connection, handle accordingly (e.g., show an error message)
-      print('No internet connection');
+      print('No internet connection or no need to reaload tenants again');
       return;
     }
 

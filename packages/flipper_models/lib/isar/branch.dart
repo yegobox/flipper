@@ -22,7 +22,12 @@ class Branch extends IJsonSerializable {
     this.latitude,
     this.deletedAt,
   });
-
+  Branch.copy(Branch other, {bool? active, String? name})
+      : isDefault = other.isDefault,
+        action = other.action,
+        name = name?? other.name,
+        id = other.id,
+        active = active ?? other.active;
   late int id;
   bool? active;
 
