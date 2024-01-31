@@ -32,6 +32,9 @@ class _LoginChoicesState extends State<LoginChoices> {
       onViewModelReady: (model) async {
         List<Business> _b = await ProxyService.isar.businesses();
         List<Branch> branches = await ProxyService.isar.branches();
+        for(Branch branch in branches){
+          ProxyService.isar.update(data: branch..active =false);
+        }
         model.branchesList(branches);
         setState(() {
           _businesses = _b;

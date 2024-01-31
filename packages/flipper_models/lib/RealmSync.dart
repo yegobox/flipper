@@ -55,7 +55,7 @@ class RealmSync<M extends IJsonSerializable>
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
     final user = app.currentUser ??
-        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiKey));
+        await app.logIn(Credentials.anonymous());
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
