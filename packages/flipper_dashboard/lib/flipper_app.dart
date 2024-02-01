@@ -184,7 +184,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   void _requestStoragePermissions() async {
     await [
       permission.Permission.storage,
-      permission.Permission.manageExternalStorage
+      permission.Permission.manageExternalStorage,
+      permission.Permission.notification,
     ].request();
   }
 
