@@ -36,7 +36,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
   SideMenuController sideMenu = SideMenuController();
-  int tabselected = 0;
+  int tabSelected = 0;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();
   List<LogicalKeyboardKey> keys = [];
@@ -79,7 +79,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     if (!isWindows) {
       await [
         permission.Permission.storage,
-        permission.Permission.manageExternalStorage
+        permission.Permission.manageExternalStorage,
+        permission.Permission.notification,
       ].request();
     }
   }
@@ -249,7 +250,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
     return AppLayoutDrawer(
       controller: controller,
-      tabSelected: tabselected,
+      tabSelected: tabSelected,
       focusNode: focusNode,
     );
   }
