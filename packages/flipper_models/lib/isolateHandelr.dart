@@ -68,38 +68,15 @@ mixin IsolateHandler {
     // Subscribe to changes for transactions
     final iTransactionsCollection =
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
+    // query all local object and match them with read db
 
+    for (final result in iTransactionsCollection) {
+      handleTransactionData(result, sendPort);
+    }
+      // listen for changes
     await for (final changes in iTransactionsCollection.changes) {
       for (final result in changes.results) {
-        final model = createmodel(result);
-        sendPort.send('Got transaction ${model.subTotal}');
-        /// avoid saving saving a pending transaction to avoid
-        /// missing out showing this transaction, when we support showing pending
-        /// transaction on different device this might change
-        //if (model.status == PENDING) return;
-        if (model.action == AppActions.deleted && model.deletedAt == null) {
-          model.deletedAt = DateTime.now();
-        }
-        ITransaction data = ITransaction.fromJson(model.toJson());
-        data.action = AppActions.synchronized;
-        ITransaction? localTransaction = isar.iTransactions.get(data.id);
-        if (localTransaction == null) {
-          data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-          isar.write((isar) {
-            isar.iTransactions.put(data);
-          });
-
-          sendPort.send('Created transaction ${model.subTotal}');
-        } else if (data.lastTouched
-            .isNewDateCompareTo(localTransaction.lastTouched)) {
-          data.action = AppActions.synchronized;
-
-          data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-          isar.write((isar) {
-            isar.iTransactions.put(data);
-          });
-          sendPort.send('Updated transaction ${model.id}');
-        }
+        handleTransactionData(result, sendPort);
       }
     }
 
@@ -226,6 +203,38 @@ mixin IsolateHandler {
           sendPort.send('Updated Stock ${model.id}');
         }
       }
+    }
+  }
+
+  static void handleTransactionData(RealmITransaction result, SendPort sendPort) {
+    final model = iTransactionModel(result);
+    sendPort.send('Got transaction ${model.subTotal}');
+    /// avoid saving saving a pending transaction to avoid
+    /// missing out showing this transaction, when we support showing pending
+    /// transaction on different device this might change
+    if (model.status == PENDING) return;
+    if (model.action == AppActions.deleted && model.deletedAt == null) {
+      model.deletedAt = DateTime.now();
+    }
+    ITransaction data = ITransaction.fromJson(model.toJson());
+    data.action = AppActions.synchronized;
+    ITransaction? localTransaction = isar.iTransactions.get(data.id);
+    if (localTransaction == null) {
+      data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      isar.write((isar) {
+        isar.iTransactions.put(data);
+      });
+
+      sendPort.send('Created transaction ${model.subTotal}');
+    } else if (data.lastTouched
+        .isNewDateCompareTo(localTransaction.lastTouched)) {
+      data.action = AppActions.synchronized;
+
+      data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      isar.write((isar) {
+        isar.iTransactions.put(data);
+      });
+      sendPort.send('Updated transaction ${model.id}');
     }
   }
 
@@ -384,7 +393,7 @@ mixin IsolateHandler {
     );
   }
 
-  static ITransaction createmodel(RealmITransaction result) {
+  static ITransaction iTransactionModel(RealmITransaction result) {
     return ITransaction(
       reference: result.reference,
       transactionNumber: result.transactionNumber,
