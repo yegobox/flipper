@@ -61,10 +61,10 @@ mixin IsolateHandler {
     );
 
     final realm = Realm(config);
-    sendPort.send('Inited isar');
+    sendPort.send('Initiated isar');
     // Realm.logger.level = RealmLogLevel.trace;
     // final realm = await Realm.open(config);
-    sendPort.send('Inited realm ${branchId}');
+    sendPort.send('Initiated realm ${branchId}');
     // Subscribe to changes for transactions
     final iTransactionsCollection =
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);

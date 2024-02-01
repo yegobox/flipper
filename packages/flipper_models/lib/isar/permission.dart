@@ -11,9 +11,11 @@ class Permission {
   Permission({
     required this.id,
     required this.name,
+    required this.userId,
   });
   late int id;
   late String name;
+  late int userId;
 
   factory Permission.fromRecord(RecordModel record) =>
       Permission.fromJson(record.toJson());

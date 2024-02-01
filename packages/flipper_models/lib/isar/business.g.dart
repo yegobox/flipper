@@ -10751,6 +10751,7 @@ extension BusinessQueryProperty3<R1, R2>
 // **************************************************************************
 
 Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
+      id: json['id'] as int,
       action: json['action'] as String,
       encryptionKey: json['encryptionKey'] as String,
       name: json['name'] as String?,
@@ -10793,7 +10794,6 @@ Business _$BusinessFromJson(Map<String, dynamic> json) => Business(
       taxEnabled: json['taxEnabled'] as bool?,
       taxServerUrl: json['taxServerUrl'] as String?,
       isDefault: json['isDefault'] as bool?,
-      id: json['id'] as int,
       businessTypeId: json['businessTypeId'] as int?,
       deletedAt: json['deletedAt'] == null
           ? null

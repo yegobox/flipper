@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
@@ -101,17 +102,26 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                 AuthButton(
                   key: Key("googleLogin"),
                   onPressed: () async {
-                    setState(() {
-                      isAddingUser = true;
-                    });
-                    final provider = GoogleAuthProvider();
-                    final user = await FirebaseAuth.instance
-                        .signInWithProvider(provider);
-                    if (user.user != null) {
-                      _authController.notifySignedIn();
-                      _routerService.clearStackAndShow(
-                          StartUpViewRoute(invokeLogin: true));
-                    }
+                   try{
+                     setState(() {
+                       isAddingUser = true;
+                     });
+                     final provider = GoogleAuthProvider();
+                     final user = await FirebaseAuth.instance
+                         .signInWithProvider(provider);
+                     if (user.user != null) {
+                       _authController.notifySignedIn();
+                       _routerService.clearStackAndShow(
+                           StartUpViewRoute(invokeLogin: true));
+                     }
+                   }catch(e){
+                     setState(() {
+                       isAddingUser = false;
+                     });
+                     showSimpleNotification( Text("Error happened"),
+                       background: Colors.red, position: NotificationPosition.bottom,
+                     );
+                   }
                   },
                   iconPath: 'assets/google.svg',
                 ),
@@ -119,20 +129,31 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                 AuthButton(
                   key: Key("microsoftLogin"),
                   onPressed: () async {
-                    log('microsoft');
-                    setState(() {
-                      isAddingUser = true;
-                    });
-                    final provider = MicrosoftAuthProvider();
-                    provider.addScope('mail.read');
-                    log(FirebaseAuth.instance.currentUser?.uid ?? "None",
-                        name: "microsoft");
-                    final user = await FirebaseAuth.instance
-                        .signInWithProvider(provider);
-                    if (user.user != null) {
-                      _authController.notifySignedIn();
-                      _routerService.clearStackAndShow(
-                          StartUpViewRoute(invokeLogin: true));
+                    try{
+                      log('microsoft');
+                      setState(() {
+                        isAddingUser = true;
+                      });
+                      final provider = MicrosoftAuthProvider();
+                      provider.addScope('mail.read');
+                      log(FirebaseAuth.instance.currentUser?.uid ?? "None",
+                          name: "microsoft");
+
+                      final user = await FirebaseAuth.instance
+                          .signInWithProvider(provider);
+                      if (user.user != null) {
+                        _authController.notifySignedIn();
+                        _routerService.clearStackAndShow(
+                            StartUpViewRoute(invokeLogin: true));
+
+                      }
+                    }catch(e){
+                      setState(() {
+                        isAddingUser = false;
+                      });
+                      showSimpleNotification( Text("Error happened"),
+                        background: Colors.red, position: NotificationPosition.bottom,
+                      );
                     }
                   },
                   iconPath: 'assets/microsoft.svg',

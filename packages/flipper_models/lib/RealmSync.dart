@@ -36,7 +36,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 class RealmSync<M extends IJsonSerializable>
     with HandleItemMixin
     implements SyncReaml<M> {
-   Realm? realm;
+  Realm? realm;
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
@@ -54,8 +54,7 @@ class RealmSync<M extends IJsonSerializable>
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    final user = app.currentUser ??
-        await app.logIn(Credentials.anonymous());
+    final user = app.currentUser ?? await app.logIn(Credentials.anonymous());
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
@@ -103,13 +102,13 @@ class RealmSync<M extends IJsonSerializable>
     // open realm immediately with Realm() and try to sync data in the background.
 
     try {
-      realm = Realm(config);
-      // realm = await Realm.open(config, cancellationToken: token,
-      //     onProgressCallback: (syncProgress) {
-      //   if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
-      //     print('All bytes transferred!');
-      //   }
-      // });
+      //  realm = Realm(config);
+      realm = await Realm.open(config, cancellationToken: token,
+          onProgressCallback: (syncProgress) {
+        if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
+          print('All bytes transferred!');
+        }
+      });
     } catch (e) {
       print(e);
       realm = Realm(config);
@@ -119,11 +118,12 @@ class RealmSync<M extends IJsonSerializable>
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
     await realm?.subscriptions.waitForSynchronization();
+    // realm?.refresh();
     return realm!;
   }
 
   void updateSubscription(int? branchId) {
-    if(realm==null)return;
+    if (realm == null) return;
     final transactionItem =
         realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
     final product = realm!.query<RealmProduct>(r'branchId == $0', [branchId]);
@@ -148,7 +148,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments) {
-    if(realm==null)return null;
+    if (realm == null) return null;
     final results = realm!.query<T>(query, arguments);
     if (results.isNotEmpty) {
       return results.first;
@@ -166,7 +166,7 @@ class RealmSync<M extends IJsonSerializable>
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
     //TODO: when action is updated_locally do not do anything but wait for a 1 week to introduce the changes
     // before the system full get all defaulted update on devices
-    if(realm==null)return;
+    if (realm == null) return;
     if (item is ITransaction) {
       // Save _RealmITransaction to the Realm database
       if (item.action == AppActions.synchronized) return;
@@ -453,7 +453,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<void> pull() async {
-    if(realm==null)return;
+    if (realm == null) return;
     try {
       // Check for an existing isolate and close it if necessary.
       if (_isolate != null) {
@@ -492,7 +492,7 @@ class RealmSync<M extends IJsonSerializable>
   /// to get changes as subscribing to the change is not getting
   /// data to the device in time we think!
   Future<void> heartBeat() async {
-    if(realm==null)return;
+    if (realm == null) return;
     log('calling heart beat');
     int branchId = ProxyService.box.getBranchId()!;
     var headers = {
@@ -567,7 +567,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   void close() {
-    if(realm==null)return null;
+    if (realm == null) return null;
     realm!.close();
   }
 }

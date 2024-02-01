@@ -28,7 +28,7 @@ import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
-
+import 'package:flutter/foundation.dart';
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
 class MyHttpOverrides extends HttpOverrides {
@@ -101,7 +101,7 @@ Future<void> main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn =
+      options.dsn = kDebugMode? '':
           'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
       // We recommend adjusting this value in production.

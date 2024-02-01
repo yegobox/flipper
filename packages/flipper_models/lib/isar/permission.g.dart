@@ -24,6 +24,10 @@ const PermissionSchema = IsarGeneratedSchema(
         name: 'name',
         type: IsarType.string,
       ),
+      IsarPropertySchema(
+        name: 'userId',
+        type: IsarType.long,
+      ),
     ],
     indexes: [],
   ),
@@ -38,6 +42,7 @@ const PermissionSchema = IsarGeneratedSchema(
 @isarProtected
 int serializePermission(IsarWriter writer, Permission object) {
   IsarCore.writeString(writer, 1, object.name);
+  IsarCore.writeLong(writer, 2, object.userId);
   return object.id;
 }
 
@@ -47,9 +52,12 @@ Permission deserializePermission(IsarReader reader) {
   _id = IsarCore.readId(reader);
   final String _name;
   _name = IsarCore.readString(reader, 1) ?? '';
+  final int _userId;
+  _userId = IsarCore.readLong(reader, 2);
   final object = Permission(
     id: _id,
     name: _name,
+    userId: _userId,
   );
   return object;
 }
@@ -61,6 +69,8 @@ dynamic deserializePermissionProp(IsarReader reader, int property) {
       return IsarCore.readId(reader);
     case 1:
       return IsarCore.readString(reader, 1) ?? '';
+    case 2:
+      return IsarCore.readLong(reader, 2);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -70,6 +80,7 @@ sealed class _PermissionUpdate {
   bool call({
     required int id,
     String? name,
+    int? userId,
   });
 }
 
@@ -82,11 +93,13 @@ class _PermissionUpdateImpl implements _PermissionUpdate {
   bool call({
     required int id,
     Object? name = ignore,
+    Object? userId = ignore,
   }) {
     return collection.updateProperties([
           id
         ], {
           if (name != ignore) 1: name as String?,
+          if (userId != ignore) 2: userId as int?,
         }) >
         0;
   }
@@ -96,6 +109,7 @@ sealed class _PermissionUpdateAll {
   int call({
     required List<int> id,
     String? name,
+    int? userId,
   });
 }
 
@@ -108,9 +122,11 @@ class _PermissionUpdateAllImpl implements _PermissionUpdateAll {
   int call({
     required List<int> id,
     Object? name = ignore,
+    Object? userId = ignore,
   }) {
     return collection.updateProperties(id, {
       if (name != ignore) 1: name as String?,
+      if (userId != ignore) 2: userId as int?,
     });
   }
 }
@@ -124,6 +140,7 @@ extension PermissionUpdate on IsarCollection<int, Permission> {
 sealed class _PermissionQueryUpdate {
   int call({
     String? name,
+    int? userId,
   });
 }
 
@@ -136,9 +153,11 @@ class _PermissionQueryUpdateImpl implements _PermissionQueryUpdate {
   @override
   int call({
     Object? name = ignore,
+    Object? userId = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (name != ignore) 1: name as String?,
+      if (userId != ignore) 2: userId as int?,
     });
   }
 }
@@ -159,11 +178,13 @@ class _PermissionQueryBuilderUpdateImpl implements _PermissionQueryUpdate {
   @override
   int call({
     Object? name = ignore,
+    Object? userId = ignore,
   }) {
     final q = query.build();
     try {
       return q.updateProperties(limit: limit, {
         if (name != ignore) 1: name as String?,
+        if (userId != ignore) 2: userId as int?,
       });
     } finally {
       q.close();
@@ -437,6 +458,88 @@ extension PermissionQueryFilter
       );
     });
   }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdGreaterThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition>
+      userIdGreaterThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdLessThan(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition>
+      userIdLessThanOrEqualTo(
+    int value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 2,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdBetween(
+    int lower,
+    int upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 2,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
 }
 
 extension PermissionQueryObject
@@ -476,6 +579,18 @@ extension PermissionQuerySortBy
       );
     });
   }
+
+  QueryBuilder<Permission, Permission, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2);
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2, sort: Sort.desc);
+    });
+  }
 }
 
 extension PermissionQuerySortThenBy
@@ -505,6 +620,18 @@ extension PermissionQuerySortThenBy
       return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Permission, Permission, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2);
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(2, sort: Sort.desc);
+    });
+  }
 }
 
 extension PermissionQueryWhereDistinct
@@ -513,6 +640,12 @@ extension PermissionQueryWhereDistinct
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(1, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Permission, Permission, QAfterDistinct> distinctByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(2);
     });
   }
 }
@@ -530,6 +663,12 @@ extension PermissionQueryProperty1
       return query.addProperty(1);
     });
   }
+
+  QueryBuilder<Permission, int, QAfterProperty> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
 }
 
 extension PermissionQueryProperty2<R>
@@ -543,6 +682,12 @@ extension PermissionQueryProperty2<R>
   QueryBuilder<Permission, (R, String), QAfterProperty> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
+    });
+  }
+
+  QueryBuilder<Permission, (R, int), QAfterProperty> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
     });
   }
 }
@@ -560,6 +705,12 @@ extension PermissionQueryProperty3<R1, R2>
       return query.addProperty(1);
     });
   }
+
+  QueryBuilder<Permission, (R1, R2, int), QOperations> userIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(2);
+    });
+  }
 }
 
 // **************************************************************************
@@ -569,10 +720,12 @@ extension PermissionQueryProperty3<R1, R2>
 Permission _$PermissionFromJson(Map<String, dynamic> json) => Permission(
       id: json['id'] as int,
       name: json['name'] as String,
+      userId: json['userId'] as int,
     );
 
 Map<String, dynamic> _$PermissionToJson(Permission instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
+      'userId': instance.userId,
     };
