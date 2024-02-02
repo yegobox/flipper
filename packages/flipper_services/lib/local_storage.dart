@@ -165,12 +165,12 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String encryptionKey() {
-    return prefs.getString('encryptionKey')!;
+    return prefs.getString('encryptionKey') ?? "";
   }
 
   @override
-  Future<bool> authComplete()async {
-    return await prefs.getBool("authComplete")??false;
+  Future<bool> authComplete() async {
+    return await prefs.getBool("authComplete") ?? false;
   }
 }
 
