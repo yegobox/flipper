@@ -12,6 +12,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:flipper_services/proxy.dart';
 class AuthOptionPage extends StatefulWidget {
   @override
   State<AuthOptionPage> createState() => _AuthOptionPageState();
@@ -115,6 +116,7 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                            StartUpViewRoute(invokeLogin: true));
                      }
                    }catch(e){
+                    ProxyService.isar.logOut();
                     Sentry.captureException(e, stackTrace: StackTrace.current);
                      setState(() {
                        isAddingUser = false;
@@ -149,6 +151,7 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
 
                       }
                     }catch(e){
+                      ProxyService.isar.logOut();
                       Sentry.captureException(e, stackTrace: StackTrace.current);
                       setState(() {
                         isAddingUser = false;

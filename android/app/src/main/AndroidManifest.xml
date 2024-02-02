@@ -47,6 +47,8 @@
     <application
         android:allowBackup="true"
         android:label="flipper"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Configure admob-->
