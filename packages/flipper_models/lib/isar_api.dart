@@ -1461,6 +1461,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
     await firebase.FirebaseAuth.instance.signOut();
+
+    ///logout the realm and delete realm file
+    // await ProxyService.realm.logout();
     //https://github.com/firebase/flutterfire/issues/2185
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
   }
@@ -2530,20 +2533,20 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITenant>> tenants({ int? businessId}) async {
+  Future<List<ITenant>> tenants({int? businessId}) async {
     return db.read((isar) {
-        if(businessId !=null){
-     return isar.iTenants.where().businessIdEqualTo(businessId).findAll();
-    }else{
-      return isar.iTenants.where().findAll();
-    }});
+      if (businessId != null) {
+        return isar.iTenants.where().businessIdEqualTo(businessId).findAll();
+      } else {
+        return isar.iTenants.where().findAll();
+      }
+    });
   }
 
   @override
   Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
-
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
       for (Tenant tenant in Tenant.fromJsonList(response.body)) {
         Tenant jTenant = tenant;
@@ -3783,9 +3786,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Branch?> activeBranch() async{
-    return db.read((isar) => isar.branchs
-        .where()
-        .isDefaultEqualTo(true).findFirst());
+  Future<Branch?> activeBranch() async {
+    return db.read(
+        (isar) => isar.branchs.where().isDefaultEqualTo(true).findFirst());
   }
 }
