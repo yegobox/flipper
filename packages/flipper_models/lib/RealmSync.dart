@@ -40,7 +40,9 @@ class RealmSync<M extends IJsonSerializable>
   Realm? realm;
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
+    final int businessId = ProxyService.box.getBusinessId()!;
+    final realmDirectory =
+        '${appDocsDirectory.path}/flipper-' + businessId.toString();
     if (!Directory(realmDirectory).existsSync()) {
       await Directory(realmDirectory).create(recursive: true);
     }
@@ -55,7 +57,8 @@ class RealmSync<M extends IJsonSerializable>
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    final user = app.currentUser ?? await app.logIn(Credentials.apiKey("key"));
+    final user = app.currentUser ??
+        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
@@ -67,7 +70,7 @@ class RealmSync<M extends IJsonSerializable>
         RealmStock.schema,
         RealmIUnit.schema
       ],
-      // encryptionKey:key,
+      encryptionKey: key,
       path: await absolutePath("db_"),
       clientResetHandler: RecoverUnsyncedChangesHandler(
         onBeforeReset: (beforeResetRealm) {
