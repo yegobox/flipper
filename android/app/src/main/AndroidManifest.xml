@@ -45,9 +45,8 @@
 
     <!-- android:requestLegacyExternalStorage="true" -->
     <application
-        android:allowBackup="true"
-        android:label="flipper"
         android:allowBackup="false"
+        android:label="flipper"
         android:fullBackupContent="false"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
