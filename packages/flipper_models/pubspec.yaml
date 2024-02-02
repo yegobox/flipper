@@ -26,7 +26,7 @@ dependencies:
   isar_flutter_libs: ^4.0.0-dev.13
   pocketbase: ^0.17.0
   stock: ^1.0.1
-  sentry_flutter: ^7.9.0
+  sentry_flutter: ^7.16.0
   path_provider: ^2.0.15
   http: ^1.1.2
   html_unescape: ^2.0.0
