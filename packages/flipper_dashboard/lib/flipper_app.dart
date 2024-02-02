@@ -70,7 +70,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _disableScreenshots() async {
-    if (!kDebugMode && !isDesktopOrWeb) {
+    if (!kDebugMode && !isDesktopOrWeb && ProxyService.remoteConfig.enableTakingScreenShoot()) {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }

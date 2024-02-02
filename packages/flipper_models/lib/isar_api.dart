@@ -2287,7 +2287,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<Profile?> updateProfile({required Profile profile}) async {
-    //TODOcheck if the profile is propery updated.
+    //TODO:check if the profile is property updated.
     db.write((isar) {
       isar.profiles.put(profile);
     });
