@@ -70,7 +70,9 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _disableScreenshots() async {
-    if (!kDebugMode && !isDesktopOrWeb && ProxyService.remoteConfig.enableTakingScreenShoot()) {
+    if (!kDebugMode &&
+        !isDesktopOrWeb &&
+        ProxyService.remoteConfig.enableTakingScreenShoot()) {
       await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }
@@ -149,10 +151,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     }
 
     model.loadReport();
-
-    if (!isWindows) {
-      _requestStoragePermissions();
-    }
   }
 
   void _startNFCForModel(CoreViewModel model) {
@@ -180,14 +178,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
       showToast(context, 'Sale recorded successfully.');
     });
-  }
-
-  void _requestStoragePermissions() async {
-    await [
-      permission.Permission.storage,
-      permission.Permission.manageExternalStorage,
-      permission.Permission.notification,
-    ].request();
   }
 
   Widget _buildScaffold(BuildContext context, CoreViewModel model) {

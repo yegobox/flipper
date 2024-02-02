@@ -31,6 +31,7 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
   Future<void> heartBeat();
   void close();
+  Future<bool> logout();
 }
 
 class RealmSync<M extends IJsonSerializable>
@@ -569,5 +570,29 @@ class RealmSync<M extends IJsonSerializable>
   void close() {
     if (realm == null) return null;
     realm!.close();
+  }
+
+  Future<bool> logout() async {
+    if (realm != null && !realm!.isClosed) {
+      // Get the sync session for the Realm
+      Session session = realm!.syncSession;
+
+      // Wait for all local changes to be uploaded
+      try {
+        await session.waitForUpload();
+        // No exception thrown, so all data are synchronized
+        // Close and delete the Realm
+        realm!.close();
+        Realm.deleteRealm(await absolutePath("db_"));
+        realm = null;
+        return true;
+      } catch (e) {
+        // An exception was thrown, so there was an error in synchronization
+        // Handle the error accordingly
+        print(e);
+        return false;
+      }
+    }
+    return false;
   }
 }
