@@ -56,6 +56,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
             ? IsarEngine.sqlite
             : IsarEngine.isar,
         name: 'default',
+        // encryptionKey: "flipper-0123456789",
       );
     } else {
       db = isa;
