@@ -282,3 +282,66 @@ class App {}
 /// TODO: sentry support isar db for instrumentation, I will support that in near future!
 /// https://github.com/getsentry/sentry-dart/pull/1726/commits/5ee8639f20bb1e566c849f2b3af2c6be5a1a5626
 /// TODO: https://github.com/SharezoneApp/sharezone-app
+/// 
+///TODO: Code for new app header on mobile WIP
+/// import 'package:flutter/material.dart';
+
+// void main() => runApp(MyApp());
+
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       home: Scaffold(
+//         appBar: AppBar(
+//           title: Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Container(
+//                 child: Row(
+//                   children: [
+//                     Chip(
+//                       label: Row(
+//                         mainAxisAlignment: MainAxisAlignment.start,
+//                         children: [
+//                           Icon(Icons.radio_button_checked, color: Colors.orange),
+//                           Text('R'),
+//                           Icon(Icons.check_circle_outline, color: Colors.green),
+//                         ],
+//                       ),
+//                       backgroundColor: Colors.white,
+//                       shape: RoundedRectangleBorder(
+//                         borderRadius: BorderRadius.circular(10.0),
+//                         side: BorderSide(color: Colors.grey, width: 0.5),
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//               Container(child:
+//                 Icon(Icons.loop, color: Colors.red, size: 30.0),
+//               ),
+//               Container(child:
+//                 Chip(
+//                   label: Row(
+//                     mainAxisAlignment: MainAxisAlignment.end,
+//                     children: [
+//                       Text('RWF 500', style: TextStyle(color: Colors.black)),
+//                     ],
+//                   ),
+//                   backgroundColor: Colors.white,
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(10.0),
+//                     side: BorderSide(color: Colors.grey, width: 0.5),
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//           backgroundColor: Colors.white,
+//         ),
+//       ),
+//     );
+//   }
+// }
+
