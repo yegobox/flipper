@@ -53,7 +53,9 @@ class RealmSync<M extends IJsonSerializable>
   Future<Realm> configure() async {
     log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
-
+     if(realm!=null){
+      return realm!;
+    }
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
