@@ -29,7 +29,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
+
 Future<void> backgroundHandler(RemoteMessage message) async {}
+
+///TODO: need to generate this key in firebase
+const kWebRecaptchaSiteKey = '';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -55,6 +60,20 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  if (!isWindows) {
+    ///https://firebase.google.com/docs/app-check/flutter/debug-provider?hl=en&authuser=1
+    await FirebaseAppCheck.instance.activate(
+      // Android:
+      androidProvider:
+          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+
+      ///TODO: enable appCheck on ios and web when I support them
+      /// iOS:
+      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+      // Web:
+      webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
+    );
+  }
   if (!isWindows && !isWeb) {
     /// init admob
     await MobileAds.instance.initialize();
@@ -101,8 +120,9 @@ Future<void> main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = kDebugMode? '':
-          'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
+      options.dsn = kDebugMode
+          ? ''
+          : 'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
       // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
       // We recommend adjusting this value in production.
       options.tracesSampleRate = 1.0;

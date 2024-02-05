@@ -12,69 +12,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
 mixin TokenLogin {
-  bool isEmail(String input) {
-    // Implement your logic to check if input is an email
-    // You can use regular expressions or any other email validation mechanism
-    // For simplicity, this example checks if the input contains '@'
-    return input.contains('@');
-  }
-
-  Future<void> tokenLogin(String uid) async {
-    /// if this is not email then create a fake email for this user so when logging to
-    /// desktop, it will not ask for email
-    /// always we have token representing the user logged on device that went
-    /// through auth flow, mostly mobile devices companion app
-    FirebaseAuth.instance.signInWithCustomToken(uid);
-    // if (!isEmail(phoneNumber)) {
-    //   // Append '@flipper.rw' to make it an email
-    //   phoneNumber = phoneNumber + '@flipper.rw';
-    //   // FirebaseAuth.instance.signInWithCustomToken(token);
-    //   try {
-    //     // Try to sign in with the provided credentials
-    //     await FirebaseAuth.instance.signInWithEmailAndPassword(
-    //       email: phoneNumber,
-    //       password: phoneNumber,
-    //     );
-    //   } on FirebaseAuthException catch (e) {
-    //     // Handle authentication exceptions
-    //     if (e.code == 'user-not-found') {
-    //       try {
-    //         // User not found, attempt to create a new account
-    //         await FirebaseAuth.instance.createUserWithEmailAndPassword(
-    //           email: phoneNumber,
-    //           password: phoneNumber,
-    //         );
-    //       } on FirebaseAuthException catch (e) {
-    //         // Handle exceptions during account creation
-    //         if (e.code == 'weak-password') {
-    //           // Password is too weak
-    //           print('Error: The password provided is too weak.');
-    //         } else if (e.code == 'email-already-in-use') {
-    //           // Account already exists for the provided email
-    //           print('Error: The account already exists for that email.');
-    //         } else {
-    //           // Handle other exceptions during account creation
-    //           print('Error: $e');
-    //         }
-    //       } catch (e) {
-    //         // Handle unexpected errors during account creation
-    //         print('Error: $e');
-    //       }
-    //     } else if (e.code == 'wrong-password') {
-    //       // Wrong password provided for the user
-    //       print('Error: Wrong password provided for that user.');
-    //     } else {
-    //       // Handle other authentication exceptions
-    //       print('Error: $e');
-    //     }
-    //   } catch (e) {
-    //     // Handle unexpected errors during sign-in
-    //     print('Error: $e');
-    //   }
-    // } else {
-    //   // it is an email what do we do? sign in with token got for the user
-    //   FirebaseAuth.instance.signInWithCustomToken(ProxyService.box.uid());
-    // }
+  Future<void> tokenLogin(String token) async {
+    await FirebaseAuth.instance.signInWithCustomToken(token);
   }
 }
 
@@ -123,16 +62,9 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       // Clear and re-sign in with Firebase anonymously
       await FirebaseAuth.instance.signOut();
 
-      /// we are no longer signin anonymously
-      ///await FirebaseAuth.instance.signInAnonymously();
-
-      // String phoneNumber = pin.phoneNumber;
+      log(ProxyService.box.uid(), name: 'tokenLogin');
       await tokenLogin(ProxyService.box.uid());
 
-      /// now ling this user with credentials so next time he wont be anonymous
-      //NOTE: if (FirebaseAuth.instance.currentUser!.providerData.isEmpty) {
-      //   // User is not linked with any providers
-      // }
       // Check if a logged-in Firebase user exists
       final auth = FirebaseAuth.instance;
       if (auth.currentUser != null) {
