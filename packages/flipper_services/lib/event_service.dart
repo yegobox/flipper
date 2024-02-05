@@ -21,7 +21,7 @@ String loginDataToMap(LoginData data) => json.encode(data.toMap());
 /// [LOGIN] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
-class EventService implements EventInterface {
+class EventService with TokenLogin implements EventInterface {
   final _routerService = locator<RouterService>();
   final nub.Keyset keySet;
   nub.PubNub? pubnub;
@@ -92,6 +92,7 @@ class EventService implements EventInterface {
 
         await ProxyService.box
             .writeInt(key: 'businessId', value: loginData.businessId);
+        await ProxyService.box.writeString(key: 'uid', value: loginData.uid);
         await ProxyService.box
             .writeInt(key: 'branchId', value: loginData.branchId);
         await ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
@@ -127,8 +128,10 @@ class EventService implements EventInterface {
                     deviceName: deviceName,
                     deviceVersion: deviceVersion));
           }
+          // await FirebaseAuth.instance.signInAnonymously();
+          /// uid is token linked with the user
+          await tokenLogin(loginData.uid);
           keepTryingPublishDevice();
-          await FirebaseAuth.instance.signInAnonymously();
         } catch (e) {}
       });
     } catch (e) {

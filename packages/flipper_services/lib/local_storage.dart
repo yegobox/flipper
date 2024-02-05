@@ -172,6 +172,11 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<bool> authComplete() async {
     return await prefs.getBool("authComplete") ?? false;
   }
+
+  @override
+  String uid() {
+    return prefs.getString('uid') ?? "";
+  }
 }
 
 class BoxStorage implements LocalStorage {
@@ -352,6 +357,12 @@ class BoxStorage implements LocalStorage {
   @override
   Future<bool> authComplete() {
     // TODO: implement authComplete
+    throw UnimplementedError();
+  }
+
+  @override
+  String uid() {
+    // TODO: implement uid
     throw UnimplementedError();
   }
 }

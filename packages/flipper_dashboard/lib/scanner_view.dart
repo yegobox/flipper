@@ -145,7 +145,7 @@ class ScannViewState extends ConsumerState<ScannView> {
   }
 
   void scanToLogin({required String? result}) {
-    log(result ?? "", name: 'logiiinnnn');
+    log(result ?? "", name: 'login');
     if (result != null && result.contains('-')) {
       final split = result.split('-');
       if (split.length > 1 && split[0] == 'login') {
@@ -159,6 +159,7 @@ class ScannViewState extends ConsumerState<ScannView> {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     String phone = ProxyService.box.getUserPhone()!;
+    String uid = ProxyService.box.uid();
     String defaultApp = ProxyService.box.getDefaultApp();
 
     PublishResult result = await ProxyService.event.publish(loginDetails: {
@@ -168,6 +169,7 @@ class ScannViewState extends ConsumerState<ScannView> {
       'branchId': branchId,
       'phone': phone,
       'defaultApp': defaultApp,
+      'uid': uid,
       'deviceName': Platform.operatingSystem,
       'deviceVersion': Platform.operatingSystemVersion,
       'linkingCode': randomNumber().toString(),

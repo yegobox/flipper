@@ -1591,14 +1591,17 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       {required String userPhone, required bool skipDefaultAppSetup}) async {
     log(userPhone, name: "userPhoneLoginWith");
     String phoneNumber = userPhone;
+
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
     }
+    http.Response response;
+    String? uid = firebase.FirebaseAuth.instance.currentUser?.uid ?? null;
 
-    final response = await flipperHttpClient.post(
+    response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/user'),
       body: jsonEncode(
-        <String, String>{'phoneNumber': phoneNumber},
+        <String, String?>{'phoneNumber': phoneNumber, 'uid': uid},
       ),
     );
 
@@ -1616,12 +1619,19 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         key: 'bearerToken',
         value: user.token,
       );
+      log(user.toJson().toString(), name: "loggedIn");
+
+      /// the token from firebase that link this user with firebase
+      /// so it can be used to login to other devices
+      await ProxyService.box.writeString(
+        key: 'uid',
+        value: user.uid,
+      );
       await ProxyService.box.writeInt(
         key: 'userId',
         value: user.id,
       );
 
-      log(user.id.toString(), name: "loggedIn");
       if (user.tenants.isEmpty) {
         throw BusinessNotFoundException(
             term:
