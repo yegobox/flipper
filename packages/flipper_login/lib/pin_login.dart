@@ -81,7 +81,7 @@ class _PinLoginState extends State<PinLogin> {
                                         onTap: () async {
                                           if (_form.currentState!.validate()) {
                                             try {
-                                              log(_pin.text);
+                                              log("initiating pin login flow");
                                               await model.desktopLogin(
                                                 pinCode: _pin.text,
                                               );

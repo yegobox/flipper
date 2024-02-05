@@ -9,6 +9,7 @@ class IUser {
       {required this.id,
       required this.phoneNumber,
       required this.token,
+      required this.uid,
       required this.tenants,
       required this.channels,
       this.pin});
@@ -16,6 +17,7 @@ class IUser {
   late int id;
   String phoneNumber;
   String token;
+  String uid;
   List<Tenant> tenants;
   List<String> channels;
   int? pin;

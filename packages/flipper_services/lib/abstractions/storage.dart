@@ -29,4 +29,9 @@ abstract class LocalStorage {
   String encryptionKey();
   Future<bool> clear();
   Future<bool> authComplete();
+
+  /// firebase token, we take uid from logged in device (mobile)
+  /// then we send it back to server and get equivalent token uid
+  /// we send this while performing ProxyService.isar.login()
+  String uid();
 }

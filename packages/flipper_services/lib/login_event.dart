@@ -5,6 +5,7 @@ class LoginData {
     required this.businessId,
     required this.branchId,
     required this.phone,
+    required this.uid,
     required this.defaultApp,
     required this.linkingCode,
     required this.deviceName,
@@ -12,6 +13,7 @@ class LoginData {
   });
 
   String channel;
+  String uid;
 
   int userId;
   int businessId;
@@ -28,6 +30,7 @@ class LoginData {
         businessId: json["businessId"],
         branchId: json["branchId"],
         phone: json["phone"],
+        uid: json["uid"],
         linkingCode: json["linkingCode"],
         defaultApp: json["defaultApp"],
         deviceName: json["deviceName"],
@@ -40,6 +43,7 @@ class LoginData {
         "businessId": businessId,
         "branchId": branchId,
         "phone": phone,
+        "uid": uid,
         "defaultApp": defaultApp,
         "linkingCode": linkingCode,
         "deviceName": deviceName,
