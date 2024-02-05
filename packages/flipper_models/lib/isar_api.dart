@@ -1425,6 +1425,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     // delete all business and branches from isar db for
     // potential next business that can log-in to not mix data.
 
+    await firebase.FirebaseAuth.instance.signOut();
+
+    ///logout the realm and delete realm file
+    // await ProxyService.realm.logout();
     db.write((isar) {
       isar.business.clear();
       isar.branchs.clear();
@@ -1460,11 +1464,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     ProxyService.box.remove(key: 'authComplete');
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
-    await firebase.FirebaseAuth.instance.signOut();
-    await firebase.FirebaseAuth.instance.signOut();
 
-    ///logout the realm and delete realm file
-    // await ProxyService.realm.logout();
     //https://github.com/firebase/flutterfire/issues/2185
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
   }
@@ -2394,7 +2394,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
     // Fetch all products based on branch ID and additional criteria
-    final allProducts = await db.products
+    List<Product> allProducts = await db.products
         .where()
         .branchIdEqualTo(branchId)
         .and()
@@ -2403,6 +2403,15 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .lastTouchedGreaterThan(
             DateTime.now().subtract(const Duration(days: 7)))
         .findAll(limit: 7);
+    // if we have no recent product please load without the condition
+    if (allProducts.isEmpty) {
+      allProducts = await db.products
+          .where()
+          .branchIdEqualTo(branchId)
+          .and()
+          .deletedAtIsNull()
+          .findAll(limit: 7);
+    }
 
     // Filter out products with the name 'temp' or 'custom'
     final filteredProducts = allProducts

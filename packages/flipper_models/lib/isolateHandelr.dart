@@ -39,14 +39,12 @@ mixin IsolateHandler {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     final branchId = args[2] as int;
-    // final encryptionKey = args[3] as String;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
     isar = await isarK();
 
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    // List<int> key = encryptionKey.toIntList();
     final config = Configuration.flexibleSync(
         user!,
         [
@@ -57,7 +55,6 @@ mixin IsolateHandler {
           RealmStock.schema,
           RealmIUnit.schema
         ],
-        // encryptionKey: key,
         path: await absolutePath("db_"));
 
     final realm = Realm(config);

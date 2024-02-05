@@ -41,8 +41,11 @@ class RealmSync<M extends IJsonSerializable>
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId()!;
-    final realmDirectory =
-        '${appDocsDirectory.path}/flipper-' + businessId.toString();
+    final int branchId = ProxyService.box.getBranchId()!;
+    final realmDirectory = '${appDocsDirectory.path}/flipper-' +
+        branchId.toString() +
+        "_" +
+        businessId.toString();
     if (!Directory(realmDirectory).existsSync()) {
       await Directory(realmDirectory).create(recursive: true);
     }
@@ -53,14 +56,16 @@ class RealmSync<M extends IJsonSerializable>
   Future<Realm> configure() async {
     log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
-     if(realm!=null){
+    if (realm != null) {
       return realm!;
     }
+
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
     final user = app.currentUser ??
         await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
@@ -476,7 +481,6 @@ class RealmSync<M extends IJsonSerializable>
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          ProxyService.box.encryptionKey(),
         ],
       );
       receivePort.listen((message) {
@@ -578,26 +582,32 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   Future<bool> logout() async {
-    if (realm != null && !realm!.isClosed) {
-      // Get the sync session for the Realm
-      Session session = realm!.syncSession;
+    final app = App(AppConfiguration(AppSecrets.appId,
+        baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+    final user = app.currentUser ??
+        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+    await user.logOut();
+    // if (realm != null && !realm!.isClosed) {
+    //   // Get the sync session for the Realm
+    //   Session session = realm!.syncSession;
 
-      // Wait for all local changes to be uploaded
-      try {
-        await session.waitForUpload();
-        // No exception thrown, so all data are synchronized
-        // Close and delete the Realm
-        realm!.close();
-        Realm.deleteRealm(await absolutePath("db_"));
-        realm = null;
-        return true;
-      } catch (e) {
-        // An exception was thrown, so there was an error in synchronization
-        // Handle the error accordingly
-        print(e);
-        return false;
-      }
-    }
+    //   // Wait for all local changes to be uploaded
+    //   try {
+    //     await session.waitForUpload();
+    //     // No exception thrown, so all data are synchronized
+    //     // Close and delete the Realm
+    //     realm!.close();
+    //     await user.logOut();
+    //     Realm.deleteRealm(await absolutePath("db_"));
+    //     realm = null;
+    //     return true;
+    //   } catch (e) {
+    //     // An exception was thrown, so there was an error in synchronization
+    //     // Handle the error accordingly
+    //     print(e);
+    //     return false;
+    //   }
+    // }
     return false;
   }
 }
