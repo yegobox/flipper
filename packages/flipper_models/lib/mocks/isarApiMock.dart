@@ -764,7 +764,9 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business, required Branch branch}) {
+      {required Business business,
+      required Branch branch,
+      required String userType}) {
     // TODO: implement saveTenant
     throw UnimplementedError();
   }

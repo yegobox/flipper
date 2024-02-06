@@ -1027,6 +1027,17 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           return false;
         });
         break;
+      case 'tenant':
+        final response = await flipperHttpClient.delete(
+          Uri.parse("$apihub/v2/api/tenant/${id}"),
+        );
+        if (response.statusCode == 200) {
+          db.write((isar) {
+            isar.iTenants.delete(int.parse(id));
+            return true;
+          });
+        }
+        break;
       default:
         return Future.value(false);
     }
@@ -1471,7 +1482,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business, required Branch branch}) async {
+      {required Business business,
+      required Branch branch,
+      required String userType}) async {
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/tenant"),
       body: jsonEncode({
@@ -1479,7 +1492,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         "name": name,
         "businessId": business.id,
         "permissions": [
-          {"id": 2, "name": "cashier"}
+          {"name": userType.toLowerCase()}
         ],
         "businesses": [business.toJson()],
         "branches": [branch.toJson()]

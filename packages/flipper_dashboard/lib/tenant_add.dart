@@ -27,6 +27,7 @@ class _TenantAddState extends State<TenantAdd> {
   int _steps = 0;
   final _routerService = locator<RouterService>();
   bool isAddingUser = false;
+  String selectedValue = 'Agent';
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +125,36 @@ class _TenantAddState extends State<TenantAdd> {
               return null; // Valid phone number
             },
           ),
+          const SizedBox(height: 10),
+          Text("Select User Type"),
+          const SizedBox(height: 10),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey),
+            ),
+            child: DropdownButton<String>(
+              value: selectedValue,
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedValue = newValue!;
+                });
+              },
+              items: <String>['Agent', 'Cashier', 'Admin']
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              style: TextStyle(color: Colors.black, fontSize: 16),
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 30,
+              isExpanded: true,
+              underline: SizedBox(), // Remove the default underline
+            ),
+          ),
           _steps != 0 && _steps != 1
               ? Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -216,11 +247,21 @@ class _TenantAddState extends State<TenantAdd> {
   Future<void> _addUser(FlipperBaseModel model) async {
     Business? business = await ProxyService.isar.defaultBusiness();
     Branch? branch = await ProxyService.isar.defaultBranch();
+
+    /// when a business add a tenant, this tenant might not have the account to flipper yet
+    /// but the user will be created, it is important to know that this tenant added
+    /// can log in to same business being added meaning when additional login happen
+    /// either this user or tenant being added will be prompted to choose default business
+    /// and default branch, also it is important to know that this tenant added
+    /// will be working in scope defined by permission given at time of adding him
     await ProxyService.isar.saveTenant(
       _phoneController.text,
       _nameController.text,
       branch: branch!,
       business: business!,
+
+      /// pass the user type
+      userType: selectedValue,
     );
 
     await model.loadTenants();
@@ -253,41 +294,81 @@ class _TenantAddState extends State<TenantAdd> {
         ),
         child: ListView(
           shrinkWrap: true,
-          children: model.tenants
-              .map(
-                (tenant) => Card(
-                  elevation: 2.0,
-                  margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    onTap: () async {
-                      await _toggleNFC(tenant as Tenant, model);
-                    },
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      child: Text(
-                        tenant.name.substring(0, 1).toUpperCase(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      tenant.name,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.nfc,
-                      color:
-                          tenant.nfcEnabled == true ? Colors.blue : Colors.red,
+          children: model.tenants.map((tenant) {
+            return Dismissible(
+              key: Key(tenant.name),
+              onDismissed: (direction) async {
+                if (direction == DismissDirection.endToStart) {
+                  // User swiped to delete
+                  await ProxyService.isar
+                      .delete(id: tenant.id.toString(), endPoint: 'tenant');
+                  model.loadTenants();
+                }
+              },
+              background: Container(
+                color: Colors.red, // Background color when swiping to delete
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 16.0),
+                    child: Icon(
+                      Icons.delete,
+                      color: Colors.white,
                     ),
                   ),
                 ),
-              )
-              .toList(),
+              ),
+              child: Card(
+                elevation: 2.0,
+                margin: EdgeInsets.symmetric(vertical: 8.0),
+                child: ListTile(
+                  onTap: () async {
+                    if (tenant.isLongPressed) {
+                      // Reset the long-press state
+                      await ProxyService.isar
+                          .delete(id: tenant.id.toString(), endPoint: 'tenant');
+                      model.loadTenants();
+                      setState(() {
+                        tenant.isLongPressed = false;
+                      });
+                    } else {
+                      await _toggleNFC(tenant as Tenant, model);
+                    }
+                  },
+                  onLongPress: () {
+                    // Long-press action
+                    setState(() {
+                      // Change the background color and switch icon
+                      tenant.isLongPressed = true;
+                    });
+                  },
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    child: Text(
+                      tenant.name.substring(0, 1).toUpperCase(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    tenant.name,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  trailing: tenant.isLongPressed
+                      ? Icon(Icons.delete, color: Colors.red)
+                      : Icon(Icons.nfc,
+                          color: tenant.nfcEnabled == true
+                              ? Colors.blue
+                              : Colors.red),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );

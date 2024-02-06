@@ -21,6 +21,7 @@ class ITenant extends IJsonSerializable {
       required this.isDefault,
       this.deletedAt,
       this.sessionActive,
+      this.isLongPressed = false,
       this.pin});
   late int id;
   String name;
@@ -44,6 +45,11 @@ class ITenant extends IJsonSerializable {
   bool? sessionActive;
 
   bool isDefault;
+
+  ///helper property, these are property that are not peristed
+  ///but used in ui to achieve some functionality
+  @ignore
+  bool isLongPressed;
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

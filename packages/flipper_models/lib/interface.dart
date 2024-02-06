@@ -170,7 +170,9 @@ abstract class IsarApiInterface {
   Future<Profile?> profile({required int businessId});
   Future<Profile?> updateProfile({required Profile profile});
   Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business, required Branch branch});
+      {required Business business,
+      required Branch branch,
+      required String userType});
   Pointss addPoint({required int userId, required int point});
   Future<Subscription?> addUpdateSubscription({
     required int userId,
