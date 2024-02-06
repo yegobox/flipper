@@ -11,8 +11,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-import 'NotificationStream.dart';
-
 class StartupViewModel extends FlipperBaseModel {
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
@@ -65,7 +63,8 @@ class StartupViewModel extends FlipperBaseModel {
           /// then go to login again to force the user to login with the right
           /// credential, this is likely to not happen in real environment.
 
-           ProxyService.notie.sendData('Could not login business with user ${ProxyService.box.getUserId()} not found!');
+          ProxyService.notie.sendData(
+              'Could not login business with user ${ProxyService.box.getUserId()} not found!');
           await ProxyService.isar.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         } else {

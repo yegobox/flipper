@@ -119,20 +119,30 @@ class AppService with ListenableServiceMixin {
   /// set the env the current user is operating in.
   Future<void> appInit() async {
     int? userId = ProxyService.box.getUserId();
+
     if (userId == null) return;
+
     List<isar.Business> businesses = await ProxyService.isar.businesses();
+
     if (businesses.isEmpty) {
       try {
-        Business b = await ProxyService.isar.getOnlineBusiness(userId: userId);
-        businesses.add(b);
+        Business business =
+            await ProxyService.isar.getOnlineBusiness(userId: userId);
+        businesses.add(business);
       } catch (e) {
         rethrow;
       }
     }
+
     await loadTenants(businesses);
+
     List<isar.Branch> branches = await ProxyService.isar.branches();
+
     bool authComplete = await ProxyService.box.authComplete();
-    if ((businesses.length > 1 || branches.length > 1) && !Platform.isWindows && ! authComplete) {
+
+    if ((businesses.length > 1 || branches.length > 1) &&
+        !Platform.isWindows &&
+        !authComplete) {
       throw LoginChoicesException(term: "Choose default business");
     }
   }
