@@ -284,8 +284,10 @@ class _AppsState extends ConsumerState<Apps> {
       List<ITransaction> transactions, String transactionPeriod) {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(oldDate))
+        .where((transaction) => DateTime.parse(
+                transaction.lastTouched?.toIso8601String() ??
+                    transaction.createdAt)
+            .isAfter(oldDate))
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
@@ -316,8 +318,10 @@ class _AppsState extends ConsumerState<Apps> {
       List<ITransaction> transactions, String transactionPeriod) {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(oldDate))
+        .where((transaction) => DateTime.parse(
+                transaction.lastTouched?.toIso8601String() ??
+                    transaction.createdAt)
+            .isAfter(oldDate))
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
@@ -333,8 +337,10 @@ class _AppsState extends ConsumerState<Apps> {
     log(transactions.length.toString(), name: 'render transactions on gauge');
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
-        .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(startingDate))
+        .where((transaction) => DateTime.parse(
+                transaction.lastTouched?.toIso8601String() ??
+                    transaction.createdAt)
+            .isAfter(startingDate))
         .toList();
   }
 
@@ -404,7 +410,9 @@ class _AppsState extends ConsumerState<Apps> {
 
           List<ITransaction> filteredTransactions = [];
           for (final transaction in transactions) {
-            temporaryDate = DateTime.parse(transaction.createdAt);
+            temporaryDate = DateTime.parse(
+                transaction.lastTouched?.toIso8601String() ??
+                    transaction.createdAt);
             if (temporaryDate.isAfter(oldDate)) {
               filteredTransactions.add(transaction);
             }
