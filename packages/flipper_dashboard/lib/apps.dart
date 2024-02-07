@@ -117,8 +117,7 @@ class _AppsState extends ConsumerState<Apps> {
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
           child: FutureBuilder<Branch?>(
-            future: ProxyService.isar
-                .activeBranch(),
+            future: ProxyService.isar.activeBranch(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData) {
@@ -246,14 +245,31 @@ class _AppsState extends ConsumerState<Apps> {
                       ? ProxyService.remoteConfig.bannerAd()
                       : SizedBox.shrink(),
                   Center(
-                    child: Text(
-                      'FROM YEGOBOX',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.black.withOpacity(0.3100000023841858),
-                        fontWeight: FontWeight.w900,
+                    child: Column(children: [
+                      FutureBuilder<Permission?>(
+                        future: ProxyService.isar
+                            .permission(userId: ProxyService.box.getUserId()!),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.data?.name ?? "-",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color:
+                                  Colors.black.withOpacity(0.3100000023841858),
+                              fontWeight: FontWeight.w900,
+                            ),
+                          );
+                        },
                       ),
-                    ),
+                      Text(
+                        'FROM YEGOBOX',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.black.withOpacity(0.3100000023841858),
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ]),
                   ),
                 ],
               ),

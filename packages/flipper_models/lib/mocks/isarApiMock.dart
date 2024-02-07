@@ -1000,4 +1000,10 @@ class IsarAPIMock<M> implements IsarApiInterface {
     // TODO: implement activeBranch
     throw UnimplementedError();
   }
+
+  @override
+  Future<Permission?> permission({required int userId}) {
+    // TODO: implement permission
+    throw UnimplementedError();
+  }
 }

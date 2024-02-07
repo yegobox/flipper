@@ -3823,4 +3823,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     return db.read(
         (isar) => isar.branchs.where().isDefaultEqualTo(true).findFirst());
   }
+
+  @override
+  Future<Permission?> permission({required int userId}) async {
+    return db.read(
+        (isar) => isar.permissions.where().userIdEqualTo(userId).findFirst());
+  }
 }

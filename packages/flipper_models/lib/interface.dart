@@ -303,5 +303,6 @@ abstract class IsarApiInterface {
 
   void clear();
   Future<List<SyncRecord>> syncedModels({required int branchId});
+  Future<Permission?> permission({required int userId});
   // Future<double> todayTotalBalance
 }
