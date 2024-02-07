@@ -48,11 +48,11 @@ class RealmSync<M extends IJsonSerializable>
         businessId.toString();
 
     // Check if the directory exists
-    final dir = Directory(realmDirectory);
-    if (dir.existsSync()) {
-      // If it exists, delete it
-      await dir.delete(recursive: true);
-    }
+    // final dir = Directory(realmDirectory);
+    // if (dir.existsSync()) {
+    //   // If it exists, delete it
+    //   await dir.delete(recursive: true);
+    // }
 
     // Create the new directory
     await Directory(realmDirectory).create(recursive: true);
@@ -64,9 +64,9 @@ class RealmSync<M extends IJsonSerializable>
   Future<Realm> configure() async {
     log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
-    // if (realm != null) {
-    //   return realm!;
-    // }
+    if (realm != null) {
+      return realm!;
+    }
 
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
@@ -133,7 +133,7 @@ class RealmSync<M extends IJsonSerializable>
       realm = Realm(config);
     }
     // Realm.logger.level = RealmLogLevel.trace;
-    updateSubscription(branchId);
+    await updateSubscription(branchId);
 
     /// removed await on bellow line because when it is in bootstrap, it might freeze the app
     await realm?.subscriptions.waitForSynchronization();
@@ -141,7 +141,7 @@ class RealmSync<M extends IJsonSerializable>
     return realm!;
   }
 
-  void updateSubscription(int? branchId) {
+  Future<void> updateSubscription(int? branchId) async {
     if (realm == null) return;
     final transactionItem =
         realm!.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
@@ -154,45 +154,45 @@ class RealmSync<M extends IJsonSerializable>
         realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
 
-    // product.subscribe(
-    //     name: "iProduct-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
+    await product.subscribe(
+        name: "iProduct-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
-    // variant.subscribe(
-    //     name: "iVariant-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
+    await variant.subscribe(
+        name: "iVariant-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
-    // stock.subscribe(
-    //     name: "iStock-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
+    await stock.subscribe(
+        name: "iStock-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
-    // unit.subscribe(
-    //     name: "iUnit-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
+    await unit.subscribe(
+        name: "iUnit-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
-    // transaction.subscribe(
-    //     name: "transaction-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
-    // transactionItem.subscribe(
-    //     name: "transactionItem-${branchId}",
-    //     waitForSyncMode: WaitForSyncMode.firstTime,
-    //     update: true);
+    await transaction.subscribe(
+        name: "transaction-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
+    await transactionItem.subscribe(
+        name: "transactionItem-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
-    realm?.subscriptions.update((sub) {
-      // sub.clear();
-      sub.add(transaction, name: "transactions-${branchId}", update: true);
-      sub.add(transactionItem,
-          name: "transactionItems-${branchId}", update: true);
-      sub.add(product, name: "iProduct-${branchId}", update: true);
-      sub.add(variant, name: "iVariant-${branchId}", update: true);
-      sub.add(stock, name: "iStock-${branchId}", update: true);
-      sub.add(unit, name: "iUnit-${branchId}", update: true);
-    });
+    // realm?.subscriptions.update((sub) {
+    //   // sub.clear();
+    //   sub.add(transaction, name: "transactions-${branchId}", update: true);
+    //   sub.add(transactionItem,
+    //       name: "transactionItems-${branchId}", update: true);
+    //   sub.add(product, name: "iProduct-${branchId}", update: true);
+    //   sub.add(variant, name: "iVariant-${branchId}", update: true);
+    //   sub.add(stock, name: "iStock-${branchId}", update: true);
+    //   sub.add(unit, name: "iUnit-${branchId}", update: true);
+    // });
   }
 
   @override
@@ -498,34 +498,49 @@ class RealmSync<M extends IJsonSerializable>
     // realm.close();
   }
 
-  Isolate? _isolate; // Define _isolate as a nullable Isolate variable.
+  List<Isolate> _isolates =
+      []; // Define _isolate as a nullable Isolate variable.
 
   @override
   Future<void> pull() async {
     if (realm == null) return;
-    try {
-      // Check for an existing isolate and close it if necessary.
-      if (_isolate != null) {
-        _isolate?.kill(priority: Isolate.immediate);
-        await Future.delayed(const Duration(microseconds: 100));
-        _isolate = null;
-      }
 
-      // Create a new isolate and handle its messages.
+    ///first kill any nrunning isolate before creating new one
+    for (Isolate isolate in _isolates) {
+      isolate.kill(priority: Isolate.immediate);
+    }
+
+    await _spawnIsolate("transactions", IsolateHandler.handleTransactions);
+
+    await _spawnIsolate(
+        "transactionItems", IsolateHandler.handleTransactionItems);
+
+    await _spawnIsolate("products", IsolateHandler.handleProducts);
+
+    await _spawnIsolate("variants", IsolateHandler.handleVariants);
+
+    await _spawnIsolate("stocks", IsolateHandler.handleStocs);
+  }
+
+  Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
+    try {
+      String dbPath = await absolutePath("db_");
+      String encryptionKey = ProxyService.box.encryptionKey();
+
       ReceivePort receivePort = ReceivePort();
-      _isolate = await Isolate.spawn(
-        IsolateHandler.handleRealm,
+      final isolate = await Isolate.spawn(
+        isolateHandler,
         [
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
+          dbPath,
+          encryptionKey,
         ],
       );
-      receivePort.listen((message) {
-        log('Isolate: $message');
-      });
+      _isolates.add(isolate);
+      receivePort.listen((message) => log('Isolate $name: $message'));
     } catch (error) {
-      // Handle any errors that occur during isolate management.
       log('Error managing isolates: $error');
     }
   }

@@ -9,7 +9,7 @@ import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:realm/realm.dart';
+import 'package:realm/realm.dart' as lia;
 
 import 'package:flutter/services.dart';
 import 'models.dart';
@@ -26,38 +26,135 @@ mixin IsolateHandler {
     }
   }
 
-  static Future<String> absolutePath(String fileName) async {
-    final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/flipper-sync';
-    if (!Directory(realmDirectory).existsSync()) {
-      await Directory(realmDirectory).create(recursive: true);
-    }
-    return "$realmDirectory/$fileName";
-  }
-
-  static Future handleRealm(List<dynamic> args) async {
+  static Future handleProducts(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // get isar instances
+    isar = await isarK();
+    final app = lia.App.getById(AppSecrets.appId);
+    final user = app?.currentUser!;
+    lia.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
+
+    final realm = lia.Realm(config);
+
+    final iProductsCollection =
+        realm.query<RealmProduct>(r'branchId == $0', [branchId]);
+    await for (final changes in iProductsCollection.changes) {
+      for (final result in changes.results) {
+        handleProduct(result, sendPort);
+      }
+    }
+  }
+
+  static Future handleVariants(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // get isar instances
+    isar = await isarK();
+    final app = lia.App.getById(AppSecrets.appId);
+    final user = app?.currentUser!;
+    lia.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
+
+    final realm = lia.Realm(config);
+    final iVariantsCollection =
+        realm.query<RealmVariant>(r'branchId == $0', [branchId]);
+    // for (final result in iVariantsCollection) {
+    //   handleVariant(result, sendPort);
+    // }
+    await for (final changes in iVariantsCollection.changes) {
+      for (final result in changes.results) {
+        handleVariant(result, sendPort);
+      }
+    }
+  }
+
+  static Future handleStocs(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // get isar instances
+    isar = await isarK();
+    final app = lia.App.getById(AppSecrets.appId);
+    final user = app?.currentUser!;
+    lia.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
+
+    final realm = lia.Realm(config);
+
+    final iStocksCollection =
+        realm.query<RealmStock>(r'branchId == $0', [branchId]);
+
+    await for (final changes in iStocksCollection.changes) {
+      for (final result in changes.results) {
+        handleStock(result, sendPort);
+      }
+    }
+  }
+
+  static Future handleTransactionItems(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    // get isar instances
+    isar = await isarK();
+    final app = lia.App.getById(AppSecrets.appId);
+    final user = app?.currentUser!;
+    lia.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
+
+    final realm = lia.Realm(config);
+
+    /// subscribe to change for
+    final iTransactionsItemCollection =
+        realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
+
+    // for (final result in iTransactionsItemCollection) {
+    //   handleTransactionItem(result, sendPort);
+    // }
+    await for (final changes in iTransactionsItemCollection.changes) {
+      for (final result in changes.results) {
+        handleTransactionItem(result, sendPort);
+      }
+    }
+  }
+
+  static Future handleTransactions(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
     isar = await isarK();
 
-    final app = App.getById(AppSecrets.appId);
+    final app = lia.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    final config = Configuration.flexibleSync(
-        user!,
-        [
-          RealmITransaction.schema,
-          RealmITransactionItem.schema,
-          RealmProduct.schema,
-          RealmVariant.schema,
-          RealmStock.schema,
-          RealmIUnit.schema
-        ],
-        path: await absolutePath("db_"));
+    lia.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = Realm(config);
+    final realm = lia.Realm(config);
     sendPort.send('Initiated isar');
     // Realm.logger.level = RealmLogLevel.trace;
     // final realm = await Realm.open(config);
@@ -67,62 +164,29 @@ mixin IsolateHandler {
         realm.query<RealmITransaction>(r'branchId == $0', [branchId]);
     // query all local object and match them with read db
 
-    for (final result in iTransactionsCollection) {
-      handleTransactionData(result, sendPort);
-    }
     // listen for changes
     await for (final changes in iTransactionsCollection.changes) {
       for (final result in changes.results) {
         handleTransactionData(result, sendPort);
       }
     }
+  }
 
-    /// subscribe to change for
-    final iTransactionsItemCollection =
-        realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
-
-    for (final result in iTransactionsItemCollection) {
-      handleTransactionItem(result, sendPort);
-    }
-    await for (final changes in iTransactionsItemCollection.changes) {
-      for (final result in changes.results) {
-        handleTransactionItem(result, sendPort);
-      }
-    }
-
-    //
-    final iVariantsCollection =
-        realm.query<RealmVariant>(r'branchId == $0', [branchId]);
-    for (final result in iVariantsCollection) {
-      handleVariant(result, sendPort);
-    }
-    await for (final changes in iVariantsCollection.changes) {
-      for (final result in changes.results) {
-        handleVariant(result, sendPort);
-      }
-    }
-    //
-    final iProductsCollection =
-        realm.query<RealmProduct>(r'branchId == $0', [branchId]);
-    for (final result in iProductsCollection) {
-      handleProduct(result, sendPort);
-    }
-    await for (final changes in iProductsCollection.changes) {
-      for (final result in changes.results) {
-        handleProduct(result, sendPort);
-      }
-    }
-    //
-    final iStocksCollection =
-        realm.query<RealmStock>(r'branchId == $0', [branchId]);
-    for (final result in iProductsCollection) {
-      handleProduct(result, sendPort);
-    }
-    await for (final changes in iStocksCollection.changes) {
-      for (final result in changes.results) {
-        handleStock(result, sendPort);
-      }
-    }
+  static lia.FlexibleSyncConfiguration realmConfig(
+      lia.User? user, List<int> encryptionKey, String dbPatch) {
+    final config = lia.Configuration.flexibleSync(
+        user!,
+        [
+          RealmITransaction.schema,
+          RealmITransactionItem.schema,
+          RealmProduct.schema,
+          RealmVariant.schema,
+          RealmStock.schema,
+          RealmIUnit.schema
+        ],
+        encryptionKey: encryptionKey,
+        path: dbPatch);
+    return config;
   }
 
   static void handleStock(RealmStock result, SendPort sendPort) {
@@ -234,12 +298,13 @@ mixin IsolateHandler {
   static void handleTransactionData(
       RealmITransaction result, SendPort sendPort) {
     final model = iTransactionModel(result);
-    sendPort.send('Got transaction ${model.subTotal}');
 
     /// avoid saving saving a pending transaction to avoid
     /// missing out showing this transaction, when we support showing pending
     /// transaction on different device this might change
     if (model.status == PENDING) return;
+    //sendPort.send('Got transaction ${model.subTotal}');
+
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
     }
@@ -257,7 +322,6 @@ mixin IsolateHandler {
         .isNewDateCompareTo(localTransaction.lastTouched)) {
       data.action = AppActions.synchronized;
 
-      data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
       isar.write((isar) {
         isar.iTransactions.put(data);
       });
