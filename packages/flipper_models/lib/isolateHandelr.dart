@@ -153,6 +153,9 @@ mixin IsolateHandler {
 
   static void handleProduct(RealmProduct result, SendPort sendPort) {
     final model = createProductModel(result);
+
+    sendPort.send('Received Product ${model.id}');
+
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
     }

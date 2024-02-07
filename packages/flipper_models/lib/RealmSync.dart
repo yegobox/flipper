@@ -46,9 +46,17 @@ class RealmSync<M extends IJsonSerializable>
         branchId.toString() +
         "_" +
         businessId.toString();
-    if (!Directory(realmDirectory).existsSync()) {
-      await Directory(realmDirectory).create(recursive: true);
+
+    // Check if the directory exists
+    final dir = Directory(realmDirectory);
+    if (dir.existsSync()) {
+      // If it exists, delete it
+      await dir.delete(recursive: true);
     }
+
+    // Create the new directory
+    await Directory(realmDirectory).create(recursive: true);
+
     return "$realmDirectory/$fileName";
   }
 
@@ -56,9 +64,9 @@ class RealmSync<M extends IJsonSerializable>
   Future<Realm> configure() async {
     log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
-    if (realm != null) {
-      return realm!;
-    }
+    // if (realm != null) {
+    //   return realm!;
+    // }
 
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
@@ -145,15 +153,45 @@ class RealmSync<M extends IJsonSerializable>
     final transaction =
         realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
+
+    // product.subscribe(
+    //     name: "iProduct-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+
+    // variant.subscribe(
+    //     name: "iVariant-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+
+    // stock.subscribe(
+    //     name: "iStock-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+
+    // unit.subscribe(
+    //     name: "iUnit-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+
+    // transaction.subscribe(
+    //     name: "transaction-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+    // transactionItem.subscribe(
+    //     name: "transactionItem-${branchId}",
+    //     waitForSyncMode: WaitForSyncMode.firstTime,
+    //     update: true);
+
     realm?.subscriptions.update((sub) {
       // sub.clear();
-      sub.add(transaction!, name: "transactions-${branchId}", update: true);
-      sub.add(transactionItem!,
+      sub.add(transaction, name: "transactions-${branchId}", update: true);
+      sub.add(transactionItem,
           name: "transactionItems-${branchId}", update: true);
-      sub.add(product!, name: "iProduct-${branchId}", update: true);
-      sub.add(variant!, name: "iVariant-${branchId}", update: true);
-      sub.add(stock!, name: "iStock-${branchId}", update: true);
-      sub.add(unit!, name: "iUnit-${branchId}", update: true);
+      sub.add(product, name: "iProduct-${branchId}", update: true);
+      sub.add(variant, name: "iVariant-${branchId}", update: true);
+      sub.add(stock, name: "iStock-${branchId}", update: true);
+      sub.add(unit, name: "iUnit-${branchId}", update: true);
     });
   }
 
