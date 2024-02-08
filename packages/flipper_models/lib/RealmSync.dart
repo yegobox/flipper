@@ -499,7 +499,7 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   List<Isolate> _isolates =
-      []; // Define _isolate as a nullable Isolate variable.
+      []; 
 
   @override
   Future<void> pull() async {
