@@ -644,6 +644,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     /// refresh created as well to reflect when this transaction was created and completed
 
     transaction.updatedAt = DateTime.now().toIso8601String();
+    transaction.createdAt = DateTime.now().toIso8601String();
     log(DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
         name: "LocalDate");
     transaction.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
