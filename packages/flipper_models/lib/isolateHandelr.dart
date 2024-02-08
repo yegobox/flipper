@@ -312,7 +312,7 @@ mixin IsolateHandler {
     data.action = AppActions.synchronized;
     ITransaction? localTransaction = isar.iTransactions.get(data.id);
     if (localTransaction == null) {
-      data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      
       isar.write((isar) {
         isar.iTransactions.put(data);
       });
