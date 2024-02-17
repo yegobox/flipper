@@ -679,8 +679,9 @@ class CoreViewModel extends FlipperBaseModel
         await ProxyService.isar.getReceipt(transactionId: transaction!.id);
     // get time formatted like hhmmss
     Print print = Print();
-    print.feed(items);
     print.print(
+      items: items,
+      transaction: transaction,
       grandTotal: transaction.subTotal,
       currencySymbol: "RW",
       totalAEx: 0,
@@ -881,7 +882,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> setDefaultBusiness({required Business business}) async {
     app.setBusiness(business: business);
     List<Business> businesses = await ProxyService.isar.businesses();
-    for(Business business in businesses){
+    for (Business business in businesses) {
       await ProxyService.isar.update(data: business..isDefault = false);
     }
     ProxyService.isar.update(data: business..isDefault = true);
@@ -890,8 +891,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> setDefaultBranch({required Branch branch}) async {
     //first set other branch to not active
-    List<Branch> branches =await ProxyService.isar.branches();
-    for(Branch branch in branches){
+    List<Branch> branches = await ProxyService.isar.branches();
+    for (Branch branch in branches) {
       await ProxyService.isar.update(data: branch..isDefault = false);
     }
     ProxyService.isar.update(data: branch..isDefault = true);

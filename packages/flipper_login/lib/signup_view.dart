@@ -25,11 +25,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
   final tinNumber = TextFieldBloc();
-  TextFieldBloc countryName = TextFieldBloc(
-    initialValue: 'Kenya',
-  );
-  final SignupViewModel signupViewModel;
 
+  final SignupViewModel signupViewModel;
+  final countryName = SelectFieldBloc<String, String>(
+    items: ['Zambia', 'Mozambique', 'Rwanda'],
+    initialValue: 'Rwanda',
+  );
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
       name: 'businessType',
       items: BusinessType.fromJsonList(jsonEncode([
@@ -182,11 +183,12 @@ class _SignUpViewState extends State<SignUpView> {
                           Container(
                             padding: EdgeInsets.zero,
                             child: DropdownFieldBlocBuilder<BusinessType>(
+                              showEmptyItem: false,
                               padding: EdgeInsets.zero,
                               isExpanded: false,
                               selectFieldBloc: formBloc.businessTypes,
                               itemBuilder: (context, value) => FieldItem(
-                                // alignment: AlignmentDirectional.topStart,
+                                alignment: AlignmentDirectional.topStart,
                                 child: Text(
                                   value.typeName,
                                   style: GoogleFonts.poppins(
@@ -230,15 +232,24 @@ class _SignUpViewState extends State<SignUpView> {
                                   ),
                                 )
                               : SizedBox.shrink(),
+                          SizedBox(height: 15),
                           Padding(
                             padding: EdgeInsets.zero,
-                            child: TextFieldBlocBuilder(
-                              readOnly: true,
-                              textFieldBloc: formBloc.countryName,
-                              keyboardType: TextInputType.text,
-                              decoration: const InputDecoration(
-                                labelText: 'country',
-                                border: OutlineInputBorder(),
+                            child: DropdownFieldBlocBuilder<String>(
+                              showEmptyItem: false,
+                              padding: EdgeInsets.zero,
+                              selectFieldBloc: formBloc.countryName,
+                              decoration: InputDecoration(
+                                labelText: 'Country',
+                                // border: OutlineInputBorder(),
+                              ),
+                              itemBuilder: (context, value) => FieldItem(
+                                child: Text(value,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                    )),
                               ),
                             ),
                           ),

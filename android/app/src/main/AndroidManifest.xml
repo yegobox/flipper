@@ -56,6 +56,12 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-2256315296357491~9455533288" />
 
+        <!-- Enable impeller to start experiment as it will be default soon -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="true" />
+
+
         <!-- end of admob configuration -->
         <activity
             android:name=".MainActivity"

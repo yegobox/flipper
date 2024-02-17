@@ -95,7 +95,7 @@ class SignupViewModel extends ReactiveViewModel {
         'createdAt': DateTime.now().toIso8601String(),
         'userId': ProxyService.box.getUserId(),
         "tinNumber": tin != null ? int.parse(tin!) : 1111,
-        'businessTypeId': businessType.id,
+        'businessTypeId': "1", //businessType.id, // default to 1 for now
         'type': 'Business',
         'referredBy': referralCode ?? 'Organic',
         'fullName': kFullName,
