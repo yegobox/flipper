@@ -7,7 +7,7 @@ cd .. && cd receipt &&  git checkout main  && git add .   && git commit -am "cle
 cd .. && cd kds &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 cd .. && cd qr_code_scanner &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 # cd .. && cd pubnub &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
-cd .. && cd upgrader &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
+# cd .. && cd upgrader &&  git checkout master  && git add . && git commit -am "clean-up" && git push origin master
 # cd .. && cd system_time_check &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter_list_drag_and_drop &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 
