@@ -23,9 +23,6 @@
 [submodule "open-sources/system_time_check"]
 	path = open-sources/system_time_check
 	url = https://github.com/yegobox/system_time_check.git
-[submodule "open-sources/upgrader"]
-	path = open-sources/upgrader
-	url = https://github.com/yegobox/upgrader.git
 [submodule "open-sources/dart_console"]
 	path = open-sources/dart_console
 	url = https://github.com/yegobox/dart_console.git
