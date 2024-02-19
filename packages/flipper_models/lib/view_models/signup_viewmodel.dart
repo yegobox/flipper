@@ -79,97 +79,149 @@ class SignupViewModel extends ReactiveViewModel {
   BuildContext? context;
   Future<void> signup() async {
     try {
-      registerStart = true;
-      notifyListeners();
-      //set the startup app.
-      ProxyService.box.writeString(key: defaultApp, value: businessType.id);
+      startRegistering();
+      setDefaultApp();
 
-      String? referralCode = ProxyService.box.readString(key: 'referralCode');
+      String? referralCode = getReferralCode();
 
-      List<Tenant> tenants = await ProxyService.isar.signup(business: {
-        'name': kName,
-        'latitude': latitude,
-        'longitude': longitude,
-        'phoneNumber': ProxyService.box.getUserPhone(),
-        'currency': 'RW',
-        'createdAt': DateTime.now().toIso8601String(),
-        'userId': ProxyService.box.getUserId(),
-        "tinNumber": tin != null ? int.parse(tin!) : 1111,
-        'businessTypeId': "1", //businessType.id, // default to 1 for now
-        'type': 'Business',
-        'referredBy': referralCode ?? 'Organic',
-        'fullName': kFullName,
-        'country': kCountry
-      });
+      List<Tenant> tenants = await registerTenant(referralCode);
+
       if (tenants.isNotEmpty) {
-        /// register the user to pocketbase db.
-        await pocketDbRegistration();
-
-        /// we have socials as choosen app then register on social
-        if (businessType.id == "2") {
-          // it is customer support then register on socials as well
-          await ProxyService.isar.registerOnSocial(
-              password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
-              phoneNumberOrEmail:
-                  ProxyService.box.getUserPhone()!.replaceAll("+", ""));
-        }
-        Business? business = await ProxyService.isar
-            .getBusiness(businessId: tenants.first.businesses.first.id);
-
-        List<Branch> branches =
-            await ProxyService.isar.branches(businessId: business!.id);
-        ProxyService.box.writeInt(key: 'branchId', value: branches[0].id);
-
-        appService.appInit();
-        final Category category = Category(
-            active: true,
-            focused: true,
-            name: "NONE",
-            id: randomString(),
-            branchId: branches[0].id);
-        await ProxyService.isar.create<Category>(data: category);
-        //get default colors for this branch
-        final List<String> colors = [
-          '#d63031',
-          '#0984e3',
-          '#e84393',
-          '#2d3436',
-          '#6c5ce7',
-          '#74b9ff',
-          '#ff7675',
-          '#a29bfe'
-        ];
-
-        final PColor color = PColor(
-            id: randomString(),
-            colors: colors,
-            active: false,
-            lastTouched: DateTime.now(),
-            action: AppActions.created,
-            branchId: branches[0].id,
-            name: 'sample');
-
-        await ProxyService.isar.create<PColor>(data: color);
-        //now create default units for this branch
-
-        await ProxyService.isar.addUnits(units: mockUnits);
-
-        //now create a default custom product
-        ProxyService.forceDateEntry.dataBootstrapper();
-        // TODO: need to figureout the purchase of credit later.
-        // ProxyService.whatsApp.optIn();
-
-        LoginInfo().isLoggedIn = true;
-        LoginInfo().redirecting = false;
-        LoginInfo().needSignUp = false;
-        _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
+        await postRegistrationTasks(tenants);
       }
     } catch (e, stackTrace) {
-      registerStart = false;
-      notifyListeners();
+      stopRegistering();
       log(e.toString());
       throw Exception(stackTrace);
     }
+  }
+
+  void startRegistering() {
+    registerStart = true;
+    notifyListeners();
+  }
+
+  void stopRegistering() {
+    registerStart = false;
+    notifyListeners();
+  }
+
+  void setDefaultApp() {
+    ProxyService.box.writeString(key: defaultApp, value: businessType.id);
+  }
+
+  String? getReferralCode() {
+    return ProxyService.box.readString(key: 'referralCode');
+  }
+
+  Future<List<Tenant>> registerTenant(String? referralCode) {
+    return ProxyService.isar.signup(business: {
+      'name': kName,
+      'latitude': latitude,
+      'longitude': longitude,
+      'phoneNumber': ProxyService.box.getUserPhone(),
+      'currency': 'RW',
+      'createdAt': DateTime.now().toIso8601String(),
+      'userId': ProxyService.box.getUserId(),
+      "tinNumber": tin != null ? int.parse(tin!) : 1111,
+      'businessTypeId': "1", //businessType.id, // default to 1 for now
+      'type': 'Business',
+      'referredBy': referralCode ?? 'Organic',
+      'fullName': kFullName,
+      'country': kCountry
+    });
+  }
+
+  Future<void> postRegistrationTasks(List<Tenant> tenants) async {
+    await pocketDbRegistration();
+
+    if (businessType.id == "2") {
+      await registerOnSocial();
+    }
+
+    await saveBusinessId(tenants);
+    Business? business = await getBusiness(tenants);
+    List<Branch> branches = await getBranches(business);
+    await saveBranchId(branches);
+
+    appService.appInit();
+    await createDefaultCategory(branches);
+    await createDefaultColor(branches);
+    await addDefaultUnits();
+    bootstrapData();
+
+    LoginInfo().isLoggedIn = true;
+    LoginInfo().redirecting = false;
+    LoginInfo().needSignUp = false;
+    _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
+  }
+
+  Future<void> registerOnSocial() {
+    return ProxyService.isar.registerOnSocial(
+      password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+      phoneNumberOrEmail: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+    );
+  }
+
+  Future<void> saveBusinessId(List<Tenant> tenants) {
+    return ProxyService.box.writeInt(
+      key: 'businessId',
+      value: tenants.first.businesses.first.id,
+    );
+  }
+
+  Future<Business?> getBusiness(List<Tenant> tenants) {
+    return ProxyService.isar
+        .getBusiness(businessId: tenants.first.businesses.first.id);
+  }
+
+  Future<List<Branch>> getBranches(Business? business) {
+    return ProxyService.isar.branches(businessId: business!.id);
+  }
+
+  Future<void> saveBranchId(List<Branch> branches) {
+    return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id);
+  }
+
+  Future<void> createDefaultCategory(List<Branch> branches) async {
+    final Category category = Category(
+      active: true,
+      focused: true,
+      name: "NONE",
+      id: randomString(),
+      branchId: branches[0].id,
+    );
+    ProxyService.isar.create<Category>(data: category);
+  }
+
+  Future<void> createDefaultColor(List<Branch> branches) async {
+    final PColor color = PColor(
+      id: randomString(),
+      colors: [
+        '#d63031',
+        '#0984e3',
+        '#e84393',
+        '#2d3436',
+        '#6c5ce7',
+        '#74b9ff',
+        '#ff7675',
+        '#a29bfe'
+      ],
+      active: false,
+      lastTouched: DateTime.now(),
+      action: AppActions.created,
+      branchId: branches[0].id,
+      name: 'color',
+    );
+    ProxyService.isar.create<PColor>(data: color);
+  }
+
+  Future<void> addDefaultUnits() {
+    return ProxyService.isar.addUnits(units: mockUnits);
+  }
+
+  void bootstrapData() {
+    ProxyService.forceDateEntry.dataBootstrapper();
   }
 
   Future<void> pocketDbRegistration() async {

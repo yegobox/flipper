@@ -31,11 +31,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     items: ['Zambia', 'Mozambique', 'Rwanda'],
     initialValue: 'Rwanda',
   );
+  //// {"id": "2", "typeName": "Flipper Connecta"},
   final businessTypes = SelectFieldBloc<BusinessType, Object>(
       name: 'businessType',
       items: BusinessType.fromJsonList(jsonEncode([
         {"id": "1", "typeName": "Flipper Retailer"},
-        {"id": "2", "typeName": "Flipper Connecta"},
+        
       ])),
       validators: [
         FieldBlocValidators.required,
@@ -46,6 +47,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     ProxyService.isar.businessTypes().then((data) {
       // Update the items of the SelectFieldBloc
       log(data.toString(), name: 'AsyncFieldValidationFormBloc');
+      // remove Flipper Connecta from data
       businessTypes.updateItems(data);
     }).catchError((error) {
       // Handle the error

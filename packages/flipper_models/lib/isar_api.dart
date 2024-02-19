@@ -2764,7 +2764,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
       {"id": "1", "typeName": "Flipper Retailer"},
-      {"id": "2", "typeName": "Flipper Connecta"},
+      // {"id": "2", "typeName": "Flipper Connecta"},`
     ];
     Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
