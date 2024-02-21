@@ -93,7 +93,7 @@ BEGIN
             VALUE "FileDescription", "flipper" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "flipper" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2023 rw. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 rw. All rights reserved." "\0"
             VALUE "OriginalFilename", "flipper.exe" "\0"
             VALUE "ProductName", "flipper" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

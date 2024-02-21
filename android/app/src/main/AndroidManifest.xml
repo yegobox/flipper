@@ -57,9 +57,9 @@
             android:value="ca-app-pub-2256315296357491~9455533288" />
 
         <!-- Enable impeller to start experiment as it will be default soon -->
-        <meta-data
+        <!-- <meta-data
             android:name="io.flutter.embedding.android.EnableImpeller"
-            android:value="true" />
+            android:value="true" /> -->
 
 
         <!-- end of admob configuration -->

@@ -17,7 +17,7 @@ dependencies:
   flutter_animate: ^4.1.0
 
   google_fonts: ^6.1.0
-  flipper_services: ^1.0.0
+  flipper_services: ^1.0.0-dev
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
 
