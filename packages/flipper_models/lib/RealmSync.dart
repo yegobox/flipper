@@ -86,8 +86,8 @@ class RealmSync<M extends IJsonSerializable>
         RealmVariant.schema,
         RealmStock.schema,
         RealmIUnit.schema,
-        RealmReceipt.schema,
         RealmCounter.schema,
+        RealmReceipt.schema,
         RealmCustomer.schema,
       ],
       encryptionKey: key,
@@ -154,13 +154,31 @@ class RealmSync<M extends IJsonSerializable>
     final variant = realm!.query<RealmVariant>(r'branchId == $0', [branchId]);
     final stock = realm!.query<RealmStock>(r'branchId == $0', [branchId]);
     final unit = realm!.query<RealmIUnit>(r'branchId == $0', [branchId]);
+    final counter = realm!.query<RealmCounter>(r'branchId == $0', [branchId]);
+    final receipt = realm!.query<RealmReceipt>(r'branchId == $0', [branchId]);
+    final customer = realm!.query<RealmCustomer>(r'branchId == $0', [branchId]);
 
     final transaction =
         realm!.query<RealmITransaction>(r'branchId == $0', [branchId]);
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
 
+    await customer.subscribe(
+        name: "iCustomer-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
+
+    await receipt.subscribe(
+        name: "iReceipt-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
+
     await product.subscribe(
         name: "iProduct-${branchId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
+
+    await counter.subscribe(
+        name: "iCounter-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true);
 
@@ -508,6 +526,7 @@ class RealmSync<M extends IJsonSerializable>
       realm!.write(() {
         final realmReceipt = RealmReceipt(
           ObjectId(),
+          item.branchId,
           id: item.id,
           resultCd: item.resultCd,
           resultMsg: item.resultMsg,

@@ -2456,8 +2456,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       required String qrCode,
       required Counter counter,
       required String receiptType}) async {
+    int branchId = ProxyService.box.getBranchId()!;
     Receipt receipt = Receipt(
       id: randomString(),
+      branchId: branchId,
       resultCd: signature.resultCd,
       resultMsg: signature.resultMsg,
       rcptNo: signature.data.rcptNo,

@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -16,14 +19,10 @@ import 'package:flipper_ui/flipper_ui.dart';
 class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation({
     Key? key,
-    required this.cashReceived,
     required this.transaction,
-    required this.paymentType,
   }) : super(key: key);
 
-  final double cashReceived;
   final ITransaction transaction;
-  final String paymentType;
 
   @override
   PaymentConfirmationState createState() => PaymentConfirmationState();
@@ -32,6 +31,11 @@ class PaymentConfirmation extends StatefulHookConsumerWidget {
 class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final _routerService = locator<RouterService>();
   bool canVigateBackHome = false;
+
+  bool _busy = false;
+  final TextEditingController _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +50,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           child: Scaffold(
             appBar: CustomAppBar(
               isDividerVisible: false,
-              title: 'Payment: ${widget.paymentType}',
+              title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
                 _routerService.clearStackAndShow(FlipperAppRoute());
@@ -56,7 +60,75 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           ),
         );
       },
-      onViewModelReady: (model) {},
+      onViewModelReady: (model) {
+        //TODO: if transaction.customerId !=null show a model to ask if a user need a digital receipt
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.transaction.customerId != null) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Digital Receipt'),
+                  content: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text('Do you need a digital receipt?'),
+                        TextFormField(
+                          controller: _controller,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Purchase Code',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a purchase code';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (value) {},
+                          // Handle the purchase code input
+                          onSaved: (value) {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    BoxButton(
+                      title: 'Submit',
+                      busy: _busy,
+                      onTap: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          setState(() {
+                            _busy = true;
+                          });
+                          _formKey.currentState?.save();
+                          String purchaseCode = _controller.text;
+                          log("received value ${purchaseCode}");
+                          await EBMHandler(object: widget.transaction)
+                              .handleReceiptGeneration(
+                            transaction: widget.transaction,
+                            purchaseCode: purchaseCode,
+                          );
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () {
+                        // Handle when the user doesn't need a digital receipt
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          }
+        });
+      },
       viewModelBuilder: () => CoreViewModel(),
     );
   }
@@ -90,7 +162,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 ),
                 const SizedBox(height: 40),
                 Text(
-                  'RWF ' + NumberFormat('#,###').format(widget.cashReceived),
+                  'RWF ' +
+                      NumberFormat('#,###')
+                          .format(widget.transaction.cashReceived),
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w400,
                     fontSize: 18,

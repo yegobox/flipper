@@ -10,7 +10,8 @@ part of 'realmReceipt.dart';
 class RealmReceipt extends _RealmReceipt
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmReceipt(
-    ObjectId realmId, {
+    ObjectId realmId,
+    int branchId, {
     String? id,
     String? resultCd,
     String? resultMsg,
@@ -41,6 +42,7 @@ class RealmReceipt extends _RealmReceipt
     RealmObjectBase.set(this, 'qrCode', qrCode);
     RealmObjectBase.set(this, 'receiptType', receiptType);
     RealmObjectBase.set(this, 'transactionId', transactionId);
+    RealmObjectBase.set(this, 'branchId', branchId);
   }
 
   RealmReceipt._();
@@ -133,6 +135,11 @@ class RealmReceipt extends _RealmReceipt
       RealmObjectBase.set(this, 'transactionId', value);
 
   @override
+  int get branchId => RealmObjectBase.get<int>(this, 'branchId') as int;
+  @override
+  set branchId(int value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
   Stream<RealmObjectChanges<RealmReceipt>> get changes =>
       RealmObjectBase.getChanges<RealmReceipt>(this);
 
@@ -162,6 +169,7 @@ class RealmReceipt extends _RealmReceipt
       SchemaProperty('qrCode', RealmPropertyType.string, optional: true),
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
       SchemaProperty('transactionId', RealmPropertyType.string, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int),
     ]);
   }
 }

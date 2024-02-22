@@ -25,6 +25,7 @@ class _RealmITransaction {
   String? updatedAt;
 
   String? customerId;
+  String? customerType;
   String? note;
 
   DateTime? lastTouched;
@@ -60,5 +61,6 @@ class _RealmITransaction {
     supplierId = other.supplierId;
     ticketName = other.ticketName;
     updatedAt = other.updatedAt;
+    customerType = other.customerType;
   }
 }

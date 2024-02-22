@@ -21,6 +21,7 @@ class _RealmReceipt {
   String? qrCode;
   String? receiptType;
   String? transactionId;
+  late int branchId;
   void updateProperties(RealmReceipt other) {
     id = other.id;
     resultCd = other.resultCd;

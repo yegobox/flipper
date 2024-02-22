@@ -16,9 +16,11 @@ abstract class TaxApi {
     String lastReqDt,
   });
 
-  Future<EBMApiResponse?> generateReceiptSignature(
-      {required ITransaction transaction,
-      required List<TransactionItem> items,
-      required String receiptType,
-      required Counter counter});
+  Future<EBMApiResponse?> generateReceiptSignature({
+    required ITransaction transaction,
+    required List<TransactionItem> items,
+    required String receiptType,
+    required Counter counter,
+    String? purchaseCode,
+  });
 }

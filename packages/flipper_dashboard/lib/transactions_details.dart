@@ -1,7 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_routing/receipt_types.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
@@ -281,10 +280,6 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
                                   onPressed: () {
                                     _routerService.navigateTo(
                                       PaymentConfirmationRoute(
-                                        cashReceived:
-                                            widget.transaction.subTotal,
-                                        paymentType:
-                                            widget.transaction.paymentType,
                                         transaction: widget.transaction,
                                       ),
                                     );

@@ -256,9 +256,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i1.PaymentConfirmation(
           key: args.key,
-          cashReceived: args.cashReceived,
           transaction: args.transaction,
-          paymentType: args.paymentType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1385,17 +1383,13 @@ class PaymentConfirmationRoute
     extends _i3.PageRouteInfo<PaymentConfirmationArgs> {
   PaymentConfirmationRoute({
     _i4.Key? key,
-    required double cashReceived,
     required _i8.ITransaction transaction,
-    required String paymentType,
   }) : super(
           PaymentConfirmationRoute.name,
           path: '/payment-confirmation',
           args: PaymentConfirmationArgs(
             key: key,
-            cashReceived: cashReceived,
             transaction: transaction,
-            paymentType: paymentType,
           ),
         );
 
@@ -1405,22 +1399,16 @@ class PaymentConfirmationRoute
 class PaymentConfirmationArgs {
   const PaymentConfirmationArgs({
     this.key,
-    required this.cashReceived,
     required this.transaction,
-    required this.paymentType,
   });
 
   final _i4.Key? key;
 
-  final double cashReceived;
-
   final _i8.ITransaction transaction;
-
-  final String paymentType;
 
   @override
   String toString() {
-    return 'PaymentConfirmationArgs{key: $key, cashReceived: $cashReceived, transaction: $transaction, paymentType: $paymentType}';
+    return 'PaymentConfirmationArgs{key: $key, transaction: $transaction}';
   }
 }
 
@@ -2383,17 +2371,13 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToPaymentConfirmation({
     _i4.Key? key,
-    required double cashReceived,
     required _i8.ITransaction transaction,
-    required String paymentType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PaymentConfirmationRoute(
         key: key,
-        cashReceived: cashReceived,
         transaction: transaction,
-        paymentType: paymentType,
       ),
       onFailure: onFailure,
     );
@@ -3004,17 +2988,13 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithPaymentConfirmation({
     _i4.Key? key,
-    required double cashReceived,
     required _i8.ITransaction transaction,
-    required String paymentType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PaymentConfirmationRoute(
         key: key,
-        cashReceived: cashReceived,
         transaction: transaction,
-        paymentType: paymentType,
       ),
       onFailure: onFailure,
     );

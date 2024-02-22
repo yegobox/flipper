@@ -20,61 +20,47 @@ class EBMHandler<OBJ> {
         //// generate a receipt for this completed transaction
         /// if a customer is attached and the customer is of type business
         /// we stop and wait for a business to give us purchase code!
+        /// so when a customerI is not empty we will wait for the purchase code from the user
+        /// and if the cashier does not provide it then we will go ahead and finish a transaction
+        /// without the purchase code and the user detail added to the transaction
         // Define this constant at the top level of your file
-        const String customerTypeBusiness = "Business";
+        //const String customerTypeBusiness = "Business";
 
         if (transaction.customerId != null) {
-          try {
-            /// get this customer from db
-            Customer? customer =
-                await ProxyService.isar.getCustomer(id: transaction.customerId);
-
-            /// for business customer we do not proceed generating receipt as a purchase code
-            /// is mandatory we stop and wait for the purchase code from the user
-            if (customer != null &&
-                customer.customerType == customerTypeBusiness) {
-              log("A customer was given and was a business, we stoped to generate receipt until purchase code is given",
-                  name: "Purchase code");
-              return;
-            }
-          } catch (e) {
-            log('Failed to get customer: $e');
-            // Handle the error as appropriate for your application
-          }
+          return;
         }
-
-        if (await ProxyService.isar.isTaxEnabled()) {
-          Business? business = await ProxyService.isar.getBusiness();
-          List<TransactionItem> items =
-              await ProxyService.isar.getTransactionItemsByTransactionId(
-            transactionId: transaction.id,
-          );
-
-          /// modify transaction add customer required fields
-          // tra
-          /// prepare the receipt, this steps invloves generating the data required to
-          /// print on receipt, get data required from ebm server after getting data required
-          /// then get these data saved in our database so whenever we want to print receipt of same
-          /// transaction it will be ready by then
-          log(business?.id.toString() ?? "-",
-              name: "generateRRAReceiptSignature");
-          await generateRRAReceiptSignature(
-            items: items,
-            business: business!,
-            transaction: transaction,
-            receiptType: transaction.receiptType!,
-          );
-          log("generating EBM", name: "Generating Receipt");
-
-          /// print the actual receipt
-          printReceipt(
-            items: items,
-            business: business,
-            transaction: transaction,
-            receiptType: transaction.receiptType!,
-          );
-        }
+        
+        await handleReceiptGeneration(transaction: transaction);
       }
+    }
+  }
+
+  /// Generates a receipt for the given transaction. Checks if tax is enabled, gets the
+  /// business and transaction items from the database, generates a signature, prints the
+  /// receipt, and handles any errors.
+  Future<void> handleReceiptGeneration(
+      {required ITransaction transaction, String? purchaseCode}) async {
+    if (await ProxyService.isar.isTaxEnabled()) {
+      Business? business = await ProxyService.isar.getBusiness();
+      List<TransactionItem> items =
+          await ProxyService.isar.getTransactionItemsByTransactionId(
+        transactionId: transaction.id,
+      );
+
+      await generateRRAReceiptSignature(
+        items: items,
+        business: business!,
+        transaction: transaction,
+        receiptType: transaction.receiptType!,
+        purchaseCode: purchaseCode,
+      );
+
+      await printReceipt(
+        items: items,
+        business: business,
+        transaction: transaction,
+        receiptType: transaction.receiptType!,
+      );
     }
   }
 
@@ -215,6 +201,7 @@ class EBMHandler<OBJ> {
     required Business business,
     required String receiptType,
     required ITransaction transaction,
+    String? purchaseCode,
   }) async {
     // Use local counter as long as it is marked as synced.
     log(receiptType, name: "onBefore: current Counter");
@@ -243,6 +230,7 @@ class EBMHandler<OBJ> {
       items: items,
       receiptType: receiptType,
       counter: counter!,
+      purchaseCode: purchaseCode,
     );
 
     log(receiptSignature?.toRawJson() ?? "No receipt signature",

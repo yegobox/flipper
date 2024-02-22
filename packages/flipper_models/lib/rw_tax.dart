@@ -173,8 +173,8 @@ class RWTax implements TaxApi {
       {required ITransaction transaction,
       required List<TransactionItem> items,
       required String receiptType,
-      String? purchaseCode,
-      required Counter counter}) async {
+      
+      required Counter counter,String? purchaseCode,}) async {
     Business? business = await ProxyService.isar.getBusiness();
     String date = DateTime.now()
         .toString()
@@ -312,7 +312,6 @@ class RWTax implements TaxApi {
   }) {
     if (transaction.customerId != null &&
         customer.customerType == customerTypeBusiness) {
-      log("Customer related field was added", name: 'addFieldIfCondition');
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;
     }

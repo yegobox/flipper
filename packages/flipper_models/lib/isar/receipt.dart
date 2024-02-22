@@ -20,6 +20,7 @@ class Receipt extends IJsonSerializable {
   late String mrcNo;
   late String qrCode;
   late String receiptType;
+  late int branchId;
   @Index()
   late String transactionId;
 
@@ -29,6 +30,7 @@ class Receipt extends IJsonSerializable {
   Receipt({
     required this.id,
     required this.resultCd,
+    required this.branchId,
     required this.resultMsg,
     required this.resultDt,
     required this.rcptNo,

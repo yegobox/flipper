@@ -26,6 +26,7 @@ class ITransaction extends IJsonSerializable {
   String? updatedAt;
 
   String? customerId;
+  String? customerType;
   String? note;
 
   @JsonKey(
@@ -76,6 +77,7 @@ class ITransaction extends IJsonSerializable {
     this.receiptType,
     this.updatedAt,
     this.customerId,
+    this.customerType,
     this.note,
     required this.id,
     required this.lastTouched,

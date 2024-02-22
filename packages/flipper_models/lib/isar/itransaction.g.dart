@@ -81,6 +81,10 @@ const ITransactionSchema = IsarGeneratedSchema(
         type: IsarType.string,
       ),
       IsarPropertySchema(
+        name: 'customerType',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
         name: 'note',
         type: IsarType.string,
       ),
@@ -174,31 +178,39 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
     }
   }
   {
-    final value = object.note;
+    final value = object.customerType;
     if (value == null) {
       IsarCore.writeNull(writer, 16);
     } else {
       IsarCore.writeString(writer, 16, value);
     }
   }
+  {
+    final value = object.note;
+    if (value == null) {
+      IsarCore.writeNull(writer, 17);
+    } else {
+      IsarCore.writeString(writer, 17, value);
+    }
+  }
   IsarCore.writeLong(
       writer,
-      17,
+      18,
       object.lastTouched?.toUtc().microsecondsSinceEpoch ??
           -9223372036854775808);
-  IsarCore.writeString(writer, 18, object.action);
+  IsarCore.writeString(writer, 19, object.action);
   {
     final value = object.ticketName;
     if (value == null) {
-      IsarCore.writeNull(writer, 19);
+      IsarCore.writeNull(writer, 20);
     } else {
-      IsarCore.writeString(writer, 19, value);
+      IsarCore.writeString(writer, 20, value);
     }
   }
-  IsarCore.writeLong(writer, 20,
+  IsarCore.writeLong(writer, 21,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 21, object.supplierId ?? -9223372036854775808);
-  IsarCore.writeBool(writer, 22, object.ebmSynced);
+  IsarCore.writeLong(writer, 22, object.supplierId ?? -9223372036854775808);
+  IsarCore.writeBool(writer, 23, object.ebmSynced);
   return Isar.fastHash(object.id);
 }
 
@@ -234,11 +246,13 @@ ITransaction deserializeITransaction(IsarReader reader) {
   _updatedAt = IsarCore.readString(reader, 14);
   final String? _customerId;
   _customerId = IsarCore.readString(reader, 15);
+  final String? _customerType;
+  _customerType = IsarCore.readString(reader, 16);
   final String? _note;
-  _note = IsarCore.readString(reader, 16);
+  _note = IsarCore.readString(reader, 17);
   final DateTime? _lastTouched;
   {
-    final value = IsarCore.readLong(reader, 17);
+    final value = IsarCore.readLong(reader, 18);
     if (value == -9223372036854775808) {
       _lastTouched = null;
     } else {
@@ -247,12 +261,12 @@ ITransaction deserializeITransaction(IsarReader reader) {
     }
   }
   final String _action;
-  _action = IsarCore.readString(reader, 18) ?? '';
+  _action = IsarCore.readString(reader, 19) ?? '';
   final String? _ticketName;
-  _ticketName = IsarCore.readString(reader, 19);
+  _ticketName = IsarCore.readString(reader, 20);
   final DateTime? _deletedAt;
   {
-    final value = IsarCore.readLong(reader, 20);
+    final value = IsarCore.readLong(reader, 21);
     if (value == -9223372036854775808) {
       _deletedAt = null;
     } else {
@@ -262,7 +276,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
   }
   final int? _supplierId;
   {
-    final value = IsarCore.readLong(reader, 21);
+    final value = IsarCore.readLong(reader, 22);
     if (value == -9223372036854775808) {
       _supplierId = null;
     } else {
@@ -270,7 +284,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     }
   }
   final bool _ebmSynced;
-  _ebmSynced = IsarCore.readBool(reader, 22);
+  _ebmSynced = IsarCore.readBool(reader, 23);
   final object = ITransaction(
     id: _id,
     reference: _reference,
@@ -287,6 +301,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     receiptType: _receiptType,
     updatedAt: _updatedAt,
     customerId: _customerId,
+    customerType: _customerType,
     note: _note,
     lastTouched: _lastTouched,
     action: _action,
@@ -334,22 +349,10 @@ dynamic deserializeITransactionProp(IsarReader reader, int property) {
     case 16:
       return IsarCore.readString(reader, 16);
     case 17:
-      {
-        final value = IsarCore.readLong(reader, 17);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
+      return IsarCore.readString(reader, 17);
     case 18:
-      return IsarCore.readString(reader, 18) ?? '';
-    case 19:
-      return IsarCore.readString(reader, 19);
-    case 20:
       {
-        final value = IsarCore.readLong(reader, 20);
+        final value = IsarCore.readLong(reader, 18);
         if (value == -9223372036854775808) {
           return null;
         } else {
@@ -357,17 +360,31 @@ dynamic deserializeITransactionProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 19:
+      return IsarCore.readString(reader, 19) ?? '';
+    case 20:
+      return IsarCore.readString(reader, 20);
     case 21:
       {
         final value = IsarCore.readLong(reader, 21);
         if (value == -9223372036854775808) {
           return null;
         } else {
-          return value;
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
+              .toLocal();
         }
       }
     case 22:
-      return IsarCore.readBool(reader, 22);
+      {
+        final value = IsarCore.readLong(reader, 22);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return value;
+        }
+      }
+    case 23:
+      return IsarCore.readBool(reader, 23);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -390,6 +407,7 @@ sealed class _ITransactionUpdate {
     String? receiptType,
     String? updatedAt,
     String? customerId,
+    String? customerType,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -422,6 +440,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
     Object? receiptType = ignore,
     Object? updatedAt = ignore,
     Object? customerId = ignore,
+    Object? customerType = ignore,
     Object? note = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -447,13 +466,14 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
           if (receiptType != ignore) 13: receiptType as String?,
           if (updatedAt != ignore) 14: updatedAt as String?,
           if (customerId != ignore) 15: customerId as String?,
-          if (note != ignore) 16: note as String?,
-          if (lastTouched != ignore) 17: lastTouched as DateTime?,
-          if (action != ignore) 18: action as String?,
-          if (ticketName != ignore) 19: ticketName as String?,
-          if (deletedAt != ignore) 20: deletedAt as DateTime?,
-          if (supplierId != ignore) 21: supplierId as int?,
-          if (ebmSynced != ignore) 22: ebmSynced as bool?,
+          if (customerType != ignore) 16: customerType as String?,
+          if (note != ignore) 17: note as String?,
+          if (lastTouched != ignore) 18: lastTouched as DateTime?,
+          if (action != ignore) 19: action as String?,
+          if (ticketName != ignore) 20: ticketName as String?,
+          if (deletedAt != ignore) 21: deletedAt as DateTime?,
+          if (supplierId != ignore) 22: supplierId as int?,
+          if (ebmSynced != ignore) 23: ebmSynced as bool?,
         }) >
         0;
   }
@@ -476,6 +496,7 @@ sealed class _ITransactionUpdateAll {
     String? receiptType,
     String? updatedAt,
     String? customerId,
+    String? customerType,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -508,6 +529,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
     Object? receiptType = ignore,
     Object? updatedAt = ignore,
     Object? customerId = ignore,
+    Object? customerType = ignore,
     Object? note = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -531,13 +553,14 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
       if (receiptType != ignore) 13: receiptType as String?,
       if (updatedAt != ignore) 14: updatedAt as String?,
       if (customerId != ignore) 15: customerId as String?,
-      if (note != ignore) 16: note as String?,
-      if (lastTouched != ignore) 17: lastTouched as DateTime?,
-      if (action != ignore) 18: action as String?,
-      if (ticketName != ignore) 19: ticketName as String?,
-      if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (supplierId != ignore) 21: supplierId as int?,
-      if (ebmSynced != ignore) 22: ebmSynced as bool?,
+      if (customerType != ignore) 16: customerType as String?,
+      if (note != ignore) 17: note as String?,
+      if (lastTouched != ignore) 18: lastTouched as DateTime?,
+      if (action != ignore) 19: action as String?,
+      if (ticketName != ignore) 20: ticketName as String?,
+      if (deletedAt != ignore) 21: deletedAt as DateTime?,
+      if (supplierId != ignore) 22: supplierId as int?,
+      if (ebmSynced != ignore) 23: ebmSynced as bool?,
     });
   }
 }
@@ -564,6 +587,7 @@ sealed class _ITransactionQueryUpdate {
     String? receiptType,
     String? updatedAt,
     String? customerId,
+    String? customerType,
     String? note,
     DateTime? lastTouched,
     String? action,
@@ -596,6 +620,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
     Object? receiptType = ignore,
     Object? updatedAt = ignore,
     Object? customerId = ignore,
+    Object? customerType = ignore,
     Object? note = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -619,13 +644,14 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
       if (receiptType != ignore) 13: receiptType as String?,
       if (updatedAt != ignore) 14: updatedAt as String?,
       if (customerId != ignore) 15: customerId as String?,
-      if (note != ignore) 16: note as String?,
-      if (lastTouched != ignore) 17: lastTouched as DateTime?,
-      if (action != ignore) 18: action as String?,
-      if (ticketName != ignore) 19: ticketName as String?,
-      if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (supplierId != ignore) 21: supplierId as int?,
-      if (ebmSynced != ignore) 22: ebmSynced as bool?,
+      if (customerType != ignore) 16: customerType as String?,
+      if (note != ignore) 17: note as String?,
+      if (lastTouched != ignore) 18: lastTouched as DateTime?,
+      if (action != ignore) 19: action as String?,
+      if (ticketName != ignore) 20: ticketName as String?,
+      if (deletedAt != ignore) 21: deletedAt as DateTime?,
+      if (supplierId != ignore) 22: supplierId as int?,
+      if (ebmSynced != ignore) 23: ebmSynced as bool?,
     });
   }
 }
@@ -659,6 +685,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
     Object? receiptType = ignore,
     Object? updatedAt = ignore,
     Object? customerId = ignore,
+    Object? customerType = ignore,
     Object? note = ignore,
     Object? lastTouched = ignore,
     Object? action = ignore,
@@ -684,13 +711,14 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
         if (receiptType != ignore) 13: receiptType as String?,
         if (updatedAt != ignore) 14: updatedAt as String?,
         if (customerId != ignore) 15: customerId as String?,
-        if (note != ignore) 16: note as String?,
-        if (lastTouched != ignore) 17: lastTouched as DateTime?,
-        if (action != ignore) 18: action as String?,
-        if (ticketName != ignore) 19: ticketName as String?,
-        if (deletedAt != ignore) 20: deletedAt as DateTime?,
-        if (supplierId != ignore) 21: supplierId as int?,
-        if (ebmSynced != ignore) 22: ebmSynced as bool?,
+        if (customerType != ignore) 16: customerType as String?,
+        if (note != ignore) 17: note as String?,
+        if (lastTouched != ignore) 18: lastTouched as DateTime?,
+        if (action != ignore) 19: action as String?,
+        if (ticketName != ignore) 20: ticketName as String?,
+        if (deletedAt != ignore) 21: deletedAt as DateTime?,
+        if (supplierId != ignore) 22: supplierId as int?,
+        if (ebmSynced != ignore) 23: ebmSynced as bool?,
       });
     } finally {
       q.close();
@@ -3119,20 +3147,22 @@ extension ITransactionQueryFilter
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteIsNull() {
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const IsNullCondition(property: 16));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      noteIsNotNull() {
+      customerTypeIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
       return query.addFilterCondition(const IsNullCondition(property: 16));
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteEqualTo(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3148,7 +3178,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      noteGreaterThan(
+      customerTypeGreaterThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3164,7 +3194,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      noteGreaterThanOrEqualTo(
+      customerTypeGreaterThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3179,7 +3209,8 @@ extension ITransactionQueryFilter
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteLessThan(
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeLessThan(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3195,7 +3226,7 @@ extension ITransactionQueryFilter
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
-      noteLessThanOrEqualTo(
+      customerTypeLessThanOrEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -3203,6 +3234,197 @@ extension ITransactionQueryFilter
       return query.addFilterCondition(
         LessOrEqualCondition(
           property: 16,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 16,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 16,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 16,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 16,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 16,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 16,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      customerTypeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 16,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 17));
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 17));
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 17,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 17,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 17,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition> noteLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 17,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      noteLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 17,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3218,7 +3440,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 16,
+          property: 17,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -3235,7 +3457,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 16,
+          property: 17,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3250,7 +3472,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 16,
+          property: 17,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3264,7 +3486,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 16,
+          property: 17,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3278,7 +3500,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 16,
+          property: 17,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -3291,7 +3513,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 16,
+          property: 17,
           value: '',
         ),
       );
@@ -3303,7 +3525,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 16,
+          property: 17,
           value: '',
         ),
       );
@@ -3313,14 +3535,14 @@ extension ITransactionQueryFilter
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 17));
+      return query.addFilterCondition(const IsNullCondition(property: 18));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       lastTouchedIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 17));
+      return query.addFilterCondition(const IsNullCondition(property: 18));
     });
   }
 
@@ -3331,7 +3553,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 17,
+          property: 18,
           value: value,
         ),
       );
@@ -3345,7 +3567,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 17,
+          property: 18,
           value: value,
         ),
       );
@@ -3359,7 +3581,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 17,
+          property: 18,
           value: value,
         ),
       );
@@ -3373,7 +3595,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 17,
+          property: 18,
           value: value,
         ),
       );
@@ -3387,7 +3609,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 17,
+          property: 18,
           value: value,
         ),
       );
@@ -3402,7 +3624,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 17,
+          property: 18,
           lower: lower,
           upper: upper,
         ),
@@ -3417,7 +3639,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3433,7 +3655,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3449,7 +3671,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3465,7 +3687,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3481,7 +3703,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3497,7 +3719,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 18,
+          property: 19,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -3514,7 +3736,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3530,7 +3752,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3543,7 +3765,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 18,
+          property: 19,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3557,7 +3779,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 18,
+          property: 19,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -3570,7 +3792,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 18,
+          property: 19,
           value: '',
         ),
       );
@@ -3582,7 +3804,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 18,
+          property: 19,
           value: '',
         ),
       );
@@ -3592,14 +3814,14 @@ extension ITransactionQueryFilter
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 19));
+      return query.addFilterCondition(const IsNullCondition(property: 20));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       ticketNameIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 19));
+      return query.addFilterCondition(const IsNullCondition(property: 20));
     });
   }
 
@@ -3611,7 +3833,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3627,7 +3849,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3643,7 +3865,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3659,7 +3881,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3675,7 +3897,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3692,7 +3914,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 19,
+          property: 20,
           lower: lower,
           upper: upper,
           caseSensitive: caseSensitive,
@@ -3709,7 +3931,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         StartsWithCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3725,7 +3947,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EndsWithCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3738,7 +3960,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         ContainsCondition(
-          property: 19,
+          property: 20,
           value: value,
           caseSensitive: caseSensitive,
         ),
@@ -3751,7 +3973,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         MatchesCondition(
-          property: 19,
+          property: 20,
           wildcard: pattern,
           caseSensitive: caseSensitive,
         ),
@@ -3764,7 +3986,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const EqualCondition(
-          property: 19,
+          property: 20,
           value: '',
         ),
       );
@@ -3776,7 +3998,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         const GreaterCondition(
-          property: 19,
+          property: 20,
           value: '',
         ),
       );
@@ -3786,14 +4008,14 @@ extension ITransactionQueryFilter
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 20));
+      return query.addFilterCondition(const IsNullCondition(property: 21));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       deletedAtIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 20));
+      return query.addFilterCondition(const IsNullCondition(property: 21));
     });
   }
 
@@ -3804,7 +4026,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 20,
+          property: 21,
           value: value,
         ),
       );
@@ -3818,7 +4040,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 20,
+          property: 21,
           value: value,
         ),
       );
@@ -3832,7 +4054,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 20,
+          property: 21,
           value: value,
         ),
       );
@@ -3846,7 +4068,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 20,
+          property: 21,
           value: value,
         ),
       );
@@ -3860,7 +4082,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 20,
+          property: 21,
           value: value,
         ),
       );
@@ -3875,7 +4097,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 20,
+          property: 21,
           lower: lower,
           upper: upper,
         ),
@@ -3886,14 +4108,14 @@ extension ITransactionQueryFilter
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       supplierIdIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 21));
+      return query.addFilterCondition(const IsNullCondition(property: 22));
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
       supplierIdIsNotNull() {
     return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 21));
+      return query.addFilterCondition(const IsNullCondition(property: 22));
     });
   }
 
@@ -3904,7 +4126,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 21,
+          property: 22,
           value: value,
         ),
       );
@@ -3918,7 +4140,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterCondition(
-          property: 21,
+          property: 22,
           value: value,
         ),
       );
@@ -3932,7 +4154,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         GreaterOrEqualCondition(
-          property: 21,
+          property: 22,
           value: value,
         ),
       );
@@ -3946,7 +4168,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessCondition(
-          property: 21,
+          property: 22,
           value: value,
         ),
       );
@@ -3960,7 +4182,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         LessOrEqualCondition(
-          property: 21,
+          property: 22,
           value: value,
         ),
       );
@@ -3975,7 +4197,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         BetweenCondition(
-          property: 21,
+          property: 22,
           lower: lower,
           upper: upper,
         ),
@@ -3990,7 +4212,7 @@ extension ITransactionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         EqualCondition(
-          property: 22,
+          property: 23,
           value: value,
         ),
       );
@@ -4285,7 +4507,7 @@ extension ITransactionQuerySortBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNote(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCustomerType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4295,7 +4517,7 @@ extension ITransactionQuerySortBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNoteDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByCustomerTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
@@ -4306,16 +4528,37 @@ extension ITransactionQuerySortBy
     });
   }
 
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNote(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        17,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByNoteDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        17,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17);
+      return query.addSortBy(18);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17, sort: Sort.desc);
+      return query.addSortBy(18, sort: Sort.desc);
     });
   }
 
@@ -4323,7 +4566,7 @@ extension ITransactionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        18,
+        19,
         caseSensitive: caseSensitive,
       );
     });
@@ -4333,7 +4576,7 @@ extension ITransactionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        18,
+        19,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -4344,7 +4587,7 @@ extension ITransactionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        19,
+        20,
         caseSensitive: caseSensitive,
       );
     });
@@ -4354,7 +4597,7 @@ extension ITransactionQuerySortBy
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(
-        19,
+        20,
         sort: Sort.desc,
         caseSensitive: caseSensitive,
       );
@@ -4363,38 +4606,38 @@ extension ITransactionQuerySortBy
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20);
+      return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20, sort: Sort.desc);
+      return query.addSortBy(21, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortBySupplierId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21);
+      return query.addSortBy(22);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       sortBySupplierIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21, sort: Sort.desc);
+      return query.addSortBy(22, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByEbmSynced() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22);
+      return query.addSortBy(23);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByEbmSyncedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, sort: Sort.desc);
+      return query.addSortBy(23, sort: Sort.desc);
     });
   }
 }
@@ -4606,95 +4849,109 @@ extension ITransactionQuerySortThenBy
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNote(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCustomerType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(16, caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNoteDesc(
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByCustomerTypeDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(16, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNote(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByNoteDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17);
+      return query.addSortBy(18);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17, sort: Sort.desc);
+      return query.addSortBy(18, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(18, caseSensitive: caseSensitive);
+      return query.addSortBy(19, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByActionDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(18, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(19, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByTicketName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19, caseSensitive: caseSensitive);
+      return query.addSortBy(20, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByTicketNameDesc(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(20, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20);
+      return query.addSortBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20, sort: Sort.desc);
+      return query.addSortBy(21, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenBySupplierId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21);
+      return query.addSortBy(22);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy>
       thenBySupplierIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21, sort: Sort.desc);
+      return query.addSortBy(22, sort: Sort.desc);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByEbmSynced() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22);
+      return query.addSortBy(23);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByEbmSyncedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(22, sort: Sort.desc);
+      return query.addSortBy(23, sort: Sort.desc);
     });
   }
 }
@@ -4799,52 +5056,59 @@ extension ITransactionQueryWhereDistinct
     });
   }
 
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByCustomerType({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(16, caseSensitive: caseSensitive);
+    });
+  }
+
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByNote(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(16, caseSensitive: caseSensitive);
+      return query.addDistinctBy(17, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(17);
+      return query.addDistinctBy(18);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(18, caseSensitive: caseSensitive);
+      return query.addDistinctBy(19, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct> distinctByTicketName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(19, caseSensitive: caseSensitive);
+      return query.addDistinctBy(20, caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(20);
+      return query.addDistinctBy(21);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctBySupplierId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(21);
+      return query.addDistinctBy(22);
     });
   }
 
   QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
       distinctByEbmSynced() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(22);
+      return query.addDistinctBy(23);
     });
   }
 }
@@ -4943,45 +5207,51 @@ extension ITransactionQueryProperty1
     });
   }
 
-  QueryBuilder<ITransaction, String?, QAfterProperty> noteProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> customerTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
     });
   }
 
-  QueryBuilder<ITransaction, DateTime?, QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(17);
     });
   }
 
-  QueryBuilder<ITransaction, String, QAfterProperty> actionProperty() {
+  QueryBuilder<ITransaction, DateTime?, QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(18);
     });
   }
 
-  QueryBuilder<ITransaction, String?, QAfterProperty> ticketNameProperty() {
+  QueryBuilder<ITransaction, String, QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(19);
     });
   }
 
-  QueryBuilder<ITransaction, DateTime?, QAfterProperty> deletedAtProperty() {
+  QueryBuilder<ITransaction, String?, QAfterProperty> ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(20);
     });
   }
 
-  QueryBuilder<ITransaction, int?, QAfterProperty> supplierIdProperty() {
+  QueryBuilder<ITransaction, DateTime?, QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
     });
   }
 
-  QueryBuilder<ITransaction, bool, QAfterProperty> ebmSyncedProperty() {
+  QueryBuilder<ITransaction, int?, QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(22);
+    });
+  }
+
+  QueryBuilder<ITransaction, bool, QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(23);
     });
   }
 }
@@ -5086,48 +5356,55 @@ extension ITransactionQueryProperty2<R>
     });
   }
 
-  QueryBuilder<ITransaction, (R, String?), QAfterProperty> noteProperty() {
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty>
+      customerTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
+    });
+  }
+
+  QueryBuilder<ITransaction, (R, String?), QAfterProperty> noteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(17);
     });
   }
 
   QueryBuilder<ITransaction, (R, DateTime?), QAfterProperty>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(17);
+      return query.addProperty(18);
     });
   }
 
   QueryBuilder<ITransaction, (R, String), QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(18);
+      return query.addProperty(19);
     });
   }
 
   QueryBuilder<ITransaction, (R, String?), QAfterProperty>
       ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(19);
+      return query.addProperty(20);
     });
   }
 
   QueryBuilder<ITransaction, (R, DateTime?), QAfterProperty>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(20);
+      return query.addProperty(21);
     });
   }
 
   QueryBuilder<ITransaction, (R, int?), QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
+      return query.addProperty(22);
     });
   }
 
   QueryBuilder<ITransaction, (R, bool), QAfterProperty> ebmSyncedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(22);
+      return query.addProperty(23);
     });
   }
 }
@@ -5235,48 +5512,55 @@ extension ITransactionQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<ITransaction, (R1, R2, String?), QOperations> noteProperty() {
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
+      customerTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
+    });
+  }
+
+  QueryBuilder<ITransaction, (R1, R2, String?), QOperations> noteProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(17);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, DateTime?), QOperations>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(17);
+      return query.addProperty(18);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, String), QOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(18);
+      return query.addProperty(19);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, String?), QOperations>
       ticketNameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(19);
+      return query.addProperty(20);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, DateTime?), QOperations>
       deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(20);
+      return query.addProperty(21);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, int?), QOperations> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
+      return query.addProperty(22);
     });
   }
 
   QueryBuilder<ITransaction, (R1, R2, bool), QOperations> ebmSyncedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(22);
+      return query.addProperty(23);
     });
   }
 }
@@ -5302,6 +5586,7 @@ ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       receiptType: json['receiptType'] as String?,
       updatedAt: json['updatedAt'] as String?,
       customerId: json['customerId'] as String?,
+      customerType: json['customerType'] as String?,
       note: json['note'] as String?,
       id: json['id'] as String,
       lastTouched:
@@ -5328,6 +5613,7 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'receiptType': instance.receiptType,
       'updatedAt': instance.updatedAt,
       'customerId': instance.customerId,
+      'customerType': instance.customerType,
       'note': instance.note,
       'lastTouched': ITransaction._dateTimeToJson(instance.lastTouched),
       'action': instance.action,
