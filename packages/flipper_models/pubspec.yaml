@@ -14,7 +14,7 @@ dependencies:
   universal_platform: ^1.0.0+1
   stacked_services: ^1.0.4
   firebase_auth: ^4.16.0
-  stacked: ^3.4.1+1
+  stacked: ^3.4.2
   built_value: ^8.1.4
   azlistview: ^2.0.0
   scrollable_positioned_list: ^0.3.2-dev
@@ -37,13 +37,13 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   freezed_annotation:
-  cloud_firestore: ^4.13.5
+  # cloud_firestore: ^4.14.0
   isolated_worker: ^0.1.1
   dio: ^4.0.6
   # adding realm to replace firestore on desktop in transporting data to cloud
-  realm: ^1.7.0
+  realm: ^1.9.0
   uuid: ^4.3.3
-  
+
 dependency_overrides:
   http: ^1.1.2
   meta: ^1.11.0

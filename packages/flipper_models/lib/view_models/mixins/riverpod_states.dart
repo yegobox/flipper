@@ -364,6 +364,16 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
+final customersProvider = StateNotifierProvider.autoDispose<CustomersNotifier,
+    AsyncValue<List<Customer>>>((ref) {
+  int branchId = ProxyService.box.getBranchId()!;
+  final customersNotifier = CustomersNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  customersNotifier.loadCustomers(searchString: searchString);
+
+  return customersNotifier;
+});
+
 class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   final int branchId;
 
@@ -371,12 +381,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
   Future<void> loadCustomers({required String searchString}) async {
     try {
+      await Future.delayed(
+          Duration(seconds: 3)); // await any ongoing database persistance
       List<Customer> customers =
           await ProxyService.isar.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers
-            .where((customer) => customer.name
+            .where((customer) => customer.custNm
                 .toLowerCase()
                 .contains(searchString.toLowerCase()))
             .toList();
@@ -411,23 +423,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   ) {
     if (searchString.isNotEmpty) {
       return customers
-          .where((customer) =>
-              customer.name.toLowerCase().contains(searchString.toLowerCase()))
+          .where((customer) => customer.custNm
+              .toLowerCase()
+              .contains(searchString.toLowerCase()))
           .toList();
     }
     return customers;
   }
 }
-
-final customersProvider = StateNotifierProvider.autoDispose
-    .family<CustomersNotifier, AsyncValue<List<Customer>>, int>(
-        (ref, branchId) {
-  final customersNotifier = CustomersNotifier(branchId);
-  final searchString = ref.watch(searchStringProvider);
-  customersNotifier.loadCustomers(searchString: searchString);
-
-  return customersNotifier;
-});
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, String>((ref, productId) async {

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: flipper_rw
 repository: https://github.com/yegobox/flipper
 description: A super app for africans
@@ -12,15 +13,15 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.1531663112405+1708502233
+version: 1.170.1545331472454+1708621958
+=======
+name: flipper_workspace
+>>>>>>> dev
 
-#......
-# The packages below are just refrences for what packages being used
-# so not referenced in the app! check each package for more real package used
-#  in the specific package.
 environment:
-  sdk: ">=3.0.0"
+  sdk: '>=3.0.0 <4.0.0'
 
+<<<<<<< HEAD
 dependencies:
   flutter:
     sdk: flutter
@@ -36,7 +37,7 @@ dependencies:
   firebase_ui_auth: ^1.11.0
   firebase_auth: ^4.16.0
   google_fonts: ^6.1.0
-  stacked: ^3.4.1+1
+  stacked: ^3.4.2
   firebase_messaging: ^14.6.2
   overlay_support: ^2.1.0
   flex_color_scheme: ^4.2.0
@@ -57,7 +58,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   flipper_routing: ^0.0.1-dev.3
   flipper_localize: ^1.0.0-dev
-  flipper_data_table: 1.0.0-dev.2
+  # flipper_data_table: 1.0.0-dev.2
   flutter_animate: ^4.1.0
   flipper_services: ^1.0.0-dev
   cupertino_icons: ^1.0.2
@@ -65,11 +66,11 @@ dependencies:
     path: ./packages/flipper_login
   flipper_actionable:
     path: ./packages/flipper_actionable
-  firebase_core: ^2.25.4
+  firebase_core: ^2.24.2
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
   injectable: ^2.3.0
-  get_storage: ^2.1.1
+  
   get_it: ^7.6.0
   newrelic_mobile: ^1.0.5
   workmanager: ^0.5.1
@@ -82,7 +83,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   url_strategy: ^0.2.0
   responsive_builder: ^0.7.0
-  realm: ^1.7.0
+  realm: ^1.9.0
   patrol: ^3.4.0
   firebase_app_check: ^0.2.1+12
 dev_dependencies:
@@ -154,7 +155,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.455.0
+  msix_version: 1.170.463.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
@@ -284,3 +285,7 @@ flutter_native_splash:
   #  - 'ios/Runner/Info-Release.plist'
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
 # dart run flutter_launcher_icons:main
+=======
+dev_dependencies:
+  melos: ^3.0.1
+>>>>>>> dev

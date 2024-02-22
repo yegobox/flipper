@@ -11,9 +11,6 @@
 [submodule "open-sources/qr.flutter"]
 	path = open-sources/qr.flutter
 	url = https://github.com/yegobox/qr.flutter.git
-[submodule "open-sources/flutter_datetime_picker"]
-	path = open-sources/flutter_datetime_picker
-	url = https://github.com/yegobox/flutter_datetime_picker.git
 [submodule "open-sources/receipt"]
 	path = open-sources/receipt
 	url = https://github.com/yegobox/receipt.git

@@ -40,13 +40,6 @@ class AppService with ListenableServiceMixin {
   setActiveBranch({required isar.Branch branch}) {
     _branch.value = branch;
   }
-
-  final _customer = ReactiveValue<Customer?>(null);
-  Customer? get customer => _customer.value;
-  void setCustomer(Customer? customer) {
-    _customer.value = customer;
-  }
-
   void loadCategories() async {
     int? branchId = ProxyService.box.getBranchId();
 
@@ -144,6 +137,12 @@ class AppService with ListenableServiceMixin {
         !Platform.isWindows &&
         !authComplete) {
       throw LoginChoicesException(term: "Choose default business");
+    } else {
+      /// we have one business and one branch so we can set default tin and bhfid to be used during this session
+      ProxyService.box
+          .writeString(key: 'bhfId', value: businesses.first.bhfId ?? "");
+      ProxyService.box
+          .writeInt(key: 'tin', value: businesses.first.tinNumber ?? 0);
     }
   }
 

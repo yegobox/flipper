@@ -21,6 +21,7 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:stacked/stacked.dart';
 
@@ -127,7 +128,17 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return _buildScaffold(context, model);
+        return StreamBuilder<String>(
+            stream: ProxyService.notie.stream,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                showSimpleNotification(Text(snapshot.data ?? ""),
+                    background: const Color.fromARGB(82, 244, 67, 54),
+                    duration: Duration(seconds: 10),
+                    position: NotificationPosition.bottom);
+              }
+              return _buildScaffold(context, model);
+            });
       },
     );
   }

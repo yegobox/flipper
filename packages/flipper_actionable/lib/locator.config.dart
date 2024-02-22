@@ -34,7 +34,7 @@ extension GetItInjectableX on _i1.GetIt {
       preResolve: true,
     );
     gh.factory<_i4.Service>(() => module.service);
-    gh.lazySingleton<_i5.Storage>(() => module.box());
+
     return this;
   }
 }

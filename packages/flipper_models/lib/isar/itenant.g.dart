@@ -2741,6 +2741,7 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       sessionActive: json['sessionActive'] as bool?,
+      isLongPressed: json['isLongPressed'] as bool? ?? false,
       pin: json['pin'] as int?,
     )
       ..action = json['action'] as String
@@ -2764,4 +2765,5 @@ Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'pin': instance.pin,
       'sessionActive': instance.sessionActive,
       'isDefault': instance.isDefault,
+      'isLongPressed': instance.isLongPressed,
     };

@@ -24,6 +24,7 @@ Tenant _$TenantFromJson(Map<String, dynamic> json) => Tenant(
       nfcEnabled: json['nfcEnabled'] as bool,
       userId: json['userId'] as int,
       isDefault: json['isDefault'] as bool,
+      isLongPressed: json['isLongPressed'] as bool? ?? false,
       pin: json['pin'] as int?,
     );
 
@@ -40,4 +41,5 @@ Map<String, dynamic> _$TenantToJson(Tenant instance) => <String, dynamic>{
       'userId': instance.userId,
       'pin': instance.pin,
       'isDefault': instance.isDefault,
+      'isLongPressed': instance.isLongPressed,
     };

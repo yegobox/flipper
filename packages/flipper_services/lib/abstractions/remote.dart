@@ -36,4 +36,6 @@ abstract class Remote {
   bool isOrderFeatureOrderEnabled();
   bool isFirestoreEnabled();
   bool isHttpSyncAvailable();
+  String bcc();
+  bool isEmailLogEnabled();
 }

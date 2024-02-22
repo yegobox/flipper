@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -281,13 +280,14 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
                                 child: OutlinedButton(
                                   onPressed: () {
                                     _routerService.navigateTo(
-                                        PaymentConfirmationRoute(
-                                            cashReceived:
-                                                widget.transaction.subTotal,
-                                            receiptType: ReceiptType.cs,
-                                            paymentType:
-                                                widget.transaction.paymentType,
-                                            transaction: widget.transaction));
+                                      PaymentConfirmationRoute(
+                                        cashReceived:
+                                            widget.transaction.subTotal,
+                                        paymentType:
+                                            widget.transaction.paymentType,
+                                        transaction: widget.transaction,
+                                      ),
+                                    );
                                   },
                                   style: ButtonStyle(
                                     side: MaterialStateProperty.all<BorderSide>(

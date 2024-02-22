@@ -204,6 +204,22 @@ const VariantSchema = IsarGeneratedSchema(
         name: 'action',
         type: IsarType.string,
       ),
+      IsarPropertySchema(
+        name: 'spplrItemClsCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'spplrItemCd',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'spplrItemNm',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'ebmSynced',
+        type: IsarType.bool,
+      ),
     ],
     indexes: [
       IsarIndexSchema(
@@ -460,6 +476,31 @@ int serializeVariant(IsarWriter writer, Variant object) {
   IsarCore.writeDouble(writer, 44, object.supplyPrice);
   IsarCore.writeDouble(writer, 45, object.retailPrice);
   IsarCore.writeString(writer, 46, object.action);
+  {
+    final value = object.spplrItemClsCd;
+    if (value == null) {
+      IsarCore.writeNull(writer, 47);
+    } else {
+      IsarCore.writeString(writer, 47, value);
+    }
+  }
+  {
+    final value = object.spplrItemCd;
+    if (value == null) {
+      IsarCore.writeNull(writer, 48);
+    } else {
+      IsarCore.writeString(writer, 48, value);
+    }
+  }
+  {
+    final value = object.spplrItemNm;
+    if (value == null) {
+      IsarCore.writeNull(writer, 49);
+    } else {
+      IsarCore.writeString(writer, 49, value);
+    }
+  }
+  IsarCore.writeBool(writer, 50, object.ebmSynced);
   return Isar.fastHash(object.id);
 }
 
@@ -492,7 +533,7 @@ Variant deserializeVariant(IsarReader reader) {
   final int _branchId;
   _branchId = IsarCore.readLong(reader, 9);
   final String? _taxName;
-  _taxName = IsarCore.readString(reader, 10) ?? 'N/A';
+  _taxName = IsarCore.readString(reader, 10);
   final double? _taxPercentage;
   {
     final value = IsarCore.readDouble(reader, 11);
@@ -519,7 +560,7 @@ Variant deserializeVariant(IsarReader reader) {
   final String? _bcd;
   _bcd = IsarCore.readString(reader, 19);
   final String? _itemClsCd;
-  _itemClsCd = IsarCore.readString(reader, 20) ?? 'itemClsCd';
+  _itemClsCd = IsarCore.readString(reader, 20);
   final String? _itemTyCd;
   _itemTyCd = IsarCore.readString(reader, 21);
   final String? _itemStdNm;
@@ -622,6 +663,14 @@ Variant deserializeVariant(IsarReader reader) {
   _retailPrice = IsarCore.readDouble(reader, 45);
   final String _action;
   _action = IsarCore.readString(reader, 46) ?? '';
+  final String? _spplrItemClsCd;
+  _spplrItemClsCd = IsarCore.readString(reader, 47);
+  final String? _spplrItemCd;
+  _spplrItemCd = IsarCore.readString(reader, 48);
+  final String? _spplrItemNm;
+  _spplrItemNm = IsarCore.readString(reader, 49);
+  final bool _ebmSynced;
+  _ebmSynced = IsarCore.readBool(reader, 50);
   final object = Variant(
     deletedAt: _deletedAt,
     id: _id,
@@ -669,6 +718,10 @@ Variant deserializeVariant(IsarReader reader) {
     supplyPrice: _supplyPrice,
     retailPrice: _retailPrice,
     action: _action,
+    spplrItemClsCd: _spplrItemClsCd,
+    spplrItemCd: _spplrItemCd,
+    spplrItemNm: _spplrItemNm,
+    ebmSynced: _ebmSynced,
   );
   return object;
 }
@@ -703,7 +756,7 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
     case 9:
       return IsarCore.readLong(reader, 9);
     case 10:
-      return IsarCore.readString(reader, 10) ?? 'N/A';
+      return IsarCore.readString(reader, 10);
     case 11:
       {
         final value = IsarCore.readDouble(reader, 11);
@@ -730,7 +783,7 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
     case 19:
       return IsarCore.readString(reader, 19);
     case 20:
-      return IsarCore.readString(reader, 20) ?? 'itemClsCd';
+      return IsarCore.readString(reader, 20);
     case 21:
       return IsarCore.readString(reader, 21);
     case 22:
@@ -833,6 +886,14 @@ dynamic deserializeVariantProp(IsarReader reader, int property) {
       return IsarCore.readDouble(reader, 45);
     case 46:
       return IsarCore.readString(reader, 46) ?? '';
+    case 47:
+      return IsarCore.readString(reader, 47);
+    case 48:
+      return IsarCore.readString(reader, 48);
+    case 49:
+      return IsarCore.readString(reader, 49);
+    case 50:
+      return IsarCore.readBool(reader, 50);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -886,6 +947,10 @@ sealed class _VariantUpdate {
     double? supplyPrice,
     double? retailPrice,
     String? action,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    String? spplrItemNm,
+    bool? ebmSynced,
   });
 }
 
@@ -942,6 +1007,10 @@ class _VariantUpdateImpl implements _VariantUpdate {
     Object? supplyPrice = ignore,
     Object? retailPrice = ignore,
     Object? action = ignore,
+    Object? spplrItemClsCd = ignore,
+    Object? spplrItemCd = ignore,
+    Object? spplrItemNm = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -991,6 +1060,10 @@ class _VariantUpdateImpl implements _VariantUpdate {
           if (supplyPrice != ignore) 44: supplyPrice as double?,
           if (retailPrice != ignore) 45: retailPrice as double?,
           if (action != ignore) 46: action as String?,
+          if (spplrItemClsCd != ignore) 47: spplrItemClsCd as String?,
+          if (spplrItemCd != ignore) 48: spplrItemCd as String?,
+          if (spplrItemNm != ignore) 49: spplrItemNm as String?,
+          if (ebmSynced != ignore) 50: ebmSynced as bool?,
         }) >
         0;
   }
@@ -1044,6 +1117,10 @@ sealed class _VariantUpdateAll {
     double? supplyPrice,
     double? retailPrice,
     String? action,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    String? spplrItemNm,
+    bool? ebmSynced,
   });
 }
 
@@ -1100,6 +1177,10 @@ class _VariantUpdateAllImpl implements _VariantUpdateAll {
     Object? supplyPrice = ignore,
     Object? retailPrice = ignore,
     Object? action = ignore,
+    Object? spplrItemClsCd = ignore,
+    Object? spplrItemCd = ignore,
+    Object? spplrItemNm = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties(id, {
       if (deletedAt != ignore) 1: deletedAt as DateTime?,
@@ -1147,6 +1228,10 @@ class _VariantUpdateAllImpl implements _VariantUpdateAll {
       if (supplyPrice != ignore) 44: supplyPrice as double?,
       if (retailPrice != ignore) 45: retailPrice as double?,
       if (action != ignore) 46: action as String?,
+      if (spplrItemClsCd != ignore) 47: spplrItemClsCd as String?,
+      if (spplrItemCd != ignore) 48: spplrItemCd as String?,
+      if (spplrItemNm != ignore) 49: spplrItemNm as String?,
+      if (ebmSynced != ignore) 50: ebmSynced as bool?,
     });
   }
 }
@@ -1204,6 +1289,10 @@ sealed class _VariantQueryUpdate {
     double? supplyPrice,
     double? retailPrice,
     String? action,
+    String? spplrItemClsCd,
+    String? spplrItemCd,
+    String? spplrItemNm,
+    bool? ebmSynced,
   });
 }
 
@@ -1260,6 +1349,10 @@ class _VariantQueryUpdateImpl implements _VariantQueryUpdate {
     Object? supplyPrice = ignore,
     Object? retailPrice = ignore,
     Object? action = ignore,
+    Object? spplrItemClsCd = ignore,
+    Object? spplrItemCd = ignore,
+    Object? spplrItemNm = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (deletedAt != ignore) 1: deletedAt as DateTime?,
@@ -1307,6 +1400,10 @@ class _VariantQueryUpdateImpl implements _VariantQueryUpdate {
       if (supplyPrice != ignore) 44: supplyPrice as double?,
       if (retailPrice != ignore) 45: retailPrice as double?,
       if (action != ignore) 46: action as String?,
+      if (spplrItemClsCd != ignore) 47: spplrItemClsCd as String?,
+      if (spplrItemCd != ignore) 48: spplrItemCd as String?,
+      if (spplrItemNm != ignore) 49: spplrItemNm as String?,
+      if (ebmSynced != ignore) 50: ebmSynced as bool?,
     });
   }
 }
@@ -1371,6 +1468,10 @@ class _VariantQueryBuilderUpdateImpl implements _VariantQueryUpdate {
     Object? supplyPrice = ignore,
     Object? retailPrice = ignore,
     Object? action = ignore,
+    Object? spplrItemClsCd = ignore,
+    Object? spplrItemCd = ignore,
+    Object? spplrItemNm = ignore,
+    Object? ebmSynced = ignore,
   }) {
     final q = query.build();
     try {
@@ -1420,6 +1521,10 @@ class _VariantQueryBuilderUpdateImpl implements _VariantQueryUpdate {
         if (supplyPrice != ignore) 44: supplyPrice as double?,
         if (retailPrice != ignore) 45: retailPrice as double?,
         if (action != ignore) 46: action as String?,
+        if (spplrItemClsCd != ignore) 47: spplrItemClsCd as String?,
+        if (spplrItemCd != ignore) 48: spplrItemCd as String?,
+        if (spplrItemNm != ignore) 49: spplrItemNm as String?,
+        if (ebmSynced != ignore) 50: ebmSynced as bool?,
       });
     } finally {
       q.close();
@@ -8653,6 +8758,584 @@ extension VariantQueryFilter
       );
     });
   }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 47));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 47));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 47,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 47,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemClsCdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 47,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 47,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemClsCdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 47,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 48));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 48));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemCdGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemCdLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 48,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 48,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 48,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemCdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 48,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemCdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 48,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 49));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 49));
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmGreaterThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemNmGreaterThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmLessThan(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemNmLessThanOrEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmBetween(
+    String? lower,
+    String? upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 49,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 49,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 49,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> spplrItemNmIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 49,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition>
+      spplrItemNmIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 49,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterFilterCondition> ebmSyncedEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 50,
+          value: value,
+        ),
+      );
+    });
+  }
 }
 
 extension VariantQueryObject
@@ -9507,6 +10190,81 @@ extension VariantQuerySortBy on QueryBuilder<Variant, Variant, QSortBy> {
       );
     });
   }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemClsCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        47,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemClsCdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        47,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        48,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemCdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        48,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemNm(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        49,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortBySpplrItemNmDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        49,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(50);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> sortByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(50, sort: Sort.desc);
+    });
+  }
 }
 
 extension VariantQuerySortThenBy
@@ -10128,6 +10886,60 @@ extension VariantQuerySortThenBy
       return query.addSortBy(46, sort: Sort.desc, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemClsCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(47, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemClsCdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(47, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(48, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemCdDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(48, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemNm(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(49, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenBySpplrItemNmDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(49, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(50);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterSortBy> thenByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(50, sort: Sort.desc);
+    });
+  }
 }
 
 extension VariantQueryWhereDistinct
@@ -10433,6 +11245,33 @@ extension VariantQueryWhereDistinct
       return query.addDistinctBy(46, caseSensitive: caseSensitive);
     });
   }
+
+  QueryBuilder<Variant, Variant, QAfterDistinct> distinctBySpplrItemClsCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(47, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterDistinct> distinctBySpplrItemCd(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(48, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterDistinct> distinctBySpplrItemNm(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(49, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Variant, Variant, QAfterDistinct> distinctByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(50);
+    });
+  }
 }
 
 extension VariantQueryProperty1 on QueryBuilder<Variant, Variant, QProperty> {
@@ -10711,6 +11550,30 @@ extension VariantQueryProperty1 on QueryBuilder<Variant, Variant, QProperty> {
       return query.addProperty(46);
     });
   }
+
+  QueryBuilder<Variant, String?, QAfterProperty> spplrItemClsCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(47);
+    });
+  }
+
+  QueryBuilder<Variant, String?, QAfterProperty> spplrItemCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(48);
+    });
+  }
+
+  QueryBuilder<Variant, String?, QAfterProperty> spplrItemNmProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(49);
+    });
+  }
+
+  QueryBuilder<Variant, bool, QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(50);
+    });
+  }
 }
 
 extension VariantQueryProperty2<R> on QueryBuilder<Variant, R, QAfterProperty> {
@@ -10987,6 +11850,30 @@ extension VariantQueryProperty2<R> on QueryBuilder<Variant, R, QAfterProperty> {
   QueryBuilder<Variant, (R, String), QAfterProperty> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(46);
+    });
+  }
+
+  QueryBuilder<Variant, (R, String?), QAfterProperty> spplrItemClsCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(47);
+    });
+  }
+
+  QueryBuilder<Variant, (R, String?), QAfterProperty> spplrItemCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(48);
+    });
+  }
+
+  QueryBuilder<Variant, (R, String?), QAfterProperty> spplrItemNmProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(49);
+    });
+  }
+
+  QueryBuilder<Variant, (R, bool), QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(50);
     });
   }
 }
@@ -11270,6 +12157,31 @@ extension VariantQueryProperty3<R1, R2>
       return query.addProperty(46);
     });
   }
+
+  QueryBuilder<Variant, (R1, R2, String?), QOperations>
+      spplrItemClsCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(47);
+    });
+  }
+
+  QueryBuilder<Variant, (R1, R2, String?), QOperations> spplrItemCdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(48);
+    });
+  }
+
+  QueryBuilder<Variant, (R1, R2, String?), QOperations> spplrItemNmProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(49);
+    });
+  }
+
+  QueryBuilder<Variant, (R1, R2, bool), QOperations> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(50);
+    });
+  }
 }
 
 // **************************************************************************
@@ -11289,7 +12201,11 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       action: json['action'] as String,
       color: Variant._colorFromJson(json['color']),
       id: json['id'] as String,
-      taxName: json['taxName'] as String? ?? 'N/A',
+      ebmSynced: json['ebmSynced'] as bool? ?? false,
+      spplrItemClsCd: json['spplrItemClsCd'] as String?,
+      spplrItemCd: json['spplrItemCd'] as String?,
+      spplrItemNm: json['spplrItemNm'] as String?,
+      taxName: json['taxName'] as String?,
       taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0,
       itemSeq: json['itemSeq'] as String?,
       isrccCd: json['isrccCd'] as String?,
@@ -11298,7 +12214,7 @@ Variant _$VariantFromJson(Map<String, dynamic> json) => Variant(
       isrcAmt: json['isrcAmt'] as String?,
       taxTyCd: json['taxTyCd'] as String?,
       bcd: json['bcd'] as String?,
-      itemClsCd: json['itemClsCd'] as String? ?? 'itemClsCd',
+      itemClsCd: json['itemClsCd'] as String?,
       itemTyCd: json['itemTyCd'] as String?,
       itemStdNm: json['itemStdNm'] as String?,
       orgnNatCd: json['orgnNatCd'] as String?,
@@ -11374,4 +12290,8 @@ Map<String, dynamic> _$VariantToJson(Variant instance) => <String, dynamic>{
       'supplyPrice': instance.supplyPrice,
       'retailPrice': instance.retailPrice,
       'action': instance.action,
+      'spplrItemClsCd': instance.spplrItemClsCd,
+      'spplrItemCd': instance.spplrItemCd,
+      'spplrItemNm': instance.spplrItemNm,
+      'ebmSynced': instance.ebmSynced,
     };

@@ -185,4 +185,16 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement uid
     throw UnimplementedError();
   }
+
+  @override
+  String bhfId() {
+    // TODO: implement bhfId
+    throw UnimplementedError();
+  }
+
+  @override
+  int tin() {
+    // TODO: implement tin
+    throw UnimplementedError();
+  }
 }

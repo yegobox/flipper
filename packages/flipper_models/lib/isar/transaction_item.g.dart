@@ -427,7 +427,7 @@ int serializeTransactionItem(IsarWriter writer, TransactionItem object) {
       IsarCore.writeString(writer, 36, value);
     }
   }
-  IsarCore.writeDouble(writer, 37, object.prc ?? double.nan);
+  IsarCore.writeDouble(writer, 37, object.prc);
   IsarCore.writeDouble(writer, 38, object.splyAmt ?? double.nan);
   IsarCore.writeLong(writer, 39, object.tin ?? -9223372036854775808);
   {
@@ -641,15 +641,8 @@ TransactionItem deserializeTransactionItem(IsarReader reader) {
   _qtyUnitCd = IsarCore.readString(reader, 35);
   final String? _itemNm;
   _itemNm = IsarCore.readString(reader, 36);
-  final double? _prc;
-  {
-    final value = IsarCore.readDouble(reader, 37);
-    if (value.isNaN) {
-      _prc = null;
-    } else {
-      _prc = value;
-    }
-  }
+  final double _prc;
+  _prc = IsarCore.readDouble(reader, 37);
   final double? _splyAmt;
   {
     final value = IsarCore.readDouble(reader, 38);
@@ -910,14 +903,7 @@ dynamic deserializeTransactionItemProp(IsarReader reader, int property) {
     case 36:
       return IsarCore.readString(reader, 36);
     case 37:
-      {
-        final value = IsarCore.readDouble(reader, 37);
-        if (value.isNaN) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readDouble(reader, 37);
     case 38:
       {
         final value = IsarCore.readDouble(reader, 38);
@@ -7102,22 +7088,8 @@ extension TransactionItemQueryFilter
   }
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      prcIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 37));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
-      prcIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 37));
-    });
-  }
-
-  QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcEqualTo(
-    double? value, {
+    double value, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -7133,7 +7105,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcGreaterThan(
-    double? value, {
+    double value, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -7149,7 +7121,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcGreaterThanOrEqualTo(
-    double? value, {
+    double value, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -7165,7 +7137,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcLessThan(
-    double? value, {
+    double value, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -7181,7 +7153,7 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcLessThanOrEqualTo(
-    double? value, {
+    double value, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -7197,8 +7169,8 @@ extension TransactionItemQueryFilter
 
   QueryBuilder<TransactionItem, TransactionItem, QAfterFilterCondition>
       prcBetween(
-    double? lower,
-    double? upper, {
+    double lower,
+    double upper, {
     double epsilon = Filter.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -11798,7 +11770,7 @@ extension TransactionItemQueryProperty1
     });
   }
 
-  QueryBuilder<TransactionItem, double?, QAfterProperty> prcProperty() {
+  QueryBuilder<TransactionItem, double, QAfterProperty> prcProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(37);
     });
@@ -12135,7 +12107,7 @@ extension TransactionItemQueryProperty2<R>
     });
   }
 
-  QueryBuilder<TransactionItem, (R, double?), QAfterProperty> prcProperty() {
+  QueryBuilder<TransactionItem, (R, double), QAfterProperty> prcProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(37);
     });
@@ -12482,7 +12454,7 @@ extension TransactionItemQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<TransactionItem, (R1, R2, double?), QOperations> prcProperty() {
+  QueryBuilder<TransactionItem, (R1, R2, double), QOperations> prcProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(37);
     });
@@ -12606,12 +12578,13 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
       qty: (json['qty'] as num).toDouble(),
       price: (json['price'] as num).toDouble(),
       branchId: json['branchId'] as int,
-      discount: (json['discount'] as num?)?.toDouble(),
-      type: json['type'] as String?,
       remainingStock: (json['remainingStock'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
       isTaxExempted: json['isTaxExempted'] as bool,
+      prc: (json['prc'] as num).toDouble(),
+      discount: (json['discount'] as num?)?.toDouble(),
+      type: json['type'] as String?,
       isRefunded: json['isRefunded'] as bool?,
       doneWithTransaction: json['doneWithTransaction'] as bool?,
       active: json['active'] as bool?,
@@ -12636,7 +12609,6 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
       pkgUnitCd: json['pkgUnitCd'] as String?,
       qtyUnitCd: json['qtyUnitCd'] as String?,
       itemNm: json['itemNm'] as String?,
-      prc: (json['prc'] as num?)?.toDouble(),
       splyAmt: (json['splyAmt'] as num?)?.toDouble(),
       tin: json['tin'] as int?,
       bhfId: json['bhfId'] as String?,

@@ -1,8 +1,11 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'add_customer.dart';
 import 'customappbar.dart';
 import 'package:flipper_models/isar_models.dart';
@@ -29,8 +32,7 @@ class CustomersState extends ConsumerState<Customers> {
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
-    final customersRef =
-        ref.watch(customersProvider(ProxyService.box.getBranchId()!));
+    final customersRef = ref.watch(customersProvider);
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -41,7 +43,7 @@ class CustomersState extends ConsumerState<Customers> {
               onPop: () {
                 _routerService.pop();
               },
-              title: 'Add customer here',
+              title: 'Add customer',
               showActionButton: false,
               onActionButtonClicked: () async {
                 _routerService.pop();
@@ -74,28 +76,27 @@ class CustomersState extends ConsumerState<Customers> {
                   ),
                 ),
                 verticalSpaceSmall,
-                _buildCustomerList(context, model, customersRef),
+                Padding(
+                  padding: const EdgeInsets.only(left: 18.0, right: 18.0),
+                  child: _buildCustomerList(context, model),
+                ),
                 verticalSpaceSmall,
                 Padding(
                   padding:
                       const EdgeInsets.only(left: 18.0, right: 18.0, top: 0),
                   child: BoxButton(
                     title: ref
-                            .read(customersProvider(
-                                    ProxyService.box.getBranchId()!)
-                                .notifier)
+                            .read(customersProvider.notifier)
                             .filterCustomers(
-                                customersRef.asData!.value, searchKeyword)
+                                customersRef.asData?.value ?? [], searchKeyword)
                             .isEmpty
                         ? 'Create Customer ${searchKeyword}'
                         : 'Add ${searchKeyword} To sale',
                     onTap: () async {
                       if (ref
-                          .read(
-                              customersProvider(ProxyService.box.getBranchId()!)
-                                  .notifier)
+                          .read(customersProvider.notifier)
                           .filterCustomers(
-                              customersRef.asData!.value, searchKeyword)
+                              customersRef.asData?.value ?? [], searchKeyword)
                           .isEmpty) {
                         _showModalBottomSheet(
                           context,
@@ -104,11 +105,9 @@ class CustomersState extends ConsumerState<Customers> {
                         );
                       } else {
                         final customer = ref
-                            .read(customersProvider(
-                                    ProxyService.box.getBranchId()!)
-                                .notifier)
+                            .read(customersProvider.notifier)
                             .filterCustomers(
-                                customersRef.asData!.value, searchKeyword)
+                                customersRef.asData?.value ?? [], searchKeyword)
                             .first;
                         await model.assignToSale(
                           customerId: customer.id,
@@ -130,8 +129,9 @@ class CustomersState extends ConsumerState<Customers> {
     );
   }
 
-  Widget _buildCustomerList(BuildContext context, CoreViewModel model,
-      AsyncValue<List<Customer>> customersRef) {
+  Widget _buildCustomerList(BuildContext context, CoreViewModel model) {
+    final customersRef = ref.watch(customersProvider);
+
     return customersRef.when(
       data: (customers) => Expanded(
         child: ListView(
@@ -145,7 +145,7 @@ class CustomersState extends ConsumerState<Customers> {
                         customerId: customer.id,
                         transactionId: widget.transactionId!,
                       );
-                      model.app.setCustomer(customer);
+
                       model.getTransactionById();
                       showAlert(context,
                           onPressedOk: () {}, title: "Customer added to sale!");
@@ -161,15 +161,15 @@ class CustomersState extends ConsumerState<Customers> {
                             width: 58,
                             child: TextDrawable(
                               backgroundColor: Colors.green,
-                              text: customer.name + "(${customer.phone})",
+                              text: customer.custNm + "(${customer.telNo})",
                               isTappable: true,
                               onTap: null,
                               boxShape: BoxShape.rectangle,
                             ),
                           ),
                           title: Text(
-                            (customer.name) +
-                                "(${customer.phone} ${customer.tinNumber ?? ''})",
+                            (customer.custNm) +
+                                "(${customer.telNo} ${customer.custTin})",
                             style: const TextStyle(color: Colors.black),
                           ),
                         ),
@@ -186,15 +186,15 @@ class CustomersState extends ConsumerState<Customers> {
                     ),
                     children: [
                       SlidableAction(
-                        onPressed: (_) {
+                        onPressed: (_) async {
                           model.deleteCustomer(customer.id, (message) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.red,
-                                content: Text(message),
-                              ),
-                            );
+                            toast(message);
                           });
+
+                          // Refresh the customers provider
+                          ref
+                              .refresh(customersProvider.notifier)
+                              .loadCustomers(searchString: '');
                         },
                         backgroundColor: const Color(0xFFFE4A49),
                         foregroundColor: Colors.white,
@@ -214,19 +214,28 @@ class CustomersState extends ConsumerState<Customers> {
                             customerId: customer.id,
                             transactionId: widget.transactionId!,
                           );
-                          model.app.setCustomer(customer);
+
                           model.getTransactionById();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              backgroundColor: Colors.red,
-                              content: Text("Customer added to sale"),
-                            ),
-                          );
+                          toast("Customer added to sale");
                         },
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
                         icon: Icons.add,
                         label: 'Add',
+                      ),
+                      SlidableAction(
+                        onPressed: (_) async {
+                          await model.removeFromSale(
+                            customerId: customer.id,
+                            transactionId: widget.transactionId!,
+                          );
+                          model.getTransactionById();
+                          toast("Customer removed from sale");
+                        },
+                        backgroundColor: Color.fromARGB(255, 253, 174, 4),
+                        foregroundColor: Colors.white,
+                        icon: Icons.attach_file,
+                        label: 'Remove',
                       ),
                     ],
                   ),

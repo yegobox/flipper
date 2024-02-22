@@ -259,7 +259,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           cashReceived: args.cashReceived,
           transaction: args.transaction,
           paymentType: args.paymentType,
-          receiptType: args.receiptType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1389,7 +1388,6 @@ class PaymentConfirmationRoute
     required double cashReceived,
     required _i8.ITransaction transaction,
     required String paymentType,
-    String? receiptType = "ns",
   }) : super(
           PaymentConfirmationRoute.name,
           path: '/payment-confirmation',
@@ -1398,7 +1396,6 @@ class PaymentConfirmationRoute
             cashReceived: cashReceived,
             transaction: transaction,
             paymentType: paymentType,
-            receiptType: receiptType,
           ),
         );
 
@@ -1411,7 +1408,6 @@ class PaymentConfirmationArgs {
     required this.cashReceived,
     required this.transaction,
     required this.paymentType,
-    this.receiptType = "ns",
   });
 
   final _i4.Key? key;
@@ -1422,11 +1418,9 @@ class PaymentConfirmationArgs {
 
   final String paymentType;
 
-  final String? receiptType;
-
   @override
   String toString() {
-    return 'PaymentConfirmationArgs{key: $key, cashReceived: $cashReceived, transaction: $transaction, paymentType: $paymentType, receiptType: $receiptType}';
+    return 'PaymentConfirmationArgs{key: $key, cashReceived: $cashReceived, transaction: $transaction, paymentType: $paymentType}';
   }
 }
 
@@ -2392,7 +2386,6 @@ extension RouterStateExtension on _i2.RouterService {
     required double cashReceived,
     required _i8.ITransaction transaction,
     required String paymentType,
-    String? receiptType = "ns",
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2401,7 +2394,6 @@ extension RouterStateExtension on _i2.RouterService {
         cashReceived: cashReceived,
         transaction: transaction,
         paymentType: paymentType,
-        receiptType: receiptType,
       ),
       onFailure: onFailure,
     );
@@ -3015,7 +3007,6 @@ extension RouterStateExtension on _i2.RouterService {
     required double cashReceived,
     required _i8.ITransaction transaction,
     required String paymentType,
-    String? receiptType = "ns",
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -3024,7 +3015,6 @@ extension RouterStateExtension on _i2.RouterService {
         cashReceived: cashReceived,
         transaction: transaction,
         paymentType: paymentType,
-        receiptType: receiptType,
       ),
       onFailure: onFailure,
     );

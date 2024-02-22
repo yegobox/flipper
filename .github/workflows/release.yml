@@ -241,7 +241,7 @@ jobs:
           echo "$INDEX" >> web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
         env:
@@ -259,7 +259,7 @@ jobs:
           ruby-version: "3.0"
           bundler-cache: true
           # cache-version: 1
-          working-directory: android
+          working-directory: apps/main_app/android
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -276,7 +276,7 @@ jobs:
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: android
+        working-directory: apps/main_app/android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
@@ -287,7 +287,7 @@ jobs:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        working-directory: android
+        working-directory: apps/main_app/android
 
   slackNotification:
     name: Slack Notification

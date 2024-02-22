@@ -104,6 +104,10 @@ const ITransactionSchema = IsarGeneratedSchema(
         name: 'supplierId',
         type: IsarType.long,
       ),
+      IsarPropertySchema(
+        name: 'ebmSynced',
+        type: IsarType.bool,
+      ),
     ],
     indexes: [
       IsarIndexSchema(
@@ -194,6 +198,7 @@ int serializeITransaction(IsarWriter writer, ITransaction object) {
   IsarCore.writeLong(writer, 20,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
   IsarCore.writeLong(writer, 21, object.supplierId ?? -9223372036854775808);
+  IsarCore.writeBool(writer, 22, object.ebmSynced);
   return Isar.fastHash(object.id);
 }
 
@@ -264,6 +269,8 @@ ITransaction deserializeITransaction(IsarReader reader) {
       _supplierId = value;
     }
   }
+  final bool _ebmSynced;
+  _ebmSynced = IsarCore.readBool(reader, 22);
   final object = ITransaction(
     id: _id,
     reference: _reference,
@@ -286,6 +293,7 @@ ITransaction deserializeITransaction(IsarReader reader) {
     ticketName: _ticketName,
     deletedAt: _deletedAt,
     supplierId: _supplierId,
+    ebmSynced: _ebmSynced,
   );
   return object;
 }
@@ -358,6 +366,8 @@ dynamic deserializeITransactionProp(IsarReader reader, int property) {
           return value;
         }
       }
+    case 22:
+      return IsarCore.readBool(reader, 22);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -386,6 +396,7 @@ sealed class _ITransactionUpdate {
     String? ticketName,
     DateTime? deletedAt,
     int? supplierId,
+    bool? ebmSynced,
   });
 }
 
@@ -417,6 +428,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
     Object? supplierId = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -441,6 +453,7 @@ class _ITransactionUpdateImpl implements _ITransactionUpdate {
           if (ticketName != ignore) 19: ticketName as String?,
           if (deletedAt != ignore) 20: deletedAt as DateTime?,
           if (supplierId != ignore) 21: supplierId as int?,
+          if (ebmSynced != ignore) 22: ebmSynced as bool?,
         }) >
         0;
   }
@@ -469,6 +482,7 @@ sealed class _ITransactionUpdateAll {
     String? ticketName,
     DateTime? deletedAt,
     int? supplierId,
+    bool? ebmSynced,
   });
 }
 
@@ -500,6 +514,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
     Object? supplierId = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties(id, {
       if (reference != ignore) 2: reference as String?,
@@ -522,6 +537,7 @@ class _ITransactionUpdateAllImpl implements _ITransactionUpdateAll {
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
       if (supplierId != ignore) 21: supplierId as int?,
+      if (ebmSynced != ignore) 22: ebmSynced as bool?,
     });
   }
 }
@@ -554,6 +570,7 @@ sealed class _ITransactionQueryUpdate {
     String? ticketName,
     DateTime? deletedAt,
     int? supplierId,
+    bool? ebmSynced,
   });
 }
 
@@ -585,6 +602,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
     Object? supplierId = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (reference != ignore) 2: reference as String?,
@@ -607,6 +625,7 @@ class _ITransactionQueryUpdateImpl implements _ITransactionQueryUpdate {
       if (ticketName != ignore) 19: ticketName as String?,
       if (deletedAt != ignore) 20: deletedAt as DateTime?,
       if (supplierId != ignore) 21: supplierId as int?,
+      if (ebmSynced != ignore) 22: ebmSynced as bool?,
     });
   }
 }
@@ -646,6 +665,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
     Object? ticketName = ignore,
     Object? deletedAt = ignore,
     Object? supplierId = ignore,
+    Object? ebmSynced = ignore,
   }) {
     final q = query.build();
     try {
@@ -670,6 +690,7 @@ class _ITransactionQueryBuilderUpdateImpl implements _ITransactionQueryUpdate {
         if (ticketName != ignore) 19: ticketName as String?,
         if (deletedAt != ignore) 20: deletedAt as DateTime?,
         if (supplierId != ignore) 21: supplierId as int?,
+        if (ebmSynced != ignore) 22: ebmSynced as bool?,
       });
     } finally {
       q.close();
@@ -3961,6 +3982,20 @@ extension ITransactionQueryFilter
       );
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterFilterCondition>
+      ebmSyncedEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 22,
+          value: value,
+        ),
+      );
+    });
+  }
 }
 
 extension ITransactionQueryObject
@@ -4350,6 +4385,18 @@ extension ITransactionQuerySortBy
       return query.addSortBy(21, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22);
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> sortByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22, sort: Sort.desc);
+    });
+  }
 }
 
 extension ITransactionQuerySortThenBy
@@ -4638,6 +4685,18 @@ extension ITransactionQuerySortThenBy
       return query.addSortBy(21, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22);
+    });
+  }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterSortBy> thenByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(22, sort: Sort.desc);
+    });
+  }
 }
 
 extension ITransactionQueryWhereDistinct
@@ -4781,6 +4840,13 @@ extension ITransactionQueryWhereDistinct
       return query.addDistinctBy(21);
     });
   }
+
+  QueryBuilder<ITransaction, ITransaction, QAfterDistinct>
+      distinctByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(22);
+    });
+  }
 }
 
 extension ITransactionQueryProperty1
@@ -4910,6 +4976,12 @@ extension ITransactionQueryProperty1
   QueryBuilder<ITransaction, int?, QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
+    });
+  }
+
+  QueryBuilder<ITransaction, bool, QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(22);
     });
   }
 }
@@ -5050,6 +5122,12 @@ extension ITransactionQueryProperty2<R>
   QueryBuilder<ITransaction, (R, int?), QAfterProperty> supplierIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(21);
+    });
+  }
+
+  QueryBuilder<ITransaction, (R, bool), QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(22);
     });
   }
 }
@@ -5195,6 +5273,12 @@ extension ITransactionQueryProperty3<R1, R2>
       return query.addProperty(21);
     });
   }
+
+  QueryBuilder<ITransaction, (R1, R2, bool), QOperations> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(22);
+    });
+  }
 }
 
 // **************************************************************************
@@ -5204,6 +5288,7 @@ extension ITransactionQueryProperty3<R1, R2>
 ITransaction _$ITransactionFromJson(Map<String, dynamic> json) => ITransaction(
       reference: json['reference'] as String,
       categoryId: json['categoryId'] as String?,
+      ebmSynced: json['ebmSynced'] as bool? ?? false,
       transactionNumber: json['transactionNumber'] as String,
       branchId: json['branchId'] as int,
       status: json['status'] as String,
@@ -5249,4 +5334,5 @@ Map<String, dynamic> _$ITransactionToJson(ITransaction instance) =>
       'ticketName': instance.ticketName,
       'deletedAt': ITransaction._dateTimeToJson(instance.deletedAt),
       'supplierId': instance.supplierId,
+      'ebmSynced': instance.ebmSynced,
     };

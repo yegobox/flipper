@@ -44,6 +44,14 @@ const CounterSchema = IsarGeneratedSchema(
         name: 'lastTouched',
         type: IsarType.dateTime,
       ),
+      IsarPropertySchema(
+        name: 'action',
+        type: IsarType.string,
+      ),
+      IsarPropertySchema(
+        name: 'deletedAt',
+        type: IsarType.dateTime,
+      ),
     ],
     indexes: [],
   ),
@@ -74,6 +82,9 @@ int serializeCounter(IsarWriter writer, Counter object) {
       6,
       object.lastTouched?.toUtc().microsecondsSinceEpoch ??
           -9223372036854775808);
+  IsarCore.writeString(writer, 7, object.action);
+  IsarCore.writeLong(writer, 8,
+      object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
   return object.id;
 }
 
@@ -129,6 +140,8 @@ Counter deserializeCounter(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
+  final String _action;
+  _action = IsarCore.readString(reader, 7) ?? "created";
   final object = Counter(
     id: _id,
     businessId: _businessId,
@@ -137,7 +150,17 @@ Counter deserializeCounter(IsarReader reader) {
     totRcptNo: _totRcptNo,
     curRcptNo: _curRcptNo,
     lastTouched: _lastTouched,
+    action: _action,
   );
+  {
+    final value = IsarCore.readLong(reader, 8);
+    if (value == -9223372036854775808) {
+      object.deletedAt = null;
+    } else {
+      object.deletedAt =
+          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
+    }
+  }
   return object;
 }
 
@@ -194,6 +217,18 @@ dynamic deserializeCounterProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 7:
+      return IsarCore.readString(reader, 7) ?? "created";
+    case 8:
+      {
+        final value = IsarCore.readLong(reader, 8);
+        if (value == -9223372036854775808) {
+          return null;
+        } else {
+          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
+              .toLocal();
+        }
+      }
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -208,6 +243,8 @@ sealed class _CounterUpdate {
     int? totRcptNo,
     int? curRcptNo,
     DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
   });
 }
 
@@ -225,6 +262,8 @@ class _CounterUpdateImpl implements _CounterUpdate {
     Object? totRcptNo = ignore,
     Object? curRcptNo = ignore,
     Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -235,6 +274,8 @@ class _CounterUpdateImpl implements _CounterUpdate {
           if (totRcptNo != ignore) 4: totRcptNo as int?,
           if (curRcptNo != ignore) 5: curRcptNo as int?,
           if (lastTouched != ignore) 6: lastTouched as DateTime?,
+          if (action != ignore) 7: action as String?,
+          if (deletedAt != ignore) 8: deletedAt as DateTime?,
         }) >
         0;
   }
@@ -249,6 +290,8 @@ sealed class _CounterUpdateAll {
     int? totRcptNo,
     int? curRcptNo,
     DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
   });
 }
 
@@ -266,6 +309,8 @@ class _CounterUpdateAllImpl implements _CounterUpdateAll {
     Object? totRcptNo = ignore,
     Object? curRcptNo = ignore,
     Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
     return collection.updateProperties(id, {
       if (businessId != ignore) 1: businessId as int?,
@@ -274,6 +319,8 @@ class _CounterUpdateAllImpl implements _CounterUpdateAll {
       if (totRcptNo != ignore) 4: totRcptNo as int?,
       if (curRcptNo != ignore) 5: curRcptNo as int?,
       if (lastTouched != ignore) 6: lastTouched as DateTime?,
+      if (action != ignore) 7: action as String?,
+      if (deletedAt != ignore) 8: deletedAt as DateTime?,
     });
   }
 }
@@ -292,6 +339,8 @@ sealed class _CounterQueryUpdate {
     int? totRcptNo,
     int? curRcptNo,
     DateTime? lastTouched,
+    String? action,
+    DateTime? deletedAt,
   });
 }
 
@@ -309,6 +358,8 @@ class _CounterQueryUpdateImpl implements _CounterQueryUpdate {
     Object? totRcptNo = ignore,
     Object? curRcptNo = ignore,
     Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (businessId != ignore) 1: businessId as int?,
@@ -317,6 +368,8 @@ class _CounterQueryUpdateImpl implements _CounterQueryUpdate {
       if (totRcptNo != ignore) 4: totRcptNo as int?,
       if (curRcptNo != ignore) 5: curRcptNo as int?,
       if (lastTouched != ignore) 6: lastTouched as DateTime?,
+      if (action != ignore) 7: action as String?,
+      if (deletedAt != ignore) 8: deletedAt as DateTime?,
     });
   }
 }
@@ -342,6 +395,8 @@ class _CounterQueryBuilderUpdateImpl implements _CounterQueryUpdate {
     Object? totRcptNo = ignore,
     Object? curRcptNo = ignore,
     Object? lastTouched = ignore,
+    Object? action = ignore,
+    Object? deletedAt = ignore,
   }) {
     final q = query.build();
     try {
@@ -352,6 +407,8 @@ class _CounterQueryBuilderUpdateImpl implements _CounterQueryUpdate {
         if (totRcptNo != ignore) 4: totRcptNo as int?,
         if (curRcptNo != ignore) 5: curRcptNo as int?,
         if (lastTouched != ignore) 6: lastTouched as DateTime?,
+        if (action != ignore) 7: action as String?,
+        if (deletedAt != ignore) 8: deletedAt as DateTime?,
       });
     } finally {
       q.close();
@@ -1105,6 +1162,273 @@ extension CounterQueryFilter
       );
     });
   }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionGreaterThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      actionGreaterThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionLessThan(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionLessThanOrEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionBetween(
+    String lower,
+    String upper, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 7,
+          lower: lower,
+          upper: upper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        StartsWithCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EndsWithCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        ContainsCondition(
+          property: 7,
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        MatchesCondition(
+          property: 7,
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const EqualCondition(
+          property: 7,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const GreaterCondition(
+          property: 7,
+          value: '',
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 8));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtIsNotNull() {
+    return QueryBuilder.apply(not(), (query) {
+      return query.addFilterCondition(const IsNullCondition(property: 8));
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 8,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtGreaterThan(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterCondition(
+          property: 8,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      deletedAtGreaterThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        GreaterOrEqualCondition(
+          property: 8,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessCondition(
+          property: 8,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+      deletedAtLessThanOrEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        LessOrEqualCondition(
+          property: 8,
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        BetweenCondition(
+          property: 8,
+          lower: lower,
+          upper: upper,
+        ),
+      );
+    });
+  }
 }
 
 extension CounterQueryObject
@@ -1203,6 +1527,39 @@ extension CounterQuerySortBy on QueryBuilder<Counter, Counter, QSortBy> {
       return query.addSortBy(6, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        7,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByActionDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(
+        7,
+        sort: Sort.desc,
+        caseSensitive: caseSensitive,
+      );
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(8);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> sortByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(8, sort: Sort.desc);
+    });
+  }
 }
 
 extension CounterQuerySortThenBy
@@ -1292,6 +1649,32 @@ extension CounterQuerySortThenBy
       return query.addSortBy(6, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByActionDesc(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(7, sort: Sort.desc, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(8);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterSortBy> thenByDeletedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(8, sort: Sort.desc);
+    });
+  }
 }
 
 extension CounterQueryWhereDistinct
@@ -1330,6 +1713,19 @@ extension CounterQueryWhereDistinct
   QueryBuilder<Counter, Counter, QAfterDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(6);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByAction(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(7, caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Counter, Counter, QAfterDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(8);
     });
   }
 }
@@ -1376,6 +1772,18 @@ extension CounterQueryProperty1 on QueryBuilder<Counter, Counter, QProperty> {
       return query.addProperty(6);
     });
   }
+
+  QueryBuilder<Counter, String, QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(7);
+    });
+  }
+
+  QueryBuilder<Counter, DateTime?, QAfterProperty> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(8);
+    });
+  }
 }
 
 extension CounterQueryProperty2<R> on QueryBuilder<Counter, R, QAfterProperty> {
@@ -1418,6 +1826,18 @@ extension CounterQueryProperty2<R> on QueryBuilder<Counter, R, QAfterProperty> {
   QueryBuilder<Counter, (R, DateTime?), QAfterProperty> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(6);
+    });
+  }
+
+  QueryBuilder<Counter, (R, String), QAfterProperty> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(7);
+    });
+  }
+
+  QueryBuilder<Counter, (R, DateTime?), QAfterProperty> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(8);
     });
   }
 }
@@ -1466,6 +1886,18 @@ extension CounterQueryProperty3<R1, R2>
       return query.addProperty(6);
     });
   }
+
+  QueryBuilder<Counter, (R1, R2, String), QOperations> actionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(7);
+    });
+  }
+
+  QueryBuilder<Counter, (R1, R2, DateTime?), QOperations> deletedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(8);
+    });
+  }
 }
 
 // **************************************************************************
@@ -1482,9 +1914,13 @@ Counter _$CounterFromJson(Map<String, dynamic> json) => Counter(
       lastTouched: json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String),
-    );
+      action: json['action'] as String? ?? "created",
+    )..deletedAt = json['deletedAt'] == null
+        ? null
+        : DateTime.parse(json['deletedAt'] as String);
 
 Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
+      'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,
       'businessId': instance.businessId,
       'branchId': instance.branchId,
@@ -1492,4 +1928,5 @@ Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
       'totRcptNo': instance.totRcptNo,
       'curRcptNo': instance.curRcptNo,
       'lastTouched': instance.lastTouched?.toIso8601String(),
+      'action': instance.action,
     };

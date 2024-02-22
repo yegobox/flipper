@@ -39,9 +39,8 @@ mixin Properties {
 }
 
 mixin SharebleMethods {
-  Stream<Customer?> getCustomer({String? key, String? transactionId}) {
-    return Stream.fromFuture(ProxyService.isar
-            .getCustomer(key: key, transactionId: transactionId))
+  Stream<Customer?> getCustomer({String? key, String? id}) {
+    return Stream.fromFuture(ProxyService.isar.getCustomer(key: key, id: id))
         .asyncExpand((customer) async* {
       // Yield the customer as he become available
 

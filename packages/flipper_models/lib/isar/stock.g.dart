@@ -84,6 +84,10 @@ const StockSchema = IsarGeneratedSchema(
         name: 'deletedAt',
         type: IsarType.dateTime,
       ),
+      IsarPropertySchema(
+        name: 'ebmSynced',
+        type: IsarType.bool,
+      ),
     ],
     indexes: [
       IsarIndexSchema(
@@ -156,6 +160,7 @@ int serializeStock(IsarWriter writer, Stock object) {
   IsarCore.writeString(writer, 15, object.action);
   IsarCore.writeLong(writer, 16,
       object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
+  IsarCore.writeBool(writer, 17, object.ebmSynced);
   return Isar.fastHash(object.id);
 }
 
@@ -262,6 +267,8 @@ Stock deserializeStock(IsarReader reader) {
           DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
     }
   }
+  final bool _ebmSynced;
+  _ebmSynced = IsarCore.readBool(reader, 17);
   final object = Stock(
     id: _id,
     branchId: _branchId,
@@ -279,6 +286,7 @@ Stock deserializeStock(IsarReader reader) {
     lastTouched: _lastTouched,
     action: _action,
     deletedAt: _deletedAt,
+    ebmSynced: _ebmSynced,
   );
   return object;
 }
@@ -387,6 +395,8 @@ dynamic deserializeStockProp(IsarReader reader, int property) {
               .toLocal();
         }
       }
+    case 17:
+      return IsarCore.readBool(reader, 17);
     default:
       throw ArgumentError('Unknown property: $property');
   }
@@ -410,6 +420,7 @@ sealed class _StockUpdate {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    bool? ebmSynced,
   });
 }
 
@@ -436,6 +447,7 @@ class _StockUpdateImpl implements _StockUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties([
           id
@@ -455,6 +467,7 @@ class _StockUpdateImpl implements _StockUpdate {
           if (lastTouched != ignore) 14: lastTouched as DateTime?,
           if (action != ignore) 15: action as String?,
           if (deletedAt != ignore) 16: deletedAt as DateTime?,
+          if (ebmSynced != ignore) 17: ebmSynced as bool?,
         }) >
         0;
   }
@@ -478,6 +491,7 @@ sealed class _StockUpdateAll {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    bool? ebmSynced,
   });
 }
 
@@ -504,6 +518,7 @@ class _StockUpdateAllImpl implements _StockUpdateAll {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return collection.updateProperties(id, {
       if (branchId != ignore) 2: branchId as int?,
@@ -521,6 +536,7 @@ class _StockUpdateAllImpl implements _StockUpdateAll {
       if (lastTouched != ignore) 14: lastTouched as DateTime?,
       if (action != ignore) 15: action as String?,
       if (deletedAt != ignore) 16: deletedAt as DateTime?,
+      if (ebmSynced != ignore) 17: ebmSynced as bool?,
     });
   }
 }
@@ -548,6 +564,7 @@ sealed class _StockQueryUpdate {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    bool? ebmSynced,
   });
 }
 
@@ -574,6 +591,7 @@ class _StockQueryUpdateImpl implements _StockQueryUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? ebmSynced = ignore,
   }) {
     return query.updateProperties(limit: limit, {
       if (branchId != ignore) 2: branchId as int?,
@@ -591,6 +609,7 @@ class _StockQueryUpdateImpl implements _StockQueryUpdate {
       if (lastTouched != ignore) 14: lastTouched as DateTime?,
       if (action != ignore) 15: action as String?,
       if (deletedAt != ignore) 16: deletedAt as DateTime?,
+      if (ebmSynced != ignore) 17: ebmSynced as bool?,
     });
   }
 }
@@ -624,6 +643,7 @@ class _StockQueryBuilderUpdateImpl implements _StockQueryUpdate {
     Object? lastTouched = ignore,
     Object? action = ignore,
     Object? deletedAt = ignore,
+    Object? ebmSynced = ignore,
   }) {
     final q = query.build();
     try {
@@ -643,6 +663,7 @@ class _StockQueryBuilderUpdateImpl implements _StockQueryUpdate {
         if (lastTouched != ignore) 14: lastTouched as DateTime?,
         if (action != ignore) 15: action as String?,
         if (deletedAt != ignore) 16: deletedAt as DateTime?,
+        if (ebmSynced != ignore) 17: ebmSynced as bool?,
       });
     } finally {
       q.close();
@@ -2308,6 +2329,19 @@ extension StockQueryFilter on QueryBuilder<Stock, Stock, QFilterCondition> {
       );
     });
   }
+
+  QueryBuilder<Stock, Stock, QAfterFilterCondition> ebmSyncedEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        EqualCondition(
+          property: 17,
+          value: value,
+        ),
+      );
+    });
+  }
 }
 
 extension StockQueryObject on QueryBuilder<Stock, Stock, QFilterCondition> {}
@@ -2540,6 +2574,18 @@ extension StockQuerySortBy on QueryBuilder<Stock, Stock, QSortBy> {
       return query.addSortBy(16, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> sortByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17, sort: Sort.desc);
+    });
+  }
 }
 
 extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
@@ -2742,6 +2788,18 @@ extension StockQuerySortThenBy on QueryBuilder<Stock, Stock, QSortThenBy> {
       return query.addSortBy(16, sort: Sort.desc);
     });
   }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterSortBy> thenByEbmSyncedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(17, sort: Sort.desc);
+    });
+  }
 }
 
 extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
@@ -2835,6 +2893,12 @@ extension StockQueryWhereDistinct on QueryBuilder<Stock, Stock, QDistinct> {
   QueryBuilder<Stock, Stock, QAfterDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(16);
+    });
+  }
+
+  QueryBuilder<Stock, Stock, QAfterDistinct> distinctByEbmSynced() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(17);
     });
   }
 }
@@ -2935,6 +2999,12 @@ extension StockQueryProperty1 on QueryBuilder<Stock, Stock, QProperty> {
       return query.addProperty(16);
     });
   }
+
+  QueryBuilder<Stock, bool, QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(17);
+    });
+  }
 }
 
 extension StockQueryProperty2<R> on QueryBuilder<Stock, R, QAfterProperty> {
@@ -3031,6 +3101,12 @@ extension StockQueryProperty2<R> on QueryBuilder<Stock, R, QAfterProperty> {
   QueryBuilder<Stock, (R, DateTime?), QAfterProperty> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(16);
+    });
+  }
+
+  QueryBuilder<Stock, (R, bool), QAfterProperty> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(17);
     });
   }
 }
@@ -3133,6 +3209,12 @@ extension StockQueryProperty3<R1, R2>
       return query.addProperty(16);
     });
   }
+
+  QueryBuilder<Stock, (R1, R2, bool), QOperations> ebmSyncedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addProperty(17);
+    });
+  }
 }
 
 // **************************************************************************
@@ -3146,6 +3228,7 @@ Stock _$StockFromJson(Map<String, dynamic> json) => Stock(
       productId: json['productId'] as String,
       action: json['action'] as String,
       id: json['id'] as String,
+      ebmSynced: json['ebmSynced'] as bool? ?? false,
       lowStock: (json['lowStock'] as num?)?.toDouble() ?? 10.0,
       supplyPrice: (json['supplyPrice'] as num?)?.toDouble() ?? 0.0,
       retailPrice: (json['retailPrice'] as num?)?.toDouble() ?? 0.0,
@@ -3179,4 +3262,5 @@ Map<String, dynamic> _$StockToJson(Stock instance) => <String, dynamic>{
       'lastTouched': instance.lastTouched?.toIso8601String(),
       'action': instance.action,
       'deletedAt': instance.deletedAt?.toIso8601String(),
+      'ebmSynced': instance.ebmSynced,
     };

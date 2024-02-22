@@ -2,7 +2,6 @@ name: flipper_services
 description: flipper models scaffold.
 version: 1.0.0-dev
 
-# publish_to: "none"
 repository: https://github.com/yegobox/packages
 
 environment:
@@ -12,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  stacked: ^3.4.1+1
+  stacked: ^3.4.2
   firebase_remote_config: ^4.3.8
   share_plus: ^7.2.1
   # in_app_review: ^2.0.6
@@ -63,7 +62,7 @@ dependencies:
   injectable: ^2.3.0
   flipper_routing: ^0.0.1-dev.3
   flipper_models: ^0.0.1-dev.7
-  get_storage: ^2.1.1
+  
   google_fonts: ^6.1.0
   shared_preferences: ^2.2.1
   newrelic_mobile: ^1.0.5

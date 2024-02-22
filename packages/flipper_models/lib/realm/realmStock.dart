@@ -35,6 +35,8 @@ class _RealmStock {
 
   DateTime? deletedAt;
 
+  bool ebmSynced = false;
+
   // ... constructors and other methods remain the same
   void updateProperties(RealmStock other) {
     id = other.id;

@@ -1,6 +1,5 @@
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -19,9 +18,7 @@ class LoginChoices extends StatefulWidget {
 class _LoginChoicesState extends State<LoginChoices> {
   List<Business> _businesses = [];
   bool _isNext = false;
-  bool _businessChosen = false;
-  bool _businessCheckbox = false; // Separate variable for business ListView
-  bool _branchCheckbox = false; // Separate variable for branch ListView
+
 
   final _routerService = locator<RouterService>();
 
@@ -103,6 +100,10 @@ class _LoginChoicesState extends State<LoginChoices> {
       ) async {
 
       model.setDefaultBusiness(business: selectedBusiness);
+       ProxyService.box
+          .writeString(key: 'bhfId', value: selectedBusiness.bhfId ?? "");
+      ProxyService.box
+          .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
 
       for (int i = 0; i < _businesses.length; i++) {
         Business currentBusiness = _businesses[i];

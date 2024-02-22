@@ -1,0 +1,74 @@
+{
+    "save": "Save",
+    "@save": {
+        "description": "The save message"
+    },
+    "retailPrice": "Price",
+    "@retailPrice": {
+        "description": "The price"
+    },
+    "supplyPrice": "Supplier price",
+    "@supplyPrice": {
+        "description": "Supplier price"
+    },
+    "currentSale": "Current Sale",
+    "@currentSale": {
+        "description": "Current Sale"
+    },
+    "addProduct": "Add Products",
+    "@addProduct": {
+        "description": "Add Product"
+    },
+    "tickets": "Tickets",
+    "@tickets": {
+        "description": "The Tickets"
+    },
+    "charge": "Charge",
+    "@charge": {
+        "description": "Charge the user for the amount"
+    },
+    "productName": "Name of the product",
+    "@productName": {
+        "description": "The Name of the product"
+    },
+    "flipperSetting": "Settings",
+    "@flipperSetting": {
+        "description": "The Settings"
+    },
+    "options": "Options",
+    "@options": {
+        "description": "The options"
+    },
+    "saveTicket": "you can not save the tickets without adding a note to ticket",
+    "@saveTicket": {
+        "description": "can not save the tickets without adding a note to ticket"
+    },
+    "productNotFound": "Product not found",
+    "@productNotFound": {
+        "description": "Product not found"
+    },
+    "noPayable": "No payable",
+    "@noPayable": {
+        "description": "No payable"
+    },
+    "delete": "Delete",
+    "@delete": {
+        "description": "Delete"
+    },
+    "addTomenu": "Menu",
+    "@addTomenu": {
+        "description": "Ongeraho kuri menu"
+    },
+    "edit": "Edit",
+    "@edit": {
+        "description": "Ongeraho kuri menu"
+    },
+    "addWorkSpace": "Add WorkSpace",
+    "@addWorkSpace": {
+        "description": "Add WorkSpace"
+    },
+    "addMembers": "Add Members",
+    "@addMembers": {
+        "description": "Add Members"
+    }
+}

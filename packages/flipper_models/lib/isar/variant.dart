@@ -1,5 +1,7 @@
 library flipper_models;
 
+import 'package:flipper_models/isar/random.dart';
+
 import 'DateTimeConverter.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
@@ -54,6 +56,27 @@ class Variant extends IJsonSerializable {
   String? pkg;
   // item code
   String? itemCd;
+  // packacking unit these are mainly AM
+  ///Certainly! Here are the codes along with their explanations:
+
+// AM: Ampoule Ampoule
+// BA: Barrel Barrel
+// BC: Bottlecrate Bottlecrate
+// BE: Bundle Bundle
+// BF: Balloon, non-protected Balloon, non-protected
+// BG: Bag Bag
+// BJ: Bucket Bucket
+// BK: Basket Basket
+// BL: Bale Bale
+// BQ: Bottle, protected cylindrical Bottle, protected cylindrical
+// BR: Bar Bar
+// BV: Bottle, bulbous Bottle, bulbous
+// BZ: Bag Bag
+// CA: Can Can
+// CH: Chest Chest
+// CJ: Coffin Coffin
+// CL: Coil Coil
+// CR: Wooden Box, Wooden Case Wooden Box, Wooden Case
 
   String? pkgUnitCd;
 
@@ -88,6 +111,19 @@ class Variant extends IJsonSerializable {
 
   String action;
 
+  /// these fields are empty in normal business when this item is owned by a business
+  /// but in case when this item is owned by a supplier then these fields will be filled
+  /// this is the case after purchase action is done
+  String? spplrItemClsCd;
+  String? spplrItemCd;
+  String? spplrItemNm;
+
+  /// because we can call EBM server to notify about new item saved into our stock
+  /// and this operation might fail at time of us making the call and our software can work offline
+  /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
+  /// to EBM in case of failure
+  bool ebmSynced;
+
   // only for accor when fetching from remove
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
@@ -117,7 +153,11 @@ class Variant extends IJsonSerializable {
     required this.action,
     required this.color,
     required this.id,
-    this.taxName = 'N/A',
+    this.ebmSynced = false,
+    this.spplrItemClsCd,
+    this.spplrItemCd,
+    this.spplrItemNm,
+    this.taxName,
     this.taxPercentage = 0,
     this.itemSeq,
     this.isrccCd,
@@ -126,7 +166,7 @@ class Variant extends IJsonSerializable {
     this.isrcAmt,
     this.taxTyCd,
     this.bcd,
-    this.itemClsCd = 'itemClsCd',
+    this.itemClsCd,
     this.itemTyCd,
     this.itemStdNm,
     this.orgnNatCd,

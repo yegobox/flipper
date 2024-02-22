@@ -9,6 +9,8 @@ part of 'realmStock.dart';
 // ignore_for_file: type=lint
 class RealmStock extends _RealmStock
     with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
   RealmStock(
     String id,
     ObjectId realmId,
@@ -27,7 +29,13 @@ class RealmStock extends _RealmStock
     double? retailPrice,
     DateTime? lastTouched,
     DateTime? deletedAt,
+    bool ebmSynced = false,
   }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<RealmStock>({
+        'ebmSynced': false,
+      });
+    }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'branchId', branchId);
@@ -45,6 +53,7 @@ class RealmStock extends _RealmStock
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
   }
 
   RealmStock._();
@@ -153,6 +162,11 @@ class RealmStock extends _RealmStock
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
+  bool get ebmSynced => RealmObjectBase.get<bool>(this, 'ebmSynced') as bool;
+  @override
+  set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
+
+  @override
   Stream<RealmObjectChanges<RealmStock>> get changes =>
       RealmObjectBase.getChanges<RealmStock>(this);
 
@@ -186,6 +200,7 @@ class RealmStock extends _RealmStock
           optional: true),
       SchemaProperty('action', RealmPropertyType.string),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('ebmSynced', RealmPropertyType.bool),
     ]);
   }
 }

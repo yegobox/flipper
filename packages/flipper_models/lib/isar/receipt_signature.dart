@@ -1,5 +1,7 @@
-class ReceiptSignature {
-  ReceiptSignature({
+import 'dart:convert';
+
+class EBMApiResponse {
+  EBMApiResponse({
     required this.resultCd,
     required this.resultMsg,
     required this.resultDt,
@@ -13,17 +15,19 @@ class ReceiptSignature {
 
   // to json
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['resultCd'] = resultCd;
-    data['resultMsg'] = resultMsg;
-    data['resultDt'] = resultDt;
-    data['data'] = this.data.toJson();
-    return data;
+    final Map<String, dynamic> jsonData = <String, dynamic>{};
+    jsonData['resultCd'] = resultCd;
+    jsonData['resultMsg'] = resultMsg;
+    jsonData['resultDt'] = resultDt;
+    jsonData['data'] = data.toJson();
+    return jsonData;
   }
 
-  // from json encoding
-  factory ReceiptSignature.fromJson(Map<String, dynamic> json) {
-    return ReceiptSignature(
+  String toRawJson() => json.encode(toJson());
+
+  // from json
+  factory EBMApiResponse.fromJson(Map<String, dynamic> json) {
+    return EBMApiResponse(
       resultCd: json['resultCd'] as String,
       resultMsg: json['resultMsg'] as String,
       resultDt: json['resultDt'] as String,
@@ -50,17 +54,18 @@ class Data {
   String vsdcRcptPbctDate;
   String sdcId;
   String mrcNo;
+
   // to json
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['rcptNo'] = rcptNo;
-    data['intrlData'] = intrlData;
-    data['rcptSign'] = rcptSign;
-    data['totRcptNo'] = totRcptNo;
-    data['vsdcRcptPbctDate'] = vsdcRcptPbctDate;
-    data['sdcId'] = sdcId;
-    data['mrcNo'] = mrcNo;
-    return data;
+    final Map<String, dynamic> jsonData = <String, dynamic>{};
+    jsonData['rcptNo'] = rcptNo;
+    jsonData['intrlData'] = intrlData;
+    jsonData['rcptSign'] = rcptSign;
+    jsonData['totRcptNo'] = totRcptNo;
+    jsonData['vsdcRcptPbctDate'] = vsdcRcptPbctDate;
+    jsonData['sdcId'] = sdcId;
+    jsonData['mrcNo'] = mrcNo;
+    return jsonData;
   }
 
   // from json

@@ -1,5 +1,8 @@
+// ignore_for_file: unused_result
+
 library flipper_login;
 
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
@@ -25,6 +28,8 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _tinNumberController = TextEditingController();
+
+  String selectedCustomerTypeValue = 'Individual';
 
   bool isEmail(String? s) {
     if (s == null) {
@@ -115,6 +120,29 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                             leading: const Icon(Icons.email),
                             placeholder: 'Email',
                           ),
+                          SizedBox(height: 4),
+                          // input
+                          DropdownButton<String>(
+                            value: selectedCustomerTypeValue,
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedCustomerTypeValue = newValue!;
+                              });
+                            },
+                            items: <String>['Business', 'Individual']
+                                .map<DropdownMenuItem<String>>((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            style: TextStyle(color: Colors.black, fontSize: 16),
+                            icon: Icon(Icons.arrow_drop_down),
+                            iconSize: 30,
+                            isExpanded: true,
+                            underline:
+                                SizedBox(), // Remove the default underline
+                          )
                         ],
                       ),
                     ),
@@ -132,13 +160,14 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                   if (AddCustomer._formKey.currentState!
                                       .validate()) {
                                     model.addCustomer(
+                                      customerType: selectedCustomerTypeValue,
                                       email: _emailController.text,
                                       phone: _phoneController.text,
                                       name: _nameController.text,
                                       tinNumber: _tinNumberController.text,
                                       transactionId: widget.transactionId,
                                     );
-
+                                    ref.refresh(customersProvider);
                                     Navigator.maybePop(context);
 
                                     /// this update a model when the Transaction has the customerId in it then will show related data accordingly!

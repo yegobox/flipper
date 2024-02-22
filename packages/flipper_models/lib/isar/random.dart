@@ -36,7 +36,7 @@ String randomString() {
           .toString();
   String s = String.fromCharCodes(Iterable.generate(
       15, (_) => chars.codeUnitAt(random.nextInt(chars.length))));
-  print('Generated string: $s');
+  //print('Generated string: $s');
   return s;
 }
 
@@ -50,6 +50,6 @@ int randomNumber() {
     }
     number = number + digit.toString();
   }
-  print('Generated number: $number');
+  //print('Generated number: $number');
   return int.parse(number);
 }

@@ -76,8 +76,8 @@ class TransactionItem extends IJsonSerializable {
   // same as name but for rra happiness
   String? itemNm;
   // unit price
-  // check if prc is saved as same as retailPrice
-  double? prc;
+  // check if prc is saved as same as retailPrice again this property is same as price on this model!
+  late double prc;
   // supply amount
   double? splyAmt;
   int? tin;
@@ -116,12 +116,13 @@ class TransactionItem extends IJsonSerializable {
     required this.qty,
     required this.price,
     required this.branchId,
-    this.discount,
-    this.type,
     required this.remainingStock,
     required this.createdAt,
     required this.updatedAt,
     required this.isTaxExempted,
+    required this.prc,
+    this.discount,
+    this.type,
     this.isRefunded,
     this.doneWithTransaction,
     this.active,
@@ -146,7 +147,7 @@ class TransactionItem extends IJsonSerializable {
     this.pkgUnitCd,
     this.qtyUnitCd,
     this.itemNm,
-    this.prc,
+    
     this.splyAmt,
     this.tin,
     this.bhfId,

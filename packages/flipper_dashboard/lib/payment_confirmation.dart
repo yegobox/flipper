@@ -1,7 +1,6 @@
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -20,12 +19,10 @@ class PaymentConfirmation extends StatefulHookConsumerWidget {
     required this.cashReceived,
     required this.transaction,
     required this.paymentType,
-    this.receiptType = "ns",
   }) : super(key: key);
 
   final double cashReceived;
   final ITransaction transaction;
-  final String? receiptType;
   final String paymentType;
 
   @override
@@ -34,7 +31,7 @@ class PaymentConfirmation extends StatefulHookConsumerWidget {
 
 class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final _routerService = locator<RouterService>();
-
+  bool canVigateBackHome = false;
   @override
   void initState() {
     super.initState();
@@ -59,41 +56,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           ),
         );
       },
-      onViewModelReady: (model) async {
-        model.getTransactionById();
-
-        if (await ProxyService.isar.isTaxEnabled()) {
-          Business? business = await ProxyService.isar.getBusiness();
-          List<TransactionItem> items =
-              await ProxyService.isar.transactionItems(
-            transactionId: widget.transaction.id,
-            doneWithTransaction: false,
-            active: true,
-          );
-
-          final bool isDone = await model.generateRRAReceipt(
-            items: items,
-            business: business!,
-            transaction: widget.transaction,
-            receiptType: widget.receiptType,
-            callback: (value) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.red,
-                content: Text(value),
-              ));
-            },
-          );
-
-          if (isDone) {
-            model.printReceipt(
-              items: items,
-              business: business,
-              otransaction: widget.transaction,
-              receiptType: widget.receiptType!,
-            );
-          }
-        }
-      },
+      onViewModelReady: (model) {},
       viewModelBuilder: () => CoreViewModel(),
     );
   }
@@ -143,9 +106,12 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             left: 0,
             child: StreamBuilder<Customer?>(
               stream: model.getCustomer(
-                transactionId: currentTransaction.id,
+                id: currentTransaction.customerId,
               ),
               builder: (context, snapshot) {
+                /// TODO: the stream is not used. change the stream to be of transaction
+                /// so that we keep listening to see if the ebmSync property of transaction is updated
+                /// then we know we can generate the receipt
                 return buildBottomButtons(context, model);
               },
             ),
@@ -166,18 +132,10 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 model.keyboardKeyPressed(key: 'C');
                 if (await ProxyService.isar.isTaxEnabled()) {
                   if (model.receiptReady) {
-                    Business? business = await ProxyService.isar.getBusiness();
-                    List<TransactionItem> items =
-                        await ProxyService.isar.transactionItems(
+                    await ProxyService.isar.transactionItems(
                       doneWithTransaction: false,
                       active: true,
                       transactionId: widget.transaction.id,
-                    );
-                    model.printReceipt(
-                      items: items,
-                      business: business!,
-                      otransaction: widget.transaction,
-                      receiptType: widget.receiptType!,
                     );
                   } else {
                     showSnackBar(context,
@@ -279,10 +237,15 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         child: BoxButton(
           busy: model.handlingConfirm,
           onTap: () {
+            // if (canVigateBackHome) {
             model.handlingConfirm = true;
             // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));
             _routerService.clearStackAndShow(FlipperAppRoute());
+            // } else {
+            //   showSnackBar(
+            //       context, "Please wait for the transaction to be confirmed.");
+            // }
           },
           title: "Return to Home",
         ),

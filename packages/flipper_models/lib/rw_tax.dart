@@ -6,10 +6,10 @@ import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
-import 'package:sentry/sentry.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
+  String ebmUrl = "https://turbo.yegobox.com";
 
   RWTax();
 
@@ -50,28 +50,50 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock({required Stock stock}) async {
-    var headers = {'Content-Type': 'application/json'};
-    Variant? variant =
-        await ProxyService.isar.getVariantById(id: stock.variantId);
-    EBM? ebm = await ProxyService.isar
-        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
-    var request = http.Request(
-        'POST', Uri.parse(ebm!.taxServerUrl! + '/stockMaster/saveStockMaster'));
-    variant?.rsdQty = stock.rsdQty;
-    request.body = json.encode(variant?.toJson());
-    request.headers.addAll(headers);
-    // log(variant!.toJson().toString());
+    try {
+      /// because updating stock in in rra work is just passing item with updated qty
+      /// we first get the item from db update the query from our stock model and pass it
+      Variant? variant =
+          await ProxyService.isar.getVariantById(id: stock.variantId);
 
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      ProxyService.sentry.debug(event: stock.toJson().toString());
-      log(await response.stream.bytesToString());
-      return Future.value(true);
-    } else {
-      log(response.reasonPhrase!);
-      return Future.value(false);
+      /// update the remaining stock of this item in rra
+      variant!.rsdQty = stock.currentStock;
+      http.Request request = buildRequest(ebmUrl, variant.toJson());
+      http.StreamedResponse response = await request.send();
+      final stringResponse = await response.stream.bytesToString();
+      //handleResponseLogging(stringResponse, variant, stock);
+      sendEmailLogging(
+          requestBody: request.body, subject: "Worked", body: stringResponse);
+      final data = EBMApiResponse.fromJson(
+        json.decode(stringResponse),
+      );
+      if (data.resultCd != 000) {
+        throw Exception(data.resultMsg);
+      }
+      return response.statusCode == 200;
+    } catch (e, stackTrace) {
+      throw Exception(stackTrace);
     }
+  }
+
+  http.Request buildRequest(String baseUrl, Map<String, dynamic>? data) {
+    var request =
+        http.Request('POST', Uri.parse('$baseUrl/stockMaster/saveStockMaster'));
+    request.body = json.encode(data);
+    request.headers.addAll({'Content-Type': 'application/json'});
+    return request;
+  }
+
+  void sendEmailLogging(
+      {required dynamic requestBody,
+      required String subject,
+      required String body}) async {
+    sendEmailNotification(
+        requestBody: json.encode(requestBody).toString(), response: body);
+  }
+
+  void logError(dynamic error, StackTrace stackTrace) {
+    log('Error: $error\nStack Trace: $stackTrace');
   }
 
   /// save item to rra api for later purchase
@@ -85,14 +107,9 @@ class RWTax implements TaxApi {
   @override
   Future<bool> saveItem({required Variant variation}) async {
     var headers = {'Content-Type': 'application/json'};
-    EBM? ebm = await ProxyService.isar
-        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
-    if (ebm == null) {
-      return false;
-    }
-    var request =
-        http.Request('POST', Uri.parse(ebm.taxServerUrl! + '/items/saveItems'));
-    // log(variation.toJson().toString());
+
+    var request = http.Request('POST', Uri.parse(ebmUrl + '/items/saveItems'));
+
     request.body = json.encode(variation.toJson());
 
     request.headers.addAll(headers);
@@ -100,14 +117,20 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      sendEmailNotification(
-          requestData: variation.toJson().toString(),
-          responseData: response.stream.bytesToString().toString());
-      ProxyService.sentry.debug(event: variation.toJson().toString());
-      // log(await response.stream.bytesToString());
+      final stringResponse = await response.stream.bytesToString();
+
+      sendEmailLogging(
+          requestBody: request.body, subject: "Worked", body: stringResponse);
+
+      final data = EBMApiResponse.fromJson(
+        json.decode(stringResponse),
+      );
+      if (data.resultCd != 000) {
+        throw Exception(data.resultMsg);
+      }
       return Future.value(true);
     } else {
-      return Future.value(false);
+      throw Exception("failed to save item");
     }
   }
 
@@ -135,13 +158,9 @@ class RWTax implements TaxApi {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      sendEmailNotification(
-          requestData: {
-            "tin": tinNumber,
-            "bhfId": bhfId,
-            "lastReqDt": lastReqDt
-          }.toString(),
-          responseData: response.stream.bytesToString().toString());
+      final stringResponse = await response.stream.bytesToString();
+      sendEmailLogging(
+          requestBody: request.body, subject: "Worked", body: stringResponse);
       return Future.value(true);
     } else {
       // print(response.reasonPhrase);
@@ -150,152 +169,179 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<ReceiptSignature?> createReceipt(
-      {Customer? customer,
-      required ITransaction transaction,
+  Future<EBMApiResponse?> generateReceiptSignature(
+      {required ITransaction transaction,
       required List<TransactionItem> items,
       required String receiptType,
+      String? purchaseCode,
       required Counter counter}) async {
     Business? business = await ProxyService.isar.getBusiness();
-
     String date = DateTime.now()
         .toString()
-        .replaceAll(":", "")
-        .replaceAll("-", "")
-        .replaceAll(" ", "")
+        .replaceAll(RegExp(r'[:-\s]'), '')
         .substring(0, 14);
+
     var headers = {'Content-Type': 'application/json'};
-    EBM? ebm = await ProxyService.isar
-        .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
-    if (ebm == null) {
-      return null;
-    }
-    var request = http.Request(
-        'POST', Uri.parse(ebm.taxServerUrl! + '/trnsSales/saveSales'));
-    List<Map<String, dynamic>> itemsList = [];
-    for (var item in items) {
-      itemsList.add(item.toJson());
-    }
 
-    double totalMinusExemptedProducts = 0;
-    for (var item in items) {
-      if (!item.isTaxExempted) {
-        totalMinusExemptedProducts += (item.prc! * item.qty);
-      }
-    }
-    // default is Normal sale
-    String salesTyCd = "N";
-    String rcptTyCd = "S";
-    // normal refund
-    if (receiptType == "NR") {
-      salesTyCd = "N";
-      rcptTyCd = "R";
-    }
-    // copy sale
-    if (receiptType == "CS") {
-      salesTyCd = "C";
-      rcptTyCd = "S";
-    }
-    // training sale
-    if (receiptType == "TS") {
-      salesTyCd = "T";
-      rcptTyCd = "S";
-    }
-    // profoma invoice
-    if (receiptType == "PS") {
-      salesTyCd = "P";
-      rcptTyCd = "S";
-    }
+    var request =
+        http.Request('POST', Uri.parse('$ebmUrl/trnsSales/saveSales'));
 
-    request.body = json.encode({
-      "tin": business!.tinNumber,
-      "bhfId": business.bhfId,
-      "invcNo": transaction.id.substring(0, 10),
+    List<Map<String, dynamic>> itemsList =
+        items.map((item) => item.toJson()).toList();
+
+    double totalMinusExemptedProducts = items
+        .where((item) => !item.isTaxExempted)
+        .fold(0, (sum, item) => sum + (item.prc * item.qty));
+
+    String salesTyCd;
+    String rcptTyCd;
+
+    switch (receiptType) {
+      case "NR":
+        salesTyCd = "N";
+        rcptTyCd = "R";
+        break;
+      case "CS":
+        salesTyCd = "C";
+        rcptTyCd = "S";
+        break;
+      case "TS":
+        salesTyCd = "T";
+        rcptTyCd = "S";
+        break;
+      case "PS":
+        salesTyCd = "P";
+        rcptTyCd = "S";
+        break;
+      default:
+        salesTyCd = "T";
+        rcptTyCd = "S";
+        break;
+    }
+    Map<String, dynamic> data = {
+      "tin": business?.tinNumber ?? 999909695,
+      "bhfId": business?.bhfId ?? "00",
+      "invcNo": counter.curRcptNo,
       "orgInvcNo": 0,
-      "custTin": customer == null ? "" : customer.tinNumber,
-      "custNm": customer == null ? "" : customer.name,
       "salesTyCd": salesTyCd,
       "rcptTyCd": rcptTyCd,
-      "pmtTyCd": "01",
-      "salesSttsCd": "02",
+      "pmtTyCd": "01", // 01: is cash
+      "salesSttsCd": "02", //02: Approved
       "cfmDt": date,
       "salesDt": date.substring(0, 8),
       "stockRlsDt": date,
-      "cnclReqDt": null,
-      "cnclDt": null,
-      "rfdDt": null,
-      "rfdRsnCd": null,
       "totItemCnt": itemsList.length,
-      "taxblAmtA": 0,
-      "taxblAmtB": totalMinusExemptedProducts,
-      "taxblAmtC": 0,
-      "taxblAmtD": 0,
-      "taxRtA": 0,
-      "taxRtB": 18,
-      "taxRtC": 0,
-      "taxRtD": 0,
-      "taxAmtA": 0,
       "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
-      "taxAmtC": 0,
-      "taxAmtD": 0,
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totAmt": totalMinusExemptedProducts,
-      "prchrAcptcYn": "N",
-      "remark": null,
+      "prchrAcptcYn": "Y",
       "regrId": transaction.id,
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
       "receipt": {
         "curRcptNo": counter.curRcptNo,
-        "totRcptNo": counter.totRcptNo,
-        "custTin": customer == null ? "" : customer.tinNumber,
-        "custMblNo": customer == null ? "" : customer.phone,
+        "totRcptNo": counter.curRcptNo,
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
             transaction.id.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
-        "rcptSign": itemPrefix +
-            transaction.id.toString() +
-            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 11),
-        "jrnl": "",
-        "trdeNm": business.name,
-        "adrs": business.adrs,
+        "rcptSign": transaction.id,
+        "trdeNm": business?.name ?? "YB",
         "topMsg": "Shop with us",
         "btmMsg": "Welcome",
-        // Whether buyers receive item or not. default to Y es
         "prchrAcptcYn": "Y"
       },
       "itemList": itemsList
-    });
+    };
+    Customer? customer =
+        await ProxyService.isar.getCustomer(id: transaction.customerId);
+
+    Map<String, dynamic> finalData;
+
+    if (customer != null) {
+      finalData = addFieldIfCondition(
+          json: data,
+          transaction: transaction,
+          customer: customer,
+          purchaseCode: purchaseCode);
+    } else {
+      finalData = data;
+    }
+
+    request.body = json.encode(finalData);
     request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      ProxyService.sentry.debug(event: request.body.toString());
-
-      sendEmailNotification(
-          requestData: request.body,
-          responseData: response.stream.bytesToString().toString());
-      if (ProxyService.remoteConfig.isMarketingFeatureEnabled()) {
-        SentryId sentryId = await Sentry.captureMessage("EBM-JSON");
-
-        final userFeedback = SentryUserFeedback(
-          eventId: sentryId,
-          comments: request.body,
-          email: ProxyService.box.getUserPhone(),
-          name: ProxyService.box.getUserPhone(),
+    try {
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        final stringResponse = await response.stream.bytesToString();
+        sendEmailLogging(
+          requestBody: request.body,
+          subject: "Worked",
+          body: stringResponse,
         );
-
-        Sentry.captureUserFeedback(userFeedback);
+        log(stringResponse, name: "ReceiptSignature");
+        final data = EBMApiResponse.fromJson(
+          json.decode(stringResponse),
+        );
+        return data;
+      } else {
+        throw Exception(
+            "Failed to send request. Status Code: ${response.statusCode}");
       }
-      return Future.value(ReceiptSignature.fromJson(
-          json.decode(await response.stream.bytesToString())));
+    } catch (e) {
+      print("Exception: $e");
+      // Handle the exception or rethrow it based on your requirements.
+      throw Exception("Failed to send request: $e");
+    }
+  }
+
+  // Define these constants at the top level of your file
+  String customerTypeBusiness = "Business";
+  String custTinKey = "custTin";
+  String custNmKey = "custNm";
+
+  Map<String, dynamic> addFieldIfCondition({
+    required Map<String, dynamic> json,
+    required ITransaction transaction,
+    required Customer customer,
+    String? purchaseCode,
+  }) {
+    if (transaction.customerId != null &&
+        customer.customerType == customerTypeBusiness) {
+      log("Customer related field was added", name: 'addFieldIfCondition');
+      json[custTinKey] = customer.custTin;
+      json[custNmKey] = customer.custNm;
+    }
+
+    return json;
+  }
+
+  @override
+  Future saveCustomer({required Customer customer}) async {
+    var headers = {'Content-Type': 'application/json'};
+
+    var request = http.Request(
+        'POST', Uri.parse(ebmUrl + '/branches/saveBrancheCustomers'));
+    request.body = json.encode(customer.toJson());
+    request.headers.addAll(headers);
+    http.StreamedResponse response = await request.send();
+    if (response.statusCode == 200) {
+      final stringResponse = await response.stream.bytesToString();
+
+      sendEmailLogging(
+          requestBody: request.body, subject: "Worked", body: stringResponse);
+
+      final data = EBMApiResponse.fromJson(
+        json.decode(stringResponse),
+      );
+      return data;
     } else {
-      return null;
+      throw Exception(
+          "Failed to send request. Status Code: ${response.statusCode}");
     }
   }
 }

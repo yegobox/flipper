@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_models/realm/realmCounter.dart';
+import 'package:flipper_models/realm/realmCustomer.dart';
+import 'package:flipper_models/realm/realmReceipt.dart';
 import 'package:flutter/services.dart';
 import 'dart:isolate';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -62,7 +65,6 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<Realm> configure() async {
-    log(ProxyService.box.encryptionKey(), name: 'encriptionKey');
     int? branchId = ProxyService.box.getBranchId();
     if (realm != null) {
       return realm!;
@@ -83,7 +85,10 @@ class RealmSync<M extends IJsonSerializable>
         RealmProduct.schema,
         RealmVariant.schema,
         RealmStock.schema,
-        RealmIUnit.schema
+        RealmIUnit.schema,
+        RealmReceipt.schema,
+        RealmCounter.schema,
+        RealmCustomer.schema,
       ],
       encryptionKey: key,
       path: await absolutePath("db_"),
@@ -375,54 +380,57 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmVariant = RealmVariant(
-          ObjectId(), // Auto-generate ObjectId for realmId
-          item.name,
-          item.color,
-          item.sku,
-          item.productId,
-          item.unit,
-          item.productName,
-          item.branchId,
-          item.isTaxExempted,
-          item.action,
-          item.id,
-          item.retailPrice,
-          item.supplyPrice,
-          dftPrc: item.dftPrc,
-          taxName: item.taxName,
-          taxPercentage: item.taxPercentage,
-          isrcAplcbYn: item.isrcAplcbYn,
-          modrId: item.modrId,
-          rsdQty: item.rsdQty,
-          taxTyCd: item.taxTyCd,
-          bcd: item.bcd,
-          itemClsCd: item.itemClsCd,
-          itemTyCd: item.itemTyCd,
-          itemStdNm: item.itemStdNm,
-          addInfo: item.addInfo,
-          pkg: item.pkg,
-          useYn: item.useYn,
-          regrNm: item.regrNm,
-          modrNm: item.modrNm,
-          itemNm: item.itemNm,
-          lastTouched: item.lastTouched,
-          deletedAt: item.deletedAt,
-          tin: item.tin,
-          bhfId: item.bhfId,
-          regrId: item.regrId,
-          orgnNatCd: item.orgnNatCd,
-          itemSeq: item.itemSeq,
-          itemCd: item.itemCd,
-          isrccCd: item.isrccCd,
-          pkgUnitCd: item.pkgUnitCd,
-          qtyUnitCd: item.qtyUnitCd,
-          isrccNm: item.isrccNm,
-          qty: item.qty,
-          isrcRt: item.isrcRt,
-          prc: item.prc,
-          isrcAmt: item.isrcAmt,
-          splyAmt: item.splyAmt,
-        );
+            ObjectId(), // Auto-generate ObjectId for realmId
+            item.name,
+            item.color,
+            item.sku,
+            item.productId,
+            item.unit,
+            item.productName,
+            item.branchId,
+            item.isTaxExempted,
+            item.action,
+            item.id,
+            item.retailPrice,
+            item.supplyPrice,
+            dftPrc: item.dftPrc,
+            taxName: item.taxName,
+            taxPercentage: item.taxPercentage,
+            isrcAplcbYn: item.isrcAplcbYn,
+            modrId: item.modrId,
+            rsdQty: item.rsdQty,
+            taxTyCd: item.taxTyCd,
+            bcd: item.bcd,
+            itemClsCd: item.itemClsCd,
+            itemTyCd: item.itemTyCd,
+            itemStdNm: item.itemStdNm,
+            addInfo: item.addInfo,
+            pkg: item.pkg,
+            useYn: item.useYn,
+            regrNm: item.regrNm,
+            modrNm: item.modrNm,
+            itemNm: item.itemNm,
+            lastTouched: item.lastTouched,
+            deletedAt: item.deletedAt,
+            tin: item.tin,
+            bhfId: item.bhfId,
+            regrId: item.regrId,
+            orgnNatCd: item.orgnNatCd,
+            itemSeq: item.itemSeq,
+            itemCd: item.itemCd,
+            isrccCd: item.isrccCd,
+            pkgUnitCd: item.pkgUnitCd,
+            qtyUnitCd: item.qtyUnitCd,
+            isrccNm: item.isrccNm,
+            qty: item.qty,
+            isrcRt: item.isrcRt,
+            prc: item.prc,
+            isrcAmt: item.isrcAmt,
+            splyAmt: item.splyAmt,
+            spplrItemCd: item.spplrItemCd,
+            spplrItemNm: item.spplrItemNm,
+            ebmSynced: item.ebmSynced,
+            spplrItemClsCd: item.spplrItemClsCd);
         final findableObject =
             realm!.query<RealmVariant>(r'id == $0', [item.id]);
         if (findableObject.isEmpty) {
@@ -455,6 +463,7 @@ class RealmSync<M extends IJsonSerializable>
           supplyPrice: item.supplyPrice,
           retailPrice: item.retailPrice,
           lastTouched: item.lastTouched,
+          ebmSynced: item.ebmSynced,
           deletedAt: item.deletedAt,
         );
         final findableObject = realm!.query<RealmStock>(r'id == $0', [item.id]);
@@ -495,11 +504,100 @@ class RealmSync<M extends IJsonSerializable>
         }
       });
     }
-    // realm.close();
+    if (item is Receipt) {
+      realm!.write(() {
+        final realmReceipt = RealmReceipt(
+          ObjectId(),
+          id: item.id,
+          resultCd: item.resultCd,
+          resultMsg: item.resultMsg,
+          resultDt: item.resultDt,
+          rcptNo: item.rcptNo,
+          intrlData: item.intrlData,
+          rcptSign: item.rcptSign,
+          totRcptNo: item.totRcptNo,
+          vsdcRcptPbctDate: item.vsdcRcptPbctDate,
+          sdcId: item.sdcId,
+          mrcNo: item.mrcNo,
+          qrCode: item.qrCode,
+          receiptType: item.receiptType,
+          transactionId: item.transactionId,
+        );
+        final findableObject = realm!
+            .query<RealmReceipt>(r'transactionId == $0', [item.transactionId]);
+
+        if (findableObject.isEmpty) {
+          // Unit doesn't exist, add it
+          realm!.add(realmReceipt);
+        } else {
+          // Unit exists, update it
+          RealmReceipt existingRealm = findableObject.first;
+
+          existingRealm.updateProperties(realmReceipt);
+        }
+      });
+    }
+    if (item is Counter) {
+      realm!.write(() {
+        final realmCounter = RealmCounter(ObjectId(),
+            id: item.id,
+            branchId: item.branchId,
+            businessId: item.businessId,
+            receiptType: item.receiptType,
+            totRcptNo: item.totRcptNo,
+            curRcptNo: item.curRcptNo,
+            lastTouched: item.lastTouched);
+        final findableObject =
+            realm!.query<RealmCounter>(r'id == $0', [item.id]);
+        if (findableObject.isEmpty) {
+          // Unit doesn't exist, add it
+          realm!.add(realmCounter);
+        } else {
+          // Unit exists, update it
+          RealmCounter existingRealm = findableObject.first;
+          existingRealm.updateProperties(realmCounter);
+        }
+      });
+    }
+    if (item is Customer) {
+      realm!.write(() {
+        final realmCustomer = RealmCustomer(
+          item.id,
+          ObjectId(),
+          branchId: item.branchId,
+          custNm: item.custNm,
+          email: item.email,
+          telNo: item.telNo,
+          adrs: item.adrs,
+          updatedAt: item.updatedAt,
+          custNo: item.custNo,
+          custTin: item.custTin,
+          regrNm: item.regrNm,
+          regrId: item.regrId,
+          modrNm: item.modrNm,
+          modrId: item.modrId,
+          ebmSynced: item.ebmSynced,
+          lastTouched: item.lastTouched,
+          action: item.action,
+          deletedAt: item.deletedAt,
+          tin: item.tin,
+          useYn: item.useYn,
+        );
+        final findableObject =
+            realm!.query<RealmCustomer>(r'id == $0', [item.id]);
+        if (findableObject.isEmpty) {
+          // Unit doesn't exist, add it
+          realm!.add(realmCustomer);
+        } else {
+          // Unit exists, update it
+          RealmCustomer existingRealm = findableObject.first;
+          existingRealm.updateProperties(realmCustomer);
+        }
+      });
+    }
   }
 
-  List<Isolate> _isolates =
-      []; 
+  List<Isolate> _isolates = [];
 
   @override
   Future<void> pull() async {
@@ -539,7 +637,11 @@ class RealmSync<M extends IJsonSerializable>
         ],
       );
       _isolates.add(isolate);
-      receivePort.listen((message) => log('Isolate $name: $message'));
+      receivePort.listen(
+        (message) => {
+          // log('Isolate $name: $message');
+        },
+      );
     } catch (error) {
       log('Error managing isolates: $error');
     }

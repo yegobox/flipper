@@ -4,6 +4,7 @@ import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
+/// TODO: adapt to some change in this flutter release https://medium.com/flutter/whats-new-in-flutter-3-19-58b1aae242d2
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),
@@ -82,6 +83,8 @@ class App {}
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // `dart run build_runner build --delete-conflicting-outputs`
+// dart pub cache clean
+//  dart pub global run melos bootstrap
 // While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
@@ -128,11 +131,11 @@ class App {}
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
 // flutterfire configure
-// git submodule deinit -f open-sources/form_bloc
+// git submodule deinit -f open-sources/flutter_datetime_picker
 // STEPS to remove submodule
-///git submodule deinit -f open-sources/form_bloc
-///git rm -rf open-sources/form_bloc
-///rm -rf open-sources/form_bloc
+///git submodule deinit -f open-sources/flutter_datetime_picker
+///git rm -rf open-sources/flutter_datetime_picker
+///rm -rf open-sources/flutter_datetime_picker
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
 ///git submodule add https://github.com/yegobox/form_bloc.git open-sources/form_bloc
@@ -215,6 +218,7 @@ class App {}
 //TODO: realm crud https://medium.com/@alperenekin/another-mobile-database-option-realm-database-for-flutter-f269763b79ef
 // Login Pins
 // YEGOBOX: 31658
+//customerTin: 999941411
 // PETER: 49528
 // 67364
 // 28462948626200
@@ -344,4 +348,48 @@ class App {}
 //     );
 //   }
 // }
+
+//TODO:api/selectInitInfo
+//{
+//     "resultCd": "000",
+//     "resultMsg": "It is succeeded",
+//     "resultDt": "20240202210557",
+//     "data": {
+//         "info": {
+//             "tin": "999909695",
+//             "taxprNm": "TESTING COMPANY 14 LTD",
+//             "bsnsActv": null,
+//             "bhfId": "00",
+//             "bhfNm": "Headquarter",
+//             "bhfOpenDt": "20210927",
+//             "prvncNm": "SOUTH",
+//             "dstrtNm": "KAMONYI",
+//             "sctrNm": "NYARUBAKA",
+//             "locDesc": "RRA",
+//             "hqYn": "Y",
+//             "mgrNm": "TESTING COMPANY 14 LTD",
+//             "mgrTelNo": "0788427097",
+//             "mgrEmail": "ebm@rra.gov.rw",
+//             "sdcId": null,
+//             "mrcNo": null,
+//             "dvcId": "1036147990000001",
+//             "intrlKey": null,
+//             "signKey": null,
+//             "cmcKey": null,
+//             "lastPchsInvcNo": 40,
+//             "lastSaleRcptNo": null,
+//             "lastInvcNo": null,
+//             "lastSaleInvcNo": 7885983517,
+//             "lastTrainInvcNo": null,
+//             "lastProfrmInvcNo": null,
+//             "lastCopyInvcNo": null,
+//             "vatTyCd": null
+//         }
+//     }
+// }
+//https://pub.dev/packages/floating_overlay
+// https://www.youtube.com/watch?v=yjsN2Goe_po
+//article to check: https://medium.com/@ABausG/interactive-homescreen-widgets-with-flutter-using-home-widget-83cb0706a417
+// https://github.com/Shopify/ejson
+//TODO: People to hire to clean the UI: https://goods.overnice.com/
 

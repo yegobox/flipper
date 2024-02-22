@@ -17,7 +17,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
-
+import 'extensions/isar_extension.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_routing/receipt_types.dart';
 
@@ -64,30 +64,35 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     return this;
   }
 
+  /// Adds a new customer to the database and associates them with the given transaction.
+  ///
+  /// @param customer - The Customer object to add.
+  /// @param transactionId - The ID of the transaction to associate the customer with.
+  /// @returns The added Customer object.
   @override
   Future<Customer?> addCustomer(
-      {required Map customer, required String transactionId}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    Customer kCustomer = Customer(
-        name: customer['name'],
-        id: randomString(),
-        action: AppActions.created,
-        tinNumber: customer['tinNumber'],
-        email: customer['email'],
-        phone: customer['phone'],
-        address: customer['address'],
-        updatedAt: DateTime.now(),
-        branchId: branchId);
-    db.write((isar) {
-      isar.customers.put(kCustomer);
-    });
+      {required Customer customer, required String transactionId}) async {
+    try {
+      // Add the customer to the database
+      db.write((isar) {
+        isar.customers.onPut(customer);
+      });
 
-    ITransaction? transaction =
-        db.read((isar) => isar.iTransactions.get(transactionId));
-    transaction?.customerId = kCustomer.id;
-    // update the transaction with the customerID
-    await update(data: transaction);
-    return kCustomer;
+      // Get the transaction from the database
+      final ITransaction? transaction =
+          db.read((isar) => isar.iTransactions.get(transactionId));
+
+      if (transaction != null) {
+        // Update the transaction with the customer ID
+        transaction.customerId = customer.id;
+        await update(data: transaction);
+      }
+
+      return customer;
+    } catch (e) {
+      print('Failed to add customer: $e');
+      throw e;
+    }
   }
 
   /// this method is one way i.e we get to know local unsynched changes
@@ -477,6 +482,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           retailPrice: variation.retailPrice,
           supplyPrice: variation.supplyPrice,
           currentStock: variation.qty!,
+          rsdQty: variation.qty,
           value: variation.qty! * variation.retailPrice,
           productId: variation.productId,
         )..active = false;
@@ -484,7 +490,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         db.write((isar) => isar.stocks.onPut(newStock));
       }
 
-      stock!.currentStock = variation.qty!;
+      stock!.currentStock = stock.currentStock + variation.qty!;
+
+      /// rsdQty is the remaining stock that is not yet sold bas
+      stock.rsdQty = stock.currentStock + variation.qty!;
 
       log(variation.qty!.toString(), name: 'Incoming updated quantity');
 
@@ -505,7 +514,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       String variationId = randomString();
       String stockId = randomString();
 
-      variation.itemClsCd = "5020230602";
       variation.pkg = "1";
       variation.id = variationId;
       variation.action = AppActions.created;
@@ -528,31 +536,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
       db.write((isar) => isar.stocks.onPut(newStock));
     }
-  }
-
-  @override
-  Future assingTransactionToCustomer(
-      {required String customerId, String? transactionId}) async {
-    // get transaction where id = transactionId from db
-    ITransaction? transaction =
-        db.iTransactions.where().idEqualTo(transactionId ?? "").findFirst();
-
-    transaction?.customerId = customerId;
-    // update transaction to db
-    if (transaction != null) {
-      db.write((isar) {
-        isar.iTransactions.onPut(transaction);
-      });
-    }
-
-    // get customer where id = customerId from db
-    //// and updat this customer with timestamp so it can trigger change!.
-    Customer? customer = db.customers.get(customerId);
-    customer!.updatedAt = DateTime.now();
-    // save customer to db
-    db.write((isar) {
-      isar.customers.onPut(customer);
-    });
   }
 
   // get list of Business from isar where userId = userId
@@ -640,6 +623,18 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
     transaction.subTotal = subTotal;
+
+    /// for now receipt type to be printed is in box shared preference
+    /// this ofcause has limitation that if more than two users are using device
+    /// one user will use configuration set by probably a different user, this need to change soon.
+    String receiptType = "ns";
+    if (ProxyService.box.isPoroformaMode()) {
+      receiptType = ReceiptType.ps;
+    }
+    if (ProxyService.box.isTrainingMode()) {
+      receiptType = ReceiptType.ts;
+    }
+    transaction.receiptType = receiptType;
 
     /// refresh created as well to reflect when this transaction was created and completed
 
@@ -833,24 +828,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       retailPrice: 0.0,
       id: variantId,
       isTaxExempted: false,
-      bhfId: business?.bhfId ?? '',
-      itemCd: randomString(),
-      itemClsCd: "5020230602", // TODO: Ask about item classification code
-      itemTyCd: "1",
-      itemNm: "Regular",
+      bhfId: business?.bhfId ?? '00',
       itemStdNm: "Regular",
-      orgnNatCd: "RW",
-      pkgUnitCd: "NT",
-      qtyUnitCd: "U",
-      taxTyCd: "B",
-      dftPrc: 0.0,
       addInfo: "A",
-      isrcAplcbYn: "N",
-      useYn: "N",
-      regrId: randomString(),
-      regrNm: "Regular",
-      modrId: randomString(),
-      modrNm: "Regular",
       pkg: "1",
       itemSeq: "1",
       splyAmt: 0.0,
@@ -873,12 +853,16 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<bool> isTaxEnabled() async {
-    Business? business = await getBusiness();
-    bool isEbmEnabled = business?.tinNumber != null &&
-        business?.bhfId != null &&
-        business?.dvcSrlNo != null &&
-        business?.taxEnabled == true;
-    return Future.value(isEbmEnabled);
+    ///TODO: to simplify testing
+    ///for now manually enable ebm by default, this will enable us
+    ///to fast test the ebm integration with no friction!
+    return Future.value(true);
+    // Business? business = await getBusiness();
+    // bool isEbmEnabled = business?.tinNumber != null &&
+    //     business?.bhfId != null &&
+    //     business?.dvcSrlNo != null &&
+    //     business?.taxEnabled == true;
+    // return Future.value(isEbmEnabled);
   }
 
   @override
@@ -1083,8 +1067,11 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     if (businessId != null) {
       return db.read((isar) => isar.business.get(businessId));
     } else {
+      ///FIXME: what will happen if a user has multiple business associated to him
+      ///the code bellow suggest that the first in row will be returned which can be wrong.
       int? userId = ProxyService.box.getUserId();
-      return db.business.where().userIdEqualTo(userId).findFirst();
+      return db.read(
+          (isar) => isar.business.where().userIdEqualTo(userId).findFirst());
     }
   }
 
@@ -1143,9 +1130,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       // add this newProduct's variant to the RRA DB
       Variant? variant =
           db.variants.where().productIdEqualTo(newProduct.id).findFirst();
-      if (await ProxyService.isar.isTaxEnabled()) {
-        ProxyService.tax.saveItem(variation: variant!);
-      }
+
       return variant!;
     } else {
       Variant? variation =
@@ -1253,16 +1238,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       });
     }
     return variation;
-  }
-
-  @override
-  Future<Customer?> nGetCustomerByTransactionId({required String id}) async {
-    ITransaction? transaction = db.iTransactions.get(id);
-    if (transaction == null) {
-      return null;
-    }
-    Customer? customer = db.customers.get(transaction.customerId ?? '0');
-    return customer;
   }
 
   @override
@@ -2253,25 +2228,25 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       db.write((isar) {
         isar.counters.onPut(data);
       });
-      final response = await flipperHttpClient.patch(
-        Uri.parse("$apihub/v2/api/counter/${data.id}"),
-        body: jsonEncode(data.toJson()),
-      );
-      if (response.statusCode == 200) {
-        log(response.body, name: 'response.body');
-        Counter counter = Counter.fromRawJson(response.body);
-        db.write((isar) {
-          isar.counters.onPut(data
-            ..branchId = counter.branchId
-            ..businessId = counter.businessId
-            ..receiptType = counter.receiptType
-            ..id = data.id
-            ..totRcptNo = counter.totRcptNo
-            ..curRcptNo = counter.curRcptNo);
-        });
-      } else {
-        throw InternalServerError(term: "error patching the counter");
-      }
+      // final response = await flipperHttpClient.patch(
+      //   Uri.parse("$apihub/v2/api/counter/${data.id}"),
+      //   body: jsonEncode(data.toJson()),
+      // );
+      // if (response.statusCode == 200) {
+      //   log(response.body, name: 'response.body');
+      //   Counter counter = Counter.fromRawJson(response.body);
+      //   db.write((isar) {
+      //     isar.counters.onPut(data
+      //       ..branchId = counter.branchId
+      //       ..businessId = counter.businessId
+      //       ..receiptType = counter.receiptType
+      //       ..id = data.id
+      //       ..totRcptNo = counter.totRcptNo
+      //       ..curRcptNo = counter.curRcptNo);
+      //   });
+      // } else {
+      //   throw InternalServerError(term: "error patching the counter");
+      // }
     }
     if (data is Branch) {
       db.write((isar) {
@@ -2476,26 +2451,27 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<Receipt?> createReceipt(
-      {required ReceiptSignature signature,
+      {required EBMApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
       required Counter counter,
       required String receiptType}) async {
-    Receipt receipt = Receipt()
-      ..resultCd = signature.resultCd
-      ..id = randomString()
-      ..resultMsg = signature.resultMsg
-      ..rcptNo = signature.data.rcptNo
-      ..intrlData = signature.data.intrlData
-      ..rcptSign = signature.data.rcptSign
-      ..qrCode = qrCode
-      ..receiptType = receiptType
-      ..vsdcRcptPbctDate = signature.data.vsdcRcptPbctDate
-      ..sdcId = signature.data.sdcId
-      ..totRcptNo = signature.data.totRcptNo
-      ..mrcNo = signature.data.mrcNo
-      ..transactionId = transaction.id
-      ..resultDt = signature.resultDt;
+    Receipt receipt = Receipt(
+      id: randomString(),
+      resultCd: signature.resultCd,
+      resultMsg: signature.resultMsg,
+      rcptNo: signature.data.rcptNo,
+      intrlData: signature.data.intrlData,
+      rcptSign: signature.data.rcptSign,
+      qrCode: qrCode,
+      receiptType: receiptType,
+      vsdcRcptPbctDate: signature.data.vsdcRcptPbctDate,
+      sdcId: signature.data.sdcId,
+      totRcptNo: signature.data.totRcptNo,
+      mrcNo: signature.data.mrcNo,
+      transactionId: transaction.id,
+      resultDt: signature.resultDt,
+    );
 
     db.write((isar) {
       isar.receipts.put(receipt);
@@ -2622,54 +2598,55 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Counter?> cSCounter({required int branchId}) async {
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType}) async {
     return db.read((isar) => isar.counters
         .where()
         .branchIdEqualTo(branchId)
         .and()
-        .receiptTypeEqualTo(ReceiptType.cs)
+        .receiptTypeEqualTo(receiptType, caseSensitive: false)
         .findFirst());
   }
 
-  @override
-  Future<Counter?> nRSCounter({required int branchId}) async {
-    return db.read((isar) => isar.counters
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .receiptTypeEqualTo(ReceiptType.nr)
-        .findFirst());
-  }
+  // @override
+  // Future<Counter?> nRSCounter({required int branchId}) async {
+  //   return db.read((isar) => isar.counters
+  //       .where()
+  //       .branchIdEqualTo(branchId)
+  //       .and()
+  //       .receiptTypeEqualTo(ReceiptType.nr)
+  //       .findFirst());
+  // }
 
-  @override
-  Future<Counter?> nSCounter({required int branchId}) async {
-    return db.read((isar) => isar.counters
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .receiptTypeEqualTo("ns")
-        .findFirst());
-  }
+  // @override
+  // Future<Counter?> nSCounter({required int branchId}) async {
+  //   return db.read((isar) => isar.counters
+  //       .where()
+  //       .branchIdEqualTo(branchId)
+  //       .and()
+  //       .receiptTypeEqualTo(ReceiptType.ns)
+  //       .findFirst());
+  // }
 
-  @override
-  Future<Counter?> pSCounter({required int branchId}) async {
-    return db.read((isar) => isar.counters
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .receiptTypeEqualTo(ReceiptType.ps)
-        .findFirst());
-  }
+  // @override
+  // Future<Counter?> pSCounter({required int branchId}) async {
+  //   return db.read((isar) => isar.counters
+  //       .where()
+  //       .branchIdEqualTo(branchId)
+  //       .and()
+  //       .receiptTypeEqualTo(ReceiptType.ps)
+  //       .findFirst());
+  // }
 
-  @override
-  Future<Counter?> tSCounter({required int branchId}) async {
-    return db.read((isar) => isar.counters
-        .where()
-        .branchIdEqualTo(branchId)
-        .and()
-        .receiptTypeEqualTo(ReceiptType.ts)
-        .findFirst());
-  }
+  // @override
+  // Future<Counter?> tSCounter({required int branchId}) async {
+  //   return db.read((isar) => isar.counters
+  //       .where()
+  //       .branchIdEqualTo(branchId)
+  //       .and()
+  //       .receiptTypeEqualTo(ReceiptType.ts)
+  //       .findFirst());
+  // }
 
   @override
   Future<void> loadCounterFromOnline({required int businessId}) async {
@@ -3610,30 +3587,28 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, String? transactionId}) async {
-    if (transactionId != null) {
-      ITransaction? tr = db.iTransactions.get(transactionId);
-      final customer = await db.read((isar) => isar.customers
+  Future<Customer?> getCustomer({String? key, String? id}) async {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+    if (id != null) {
+      return db.read((isar) => isar.customers.get(id));
+    } else if (key != null) {
+      final customer = db.read((isar) => db.customers
           .where()
-          .idEqualTo(tr!.customerId ?? '0')
-          .deletedAtIsNull()
-          .sortByLastTouchedDesc()
-          .findFirst());
-
-      return customer;
-    } else {
-      final customer = await db.read((isar) => db.customers
-          .where()
-          .nameContains(key!)
+          .custNmContains(key)
           .or()
           .emailContains(key)
           .or()
-          .phoneContains(key)
+          .telNoContains(key)
           .and()
           .deletedAtIsNull()
           .findFirst());
 
       return customer;
+    } else {
+      return null;
     }
   }
 
@@ -3751,8 +3726,12 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<List<Customer>> customers({required int branchId}) async {
-    return db.read(
-        (isar) => isar.customers.where().branchIdEqualTo(branchId).findAll());
+    return db.read((isar) => isar.customers
+        .where()
+        .branchIdEqualTo(branchId)
+        .and()
+        .deletedAtIsNull()
+        .findAll());
   }
 
   @override
@@ -3829,5 +3808,49 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   Future<Permission?> permission({required int userId}) async {
     return db.read(
         (isar) => isar.permissions.where().userIdEqualTo(userId).findFirst());
+  }
+
+  @override
+  Future assignCustomerToTransaction(
+      {required String customerId, String? transactionId}) async {
+    // Update transaction
+    db.write((isar) {
+      final transaction = isar.iTransactions.get(transactionId ?? "");
+      if (transaction != null) {
+        transaction.customerId = customerId;
+        isar.iTransactions.put(transaction);
+      }
+    });
+
+    // Update customer
+    db.write((isar) {
+      final customer = isar.customers.get(customerId);
+      if (customer != null) {
+        customer.updatedAt = DateTime.now();
+        isar.customers.put(customer);
+      }
+    });
+  }
+
+  /// given a transactionId and a customer, remove the given customer from the
+  /// given transaction
+  @override
+  Future removeCustomerFromTransaction(
+      {required String customerId, required String transactionId}) async {
+    // get transaction where id = transactionId from db
+    ITransaction? transaction = db.iTransactions
+        .where()
+        .idEqualTo(transactionId)
+        .and()
+        .customerIdEqualTo(customerId)
+        .findFirst();
+    // remove customerId from the transaction and set it to null
+    transaction?.customerId = null;
+    // update transaction to db
+    if (transaction != null) {
+      db.write((isar) {
+        isar.iTransactions.onPut(transaction);
+      });
+    }
   }
 }
