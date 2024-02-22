@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # get current version
+## first go to then to apps/main directory
+cd apps/main_app
 version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
 
 # increment version
@@ -16,7 +18,7 @@ sed -i "s/version: $version/version: $new_version/" pubspec.yaml
 # commit
 git add pubspec.yaml
 
-#TODO: Msix
+
 # Get current msix_version
 msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
 
