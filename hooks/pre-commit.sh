@@ -3,6 +3,9 @@
 # get current version
 ## first go to then to apps/main directory,
 cd apps/main_app
+
+echo "switched to apps/main_app"
+
 version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
 
 # increment version
