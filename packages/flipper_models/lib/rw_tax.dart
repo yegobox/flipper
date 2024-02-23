@@ -169,12 +169,13 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<EBMApiResponse?> generateReceiptSignature(
-      {required ITransaction transaction,
-      required List<TransactionItem> items,
-      required String receiptType,
-      
-      required Counter counter,String? purchaseCode,}) async {
+  Future<EBMApiResponse?> generateReceiptSignature({
+    required ITransaction transaction,
+    required List<TransactionItem> items,
+    required String receiptType,
+    required Counter counter,
+    String? purchaseCode,
+  }) async {
     Business? business = await ProxyService.isar.getBusiness();
     String date = DateTime.now()
         .toString()
@@ -303,6 +304,7 @@ class RWTax implements TaxApi {
   String customerTypeBusiness = "Business";
   String custTinKey = "custTin";
   String custNmKey = "custNm";
+  String prcOrdCd = "prcOrdCd";
 
   Map<String, dynamic> addFieldIfCondition({
     required Map<String, dynamic> json,
@@ -310,10 +312,11 @@ class RWTax implements TaxApi {
     required Customer customer,
     String? purchaseCode,
   }) {
-    if (transaction.customerId != null &&
-        customer.customerType == customerTypeBusiness) {
+    //TODO: remember we only force purchase code for business entity
+    if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;
+      json[prcOrdCd] = purchaseCode;
     }
 
     return json;

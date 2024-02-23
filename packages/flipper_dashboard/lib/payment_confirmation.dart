@@ -105,7 +105,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                           });
                           _formKey.currentState?.save();
                           String purchaseCode = _controller.text;
-                          log("received value ${purchaseCode}");
+                          log("received purchase code: ${purchaseCode}");
                           await EBMHandler(object: widget.transaction)
                               .handleReceiptGeneration(
                             transaction: widget.transaction,
