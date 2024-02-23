@@ -206,7 +206,7 @@ abstract class IsarApiInterface {
       required bool active});
 
   Future<Variant?> getVariantById({required String id});
-  Future<bool> isTaxEnabled();
+  bool isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required EBMApiResponse signature,
       required ITransaction transaction,

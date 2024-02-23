@@ -852,11 +852,11 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<bool> isTaxEnabled() async {
+  bool isTaxEnabled() {
     ///TODO: to simplify testing
     ///for now manually enable ebm by default, this will enable us
     ///to fast test the ebm integration with no friction!
-    return Future.value(true);
+    return true;
     // Business? business = await getBusiness();
     // bool isEbmEnabled = business?.tinNumber != null &&
     //     business?.bhfId != null &&

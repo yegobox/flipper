@@ -55,6 +55,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
               title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
+                // ignore: unused_result
+                ref.refresh(pendingTransactionProvider('custom'));
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
@@ -134,11 +136,13 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     ),
                     TextButton(
                       child: Text('Cancel'),
-                      onPressed: () {
-                         await EBMHandler(object: widget.transaction)
-                                .handleReceiptGeneration(
-                              transaction: widget.transaction,
-                            );
+                      onPressed: () async {
+                        /// still print the purchase code without the customer information!
+                        /// this is standard for non customer attached receipt
+                        await EBMHandler(object: widget.transaction)
+                            .handleReceiptGeneration(
+                          transaction: widget.transaction,
+                        );
                         // Handle when the user doesn't need a digital receipt
                         Navigator.of(context).pop();
                       },
@@ -337,10 +341,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));
             _routerService.clearStackAndShow(FlipperAppRoute());
-            // } else {
-            //   showSnackBar(
-            //       context, "Please wait for the transaction to be confirmed.");
-            // }
           },
           title: "Return to Home",
         ),

@@ -582,7 +582,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> isTaxEnabled() {
+  bool isTaxEnabled() {
     // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
