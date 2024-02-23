@@ -470,3 +470,17 @@ final unitsProvider =
     return AsyncError(error, StackTrace.current);
   }
 });
+
+// create riverpod to track the index of button clicked
+final buttonIndexProvider =
+    StateNotifierProvider.autoDispose<ButtonIndexNotifier, int>((ref) {
+  return ButtonIndexNotifier();
+});
+
+class ButtonIndexNotifier extends StateNotifier<int> {
+  ButtonIndexNotifier() : super(0);
+
+  void setIndex(int index) {
+    state = index;
+  }
+}

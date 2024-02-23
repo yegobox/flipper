@@ -1,7 +1,9 @@
 import 'package:flipper_dashboard/custom_widgets.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -59,16 +61,18 @@ class IconText extends StatelessWidget {
   }
 }
 
-class IconRow extends StatefulWidget {
+class IconRow extends StatefulHookConsumerWidget {
   @override
-  _IconRowState createState() => _IconRowState();
+  IconRowState createState() => IconRowState();
 }
 
-class _IconRowState extends State<IconRow> {
+class IconRowState extends ConsumerState<IconRow> {
   List<bool> _isSelected = [true, false, false, false, false];
 
   @override
   Widget build(BuildContext context) {
+    /// start by setting the button focused on to be at index 0
+    ref.read(buttonIndexProvider.notifier).setIndex(0);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,8 +80,8 @@ class _IconRowState extends State<IconRow> {
         ToggleButtons(
           children: <Widget>[
             IconText(
-              icon: Icons.transfer_within_a_station,
-              text: 'Transfer',
+              icon: Icons.home,
+              text: 'Home',
               isSelected: _isSelected[0],
             ),
             IconText(
@@ -115,6 +119,7 @@ class _IconRowState extends State<IconRow> {
                 }
               }
             });
+            ref.read(buttonIndexProvider.notifier).setIndex(index);
             buttonNav(index);
           },
           isSelected: _isSelected,

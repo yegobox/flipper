@@ -82,6 +82,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     double searchFieldWidth,
   ) {
     final scanMode = ref.watch(scanningModeProvider);
+    final currentLocation = ref.watch(buttonIndexProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -92,15 +93,17 @@ class ProductViewState extends ConsumerState<ProductView> {
           slivers: [
             isLargeScreen
                 ? SliverToBoxAdapter(child: IconRow())
-                : SliverToBoxAdapter(
-                    child: SizedBox()), // Use SizedBox for mobile
+                : SliverToBoxAdapter(child: SizedBox()),
+            // contain search field
             buildStickyHeader(searchFieldWidth),
-            scanMode
-                ? buildVariantList(context, model)
-                : buildProductList(context, model),
-            //todo when re-enabling discounts, remember it is causing black screen error
-            // as there might be some loop that isn't well
-            // buildDiscountsList(context, model),
+            currentLocation == 0
+                ? scanMode
+                    ? buildVariantList(context, model)
+                    : buildProductList(context, model)
+                : SliverToBoxAdapter(
+                    child: Text('Hello World'),
+                  ),
+            //TODO: re-enable buildDiscountsList(context, model),
           ],
         );
       },
