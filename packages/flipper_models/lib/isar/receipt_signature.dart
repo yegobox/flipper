@@ -4,14 +4,14 @@ class EBMApiResponse {
   EBMApiResponse({
     required this.resultCd,
     required this.resultMsg,
-    required this.resultDt,
-    required this.data,
+    this.resultDt,
+    this.data,
   });
 
   String resultCd;
   String resultMsg;
-  String resultDt;
-  Data data;
+  String? resultDt;
+  Data? data;
 
   // to json
   Map<String, dynamic> toJson() {
@@ -19,7 +19,7 @@ class EBMApiResponse {
     jsonData['resultCd'] = resultCd;
     jsonData['resultMsg'] = resultMsg;
     jsonData['resultDt'] = resultDt;
-    jsonData['data'] = data.toJson();
+    jsonData['data'] = data?.toJson();
     return jsonData;
   }
 
@@ -30,8 +30,8 @@ class EBMApiResponse {
     return EBMApiResponse(
       resultCd: json['resultCd'] as String,
       resultMsg: json['resultMsg'] as String,
-      resultDt: json['resultDt'] as String,
-      data: Data.fromJson(json['data'] as Map<String, dynamic>),
+      resultDt: json['resultDt'] as String?,
+      data: json['data'] != null ? Data.fromJson(json['data'] as Map<String, dynamic>) : null,
     );
   }
 }

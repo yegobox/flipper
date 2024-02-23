@@ -29,7 +29,7 @@ class EBMHandler<OBJ> {
         if (transaction.customerId != null) {
           return;
         }
-        
+
         await handleReceiptGeneration(transaction: transaction);
       }
     }
@@ -47,20 +47,24 @@ class EBMHandler<OBJ> {
         transactionId: transaction.id,
       );
 
-      await generateRRAReceiptSignature(
-        items: items,
-        business: business!,
-        transaction: transaction,
-        receiptType: transaction.receiptType!,
-        purchaseCode: purchaseCode,
-      );
+      try {
+        await generateRRAReceiptSignature(
+          items: items,
+          business: business!,
+          transaction: transaction,
+          receiptType: transaction.receiptType!,
+          purchaseCode: purchaseCode,
+        );
 
-      await printReceipt(
-        items: items,
-        business: business,
-        transaction: transaction,
-        receiptType: transaction.receiptType!,
-      );
+        await printReceipt(
+          items: items,
+          business: business,
+          transaction: transaction,
+          receiptType: transaction.receiptType!,
+        );
+      } catch (e) {
+        rethrow;
+      }
     }
   }
 
@@ -224,40 +228,36 @@ class EBMHandler<OBJ> {
       );
     }
 
-    EBMApiResponse? receiptSignature =
-        await ProxyService.tax.generateReceiptSignature(
-      transaction: transaction,
-      items: items,
-      receiptType: receiptType,
-      counter: counter!,
-      purchaseCode: purchaseCode,
-    );
+    try {
+      EBMApiResponse? receiptSignature =
+          await ProxyService.tax.generateReceiptSignature(
+        transaction: transaction,
+        items: items,
+        receiptType: receiptType,
+        counter: counter!,
+        purchaseCode: purchaseCode,
+      );
+      //updateTransactionAndDrawer(receiptType, transaction);
 
-    log(receiptSignature?.toRawJson() ?? "No receipt signature",
-        name: "Receipt Signature");
+      DateTime now = DateTime.now();
+      String formattedDate = DateFormat('dd-MM-yyyy').format(now);
 
-    if (receiptSignature == null) {
-      throw Exception("Signature is null the receipt was not generated");
+      String receiptNumber =
+          "${receiptSignature!.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
+      String qrCode = generateQRCode(formattedDate, receiptSignature);
+
+      log("afterGenerating Qr", name: "generateQRCode");
+
+      await createReceiptInIsar(
+          receiptSignature, transaction, qrCode, counter, receiptNumber);
+
+      counter
+        ..totRcptNo = receiptSignature.data?.totRcptNo ?? 0 + 1
+        ..curRcptNo = receiptSignature.data?.rcptNo ?? 0 + 1;
+      updateCounter(counter);
+    } catch (e) {
+      rethrow;
     }
-
-    //updateTransactionAndDrawer(receiptType, transaction);
-
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-MM-yyyy').format(now);
-
-    String receiptNumber =
-        "${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}";
-    String qrCode = generateQRCode(formattedDate, receiptSignature);
-
-    log("afterGenerating Qr", name: "generateQRCode");
-
-    await createReceiptInIsar(
-        receiptSignature, transaction, qrCode, counter, receiptNumber);
-
-    counter
-      ..totRcptNo = receiptSignature.data.totRcptNo + 1
-      ..curRcptNo = receiptSignature.data.rcptNo + 1;
-    updateCounter(counter);
   }
 
   void updateTransactionAndDrawer(
@@ -321,6 +321,6 @@ class EBMHandler<OBJ> {
   }
 
   String generateQRCode(String formattedDate, EBMApiResponse receiptSignature) {
-    return '$formattedDate#${DateTime.now().toString().substring(11, 19)}#${receiptSignature.data.sdcId}#${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
+    return '$formattedDate#${DateTime.now().toString().substring(11, 19)}#${receiptSignature.data?.sdcId}#${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}#${receiptSignature.data?.intrlData}#${receiptSignature.data?.rcptSign}';
   }
 }

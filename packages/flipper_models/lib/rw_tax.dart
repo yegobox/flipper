@@ -284,17 +284,20 @@ class RWTax implements TaxApi {
           subject: "Worked",
           body: stringResponse,
         );
-        log(stringResponse, name: "ReceiptSignature");
         final data = EBMApiResponse.fromJson(
           json.decode(stringResponse),
         );
+        if (data.resultCd != "000") {
+          throw Exception(data.resultMsg);
+        }
         return data;
       } else {
         throw Exception(
             "Failed to send request. Status Code: ${response.statusCode}");
       }
-    } catch (e) {
+    } catch (e, st) {
       print("Exception: $e");
+      print("Exception: $st");
       // Handle the exception or rethrow it based on your requirements.
       throw Exception("Failed to send request: $e");
     }

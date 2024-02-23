@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
@@ -106,11 +108,26 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                           _formKey.currentState?.save();
                           String purchaseCode = _controller.text;
                           log("received purchase code: ${purchaseCode}");
-                          await EBMHandler(object: widget.transaction)
-                              .handleReceiptGeneration(
-                            transaction: widget.transaction,
-                            purchaseCode: purchaseCode,
-                          );
+                          try {
+                            await EBMHandler(object: widget.transaction)
+                                .handleReceiptGeneration(
+                              transaction: widget.transaction,
+                              purchaseCode: purchaseCode,
+                            );
+                          } catch (e) {
+                            setState(() {
+                              _busy = false;
+                            });
+                            String errorMessage = e.toString();
+                            int startIndex = errorMessage.indexOf(': ');
+                            if (startIndex != -1) {
+                              errorMessage =
+                                  errorMessage.substring(startIndex + 2);
+                            }
+                            toast(errorMessage);
+                            return;
+                          }
+
                           Navigator.of(context).pop();
                         }
                       },
