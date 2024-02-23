@@ -113,13 +113,16 @@ class IconRowState extends ConsumerState<IconRow> {
                   buttonIndex < _isSelected.length;
                   buttonIndex++) {
                 if (buttonIndex == index) {
+                  ref.read(buttonIndexProvider.notifier).setIndex(buttonIndex);
+                  // ignore: unused_result
+                  ref.refresh(buttonIndexProvider);
                   _isSelected[buttonIndex] = true;
                 } else {
                   _isSelected[buttonIndex] = false;
                 }
               }
             });
-            ref.read(buttonIndexProvider.notifier).setIndex(index);
+
             buttonNav(index);
           },
           isSelected: _isSelected,

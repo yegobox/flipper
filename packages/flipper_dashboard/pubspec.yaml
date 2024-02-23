@@ -108,6 +108,13 @@ dependencies:
       url: https://github.com/ryojiro/flutter_datetime_picker.git
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
 
+  #TODO: because this is community package, I have applied for community licence
+  #  the licence is for company less than 1M in revenue and have not received 3M in outside source
+  # Meaning I am using this package for now to speed up the process of development
+  # if we hit that limit, we will have to switch to paid package or implement some functionality
+  # by ourself. but for esence of time I do not want to wast time
+  syncfusion_flutter_datepicker: ^19.4.38
+
 dependency_overrides:
   http: ^1.1.2
   meta: ^1.11.0

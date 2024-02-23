@@ -17,6 +17,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   SearchField({Key? key, required this.controller}) : super(key: key);
@@ -97,6 +98,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
     final isScanningMode = ref.watch(scanningModeProvider);
+    final currentLocation = ref.watch(buttonIndexProvider);
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
@@ -127,33 +129,52 @@ class SearchFieldState extends ConsumerState<SearchField> {
             ),
             suffixIcon: Wrap(
               children: [
-                IconButton(
-                  onPressed: _handleScanningModeToggle,
-                  icon: Icon(
-                    ref.watch(scanningModeProvider)
-                        ? FluentIcons.camera_switch_24_regular
-                        : FluentIcons.camera_switch_24_regular,
-                    color: ref.watch(scanningModeProvider)
-                        ? Colors.green
-                        : Colors.blue,
-                  ),
-                ),
-                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled())
-                  IconButton(
-                    onPressed: () => _handleReceiveOrderToggle(),
-                    icon: _buildOrderIcon(orders),
-                  ),
-                IconButton(
-                  onPressed: _hasText ? _clearSearchText : _handleAddProduct,
-                  icon: _hasText
-                      ? Icon(FluentIcons.dismiss_24_regular)
-                      : Icon(FluentIcons.add_20_regular),
-                ),
+                if (currentLocation == 0) indicatorButton(),
+                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
+                    currentLocation == 0)
+                  orderButton(orders),
+                if (currentLocation == 0) addButton(),
+                if (currentLocation != 0) datePicker(),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  IconButton datePicker() {
+    return IconButton(
+      onPressed: _handleDateTimePicker,
+      icon: Icon(FluentIcons.time_picker_20_filled),
+    );
+  }
+
+  IconButton addButton() {
+    return IconButton(
+      onPressed: _hasText ? _clearSearchText : _handleAddProduct,
+      icon: _hasText
+          ? Icon(FluentIcons.dismiss_24_regular)
+          : Icon(FluentIcons.add_20_regular),
+    );
+  }
+
+  IconButton orderButton(AsyncValue<List<ITransaction>> orders) {
+    return IconButton(
+      onPressed: () => _handleReceiveOrderToggle(),
+      icon: _buildOrderIcon(orders),
+    );
+  }
+
+  IconButton indicatorButton() {
+    return IconButton(
+      onPressed: _handleScanningModeToggle,
+      icon: Icon(
+        ref.watch(scanningModeProvider)
+            ? FluentIcons.camera_switch_24_regular
+            : FluentIcons.camera_switch_24_regular,
+        color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
+      ),
     );
   }
 
@@ -193,6 +214,16 @@ class SearchFieldState extends ConsumerState<SearchField> {
       context: context,
       builder: (context) => OptionModal(
         child: isDesktopOrWeb ? ProductEntryScreen() : AddProductButtons(),
+      ),
+    );
+  }
+
+  void _handleDateTimePicker() {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => SfDateRangePicker(
+        view: DateRangePickerView.month,
       ),
     );
   }
