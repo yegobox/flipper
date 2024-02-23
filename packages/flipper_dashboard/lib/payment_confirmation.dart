@@ -135,6 +135,10 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     TextButton(
                       child: Text('Cancel'),
                       onPressed: () {
+                         await EBMHandler(object: widget.transaction)
+                                .handleReceiptGeneration(
+                              transaction: widget.transaction,
+                            );
                         // Handle when the user doesn't need a digital receipt
                         Navigator.of(context).pop();
                       },

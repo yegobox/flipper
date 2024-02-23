@@ -316,6 +316,10 @@ class RWTax implements TaxApi {
     String? purchaseCode,
   }) {
     //TODO: remember we only force purchase code for business entity
+    /// I have a dilema, for example a business should know that a purchase code is mandatory
+    /// if a customer is a business, given to ease of use  I think if purchase code is not provided
+    /// it is safe to assume that this is not a business, but of cause I can change this
+    /// after I learn more on how business use software.
     if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;
