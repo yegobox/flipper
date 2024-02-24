@@ -71,8 +71,6 @@ class IconRowState extends ConsumerState<IconRow> {
 
   @override
   Widget build(BuildContext context) {
-    /// start by setting the button focused on to be at index 0
-    ref.read(buttonIndexProvider.notifier).setIndex(0);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -108,14 +106,13 @@ class IconRowState extends ConsumerState<IconRow> {
             ),
           ],
           onPressed: (int index) {
+            ref.read(buttonIndexProvider.notifier).setIndex(index);
             setState(() {
               for (int buttonIndex = 0;
                   buttonIndex < _isSelected.length;
                   buttonIndex++) {
                 if (buttonIndex == index) {
-                  ref.read(buttonIndexProvider.notifier).setIndex(buttonIndex);
                   // ignore: unused_result
-                  ref.refresh(buttonIndexProvider);
                   _isSelected[buttonIndex] = true;
                 } else {
                   _isSelected[buttonIndex] = false;

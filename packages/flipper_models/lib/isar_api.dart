@@ -3855,4 +3855,18 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       });
     }
   }
+
+  @override
+  Future<List<ITransaction>> transactionList(
+      {required DateTime startDate, required DateTime endDate}) async {
+    final transactionCollection = db.read((isar) => isar.iTransactions
+        .where()
+        .lastTouchedBetween(
+            DateTime.now().subtract(Duration(days: 4)), DateTime.now())
+        .findAll());
+
+    log(transactionCollection.length.toString(), name: "transactionList");
+
+    return transactionCollection;
+  }
 }

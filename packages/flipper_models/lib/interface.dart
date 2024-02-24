@@ -77,7 +77,7 @@ abstract class IsarApiInterface {
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required String id});
-
+  Future<List<ITransaction>> transactionList({required DateTime startDate, required DateTime endDate});
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectPayment(

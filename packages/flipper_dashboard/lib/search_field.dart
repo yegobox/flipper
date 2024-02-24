@@ -11,6 +11,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -129,12 +130,12 @@ class SearchFieldState extends ConsumerState<SearchField> {
             ),
             suffixIcon: Wrap(
               children: [
-                if (currentLocation == 0) indicatorButton(),
+                if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
                 if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
-                    currentLocation == 0)
+                    [0, 1, 2, 4].contains(currentLocation))
                   orderButton(orders),
-                if (currentLocation == 0) addButton(),
-                if (currentLocation != 0) datePicker(),
+                if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
+                if (currentLocation == 3) datePicker(),
               ],
             ),
           ),
@@ -146,7 +147,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   IconButton datePicker() {
     return IconButton(
       onPressed: _handleDateTimePicker,
-      icon: Icon(FluentIcons.time_picker_20_filled),
+      icon: Icon(Icons.date_range),
     );
   }
 
@@ -218,13 +219,60 @@ class SearchFieldState extends ConsumerState<SearchField> {
     );
   }
 
+  _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    if (args.value is PickerDateRange) {
+      // DateTime startDate = args.value.startDate;
+      // DateTime endDate = args.value.endDate ?? args.value.startDate;
+
+      ref
+          .read(dateRangeProvider.notifier)
+          .setStartDate(DateTime.now().subtract(Duration(days: 4)));
+      ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
+    }
+  }
+
+  _onSelectionChangedSubmit() {
+    // DateTime startDate = args.value.startDate;
+    // DateTime endDate = args.value.endDate ?? args.value.startDate;
+
+    ref
+        .read(dateRangeProvider.notifier)
+        .setStartDate(DateTime.now().subtract(Duration(days: 4)));
+    ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
+
+    ref.refresh(transactionListProvider);
+  }
+
   void _handleDateTimePicker() {
     showDialog(
       barrierDismissible: true,
       context: context,
-      builder: (context) => SfDateRangePicker(
-        view: DateRangePickerView.month,
-      ),
+      builder: (context) => OptionModal(
+          child: SfDateRangePicker(
+        onSubmit: (v) {
+          _onSelectionChangedSubmit();
+          Navigator.maybePop(context);
+        },
+        onCancel: () {
+          Navigator.maybePop(context);
+        },
+        onSelectionChanged: _onSelectionChanged,
+        selectionMode: DateRangePickerSelectionMode.range,
+        showActionButtons: true,
+        showNavigationArrow: true,
+        toggleDaySelection: true,
+        showTodayButton: true,
+        initialSelectedRange: PickerDateRange(
+            DateTime.now().subtract(const Duration(days: 4)),
+            DateTime.now().add(const Duration(days: 3))),
+        headerStyle: DateRangePickerHeaderStyle(
+          backgroundColor: Colors.blue,
+          textStyle: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        selectionTextStyle: TextStyle(color: Colors.white),
+        selectionColor: Colors.black,
+        todayHighlightColor: Colors.green,
+      )),
     );
   }
 }

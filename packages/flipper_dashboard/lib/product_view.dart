@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -82,7 +83,6 @@ class ProductViewState extends ConsumerState<ProductView> {
     double searchFieldWidth,
   ) {
     final scanMode = ref.watch(scanningModeProvider);
-    final currentLocation = ref.watch(buttonIndexProvider);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -91,23 +91,32 @@ class ProductViewState extends ConsumerState<ProductView> {
 
         return CustomScrollView(
           slivers: [
-            isLargeScreen
-                ? SliverToBoxAdapter(child: IconRow())
-                : SliverToBoxAdapter(child: SizedBox()),
-            // contain search field
+            buildIconRow(isLargeScreen),
             buildStickyHeader(searchFieldWidth),
-            currentLocation == 0
-                ? scanMode
-                    ? buildVariantList(context, model)
-                    : buildProductList(context, model)
-                : SliverToBoxAdapter(
-                    child: Text('Hello World'),
-                  ),
-            //TODO: re-enable buildDiscountsList(context, model),
+            buildContent(context, model, scanMode),
           ],
         );
       },
     );
+  }
+
+  Widget buildIconRow(bool isLargeScreen) {
+    return SliverToBoxAdapter(
+      child: isLargeScreen ? IconRow() : SizedBox(),
+    );
+  }
+
+  Widget buildContent(
+      BuildContext context, ProductViewModel model, bool scanMode) {
+    int buttonIndex = ref.watch(buttonIndexProvider);
+
+    if (buttonIndex == 3) {
+      return SliverToBoxAdapter(child: TransactionList());
+    }
+
+    return scanMode
+        ? buildVariantList(context, model)
+        : buildProductList(context, model);
   }
 
   SliverList buildVariantList(

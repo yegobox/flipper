@@ -984,4 +984,11 @@ class IsarAPIMock<M> implements IsarApiInterface {
     // TODO: implement removeCustomerFromTransaction
     throw UnimplementedError();
   }
+
+  @override
+  Future<List<ITransaction>> transactionList(
+      {required DateTime startDate, required DateTime endDate}) {
+    // TODO: implement transactionList
+    throw UnimplementedError();
+  }
 }

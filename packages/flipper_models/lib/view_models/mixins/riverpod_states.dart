@@ -484,3 +484,44 @@ class ButtonIndexNotifier extends StateNotifier<int> {
     state = index;
   }
 }
+
+//DateTime range provider
+final dateRangeProvider =
+    StateNotifierProvider.autoDispose<DateRangeNotifier, Map<String, DateTime>>(
+        (ref) {
+  return DateRangeNotifier();
+});
+
+class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
+  DateRangeNotifier()
+      : super({
+          'endDate': DateTime.now(),
+          'startDate': DateTime.now().subtract(Duration(days: 4)),
+        });
+  void setStartDate(DateTime startDate) {
+    state['startDate'] = startDate;
+  }
+
+  void setEndDate(DateTime endDate) {
+    state['endDate'] = endDate;
+  }
+
+  void resetDates() {
+    state['endDate'] = DateTime.now();
+    state['startDate'] = DateTime.now().subtract(Duration(days: 4));
+  }
+}
+
+final transactionListProvider =
+    FutureProvider.autoDispose<List<ITransaction>>((ref) async {
+  try {
+    final startDate = ref.watch(dateRangeProvider)['startDate']!;
+    final endDate = ref.watch(dateRangeProvider)['startDate']!;
+
+    final transactions = await ProxyService.isar
+        .transactionList(startDate: startDate, endDate: endDate);
+    return transactions;
+  } catch (error) {
+    return [];
+  }
+});
