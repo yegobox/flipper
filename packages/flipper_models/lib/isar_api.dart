@@ -1709,7 +1709,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType}) async {
-    return db.read((isar) => isar.iTransactions
+    return await db.iTransactions
         .where()
         .statusEqualTo(PENDING)
         .and()
@@ -1718,7 +1718,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .transactionTypeEqualTo(transactionType)
         .and()
         .deletedAtIsNull()
-        .findFirst());
+        .findFirstAsync();
   }
 
   @override
@@ -3374,7 +3374,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       required bool doneWithTransaction,
       required bool active}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return db.read((isar) => db.transactionItems
+    return await db.transactionItems
         .where()
         .transactionIdEqualTo(transactionId)
         .and()
@@ -3385,7 +3385,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .deletedAtIsNull()
         .and()
         .activeEqualTo(active)
-        .findAll());
+        .findAllAsync();
   }
 
   @override

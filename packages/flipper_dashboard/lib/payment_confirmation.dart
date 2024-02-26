@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -65,7 +64,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         );
       },
       onViewModelReady: (model) {
-        //TODO: if transaction.customerId !=null show a model to ask if a user need a digital receipt
+        //TODO: listen on global error notification to show error where e.g
+        // invoice could not be generated because invoice already exists.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (widget.transaction.customerId != null) {
             showDialog(
