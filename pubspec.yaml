@@ -14,7 +14,7 @@ description: A super app for africans
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
 version: 1.170.1531663112405+1708502233
 
-#.....
+#......
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
 #  in the specific package.
