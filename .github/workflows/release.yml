@@ -61,7 +61,7 @@ jobs:
            FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
 
        - run: |
-           dart pub global activate melos 2.9.0
+           dart pub global activate melos
            melos bootstrap
            flutter test --dart-define=Test=true
 
@@ -103,7 +103,7 @@ jobs:
            SECRETS: ${{ secrets.SECRETS }}
            FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
        - run: |
-           dart pub global activate melos 2.9.0
+           dart pub global activate melos
            melos bootstrap
            flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
@@ -165,7 +165,7 @@ jobs:
   #         GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
   #       working-directory: android
   #     - run: |
-  #         dart pub global activate melos 2.9.0
+  #         dart pub global activate melos
   #         melos bootstrap
   #     - name: Install Android SDK
   #       uses: malinskiy/action-android/install-sdk@release/0.1.2
@@ -249,7 +249,7 @@ jobs:
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
       - run: |
-          dart pub global activate melos 2.9.0
+          dart pub global activate melos
           melos bootstrap
       # Setup Ruby, Bundler, and Gemfile dependencies
       - name: Setup Fastlane
