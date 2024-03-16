@@ -51,7 +51,7 @@ jobs:
            echo "$INDEX" >> apps/main_app/web/index.html
            echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
            echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+           echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
            echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
            git config --global core.autocrlf false
          env:
@@ -94,7 +94,7 @@ jobs:
            echo "$INDEX" >> apps/main_app/web/index.html
            echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
            echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-           echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+           echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
            echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
            git config --global core.autocrlf false
          env:
@@ -141,7 +141,7 @@ jobs:
   #         echo "$INDEX" >> apps/main_app/web/index.html
   #         echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
   #         echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-  #         echo "$FIREBASEOPTIONS" >> lib/firebase_options.dart
+  #         echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
   #         echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
   #         git config --global core.autocrlf false
   #       env:
