@@ -8,8 +8,8 @@ environment:
   sdk: ^3.1.0
 
 dependencies:
-  flutter:
-    sdk: flutter
+#  flutter:
+#    sdk: flutter
   intl: ^0.19.0
   injectable: ^2.4.0
   get_it: ^7.6.0
