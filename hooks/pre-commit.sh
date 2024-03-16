@@ -1,11 +1,6 @@
 #!/bin/bash
 
 # get current version
-## first go to then to apps/main directory,
-cd apps/main_app
-
-echo "switched to apps/main_app"
-
 version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
 
 # increment version
@@ -16,12 +11,13 @@ patch=$((patch+1))
 new_version="$major.$minor.$patch+$(date +%s)"
 
 # replace version in pubspec.yaml
-sed -i "s/version: $version/version: $new_version/" pubspec.yaml
+sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
 
 # commit
 git add pubspec.yaml
+#git commit -m "Bump version to $new_version"
 
-
+#TODO: Msix
 # Get current msix_version
 msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
 
