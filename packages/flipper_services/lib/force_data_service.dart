@@ -18,12 +18,12 @@ class ForceDataEntryService {
 
   Future<void> addData() async {
     int? branchId = ProxyService.box.getBranchId();
+    int? businessId = ProxyService.box.getBusinessId();
 
-    if (branchId == null) {
+    if (branchId == null || businessId == null) {
       return;
     }
-    int businessId = ProxyService.box.getBusinessId()!;
-
+   
     List<Product> products =
         await ProxyService.isar.products(branchId: branchId);
     if (products.isEmpty) {
