@@ -115,8 +115,25 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                        _routerService.clearStackAndShow(
                            StartUpViewRoute(invokeLogin: true));
                      }
-                   }catch(e){
-                    ProxyService.isar.logOut();
+                   }on FirebaseAuthException catch (e) {
+                      if (e.code == 'popup-closed-by-user' ||
+                          e.code == 'canceled' ||
+                          e.code == 'web-context-canceled') {
+                        // User canceled the operation, return null or handle accordingly
+                        return null;
+                      } else {
+                        // Handle other FirebaseAuthExceptions
+                        Sentry.captureException(e, stackTrace: StackTrace.current);
+                        setState(() {
+                          isAddingUser = false;
+                        });
+                        showSimpleNotification(
+                          Text("Error happened"),
+                          background: Colors.red,
+                          position: NotificationPosition.bottom,
+                        );
+                      }
+                    } catch(e){
                     Sentry.captureException(e, stackTrace: StackTrace.current);
                      setState(() {
                        isAddingUser = false;

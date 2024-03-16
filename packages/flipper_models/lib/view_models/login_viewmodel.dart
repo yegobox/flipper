@@ -5,7 +5,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
-
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -78,6 +78,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       }
     } catch (error) {
       setIsprocessing(value: false);
+      Sentry.captureException(error, stackTrace: StackTrace.current);
       throw error;
     }
   }
