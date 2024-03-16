@@ -11,10 +11,11 @@ patch=$((patch+1))
 new_version="$major.$minor.$patch+$(date +%s)"
 
 # replace version in pubspec.yaml
-sed -i "s/version: $version/version: $new_version/" pubspec.yaml
+sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
 
 # commit
 git add pubspec.yaml
+#git commit -m "Bump version to $new_version"
 
 #TODO: Msix
 # Get current msix_version
