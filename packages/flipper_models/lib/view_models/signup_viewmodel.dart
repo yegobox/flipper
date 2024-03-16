@@ -115,12 +115,12 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<List<Tenant>> registerTenant(String? referralCode) {
-    return ProxyService.isar.signup(business: {
+    return  await ProxyService.isar.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
       'phoneNumber': ProxyService.box.getUserPhone(),
-      'currency': 'RW',
+      'currency': 'RWF',
       'createdAt': DateTime.now().toIso8601String(),
       'userId': ProxyService.box.getUserId(),
       "tinNumber": tin != null ? int.parse(tin!) : 1111,
