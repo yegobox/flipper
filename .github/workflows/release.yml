@@ -62,15 +62,14 @@ jobs:
 
        - run: |
            dart pub global activate melos
-           if (Test-Path -Path ".pub-cache/git/cache/flutter-desktop-embedding-*") {
-              Remove-Item -Path ".pub-cache/git/cache/flutter-desktop-embedding-*" -Recurse -Force
-           }
+           
            melos bootstrap
            flutter test --dart-define=Test=true
 
   integration-testing-windows:
      name: "Integration Testing Windows"
      runs-on: windows-latest
+     needs: [unit-testing]
      steps:
        - run: git config --global core.autocrlf false
        - name: Clone Flutter repository with stable channel
