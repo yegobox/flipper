@@ -1,7 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,7 +9,6 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -331,19 +329,8 @@ class PaymentsState extends ConsumerState<Payments> {
         paymentType: paymentType!,
         transaction: widget.transaction,
         amountReceived: amount);
-
-    String receiptType = "ns";
-    if (ProxyService.box.isPoroformaMode()) {
-      receiptType = ReceiptType.ps;
-    }
-    if (ProxyService.box.isTrainingMode()) {
-      receiptType = ReceiptType.ts;
-    }
     _routerService.navigateTo(
       PaymentConfirmationRoute(
-        cashReceived: amount,
-        receiptType: receiptType,
-        paymentType: paymentType!,
         transaction: widget.transaction,
       ),
     );

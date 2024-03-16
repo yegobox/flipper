@@ -34,4 +34,6 @@ abstract class LocalStorage {
   /// then we send it back to server and get equivalent token uid
   /// we send this while performing ProxyService.isar.login()
   String uid();
+  String bhfId();
+  int tin();
 }

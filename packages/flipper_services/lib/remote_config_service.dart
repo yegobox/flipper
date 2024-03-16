@@ -42,7 +42,9 @@ class RemoteConfigService implements Remote {
       "enableTakingScreenShoot": true,
       "isOrderFeatureOrderEnabled": true,
       "isFirestoreEnabled": false,
-      "isHttpSyncAvailable": false
+      "isHttpSyncAvailable": false,
+      "bcc": "yegobox@gmail.com",
+      "isEmailLogEnabled": true,
     });
   }
 
@@ -262,12 +264,28 @@ class RemoteConfigService implements Remote {
   bool isHttpSyncAvailable() {
     return remoteConfig.getBool('isHttpSyncAvailable');
   }
+
+  @override
+  String bcc() {
+    return remoteConfig.getString('bcc');
+  }
+
+  @override
+  bool isEmailLogEnabled() {
+    return remoteConfig.getBool('isEmailLogEnabled');
+  }
 }
 
 class RemoteConfigWindows implements Remote {
+  //FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+
   @override
-  void config() {
-    // TODO: implement config
+  void config() async {
+    // await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    //   fetchTimeout: const Duration(seconds: 10),
+    //   minimumFetchInterval:
+    //       kDebugMode ? const Duration(hours: 0) : const Duration(hours: 4),
+    // ));
   }
 
   @override
@@ -444,5 +462,17 @@ class RemoteConfigWindows implements Remote {
   @override
   bool isHttpSyncAvailable() {
     return false;
+  }
+
+  @override
+  String bcc() {
+    //return remoteConfig.getString('bcc');
+    return "yegobox@gmail.com";
+  }
+
+  @override
+  bool isEmailLogEnabled() {
+    // return remoteConfig.getBool("isEmailLogEnabled");
+    return true;
   }
 }

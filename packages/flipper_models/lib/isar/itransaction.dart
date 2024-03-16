@@ -21,11 +21,12 @@ class ITransaction extends IJsonSerializable {
   late double customerChangeDue;
   late String createdAt;
   // add receipt type offerered on this transaction
-  /// a comma separated of the receipt type offered on this transaction eg. NR, NS etc...
+  /// remember we also have receipt model where each receipt generated is saved.
   String? receiptType;
   String? updatedAt;
 
   String? customerId;
+  String? customerType;
   String? note;
 
   @JsonKey(
@@ -43,6 +44,12 @@ class ITransaction extends IJsonSerializable {
   // fields when a transaction is created for ordering system
   int? supplierId;
 
+  /// because we can call EBM server to notify about new item saved into our stock
+  /// and this operation might fail at time of us making the call and our software can work offline
+  /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
+  /// to EBM in case of failure
+  bool ebmSynced;
+
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
     return dateTimeConverter.fromJson(json);
@@ -56,6 +63,7 @@ class ITransaction extends IJsonSerializable {
   ITransaction({
     required this.reference,
     this.categoryId,
+    this.ebmSynced = false,
     required this.transactionNumber,
     required this.branchId,
     required this.status,
@@ -69,6 +77,7 @@ class ITransaction extends IJsonSerializable {
     this.receiptType,
     this.updatedAt,
     this.customerId,
+    this.customerType,
     this.note,
     required this.id,
     required this.lastTouched,
@@ -112,51 +121,50 @@ class ITransaction extends IJsonSerializable {
   Map<String, dynamic> toJson() => _$ITransactionToJson(this);
 
   ITransaction copyWith({
-  String? reference,
-  String? categoryId,
-  String? transactionNumber,
-  int? branchId,
-  String? status,
-  String? transactionType,
-  double? subTotal,
-  String? paymentType,
-  double? cashReceived,
-  double? customerChangeDue,
-  String? createdAt,
-  int? supplierId,
-  String? receiptType,
-  String? updatedAt,
-  String? customerId,
-  String? note,
-  String? id,
-  DateTime? lastTouched,
-  String? action,
-  String? ticketName,
-  DateTime? deletedAt,
-}) {
-  return ITransaction(
-    reference: reference ?? this.reference,
-    categoryId: categoryId ?? this.categoryId,
-    transactionNumber: transactionNumber ?? this.transactionNumber,
-    branchId: branchId ?? this.branchId,
-    status: status ?? this.status,
-    transactionType: transactionType ?? this.transactionType,
-    subTotal: subTotal ?? this.subTotal,
-    paymentType: paymentType ?? this.paymentType,
-    cashReceived: cashReceived ?? this.cashReceived,
-    customerChangeDue: customerChangeDue ?? this.customerChangeDue,
-    createdAt: createdAt ?? this.createdAt,
-    supplierId: supplierId ?? this.supplierId,
-    receiptType: receiptType ?? this.receiptType,
-    updatedAt: updatedAt ?? this.updatedAt,
-    customerId: customerId ?? this.customerId,
-    note: note ?? this.note,
-    id: id ?? this.id,
-    lastTouched: lastTouched ?? this.lastTouched,
-    action: action ?? this.action,
-    ticketName: ticketName ?? this.ticketName,
-    deletedAt: deletedAt ?? this.deletedAt,
-  );
-}
-
+    String? reference,
+    String? categoryId,
+    String? transactionNumber,
+    int? branchId,
+    String? status,
+    String? transactionType,
+    double? subTotal,
+    String? paymentType,
+    double? cashReceived,
+    double? customerChangeDue,
+    String? createdAt,
+    int? supplierId,
+    String? receiptType,
+    String? updatedAt,
+    String? customerId,
+    String? note,
+    String? id,
+    DateTime? lastTouched,
+    String? action,
+    String? ticketName,
+    DateTime? deletedAt,
+  }) {
+    return ITransaction(
+      reference: reference ?? this.reference,
+      categoryId: categoryId ?? this.categoryId,
+      transactionNumber: transactionNumber ?? this.transactionNumber,
+      branchId: branchId ?? this.branchId,
+      status: status ?? this.status,
+      transactionType: transactionType ?? this.transactionType,
+      subTotal: subTotal ?? this.subTotal,
+      paymentType: paymentType ?? this.paymentType,
+      cashReceived: cashReceived ?? this.cashReceived,
+      customerChangeDue: customerChangeDue ?? this.customerChangeDue,
+      createdAt: createdAt ?? this.createdAt,
+      supplierId: supplierId ?? this.supplierId,
+      receiptType: receiptType ?? this.receiptType,
+      updatedAt: updatedAt ?? this.updatedAt,
+      customerId: customerId ?? this.customerId,
+      note: note ?? this.note,
+      id: id ?? this.id,
+      lastTouched: lastTouched ?? this.lastTouched,
+      action: action ?? this.action,
+      ticketName: ticketName ?? this.ticketName,
+      deletedAt: deletedAt ?? this.deletedAt,
+    );
+  }
 }

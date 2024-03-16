@@ -24,7 +24,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Map customer, required String transactionId}) {
+      {required Customer customer, required String transactionId}) {
     // TODO: implement addCustomer
     throw UnimplementedError();
   }
@@ -78,7 +78,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future assingTransactionToCustomer(
+  Future assignCustomerToTransaction(
       {required String customerId, String? transactionId}) {
     // TODO: implement assingTransactionToCustomer
     throw UnimplementedError();
@@ -111,12 +111,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   @override
   Future<List<Business>> businesses({int? userId}) {
     // TODO: implement businesses
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> cSCounter({required int branchId}) {
-    // TODO: implement cSCounter
     throw UnimplementedError();
   }
 
@@ -203,7 +197,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future<Receipt?> createReceipt(
-      {required ReceiptSignature signature,
+      {required EBMApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
@@ -328,7 +322,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, String? transactionId}) {
+  Future<Customer?> getCustomer({String? key, String? id}) {
     // TODO: implement getCustomer
     throw UnimplementedError();
   }
@@ -588,7 +582,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> isTaxEnabled() {
+  bool isTaxEnabled() {
     // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
@@ -658,24 +652,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Customer?> nGetCustomerByTransactionId({required String id}) {
-    // TODO: implement nGetCustomerByTransactionId
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> nRSCounter({required int branchId}) {
-    // TODO: implement nRSCounter
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> nSCounter({required int branchId}) {
-    // TODO: implement nSCounter
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Drawers?> openDrawer({required Drawers drawer}) {
     // TODO: implement openDrawer
     throw UnimplementedError();
@@ -684,12 +660,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   @override
   Stream<List<ITransaction>> orders({required int branchId}) {
     // TODO: implement orders
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> pSCounter({required int branchId}) {
-    // TODO: implement pSCounter
     throw UnimplementedError();
   }
 
@@ -858,12 +828,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Counter?> tSCounter({required int branchId}) {
-    // TODO: implement tSCounter
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<ITenant>> tenants({int? businessId}) {
     // TODO: implement tenants
     throw UnimplementedError();
@@ -1004,6 +968,27 @@ class IsarAPIMock<M> implements IsarApiInterface {
   @override
   Future<Permission?> permission({required int userId}) {
     // TODO: implement permission
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType}) {
+    // TODO: implement getCounter
+    throw UnimplementedError();
+  }
+
+  @override
+  Future removeCustomerFromTransaction(
+      {required String customerId, required String transactionId}) {
+    // TODO: implement removeCustomerFromTransaction
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<ITransaction>> transactionList(
+      {required DateTime startDate, required DateTime endDate}) {
+    // TODO: implement transactionList
     throw UnimplementedError();
   }
 }

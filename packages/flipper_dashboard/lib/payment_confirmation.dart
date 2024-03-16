@@ -1,11 +1,14 @@
+import 'dart:developer';
+
+import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'customappbar.dart';
@@ -17,16 +20,10 @@ import 'package:flipper_ui/flipper_ui.dart';
 class PaymentConfirmation extends StatefulHookConsumerWidget {
   const PaymentConfirmation({
     Key? key,
-    required this.cashReceived,
     required this.transaction,
-    required this.paymentType,
-    this.receiptType = "ns",
   }) : super(key: key);
 
-  final double cashReceived;
   final ITransaction transaction;
-  final String? receiptType;
-  final String paymentType;
 
   @override
   PaymentConfirmationState createState() => PaymentConfirmationState();
@@ -34,6 +31,11 @@ class PaymentConfirmation extends StatefulHookConsumerWidget {
 
 class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   final _routerService = locator<RouterService>();
+  bool canVigateBackHome = false;
+
+  bool _busy = false;
+  final TextEditingController _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -49,9 +51,11 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           child: Scaffold(
             appBar: CustomAppBar(
               isDividerVisible: false,
-              title: 'Payment: ${widget.paymentType}',
+              title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
+                // ignore: unused_result
+                ref.refresh(pendingTransactionProvider('custom'));
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
@@ -59,40 +63,96 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           ),
         );
       },
-      onViewModelReady: (model) async {
-        model.getTransactionById();
+      onViewModelReady: (model) {
+        //TODO: listen on global error notification to show error where e.g
+        // invoice could not be generated because invoice already exists.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.transaction.customerId != null) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Digital Receipt'),
+                  content: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text('Do you need a digital receipt?'),
+                        TextFormField(
+                          controller: _controller,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Purchase Code',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a purchase code';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (value) {},
+                          // Handle the purchase code input
+                          onSaved: (value) {},
+                        ),
+                      ],
+                    ),
+                  ),
+                  actions: <Widget>[
+                    BoxButton(
+                      title: 'Submit',
+                      busy: _busy,
+                      onTap: () async {
+                        if (_formKey.currentState?.validate() ?? false) {
+                          setState(() {
+                            _busy = true;
+                          });
+                          _formKey.currentState?.save();
+                          String purchaseCode = _controller.text;
+                          log("received purchase code: ${purchaseCode}");
+                          try {
+                            await EBMHandler(object: widget.transaction)
+                                .handleReceiptGeneration(
+                              transaction: widget.transaction,
+                              purchaseCode: purchaseCode,
+                            );
+                          } catch (e) {
+                            setState(() {
+                              _busy = false;
+                            });
+                            String errorMessage = e.toString();
+                            int startIndex = errorMessage.indexOf(': ');
+                            if (startIndex != -1) {
+                              errorMessage =
+                                  errorMessage.substring(startIndex + 2);
+                            }
+                            toast(errorMessage);
+                            return;
+                          }
 
-        if (await ProxyService.isar.isTaxEnabled()) {
-          Business? business = await ProxyService.isar.getBusiness();
-          List<TransactionItem> items =
-              await ProxyService.isar.transactionItems(
-            transactionId: widget.transaction.id,
-            doneWithTransaction: false,
-            active: true,
-          );
-
-          final bool isDone = await model.generateRRAReceipt(
-            items: items,
-            business: business!,
-            transaction: widget.transaction,
-            receiptType: widget.receiptType,
-            callback: (value) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                backgroundColor: Colors.red,
-                content: Text(value),
-              ));
-            },
-          );
-
-          if (isDone) {
-            model.printReceipt(
-              items: items,
-              business: business,
-              otransaction: widget.transaction,
-              receiptType: widget.receiptType!,
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
+                    TextButton(
+                      child: Text('Cancel'),
+                      onPressed: () async {
+                        /// still print the purchase code without the customer information!
+                        /// this is standard for non customer attached receipt
+                        await EBMHandler(object: widget.transaction)
+                            .handleReceiptGeneration(
+                          transaction: widget.transaction,
+                        );
+                        // Handle when the user doesn't need a digital receipt
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
             );
           }
-        }
+        });
       },
       viewModelBuilder: () => CoreViewModel(),
     );
@@ -127,7 +187,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 ),
                 const SizedBox(height: 40),
                 Text(
-                  'RWF ' + NumberFormat('#,###').format(widget.cashReceived),
+                  'RWF ' +
+                      NumberFormat('#,###')
+                          .format(widget.transaction.cashReceived),
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w400,
                     fontSize: 18,
@@ -143,9 +205,12 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             left: 0,
             child: StreamBuilder<Customer?>(
               stream: model.getCustomer(
-                transactionId: currentTransaction.id,
+                id: currentTransaction.customerId,
               ),
               builder: (context, snapshot) {
+                /// TODO: the stream is not used. change the stream to be of transaction
+                /// so that we keep listening to see if the ebmSync property of transaction is updated
+                /// then we know we can generate the receipt
                 return buildBottomButtons(context, model);
               },
             ),
@@ -166,18 +231,10 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 model.keyboardKeyPressed(key: 'C');
                 if (await ProxyService.isar.isTaxEnabled()) {
                   if (model.receiptReady) {
-                    Business? business = await ProxyService.isar.getBusiness();
-                    List<TransactionItem> items =
-                        await ProxyService.isar.transactionItems(
+                    await ProxyService.isar.transactionItems(
                       doneWithTransaction: false,
                       active: true,
                       transactionId: widget.transaction.id,
-                    );
-                    model.printReceipt(
-                      items: items,
-                      business: business!,
-                      otransaction: widget.transaction,
-                      receiptType: widget.receiptType!,
                     );
                   } else {
                     showSnackBar(context,
@@ -279,6 +336,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         child: BoxButton(
           busy: model.handlingConfirm,
           onTap: () {
+            // if (canVigateBackHome) {
             model.handlingConfirm = true;
             // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));

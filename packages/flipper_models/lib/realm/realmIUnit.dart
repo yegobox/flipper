@@ -17,7 +17,7 @@ class _RealmIUnit {
   /// to be edited
 
   void updateProperties(RealmIUnit other) {
-    // Assuming that RealmITransaction has properties similar to IUnit
+    // Assuming that  has properties similar to IUnit
     id = other.id;
     branchId = other.branchId;
     name = other.name;

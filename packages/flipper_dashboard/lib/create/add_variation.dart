@@ -93,23 +93,10 @@ class _AddVariationState extends State<AddVariation> {
                     ..tin = business?.tinNumber
                     ..itemCd = clip
                     // TODOask about item clasification code, it seems to be static
-                    ..itemClsCd = "5020230602"
-                    ..itemTyCd = "1"
-                    ..itemNm = "Regular"
                     ..itemStdNm = "Regular"
-                    ..orgnNatCd = "RW"
-                    ..pkgUnitCd = "NT"
-                    ..qtyUnitCd = "CA"
-                    ..taxTyCd = "B"
-                    ..dftPrc = 0.0
                     ..prc = 0
                     ..addInfo = "A"
-                    ..isrcAplcbYn = "N"
-                    ..useYn = "N"
-                    ..regrId = clip
-                    ..regrNm = "Regular"
                     ..modrId = clip
-                    ..modrNm = "Regular"
                     ..pkg = "1"
                     ..itemSeq = "1"
                     ..splyAmt = 0.0
@@ -118,7 +105,11 @@ class _AddVariationState extends State<AddVariation> {
                     ..taxName = 'N/A';
 
                   variations.add(data);
+
+                  ///TODO: I need to support getting BJ to be gotten from dropdown
+                  ///as it is done DesktopProductAdd
                   await model.addVariant(
+                    packagingUnit: "BJ",
                     variations: variations,
                   );
                   _routerService.pop();

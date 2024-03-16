@@ -61,6 +61,14 @@ class _RealmVariant {
 
   DateTime? deletedAt;
 
+  /// these fields are empty in normal business when this item is owned by a business
+  /// but in case when this item is owned by a supplier then these fields will be filled
+  /// this is the case after purchase action is done
+  String? spplrItemClsCd;
+  String? spplrItemCd;
+  String? spplrItemNm;
+  bool ebmSynced = false;
+
   // ... constructors and other methods remain the same
   void updateProperties(RealmVariant other) {
     id = other.id;
@@ -109,5 +117,9 @@ class _RealmVariant {
     retailPrice = other.retailPrice;
     action = other.action;
     deletedAt = other.deletedAt;
+    spplrItemClsCd = other.spplrItemClsCd;
+    spplrItemCd = other.spplrItemCd;
+    spplrItemNm = other.spplrItemNm;
+    ebmSynced = other.ebmSynced;
   }
 }

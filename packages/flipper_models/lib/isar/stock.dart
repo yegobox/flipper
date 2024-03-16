@@ -35,6 +35,12 @@ class Stock extends IJsonSerializable {
   String action;
   @Index()
   DateTime? deletedAt;
+
+  /// because we can call EBM server to notify about new item saved into our stock
+  /// and this operation might fail at time of us making the call and our software can work offline
+  /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
+  /// to EBM in case of failure
+  bool ebmSynced;
   Stock({
     required this.branchId,
     required this.variantId,
@@ -42,6 +48,7 @@ class Stock extends IJsonSerializable {
     required this.productId,
     required this.action,
     required this.id,
+    this.ebmSynced = false,
     this.lowStock = 10.0,
     this.supplyPrice = 0.0,
     this.retailPrice = 0.0,

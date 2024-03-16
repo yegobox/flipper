@@ -8,6 +8,7 @@ export 'isar/itransaction.dart';
 export 'isar/feature.dart';
 export 'isar/discount.dart';
 export 'isar/SyncRecord.dart';
+export 'isar/Email.dart';
 export 'isar/customer.dart';
 export 'isar/color.dart';
 export 'isar/category.dart';

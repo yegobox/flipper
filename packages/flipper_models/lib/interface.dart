@@ -77,7 +77,7 @@ abstract class IsarApiInterface {
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required String id});
-
+  Future<List<ITransaction>> transactionList({required DateTime startDate, required DateTime endDate});
   Future<Variant?> getCustomVariant();
   Future<Spenn> spennPayment({required double amount, required phoneNumber});
   Future<void> collectPayment(
@@ -106,10 +106,12 @@ abstract class IsarApiInterface {
 
   Future<Business?> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
-      {required Map customer, required String transactionId});
-  Future assingTransactionToCustomer(
+      {required Customer customer, required String transactionId});
+  Future assignCustomerToTransaction(
       {required String customerId, String? transactionId});
-  Future<Customer?> getCustomer({String? key, String? transactionId});
+  Future removeCustomerFromTransaction(
+      {required String customerId, required String transactionId});
+  Future<Customer?> getCustomer({String? key, String? id});
 
   ITransaction? getTransactionById({required String id});
   Future<List<ITransaction>> tickets();
@@ -204,9 +206,9 @@ abstract class IsarApiInterface {
       required bool active});
 
   Future<Variant?> getVariantById({required String id});
-  Future<bool> isTaxEnabled();
+  bool isTaxEnabled();
   Future<Receipt?> createReceipt(
-      {required ReceiptSignature signature,
+      {required EBMApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
@@ -221,15 +223,11 @@ abstract class IsarApiInterface {
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
-  Future<Counter?> nSCounter({required int branchId});
-  Future<Counter?> cSCounter({required int branchId});
-  Future<Counter?> nRSCounter({required int branchId});
-  Future<Counter?> tSCounter({required int branchId});
-  Future<Counter?> pSCounter({required int branchId});
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType});
   Future<void> loadCounterFromOnline({required int businessId});
 
   String dbPath();
-  Future<Customer?> nGetCustomerByTransactionId({required String id});
   Future<bool> bindProduct({required String productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
 

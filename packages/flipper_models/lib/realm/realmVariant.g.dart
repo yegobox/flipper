@@ -9,6 +9,8 @@ part of 'realmVariant.dart';
 // ignore_for_file: type=lint
 class RealmVariant extends _RealmVariant
     with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
   RealmVariant(
     ObjectId realmId,
     String name,
@@ -23,13 +25,13 @@ class RealmVariant extends _RealmVariant
     String id,
     double retailPrice,
     double supplyPrice, {
-    double? dftPrc,
+    bool ebmSynced = false,
     String? taxName,
     double? taxPercentage,
     String? isrcAplcbYn,
     String? modrId,
     double? rsdQty,
-    String? taxTyCd,
+    String? spplrItemClsCd,
     String? bcd,
     String? itemClsCd,
     String? itemTyCd,
@@ -43,7 +45,7 @@ class RealmVariant extends _RealmVariant
     DateTime? lastTouched,
     DateTime? deletedAt,
     int? tin,
-    String? bhfId,
+    String? spplrItemCd,
     String? regrId,
     String? orgnNatCd,
     String? itemSeq,
@@ -55,10 +57,19 @@ class RealmVariant extends _RealmVariant
     double? qty,
     String? isrcRt,
     double? prc,
-    String? isrcAmt,
+    String? spplrItemNm,
     double? splyAmt,
+    String? isrcAmt,
+    String? bhfId,
+    String? taxTyCd,
+    double? dftPrc,
   }) {
-    RealmObjectBase.set(this, 'dftPrc', dftPrc);
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<RealmVariant>({
+        'ebmSynced': false,
+      });
+    }
+    RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'name', name);
     RealmObjectBase.set(this, 'color', color);
@@ -74,8 +85,8 @@ class RealmVariant extends _RealmVariant
     RealmObjectBase.set(this, 'modrId', modrId);
     RealmObjectBase.set(this, 'rsdQty', rsdQty);
     RealmObjectBase.set(this, 'action', action);
+    RealmObjectBase.set(this, 'spplrItemClsCd', spplrItemClsCd);
     RealmObjectBase.set(this, 'id', id);
-    RealmObjectBase.set(this, 'taxTyCd', taxTyCd);
     RealmObjectBase.set(this, 'bcd', bcd);
     RealmObjectBase.set(this, 'itemClsCd', itemClsCd);
     RealmObjectBase.set(this, 'itemTyCd', itemTyCd);
@@ -90,7 +101,7 @@ class RealmVariant extends _RealmVariant
     RealmObjectBase.set(this, 'retailPrice', retailPrice);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'tin', tin);
-    RealmObjectBase.set(this, 'bhfId', bhfId);
+    RealmObjectBase.set(this, 'spplrItemCd', spplrItemCd);
     RealmObjectBase.set(this, 'regrId', regrId);
     RealmObjectBase.set(this, 'orgnNatCd', orgnNatCd);
     RealmObjectBase.set(this, 'itemSeq', itemSeq);
@@ -103,16 +114,20 @@ class RealmVariant extends _RealmVariant
     RealmObjectBase.set(this, 'qty', qty);
     RealmObjectBase.set(this, 'isrcRt', isrcRt);
     RealmObjectBase.set(this, 'prc', prc);
-    RealmObjectBase.set(this, 'isrcAmt', isrcAmt);
+    RealmObjectBase.set(this, 'spplrItemNm', spplrItemNm);
     RealmObjectBase.set(this, 'splyAmt', splyAmt);
+    RealmObjectBase.set(this, 'isrcAmt', isrcAmt);
+    RealmObjectBase.set(this, 'bhfId', bhfId);
+    RealmObjectBase.set(this, 'taxTyCd', taxTyCd);
+    RealmObjectBase.set(this, 'dftPrc', dftPrc);
   }
 
   RealmVariant._();
 
   @override
-  double? get dftPrc => RealmObjectBase.get<double>(this, 'dftPrc') as double?;
+  bool get ebmSynced => RealmObjectBase.get<bool>(this, 'ebmSynced') as bool;
   @override
-  set dftPrc(double? value) => RealmObjectBase.set(this, 'dftPrc', value);
+  set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
 
   @override
   ObjectId get realmId =>
@@ -201,15 +216,16 @@ class RealmVariant extends _RealmVariant
   set action(String value) => RealmObjectBase.set(this, 'action', value);
 
   @override
+  String? get spplrItemClsCd =>
+      RealmObjectBase.get<String>(this, 'spplrItemClsCd') as String?;
+  @override
+  set spplrItemClsCd(String? value) =>
+      RealmObjectBase.set(this, 'spplrItemClsCd', value);
+
+  @override
   String get id => RealmObjectBase.get<String>(this, 'id') as String;
   @override
   set id(String value) => RealmObjectBase.set(this, 'id', value);
-
-  @override
-  String? get taxTyCd =>
-      RealmObjectBase.get<String>(this, 'taxTyCd') as String?;
-  @override
-  set taxTyCd(String? value) => RealmObjectBase.set(this, 'taxTyCd', value);
 
   @override
   String? get bcd => RealmObjectBase.get<String>(this, 'bcd') as String?;
@@ -292,9 +308,11 @@ class RealmVariant extends _RealmVariant
   set tin(int? value) => RealmObjectBase.set(this, 'tin', value);
 
   @override
-  String? get bhfId => RealmObjectBase.get<String>(this, 'bhfId') as String?;
+  String? get spplrItemCd =>
+      RealmObjectBase.get<String>(this, 'spplrItemCd') as String?;
   @override
-  set bhfId(String? value) => RealmObjectBase.set(this, 'bhfId', value);
+  set spplrItemCd(String? value) =>
+      RealmObjectBase.set(this, 'spplrItemCd', value);
 
   @override
   String? get regrId => RealmObjectBase.get<String>(this, 'regrId') as String?;
@@ -365,16 +383,39 @@ class RealmVariant extends _RealmVariant
   set prc(double? value) => RealmObjectBase.set(this, 'prc', value);
 
   @override
-  String? get isrcAmt =>
-      RealmObjectBase.get<String>(this, 'isrcAmt') as String?;
+  String? get spplrItemNm =>
+      RealmObjectBase.get<String>(this, 'spplrItemNm') as String?;
   @override
-  set isrcAmt(String? value) => RealmObjectBase.set(this, 'isrcAmt', value);
+  set spplrItemNm(String? value) =>
+      RealmObjectBase.set(this, 'spplrItemNm', value);
 
   @override
   double? get splyAmt =>
       RealmObjectBase.get<double>(this, 'splyAmt') as double?;
   @override
   set splyAmt(double? value) => RealmObjectBase.set(this, 'splyAmt', value);
+
+  @override
+  String? get isrcAmt =>
+      RealmObjectBase.get<String>(this, 'isrcAmt') as String?;
+  @override
+  set isrcAmt(String? value) => RealmObjectBase.set(this, 'isrcAmt', value);
+
+  @override
+  String? get bhfId => RealmObjectBase.get<String>(this, 'bhfId') as String?;
+  @override
+  set bhfId(String? value) => RealmObjectBase.set(this, 'bhfId', value);
+
+  @override
+  String? get taxTyCd =>
+      RealmObjectBase.get<String>(this, 'taxTyCd') as String?;
+  @override
+  set taxTyCd(String? value) => RealmObjectBase.set(this, 'taxTyCd', value);
+
+  @override
+  double? get dftPrc => RealmObjectBase.get<double>(this, 'dftPrc') as double?;
+  @override
+  set dftPrc(double? value) => RealmObjectBase.set(this, 'dftPrc', value);
 
   @override
   Stream<RealmObjectChanges<RealmVariant>> get changes =>
@@ -389,7 +430,7 @@ class RealmVariant extends _RealmVariant
     RealmObjectBase.registerFactory(RealmVariant._);
     return const SchemaObject(
         ObjectType.realmObject, RealmVariant, 'RealmVariant', [
-      SchemaProperty('dftPrc', RealmPropertyType.double, optional: true),
+      SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('name', RealmPropertyType.string),
@@ -406,8 +447,9 @@ class RealmVariant extends _RealmVariant
       SchemaProperty('modrId', RealmPropertyType.string, optional: true),
       SchemaProperty('rsdQty', RealmPropertyType.double, optional: true),
       SchemaProperty('action', RealmPropertyType.string),
+      SchemaProperty('spplrItemClsCd', RealmPropertyType.string,
+          optional: true),
       SchemaProperty('id', RealmPropertyType.string),
-      SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
       SchemaProperty('bcd', RealmPropertyType.string, optional: true),
       SchemaProperty('itemClsCd', RealmPropertyType.string, optional: true),
       SchemaProperty('itemTyCd', RealmPropertyType.string, optional: true),
@@ -423,7 +465,7 @@ class RealmVariant extends _RealmVariant
       SchemaProperty('retailPrice', RealmPropertyType.double),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('tin', RealmPropertyType.int, optional: true),
-      SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
+      SchemaProperty('spplrItemCd', RealmPropertyType.string, optional: true),
       SchemaProperty('regrId', RealmPropertyType.string, optional: true),
       SchemaProperty('orgnNatCd', RealmPropertyType.string, optional: true),
       SchemaProperty('itemSeq', RealmPropertyType.string, optional: true),
@@ -436,8 +478,12 @@ class RealmVariant extends _RealmVariant
       SchemaProperty('qty', RealmPropertyType.double, optional: true),
       SchemaProperty('isrcRt', RealmPropertyType.string, optional: true),
       SchemaProperty('prc', RealmPropertyType.double, optional: true),
-      SchemaProperty('isrcAmt', RealmPropertyType.string, optional: true),
+      SchemaProperty('spplrItemNm', RealmPropertyType.string, optional: true),
       SchemaProperty('splyAmt', RealmPropertyType.double, optional: true),
+      SchemaProperty('isrcAmt', RealmPropertyType.string, optional: true),
+      SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
+      SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('dftPrc', RealmPropertyType.double, optional: true),
     ]);
   }
 }

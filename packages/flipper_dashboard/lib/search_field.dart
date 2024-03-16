@@ -11,12 +11,14 @@ import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   SearchField({Key? key, required this.controller}) : super(key: key);
@@ -97,6 +99,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
     final isScanningMode = ref.watch(scanningModeProvider);
+    final currentLocation = ref.watch(buttonIndexProvider);
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (a, model, b) {
@@ -127,33 +130,52 @@ class SearchFieldState extends ConsumerState<SearchField> {
             ),
             suffixIcon: Wrap(
               children: [
-                IconButton(
-                  onPressed: _handleScanningModeToggle,
-                  icon: Icon(
-                    ref.watch(scanningModeProvider)
-                        ? FluentIcons.camera_switch_24_regular
-                        : FluentIcons.camera_switch_24_regular,
-                    color: ref.watch(scanningModeProvider)
-                        ? Colors.green
-                        : Colors.blue,
-                  ),
-                ),
-                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled())
-                  IconButton(
-                    onPressed: () => _handleReceiveOrderToggle(),
-                    icon: _buildOrderIcon(orders),
-                  ),
-                IconButton(
-                  onPressed: _hasText ? _clearSearchText : _handleAddProduct,
-                  icon: _hasText
-                      ? Icon(FluentIcons.dismiss_24_regular)
-                      : Icon(FluentIcons.add_20_regular),
-                ),
+                if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
+                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
+                    [0, 1, 2, 4].contains(currentLocation))
+                  orderButton(orders),
+                if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
+                if (currentLocation == 3) datePicker(),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  IconButton datePicker() {
+    return IconButton(
+      onPressed: _handleDateTimePicker,
+      icon: Icon(Icons.date_range),
+    );
+  }
+
+  IconButton addButton() {
+    return IconButton(
+      onPressed: _hasText ? _clearSearchText : _handleAddProduct,
+      icon: _hasText
+          ? Icon(FluentIcons.dismiss_24_regular)
+          : Icon(FluentIcons.add_20_regular),
+    );
+  }
+
+  IconButton orderButton(AsyncValue<List<ITransaction>> orders) {
+    return IconButton(
+      onPressed: () => _handleReceiveOrderToggle(),
+      icon: _buildOrderIcon(orders),
+    );
+  }
+
+  IconButton indicatorButton() {
+    return IconButton(
+      onPressed: _handleScanningModeToggle,
+      icon: Icon(
+        ref.watch(scanningModeProvider)
+            ? FluentIcons.camera_switch_24_regular
+            : FluentIcons.camera_switch_24_regular,
+        color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
+      ),
     );
   }
 
@@ -194,6 +216,63 @@ class SearchFieldState extends ConsumerState<SearchField> {
       builder: (context) => OptionModal(
         child: isDesktopOrWeb ? ProductEntryScreen() : AddProductButtons(),
       ),
+    );
+  }
+
+  _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    if (args.value is PickerDateRange) {
+      // DateTime startDate = args.value.startDate;
+      // DateTime endDate = args.value.endDate ?? args.value.startDate;
+
+      ref
+          .read(dateRangeProvider.notifier)
+          .setStartDate(DateTime.now().subtract(Duration(days: 4)));
+      ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
+    }
+  }
+
+  _onSelectionChangedSubmit() {
+    // DateTime startDate = args.value.startDate;
+    // DateTime endDate = args.value.endDate ?? args.value.startDate;
+
+    ref
+        .read(dateRangeProvider.notifier)
+        .setStartDate(DateTime.now().subtract(Duration(days: 4)));
+    ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
+
+    ref.refresh(transactionListProvider);
+  }
+
+  void _handleDateTimePicker() {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => OptionModal(
+          child: SfDateRangePicker(
+        onSubmit: (v) {
+          _onSelectionChangedSubmit();
+          Navigator.maybePop(context);
+        },
+        onCancel: () {
+          Navigator.maybePop(context);
+        },
+        onSelectionChanged: _onSelectionChanged,
+        selectionMode: DateRangePickerSelectionMode.range,
+        showActionButtons: true,
+        showNavigationArrow: true,
+        toggleDaySelection: true,
+        showTodayButton: true,
+        initialSelectedRange: PickerDateRange(
+            DateTime.now().subtract(const Duration(days: 4)),
+            DateTime.now().add(const Duration(days: 3))),
+        headerStyle: DateRangePickerHeaderStyle(
+          backgroundColor: Colors.blue,
+          textStyle: TextStyle(color: Colors.white, fontSize: 18),
+        ),
+        selectionTextStyle: TextStyle(color: Colors.white),
+        selectionColor: Colors.black,
+        todayHighlightColor: Colors.green,
+      )),
     );
   }
 }

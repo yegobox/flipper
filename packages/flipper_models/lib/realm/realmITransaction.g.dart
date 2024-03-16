@@ -27,6 +27,7 @@ class RealmITransaction extends _RealmITransaction
     String? receiptType,
     String? updatedAt,
     String? customerId,
+    String? customerType,
     String? note,
     DateTime? lastTouched,
     String? ticketName,
@@ -49,6 +50,7 @@ class RealmITransaction extends _RealmITransaction
     RealmObjectBase.set(this, 'receiptType', receiptType);
     RealmObjectBase.set(this, 'updatedAt', updatedAt);
     RealmObjectBase.set(this, 'customerId', customerId);
+    RealmObjectBase.set(this, 'customerType', customerType);
     RealmObjectBase.set(this, 'note', note);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
@@ -161,6 +163,13 @@ class RealmITransaction extends _RealmITransaction
       RealmObjectBase.set(this, 'customerId', value);
 
   @override
+  String? get customerType =>
+      RealmObjectBase.get<String>(this, 'customerType') as String?;
+  @override
+  set customerType(String? value) =>
+      RealmObjectBase.set(this, 'customerType', value);
+
+  @override
   String? get note => RealmObjectBase.get<String>(this, 'note') as String?;
   @override
   set note(String? value) => RealmObjectBase.set(this, 'note', value);
@@ -227,6 +236,7 @@ class RealmITransaction extends _RealmITransaction
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
       SchemaProperty('updatedAt', RealmPropertyType.string, optional: true),
       SchemaProperty('customerId', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerType', RealmPropertyType.string, optional: true),
       SchemaProperty('note', RealmPropertyType.string, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),

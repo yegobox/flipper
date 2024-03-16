@@ -50,6 +50,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   bool _savingInProgress = false;
 
+  String selectedPackageUnitValue = "BJ: Bucket Bucket";
+
   void changeColor(Color color) => setState(() => pickerColor = color);
 
   Widget pickerLayoutBuilder(
@@ -260,7 +262,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       await model.bulkUpdateVariants(true);
     }
 
-    await model.addVariant(variations: model.scannedVariants);
+    await model.addVariant(
+        variations: model.scannedVariants,
+        packagingUnit: selectedPackageUnitValue);
     model.currentColor = pickerColor.toHex();
 
     Product? product = await model.saveProduct(
@@ -293,6 +297,44 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     } else {
       _showSaveInProgressToast();
     }
+  }
+
+  Widget _buildDropdownButton(ScannViewModel model) {
+    return Column(
+      children: [
+        Text("Packaging unit"),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey),
+          ),
+          child: DropdownButton<String>(
+            value: selectedPackageUnitValue,
+            onChanged: (String? newValue) {
+              setState(() {
+                RegExp regExp = RegExp(r'^([^:]*):');
+                selectedPackageUnitValue =
+                    regExp.firstMatch(newValue!)!.group(1)!;
+              });
+            },
+            items: model.pkgUnits.map<DropdownMenuItem<String>>(
+              (String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              },
+            ).toList(),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
+            icon: const Icon(Icons.arrow_drop_down),
+            iconSize: 30,
+            isExpanded: true,
+            underline: SizedBox(), // Remove the default underline
+          ),
+        ),
+      ],
+    );
   }
 
 // Define your default color
@@ -494,6 +536,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       },
                       focusNode: scannedInputFocusNode,
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: model.EBMenabled
+                        ? _buildDropdownButton(model)
+                        : const SizedBox.shrink(),
                   ),
                   Container(
                     padding: const EdgeInsets.all(16.0),

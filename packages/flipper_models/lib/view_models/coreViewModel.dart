@@ -5,16 +5,12 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
-import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:receipt/print.dart';
 import 'package:stacked/stacked.dart';
 
 import 'mixins/all.dart';
@@ -294,6 +290,7 @@ class CoreViewModel extends FlipperBaseModel
       name: name,
       branchId: branchId,
       discount: 0.0,
+      prc: variation.retailPrice,
       doneWithTransaction: false,
       active: false,
       transactionId: pendingTransaction.id,
@@ -513,18 +510,44 @@ class CoreViewModel extends FlipperBaseModel
       required String phone,
       required String name,
       required String transactionId,
+      required String customerType,
       required String tinNumber}) {
-    ProxyService.isar.addCustomer(customer: {
-      'email': email,
-      'phone': phone,
-      'name': name,
-      'tinNumber': tinNumber
-    }, transactionId: transactionId);
+    int branchId = ProxyService.box.getBranchId()!;
+    ProxyService.isar.addCustomer(
+        customer: Customer(
+          custNm: name,
+          id: randomString(),
+          action: AppActions.created,
+          custTin: tinNumber,
+          email: email,
+          telNo: phone,
+          updatedAt: DateTime.now(),
+          branchId: branchId,
+          custNo: randomNumber().toString().substring(0, 9),
+          regrNm: randomNumber().toString().substring(0, 5),
+          modrId: randomNumber().toString().substring(0, 5),
+          regrId: randomNumber().toString().substring(0, 5),
+          ebmSynced: false,
+          tin: ProxyService.box.tin().toString(),
+          modrNm: randomNumber().toString().substring(0, 5),
+          bhfId: ProxyService.box.bhfId(),
+          useYn: "N",
+          customerType: customerType,
+        ),
+        transactionId: transactionId);
   }
 
   Future<void> assignToSale(
       {required String customerId, required String transactionId}) async {
-    ProxyService.isar.assingTransactionToCustomer(
+    ProxyService.isar.assignCustomerToTransaction(
+        customerId: customerId, transactionId: transactionId);
+  }
+
+  /// given a transactionId and a customer, remove the given customer from the
+  /// given transaction
+  Future<void> removeFromSale(
+      {required String customerId, required String transactionId}) async {
+    ProxyService.isar.removeCustomerFromTransaction(
         customerId: customerId, transactionId: transactionId);
   }
 
@@ -666,173 +689,11 @@ class CoreViewModel extends FlipperBaseModel
     notifyListeners();
   }
 
-  void printReceipt(
-      {required List<TransactionItem> items,
-      required Business business,
-      required String receiptType,
-      required ITransaction otransaction}) async {
-    // get receipt from isar related to this transaction
-    // get refreshed transaction with cash received
-    ITransaction? transaction =
-        await ProxyService.isar.getTransactionById(id: otransaction.id);
-    Receipt? receipt =
-        await ProxyService.isar.getReceipt(transactionId: transaction!.id);
-    // get time formatted like hhmmss
-    Print print = Print();
-    print.print(
-      items: items,
-      transaction: transaction,
-      grandTotal: transaction.subTotal,
-      currencySymbol: "RW",
-      totalAEx: 0,
-      totalB18: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
-      totalB: transaction.subTotal,
-      totalTax: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
-      cash: transaction.subTotal,
-      received: transaction.cashReceived,
-      payMode: "Cash",
-      mrc: receipt!.mrcNo,
-      internalData: receipt.intrlData,
-      receiptQrCode: receipt.qrCode,
-      receiptSignature: receipt.rcptSign,
-      cashierName: business.name!,
-      sdcId: receipt.sdcId,
-      sdcReceiptNum: receipt.receiptType,
-      invoiceNum: receipt.totRcptNo,
-      brandName: business.name!,
-      brandAddress: business.adrs ?? "Kigali,Rwanda",
-      brandTel: ProxyService.box.getUserPhone()!,
-      brandTIN: business.tinNumber.toString(),
-      brandDescription: business.name!,
-      brandFooter: business.name!,
-      emails: [app.customer?.email ?? 'info@yegobox.com', 'info@yegobox.com'],
-      customerTin: app.customer?.tinNumber.toString() ?? "0000000000",
-      receiptType: receiptType,
-    );
-  }
-
   var _receiptReady = false;
   bool get receiptReady => _receiptReady;
   set receiptReady(bool value) {
     _receiptReady = value;
     notifyListeners();
-  }
-
-  Future<bool> generateRRAReceipt(
-      {required List<TransactionItem> items,
-      required Business business,
-      String? receiptType = "ns",
-      required ITransaction transaction,
-      required Function callback}) async {
-    // use local counter as long as it is marked as synced.
-    Counter counter = await getCounter(receiptType);
-    // TODO: re-implement the logic to make sure counter is up to date
-    // if (counter.backed != null && !counter.backed!) {
-    //   callback("The counter is not up to date");
-    //   return false;
-    // }
-    Customer? customer =
-        await ProxyService.isar.nGetCustomerByTransactionId(id: transaction.id);
-    ReceiptSignature? receiptSignature = await ProxyService.tax.createReceipt(
-        transaction: transaction,
-        items: items,
-        customer: customer,
-        receiptType: receiptType!,
-        counter: counter);
-    if (receiptSignature == null) {
-      callback("EBM V2 server is down, please try again later");
-      return false;
-    }
-    transaction.receiptType = transaction.receiptType == null
-        ? receiptType
-        : transaction.receiptType! + "," + receiptType;
-
-    // get the current drawer status
-    await updateDrawer(receiptType, transaction);
-    ProxyService.isar.update(data: transaction);
-    String time = DateTime.now().toString().substring(11, 19);
-    DateTime now = DateTime.now();
-    String formattedDate = DateFormat('dd-MM-yyy').format(now);
-    // qrCode with the following format (ddmmyyyy)#time(hhmmss)#sdc number#sdc_receipt_number#internal_data#receipt_signature
-    String receiptNumber =
-        "${receiptSignature.data.rcptNo}/${receiptSignature.data.totRcptNo}";
-    String qrCode =
-        '$formattedDate#$time#${receiptSignature.data.sdcId}#$receiptNumber#${receiptSignature.data.intrlData}#${receiptSignature.data.rcptSign}';
-    await ProxyService.isar.createReceipt(
-        signature: receiptSignature,
-        transaction: transaction,
-        qrCode: qrCode,
-        counter: counter,
-        receiptType: receiptNumber);
-    // update counter, increment the counter
-    ProxyService.isar.update(
-        data: counter
-          ..totRcptNo = receiptSignature.data.totRcptNo + 1
-          ..curRcptNo = receiptSignature.data.rcptNo + 1);
-    receiptReady = true;
-    notifyListeners();
-    return true;
-  }
-
-  Future<Counter> getCounter(String? receiptType) async {
-    Counter? counter;
-    int branchId = ProxyService.box.getBranchId()!;
-    if (receiptType == "ns") {
-      counter = await ProxyService.isar.nSCounter(branchId: branchId);
-    }
-    if (receiptType == ReceiptType.ts) {
-      counter = await ProxyService.isar.tSCounter(branchId: branchId);
-    }
-    if (receiptType == ReceiptType.nr) {
-      counter = await ProxyService.isar.nRSCounter(branchId: branchId);
-    }
-    if (receiptType == ReceiptType.cs) {
-      counter = await ProxyService.isar.cSCounter(branchId: branchId);
-    }
-    if (receiptType == ReceiptType.ps) {
-      counter = await ProxyService.isar.pSCounter(branchId: branchId);
-    }
-    return counter ??
-        Counter(
-            branchId: ProxyService.box.getBranchId(),
-            businessId: ProxyService.box.getBusinessId(),
-            curRcptNo: 0,
-            id: 1,
-            totRcptNo: 0);
-  }
-
-  Future<void> updateDrawer(
-      String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.isar
-        .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
-    drawer!
-      ..cashierId = ProxyService.box.getBusinessId()!
-      ..nsSaleCount = receiptType == "NS"
-          ? drawer.nsSaleCount ?? 0 + 1
-          : drawer.nsSaleCount ?? 0
-      ..trSaleCount = receiptType == "TR"
-          ? drawer.trSaleCount ?? 0 + 1
-          : drawer.trSaleCount ?? 0
-      ..psSaleCount = receiptType == "PS"
-          ? drawer.psSaleCount ?? 0 + 1
-          : drawer.psSaleCount ?? 0
-      ..csSaleCount = receiptType == "CS"
-          ? drawer.csSaleCount ?? 0 + 1
-          : drawer.csSaleCount ?? 0
-      ..nrSaleCount = receiptType == "NR"
-          ? drawer.nrSaleCount ?? 0 + 1
-          : drawer.nrSaleCount ?? 0
-      ..incompleteSale = 0
-      ..totalCsSaleIncome = receiptType == "CS"
-          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
-          : drawer.totalCsSaleIncome ?? 0
-      ..totalNsSaleIncome = receiptType == "NS"
-          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
-          : drawer.totalNsSaleIncome ?? 0
-      ..openingDateTime = DateTime.now().toIso8601String()
-      ..open = true;
-    // update drawer
-    await ProxyService.isar.update(data: drawer);
   }
 
   List<ITransaction> _completedTransactions = [];
@@ -850,16 +711,16 @@ class CoreViewModel extends FlipperBaseModel
     notifyListeners();
   }
 
-  Customer? get customer => app.customer;
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(String id, Function callback) async {
     final transaction = await ProxyService.isar
         .manageTransaction(transactionType: TransactionType.custom);
     if (transaction.customerId == null) {
-      ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
+      await ProxyService.isar.delete(id: id.toString(), endPoint: 'customer');
+      callback("customer deleted");
     } else {
-      callback("Can't delete the customer");
+      callback("Customer is already attached to a transaction");
     }
   }
 

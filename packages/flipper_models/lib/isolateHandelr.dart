@@ -13,8 +13,6 @@ import 'package:realm/realm.dart' as lia;
 
 import 'package:flutter/services.dart';
 import 'models.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 
 mixin IsolateHandler {
   static late Isar isar;
@@ -70,9 +68,7 @@ mixin IsolateHandler {
     final realm = lia.Realm(config);
     final iVariantsCollection =
         realm.query<RealmVariant>(r'branchId == $0', [branchId]);
-    // for (final result in iVariantsCollection) {
-    //   handleVariant(result, sendPort);
-    // }
+ 
     await for (final changes in iVariantsCollection.changes) {
       for (final result in changes.results) {
         handleVariant(result, sendPort);
@@ -128,9 +124,7 @@ mixin IsolateHandler {
     final iTransactionsItemCollection =
         realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
 
-    // for (final result in iTransactionsItemCollection) {
-    //   handleTransactionItem(result, sendPort);
-    // }
+   
     await for (final changes in iTransactionsItemCollection.changes) {
       for (final result in changes.results) {
         handleTransactionItem(result, sendPort);
@@ -467,7 +461,7 @@ mixin IsolateHandler {
       pkgUnitCd: item.pkgUnitCd,
       regrNm: item.regrNm,
       splyAmt: item.splyAmt,
-      prc: item.prc,
+      prc: item.prc ?? item.price,
       taxblAmt: item.taxblAmt,
       totAmt: item.totAmt,
       qtyUnitCd: item.qtyUnitCd,

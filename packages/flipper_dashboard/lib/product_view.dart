@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -90,21 +91,32 @@ class ProductViewState extends ConsumerState<ProductView> {
 
         return CustomScrollView(
           slivers: [
-            isLargeScreen
-                ? SliverToBoxAdapter(child: IconRow())
-                : SliverToBoxAdapter(
-                    child: SizedBox()), // Use SizedBox for mobile
+            buildIconRow(isLargeScreen),
             buildStickyHeader(searchFieldWidth),
-            scanMode
-                ? buildVariantList(context, model)
-                : buildProductList(context, model),
-            //todo when re-enabling discounts, remember it is causing black screen error
-            // as there might be some loop that isn't well
-            // buildDiscountsList(context, model),
+            buildContent(context, model, scanMode),
           ],
         );
       },
     );
+  }
+
+  Widget buildIconRow(bool isLargeScreen) {
+    return SliverToBoxAdapter(
+      child: isLargeScreen ? IconRow() : SizedBox(),
+    );
+  }
+
+  Widget buildContent(
+      BuildContext context, ProductViewModel model, bool scanMode) {
+    int buttonIndex = ref.watch(buttonIndexProvider);
+
+    if (buttonIndex == 3) {
+      return SliverToBoxAdapter(child: TransactionList());
+    }
+
+    return scanMode
+        ? buildVariantList(context, model)
+        : buildProductList(context, model);
   }
 
   SliverList buildVariantList(

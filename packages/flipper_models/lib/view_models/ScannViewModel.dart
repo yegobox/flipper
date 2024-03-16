@@ -1,20 +1,32 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'mixins/_product.dart';
 
-class ScannViewModel extends ProductViewModel with ProductMixin {
+class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   List<Variant> scannedVariants = [];
   double retailPrice = 0.0;
   double supplyPrice = 0.0;
+  bool EBMenabled = false;
+  List<String> pkgUnits = [];
 
   void initialize() {
     scannedVariants = [];
     setProductName(name: null);
+    pkgUnits = RRADEFAULTS.packagingUnits;
+    log(ProxyService.box.tin().toString(), name: "ScannViewModel");
+    log(ProxyService.box.bhfId().toString(), name: "ScannViewModel");
+
+    /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
+    EBMenabled =
+        ProxyService.box.tin() != -1 && ProxyService.box.bhfId().isNotEmpty;
+    log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }
 

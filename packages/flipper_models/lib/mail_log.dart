@@ -7,22 +7,20 @@ import 'package:http/http.dart' as http;
 import 'package:sentry/sentry.dart';
 
 extension RWTaxEmailExtension on RWTax {
-  Future<void> sendEmailNotification(
-      {required String requestData, required String responseData}) async {
+  Future<void> sendEmailNotification({required dynamic requestBody,
+
+    required String response}) async {
     final userEmail = 'info@yegobox.com';
     var headers = {'Content-Type': 'application/json'};
     final emailSubject = 'HTTP Request and Response Data';
-    final emailBody =
-        'Request Data:\n$requestData\n\nResponse Data:\n$responseData';
 
     var request =
         http.Request('POST', Uri.parse(AppSecrets.apihubProd + '/v2/api/mail'));
-    // log(variation.toJson().toString());
     request.body = json.encode({
       "to": userEmail,
       "subject": emailSubject,
-      "messageBody": emailBody,
-      "bcc": "yegobox@gmail.com"
+      "messageBody": "requestBody: "+requestBody + "Response: " + response,
+      "bcc": ProxyService.remoteConfig.bcc()
     });
 
     request.headers.addAll(headers);
@@ -50,8 +48,8 @@ extension RWTaxEmailExtension on RWTax {
 
         Sentry.captureUserFeedback(userFeedback);
 
-        await sendEmailNotification(
-            requestData: requestData, responseData: responseData);
+        // await sendEmailNotification(
+        //     requestData: requestData, responseData: responseData);
 
         return true;
       } else {

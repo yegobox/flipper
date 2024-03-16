@@ -364,6 +364,16 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
+final customersProvider = StateNotifierProvider.autoDispose<CustomersNotifier,
+    AsyncValue<List<Customer>>>((ref) {
+  int branchId = ProxyService.box.getBranchId()!;
+  final customersNotifier = CustomersNotifier(branchId);
+  final searchString = ref.watch(searchStringProvider);
+  customersNotifier.loadCustomers(searchString: searchString);
+
+  return customersNotifier;
+});
+
 class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   final int branchId;
 
@@ -371,12 +381,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
   Future<void> loadCustomers({required String searchString}) async {
     try {
+      await Future.delayed(
+          Duration(seconds: 3)); // await any ongoing database persistance
       List<Customer> customers =
           await ProxyService.isar.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers
-            .where((customer) => customer.name
+            .where((customer) => customer.custNm
                 .toLowerCase()
                 .contains(searchString.toLowerCase()))
             .toList();
@@ -411,23 +423,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   ) {
     if (searchString.isNotEmpty) {
       return customers
-          .where((customer) =>
-              customer.name.toLowerCase().contains(searchString.toLowerCase()))
+          .where((customer) => customer.custNm
+              .toLowerCase()
+              .contains(searchString.toLowerCase()))
           .toList();
     }
     return customers;
   }
 }
-
-final customersProvider = StateNotifierProvider.autoDispose
-    .family<CustomersNotifier, AsyncValue<List<Customer>>, int>(
-        (ref, branchId) {
-  final customersNotifier = CustomersNotifier(branchId);
-  final searchString = ref.watch(searchStringProvider);
-  customersNotifier.loadCustomers(searchString: searchString);
-
-  return customersNotifier;
-});
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
@@ -465,5 +468,60 @@ final unitsProvider =
   } catch (error) {
     // Return AsyncError with error and stack trace
     return AsyncError(error, StackTrace.current);
+  }
+});
+
+// create riverpod to track the index of button clicked
+final buttonIndexProvider =
+    StateNotifierProvider.autoDispose<ButtonIndexNotifier, int>((ref) {
+  return ButtonIndexNotifier();
+});
+
+class ButtonIndexNotifier extends StateNotifier<int> {
+  ButtonIndexNotifier() : super(0);
+
+  void setIndex(int index) {
+    state = index;
+  }
+}
+
+//DateTime range provider
+final dateRangeProvider =
+    StateNotifierProvider.autoDispose<DateRangeNotifier, Map<String, DateTime>>(
+        (ref) {
+  return DateRangeNotifier();
+});
+
+class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
+  DateRangeNotifier()
+      : super({
+          'endDate': DateTime.now(),
+          'startDate': DateTime.now().subtract(Duration(days: 4)),
+        });
+  void setStartDate(DateTime startDate) {
+    state['startDate'] = startDate;
+  }
+
+  void setEndDate(DateTime endDate) {
+    state['endDate'] = endDate;
+  }
+
+  void resetDates() {
+    state['endDate'] = DateTime.now();
+    state['startDate'] = DateTime.now().subtract(Duration(days: 4));
+  }
+}
+
+final transactionListProvider =
+    FutureProvider.autoDispose<List<ITransaction>>((ref) async {
+  try {
+    final startDate = ref.watch(dateRangeProvider)['startDate']!;
+    final endDate = ref.watch(dateRangeProvider)['startDate']!;
+
+    final transactions = await ProxyService.isar
+        .transactionList(startDate: startDate, endDate: endDate);
+    return transactions;
+  } catch (error) {
+    return [];
   }
 });

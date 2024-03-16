@@ -24,7 +24,7 @@ dependencies:
   firebase_storage: ^11.0.2
   file_picker: ^5.2.11
   firebase_ui_auth: ^1.11.0
-  stacked: ^3.4.1+1
+  stacked: ^3.4.2
   azlistview: ^2.0.0
   qr_code_scanner: ^1.0.1
   # I will abandon qr_code_scanner and switch to mobile_scanner even though this
@@ -44,7 +44,7 @@ dependencies:
   google_fonts: ^6.1.0
   number_display: ^3.0.0
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.25.4
+  firebase_core: ^2.24.2
   # firebase_core_desktop: ^1.0.2-dev
   cupertino_icons: ^1.0.4
   flipper_services: ^1.0.0-dev
@@ -55,13 +55,12 @@ dependencies:
   intl: ^0.18.0
 
   connectivity_plus: ^5.0.2
-  flipper_data_table: ^1.0.0-dev.2
+  
   device_info_plus: ^9.1.1
   provider: ^6.0.2
   gap: ^2.0.0
   barcode: ^2.2.0
   qr_flutter: ^4.1.0
-  flutter_datetime_picker: ^1.5.2
   receipt: ^1.0.0
   # Splash screen handle
   flutter_native_splash: ^2.3.2
@@ -103,6 +102,19 @@ dependencies:
   dropdown_search: ^5.0.6
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
+  # https://github.com/yegobox/flutter_datetime_picker
+  flutter_datetime_picker:
+    git:
+      url: https://github.com/ryojiro/flutter_datetime_picker.git
+      ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
+
+  #TODO: because this is community package, I have applied for community licence
+  #  the licence is for company less than 1M in revenue and have not received 3M in outside source
+  # Meaning I am using this package for now to speed up the process of development
+  # if we hit that limit, we will have to switch to paid package or implement some functionality
+  # by ourself. but for esence of time I do not want to wast time
+  syncfusion_flutter_datepicker: ^19.4.38
+
 dependency_overrides:
   http: ^1.1.2
   meta: ^1.11.0
