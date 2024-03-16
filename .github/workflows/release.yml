@@ -62,7 +62,7 @@ jobs:
 
        - run: |
            dart pub global activate melos
-           
+           melos clean
            melos bootstrap
            flutter test --dart-define=Test=true
 
