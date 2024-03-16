@@ -23,5 +23,5 @@ dependencies:
       ref: 6c66ad23ee79749f30a8eece542cf54eaf157ed8
   fluent_ui: ^4.8.2
 dependency_overrides:
-  http: ^1.1.2
-  meta: ^1.11.0
+  http: ^1.2.1
+  meta: ^1.12.0
