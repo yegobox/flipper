@@ -114,7 +114,7 @@ class SignupViewModel extends ReactiveViewModel {
     return ProxyService.box.readString(key: 'referralCode');
   }
 
-  Future<List<Tenant>> registerTenant(String? referralCode) {
+  Future<List<Tenant>> registerTenant(String? referralCode) async{
     return  await ProxyService.isar.signup(business: {
       'name': kName,
       'latitude': latitude,
