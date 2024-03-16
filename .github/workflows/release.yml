@@ -62,7 +62,7 @@ jobs:
 
        - run: |
            dart pub global activate melos
-           rm -rf .pub-cache/git/cache/flutter-desktop-embedding-*
+           Remove-Item -Path ".pub-cache/git/cache/flutter-desktop-embedding-*" -Recurse -Force
            melos bootstrap
            flutter test --dart-define=Test=true
 
