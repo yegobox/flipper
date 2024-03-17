@@ -71,6 +71,8 @@ jobs:
      name: "Integration Testing Windows"
      runs-on: windows-2022
 #     needs: [unit-testing]
+#     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
+#   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
      steps:
        - name: Export pub environment variable on Windows
          run: |
@@ -116,6 +118,47 @@ jobs:
            melos bootstrap
            cd apps/main_app
            flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+
+  build-and-release-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install msix package
+        run: dart pub add msix
+
+      - name: Build Windows app
+        run: |
+          flutter build windows
+          dart run msix:create --store  # adding --store command for microsoft publishing
+
+      - name: Configure Release (optional)
+        env:
+          VERSION: ${{ github.sha }}  # Or use a semantic versioning scheme
+        run: |
+          echo "## Release Notes" >> release_notes.txt
+          echo " - New features..." >> release_notes.txt
+          echo " - Bug fixes..." >> release_notes.txt
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Windows Release ${{ env.VERSION }}
+          body_file: release_notes.txt  # Optional: Path to release notes file
+          draft: false  # Set to true for draft releases
+          prerelease: false  # Set to true for pre-releases
+
+      - name: Upload Build Artifact (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: build/windows/x64
 
   # android-integration-test:
   #   name: run integration test on Android emulator
