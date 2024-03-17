@@ -185,6 +185,8 @@ jobs:
             body_file: release_notes.txt  # Optional: Path to release notes file
             draft: false  # Set to true for draft releases
             prerelease: false  # Set to true for pre-releases
+          env:
+            GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
         - name: Upload Build Artifact (optional)
           uses: actions/upload-artifact@v3
