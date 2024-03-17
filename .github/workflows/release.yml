@@ -121,6 +121,7 @@ jobs:
 
   build-and-release-windows:
       name: "Build windows app"
+#      needs: [unit-testing,integration-testing-windows]
       runs-on: windows-2022
       #     needs: [unit-testing]
       #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -180,7 +181,7 @@ jobs:
         - name: Set VERSION environment variable
           shell: bash
           run: |
-            VERSION=$(grep 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
+            VERSION=$(grep -i 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
             echo "VERSION=$VERSION" >> $GITHUB_ENV
 
         - name: Create Release
@@ -197,8 +198,6 @@ jobs:
               - Second Change
           env:
               GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-              VERSION: |
-                $(grep 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
         
         
 
