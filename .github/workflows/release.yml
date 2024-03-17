@@ -179,10 +179,11 @@ jobs:
             echo " - New features..." >> release_notes.txt
             echo " - Bug fixes..." >> release_notes.txt
         - name: Set VERSION environment variable
-          shell: bash
+          shell: pwsh
           run: |
-            VERSION=$(grep -i 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            $pubspecContent = Get-Content -Path pubspec.yaml -Raw
+            $version = ($pubspecContent -match 'msix_version:\s*(.+)')[1]
+            echo "VERSION=$version" >> $env:GITHUB_ENV
 
         - name: Create Release
           uses: actions/create-release@v1
@@ -279,6 +280,7 @@ jobs:
   #         cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
   #         tag: google_apis
   #         abi: x86_64
+
       # ----------------------------------------------------------
       # TODO: the bellow code should not be uncommented accidently
       # - name: Run Flutter Driver tests
@@ -398,3 +400,4 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
