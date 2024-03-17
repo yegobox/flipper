@@ -178,6 +178,7 @@ jobs:
             echo " - New features..." >> release_notes.txt
             echo " - Bug fixes..." >> release_notes.txt
         - name: Set VERSION environment variable
+          shell: bash
           run: |
             VERSION=$(grep 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
             echo "VERSION=$VERSION" >> $GITHUB_ENV
