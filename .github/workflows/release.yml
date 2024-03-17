@@ -121,7 +121,7 @@ jobs:
 
   build-and-release-windows:
       name: "Build windows app"
-#      needs: [unit-testing,integration-testing-windows]
+      needs: [unit-testing,integration-testing-windows]
       runs-on: windows-2022
       #     needs: [unit-testing]
       #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -178,29 +178,28 @@ jobs:
             echo "## Release Notes" >> release_notes.txt
             echo " - New features..." >> release_notes.txt
             echo " - Bug fixes..." >> release_notes.txt
-        - name: Set VERSION environment variable
-          shell: pwsh
+
+        - name: Extract msix_version
+          id: get_version
+          shell: powershell
           run: |
-            $pubspecContent = Get-Content -Path pubspec.yaml -Raw
-            $version = ($pubspecContent -match 'msix_version:\s*(.+)')[1]
-            echo "VERSION=$version" >> $env:GITHUB_ENV
+            cd apps/main_app
+            $MSIX_VERSION = Select-String -Path pubspec.yaml -Pattern '^msix_version:' | ForEach-Object { $_.ToString().Split(':')[1].Trim() }
+            Write-Output "::set-output name=version::$MSIX_VERSION"
 
         - name: Create Release
           uses: actions/create-release@v1
           env:
             GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-#            VERSION: ${{ env.VERSION }}
           with:
-            tag_name: 1.170.472.0
-            release_name: Windows Release 1.170.472.0
+            tag_name: ${{ steps.get_version.outputs.version }}
+            release_name: Windows Release ${{ steps.get_version.outputs.version }}
             draft: false
             prerelease: false
             body: |
               Changes in this Release
               - First Change
               - Second Change
-        
-        
 
         - name: Upload Build Artifact (optional)
           uses: actions/upload-artifact@v3
