@@ -7,11 +7,11 @@ repository: https://github.com/yegobox/packages
 # publish_to: "none"
 
 environment:
-  sdk: ">=3.0.0"
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  flutter:
-    sdk: flutter
+#  flutter:
+#    sdk: flutter
 
   firebase_ui_auth: ^1.11.0
   flutter_form_bloc: 0.31.0-dev
