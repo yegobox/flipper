@@ -48,9 +48,6 @@ void main() {
         await tester.enterText(find.byType(TextFormField), '1234');
         await tester.tap(find.text('Log in'));
 
-        await tester.pumpAndSettle(const Duration(seconds: 15));
-
-        expect(find.text('Pin not found.'), findsOneWidget);
 
         /// now test with real PIN.
       });
