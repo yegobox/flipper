@@ -77,7 +77,7 @@ class _PinLoginState extends State<PinLogin> {
                                   height: 40,
                                   child: !model.isProcessing
                                       ? BoxButton(
-                                          key: Key("pinLoginButton"),
+                                          key: const Key("pinLoginButton"),
                                           borderRadius: 2,
                                           onTap: () async {
                                             if (_form.currentState!
