@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at,
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.1978118907830+1710698495
+version: 1.170.1979829606326+1710698511
 # 
 #......
 # The packages below are just refrences for what packages being used
@@ -154,7 +154,6 @@ msix_config:
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
   tile_icon_path: "./assets/icon.png"
-#
   icons_background_color: #ffffff
   architecture: x64
   store: false
