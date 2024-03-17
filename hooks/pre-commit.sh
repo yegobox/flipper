@@ -19,7 +19,7 @@ sed -i "" "s/version: $version/version: $new_version/" pubspec.yaml
 git add pubspec.yaml
 #git commit -m "Bump version to $new_version"
 
-#TODO: Msix
+
 # Get current msix_version
 msix_version=$(awk '/msix_version:/ {print $2}' pubspec.yaml)
 
