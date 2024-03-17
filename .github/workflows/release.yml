@@ -177,6 +177,11 @@ jobs:
             echo "## Release Notes" >> release_notes.txt
             echo " - New features..." >> release_notes.txt
             echo " - Bug fixes..." >> release_notes.txt
+        - name: Set VERSION environment variable
+          run: |
+            VERSION=$(grep 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+
         - name: Create Release
           uses: actions/create-release@v1
           with:
@@ -190,8 +195,11 @@ jobs:
               - First Change
               - Second Change
           env:
-            GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-            VERSION: ${{ github.sha }}
+              GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+              VERSION: |
+                $(grep 'msix_version:' pubspec.yaml | cut -d: -f2 | tr -d '[:space:]')
+        
+        
 
         - name: Upload Build Artifact (optional)
           uses: actions/upload-artifact@v3
