@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # get current version
+cd apps/main_app
+
 version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
 
 # increment version
