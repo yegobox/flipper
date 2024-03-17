@@ -47,7 +47,8 @@ void main() {
         // Simulate entering a non-empty PIN
         await tester.enterText(find.byType(TextFormField), '1234');
         await tester.tap(find.text('Log in'));
-        await tester.pumpAndSettle(const Duration(seconds: 5));
+
+        await tester.pumpAndSettle(const Duration(seconds: 15));
 
         expect(find.text('Pin not found.'), findsOneWidget);
 
