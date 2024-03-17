@@ -69,7 +69,7 @@ jobs:
 
   integration-testing-windows:
      name: "Integration Testing Windows"
-     runs-on: windows-2019
+     runs-on: windows-2022
 #     needs: [unit-testing]
      steps:
        - run: git config --global core.autocrlf false
