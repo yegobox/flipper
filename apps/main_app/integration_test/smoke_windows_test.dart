@@ -47,18 +47,11 @@ void main() {
         // Simulate entering a non-empty PIN
         await tester.enterText(find.byType(TextFormField), '1234');
         await tester.tap(find.text('Log in'));
-        await tester.pumpAndSettle(const Duration(seconds: 2));
+        await tester.pumpAndSettle(const Duration(seconds: 5));
 
-        // Verify that the snackbar is shown for wrong pin
-        // expect(find.byType(SnackBar), findsOneWidget);
-        // expect(find.text('Pin not found.'), findsOneWidget);
+        expect(find.text('Pin not found.'), findsOneWidget);
 
-        // Verify that the error message is no longer displayed
-        // await tester.pumpAndSettle(); // Wait for animations to complete
-        // expect(find.text('PIN is required'), findsNothing);
-
-        // now enter the right
-        // await tester.pumpAndSettle();
+        /// now test with real PIN.
       });
     });
   });
