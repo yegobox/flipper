@@ -142,6 +142,7 @@ jobs:
 
       - name: Build Windows app
         run: |
+          git submodule update --init
           dart pub global activate melos
           melos bootstrap
           cd apps/main_app
