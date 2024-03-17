@@ -56,10 +56,10 @@ dependencies:
   flutter_animate: ^4.1.0
   flipper_services: ^1.0.0-dev
   cupertino_icons: ^1.0.2
-  flipper_login:
-    path: ./packages/flipper_login
-  flipper_actionable:
-    path: ./packages/flipper_actionable
+  flipper_login: ^0.0.1-dev.5
+#    path: ../../packages/flipper_login
+  flipper_actionable: ^0.0.1
+#    path: ../../packages/flipper_actionable
   firebase_core: ^2.24.2
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
