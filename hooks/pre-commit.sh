@@ -68,4 +68,5 @@ else
   echo "::warning::Unsupported operating system: $OS. Skipping version increment."
 fi
 
-
+# Exit with success
+exit 0
