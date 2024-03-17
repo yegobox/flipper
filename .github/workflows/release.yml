@@ -64,6 +64,7 @@ jobs:
        - run: |
            dart pub global activate melos
            melos bootstrap
+           cd apps/main_app
            flutter test --dart-define=Test=true
 
   integration-testing-windows:
