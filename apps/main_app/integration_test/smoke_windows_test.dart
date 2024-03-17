@@ -39,14 +39,14 @@ void main() {
         await tester.enterText(find.byType(TextFormField), '');
 
         // Verify that the validator error message is displayed
-        await tester.tap(find.byKey(const Key('pinLoginButton')));
+        await tester.tap(find.text('Log in'));
         await tester.pumpAndSettle(const Duration(seconds: 2));
 
         expect(find.text('PIN is required'), findsOneWidget);
 
         // Simulate entering a non-empty PIN
         await tester.enterText(find.byType(TextFormField), '1234');
-        await tester.tap(find.byKey(const Key('pinLoginButton')));
+        await tester.tap(find.text('Log in'));
         await tester.pumpAndSettle(const Duration(seconds: 20));
 
         // Verify that the snackbar is shown for wrong pin

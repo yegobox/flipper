@@ -191,6 +191,7 @@ jobs:
               - Second Change
           env:
             GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+            VERSION: ${{ github.sha }}
 
         - name: Upload Build Artifact (optional)
           uses: actions/upload-artifact@v3
