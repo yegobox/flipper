@@ -69,8 +69,8 @@ jobs:
 
   integration-testing-windows:
      name: "Integration Testing Windows"
-     runs-on: windows-latest
-     needs: [unit-testing]
+     runs-on: windows-2019
+#     needs: [unit-testing]
      steps:
        - run: git config --global core.autocrlf false
        - name: Clone Flutter repository with stable channel
@@ -108,6 +108,7 @@ jobs:
        - run: |
            dart pub global activate melos
            melos bootstrap
+           cd apps/main_app
            flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
   # android-integration-test:
