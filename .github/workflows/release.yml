@@ -122,6 +122,14 @@ jobs:
   build-and-release-windows:
     runs-on: windows-2022
     steps:
+      - name: Export pub environment variable on Windows
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
+          fi
+        shell: bash
+      - run: git config --global core.autocrlf false
+
       - uses: actions/checkout@v3
 
       - name: Use Flutter
