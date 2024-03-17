@@ -182,9 +182,13 @@ jobs:
           with:
             tag_name: ${{ env.VERSION }}
             release_name: Windows Release ${{ env.VERSION }}
-            body_file: release_notes.txt  # Optional: Path to release notes file
+#            body_path: release_notes.txt  # Optional: Path to release notes file https://github.com/actions/create-release
             draft: false  # Set to true for draft releases
-            prerelease: false  # Set to true for pre-releases
+            prerelease: false
+            body: |
+              Changes in this Release
+              - First Change
+              - Second Change
           env:
             GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
