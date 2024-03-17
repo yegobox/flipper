@@ -184,8 +184,7 @@ jobs:
           shell: powershell
           run: |
             $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_version:\s*(.+?)(?=\s)' | ForEach-Object { $_.Captures.Groups[1].Value }
-            Write-Output "::set-output name=version::$MSIX_VERSION"
-
+            echo "::set-output name=version::$MSIX_VERSION"
 
         - name: Create Release
           uses: actions/create-release@v1
