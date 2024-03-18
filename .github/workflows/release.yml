@@ -208,7 +208,7 @@ jobs:
 
   android-integration-test:
      name: integration on Android
-     runs-on: macOS-latest
+     runs-on: macOS-12
      strategy:
        matrix:
          # using api 29 from reading comment from https://github.com/ReactiveCircus/android-emulator-runner/issues/324
@@ -268,11 +268,11 @@ jobs:
            dart pub global activate melos
            melos bootstrap
        - name: Install Android SDK
-         uses: malinskiy/action-android/install-sdk@release/0.1.4
+         uses: malinskiy/action-android/install-sdk@release/0.1.6
        - run: echo $ANDROID_HOME
        - run: sdkmanager --install "ndk;23.1.7779620"
        - run: sdkmanager --install "build-tools;30.0.3"
-       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.4
+       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.6
          with:
            cmd: cd apps/main_app &&  flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
            api: 29
