@@ -182,13 +182,19 @@ jobs:
         - name: Extract msix_version
           id: get_version
           shell: powershell
+            # https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/ the code bellow use the latest recommendation
           run: |
-              $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
-#            $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_version:\s*(.+?)(?=\s)' | ForEach-Object { $_.Captures.Groups[1].Value }
-#            echo "::set-output name=version::$MSIX_VERSION"
+            # Extract msix_version
+            $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }
+            
+            # Write the version to the GitHub state file
+            echo "MSIX_VERSION=$MSIX_VERSION" >> $GITHUB_STATE
+            
+            # Set the output
+            echo "MSIX_VERSION=$MSIX_VERSION" >> $GITHUB_OUTPUT
 
         - name: Create Release
-          uses: actions/create-release@v1
+          uses: actions/create-release@v1.1.4
           env:
             GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           with:
@@ -369,7 +375,7 @@ jobs:
 
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy]
+    needs: [fastlane-deploy,build-and-release-windows]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
