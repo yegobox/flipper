@@ -22,7 +22,8 @@ void main() {
     testWidgets('App start and runs windows', (WidgetTester tester) async {
       await tester.runAsync(() async {
         await app.main();
-        await tester.pumpAndSettle(const Duration(seconds: 12));
+        await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
         expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
 
