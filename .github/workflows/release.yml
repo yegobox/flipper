@@ -279,7 +279,7 @@ jobs:
            tag: google_apis
            abi: x86_64
            timeout: 600
-           hwAccel: true
+#           hwAccel: true
        - run: sleep 30
 
 
