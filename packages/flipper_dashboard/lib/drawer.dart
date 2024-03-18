@@ -40,6 +40,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Widget build(BuildContext context) {
     bool isProcessing = false;
     return Scaffold(
+      key: const Key("openDrawerPage"),
       appBar: CustomAppBar(
         closeButton: CLOSEBUTTON.WIDGET,
         isDividerVisible: false,

@@ -49,7 +49,15 @@ void main() {
         await tester.tap(find.text('Log in'));
 
 
-        /// now test with real PIN.
+        /// now test with real PIN. it login and go to openDrawerPage
+        await tester.enterText(find.byType(TextFormField), '67814');
+
+        await tester.tap(find.text('Log in'));
+
+        await tester.pumpAndSettle(const Duration(seconds: 10));
+
+        await tester.tap(find.byKey(const Key('openDrawerPage')));
+
       });
     });
   });

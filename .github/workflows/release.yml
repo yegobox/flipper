@@ -183,8 +183,8 @@ jobs:
           id: get_version
           shell: powershell
           run: |
-            $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_version:\s*(.+?)(?=\s)' | ForEach-Object { $_.Captures.Groups[1].Value }
-            echo "::set-output name=version::$MSIX_VERSION"
+            $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+#            echo "::set-output name=version::$MSIX_VERSION"
 
         - name: Create Release
           uses: actions/create-release@v1
@@ -275,7 +275,7 @@ jobs:
          with:
            cmd: cd apps/main_app &&  flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
            api: 33
-           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
+           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 4096 -no-window
            tag: google_apis
            abi: x86_64
            timeout: 600
