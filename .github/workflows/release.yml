@@ -211,7 +211,8 @@ jobs:
      runs-on: macOS-latest
      strategy:
        matrix:
-         api-level: [33]
+         # using api 29 from reading comment from https://github.com/ReactiveCircus/android-emulator-runner/issues/324
+         api-level: [31]
          target: [playstore]
        fail-fast: false
      steps:
@@ -267,18 +268,18 @@ jobs:
            dart pub global activate melos
            melos bootstrap
        - name: Install Android SDK
-         uses: malinskiy/action-android/install-sdk@release/0.1.2
+         uses: malinskiy/action-android/install-sdk@release/0.1.4
        - run: echo $ANDROID_HOME
        - run: sdkmanager --install "ndk;23.1.7779620"
        - run: sdkmanager --install "build-tools;30.0.3"
-       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.2
+       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.4
          with:
            cmd: cd apps/main_app &&  flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
-           api: 33
+           api: 29
            cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
            tag: google_apis
            abi: x86_64
-           bootTimeout: 600
+           bootTimeout: 720
        - run: sleep 30
 
 
