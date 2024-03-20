@@ -67,7 +67,7 @@ class IconRow extends StatefulHookConsumerWidget {
 }
 
 class IconRowState extends ConsumerState<IconRow> {
-  List<bool> _isSelected = [true, false, false, false, false];
+  List<bool> _isSelected = [true, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -82,27 +82,27 @@ class IconRowState extends ConsumerState<IconRow> {
               text: 'Home',
               isSelected: _isSelected[0],
             ),
-            IconText(
-              icon: Icons.local_offer,
-              text: 'Discount',
-              isSelected: _isSelected[1],
-            ),
-            IconText(
-              icon: Icons.replay,
-              text: 'Refund',
-              isSelected: _isSelected[2],
-            ),
+            // IconText(
+            //   icon: Icons.local_offer,
+            //   text: 'Discount',
+            //   isSelected: _isSelected[1],
+            // ),
+            // IconText(
+            //   icon: Icons.replay,
+            //   text: 'Refund',
+            //   isSelected: _isSelected[2],
+            // ),
             ProxyService.isar.isTaxEnabled()
                 ? IconText(
                     icon: Icons.sync,
                     text: 'Z Report',
-                    isSelected: _isSelected[3],
+                    isSelected: _isSelected[1],
                   )
                 : SizedBox.shrink(),
             IconText(
               icon: Icons.payment,
               text: 'EOD',
-              isSelected: _isSelected[4],
+              isSelected: _isSelected[2],
             ),
           ],
           onPressed: (int index) {
@@ -133,7 +133,7 @@ class IconRowState extends ConsumerState<IconRow> {
 
   void buttonNav(int index) async {
     // Handle button press
-    if (index == 4) {
+    if (index == 2) {
       final _routerService = locator<RouterService>();
       // Perform some action when the button is pressed
       final data = await ProxyService.isar
