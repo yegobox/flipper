@@ -7,19 +7,20 @@ repository: https://github.com/yegobox/packages
 # publish_to: "none"
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-#  flutter:
-#    sdk: flutter
+  #  flutter:
+  #    sdk: flutter
 
   firebase_ui_auth: ^1.11.0
-  flutter_form_bloc: 0.31.0-dev
+  flutter_form_bloc:
+    0.31.0-dev
     # git:
     #   url: https://github.com/Cavin6080/form_bloc.git
     #   path: packages/flutter_form_bloc
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.24.2
+  firebase_core: ^2.27.1
   # firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^1.0.0-dev
   flipper_dashboard: ^0.0.1-dev.5
@@ -31,7 +32,7 @@ dependencies:
   flutter_settings_ui: ^2.0.1
   stacked: ^3.4.2
   google_fonts: ^6.1.0
-# Do not update firebase_auth https://github.com/firebase/flutterfire/issues/5964
+  # Do not update firebase_auth https://github.com/firebase/flutterfire/issues/5964
   firebase_auth: ^4.16.0
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^5.0.2

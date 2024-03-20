@@ -13,7 +13,7 @@ description: A super app for africans
 # Read more about iOS versioning at,
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
 version: 1.170.4077148851330+1710767576
-# 
+#
 #.....
 # The packages below are just refrences for what packages being used
 # so not referenced in the app! check each package for more real package used
@@ -57,10 +57,10 @@ dependencies:
   flipper_services: ^1.0.0-dev
   cupertino_icons: ^1.0.2
   flipper_login: ^0.0.1-dev.5
-#    path: ../../packages/flipper_login
+  #    path: ../../packages/flipper_login
   flipper_actionable: ^0.0.1
-#    path: ../../packages/flipper_actionable
-  firebase_core: ^2.24.2
+  #    path: ../../packages/flipper_actionable
+  firebase_core: ^2.27.1
   flutter_localization: ^0.1.11
   country_code_picker: ^3.0.0
   injectable: ^2.4.0
@@ -108,7 +108,7 @@ dev_dependencies:
     sdk: flutter
   flutter_driver:
     sdk: flutter
-  
+
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0

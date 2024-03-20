@@ -26,266 +26,266 @@ env:
 
 jobs:
   unit-testing:
-     runs-on: ubuntu-22.04
-     steps:
-       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-         with:
-           submodules: recursive
-           token: ${{ secrets.ACCESS_TOKEN }}
-           persist-credentials: true
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
 
-       - uses: actions/setup-java@v2
-         with:
-           distribution: "zulu"
-           java-version: "11"
+      - uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "11"
 
-       - uses: subosito/flutter-action@v2
-         with:
-           flutter-version: '3.19.3'
-           channel: "stable"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.3"
+          channel: "stable"
 
-       - run: git submodule update --init
+      - run: git submodule update --init
 
-       - name: Configure Missing files
-         shell: bash
-         run: |
-           echo "$INDEX" >> apps/main_app/web/index.html
-           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-           echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
-           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-           git config --global core.autocrlf false
-         env:
-           INDEX: ${{ secrets.INDEX }}
-           CONFIGDART: ${{ secrets.CONFIGDART }}
-           SECRETS: ${{ secrets.SECRETS }}
-           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          git config --global core.autocrlf false
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
 
-       - run: |
-           dart pub global activate melos
-           melos bootstrap
-           cd apps/main_app
-           flutter test --dart-define=Test=true
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          flutter test --dart-define=Test=true
 
   integration-testing-windows:
-     name: "Integration Testing Windows"
-     runs-on: windows-2022
-#     needs: [unit-testing]
-#     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
-#   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
-     steps:
-       - name: Export pub environment variable on Windows
-         run: |
-           if [ "$RUNNER_OS" == "Windows" ]; then
-             echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-           fi
-         shell: bash
-       - run: git config --global core.autocrlf false
-       - uses: actions/checkout@v4
-         with:
-           submodules: recursive
-           token: ${{ secrets.ACCESS_TOKEN }}
-           persist-credentials: true
-       - name: Clone Flutter repository with stable channel
-         uses: subosito/flutter-action@v2
-         with:
-           flutter-version: "3.19.3"
-           channel: stable
-       - run: flutter doctor -v
+    name: "Integration Testing Windows"
+    runs-on: windows-2022
+    #     needs: [unit-testing]
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
+    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
+    steps:
+      - name: Export pub environment variable on Windows
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
+          fi
+        shell: bash
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.3"
+          channel: stable
+      - run: flutter doctor -v
 
-       - uses: actions/setup-java@v2
-         with:
-           distribution: "zulu"
-           java-version: "11"
+      - uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "11"
 
-       - name: submodule init
-         run: git submodule update --init
-       - name: Configure Missing files
-         shell: bash
-         run: |
-           echo "$INDEX" >> apps/main_app/web/index.html
-           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-           echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
-           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-         env:
-           INDEX: ${{ secrets.INDEX }}
-           CONFIGDART: ${{ secrets.CONFIGDART }}
-           SECRETS: ${{ secrets.SECRETS }}
-           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-       - run: |
-           dart pub global activate melos
-           melos bootstrap
-           cd apps/main_app
-           flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
   build-and-release-windows:
-      name: "Build windows app"
-      needs: [unit-testing,integration-testing-windows,android-integration-test]
-      runs-on: windows-2022
-      #     needs: [unit-testing]
-      #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
-      #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
-      steps:
-        - name: Export pub environment variable on Windows
-          run: |
-            if [ "$RUNNER_OS" == "Windows" ]; then
-              echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-            fi
-          shell: bash
-        - run: git config --global core.autocrlf false
-        - uses: actions/checkout@v4
-          with:
-            submodules: recursive
-            token: ${{ secrets.ACCESS_TOKEN }}
-            persist-credentials: true
-        - name: Clone Flutter repository with stable channel
-          uses: subosito/flutter-action@v2
-          with:
-            flutter-version: "3.19.3"
-            channel: stable
-        - run: flutter doctor -v
+    name: "Build windows app"
+    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    runs-on: windows-2022
+    #     needs: [unit-testing]
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
+    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
+    steps:
+      - name: Export pub environment variable on Windows
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
+          fi
+        shell: bash
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.3"
+          channel: stable
+      - run: flutter doctor -v
 
-        - uses: actions/setup-java@v2
-          with:
-            distribution: "zulu"
-            java-version: "11"
+      - uses: actions/setup-java@v2
+        with:
+          distribution: "zulu"
+          java-version: "11"
 
-        - name: submodule init
-          run: git submodule update --init
-        - name: Configure Missing files
-          shell: bash
-          run: |
-            echo "$INDEX" >> apps/main_app/web/index.html
-            echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-            echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-            echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
-            echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          env:
-            INDEX: ${{ secrets.INDEX }}
-            CONFIGDART: ${{ secrets.CONFIGDART }}
-            SECRETS: ${{ secrets.SECRETS }}
-            FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-        - run: |
-            dart pub global activate melos
-            melos bootstrap
-            cd apps/main_app
-            dart run msix:create --store 
-        - name: Configure Release (optional)
-          env:
-            VERSION: ${{ github.sha }}  # Or use a semantic versioning scheme
-          run: |
-            echo "## Release Notes" >> release_notes.txt
-            echo " - New features..." >> release_notes.txt
-            echo " - Bug fixes..." >> release_notes.txt
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          dart run msix:create --store
+      - name: Configure Release (optional)
+        env:
+          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
+        run: |
+          echo "## Release Notes" >> release_notes.txt
+          echo " - New features..." >> release_notes.txt
+          echo " - Bug fixes..." >> release_notes.txt
 
-        - name: Extract msix_version
-          id: get_version
-          shell: powershell
-            #TODO: https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/ the code bellow use the latest recommendation
-          run: |
-            $MSIX_VERSION = (Get-Content -Path "apps/main_app/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+      - name: Extract msix_version
+        id: get_version
+        shell:
+          powershell
+          #TODO: https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/ the code bellow use the latest recommendation
+        run: |
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-        - name: Create Release
-          uses: actions/create-release@v1.0.0
-          env:
-            GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          with:
-            tag_name: ${{ steps.get_version.outputs.version }}
-            release_name: Windows Release ${{ steps.get_version.outputs.version }}
-            draft: false
-            prerelease: false
-            body: |
-              Changes in this Release
-              - First Change
-              - Second Change
+      - name: Create Release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Windows Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
 
-        - name: Upload Build Artifact (optional)
-          uses: actions/upload-artifact@v3
-          with:
-            name: windows-build
-            path: build/windows/x64
+      - name: Upload Build Artifact (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: build/windows/x64
 
   android-integration-test:
-     name: integration on Android
-     runs-on: macOS-12
-     strategy:
-       matrix:
-         # using api 29 from reading comment from https://github.com/ReactiveCircus/android-emulator-runner/issues/324
-         api-level: [31]
-         target: [playstore]
-       fail-fast: false
-     steps:
-       - uses: actions/checkout@v2
-       - uses: actions/setup-java@v1
-         with:
-           distribution: "zulu"
-           java-version: "17"
-       - name: Clone Flutter repository with stable channel
-         uses: subosito/flutter-action@v2
-         with:
-           flutter-version: "3.19.3"
-           channel: stable
-       - name: Configure Git with PAT
-         env:
-           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-         run: |
-           git config --global user.email "info@yegobox.com"
-           git config --global user.name "YEGOBOX"
-           git config --global credential.helper store
-           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
-       - name: submodule init
-         run: git submodule update --init
-       - name: Configure Missing files
-         run: |
-           echo "$INDEX" >> apps/main_app/web/index.html
-           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-           echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
-           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-           git config --global core.autocrlf false
-         env:
-           INDEX: ${{ secrets.INDEX }}
-           CONFIGDART: ${{ secrets.CONFIGDART }}
-           SECRETS: ${{ secrets.SECRETS }}
-           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-       - name: Configure Keystore
-         run: |
-           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
-           echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
-           echo "storeFile=key.jks" >> key.properties
-           echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
-           echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
-           echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
-         env:
-           PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
-           KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
-           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
-           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
-           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-         working-directory: apps/main_app/android
-       - run: |
-           dart pub global activate melos
-           melos bootstrap
-       - name: Install Android SDK
-         uses: malinskiy/action-android/install-sdk@release/0.1.6
-       - run: echo $ANDROID_HOME
-       - run: sdkmanager --install "ndk;23.1.7779620"
-       - run: sdkmanager --install "build-tools;30.0.3"
-       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.6
-         with:
-           cmd: cd apps/main_app &&  flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
-           api: 29
-           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
-           tag: google_apis
-           abi: x86_64
-           bootTimeout: 720
-       - run: sleep 30
-
+    name: integration on Android
+    runs-on: macOS-12
+    strategy:
+      matrix:
+        # using api 29 from reading comment from https://github.com/ReactiveCircus/android-emulator-runner/issues/324
+        api-level: [31]
+        target: [playstore]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          distribution: "zulu"
+          java-version: "17"
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.19.3"
+          channel: stable
+      - name: Configure Git with PAT
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config --global user.email "info@yegobox.com"
+          git config --global user.name "YEGOBOX"
+          git config --global credential.helper store
+          echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          git config --global core.autocrlf false
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+      - name: Configure Keystore
+        run: |
+          echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
+          echo "$PLAY_STORE_UPLOAD_KEY" | base64 --decode > app/key.jks
+          echo "storeFile=key.jks" >> key.properties
+          echo "keyAlias=$KEYSTORE_KEY_ALIAS" >> key.properties
+          echo "storePassword=$KEYSTORE_STORE_PASSWORD" >> key.properties
+          echo "keyPassword=$KEYSTORE_KEY_PASSWORD" >> key.properties
+        env:
+          PLAY_STORE_UPLOAD_KEY: ${{ secrets.PLAY_STORE_UPLOAD_KEY }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
+        working-directory: apps/flipper/android
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+      - name: Install Android SDK
+        uses: malinskiy/action-android/install-sdk@release/0.1.6
+      - run: echo $ANDROID_HOME
+      - run: sdkmanager --install "ndk;23.1.7779620"
+      - run: sdkmanager --install "build-tools;30.0.3"
+      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.6
+        with:
+          cmd: cd apps/flipper &&  flutter test --dart-define=Test=true  integration_test/smoke_android_test.dart
+          api: 29
+          cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
+          tag: google_apis
+          abi: x86_64
+          bootTimeout: 720
+      - run: sleep 30
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing,integration-testing-windows,android-integration-test]
+    needs: [unit-testing, integration-testing-windows, android-integration-test]
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
@@ -316,10 +316,10 @@ jobs:
         run: git submodule update --init
       - name: Configure Missing files
         run: |
-          echo "$INDEX" >> apps/main_app/web/index.html
+          echo "$INDEX" >> apps/flipper/web/index.html
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/main_app/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
         env:
@@ -337,7 +337,7 @@ jobs:
           ruby-version: "3.0"
           bundler-cache: true
           # cache-version: 1
-          working-directory: apps/main_app/android
+          working-directory: apps/flipper/android
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -354,7 +354,7 @@ jobs:
           KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
-        working-directory: apps/main_app/android
+        working-directory: apps/flipper/android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
       # Naturally, promote_to_production only deploys.
@@ -365,11 +365,11 @@ jobs:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        working-directory: apps/main_app/android
+        working-directory: apps/flipper/android
 
   slackNotification:
     name: Slack Notification
-    needs: [fastlane-deploy,build-and-release-windows]
+    needs: [fastlane-deploy, build-and-release-windows]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -377,4 +377,3 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-

@@ -392,4 +392,5 @@ class App {}
 //article to check: https://medium.com/@ABausG/interactive-homescreen-widgets-with-flutter-using-home-widget-83cb0706a417
 // https://github.com/Shopify/ejson
 //TODO: People to hire to clean the UI: https://goods.overnice.com/
+// fix nuget issue : winget install Microsoft.NuGet
 

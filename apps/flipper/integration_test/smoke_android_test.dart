@@ -49,8 +49,6 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text("How would you like to proceed?"), findsOneWidget);
 
-
-
       /// now Test login using the PIN
       /// pinLogin
       await tester.tap(find.byKey(const Key('pinLogin')));
@@ -65,14 +63,14 @@ void main() {
       // Verify that the validator error message is displayed
       await tester.tap(find.text('Log in'));
 
-      await tester.pumpAndSettle(const Duration(seconds: 2));
+      await tester.pumpAndSettle();
 
       expect(find.text('PIN is required'), findsOneWidget);
 
       // Simulate entering a non-empty PIN
       await tester.enterText(find.byType(TextFormField), '1234');
       await tester.tap(find.text('Log in'));
-      await tester.pumpAndSettle(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
 
       /// now test with real PIN. it login and go to openDrawerPage
       // await tester.enterText(find.byType(TextFormField), '67814');
