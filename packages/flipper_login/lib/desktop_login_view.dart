@@ -56,7 +56,9 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
               );
             }
             return Center(
-              child: Column(
+              child: Container(
+                color:Colors.white,
+                child: Column(
                 children: [
                   Spacer(),
                   SizedBox(
@@ -181,6 +183,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   ),
                   Spacer(),
                 ],
+              )
               ),
             );
           }

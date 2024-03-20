@@ -143,6 +143,8 @@ Future<void> main() async {
             // darkTheme: GThemeGenerator.generateDark(),
             theme: ThemeData(
               textTheme: GoogleFonts.poppinsTextTheme(),
+              colorScheme:
+                  ColorScheme.light().copyWith(background: Colors.white),
             ),
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
