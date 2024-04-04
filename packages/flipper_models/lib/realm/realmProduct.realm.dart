@@ -198,12 +198,92 @@ class RealmProduct extends _RealmProduct
   @override
   RealmProduct freeze() => RealmObjectBase.freezeObject<RealmProduct>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'name': name.toEJson(),
+      'description': description.toEJson(),
+      'taxId': taxId.toEJson(),
+      'color': color.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'supplierId': supplierId.toEJson(),
+      'categoryId': categoryId.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'unit': unit.toEJson(),
+      'imageUrl': imageUrl.toEJson(),
+      'expiryDate': expiryDate.toEJson(),
+      'barCode': barCode.toEJson(),
+      'nfcEnabled': nfcEnabled.toEJson(),
+      'bindedToTenantId': bindedToTenantId.toEJson(),
+      'isFavorite': isFavorite.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+      'action': action.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
+      'searchMatch': searchMatch.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmProduct value) => value.toEJson();
+  static RealmProduct _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'name': EJsonValue name,
+        'description': EJsonValue description,
+        'taxId': EJsonValue taxId,
+        'color': EJsonValue color,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
+        'supplierId': EJsonValue supplierId,
+        'categoryId': EJsonValue categoryId,
+        'createdAt': EJsonValue createdAt,
+        'unit': EJsonValue unit,
+        'imageUrl': EJsonValue imageUrl,
+        'expiryDate': EJsonValue expiryDate,
+        'barCode': EJsonValue barCode,
+        'nfcEnabled': EJsonValue nfcEnabled,
+        'bindedToTenantId': EJsonValue bindedToTenantId,
+        'isFavorite': EJsonValue isFavorite,
+        'lastTouched': EJsonValue lastTouched,
+        'action': EJsonValue action,
+        'deletedAt': EJsonValue deletedAt,
+        'searchMatch': EJsonValue searchMatch,
+      } =>
+        RealmProduct(
+          fromEJson(id),
+          fromEJson(realmId),
+          fromEJson(name),
+          fromEJson(color),
+          fromEJson(businessId),
+          fromEJson(branchId),
+          fromEJson(action),
+          description: fromEJson(description),
+          taxId: fromEJson(taxId),
+          supplierId: fromEJson(supplierId),
+          categoryId: fromEJson(categoryId),
+          createdAt: fromEJson(createdAt),
+          unit: fromEJson(unit),
+          imageUrl: fromEJson(imageUrl),
+          expiryDate: fromEJson(expiryDate),
+          barCode: fromEJson(barCode),
+          nfcEnabled: fromEJson(nfcEnabled),
+          bindedToTenantId: fromEJson(bindedToTenantId),
+          isFavorite: fromEJson(isFavorite),
+          lastTouched: fromEJson(lastTouched),
+          deletedAt: fromEJson(deletedAt),
+          searchMatch: fromEJson(searchMatch),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmProduct._);
-    return const SchemaObject(
-        ObjectType.realmObject, RealmProduct, 'RealmProduct', [
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, RealmProduct, 'RealmProduct', [
       SchemaProperty('id', RealmPropertyType.string),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -229,5 +309,8 @@ class RealmProduct extends _RealmProduct
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('searchMatch', RealmPropertyType.bool, optional: true),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

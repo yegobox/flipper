@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_services/constants.dart';
@@ -212,12 +213,11 @@ class EBMHandler<OBJ> {
     int branchId = ProxyService.box.getBranchId()!;
     Counter? counter = await ProxyService.isar
         .getCounter(branchId: branchId, receiptType: receiptType);
-    // Counter? counter = null;
-    //log(counter?.toRawJson() ?? "No counter", name: "onAfter:current Counter");
 
     if (counter == null) {
-      updateCounter(
-        Counter(
+      ProxyService.isar.create<Counter>(
+        data: Counter(
+          id: randomNumber(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
           curRcptNo: 0,

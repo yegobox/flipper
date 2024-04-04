@@ -65,12 +65,44 @@ class RealmIUnit extends _RealmIUnit
   @override
   RealmIUnit freeze() => RealmObjectBase.freezeObject<RealmIUnit>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      '_id': realmId.toEJson(),
+      'id': id.toEJson(),
+      'branchId': branchId.toEJson(),
+      'name': name.toEJson(),
+      'value': value.toEJson(),
+      'active': active.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmIUnit value) => value.toEJson();
+  static RealmIUnit _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+        'id': EJsonValue id,
+        'branchId': EJsonValue branchId,
+        'name': EJsonValue name,
+        'value': EJsonValue value,
+        'active': EJsonValue active,
+      } =>
+        RealmIUnit(
+          fromEJson(realmId),
+          fromEJson(id),
+          fromEJson(branchId),
+          fromEJson(name),
+          fromEJson(value),
+          fromEJson(active),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmIUnit._);
-    return const SchemaObject(
-        ObjectType.realmObject, RealmIUnit, 'RealmIUnit', [
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, RealmIUnit, 'RealmIUnit', [
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('id', RealmPropertyType.string),
@@ -79,5 +111,8 @@ class RealmIUnit extends _RealmIUnit
       SchemaProperty('value', RealmPropertyType.string),
       SchemaProperty('active', RealmPropertyType.bool),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

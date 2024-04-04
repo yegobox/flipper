@@ -38,27 +38,23 @@ class FlipperBaseModel extends ReactiveViewModel {
   }
 
   /// keyboard events handler
-  void handleKeyBoardEvents({required RawKeyDownEvent event}) {
-    // Check for F9, F10, and F12 keys
-    if (event.data is RawKeyEventDataWindows) {
-      final windowsData = event.data as RawKeyEventDataWindows;
-      if (windowsData.keyCode == 120) {
-        // F9 key (key code 120)
-        print("F9 is pressed");
-      } else if (windowsData.keyCode == 121) {
-        // F10 key (key code 121)
-        print("F10 is pressed");
-      } else if (windowsData.keyCode == 123) {
-        // F12 key (key code 123)
-        print("F12 is pressed");
-      } else if (windowsData.keyCode == 27) {
-        // ESC key (key code 27)
-        print("F12 is pressed");
-        _dialogService.showCustomDialog(
-          variant: DialogType.logOut,
-          title: 'Log out',
-        );
-      }
+
+  void handleKeyBoardEvents({required KeyEvent event}) {
+    if (event.logicalKey == LogicalKeyboardKey.f9) {
+      print("F9 is pressed");
+      // Add your F9 key handling logic here
+    } else if (event.logicalKey == LogicalKeyboardKey.f10) {
+      print("F10 is pressed");
+      // Add your F10 key handling logic here
+    } else if (event.logicalKey == LogicalKeyboardKey.f12) {
+      print("F12 is pressed");
+      // Add your F12 key handling logic here
+    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+      print("Escape key is pressed");
+      _dialogService.showCustomDialog(
+        variant: DialogType.logOut,
+        title: 'Log out',
+      );
     }
   }
 }

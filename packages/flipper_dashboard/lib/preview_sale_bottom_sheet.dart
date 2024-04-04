@@ -197,6 +197,8 @@ class PreviewSaleBottomSheetState
             ? "Collect ${_numberFormat.format(totalPayable)} "
             : "Order ${_numberFormat.format(totalPayable)} ",
         onTap: () async {
+          /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
+          Navigator.of(context).pop();
           final transaction = await ProxyService.isar.manageTransaction(
             transactionType: TransactionType.custom,
           );

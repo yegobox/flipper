@@ -27,6 +27,18 @@ import 'sync.dart';
 import 'package:realm/realm.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 
+final realmModels = [
+  RealmITransaction.schema,
+  RealmITransactionItem.schema,
+  RealmProduct.schema,
+  RealmVariant.schema,
+  RealmStock.schema,
+  RealmIUnit.schema,
+  RealmReceipt.schema,
+  RealmCustomer.schema,
+  RealmCounter.schema,
+];
+
 abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   Future<void> onSave<T extends IJsonSerializable>({required T item});
   factory SyncReaml.create() => RealmSync<M>();
@@ -76,22 +88,14 @@ class RealmSync<M extends IJsonSerializable>
     final user = app.currentUser ??
         await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
 
+    String path = await absolutePath("db_");
+
     List<int> key = ProxyService.box.encryptionKey().toIntList();
     final config = Configuration.flexibleSync(
       user,
-      [
-        RealmITransaction.schema,
-        RealmITransactionItem.schema,
-        RealmProduct.schema,
-        RealmVariant.schema,
-        RealmStock.schema,
-        RealmIUnit.schema,
-        RealmCounter.schema,
-        RealmReceipt.schema,
-        RealmCustomer.schema,
-      ],
+      realmModels,
       encryptionKey: key,
-      path: await absolutePath("db_"),
+      path: path,
       clientResetHandler: RecoverUnsyncedChangesHandler(
         onBeforeReset: (beforeResetRealm) {
           log("reset requested here..");
@@ -129,13 +133,15 @@ class RealmSync<M extends IJsonSerializable>
       //  realm = Realm(config);
       realm = await Realm.open(config, cancellationToken: token,
           onProgressCallback: (syncProgress) {
-        if (syncProgress.transferableBytes == syncProgress.transferredBytes) {
+        if (syncProgress.progressEstimate == 1.0) {
           print('All bytes transferred!');
         }
       });
+      log("Opened realm[1]", name: "OpeningRealm");
     } catch (e) {
+      log("Opened realm[2]", name: "OpeningRealm");
       print(e);
-      realm = Realm(config);
+      // realm = Realm(config);
     }
     // Realm.logger.level = RealmLogLevel.trace;
     await updateSubscription(branchId);
@@ -285,6 +291,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmITransactionItem = RealmITransactionItem(
+          item.id,
           ObjectId(),
           item.name,
           item.transactionId,
@@ -295,7 +302,6 @@ class RealmSync<M extends IJsonSerializable>
           item.branchId,
           item.remainingStock,
           item.createdAt,
-          item.id,
           item.updatedAt,
           item.isTaxExempted,
           addInfo: item.addInfo,
@@ -398,6 +404,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmVariant = RealmVariant(
+            item.id,
             ObjectId(), // Auto-generate ObjectId for realmId
             item.name,
             item.color,
@@ -407,10 +414,9 @@ class RealmSync<M extends IJsonSerializable>
             item.productName,
             item.branchId,
             item.isTaxExempted,
-            item.action,
-            item.id,
-            item.retailPrice,
             item.supplyPrice,
+            item.retailPrice,
+            item.action,
             dftPrc: item.dftPrc,
             taxName: item.taxName,
             taxPercentage: item.taxPercentage,
@@ -637,6 +643,7 @@ class RealmSync<M extends IJsonSerializable>
     await _spawnIsolate("variants", IsolateHandler.handleVariants);
 
     await _spawnIsolate("stocks", IsolateHandler.handleStocs);
+    await _spawnIsolate("counters", IsolateHandler.handleCounters);
   }
 
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {

@@ -110,7 +110,7 @@ class ProductViewState extends ConsumerState<ProductView> {
       BuildContext context, ProductViewModel model, bool scanMode) {
     int buttonIndex = ref.watch(buttonIndexProvider);
 
-    if (buttonIndex == 3) {
+    if (buttonIndex == 1) {
       return SliverToBoxAdapter(child: TransactionList());
     }
 

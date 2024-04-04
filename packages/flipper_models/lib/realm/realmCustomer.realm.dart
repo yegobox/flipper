@@ -193,11 +193,92 @@ class RealmCustomer extends _RealmCustomer
   @override
   RealmCustomer freeze() => RealmObjectBase.freezeObject<RealmCustomer>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'custNm': custNm.toEJson(),
+      'email': email.toEJson(),
+      'telNo': telNo.toEJson(),
+      'adrs': adrs.toEJson(),
+      'branchId': branchId.toEJson(),
+      'updatedAt': updatedAt.toEJson(),
+      'custNo': custNo.toEJson(),
+      'custTin': custTin.toEJson(),
+      'regrNm': regrNm.toEJson(),
+      'regrId': regrId.toEJson(),
+      'modrNm': modrNm.toEJson(),
+      'modrId': modrId.toEJson(),
+      'ebmSynced': ebmSynced.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+      'action': action.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
+      'tin': tin.toEJson(),
+      'bhfId': bhfId.toEJson(),
+      'useYn': useYn.toEJson(),
+      'customerType': customerType.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmCustomer value) => value.toEJson();
+  static RealmCustomer _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'custNm': EJsonValue custNm,
+        'email': EJsonValue email,
+        'telNo': EJsonValue telNo,
+        'adrs': EJsonValue adrs,
+        'branchId': EJsonValue branchId,
+        'updatedAt': EJsonValue updatedAt,
+        'custNo': EJsonValue custNo,
+        'custTin': EJsonValue custTin,
+        'regrNm': EJsonValue regrNm,
+        'regrId': EJsonValue regrId,
+        'modrNm': EJsonValue modrNm,
+        'modrId': EJsonValue modrId,
+        'ebmSynced': EJsonValue ebmSynced,
+        'lastTouched': EJsonValue lastTouched,
+        'action': EJsonValue action,
+        'deletedAt': EJsonValue deletedAt,
+        'tin': EJsonValue tin,
+        'bhfId': EJsonValue bhfId,
+        'useYn': EJsonValue useYn,
+        'customerType': EJsonValue customerType,
+      } =>
+        RealmCustomer(
+          fromEJson(id),
+          fromEJson(realmId),
+          custNm: fromEJson(custNm),
+          email: fromEJson(email),
+          telNo: fromEJson(telNo),
+          adrs: fromEJson(adrs),
+          branchId: fromEJson(branchId),
+          updatedAt: fromEJson(updatedAt),
+          custNo: fromEJson(custNo),
+          custTin: fromEJson(custTin),
+          regrNm: fromEJson(regrNm),
+          regrId: fromEJson(regrId),
+          modrNm: fromEJson(modrNm),
+          modrId: fromEJson(modrId),
+          ebmSynced: fromEJson(ebmSynced),
+          lastTouched: fromEJson(lastTouched),
+          action: fromEJson(action),
+          deletedAt: fromEJson(deletedAt),
+          tin: fromEJson(tin),
+          bhfId: fromEJson(bhfId),
+          useYn: fromEJson(useYn),
+          customerType: fromEJson(customerType),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmCustomer._);
-    return const SchemaObject(
+    register(_toEJson, _fromEJson);
+    return SchemaObject(
         ObjectType.realmObject, RealmCustomer, 'RealmCustomer', [
       SchemaProperty('id', RealmPropertyType.string),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -224,5 +305,8 @@ class RealmCustomer extends _RealmCustomer
       SchemaProperty('useYn', RealmPropertyType.string, optional: true),
       SchemaProperty('customerType', RealmPropertyType.string, optional: true),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

@@ -1,6 +1,6 @@
 import 'package:realm/realm.dart';
 
-part 'realmCounter.g.dart';
+part 'realmCounter.realm.dart';
 
 @RealmModel()
 class _RealmCounter {

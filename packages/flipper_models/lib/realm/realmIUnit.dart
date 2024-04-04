@@ -1,5 +1,5 @@
 import 'package:realm/realm.dart';
-part 'realmIUnit.g.dart';
+part 'realmIUnit.realm.dart';
 
 @RealmModel()
 class _RealmIUnit {

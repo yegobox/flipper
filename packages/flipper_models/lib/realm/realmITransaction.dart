@@ -1,6 +1,6 @@
 import 'package:realm/realm.dart';
 
-part 'realmITransaction.g.dart';
+part 'realmITransaction.realm.dart';
 
 @RealmModel()
 class _RealmITransaction {

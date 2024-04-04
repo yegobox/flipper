@@ -1,9 +1,12 @@
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:realm/realm.dart';
 
-part 'realmTransactionItem.g.dart';
+part 'realmTransactionItem.realm.dart';
+part 'realmTransactionItem.mapper.dart';
 
+@MappableClass()
 @RealmModel()
-class _RealmITransactionItem {
+class $RealmITransactionItem with $RealmITransactionItemMappable {
   late String id;
   @PrimaryKey()
   @MapTo('_id')

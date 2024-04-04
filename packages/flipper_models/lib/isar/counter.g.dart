@@ -65,18 +65,11 @@ const CounterSchema = IsarGeneratedSchema(
 
 @isarProtected
 int serializeCounter(IsarWriter writer, Counter object) {
-  IsarCore.writeLong(writer, 1, object.businessId ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 2, object.branchId ?? -9223372036854775808);
-  {
-    final value = object.receiptType;
-    if (value == null) {
-      IsarCore.writeNull(writer, 3);
-    } else {
-      IsarCore.writeString(writer, 3, value);
-    }
-  }
-  IsarCore.writeLong(writer, 4, object.totRcptNo ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 5, object.curRcptNo ?? -9223372036854775808);
+  IsarCore.writeLong(writer, 1, object.businessId);
+  IsarCore.writeLong(writer, 2, object.branchId);
+  IsarCore.writeString(writer, 3, object.receiptType);
+  IsarCore.writeLong(writer, 4, object.totRcptNo);
+  IsarCore.writeLong(writer, 5, object.curRcptNo);
   IsarCore.writeLong(
       writer,
       6,
@@ -92,44 +85,16 @@ int serializeCounter(IsarWriter writer, Counter object) {
 Counter deserializeCounter(IsarReader reader) {
   final int _id;
   _id = IsarCore.readId(reader);
-  final int? _businessId;
-  {
-    final value = IsarCore.readLong(reader, 1);
-    if (value == -9223372036854775808) {
-      _businessId = null;
-    } else {
-      _businessId = value;
-    }
-  }
-  final int? _branchId;
-  {
-    final value = IsarCore.readLong(reader, 2);
-    if (value == -9223372036854775808) {
-      _branchId = null;
-    } else {
-      _branchId = value;
-    }
-  }
-  final String? _receiptType;
-  _receiptType = IsarCore.readString(reader, 3);
-  final int? _totRcptNo;
-  {
-    final value = IsarCore.readLong(reader, 4);
-    if (value == -9223372036854775808) {
-      _totRcptNo = null;
-    } else {
-      _totRcptNo = value;
-    }
-  }
-  final int? _curRcptNo;
-  {
-    final value = IsarCore.readLong(reader, 5);
-    if (value == -9223372036854775808) {
-      _curRcptNo = null;
-    } else {
-      _curRcptNo = value;
-    }
-  }
+  final int _businessId;
+  _businessId = IsarCore.readLong(reader, 1);
+  final int _branchId;
+  _branchId = IsarCore.readLong(reader, 2);
+  final String _receiptType;
+  _receiptType = IsarCore.readString(reader, 3) ?? '';
+  final int _totRcptNo;
+  _totRcptNo = IsarCore.readLong(reader, 4);
+  final int _curRcptNo;
+  _curRcptNo = IsarCore.readLong(reader, 5);
   final DateTime? _lastTouched;
   {
     final value = IsarCore.readLong(reader, 6);
@@ -170,43 +135,15 @@ dynamic deserializeCounterProp(IsarReader reader, int property) {
     case 0:
       return IsarCore.readId(reader);
     case 1:
-      {
-        final value = IsarCore.readLong(reader, 1);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readLong(reader, 1);
     case 2:
-      {
-        final value = IsarCore.readLong(reader, 2);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readLong(reader, 2);
     case 3:
-      return IsarCore.readString(reader, 3);
+      return IsarCore.readString(reader, 3) ?? '';
     case 4:
-      {
-        final value = IsarCore.readLong(reader, 4);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readLong(reader, 4);
     case 5:
-      {
-        final value = IsarCore.readLong(reader, 5);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return IsarCore.readLong(reader, 5);
     case 6:
       {
         final value = IsarCore.readLong(reader, 6);
@@ -506,20 +443,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 1));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 1));
-    });
-  }
-
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -532,7 +457,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdGreaterThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -546,7 +471,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       businessIdGreaterThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -559,7 +484,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdLessThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -573,7 +498,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       businessIdLessThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -586,8 +511,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdBetween(
-    int? lower,
-    int? upper,
+    int lower,
+    int upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -600,20 +525,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
   QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -626,7 +539,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdGreaterThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -640,7 +553,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       branchIdGreaterThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -653,7 +566,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdLessThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -667,7 +580,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       branchIdLessThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -680,8 +593,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdBetween(
-    int? lower,
-    int? upper,
+    int lower,
+    int upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -694,20 +607,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -722,7 +623,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeGreaterThan(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -738,7 +639,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       receiptTypeGreaterThanOrEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -753,7 +654,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeLessThan(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -769,7 +670,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       receiptTypeLessThanOrEqualTo(
-    String? value, {
+    String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -784,8 +685,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeBetween(
-    String? lower,
-    String? upper, {
+    String lower,
+    String upper, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
@@ -881,20 +782,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -907,7 +796,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoGreaterThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -921,7 +810,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       totRcptNoGreaterThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -934,7 +823,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoLessThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -948,7 +837,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       totRcptNoLessThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -961,8 +850,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoBetween(
-    int? lower,
-    int? upper,
+    int lower,
+    int upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -975,20 +864,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
   QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1001,7 +878,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoGreaterThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1015,7 +892,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       curRcptNoGreaterThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1028,7 +905,7 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoLessThan(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1042,7 +919,7 @@ extension CounterQueryFilter
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition>
       curRcptNoLessThanOrEqualTo(
-    int? value,
+    int value,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1055,8 +932,8 @@ extension CounterQueryFilter
   }
 
   QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoBetween(
-    int? lower,
-    int? upper,
+    int lower,
+    int upper,
   ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -1737,31 +1614,31 @@ extension CounterQueryProperty1 on QueryBuilder<Counter, Counter, QProperty> {
     });
   }
 
-  QueryBuilder<Counter, int?, QAfterProperty> businessIdProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Counter, int?, QAfterProperty> branchIdProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Counter, String?, QAfterProperty> receiptTypeProperty() {
+  QueryBuilder<Counter, String, QAfterProperty> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Counter, int?, QAfterProperty> totRcptNoProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Counter, int?, QAfterProperty> curRcptNoProperty() {
+  QueryBuilder<Counter, int, QAfterProperty> curRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1793,31 +1670,31 @@ extension CounterQueryProperty2<R> on QueryBuilder<Counter, R, QAfterProperty> {
     });
   }
 
-  QueryBuilder<Counter, (R, int?), QAfterProperty> businessIdProperty() {
+  QueryBuilder<Counter, (R, int), QAfterProperty> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Counter, (R, int?), QAfterProperty> branchIdProperty() {
+  QueryBuilder<Counter, (R, int), QAfterProperty> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Counter, (R, String?), QAfterProperty> receiptTypeProperty() {
+  QueryBuilder<Counter, (R, String), QAfterProperty> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Counter, (R, int?), QAfterProperty> totRcptNoProperty() {
+  QueryBuilder<Counter, (R, int), QAfterProperty> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Counter, (R, int?), QAfterProperty> curRcptNoProperty() {
+  QueryBuilder<Counter, (R, int), QAfterProperty> curRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1850,31 +1727,31 @@ extension CounterQueryProperty3<R1, R2>
     });
   }
 
-  QueryBuilder<Counter, (R1, R2, int?), QOperations> businessIdProperty() {
+  QueryBuilder<Counter, (R1, R2, int), QOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(1);
     });
   }
 
-  QueryBuilder<Counter, (R1, R2, int?), QOperations> branchIdProperty() {
+  QueryBuilder<Counter, (R1, R2, int), QOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(2);
     });
   }
 
-  QueryBuilder<Counter, (R1, R2, String?), QOperations> receiptTypeProperty() {
+  QueryBuilder<Counter, (R1, R2, String), QOperations> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(3);
     });
   }
 
-  QueryBuilder<Counter, (R1, R2, int?), QOperations> totRcptNoProperty() {
+  QueryBuilder<Counter, (R1, R2, int), QOperations> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(4);
     });
   }
 
-  QueryBuilder<Counter, (R1, R2, int?), QOperations> curRcptNoProperty() {
+  QueryBuilder<Counter, (R1, R2, int), QOperations> curRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addProperty(5);
     });
@@ -1905,12 +1782,12 @@ extension CounterQueryProperty3<R1, R2>
 // **************************************************************************
 
 Counter _$CounterFromJson(Map<String, dynamic> json) => Counter(
-      id: json['id'] as int? ?? 0,
-      businessId: json['businessId'] as int?,
-      branchId: json['branchId'] as int?,
-      receiptType: json['receiptType'] as String?,
-      totRcptNo: json['totRcptNo'] as int?,
-      curRcptNo: json['curRcptNo'] as int?,
+      id: json['id'] as int,
+      businessId: json['businessId'] as int,
+      branchId: json['branchId'] as int,
+      receiptType: json['receiptType'] as String,
+      totRcptNo: json['totRcptNo'] as int,
+      curRcptNo: json['curRcptNo'] as int,
       lastTouched: json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String),

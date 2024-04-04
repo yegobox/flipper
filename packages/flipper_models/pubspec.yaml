@@ -41,8 +41,9 @@ dependencies:
   isolated_worker: ^0.1.1
   dio: ^4.0.6
   # adding realm to replace firestore on desktop in transporting data to cloud
-  realm: ^1.9.0
+  realm: ^2.0.0
   uuid: ^4.3.3
+  dart_mappable: ^4.2.1
 
 dependency_overrides:
   http: ^1.2.1
@@ -50,6 +51,6 @@ dependency_overrides:
 dev_dependencies:
   build_runner: ^2.4.8
   custom_lint:
-  riverpod_generator: ^2.3.5
+  # riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.7
-  freezed:
+  dart_mappable_builder: ^4.2.1

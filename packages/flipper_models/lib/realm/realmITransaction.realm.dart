@@ -213,11 +213,95 @@ class RealmITransaction extends _RealmITransaction
   RealmITransaction freeze() =>
       RealmObjectBase.freezeObject<RealmITransaction>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'reference': reference.toEJson(),
+      'categoryId': categoryId.toEJson(),
+      'transactionNumber': transactionNumber.toEJson(),
+      'branchId': branchId.toEJson(),
+      'status': status.toEJson(),
+      'transactionType': transactionType.toEJson(),
+      'subTotal': subTotal.toEJson(),
+      'paymentType': paymentType.toEJson(),
+      'cashReceived': cashReceived.toEJson(),
+      'customerChangeDue': customerChangeDue.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'receiptType': receiptType.toEJson(),
+      'updatedAt': updatedAt.toEJson(),
+      'customerId': customerId.toEJson(),
+      'customerType': customerType.toEJson(),
+      'note': note.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+      'action': action.toEJson(),
+      'ticketName': ticketName.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
+      'supplierId': supplierId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmITransaction value) => value.toEJson();
+  static RealmITransaction _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'reference': EJsonValue reference,
+        'categoryId': EJsonValue categoryId,
+        'transactionNumber': EJsonValue transactionNumber,
+        'branchId': EJsonValue branchId,
+        'status': EJsonValue status,
+        'transactionType': EJsonValue transactionType,
+        'subTotal': EJsonValue subTotal,
+        'paymentType': EJsonValue paymentType,
+        'cashReceived': EJsonValue cashReceived,
+        'customerChangeDue': EJsonValue customerChangeDue,
+        'createdAt': EJsonValue createdAt,
+        'receiptType': EJsonValue receiptType,
+        'updatedAt': EJsonValue updatedAt,
+        'customerId': EJsonValue customerId,
+        'customerType': EJsonValue customerType,
+        'note': EJsonValue note,
+        'lastTouched': EJsonValue lastTouched,
+        'action': EJsonValue action,
+        'ticketName': EJsonValue ticketName,
+        'deletedAt': EJsonValue deletedAt,
+        'supplierId': EJsonValue supplierId,
+      } =>
+        RealmITransaction(
+          fromEJson(id),
+          fromEJson(realmId),
+          fromEJson(reference),
+          fromEJson(transactionNumber),
+          fromEJson(branchId),
+          fromEJson(status),
+          fromEJson(transactionType),
+          fromEJson(subTotal),
+          fromEJson(paymentType),
+          fromEJson(cashReceived),
+          fromEJson(customerChangeDue),
+          fromEJson(createdAt),
+          fromEJson(action),
+          categoryId: fromEJson(categoryId),
+          receiptType: fromEJson(receiptType),
+          updatedAt: fromEJson(updatedAt),
+          customerId: fromEJson(customerId),
+          customerType: fromEJson(customerType),
+          note: fromEJson(note),
+          lastTouched: fromEJson(lastTouched),
+          ticketName: fromEJson(ticketName),
+          deletedAt: fromEJson(deletedAt),
+          supplierId: fromEJson(supplierId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmITransaction._);
-    return const SchemaObject(
+    register(_toEJson, _fromEJson);
+    return SchemaObject(
         ObjectType.realmObject, RealmITransaction, 'RealmITransaction', [
       SchemaProperty('id', RealmPropertyType.string),
       SchemaProperty('realmId', RealmPropertyType.objectid,
@@ -245,5 +329,8 @@ class RealmITransaction extends _RealmITransaction
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('supplierId', RealmPropertyType.int, optional: true),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

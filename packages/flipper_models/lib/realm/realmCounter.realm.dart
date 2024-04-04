@@ -83,12 +83,50 @@ class RealmCounter extends _RealmCounter
   @override
   RealmCounter freeze() => RealmObjectBase.freezeObject<RealmCounter>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'receiptType': receiptType.toEJson(),
+      'totRcptNo': totRcptNo.toEJson(),
+      'curRcptNo': curRcptNo.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmCounter value) => value.toEJson();
+  static RealmCounter _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
+        'receiptType': EJsonValue receiptType,
+        'totRcptNo': EJsonValue totRcptNo,
+        'curRcptNo': EJsonValue curRcptNo,
+        'lastTouched': EJsonValue lastTouched,
+      } =>
+        RealmCounter(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
+          receiptType: fromEJson(receiptType),
+          totRcptNo: fromEJson(totRcptNo),
+          curRcptNo: fromEJson(curRcptNo),
+          lastTouched: fromEJson(lastTouched),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmCounter._);
-    return const SchemaObject(
-        ObjectType.realmObject, RealmCounter, 'RealmCounter', [
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, RealmCounter, 'RealmCounter', [
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -100,5 +138,8 @@ class RealmCounter extends _RealmCounter
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

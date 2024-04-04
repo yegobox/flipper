@@ -1,23 +1,25 @@
 import 'dart:isolate';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm/realmCounter.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
-import 'package:flipper_models/realm/realmIUnit.dart';
+// import 'package:flipper_models/realm/realmIUnit.dart';
 import 'package:flipper_models/realm/realmProduct.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/realm/realmVariant.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:realm/realm.dart' as lia;
+import 'package:realm/realm.dart' as iRealm;
 
 import 'package:flutter/services.dart';
 import 'models.dart';
+import './RealmSync.dart';
 
 mixin IsolateHandler {
   static late Isar isar;
   Future updateIsolate<T>(T value) async {
-    isar = await isarK();
+    isar = await openIsarIsolate();
     // do the actual isar update
     if (value is Product) {
       isar.write((isar) => isar.products.put(value));
@@ -33,13 +35,13 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
-    isar = await isarK();
-    final app = lia.App.getById(AppSecrets.appId);
+    isar = await openIsarIsolate();
+    final app = iRealm.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    lia.FlexibleSyncConfiguration config =
+    iRealm.FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = lia.Realm(config);
+    final realm = iRealm.Realm(config);
 
     final iProductsCollection =
         realm.query<RealmProduct>(r'branchId == $0', [branchId]);
@@ -47,6 +49,56 @@ mixin IsolateHandler {
       for (final result in changes.results) {
         handleProduct(result, sendPort);
       }
+    }
+  }
+
+  static Future handleCounters(List<dynamic> args) async {
+    final rootIsolateToken = args[0] as RootIsolateToken;
+    final sendPort = args[1] as SendPort;
+    final branchId = args[2] as int;
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    isar = await openIsarIsolate();
+    final app = iRealm.App.getById(AppSecrets.appId);
+    final user = app?.currentUser!;
+    iRealm.FlexibleSyncConfiguration config =
+        realmConfig(user, encryptionKey, dbPatch);
+
+    final realm = iRealm.Realm(config);
+    final iCountersCollection =
+        realm.query<RealmCounter>(r'branchId == $0', [branchId]);
+
+    await for (final changes in iCountersCollection.changes) {
+      for (final result in changes.results) {
+        handlecounter(result, sendPort);
+      }
+    }
+  }
+
+  static void handlecounter(RealmCounter result, SendPort sendPort) {
+    final model = createCounterModel(result);
+    if (model.action == AppActions.deleted && model.deletedAt == null) {
+      model.deletedAt = DateTime.now();
+    }
+    Counter data = Counter.fromJson(model.toJson());
+    data.action = AppActions.synchronized;
+    Counter? localTransaction = isar.counters.get(data.id);
+    if (localTransaction == null) {
+      isar.write((isar) {
+        isar.counters.put(data);
+      });
+      sendPort.send('Created Counter ${model.id}');
+    } else if (data.lastTouched
+        .isNewDateCompareTo(localTransaction.lastTouched)) {
+      data.action = AppActions.synchronized;
+
+      data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      isar.write((isar) {
+        isar.counters.put(data);
+      });
+      sendPort.send('Updated Counter ${model.id}');
     }
   }
 
@@ -59,16 +111,16 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
-    isar = await isarK();
-    final app = lia.App.getById(AppSecrets.appId);
+    isar = await openIsarIsolate();
+    final app = iRealm.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    lia.FlexibleSyncConfiguration config =
+    iRealm.FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = lia.Realm(config);
+    final realm = iRealm.Realm(config);
     final iVariantsCollection =
         realm.query<RealmVariant>(r'branchId == $0', [branchId]);
- 
+
     await for (final changes in iVariantsCollection.changes) {
       for (final result in changes.results) {
         handleVariant(result, sendPort);
@@ -85,13 +137,13 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
-    isar = await isarK();
-    final app = lia.App.getById(AppSecrets.appId);
+    isar = await openIsarIsolate();
+    final app = iRealm.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    lia.FlexibleSyncConfiguration config =
+    iRealm.FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = lia.Realm(config);
+    final realm = iRealm.Realm(config);
 
     final iStocksCollection =
         realm.query<RealmStock>(r'branchId == $0', [branchId]);
@@ -112,19 +164,18 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
-    isar = await isarK();
-    final app = lia.App.getById(AppSecrets.appId);
+    isar = await openIsarIsolate();
+    final app = iRealm.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    lia.FlexibleSyncConfiguration config =
+    iRealm.FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = lia.Realm(config);
+    final realm = iRealm.Realm(config);
 
     /// subscribe to change for
     final iTransactionsItemCollection =
         realm.query<RealmITransactionItem>(r'branchId == $0', [branchId]);
 
-   
     await for (final changes in iTransactionsItemCollection.changes) {
       for (final result in changes.results) {
         handleTransactionItem(result, sendPort);
@@ -141,14 +192,14 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
     // get isar instances
-    isar = await isarK();
+    isar = await openIsarIsolate();
 
-    final app = lia.App.getById(AppSecrets.appId);
+    final app = iRealm.App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
-    lia.FlexibleSyncConfiguration config =
+    iRealm.FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey, dbPatch);
 
-    final realm = lia.Realm(config);
+    final realm = iRealm.Realm(config);
     sendPort.send('Initiated isar');
     // Realm.logger.level = RealmLogLevel.trace;
     // final realm = await Realm.open(config);
@@ -166,20 +217,17 @@ mixin IsolateHandler {
     }
   }
 
-  static lia.FlexibleSyncConfiguration realmConfig(
-      lia.User? user, List<int> encryptionKey, String dbPatch) {
-    final config = lia.Configuration.flexibleSync(
-        user!,
-        [
-          RealmITransaction.schema,
-          RealmITransactionItem.schema,
-          RealmProduct.schema,
-          RealmVariant.schema,
-          RealmStock.schema,
-          RealmIUnit.schema
-        ],
-        encryptionKey: encryptionKey,
-        path: dbPatch);
+  static iRealm.FlexibleSyncConfiguration realmConfig(
+    iRealm.User? user,
+    List<int> encryptionKey,
+    String dbPatch,
+  ) {
+    final config = iRealm.Configuration.flexibleSync(
+      user!,
+      realmModels,
+      encryptionKey: encryptionKey,
+      path: dbPatch,
+    );
     return config;
   }
 
@@ -306,7 +354,6 @@ mixin IsolateHandler {
     data.action = AppActions.synchronized;
     ITransaction? localTransaction = isar.iTransactions.get(data.id);
     if (localTransaction == null) {
-      
       isar.write((isar) {
         isar.iTransactions.put(data);
       });
@@ -368,6 +415,18 @@ mixin IsolateHandler {
       deletedAt: realmProduct.deletedAt,
       searchMatch: realmProduct.searchMatch ?? false,
     );
+  }
+
+  static Counter createCounterModel(RealmCounter realmCounter) {
+    return Counter(
+        id: realmCounter.id!,
+        businessId: realmCounter.businessId!,
+        action: AppActions.created,
+        branchId: realmCounter.branchId!,
+        curRcptNo: realmCounter.curRcptNo!,
+        lastTouched: realmCounter.lastTouched,
+        receiptType: realmCounter.receiptType!,
+        totRcptNo: realmCounter.totRcptNo!);
   }
 
   static Variant createVariantModel(RealmVariant realmVariant) {
@@ -507,12 +566,14 @@ mixin IsolateHandler {
   /// within also have the isar as required also initiated at the same tim
   /// in isolate
 
-  static Future<Isar> isarK() async {
+  static Future<Isar> openIsarIsolate() async {
     return await Isar.open(
       schemas: models,
+      // in isolate we don't pass in the directory
       directory: '',
       engine: IsarEngine.isar,
       name: 'default',
+      inspector: false,
     );
   }
 }

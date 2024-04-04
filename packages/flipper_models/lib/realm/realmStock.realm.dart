@@ -173,12 +173,80 @@ class RealmStock extends _RealmStock
   @override
   RealmStock freeze() => RealmObjectBase.freezeObject<RealmStock>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'variantId': variantId.toEJson(),
+      'lowStock': lowStock.toEJson(),
+      'currentStock': currentStock.toEJson(),
+      'canTrackingStock': canTrackingStock.toEJson(),
+      'showLowStockAlert': showLowStockAlert.toEJson(),
+      'productId': productId.toEJson(),
+      'active': active.toEJson(),
+      'value': value.toEJson(),
+      'rsdQty': rsdQty.toEJson(),
+      'supplyPrice': supplyPrice.toEJson(),
+      'retailPrice': retailPrice.toEJson(),
+      'lastTouched': lastTouched.toEJson(),
+      'action': action.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
+      'ebmSynced': ebmSynced.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmStock value) => value.toEJson();
+  static RealmStock _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'branchId': EJsonValue branchId,
+        'variantId': EJsonValue variantId,
+        'lowStock': EJsonValue lowStock,
+        'currentStock': EJsonValue currentStock,
+        'canTrackingStock': EJsonValue canTrackingStock,
+        'showLowStockAlert': EJsonValue showLowStockAlert,
+        'productId': EJsonValue productId,
+        'active': EJsonValue active,
+        'value': EJsonValue value,
+        'rsdQty': EJsonValue rsdQty,
+        'supplyPrice': EJsonValue supplyPrice,
+        'retailPrice': EJsonValue retailPrice,
+        'lastTouched': EJsonValue lastTouched,
+        'action': EJsonValue action,
+        'deletedAt': EJsonValue deletedAt,
+        'ebmSynced': EJsonValue ebmSynced,
+      } =>
+        RealmStock(
+          fromEJson(id),
+          fromEJson(realmId),
+          fromEJson(branchId),
+          fromEJson(variantId),
+          fromEJson(currentStock),
+          fromEJson(productId),
+          fromEJson(action),
+          lowStock: fromEJson(lowStock),
+          canTrackingStock: fromEJson(canTrackingStock),
+          showLowStockAlert: fromEJson(showLowStockAlert),
+          active: fromEJson(active),
+          value: fromEJson(value),
+          rsdQty: fromEJson(rsdQty),
+          supplyPrice: fromEJson(supplyPrice),
+          retailPrice: fromEJson(retailPrice),
+          lastTouched: fromEJson(lastTouched),
+          deletedAt: fromEJson(deletedAt),
+          ebmSynced: fromEJson(ebmSynced),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmStock._);
-    return const SchemaObject(
-        ObjectType.realmObject, RealmStock, 'RealmStock', [
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, RealmStock, 'RealmStock', [
       SchemaProperty('id', RealmPropertyType.string),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -202,5 +270,8 @@ class RealmStock extends _RealmStock
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }

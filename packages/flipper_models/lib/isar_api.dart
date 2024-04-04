@@ -1931,6 +1931,15 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   T? create<T>({required T data}) {
     /// update user activity model
 
+    if (data is Counter) {
+      Counter counter = data;
+      db.write((isar) {
+        isar.counters.put(counter);
+        // Return the created conversation
+      }); // Cast the result to type T
+      return db.counters.get(counter.id) as T;
+    }
+
     /// end with updating user activity
     if (data is Conversation) {
       Conversation conversation = data;
@@ -2226,6 +2235,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     }
     if (data is Counter) {
       db.write((isar) {
+        isar.counters.autoIncrement();
         isar.counters.onPut(data);
       });
       // final response = await flipperHttpClient.patch(
@@ -3861,6 +3871,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       {required DateTime startDate, required DateTime endDate}) async {
     final transactionCollection = db.read((isar) => isar.iTransactions
         .where()
+        .statusEqualTo(COMPLETE)
         .lastTouchedBetween(
             DateTime.now().subtract(Duration(days: 4)), DateTime.now())
         .findAll());

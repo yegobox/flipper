@@ -199,10 +199,10 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           return;
         }
       },
-      child: RawKeyboardListener(
+      child: KeyboardListener(
         focusNode: FocusNode(),
         autofocus: true,
-        onKey: (event) {
+        onKeyEvent: (event) {
           _handleKeyEvent(model, event);
         },
         child: Scaffold(
@@ -294,9 +294,9 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     );
   }
 
-  void _handleKeyEvent(CoreViewModel model, RawKeyEvent event) {
+  void _handleKeyEvent(CoreViewModel model, KeyEvent event) {
     final key = event.logicalKey;
-    if (event is RawKeyDownEvent) {
+    if (event is KeyDownEvent) {
       if (keys.contains(key)) return;
       setState(() {
         keys.add(key);

@@ -9,23 +9,23 @@ part 'counter.g.dart';
 @JsonSerializable()
 @Collection()
 class Counter extends IJsonSerializable {
-  int id;
-  int? businessId;
-  int? branchId;
-  String? receiptType;
-  int? totRcptNo;
-  int? curRcptNo;
+  final int id;
+  final int businessId;
+  final int branchId;
+  late String receiptType;
+  late int totRcptNo;
+  late int curRcptNo;
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
   String action;
 
   Counter({
-    this.id = 0,
-    this.businessId,
-    this.branchId,
-    this.receiptType,
-    this.totRcptNo,
-    this.curRcptNo,
+    required this.id,
+    required this.businessId,
+    required this.branchId,
+    required this.receiptType,
+    required this.totRcptNo,
+    required this.curRcptNo,
     this.lastTouched,
     this.action = "created",
   });

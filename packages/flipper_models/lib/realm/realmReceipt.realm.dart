@@ -146,12 +146,74 @@ class RealmReceipt extends _RealmReceipt
   @override
   RealmReceipt freeze() => RealmObjectBase.freezeObject<RealmReceipt>(this);
 
-  static SchemaObject get schema => _schema ??= _initSchema();
-  static SchemaObject? _schema;
-  static SchemaObject _initSchema() {
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'resultCd': resultCd.toEJson(),
+      'resultMsg': resultMsg.toEJson(),
+      'resultDt': resultDt.toEJson(),
+      'rcptNo': rcptNo.toEJson(),
+      'intrlData': intrlData.toEJson(),
+      'rcptSign': rcptSign.toEJson(),
+      'totRcptNo': totRcptNo.toEJson(),
+      'vsdcRcptPbctDate': vsdcRcptPbctDate.toEJson(),
+      'sdcId': sdcId.toEJson(),
+      'mrcNo': mrcNo.toEJson(),
+      'qrCode': qrCode.toEJson(),
+      'receiptType': receiptType.toEJson(),
+      'transactionId': transactionId.toEJson(),
+      'branchId': branchId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(RealmReceipt value) => value.toEJson();
+  static RealmReceipt _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'resultCd': EJsonValue resultCd,
+        'resultMsg': EJsonValue resultMsg,
+        'resultDt': EJsonValue resultDt,
+        'rcptNo': EJsonValue rcptNo,
+        'intrlData': EJsonValue intrlData,
+        'rcptSign': EJsonValue rcptSign,
+        'totRcptNo': EJsonValue totRcptNo,
+        'vsdcRcptPbctDate': EJsonValue vsdcRcptPbctDate,
+        'sdcId': EJsonValue sdcId,
+        'mrcNo': EJsonValue mrcNo,
+        'qrCode': EJsonValue qrCode,
+        'receiptType': EJsonValue receiptType,
+        'transactionId': EJsonValue transactionId,
+        'branchId': EJsonValue branchId,
+      } =>
+        RealmReceipt(
+          fromEJson(realmId),
+          fromEJson(branchId),
+          id: fromEJson(id),
+          resultCd: fromEJson(resultCd),
+          resultMsg: fromEJson(resultMsg),
+          resultDt: fromEJson(resultDt),
+          rcptNo: fromEJson(rcptNo),
+          intrlData: fromEJson(intrlData),
+          rcptSign: fromEJson(rcptSign),
+          totRcptNo: fromEJson(totRcptNo),
+          vsdcRcptPbctDate: fromEJson(vsdcRcptPbctDate),
+          sdcId: fromEJson(sdcId),
+          mrcNo: fromEJson(mrcNo),
+          qrCode: fromEJson(qrCode),
+          receiptType: fromEJson(receiptType),
+          transactionId: fromEJson(transactionId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
     RealmObjectBase.registerFactory(RealmReceipt._);
-    return const SchemaObject(
-        ObjectType.realmObject, RealmReceipt, 'RealmReceipt', [
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, RealmReceipt, 'RealmReceipt', [
       SchemaProperty('id', RealmPropertyType.string, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
@@ -171,5 +233,8 @@ class RealmReceipt extends _RealmReceipt
       SchemaProperty('transactionId', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int),
     ]);
-  }
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
