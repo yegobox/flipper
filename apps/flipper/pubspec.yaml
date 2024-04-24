@@ -44,7 +44,6 @@ dependencies:
   flutter_native_splash: ^2.3.2
   firebase_ui_localizations: ^1.9.0
   timezone: ^0.9.2
-  flutter_native_timezone: ^2.0.0
   flutter_localizations:
     sdk: flutter
   flutter_local_notifications: ^14.1.1
