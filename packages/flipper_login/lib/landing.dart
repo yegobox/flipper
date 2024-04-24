@@ -185,6 +185,8 @@ class _LandingState extends State<Landing> {
                   child: OutlinedButton(
                     key: signInButtonKey,
                     style: primaryButtonStyle.copyWith(
+                        side: MaterialStateProperty.resolveWith(
+                            (states) => const BorderSide(color: Colors.purple)),
                         shape:
                             MaterialStateProperty.resolveWith<OutlinedBorder>(
                                 (states) => RoundedRectangleBorder(
