@@ -1,10 +1,11 @@
+import 'dart:ui';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-
+import 'dart:ui' as ui;
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/app_service.dart';
@@ -21,8 +22,7 @@ class LoginView extends StatefulWidget {
   State<LoginView> createState() => _LoginViewState();
 }
 
-class _LoginViewState extends State<LoginView>
-    with AutomaticKeepAliveClientMixin {
+class _LoginViewState extends State<LoginView> {
   final appService = loc.getIt<AppService>();
   final _routerService = locator<RouterService>();
   bool _isLogin = false;
@@ -79,7 +79,6 @@ class _LoginViewState extends State<LoginView>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) {
         firebase.FirebaseAuth.instance
@@ -98,14 +97,18 @@ class _LoginViewState extends State<LoginView>
       },
       viewModelBuilder: () => StartupViewModel(),
       builder: (context, model, child) {
-        return isDesktopOrWeb
-            ? Scaffold(body: DesktopLoginView())
+        // Get the physical size and device pixel ratio using PlatformDispatcher
+        final data = PlatformDispatcher.instance.views.first;
+        ui.Size size = data.physicalSize;
+        double width = size.width;
+        // I am using https://www.altamira.ai/blog/common-screen-sizes-for-responsive-web-design/ as my standard for screen sizes
+        return (width >= 1280)
+            ? Scaffold(
+                body: DesktopLoginView(),
+                backgroundColor: Colors.white,
+              )
             : Scaffold(body: Landing());
       },
     );
   }
-
-  @override
-  // https://github.com/memspace/zefyr/issues/341#issuecomment-663965567
-  bool get wantKeepAlive => true;
 }

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_carousel_slider/carousel_slider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'auth_page_desktop.dart';
 import 'responsive_layout.dart';
 
 import 'package:flipper_routing/app.locator.dart';
@@ -242,34 +241,6 @@ class _LandingState extends State<Landing> {
                 ),
                 itemCount: _pages.length),
           ),
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[
-                  Color(0xff0056C2),
-                  Color(0xff636A73),
-                ],
-                tileMode: TileMode.clamp,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    children: <Widget>[
-                      AuthPageDesktop(
-                        startUpPage: Center(child: Text("hello")),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          )
         ],
       ),
     );

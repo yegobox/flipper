@@ -393,4 +393,5 @@ class App {}
 // https://github.com/Shopify/ejson
 //TODO: People to hire to clean the UI: https://goods.overnice.com/
 // fix nuget issue : winget install Microsoft.NuGet
+//Show things on second screen: https://pub.dev/packages/presentation_displays
 
