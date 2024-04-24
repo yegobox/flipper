@@ -83,11 +83,23 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     _controller.reverse();
   }
 
+  String _getFormattedText(String wording, int itemCount) {
+    final formattedItemCount = itemCount != 0 ? '($itemCount)' : '';
+    final previewText = wording.isNotEmpty ? wording : 'Preview Cart';
+    return '$previewText $formattedItemCount';
+  }
+
   @override
   Widget build(BuildContext context) {
     final transaction = widget.mode == SellingMode.forOrdering
         ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
         : ref.watch(pendingTransactionProvider(TransactionType.custom));
+    final itemCount = ref
+            .watch(transactionItemsProvider(transaction.value?.value?.id))
+            .value
+            ?.length ??
+        0;
+    final formattedText = _getFormattedText(widget.wording ?? '', itemCount);
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -108,9 +120,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                // help me to extract the code from onPressed to a separate function
                 onPressed: () {
-                  // ignore: unused_result
                   ref.refresh(
                       transactionItemsProvider(transaction.value?.value?.id));
                   widget.mode == SellingMode.forSelling
@@ -118,9 +128,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                       : _handleOrderFlow(context, model);
                 },
                 child: Text(
-                  widget.wording == null
-                      ? "Preview Sale ${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length})" : ""}"
-                      : "Preview Cart ${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length != 0 ? "(${ref.watch(transactionItemsProvider(transaction.value?.value?.id)).value?.length})" : ""}",
+                  formattedText,
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,

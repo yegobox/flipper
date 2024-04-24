@@ -228,4 +228,10 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
     // TODO: implement onSave
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> syncCounter() {
+    // TODO: implement syncCounter
+    throw UnimplementedError();
+  }
 }

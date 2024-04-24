@@ -222,7 +222,7 @@ class RWTax implements TaxApi {
     Map<String, dynamic> data = {
       "tin": business?.tinNumber ?? 999909695,
       "bhfId": business?.bhfId ?? "00",
-      "invcNo": counter.curRcptNo,
+      "invcNo": counter.curRcptNo + 1,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
       "rcptTyCd": rcptTyCd,
@@ -242,8 +242,8 @@ class RWTax implements TaxApi {
       "modrId": transaction.id,
       "modrNm": transaction.id,
       "receipt": {
-        "curRcptNo": counter.curRcptNo,
-        "totRcptNo": counter.curRcptNo,
+        "curRcptNo": counter.curRcptNo + 1,
+        "totRcptNo": counter.curRcptNo + 1,
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +

@@ -35,9 +35,9 @@ class CheckOutState extends ConsumerState<CheckOut>
   @override
   void initState() {
     super.initState();
-    ref
-        .read(sellingModeProvider.notifier)
-        .setSellingMode(SellingMode.forSelling);
+    // ref
+    //     .read(sellingModeProvider.notifier)
+    //     .setSellingMode(SellingMode.forSelling);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),

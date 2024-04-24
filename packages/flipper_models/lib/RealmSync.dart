@@ -777,4 +777,49 @@ class RealmSync<M extends IJsonSerializable>
     //    realm!.close();
     return true;
   }
+
+  @override
+  Future<void> syncCounter() async {
+    if (realm == null) return;
+    log('calling heart beat');
+    int branchId = ProxyService.box.getBranchId()!;
+    var headers = {
+      'api-key': AppSecrets.apikey,
+      'Content-Type': 'application/json'
+    };
+    var request = http.Request('POST', Uri.parse(AppSecrets.mongoEndPoint));
+    request.body = json.encode({
+      "collection": "RealmCounter",
+      "database": "flipper",
+      "dataSource": "Cluster0",
+      "filter": {"branchId": branchId},
+      "sort": {"createdAt": -1}
+    });
+    request.headers.addAll(headers);
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      String jsonString = await response.stream.bytesToString();
+      Map<String, dynamic> jsonResponse = json.decode(jsonString);
+      log(jsonResponse.toString());
+
+      if (jsonResponse.containsKey("documents")) {
+        List<Map<String, dynamic>> jsonList =
+            List.from(jsonResponse["documents"]);
+
+        List<Counter> counters =
+            jsonList.map((jsonMap) => Counter.fromJson(jsonMap)).toList();
+        // loop through counters and then update all of them
+        for (Counter counter in counters) {
+          await ProxyService.isar.update(data: counter);
+          log("done updating ${counter.receiptType}");
+        }
+      } else {
+        log("Noop");
+      }
+    } else {
+      log(response.statusCode.toString());
+    }
+  }
 }

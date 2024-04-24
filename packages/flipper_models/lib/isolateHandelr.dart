@@ -84,7 +84,10 @@ mixin IsolateHandler {
     }
     Counter data = Counter.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    Counter? localTransaction = isar.counters.get(data.id);
+    Counter? localTransaction = isar.counters
+        .where()
+        .receiptTypeEqualTo(result.receiptType!.toUpperCase())
+        .findFirst();
     if (localTransaction == null) {
       isar.write((isar) {
         isar.counters.put(data);

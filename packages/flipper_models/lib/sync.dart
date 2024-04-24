@@ -5,6 +5,6 @@ abstract class Sync<M extends IJsonSerializable> {
   Future<void> push();
   Future<void> localChanges();
   factory Sync.create() => SynchronizationService<M>();
-
+  Future<void> syncCounter();
   Future<void> onSave<M extends IJsonSerializable>({required M item});
 }

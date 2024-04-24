@@ -58,10 +58,7 @@ class _GmailLikeLetterState extends State<GmailLikeLetter>
           width: 100,
           height: 100,
           decoration: ShapeDecoration(
-            shape: ContinuousRectangleBorder(
-              side: BorderSide(width: 1, color: Colors.white),
-              borderRadius: BorderRadius.circular(80.0),
-            ),
+            shape: CircleBorder(),
             color: colors[Random().nextInt(colors.length)],
             shadows: [],
           ),

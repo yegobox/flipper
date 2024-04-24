@@ -1934,6 +1934,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     if (data is Counter) {
       Counter counter = data;
       db.write((isar) {
+        isar.counters.autoIncrement();
         isar.counters.put(counter);
         // Return the created conversation
       }); // Cast the result to type T
@@ -2234,10 +2235,22 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       }
     }
     if (data is Counter) {
-      db.write((isar) {
-        isar.counters.autoIncrement();
-        isar.counters.onPut(data);
-      });
+      Counter? iCounter = db.read((isar) => isar.counters
+          .where()
+          .receiptTypeEqualTo(data.receiptType.toUpperCase())
+          .findFirst());
+      if (iCounter != null) {
+        iCounter.totRcptNo = data.totRcptNo;
+        iCounter.curRcptNo = data.curRcptNo;
+        db.write((isar) {
+          isar.counters.onPut(iCounter);
+        });
+      } else {
+        db.write((isar) {
+          isar.counters.onPut(data);
+        });
+      }
+
       // final response = await flipperHttpClient.patch(
       //   Uri.parse("$apihub/v2/api/counter/${data.id}"),
       //   body: jsonEncode(data.toJson()),

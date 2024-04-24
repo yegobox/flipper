@@ -1,0 +1,621 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "flipper",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper",
+            "cwd": "apps/flipper",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper (profile mode)",
+            "cwd": "apps/flipper",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper (release mode)",
+            "cwd": "apps/flipper",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "cli_dialog",
+            "cwd": "open-sources/cli_dialog",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "dart_console",
+            "cwd": "open-sources/dart_console",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_datetime_picker",
+            "cwd": "open-sources/flutter_datetime_picker",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_datetime_picker (profile mode)",
+            "cwd": "open-sources/flutter_datetime_picker",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_datetime_picker (release mode)",
+            "cwd": "open-sources/flutter_datetime_picker",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flutter_list_drag_and_drop",
+            "cwd": "open-sources/flutter_list_drag_and_drop",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_list_drag_and_drop (profile mode)",
+            "cwd": "open-sources/flutter_list_drag_and_drop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_list_drag_and_drop (release mode)",
+            "cwd": "open-sources/flutter_list_drag_and_drop",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flutter_luban",
+            "cwd": "open-sources/flutter_luban",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_luban (profile mode)",
+            "cwd": "open-sources/flutter_luban",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_luban (release mode)",
+            "cwd": "open-sources/flutter_luban",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flutter_slidable",
+            "cwd": "open-sources/flutter_slidable",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_slidable (profile mode)",
+            "cwd": "open-sources/flutter_slidable",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_slidable (release mode)",
+            "cwd": "open-sources/flutter_slidable",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "form_bloc",
+            "cwd": "open-sources/form_bloc",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "kds",
+            "cwd": "open-sources/kds",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "kds (profile mode)",
+            "cwd": "open-sources/kds",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "kds (release mode)",
+            "cwd": "open-sources/kds",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "qr.flutter",
+            "cwd": "open-sources/qr.flutter",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "qr.flutter (profile mode)",
+            "cwd": "open-sources/qr.flutter",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "qr.flutter (release mode)",
+            "cwd": "open-sources/qr.flutter",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "qr_code_scanner",
+            "cwd": "open-sources/qr_code_scanner",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "qr_code_scanner (profile mode)",
+            "cwd": "open-sources/qr_code_scanner",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "qr_code_scanner (release mode)",
+            "cwd": "open-sources/qr_code_scanner",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "receipt",
+            "cwd": "open-sources/receipt",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "receipt (profile mode)",
+            "cwd": "open-sources/receipt",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "receipt (release mode)",
+            "cwd": "open-sources/receipt",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "upgrader",
+            "cwd": "open-sources/upgrader",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "upgrader (profile mode)",
+            "cwd": "open-sources/upgrader",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "upgrader (release mode)",
+            "cwd": "open-sources/upgrader",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_actionable",
+            "cwd": "packages/flipper_actionable",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_actionable (profile mode)",
+            "cwd": "packages/flipper_actionable",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_actionable (release mode)",
+            "cwd": "packages/flipper_actionable",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_dashboard",
+            "cwd": "packages/flipper_dashboard",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_loading",
+            "cwd": "packages/flipper_loading",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_loading (profile mode)",
+            "cwd": "packages/flipper_loading",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_loading (release mode)",
+            "cwd": "packages/flipper_loading",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_localize",
+            "cwd": "packages/flipper_localize",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_localize (profile mode)",
+            "cwd": "packages/flipper_localize",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_localize (release mode)",
+            "cwd": "packages/flipper_localize",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_login",
+            "cwd": "packages/flipper_login",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_models",
+            "cwd": "packages/flipper_models",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_routing",
+            "cwd": "packages/flipper_routing",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_routing (profile mode)",
+            "cwd": "packages/flipper_routing",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_routing (release mode)",
+            "cwd": "packages/flipper_routing",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_services",
+            "cwd": "packages/flipper_services",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_services (profile mode)",
+            "cwd": "packages/flipper_services",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_services (release mode)",
+            "cwd": "packages/flipper_services",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_socials",
+            "cwd": "packages/flipper_socials",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_socials (profile mode)",
+            "cwd": "packages/flipper_socials",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_socials (release mode)",
+            "cwd": "packages/flipper_socials",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flipper_ui",
+            "cwd": "packages/flipper_ui",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flipper_ui (profile mode)",
+            "cwd": "packages/flipper_ui",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flipper_ui (release mode)",
+            "cwd": "packages/flipper_ui",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "demo",
+            "cwd": "open-sources/dart_pdf/demo",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "demo (profile mode)",
+            "cwd": "open-sources/dart_pdf/demo",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "demo (release mode)",
+            "cwd": "open-sources/dart_pdf/demo",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "pdf",
+            "cwd": "open-sources/dart_pdf/pdf",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "printing",
+            "cwd": "open-sources/dart_pdf/printing",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "printing (profile mode)",
+            "cwd": "open-sources/dart_pdf/printing",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "printing (release mode)",
+            "cwd": "open-sources/dart_pdf/printing",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "test",
+            "cwd": "open-sources/dart_pdf/test",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "test (profile mode)",
+            "cwd": "open-sources/dart_pdf/test",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "test (release mode)",
+            "cwd": "open-sources/dart_pdf/test",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/flutter_datetime_picker/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/flutter_datetime_picker/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/flutter_datetime_picker/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/flutter_slidable/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/flutter_slidable/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/flutter_slidable/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/qr.flutter/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/qr.flutter/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/qr.flutter/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/qr_code_scanner/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/qr_code_scanner/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/qr_code_scanner/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/receipt/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/receipt/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/receipt/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "example",
+            "cwd": "open-sources/dart_pdf/printing/example",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "example (profile mode)",
+            "cwd": "open-sources/dart_pdf/printing/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "example (release mode)",
+            "cwd": "open-sources/dart_pdf/printing/example",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "scrollable_positioned_list",
+            "cwd": "open-sources/flutter.widgets/packages/scrollable_positioned_list",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "scrollable_positioned_list (profile mode)",
+            "cwd": "open-sources/flutter.widgets/packages/scrollable_positioned_list",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "scrollable_positioned_list (release mode)",
+            "cwd": "open-sources/flutter.widgets/packages/scrollable_positioned_list",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "flutter_form_bloc",
+            "cwd": "open-sources/form_bloc/packages/flutter_form_bloc",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "flutter_form_bloc (profile mode)",
+            "cwd": "open-sources/form_bloc/packages/flutter_form_bloc",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "flutter_form_bloc (release mode)",
+            "cwd": "open-sources/form_bloc/packages/flutter_form_bloc",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "form_bloc",
+            "cwd": "open-sources/form_bloc/packages/form_bloc",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}

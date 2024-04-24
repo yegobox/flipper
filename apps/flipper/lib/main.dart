@@ -75,7 +75,7 @@ Future<void> main() async {
       webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
     );
   }
-  if (!isWindows && !isWeb) {
+  if (!isWindows && !isWeb && !isMacOs) {
     /// init admob
     await MobileAds.instance.initialize();
     FlutterError.onError = (FlutterErrorDetails details) {
@@ -86,7 +86,7 @@ Future<void> main() async {
       FirebaseCrashlytics.instance.recordFlutterError(details);
     };
   }
-  if (isAndroid && foundation.kReleaseMode && !isWeb & !isWindows) {
+  if (isAndroid && foundation.kReleaseMode && !isWeb & !isWindows && !isMacOs) {
     NewRelic.initialize();
   }
   if (!isWindows) {

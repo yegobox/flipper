@@ -190,4 +190,10 @@ class FirestoreSync<M extends IJsonSerializable>
   void configure() {
     // FirebaseFirestore.instance.settings = Settings(persistenceEnabled: true);
   }
+
+  @override
+  Future<void> syncCounter() {
+    // TODO: implement syncCounter
+    throw UnimplementedError();
+  }
 }

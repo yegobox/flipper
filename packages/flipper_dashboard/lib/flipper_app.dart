@@ -79,7 +79,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _requestPermissions() async {
-    if (!isWindows) {
+    if (!isWindows && !isMacOs) {
       await [
         permission.Permission.storage,
         permission.Permission.manageExternalStorage,

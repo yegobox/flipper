@@ -10,6 +10,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 
@@ -126,6 +127,25 @@ class PDesktop extends StatelessWidget {
   final RouterService routeService;
   final ProfileWidget widget;
 
+  void showSnackBar(BuildContext context, String message,
+      {required Color textColor, required Color backgroundColor}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        width: 400,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: backgroundColor,
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w400,
+            fontSize: 20,
+            color: textColor,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
@@ -137,11 +157,19 @@ class PDesktop extends StatelessWidget {
 
         Widget buildContent() {
           return PopupMenuButton<String>(
+              color: Colors.white,
               onSelected: (value) async {
                 if (value == 'logOut') {
                   log('logout selected');
                   await ProxyService.isar.logOut();
                   routeService.clearStackAndShow(LoginViewRoute());
+                }
+                if (value == "syncCounter") {
+                  log('sync counter selected');
+
+                  await ProxyService.realm.syncCounter();
+                  showSnackBar(context, "Your counter is up to date",
+                      textColor: Colors.white, backgroundColor: Colors.green);
                 }
               },
               itemBuilder: (BuildContext context) => [
@@ -152,12 +180,20 @@ class PDesktop extends StatelessWidget {
                         style: primaryTextStyle,
                       ),
                     ),
+                    PopupMenuItem<String>(
+                      value: 'syncCounter',
+                      child: Text(
+                        'Sync counter',
+                        style: primaryTextStyle,
+                      ),
+                    ),
                   ],
               child: GmailLikeLetter(
-                  key: Key(widget.branch.id.toString()),
-                  branch: widget.branch,
-                  size: widget.size,
-                  sessionActive: widget.sessionActive)
+                key: Key(widget.branch.id.toString()),
+                branch: widget.branch,
+                size: widget.size,
+                sessionActive: widget.sessionActive,
+              )
               // TODO: re-enable bellow coded once showing profile pic on client is fully supported
               // child: hasImage
               //     ? SizedBox(

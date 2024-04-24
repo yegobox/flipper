@@ -49,7 +49,6 @@ class CronService {
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       ProxyService.realm.pull();
-      //await _heartBeatPull();
     });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
@@ -85,7 +84,7 @@ class CronService {
     ProxyService.syncFirestore.configure();
     String? token;
 
-    if (!Platform.isWindows) {
+    if (!Platform.isWindows && !isMacOs && !isIos) {
       token = await FirebaseMessaging.instance.getToken();
       if (business != null) {
         Map updatedBusiness = business.toJson();

@@ -5,6 +5,7 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart';
@@ -51,6 +52,8 @@ class FirebaseMessagingService implements Messaging {
   @override
   Future<void>
       initializeFirebaseMessagingAndSubscribeToBusinessNotifications() async {
+    if (isMacOs || isIos) return;
+    // TODO: when we get apn from apple meaning having paid our membership there we shall re-work on this
     await FirebaseMessaging.instance
         .subscribeToTopic(ProxyService.box.getBusinessId()!.toString());
     String? _token = await token();
