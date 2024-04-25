@@ -4,6 +4,7 @@ import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,8 +65,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         );
       },
       onViewModelReady: (model) {
-        //TODO: listen on global error notification to show error where e.g
-        // invoice could not be generated because invoice already exists.
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (widget.transaction.customerId != null) {
             showDialog(
@@ -238,7 +237,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     );
                   } else {
                     showSnackBar(context,
-                        "We are generating receipt. Please wait and try again.");
+                        "We are generating receipt. Please wait and try again.",
+                        textColor: Colors.white, backgroundColor: Colors.green);
                   }
                 }
               },
@@ -343,22 +343,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
           title: "Return to Home",
-        ),
-      ),
-    );
-  }
-
-  void showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.green,
-        content: Text(
-          message,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w400,
-            fontSize: 20,
-            color: Colors.black,
-          ),
         ),
       ),
     );
