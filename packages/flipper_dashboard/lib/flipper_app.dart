@@ -2,11 +2,13 @@
 
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -21,7 +23,6 @@ import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:stacked/stacked.dart';
 
@@ -42,6 +43,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   FocusNode focusNode = FocusNode();
   List<LogicalKeyboardKey> keys = [];
 
+  final notificationStream = NotificationStream();
+
   @override
   void initState() {
     super.initState();
@@ -54,19 +57,23 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     _requestPermissions();
   }
 
+  bool isMobile = Platform.isIOS || Platform.isAndroid;
+
   Future<void> _startNFC() async {
-    if (!isDesktopOrWeb &&
-        (isAndroid || isIos) &&
-        await NfcManager.instance.isAvailable()) {
-      AppService().nfc.stopNfc();
-      AppService().nfc.startNFC(
-            callback: (nfcData) {
-              AppService.cleanedDataController
-                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-            },
-            textData: "",
-            write: false,
-          );
+    if (isMobile && await NfcManager.instance.isAvailable()) {
+      try {
+        AppService().nfc.stopNfc();
+        AppService().nfc.startNFC(
+              callback: (nfcData) => AppService.cleanedDataController.add(
+                nfcData.split(RegExp(r"NFC_DATA:|en|\\x02")).last,
+              ),
+              textData: "",
+              write: false,
+            );
+      } catch (e) {
+        // Handle NFC related exceptions here (optional)
+        print("Error starting NFC: $e");
+      }
     }
   }
 
@@ -79,7 +86,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _requestPermissions() async {
-    if (!isWindows && !isMacOs) {
+    if (!isWindows && !isMacOs && !isIos) {
       await [
         permission.Permission.storage,
         permission.Permission.manageExternalStorage,
@@ -90,8 +97,9 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   @override
   void dispose() {
-    AppService.cleanedDataController.close();
     super.dispose();
+    AppService.cleanedDataController.close();
+    notificationStream.dispose();
   }
 
   @override
@@ -128,17 +136,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return StreamBuilder<String>(
-            stream: ProxyService.notie.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                showSimpleNotification(Text(snapshot.data ?? ""),
-                    background: const Color.fromARGB(82, 244, 67, 54),
-                    duration: Duration(seconds: 10),
-                    position: NotificationPosition.bottom);
-              }
-              return _buildScaffold(context, model);
-            });
+        return _buildScaffold(context, model);
       },
     );
   }

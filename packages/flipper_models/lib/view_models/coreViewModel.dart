@@ -107,6 +107,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> keyboardKeyPressed(
       {required String key, String? transactionType = 'custom'}) async {
     ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
+    ProxyService.keypad.addKey(key);
 
     ITransaction? pendingTransaction = await ProxyService.isar
         .manageTransaction(transactionType: transactionType!);
@@ -135,7 +136,6 @@ class CoreViewModel extends FlipperBaseModel
 
         break;
       default:
-        ProxyService.keypad.addKey(key);
         if (ProxyService.keypad.key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction);
         } else if (ProxyService.keypad.key.length > 1) {

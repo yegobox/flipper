@@ -2,7 +2,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 
 abstract class TaxApi {
-  Future<bool> saveItem({required Variant variation});
   Future<bool> saveStock({required Stock stock});
   Future saveCustomer({required Customer customer});
   Future<bool> initApi({
@@ -23,4 +22,5 @@ abstract class TaxApi {
     required Counter counter,
     String? purchaseCode,
   });
+  Future<bool> saveItem({required Variant variation});
 }

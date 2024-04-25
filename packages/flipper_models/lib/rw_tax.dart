@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
+import 'package:flipper_models/models.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -40,6 +41,18 @@ class RWTax implements TaxApi {
     }
   }
 
+  late Isar isar;
+  Future<Isar> openIsarIsolate() async {
+    return await Isar.open(
+      schemas: models,
+      // in isolate we don't pass in the directory
+      directory: '',
+      engine: IsarEngine.isar,
+      name: 'default',
+      inspector: false,
+    );
+  }
+
   /// save or update stock of item saved before.
   /// so it is an item i.e variant we pass back
   /// The API will not fail even if the item Code @[itemCd] is not found
@@ -50,11 +63,13 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock({required Stock stock}) async {
+    await openIsarIsolate();
+
     try {
       /// because updating stock in in rra work is just passing item with updated qty
       /// we first get the item from db update the query from our stock model and pass it
       Variant? variant =
-          await ProxyService.isar.getVariantById(id: stock.variantId);
+          await isar.read((isar) => isar.variants.get(stock.variantId));
 
       /// update the remaining stock of this item in rra
       variant!.rsdQty = stock.currentStock;

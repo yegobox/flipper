@@ -17,9 +17,7 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
   void onPut(OBJ object) {
     put(object);
 
-    /// check object type and perform some actions such as interacting with EBM server
-    /// etc..
-    EBMHandler(object: object).handleEBMInteraction();
+    /// when it is time to print receipt do it right way.
     EBMHandler(object: object).handleReceipt();
 
     // after saving object into isar db, we may save same object to a sync database

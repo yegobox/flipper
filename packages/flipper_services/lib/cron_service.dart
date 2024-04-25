@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
@@ -39,7 +41,49 @@ class CronService {
     sendPort.send('Done sending data to http server');
   }
 
+  List<Isolate> _isolates = [];
+
+  Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
+    try {
+      String encryptionKey = ProxyService.box.encryptionKey();
+
+      ReceivePort receivePort = ReceivePort();
+      final isolate = await Isolate.spawn(
+        isolateHandler,
+        [
+          RootIsolateToken.instance,
+          receivePort.sendPort,
+          ProxyService.box.getBranchId()!,
+          "dbPath",
+          encryptionKey,
+        ],
+      );
+      _isolates.add(isolate);
+      receivePort.listen(
+        (message) => {
+          // log('Isolate $name: $message');
+        },
+      );
+    } catch (error) {
+      log('Error managing isolates: $error');
+    }
+  }
+
+  /// Schedules various tasks and timers to handle data synchronization, device publishing, and other periodic operations.
+  ///
+  /// This method sets up the following scheduled tasks:
+  /// - Initializes Firebase messaging and subscribes to business notifications.
+  /// - Periodically pulls data from Realm.
+  /// - Periodically pushes data to the server.
+  /// - Periodically synchronizes Firestore data.
+  /// - Periodically runs a demo print operation.
+  /// - Periodically pulls data from the server.
+  /// - Periodically attempts to publish the device to the server.
+  ///
+  /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
+    // create a compute function to keep track of unsaved data back to EBM do this in background
+    await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     await _setupFirebase();
     await _setupRealm();
 

@@ -1,6 +1,7 @@
 import 'dart:isolate';
 
 import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/realm/realmCounter.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
 // import 'package:flipper_models/realm/realmIUnit.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_models/realm/realmProduct.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/realm/realmVariant.dart';
+import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart' as iRealm;
@@ -18,6 +20,61 @@ import './RealmSync.dart';
 
 mixin IsolateHandler {
   static late Isar isar;
+
+  static Future<void> handleEBMTrigger(List<dynamic> args) async {
+    isar = await openIsarIsolate();
+    do {
+      // load all variants
+      List<Variant> variants =
+          await isar.read((isar) => isar.variants.where().findAll());
+      for (Variant variant in variants) {
+        if (!variant.ebmSynced) {
+          try {
+            RWTax().saveItem(variation: variant);
+            variant.ebmSynced = true;
+            isar.write((isar) => isar.variants.put(variant));
+          } catch (e) {
+            EBMHandler().handleNotificationMessaging(e);
+            variant.ebmSynced = false;
+            isar.write((isar) => isar.variants.put(variant));
+          }
+        }
+      }
+      // load all stock
+      List<Stock> stocks =
+          await isar.read((isar) => isar.stocks.where().findAll());
+      for (Stock stock in stocks) {
+        if (!stock.ebmSynced) {
+          try {
+            RWTax().saveStock(stock: stock);
+            stock.ebmSynced = true;
+            isar.write((isar) => isar.stocks.put(stock));
+          } catch (e) {
+            EBMHandler().handleNotificationMessaging(e);
+            stock.ebmSynced = false;
+            isar.write((isar) => isar.stocks.put(stock));
+          }
+        }
+      }
+      // load all customer
+      List<Customer> customers =
+          await isar.read((isar) => isar.customers.where().findAll());
+      for (Customer customer in customers) {
+        if (!customer.ebmSynced) {
+          try {
+            RWTax().saveCustomer(customer: customer);
+            customer.ebmSynced = true;
+            isar.write((isar) => isar.customers.put(customer));
+          } catch (e) {
+            EBMHandler().handleNotificationMessaging(e);
+            customer.ebmSynced = false;
+            isar.write((isar) => isar.customers.put(customer));
+          }
+        }
+      }
+    } while (true);
+  }
+
   Future updateIsolate<T>(T value) async {
     isar = await openIsarIsolate();
     // do the actual isar update

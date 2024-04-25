@@ -10,9 +10,9 @@ import 'package:intl/intl.dart';
 import 'package:receipt/print.dart';
 
 class EBMHandler<OBJ> {
-  EBMHandler({required this.object}); // Use a constructor for clarity
+  EBMHandler({this.object}); // Use a constructor for clarity
 
-  late OBJ object;
+  OBJ? object;
 
   Future<void> handleReceipt() async {
     if (object is ITransaction) {
@@ -65,67 +65,6 @@ class EBMHandler<OBJ> {
         );
       } catch (e) {
         rethrow;
-      }
-    }
-  }
-
-  Future<void> handleEBMInteraction() async {
-    if (object is Variant) {
-      Variant variant = object as Variant;
-      if (await ProxyService.isar.isTaxEnabled()) {
-        /// to avoid infinite loop where we save something in main db and then sync db
-        /// for sync db to also call this handleEBMInteraction again
-        /// we just are intrested in object that are not ebm backed also this has some piful
-        /// as the function might repeat if ebmSynced property have not updated to true
-        if (!variant.ebmSynced) {
-          try {
-            ProxyService.tax.saveItem(variation: variant);
-            variant.ebmSynced = true;
-            ProxyService.isar.update(data: variant, localUpdate: true);
-          } catch (e) {
-            handleNotificationMessaging(e);
-            variant.ebmSynced = false;
-            ProxyService.isar.update(data: variant, localUpdate: true);
-          }
-        }
-      }
-    }
-    if (object is Stock) {
-      Stock stock = object as Stock;
-      if (await ProxyService.isar.isTaxEnabled()) {
-        /// to avoid infinite loop where we save something in main db and then sync db
-        /// for sync db to also call this handleEBMInteraction again
-        /// we just are intrested in object that are not ebm backed
-        if (!stock.ebmSynced) {
-          try {
-            ProxyService.tax.saveStock(stock: stock);
-            stock.ebmSynced = true;
-            ProxyService.isar.update(data: stock, localUpdate: true);
-          } catch (e) {
-            handleNotificationMessaging(e);
-            stock.ebmSynced = false;
-            ProxyService.isar.update(data: stock, localUpdate: true);
-          }
-        }
-      }
-    }
-    if (object is Customer) {
-      Customer customer = object as Customer;
-      if (await ProxyService.isar.isTaxEnabled()) {
-        /// to avoid infinite loop where we save something in main db and then sync db
-        /// for sync db to also call this handleEBMInteraction again
-        /// we just are intrested in object that are not ebm backed
-        if (!customer.ebmSynced) {
-          try {
-            ProxyService.tax.saveCustomer(customer: customer);
-            customer.ebmSynced = true;
-            ProxyService.isar.update(data: customer, localUpdate: true);
-          } catch (e) {
-            handleNotificationMessaging(e);
-            customer.ebmSynced = false;
-            ProxyService.isar.update(data: customer, localUpdate: true);
-          }
-        }
       }
     }
   }
