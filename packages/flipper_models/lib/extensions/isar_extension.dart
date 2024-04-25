@@ -56,27 +56,27 @@ extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
     if (ProxyService.remoteConfig.isSyncAvailable()) {
       //await ProxyService.realm.configure();
       if (object is TransactionItem) {
-        log(object.toJson().toString(), name: 'onPut');
+        // log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<TransactionItem>(item: object);
       }
       if (object is ITransaction) {
-        log(object.toJson().toString(), name: 'onPut');
+        // log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<ITransaction>(item: object);
       }
 
       if (object is Product) {
-        log(object.toJson().toString(), name: 'onPut');
+        // log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<Product>(item: object);
       }
 
       if (object is Stock) {
-        log(object.toJson().toString(), name: 'onPut');
+        // log(object.toJson().toString(), name: 'onPut');
         ProxyService.realm.onSave<Stock>(item: object);
       }
       if (object is Variant) {
-        log(object.toJson().toString(), name: 'onPut');
-        log("Called onPut in Async there is no problem:${ProxyService.box.tin()}",
-            name: 'onPut');
+        // log(object.toJson().toString(), name: 'onPut');
+        // log("Called onPut in Async there is no problem:${ProxyService.box.tin()}",
+        //     name: 'onPut');
 
         /// save extra fields that where not provided during creating
         /// these fields are crucial when dealing with RRA and because we want

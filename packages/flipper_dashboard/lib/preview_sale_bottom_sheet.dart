@@ -197,6 +197,12 @@ class PreviewSaleBottomSheetState
             ? "Collect ${_numberFormat.format(totalPayable)} "
             : "Order ${_numberFormat.format(totalPayable)} ",
         onTap: () async {
+          if (totalPayable.round() == 0) {
+            showSnackBar(context, "Your cart is empty",
+                textColor: Colors.white, backgroundColor: Colors.green);
+            return;
+          }
+
           /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
           Navigator.of(context).pop();
           final transaction = await ProxyService.isar.manageTransaction(

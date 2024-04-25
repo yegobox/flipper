@@ -86,6 +86,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   String _getFormattedText(String wording, int itemCount) {
     final formattedItemCount = itemCount != 0 ? '($itemCount)' : '';
     final previewText = wording.isNotEmpty ? wording : 'Preview Cart';
+
     return '$previewText $formattedItemCount';
   }
 

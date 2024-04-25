@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+void showSnackBar(BuildContext context, String message,
+    {required Color textColor, required Color backgroundColor}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      width: 400,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: backgroundColor,
+      content: Text(
+        message,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w400,
+          fontSize: 20,
+          color: textColor,
+        ),
+      ),
+    ),
+  );
+}
+
 class AppActions {
   static const String updated = "updated";
   static const String synchronized = "synchronized";

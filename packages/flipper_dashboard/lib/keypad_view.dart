@@ -232,8 +232,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     ),
                   )
                 : Text(
-                    NumberFormat('#,###')
-                            .format(double.parse(widget.model.keypad.key)) +
+                    NumberFormat('#,###').format(
+                            double.tryParse(widget.model.keypad.key) ?? 0.0) +
                         " RWF",
                     style: GoogleFonts.poppins(
                       fontSize: 35,

@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -105,8 +104,14 @@ class IconRowState extends ConsumerState<IconRow> {
               isSelected: _isSelected[2],
             ),
           ],
-          onPressed: (int index) {
+          onPressed: (int index) async {
             ref.read(buttonIndexProvider.notifier).setIndex(index);
+            if (index == 0) {
+              await ProxyService.realm.syncCounter();
+
+              showSnackBar(context, "Your counter is up to date",
+                  textColor: Colors.white, backgroundColor: Colors.green);
+            }
             setState(() {
               for (int buttonIndex = 0;
                   buttonIndex < _isSelected.length;

@@ -62,7 +62,7 @@ Widget PaymentTicketManager(
       },
     ),
     controller: controller,
-    amount: double.parse(model.key),
+    amount: double.tryParse(model.key) ?? 0.0,
   );
 }
 
