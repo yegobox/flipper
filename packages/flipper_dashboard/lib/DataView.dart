@@ -16,25 +16,26 @@ import 'package:share_plus/share_plus.dart';
 /// The application that contains datagrid on it.
 
 /// The home page of the application which hosts the datagrid.
-class ViewData extends StatefulWidget {
+class DataView extends StatefulWidget {
   /// Creates the home page.
-  const ViewData({super.key, required this.transactions});
+  const DataView({super.key, required this.transactions});
   final List<ITransaction> transactions;
   @override
-  _ViewDataState createState() => _ViewDataState();
+  _DataViewState createState() => _DataViewState();
 }
 
-class _ViewDataState extends State<ViewData> {
-  late DataSource employeeDataSource;
+class _DataViewState extends State<DataView> {
+  late TransactionDataSource transactionDataSource;
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
   bool isProcessing = false;
+  static const double dataPagerHeight = 10;
 
   @override
   void initState() {
     super.initState();
 
-    employeeDataSource =
-        DataSource.DataSource(transactionsData: widget.transactions);
+    transactionDataSource =
+        TransactionDataSource(transactions: widget.transactions);
   }
 
   Future<void> requestPermissions() async {
@@ -108,7 +109,7 @@ class _ViewDataState extends State<ViewData> {
                 Expanded(
                   child: SfDataGrid(
                     key: _key,
-                    source: employeeDataSource,
+                    source: transactionDataSource,
                     columnWidthMode: ColumnWidthMode.fill,
                     columns: <GridColumn>[
                       GridColumn(
@@ -149,6 +150,15 @@ class _ViewDataState extends State<ViewData> {
                     ],
                   ),
                 ),
+                Container(
+                  height: dataPagerHeight,
+                  color: Colors.black,
+                  child: SfDataPager(
+                    delegate: transactionDataSource,
+                    pageCount: 10,
+                    direction: Axis.horizontal,
+                  ),
+                )
               ],
             ),
           );
@@ -161,25 +171,19 @@ class _ViewDataState extends State<ViewData> {
 
 /// An object to set the employee collection data source to the datagrid. This
 /// is used to map the employee data to the datagrid widget.
-class DataSource extends DataGridSource {
-  /// Creates the employee data source class with required details.
-  DataSource.DataSource({required List<ITransaction> transactionsData}) {
-    _transactionData = transactionsData
-        .map<DataGridRow>((e) => DataGridRow(cells: [
-              DataGridCell<String>(columnName: 'id', value: e.id),
-              DataGridCell<String>(
-                  columnName: 'Type', value: e.receiptType ?? "-"),
-              DataGridCell<double>(columnName: 'Amount', value: e.subTotal),
-              DataGridCell<double>(
-                  columnName: 'CashReceived', value: e.cashReceived),
-            ]))
-        .toList();
+class TransactionDataSource extends DataGridSource {
+  TransactionDataSource({required this.transactions}) {
+    buildPaginatedDataGridRows(transactions);
   }
+  final int rowsPerPage = 4;
 
-  List<DataGridRow> _transactionData = [];
+  final List<ITransaction> transactions;
+  List<ITransaction> paginatedDataSource = [];
+
+  List<DataGridRow> dataGridRows = [];
 
   @override
-  List<DataGridRow> get rows => _transactionData;
+  List<DataGridRow> get rows => dataGridRows;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
@@ -191,5 +195,34 @@ class DataSource extends DataGridSource {
         child: Text(e.value.toString()),
       );
     }).toList());
+  }
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    int startRowIndex = newPageIndex * rowsPerPage;
+    int endIndex = startRowIndex + rowsPerPage;
+
+    if (endIndex > transactions.length) {
+      endIndex = transactions.length - 1;
+    }
+
+    paginatedDataSource = List.from(
+        transactions.getRange(startRowIndex, endIndex).toList(growable: false));
+    buildPaginatedDataGridRows(paginatedDataSource);
+    notifyListeners();
+    return true;
+  }
+
+  void buildPaginatedDataGridRows(List<ITransaction> paginatedTransactions) {
+    dataGridRows = paginatedTransactions.map<DataGridRow>((transaction) {
+      return DataGridRow(cells: [
+        DataGridCell<String>(columnName: 'id', value: transaction.id),
+        DataGridCell<String>(
+            columnName: 'Type', value: transaction.receiptType ?? "-"),
+        DataGridCell<double>(columnName: 'Amount', value: transaction.subTotal),
+        DataGridCell<double>(
+            columnName: 'CashReceived', value: transaction.cashReceived),
+      ]);
+    }).toList(growable: false);
   }
 }
