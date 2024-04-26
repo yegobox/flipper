@@ -102,18 +102,20 @@ dependencies:
   dropdown_search: ^5.0.6
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
-  # https://github.com/yegobox/flutter_datetime_picker
-  flutter_datetime_picker:
-    git:
-      url: https://github.com/ryojiro/flutter_datetime_picker.git
-      ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
-
   #TODO: because this is community package, I have applied for community licence
   #  the licence is for company less than 1M in revenue and have not received 3M in outside source
   # Meaning I am using this package for now to speed up the process of development
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   syncfusion_flutter_datepicker:
+  syncfusion_flutter_datagrid: ^25.1.41
+  syncfusion_flutter_xlsio: ^25.1.41
+  syncfusion_flutter_datagrid_export: ^25.1.41
+  # https://github.com/yegobox/flutter_datetime_picker
+  flutter_datetime_picker:
+    git:
+      url: https://github.com/ryojiro/flutter_datetime_picker.git
+      ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
 
 dependency_overrides:
   http: ^1.2.1

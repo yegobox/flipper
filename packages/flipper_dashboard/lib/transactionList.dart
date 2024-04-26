@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/view_data.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -15,49 +16,14 @@ class TransactionList extends ConsumerWidget {
       return Center(child: Text('No data for selected date range'));
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(height: 5),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                // Add your export to Excel logic here
-              },
-              child: Text('Export to Excel'),
-            ),
-            SizedBox(width: 10), // Add some space between the buttons
-            ElevatedButton(
-              onPressed: () {
-                // Add your print logic here
-              },
-              child: Text('Print'),
-            ),
-          ],
-        ),
-        Container(
-          height: 300, // Adjust this value as needed
-          child: DataTable(
-            columns: const <DataColumn>[
-              DataColumn(
-                label: Text('Reference',
-                    style: TextStyle(fontStyle: FontStyle.normal)),
-              ),
-              DataColumn(
-                label:
-                    Text('Type', style: TextStyle(fontStyle: FontStyle.normal)),
-              ),
-              DataColumn(
-                label: Text('Total',
-                    style: TextStyle(fontStyle: FontStyle.normal)),
-              ),
-            ],
-            rows: _buildDataRows(ITransactionList),
-          ),
-        ),
-      ],
+    // return Center(child: Text('here'));
+
+    return Container(
+      width: 150,
+      height: 800,
+      child: ViewData(
+        employees: ITransactionList.asData?.value ?? [],
+      ),
     );
   }
 
