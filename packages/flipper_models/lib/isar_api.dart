@@ -131,7 +131,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       db.write((isar) {
         isar.iTransactions.onPut(transaction);
       });
-      ITransaction? createdTransaction = await db.iTransactions.get(id);
+      ITransaction? createdTransaction =
+          db.read((isar) => isar.iTransactions.get(id));
       ProxyService.box.writeString(key: 'currentTransactionId', value: id);
       return createdTransaction!;
     } else {
@@ -1709,7 +1710,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType}) async {
-    return await db.iTransactions
+    return db.read((isar) => isar.iTransactions
         .where()
         .statusEqualTo(PENDING)
         .and()
@@ -1718,7 +1719,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .transactionTypeEqualTo(transactionType)
         .and()
         .deletedAtIsNull()
-        .findFirstAsync();
+        .findFirst());
   }
 
   @override
@@ -2682,6 +2683,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       final List<dynamic> jsonResponse = json.decode(response.body);
       List<Counter> counters = Counter.fromJsonList(jsonResponse);
 
+      /// first check if we don't have local counter that we are overwriting
+      List<Counter> localCounters =
+          db.read((isar) => isar.counters.where().findAll());
+      if (localCounters.isNotEmpty) return;
       for (Counter counter in counters) {
         db.write((isar) {
           isar.counters.put(Counter(
@@ -3397,7 +3402,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       required bool doneWithTransaction,
       required bool active}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    return await db.transactionItems
+    return db.read((isar) => isar.transactionItems
         .where()
         .transactionIdEqualTo(transactionId)
         .and()
@@ -3408,7 +3413,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .deletedAtIsNull()
         .and()
         .activeEqualTo(active)
-        .findAllAsync();
+        .findAll());
   }
 
   @override

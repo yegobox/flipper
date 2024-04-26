@@ -70,31 +70,40 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             showDialog(
               context: context,
               builder: (BuildContext context) {
+                final double height = MediaQuery.of(context).size.height;
+                final double adjustedHeight = height *
+                    0.8; // Adjust the height to 80% of the screen height
+
                 return AlertDialog(
                   title: Text('Digital Receipt'),
-                  content: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Text('Do you need a digital receipt?'),
-                        TextFormField(
-                          controller: _controller,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Purchase Code',
+                  content: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: adjustedHeight,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Text('Do you need a digital receipt?'),
+                          TextFormField(
+                            controller: _controller,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Purchase Code',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter a purchase code';
+                              }
+                              return null;
+                            },
+                            onFieldSubmitted: (value) {},
+                            // Handle the purchase code input
+                            onSaved: (value) {},
                           ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a purchase code';
-                            }
-                            return null;
-                          },
-                          onFieldSubmitted: (value) {},
-                          // Handle the purchase code input
-                          onSaved: (value) {},
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   actions: <Widget>[
@@ -125,7 +134,10 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                               errorMessage =
                                   errorMessage.substring(startIndex + 2);
                             }
-                            toast(errorMessage);
+                            // toast(errorMessage);
+                            showSnackBar(context, errorMessage,
+                                textColor: Colors.white,
+                                backgroundColor: Colors.green);
                             return;
                           }
 

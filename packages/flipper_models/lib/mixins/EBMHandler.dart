@@ -17,20 +17,17 @@ class EBMHandler<OBJ> {
   Future<void> handleReceipt() async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
-      if (transaction.status == COMPLETE) {
+
+      /// when the customer is not added to the sale then we shall print the rra receipt
+      /// automatically if the customer is added though we shall wait for the purchase code from
+      /// user for us to proceed
+      if (transaction.status == COMPLETE && transaction.customerId == null) {
         //// generate a receipt for this completed transaction
         /// if a customer is attached and the customer is of type business
         /// we stop and wait for a business to give us purchase code!
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        // Define this constant at the top level of your file
-        //const String customerTypeBusiness = "Business";
-
-        if (transaction.customerId != null) {
-          return;
-        }
-
         await handleReceiptGeneration(transaction: transaction);
       }
     }
@@ -168,6 +165,8 @@ class EBMHandler<OBJ> {
     }
 
     try {
+      // counter!.totRcptNo = counter.totRcptNo + 1;
+      // counter.curRcptNo = counter.totRcptNo + 1;
       EBMApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,

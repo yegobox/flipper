@@ -219,6 +219,7 @@ class App {}
 // Login Pins
 // YEGOBOX: 31658
 //customerTin: 999941411
+// seller Tin: 999909695
 // PETER: 49528
 // 67364
 // 28462948626200

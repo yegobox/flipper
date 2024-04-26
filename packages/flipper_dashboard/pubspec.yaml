@@ -55,7 +55,7 @@ dependencies:
   intl: ^0.18.0
 
   connectivity_plus: ^5.0.2
-  
+
   device_info_plus: ^9.1.1
   provider: ^6.0.2
   gap: ^2.0.0
@@ -65,7 +65,7 @@ dependencies:
   # Splash screen handle
   flutter_native_splash: ^2.3.2
   lecle_downloads_path_provider: ^0.0.2+7
-  permission_handler: ^10.4.3
+  permission_handler: ^11.3.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
@@ -113,7 +113,7 @@ dependencies:
   # Meaning I am using this package for now to speed up the process of development
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
-  syncfusion_flutter_datepicker: ^19.4.38
+  syncfusion_flutter_datepicker:
 
 dependency_overrides:
   http: ^1.2.1

@@ -237,7 +237,7 @@ class RWTax implements TaxApi {
     Map<String, dynamic> data = {
       "tin": business?.tinNumber ?? 999909695,
       "bhfId": business?.bhfId ?? "00",
-      "invcNo": counter.curRcptNo + 1,
+      "invcNo": counter.curRcptNo,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
       "rcptTyCd": rcptTyCd,
@@ -257,8 +257,8 @@ class RWTax implements TaxApi {
       "modrId": transaction.id,
       "modrNm": transaction.id,
       "receipt": {
-        "curRcptNo": counter.curRcptNo + 1,
-        "totRcptNo": counter.curRcptNo + 1,
+        "curRcptNo": counter.curRcptNo,
+        "totRcptNo": counter.curRcptNo,
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
@@ -303,7 +303,8 @@ class RWTax implements TaxApi {
           json.decode(stringResponse),
         );
         if (data.resultCd != "000") {
-          throw Exception(data.resultMsg);
+          throw Exception(
+              "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}");
         }
         return data;
       } else {
@@ -314,7 +315,8 @@ class RWTax implements TaxApi {
       print("Exception: $e");
       print("Exception: $st");
       // Handle the exception or rethrow it based on your requirements.
-      throw Exception("Failed to send request: $e");
+      throw Exception(
+          "Failed to send request with invoice number ${counter.curRcptNo}: $e");
     }
   }
 
