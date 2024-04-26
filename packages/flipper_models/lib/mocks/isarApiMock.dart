@@ -986,8 +986,8 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITransaction>> transactionList(
-      {required DateTime startDate, required DateTime endDate}) {
+  Stream<List<ITransaction>> transactionList(
+      { DateTime? startDate,  DateTime? endDate}) {
     // TODO: implement transactionList
     throw UnimplementedError();
   }

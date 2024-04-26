@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
@@ -16,22 +18,23 @@ import 'package:share_plus/share_plus.dart';
 /// The home page of the application which hosts the datagrid.
 class ViewData extends StatefulWidget {
   /// Creates the home page.
-  const ViewData({super.key, required this.employees});
-  final List<ITransaction> employees;
+  const ViewData({super.key, required this.transactions});
+  final List<ITransaction> transactions;
   @override
   _ViewDataState createState() => _ViewDataState();
 }
 
 class _ViewDataState extends State<ViewData> {
-  late EmployeeDataSource employeeDataSource;
+  late DataSource employeeDataSource;
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
+  bool isProcessing = false;
 
   @override
   void initState() {
     super.initState();
 
     employeeDataSource =
-        EmployeeDataSource.DataSource(employeeData: widget.employees);
+        DataSource.DataSource(transactionsData: widget.transactions);
   }
 
   Future<void> requestPermissions() async {
@@ -49,20 +52,30 @@ class _ViewDataState extends State<ViewData> {
 
   Future<void> exportDataGridToExcel() async {
     await requestPermissions();
+    setState(() {
+      isProcessing = true;
+    });
     final excel.Workbook workbook = _key.currentState!.exportToExcelWorkbook();
     final List<int> bytes = workbook.saveAsStream();
 
     // Get the directory for temporary files
     final Directory tempDir = await getApplicationDocumentsDirectory();
-    final File file = File('${tempDir.path}/DataGrid.xlsx');
+    final File file = File('${tempDir.path}/Report.xlsx');
 
     // Write the file
     await file.writeAsBytes(bytes);
 
     workbook.dispose();
+    setState(() {
+      isProcessing = false;
+    });
 
-    // Share the file
-    await Share.shareXFiles([XFile(file.path)], subject: "Report Download");
+    var now = DateTime.now();
+    var formattedDate = DateFormat('yyyy-MM-dd').format(now);
+
+    // When sharing report
+    await Share.shareXFiles([XFile(file.path)],
+        subject: "Report Download - $formattedDate");
   }
 
   @override
@@ -75,21 +88,17 @@ class _ViewDataState extends State<ViewData> {
             body: Column(
               children: [
                 Container(
-                  margin: const EdgeInsets.all(12.0),
+                  margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
                   child: Row(
                     children: <Widget>[
                       SizedBox(
                         height: 40.0,
                         width: 150.0,
-                        child: MaterialButton(
-                          color: Colors.blue,
-                          onPressed: exportDataGridToExcel,
-                          child: const Center(
-                            child: Text(
-                              'Export to Excel',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                        child: BoxButton(
+                          onTap: exportDataGridToExcel,
+                          borderRadius: 1,
+                          title: 'Export to Excel',
+                          busy: isProcessing,
                         ),
                       ),
                       const Padding(padding: EdgeInsets.all(20)),
@@ -130,7 +139,7 @@ class _ViewDataState extends State<ViewData> {
                         ),
                       ),
                       GridColumn(
-                        columnName: 'Cash Received',
+                        columnName: 'CashReceived',
                         label: Container(
                           padding: const EdgeInsets.all(8.0),
                           alignment: Alignment.center,
@@ -152,24 +161,25 @@ class _ViewDataState extends State<ViewData> {
 
 /// An object to set the employee collection data source to the datagrid. This
 /// is used to map the employee data to the datagrid widget.
-class EmployeeDataSource extends DataGridSource {
+class DataSource extends DataGridSource {
   /// Creates the employee data source class with required details.
-  EmployeeDataSource.DataSource({required List<ITransaction> employeeData}) {
-    _employeeData = employeeData
+  DataSource.DataSource({required List<ITransaction> transactionsData}) {
+    _transactionData = transactionsData
         .map<DataGridRow>((e) => DataGridRow(cells: [
               DataGridCell<String>(columnName: 'id', value: e.id),
-              DataGridCell<String>(columnName: 'type', value: e.receiptType),
-              DataGridCell<double>(columnName: 'amount', value: e.subTotal),
+              DataGridCell<String>(
+                  columnName: 'Type', value: e.receiptType ?? "-"),
+              DataGridCell<double>(columnName: 'Amount', value: e.subTotal),
               DataGridCell<double>(
-                  columnName: 'Cash Received', value: e.cashReceived),
+                  columnName: 'CashReceived', value: e.cashReceived),
             ]))
         .toList();
   }
 
-  List<DataGridRow> _employeeData = [];
+  List<DataGridRow> _transactionData = [];
 
   @override
-  List<DataGridRow> get rows => _employeeData;
+  List<DataGridRow> get rows => _transactionData;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {

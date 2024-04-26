@@ -134,7 +134,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                     [0, 1, 2, 4].contains(currentLocation))
                   orderButton(orders),
                 if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                if (currentLocation == 3) datePicker(),
+                if (currentLocation == 1) datePicker(),
               ],
             ),
           ),
@@ -146,7 +146,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   IconButton datePicker() {
     return IconButton(
       onPressed: _handleDateTimePicker,
-      icon: Icon(Icons.date_range),
+      icon: Icon(Icons.date_range, color: Colors.blue),
     );
   }
 
@@ -220,26 +220,16 @@ class SearchFieldState extends ConsumerState<SearchField> {
 
   _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     if (args.value is PickerDateRange) {
-      // DateTime startDate = args.value.startDate;
-      // DateTime endDate = args.value.endDate ?? args.value.startDate;
+      PickerDateRange date = args.value as PickerDateRange;
+      if (date.endDate != null && date.endDate != null) {
+        showSnackBar(context, "Date range selected",
+            textColor: Colors.white, backgroundColor: Colors.purple);
+        ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
+        ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
 
-      ref
-          .read(dateRangeProvider.notifier)
-          .setStartDate(DateTime.now().subtract(Duration(days: 4)));
-      ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
+        ref.refresh(transactionListProvider);
+      }
     }
-  }
-
-  _onSelectionChangedSubmit() {
-    // DateTime startDate = args.value.startDate;
-    // DateTime endDate = args.value.endDate ?? args.value.startDate;
-
-    ref
-        .read(dateRangeProvider.notifier)
-        .setStartDate(DateTime.now().subtract(Duration(days: 4)));
-    ref.read(dateRangeProvider.notifier).setEndDate(DateTime.now());
-
-    ref.refresh(transactionListProvider);
   }
 
   void _handleDateTimePicker() {
@@ -247,31 +237,27 @@ class SearchFieldState extends ConsumerState<SearchField> {
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
-          child: SfDateRangePicker(
-        onSubmit: (v) {
-          _onSelectionChangedSubmit();
-          Navigator.maybePop(context);
-        },
-        onCancel: () {
-          Navigator.maybePop(context);
-        },
-        onSelectionChanged: _onSelectionChanged,
-        selectionMode: DateRangePickerSelectionMode.range,
-        showActionButtons: true,
-        showNavigationArrow: true,
-        toggleDaySelection: true,
-        showTodayButton: true,
-        initialSelectedRange: PickerDateRange(
+        child: SfDateRangePicker(
+          onSubmit: (v) {
+            Navigator.maybePop(context);
+          },
+          onCancel: () {
+            Navigator.maybePop(context);
+          },
+          onSelectionChanged: _onSelectionChanged,
+          selectionMode: DateRangePickerSelectionMode.range,
+          showActionButtons: true,
+          navigationDirection: DateRangePickerNavigationDirection.vertical,
+          navigationMode: DateRangePickerNavigationMode.scroll,
+          showNavigationArrow: true,
+          initialSelectedRange: PickerDateRange(
             DateTime.now().subtract(const Duration(days: 4)),
-            DateTime.now().add(const Duration(days: 3))),
-        headerStyle: DateRangePickerHeaderStyle(
-          backgroundColor: Colors.blue,
-          textStyle: TextStyle(color: Colors.white, fontSize: 18),
+            DateTime.now().add(
+              const Duration(days: 3),
+            ),
+          ),
         ),
-        selectionTextStyle: TextStyle(color: Colors.white),
-        selectionColor: Colors.black,
-        todayHighlightColor: Colors.green,
-      )),
+      ),
     );
   }
 }

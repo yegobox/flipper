@@ -488,40 +488,35 @@ class ButtonIndexNotifier extends StateNotifier<int> {
 //DateTime range provider
 final dateRangeProvider =
     StateNotifierProvider.autoDispose<DateRangeNotifier, Map<String, DateTime>>(
-        (ref) {
-  return DateRangeNotifier();
-});
+  (ref) => DateRangeNotifier(),
+);
 
 class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
-  DateRangeNotifier()
-      : super({
-          'endDate': DateTime.now(),
-          'startDate': DateTime.now().subtract(Duration(days: 4)),
-        });
+  DateRangeNotifier() : super({});
+
   void setStartDate(DateTime startDate) {
-    state['startDate'] = startDate;
+    state = {...state, 'startDate': startDate};
   }
 
   void setEndDate(DateTime endDate) {
-    state['endDate'] = endDate;
-  }
-
-  void resetDates() {
-    state['endDate'] = DateTime.now();
-    state['startDate'] = DateTime.now().subtract(Duration(days: 4));
+    state = {...state, 'endDate': endDate};
   }
 }
 
 final transactionListProvider =
-    FutureProvider.autoDispose<List<ITransaction>>((ref) async {
-  try {
-    final startDate = ref.watch(dateRangeProvider)['startDate']!;
-    final endDate = ref.watch(dateRangeProvider)['startDate']!;
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  final startDate = ref.read(dateRangeProvider)['startDate'];
+  final endDate = ref.read(dateRangeProvider)['endDate'];
 
-    final transactions = await ProxyService.isar
-        .transactionList(startDate: startDate, endDate: endDate);
-    return transactions;
-  } catch (error) {
-    return [];
+  // Check if startDate or endDate is null, and return an empty stream if either is null
+  if (startDate == null || endDate == null) {
+    return Stream.empty();
   }
+  final transactions =
+      ProxyService.isar.transactionList(startDate: startDate, endDate: endDate);
+
+  return transactions.handleError((error) {
+    // If an error occurs in the stream, emit the error so that the UI can display it
+    return [];
+  });
 });
