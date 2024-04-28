@@ -46,7 +46,7 @@ export 'package:flipper_login/login.dart';
 export 'package:flipper_login/desktop_login_view.dart';
 
 export 'package:flipper_login/landing.dart';
-export 'package:flipper_login/signin_page.dart';
+export 'package:flipper_login/AuthOptionPage.dart';
 export 'package:flipper_login/country_picking_page.dart';
 export 'package:flipper_login/phone_input_screen.dart';
 

@@ -98,15 +98,15 @@ ButtonStyle primaryButtonStyle = ButtonStyle(
       borderRadius: BorderRadius.circular(10.0),
     ),
   ),
-  backgroundColor: MaterialStateProperty.all<Color>(const Color(0xff006AFE)),
+  backgroundColor: MaterialStateProperty.all<Color>(Color(0xff006AFE)),
   overlayColor: MaterialStateProperty.resolveWith<Color?>(
     (Set<MaterialState> states) {
       if (states.contains(MaterialState.hovered)) {
-        return Colors.blue.withOpacity(0.04);
+        return Color(0xff006AFE);
       }
       if (states.contains(MaterialState.focused) ||
           states.contains(MaterialState.pressed)) {
-        return Colors.blue.withOpacity(0.12);
+        return Color(0xff006AFE);
       }
       return null;
     },
