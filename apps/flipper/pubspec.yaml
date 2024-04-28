@@ -84,7 +84,6 @@ dev_dependencies:
   matcher: ^0.12.10
   msix: ^3.16.4
   flutter_lints: ^2.0.0
-  # melos: ^3.4.0
   injectable_generator: ^2.6.0
   nock: ^1.2.3
   # The "flutter_lints" package below contains a set of recommended lints to
