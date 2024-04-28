@@ -39,7 +39,7 @@ class _PaginatedDataGrid extends State<PaginatedDataView> {
   void initState() {
     super.initState();
     transactions = widget.transactions;
-    _transactionDataSource = TransactionDataSource.TransactionDataSource();
+    _transactionDataSource = TransactionDataSource(transactions: transactions);
     _transactionDataSource..addListener(updateWidget);
   }
 
@@ -167,8 +167,8 @@ class _PaginatedDataGrid extends State<PaginatedDataView> {
 }
 
 class TransactionDataSource extends DataGridSource {
-  TransactionDataSource.TransactionDataSource() {
-    paginatedDataSource = transactions.getRange(0, rowsPerPage).toList();
+  TransactionDataSource({required List<ITransaction> transactions}) {
+    paginatedDataSource = transactions.take(rowsPerPage).toList();
     buildPaginatedDataGridRows();
   }
 

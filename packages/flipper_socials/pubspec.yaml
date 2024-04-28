@@ -33,7 +33,7 @@ dependencies:
   # may be it is time to create utils package and move everything shareble
   # in all packages or use flipper_ui package
   flipper_dashboard: ^0.0.1-dev.5
-  url_launcher: ^6.1.11
+  url_launcher: ^6.2.6
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0

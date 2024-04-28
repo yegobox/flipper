@@ -28,7 +28,7 @@ class _LoginViewState extends State<LoginView> {
   bool _isLogin = false;
   Future<void> isNetAvailable() async {
     if (!(await appService.isLoggedIn())) {
-      ConnectivityResult connectivityResult =
+      List<ConnectivityResult> connectivityResult =
           await (Connectivity().checkConnectivity());
       if (connectivityResult == ConnectivityResult.mobile ||
           connectivityResult == ConnectivityResult.wifi) {
@@ -40,21 +40,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> futures() async {
-    if (!(await appService.isLoggedIn())) {
-      SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-        Connectivity()
-            .onConnectivityChanged
-            .listen((ConnectivityResult result) {
-          if (result == ConnectivityResult.mobile ||
-              result == ConnectivityResult.wifi) {
-            // _routerService.navigateTo(LoginViewRoute());
-          } else {
-            // TODO: show a notification istead of going to NoNetRoute page
-            // _routerService.navigateTo(NoNetRoute());
-          }
-        });
-      });
-    }
+    if (!(await appService.isLoggedIn())) {}
   }
 
   @override

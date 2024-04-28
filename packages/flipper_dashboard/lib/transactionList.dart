@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/PaginatedDataView.dart';
+import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -15,7 +15,7 @@ class TransactionList extends ConsumerWidget {
       data: (value) => Container(
         width: 150,
         height: 800,
-        child: PaginatedDataView(
+        child: DataView(
           transactions: value,
         ),
       ),

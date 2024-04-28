@@ -1,4 +1,3 @@
-import 'package:firebase_admob_config/firebase_admob_config.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'abstractions/remote.dart';
@@ -246,8 +245,13 @@ class RemoteConfigService implements Remote {
 
   @override
   Widget bannerAd() {
-    return AppBannerAd.fromKey(configKey: 'banner_ad');
-    // return AppRewardedAd.fromKey(configKey: 'reward_ad');
+    // return AppBannerAd.fromKey(configKey: 'banner_ad');
+    // TODO: RE-WORK ON THIS TO SUPPORT IOS AS WELL
+    // if (Platform.isMacOS || Platform.isIOS) {
+    return SizedBox.shrink();
+    // }
+
+    // return AppBannerAd.fromKey(configKey: 'reward_ad');
   }
 
   @override

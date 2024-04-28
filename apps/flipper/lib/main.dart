@@ -18,7 +18,7 @@ import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_services/locator.dart';
@@ -71,9 +71,10 @@ Future<void> main() async {
       webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
     );
   }
+  // TODO: to support Ios following these instruction https://developers.google.com/admob/flutter/quick-start#ios
   if (!isWindows && !isWeb && !isMacOs) {
     /// init admob
-    await MobileAds.instance.initialize();
+    // await MobileAds.instance.initialize();
     FlutterError.onError = (FlutterErrorDetails details) {
       // Log the error to the console.
       FlutterError.dumpErrorToConsole(details);

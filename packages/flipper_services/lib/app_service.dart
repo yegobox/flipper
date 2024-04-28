@@ -40,6 +40,7 @@ class AppService with ListenableServiceMixin {
   setActiveBranch({required isar.Branch branch}) {
     _branch.value = branch;
   }
+
   void loadCategories() async {
     int? branchId = ProxyService.box.getBranchId();
 
@@ -175,7 +176,7 @@ class AppService with ListenableServiceMixin {
     final Connectivity connectivity = Connectivity();
     yield await connectivity.checkConnectivity() != ConnectivityResult.none;
 
-    await for (ConnectivityResult result
+    await for (List<ConnectivityResult> result
         in connectivity.onConnectivityChanged) {
       yield result != ConnectivityResult.none;
     }
