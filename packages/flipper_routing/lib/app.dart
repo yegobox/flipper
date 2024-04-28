@@ -396,3 +396,5 @@ class App {}
 // fix nuget issue : winget install Microsoft.NuGet
 //Show things on second screen: https://pub.dev/packages/presentation_displays
 
+// https://pub.dev/packages/requests_inspector
+
