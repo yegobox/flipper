@@ -8,6 +8,8 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_models/isar_models.dart' as isar;
 
+import 'bottom_sheets/SettingsBottomSheet.dart';
+
 // Create a custom IconText widget that displays an icon and a text below it, with a border and a background color
 class IconText extends StatelessWidget {
   // Declare the icon and text as final variables
@@ -75,22 +77,31 @@ class IconRowState extends ConsumerState<IconRow> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ToggleButtons(
+          selectedColor: Colors.red,
           children: <Widget>[
-            IconText(
-              icon: Icons.home,
-              text: 'Home',
-              isSelected: _isSelected[0],
+            GestureDetector(
+              onDoubleTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(10.0)),
+                  ),
+                  useRootNavigator: true,
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: SetingsBottomSheet(),
+                    );
+                  },
+                );
+              },
+              child: IconText(
+                icon: Icons.home,
+                text: 'Home',
+                isSelected: _isSelected[0],
+              ),
             ),
-            // IconText(
-            //   icon: Icons.local_offer,
-            //   text: 'Discount',
-            //   isSelected: _isSelected[1],
-            // ),
-            // IconText(
-            //   icon: Icons.replay,
-            //   text: 'Refund',
-            //   isSelected: _isSelected[2],
-            // ),
             ProxyService.isar.isTaxEnabled()
                 ? IconText(
                     icon: Icons.sync,
@@ -106,12 +117,7 @@ class IconRowState extends ConsumerState<IconRow> {
           ],
           onPressed: (int index) async {
             ref.read(buttonIndexProvider.notifier).setIndex(index);
-            if (index == 0) {
-              await ProxyService.realm.syncCounter();
 
-              showSnackBar(context, "Your counter is up to date",
-                  textColor: Colors.white, backgroundColor: Colors.green);
-            }
             setState(() {
               for (int buttonIndex = 0;
                   buttonIndex < _isSelected.length;
@@ -124,12 +130,17 @@ class IconRowState extends ConsumerState<IconRow> {
                 }
               }
             });
+            if (index == 0) {
+              await ProxyService.realm.syncCounter();
+
+              showSnackBar(context, "Your counter is up to date",
+                  textColor: Colors.white, backgroundColor: Colors.green);
+            }
 
             buttonNav(index);
           },
           isSelected: _isSelected,
           color: Colors.white,
-          selectedColor: Colors.white,
           fillColor: Colors.white,
         ),
       ],

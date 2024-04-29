@@ -48,13 +48,17 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
       },
       builder: (context, model, child) {
         return Scaffold(
+          backgroundColor: Colors.white,
           appBar: CustomAppBar(
             onPop: () async {
               _routerService.pop();
             },
-            title: 'Tax Configuration',
             disableButton: false,
             showActionButton: false,
+            icon: Icons.close,
+            multi: 3,
+            bottomSpacer: 48.99,
+            isDividerVisible: false,
           ),
           body: Column(
             children: [

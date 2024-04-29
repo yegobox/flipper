@@ -103,9 +103,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   Future<ITransaction> manageTransaction(
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    // ITransaction? existTransaction = retailId != null
-    //     ? await pendingTransaction(retailId: retailId,transactionType:transactionType)
-    //     : await pendingTransaction(branchId: branchId,transactionType:transactionType);
     ITransaction? existTransaction = await pendingTransaction(
         branchId: branchId, transactionType: transactionType);
     if (existTransaction == null) {
@@ -609,6 +606,24 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
+
+  /// Collects the payment for a transaction, updates the transaction status, calculates the customer change due, and updates the transaction and related items in the database.
+  ///
+  /// This method is responsible for the following tasks:
+  /// - Sets the transaction status to `COMPLETE`
+  /// - Retrieves the transaction items that are not yet done with the transaction
+  /// - Calculates the sub-total of the transaction items
+  /// - Sets the customer change due, payment type, and cash received on the transaction
+  /// - Determines the receipt type based on the app's mode (normal, proforma, or training)
+  /// - Updates the transaction's `updatedAt` and `createdAt` timestamps
+  /// - Updates the stock quantities and values for the transaction items
+  /// - Marks the transaction items as done with the transaction
+  /// - Updates the `lastTouched` timestamp for the related product
+  /// - Removes the `currentTransactionId` from the local storage
+  ///
+  /// @param cashReceived The amount of cash received from the customer
+  /// @param transaction The transaction object to be updated
+  /// @param paymentType The type of payment (e.g., cash, card)
   Future<void> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,

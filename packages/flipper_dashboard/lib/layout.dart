@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
@@ -6,8 +7,6 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
-import 'receipt_ui.dart';
 
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
@@ -75,7 +74,9 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
       padding: const EdgeInsets.all(8.0),
       child: Container(
         width: 400,
-        child: ReceiptUI(),
+        child: PreviewSaleBottomSheet(
+          reverse: false,
+        ),
       ),
     );
   }

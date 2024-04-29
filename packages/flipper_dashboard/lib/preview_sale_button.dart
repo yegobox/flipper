@@ -10,7 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
-import 'preview_sale_bottom_sheet.dart';
+import 'bottom_sheets/preview_sale_bottom_sheet.dart';
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
   const PreviewSaleButton(

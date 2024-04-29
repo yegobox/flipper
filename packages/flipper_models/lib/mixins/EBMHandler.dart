@@ -165,8 +165,6 @@ class EBMHandler<OBJ> {
     }
 
     try {
-      // counter!.totRcptNo = counter.totRcptNo + 1;
-      // counter.curRcptNo = counter.totRcptNo + 1;
       EBMApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
