@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_models/handleMoreMethod.dart';
 import 'package:flipper_models/realm/realmCounter.dart';
 import 'package:flipper_models/realm/realmCustomer.dart';
 import 'package:flipper_models/realm/realmReceipt.dart';
@@ -50,8 +51,8 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 }
 
 class RealmSync<M extends IJsonSerializable>
-    with HandleItemMixin
-    implements SyncReaml<M> {
+    with HandleItemMixin, HandleMoreMethod
+    implements SyncReaml<M>, IsarApiInterface {
   Realm? realm;
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
@@ -61,13 +62,6 @@ class RealmSync<M extends IJsonSerializable>
         branchId.toString() +
         "_" +
         businessId.toString();
-
-    // Check if the directory exists
-    // final dir = Directory(realmDirectory);
-    // if (dir.existsSync()) {
-    //   // If it exists, delete it
-    //   await dir.delete(recursive: true);
-    // }
 
     // Create the new directory
     await Directory(realmDirectory).create(recursive: true);

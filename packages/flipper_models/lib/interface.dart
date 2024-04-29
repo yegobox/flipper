@@ -177,14 +177,7 @@ abstract class IsarApiInterface {
       required Branch branch,
       required String userType});
   Pointss addPoint({required int userId, required int point});
-  Future<Subscription?> addUpdateSubscription({
-    required int userId,
-    required int interval,
-    required double recurringAmount,
-    required String descriptor,
-    required List<Feature> features,
-  });
-  Future<Subscription?> getSubscription({required int userId});
+
   Future<Pointss?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
   Future<Pin?> createPin();
@@ -242,7 +235,7 @@ abstract class IsarApiInterface {
   Future<List<BusinessType>> businessTypes();
 
   /// list messages
-  Stream<List<Conversation>> conversations({String conversationId});
+  Stream<List<Conversation>> conversations({required String conversationId});
   Future<void> sendScheduleMessages();
   Future<Conversation?> getConversation({required String messageId});
   Future<List<Conversation>> getScheduleMessages();

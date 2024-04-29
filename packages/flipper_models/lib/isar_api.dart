@@ -384,61 +384,6 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Subscription?> addUpdateSubscription(
-      {required int userId,
-      required int interval,
-      required double recurringAmount,
-      required String descriptor,
-      required List<Feature> features}) async {
-    // get Subscription where userId = userId from db
-    Subscription? subscription =
-        db.subscriptions.where().userIdEqualTo(userId).findFirst();
-    late DateTime nextBillingDate;
-    switch (descriptor) {
-      case "Monthly":
-        nextBillingDate = DateTime.now().add(
-          Duration(days: interval),
-        );
-        break;
-      case "Yearly":
-        nextBillingDate = DateTime.now().add(
-          Duration(days: interval * 365),
-        );
-        break;
-      case "Daily":
-        nextBillingDate = DateTime.now().add(
-          Duration(days: interval),
-        );
-        break;
-      default:
-    }
-    String id = randomString();
-    subscription ??= Subscription(
-      id: id,
-      userId: userId,
-      lastBillingDate: subscription!.nextBillingDate,
-      nextBillingDate: nextBillingDate.toIso8601String(),
-      interval: interval,
-      descriptor: descriptor,
-      recurring: recurringAmount,
-    );
-    // save subscription to db and return subscription
-    db.write((isar) {
-      isar.subscriptions.put(subscription!);
-    });
-    Subscription? sub = db.subscriptions.get(id);
-    // TODO: fix this as I used it when link were still supported
-    // for (var feature in features) {
-    //   sub!.features.value = feature;
-    // }
-    // update sub to db
-    db.write((isar) {
-      isar.subscriptions.put(sub!);
-    });
-    return db.subscriptions.get(id);
-  }
-
-  @override
   Future<int> addVariant({required List<Variant> variations}) async {
     int branchId = ProxyService.box.getBranchId()!;
 

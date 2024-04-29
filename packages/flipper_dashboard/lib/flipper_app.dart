@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -144,6 +142,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
         ref.watch(pendingTransactionProvider(TransactionType.custom));
+    // ignore: unused_result
     ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
     initializeApplicationIfRequired();
     model.defaultBranch();

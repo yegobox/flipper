@@ -74,7 +74,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   url_strategy: ^0.2.0
   responsive_builder: ^0.7.0
-  realm: ^2.0.0
+  realm: ^2.1.0
   patrol: ^3.4.0
   firebase_app_check: ^0.2.1+12
 dev_dependencies:

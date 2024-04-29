@@ -61,17 +61,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Subscription?> addUpdateSubscription(
-      {required int userId,
-      required int interval,
-      required double recurringAmount,
-      required String descriptor,
-      required List<Feature> features}) {
-    // TODO: implement addUpdateSubscription
-    throw UnimplementedError();
-  }
-
-  @override
   Future<int> addVariant({required List<Variant> variations}) {
     // TODO: implement addVariant
     throw UnimplementedError();
@@ -165,7 +154,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({String? conversationId}) {
+  Stream<List<Conversation>> conversations({required String conversationId}) {
     // TODO: implement conversations
     throw UnimplementedError();
   }
@@ -475,12 +464,6 @@ class IsarAPIMock<M> implements IsarApiInterface {
   @override
   Future<Stock?> getStockById({required String id}) {
     // TODO: implement getStockById
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Subscription?> getSubscription({required int userId}) {
-    // TODO: implement getSubscription
     throw UnimplementedError();
   }
 
@@ -987,7 +970,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Stream<List<ITransaction>> transactionList(
-      { DateTime? startDate,  DateTime? endDate}) {
+      {DateTime? startDate, DateTime? endDate}) {
     // TODO: implement transactionList
     throw UnimplementedError();
   }
