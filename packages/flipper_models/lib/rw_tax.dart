@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:dio/dio.dart';
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
@@ -7,6 +8,9 @@ import 'package:flipper_models/models.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:talker/talker.dart';
+import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
+import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
@@ -73,12 +77,14 @@ class RWTax implements TaxApi {
 
       /// update the remaining stock of this item in rra
       variant!.rsdQty = stock.currentStock;
-      http.Request request = buildRequest(ebmUrl, variant.toJson());
-      http.StreamedResponse response = await request.send();
-      final stringResponse = await response.stream.bytesToString();
+      Response response = await sendPostRequest(
+          ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
+      final stringResponse = response.data.toString();
       //handleResponseLogging(stringResponse, variant, stock);
       sendEmailLogging(
-          requestBody: request.body, subject: "Worked", body: stringResponse);
+          requestBody: response.requestOptions.data,
+          subject: "Worked",
+          body: stringResponse);
       final data = EBMApiResponse.fromJson(
         json.decode(stringResponse),
       );
@@ -91,12 +97,35 @@ class RWTax implements TaxApi {
     }
   }
 
-  http.Request buildRequest(String baseUrl, Map<String, dynamic>? data) {
-    var request =
-        http.Request('POST', Uri.parse('$baseUrl/stockMaster/saveStockMaster'));
-    request.body = json.encode(data);
-    request.headers.addAll({'Content-Type': 'application/json'});
-    return request;
+  // Create the Dio instance and add the TalkerDioLogger interceptor
+  final talker = Talker();
+  final dio = Dio();
+
+  Future<Response> sendPostRequest(
+    String baseUrl,
+    Map<String, dynamic>? data,
+  ) async {
+    final headers = {'Content-Type': 'application/json'};
+    dio.interceptors.add(TalkerDioLogger(
+      talker: talker,
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: true,
+        printResponseHeaders: true,
+        printResponseMessage: true,
+      ),
+    ));
+
+    try {
+      final response = await dio.post(
+        baseUrl,
+        data: json.encode(data),
+        options: Options(headers: headers),
+      );
+      return response;
+    } on DioException catch (e) {
+      // Handle the error
+      throw Exception('Error sending POST request: ${e.message}');
+    }
   }
 
   void sendEmailLogging(
@@ -121,31 +150,27 @@ class RWTax implements TaxApi {
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
   Future<bool> saveItem({required Variant variation}) async {
-    var headers = {'Content-Type': 'application/json'};
-
-    var request = http.Request('POST', Uri.parse(ebmUrl + '/items/saveItems'));
-
-    request.body = json.encode(variation.toJson());
-
-    request.headers.addAll(headers);
-
-    http.StreamedResponse response = await request.send();
-
-    if (response.statusCode == 200) {
-      final stringResponse = await response.stream.bytesToString();
-
-      sendEmailLogging(
-          requestBody: request.body, subject: "Worked", body: stringResponse);
-
-      final data = EBMApiResponse.fromJson(
-        json.decode(stringResponse),
-      );
-      if (data.resultCd != 000) {
-        throw Exception(data.resultMsg);
+    final url = '$ebmUrl/items/saveItems';
+    try {
+      final response = await sendPostRequest(url, variation.toJson());
+      if (response.statusCode == 200) {
+        final data = EBMApiResponse.fromJson(response.data);
+        if (data.resultCd != 000) {
+          throw Exception(data.resultMsg);
+        }
+        sendEmailLogging(
+          requestBody: variation.toJson().toString(),
+          subject: "Worked",
+          body: response.data.toString(),
+        );
+        return true;
+      } else {
+        throw Exception("failed to save item");
       }
-      return Future.value(true);
-    } else {
-      throw Exception("failed to save item");
+    } catch (e) {
+      // Handle the exception
+      print(e);
+      return false;
     }
   }
 
@@ -158,28 +183,36 @@ class RWTax implements TaxApi {
     required String bhfId,
     String lastReqDt = "20210523000000",
   }) async {
-    var headers = {'Content-Type': 'application/json'};
     EBM? ebm = await ProxyService.isar
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
     }
-    var request = http.Request(
-        'POST', Uri.parse(ebm.taxServerUrl! + '/items/selectItems'));
-    request.body =
-        json.encode({"tin": tinNumber, "bhfId": bhfId, "lastReqDt": lastReqDt});
-    request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+    final url = '${ebm.taxServerUrl}/items/selectItems';
+    final data = {
+      "tin": tinNumber,
+      "bhfId": bhfId,
+      "lastReqDt": lastReqDt,
+    };
 
-    if (response.statusCode == 200) {
-      final stringResponse = await response.stream.bytesToString();
-      sendEmailLogging(
-          requestBody: request.body, subject: "Worked", body: stringResponse);
-      return Future.value(true);
-    } else {
-      // print(response.reasonPhrase);
-      return Future.value(false);
+    try {
+      final response = await sendPostRequest(url, data);
+      if (response.statusCode == 200) {
+        sendEmailLogging(
+          requestBody: data.toString(),
+          subject: "Worked",
+          body: response.data.toString(),
+        );
+        return true;
+      } else {
+        // print(response.reasonPhrase);
+        return false;
+      }
+    } catch (e) {
+      // Handle the exception
+      print(e);
+      return false;
     }
   }
 
@@ -196,11 +229,6 @@ class RWTax implements TaxApi {
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')
         .substring(0, 14);
-
-    var headers = {'Content-Type': 'application/json'};
-
-    var request =
-        http.Request('POST', Uri.parse('$ebmUrl/trnsSales/saveSales'));
 
     List<Map<String, dynamic>> itemsList =
         items.map((item) => item.toJson()).toList();
@@ -287,36 +315,35 @@ class RWTax implements TaxApi {
       finalData = data;
     }
 
-    request.body = json.encode(finalData);
-    request.headers.addAll(headers);
-
     try {
-      http.StreamedResponse response = await request.send();
+      final url = '$ebmUrl/trnsSales/saveSales';
+      final response = await sendPostRequest(url, finalData);
+
       if (response.statusCode == 200) {
-        final stringResponse = await response.stream.bytesToString();
         sendEmailLogging(
-          requestBody: request.body,
+          requestBody: finalData.toString(),
           subject: "Worked",
-          body: stringResponse,
+          body: response.data.toString(),
         );
-        final data = EBMApiResponse.fromJson(
-          json.decode(stringResponse),
-        );
+
+        final data = EBMApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(
-              "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}");
+            "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}",
+          );
         }
         return data;
       } else {
         throw Exception(
-            "Failed to send request. Status Code: ${response.statusCode}");
+          "Failed to send request. Status Code: ${response.statusCode}",
+        );
       }
     } catch (e, st) {
       print("Exception: $e");
       print("Exception: $st");
-      // Handle the exception or rethrow it based on your requirements.
       throw Exception(
-          "Failed to send request with invoice number ${counter.curRcptNo}: $e");
+        "Failed to send request with invoice number ${counter.curRcptNo}: $e",
+      );
     }
   }
 
@@ -347,27 +374,30 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future saveCustomer({required Customer customer}) async {
-    var headers = {'Content-Type': 'application/json'};
+  Future<EBMApiResponse> saveCustomer({required Customer customer}) async {
+    final url = '$ebmUrl/branches/saveBrancheCustomers';
 
-    var request = http.Request(
-        'POST', Uri.parse(ebmUrl + '/branches/saveBrancheCustomers'));
-    request.body = json.encode(customer.toJson());
-    request.headers.addAll(headers);
-    http.StreamedResponse response = await request.send();
-    if (response.statusCode == 200) {
-      final stringResponse = await response.stream.bytesToString();
+    try {
+      final response = await sendPostRequest(url, customer.toJson());
 
-      sendEmailLogging(
-          requestBody: request.body, subject: "Worked", body: stringResponse);
+      if (response.statusCode == 200) {
+        sendEmailLogging(
+          requestBody: customer.toJson().toString(),
+          subject: "Worked",
+          body: response.data.toString(),
+        );
 
-      final data = EBMApiResponse.fromJson(
-        json.decode(stringResponse),
-      );
-      return data;
-    } else {
-      throw Exception(
-          "Failed to send request. Status Code: ${response.statusCode}");
+        final data = EBMApiResponse.fromJson(response.data);
+        return data;
+      } else {
+        throw Exception(
+          "Failed to send request. Status Code: ${response.statusCode}",
+        );
+      }
+    } catch (e) {
+      // Handle the exception
+      print(e);
+      rethrow;
     }
   }
 }

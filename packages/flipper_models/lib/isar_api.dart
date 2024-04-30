@@ -198,7 +198,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   ITransaction? getTransactionById({required String id}) {
     int branchId = ProxyService.box.getBranchId()!;
 
-    // Use 'await' to wait for the completion of findFirstAsync
+    // Use 'await' to wait for the completion of findFirst
     ITransaction? transaction = db.read((isar) {
       return isar.iTransactions
           .where()
@@ -398,22 +398,22 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     Variant variation,
   ) async {
     String stockId = randomString();
-    Variant? variant = await db.variants
+    Variant? variant = await db.read((isar) => isar.variants
         .where()
         .idEqualTo(variation.id)
         .and()
         .deletedAtIsNull()
-        .findFirstAsync();
+        .findFirst());
 
     if (variant != null) {
-      Stock? stock = await db.stocks
+      Stock? stock = await db.read((isar) => isar.stocks
           .where()
           .variantIdEqualTo(variation.id)
           .and()
           .branchIdEqualTo(branchId)
           .and()
           .deletedAtIsNull()
-          .findFirstAsync();
+          .findFirst());
 
       if (stock == null) {
         final newStock = Stock(
@@ -809,7 +809,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .businessIdEqualTo(businessId)
         .and()
         .deletedAtIsNull()
-        .findFirstAsync();
+        .findFirst();
   }
 
   @override
@@ -1246,7 +1246,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .branchIdEqualTo(ProxyService.box.getBranchId()!)
         .and()
         .deletedAtIsNull()
-        .findFirstAsync();
+        .findFirst();
   }
 
   @override

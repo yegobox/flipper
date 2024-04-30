@@ -20,38 +20,6 @@ class BillingService {
     return ProxyService.isar.addPoint(userId: userId!, point: points!);
   }
 
-  Future<Subscription> updateSubscription({
-    required int userId,
-    required int interval,
-    required List<Feature> features,
-    required String descriptor,
-    required double amount,
-  }) async {
-    /// update the subscription of the user
-    Subscription? sub = await ProxyService.isar.addUpdateSubscription(
-      userId: userId,
-      interval: interval,
-      recurringAmount: amount,
-      descriptor: descriptor,
-      features: features,
-    );
-    return sub!;
-  }
-
-  Future<bool> activeSubscription() async {
-    if (ProxyService.box.getUserId() == null) return false;
-    int userId = ProxyService.box.getUserId()!;
-    Subscription? sub = await ProxyService.isar.getSubscription(userId: userId);
-    if (sub != null) {
-      String date = sub.nextBillingDate;
-      DateTime nextBillingDate = DateTime.parse(date);
-      DateTime today = DateTime.now();
-      return nextBillingDate.isAfter(today);
-    } else {
-      return false;
-    }
-  }
-
   void monitorSubscription({required int userId}) async {
     /// monitor the subscription of the user
     /// the logic to check if it is a time to take a payment

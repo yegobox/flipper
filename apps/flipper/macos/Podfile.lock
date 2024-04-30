@@ -68,7 +68,7 @@ PODS:
     - Firebase/Crashlytics (~> 10.24.0)
     - firebase_core
     - FlutterMacOS
-  - firebase_messaging (14.9.0):
+  - firebase_messaging (14.9.1):
     - Firebase/CoreOnly (~> 10.24.0)
     - Firebase/Messaging (~> 10.24.0)
     - firebase_core
@@ -480,7 +480,7 @@ SPEC CHECKSUMS:
   firebase_auth: 8ad16413f63a95bde144fe0f37923b9639b30764
   firebase_core: 59eec96207757ff60fa76232d0b0bb749f2c4b89
   firebase_crashlytics: 202059e758ffb5ee5c0ee8de8e66b3427aa8b8df
-  firebase_messaging: eb3c1afa3c6756407f2d9f22a4b6c58d50f4c9b2
+  firebase_messaging: 98b3c2a19b5d8c4dd77817ec076d5f71e6e9d5bb
   firebase_remote_config: 9dfa92d625416fe6595545af2d99d4488cae6e79
   firebase_storage: 74ac73a2487a5ed639c3da68fb11302a0944bac7
   FirebaseABTesting: 4431c2c56ac6e56f463b9cab05cc111078639f99
@@ -527,7 +527,7 @@ SPEC CHECKSUMS:
   Sentry: ebc12276bd17613a114ab359074096b6b3725203
   sentry_flutter: df6e28477322fc5202bbe20aafdd7404b6e97729
   SentryPrivate: d651efb234cf385ec9a1cdd3eff94b5e78a0e0fe
-  share_plus: 76dd39142738f7a68dd57b05093b5e8193f220f7
+  share_plus: 36537c04ce0c3e3f5bd297ce4318b6d5ee5fd6cf
   shared_preferences_foundation: b4c3b4cddf1c21f02770737f147a3f5da9d39695
   smart_auth: b38e3ab4bfe089eacb1e233aca1a2340f96c28e9
   sqflite: 673a0e54cc04b7d6dba8d24fb8095b31c3a99eec

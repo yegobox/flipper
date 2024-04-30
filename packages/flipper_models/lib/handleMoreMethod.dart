@@ -162,7 +162,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Conversation>> conversations({required String conversationId}) {
+  Stream<List<Conversation>> conversations({String? conversationId}) {
     // TODO: implement conversations
     throw UnimplementedError();
   }

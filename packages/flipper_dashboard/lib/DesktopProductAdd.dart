@@ -264,7 +264,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     await model.addVariant(
         variations: model.scannedVariants,
-        packagingUnit: selectedPackageUnitValue);
+        packagingUnit: selectedPackageUnitValue.split(":")[0]);
     model.currentColor = pickerColor.toHex();
 
     Product? product = await model.saveProduct(
@@ -313,9 +313,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             value: selectedPackageUnitValue,
             onChanged: (String? newValue) {
               setState(() {
-                RegExp regExp = RegExp(r'^([^:]*):');
-                selectedPackageUnitValue =
-                    regExp.firstMatch(newValue!)!.group(1)!;
+                if (newValue != null) {
+                  selectedPackageUnitValue = newValue;
+                }
               });
             },
             items: model.pkgUnits.map<DropdownMenuItem<String>>(
