@@ -8,6 +8,7 @@ import 'package:flipper_models/realm/realmProduct.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
 import 'package:flipper_models/realm/realmVariant.dart';
+import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
@@ -15,7 +16,6 @@ import 'package:realm/realm.dart' as iRealm;
 
 import 'package:flutter/services.dart';
 import 'models.dart';
-import './RealmSync.dart';
 
 mixin IsolateHandler {
   static late Isar isar;

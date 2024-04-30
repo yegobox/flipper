@@ -18,6 +18,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:talker_flutter/talker_flutter.dart';
 import 'extensions/isar_extension.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_routing/receipt_types.dart';
@@ -27,6 +28,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   late String apihub;
   late String commApi;
   late Isar isar;
+  final talker = TalkerFlutter.init();
   Future<String> absolutePath(String fileName) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final realmDirectory = '${appDocsDirectory.path}/${fileName}';
@@ -184,8 +186,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   Future<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item}) async {
-    isar.writeTxn(() async {
-      isar.transactionItems.onPut(item);
+    talker.info(item.toJson());
+    isar.writeTxnSync(() {
+      final id = isar.transactionItems.putSync(item);
+      talker.info("SavedIDDD ${id}");
     });
   }
 
@@ -1664,16 +1668,17 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType}) async {
-    return await isar.iTransactions
+    final transaction = await isar.iTransactions
         .filter()
         .statusEqualTo(PENDING)
-        .and()
+        // .and()
         .branchIdEqualTo(branchId)
-        .and()
+        // .and()
         .transactionTypeEqualTo(transactionType)
-        .and()
+        // .and()
         .deletedAtIsNull()
         .findFirst();
+    return transaction;
   }
 
   @override
@@ -3338,13 +3343,13 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     return await isar.transactionItems
         .filter()
         .transactionIdEqualTo(transactionId)
-        .and()
+        // .and()
         .doneWithTransactionEqualTo(doneWithTransaction)
-        .and()
+        // .and()
         .branchIdEqualTo(branchId)
-        .and()
+        // .and()
         .deletedAtIsNull()
-        .and()
+        // .and()
         .activeEqualTo(active)
         .findAll();
   }
@@ -3364,7 +3369,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     return await isar.devices
         .filter()
         .businessIdEqualTo(businessId)
-        .and()
+        // .and()
         .deletedAtIsNull()
         .findAll();
   }
@@ -3380,7 +3385,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         .toNumberEqualTo(phone)
         .or()
         .fromNumberEqualTo(phone)
-        .and()
+        // .and()
         .deliveredEqualTo(true)
         .sortByCreatedAtDesc()
         .watch(fireImmediately: true)
@@ -3413,9 +3418,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       return isar.conversations
           .filter()
           .toNumberEqualTo(phone)
-          .or()
+          // .or()
           .fromNumberEqualTo(phone)
-          .and()
+          // .and()
           .deliveredEqualTo(true)
           .watch(fireImmediately: true)
           .asyncMap((event) {

@@ -190,7 +190,7 @@ class CoreViewModel extends FlipperBaseModel
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName;
-
+    // update the transaction item
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
           amount, variation, name, pendingTransaction, stock!);
