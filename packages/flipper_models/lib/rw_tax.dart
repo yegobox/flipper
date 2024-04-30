@@ -45,8 +45,9 @@ class RWTax implements TaxApi {
     }
   }
 
-  late Isar isar;
+  Isar? isar;
   Future<Isar> openIsarIsolate() async {
+    if (isar != null) return isar!;
     return await Isar.open(
       models,
       // in isolate we don't pass in the directory
@@ -71,7 +72,7 @@ class RWTax implements TaxApi {
     try {
       /// because updating stock in in rra work is just passing item with updated qty
       /// we first get the item from db update the query from our stock model and pass it
-      Variant? variant = await await isar.variants.get(stock.variantId);
+      Variant? variant = await await isar!.variants.get(stock.variantId);
 
       /// update the remaining stock of this item in rra
       variant!.rsdQty = stock.currentStock;

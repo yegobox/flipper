@@ -100,10 +100,12 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
             .value
             ?.length ??
         0;
+    // final itemCount = 0;
     final formattedText = _getFormattedText(widget.wording ?? '', itemCount);
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
+        // return Text("here");
         return SizedBox(
           height: 64,
           child: AnimatedBuilder(

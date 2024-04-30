@@ -27,6 +27,16 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   late String apihub;
   late String commApi;
   late Isar isar;
+  Future<String> absolutePath(String fileName) async {
+    final appDocsDirectory = await getApplicationDocumentsDirectory();
+    final realmDirectory = '${appDocsDirectory.path}/${fileName}';
+
+    // Create the new directory
+    await Directory(realmDirectory).create(recursive: true);
+
+    return realmDirectory;
+  }
+
   Future<IsarApiInterface> getInstance({Isar? isa}) async {
     String? appDocDir = '';
 
@@ -41,7 +51,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       commApi = AppSecrets.commApi;
     }
     if (isa == null) {
-      appDocDir = (await getApplicationDocumentsDirectory()).path;
+      appDocDir = await absolutePath("v3");
 
       isar = await Isar.open(
         // compactOnLaunch:
