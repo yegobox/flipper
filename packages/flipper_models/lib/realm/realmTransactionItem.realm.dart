@@ -10,11 +10,11 @@ part of 'realmTransactionItem.dart';
 class RealmITransactionItem extends $RealmITransactionItem
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmITransactionItem(
-    String id,
+    int id,
     ObjectId realmId,
     String name,
-    String transactionId,
-    String variantId,
+    int transactionId,
+    int variantId,
     double qty,
     double price,
     String action,
@@ -122,9 +122,9 @@ class RealmITransactionItem extends $RealmITransactionItem
   RealmITransactionItem._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -138,17 +138,16 @@ class RealmITransactionItem extends $RealmITransactionItem
   set name(String value) => RealmObjectBase.set(this, 'name', value);
 
   @override
-  String get transactionId =>
-      RealmObjectBase.get<String>(this, 'transactionId') as String;
+  int get transactionId =>
+      RealmObjectBase.get<int>(this, 'transactionId') as int;
   @override
-  set transactionId(String value) =>
+  set transactionId(int value) =>
       RealmObjectBase.set(this, 'transactionId', value);
 
   @override
-  String get variantId =>
-      RealmObjectBase.get<String>(this, 'variantId') as String;
+  int get variantId => RealmObjectBase.get<int>(this, 'variantId') as int;
   @override
-  set variantId(String value) => RealmObjectBase.set(this, 'variantId', value);
+  set variantId(int value) => RealmObjectBase.set(this, 'variantId', value);
 
   @override
   double get qty => RealmObjectBase.get<double>(this, 'qty') as double;
@@ -608,12 +607,12 @@ class RealmITransactionItem extends $RealmITransactionItem
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, RealmITransactionItem,
         'RealmITransactionItem', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('name', RealmPropertyType.string),
-      SchemaProperty('transactionId', RealmPropertyType.string),
-      SchemaProperty('variantId', RealmPropertyType.string),
+      SchemaProperty('transactionId', RealmPropertyType.int),
+      SchemaProperty('variantId', RealmPropertyType.int),
       SchemaProperty('qty', RealmPropertyType.double),
       SchemaProperty('price', RealmPropertyType.double),
       SchemaProperty('action', RealmPropertyType.string),

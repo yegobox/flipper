@@ -114,8 +114,8 @@ class SignupViewModel extends ReactiveViewModel {
     return ProxyService.box.readString(key: 'referralCode');
   }
 
-  Future<List<Tenant>> registerTenant(String? referralCode) async{
-    return  await ProxyService.isar.signup(business: {
+  Future<List<Tenant>> registerTenant(String? referralCode) async {
+    return await ProxyService.isar.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
@@ -166,7 +166,7 @@ class SignupViewModel extends ReactiveViewModel {
   Future<void> saveBusinessId(List<Tenant> tenants) {
     return ProxyService.box.writeInt(
       key: 'businessId',
-      value: tenants.first.businesses.first.id,
+      value: tenants.first.businesses.first.id!,
     );
   }
 
@@ -180,7 +180,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> saveBranchId(List<Branch> branches) {
-    return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id);
+    return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id!);
   }
 
   Future<void> createDefaultCategory(List<Branch> branches) async {
@@ -188,15 +188,15 @@ class SignupViewModel extends ReactiveViewModel {
       active: true,
       focused: true,
       name: "NONE",
-      id: randomString(),
-      branchId: branches[0].id,
+      id: randomNumber(),
+      branchId: branches[0].id!,
     );
     ProxyService.isar.create<Category>(data: category);
   }
 
   Future<void> createDefaultColor(List<Branch> branches) async {
     final PColor color = PColor(
-      id: randomString(),
+      id: randomNumber(),
       colors: [
         '#d63031',
         '#0984e3',

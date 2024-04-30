@@ -16,8 +16,8 @@ class BillingService {
     }
   }
 
-  Pointss addPoints({int? points, int? userId}) {
-    return ProxyService.isar.addPoint(userId: userId!, point: points!);
+  Future<Pointss> addPoints({int? points, int? userId}) async {
+    return await ProxyService.isar.addPoint(userId: userId!, point: points!);
   }
 
   void monitorSubscription({required int userId}) async {

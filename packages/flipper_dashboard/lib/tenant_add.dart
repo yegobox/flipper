@@ -301,7 +301,7 @@ class _TenantAddState extends State<TenantAdd> {
                 if (direction == DismissDirection.endToStart) {
                   // User swiped to delete
                   await ProxyService.isar
-                      .delete(id: tenant.id.toString(), endPoint: 'tenant');
+                      .delete(id: tenant.id!, endPoint: 'tenant');
                   model.loadTenants();
                 }
               },
@@ -326,7 +326,7 @@ class _TenantAddState extends State<TenantAdd> {
                     if (tenant.isLongPressed) {
                       // Reset the long-press state
                       await ProxyService.isar
-                          .delete(id: tenant.id.toString(), endPoint: 'tenant');
+                          .delete(id: tenant.id!, endPoint: 'tenant');
                       model.loadTenants();
                       setState(() {
                         tenant.isLongPressed = false;

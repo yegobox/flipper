@@ -244,7 +244,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmITransaction = RealmITransaction(
-          item.id,
+          item.id!,
           ObjectId(),
           item.reference,
           item.transactionNumber,
@@ -258,7 +258,7 @@ class RealmSync<M extends IJsonSerializable>
           item.createdAt,
           item.action,
           categoryId: item.categoryId,
-          customerId: item.customerId,
+          customerId: item.customerId!,
           deletedAt: item.deletedAt,
           lastTouched: item.lastTouched,
           note: item.note,
@@ -285,7 +285,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmITransactionItem = RealmITransactionItem(
-          item.id,
+          item.id!,
           ObjectId(),
           item.name,
           item.transactionId,
@@ -360,7 +360,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmProduct = RealmProduct(
-          item.id,
+          item.id!,
           ObjectId(), // Auto-generate ObjectId for realmId
           item.name,
           item.color,
@@ -398,7 +398,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmVariant = RealmVariant(
-            item.id,
+            item.id!,
             ObjectId(), // Auto-generate ObjectId for realmId
             item.name,
             item.color,
@@ -465,7 +465,7 @@ class RealmSync<M extends IJsonSerializable>
       if (item.action == AppActions.synchronized) return;
       realm!.write(() {
         final realmStock = RealmStock(
-          item.id,
+          item.id!,
           ObjectId(), // Auto-generate ObjectId for realmId
           item.branchId,
           item.variantId,
@@ -502,7 +502,7 @@ class RealmSync<M extends IJsonSerializable>
         IUnit data = item;
         final realmUnit = RealmIUnit(
           ObjectId(),
-          data.id, // Auto-generate ObjectId for realmId
+          data.id!, // Auto-generate ObjectId for realmId
           data.branchId,
           data.name,
           data.value,
@@ -581,7 +581,7 @@ class RealmSync<M extends IJsonSerializable>
     if (item is Customer) {
       realm!.write(() {
         final realmCustomer = RealmCustomer(
-          item.id,
+          item.id!,
           ObjectId(),
           branchId: item.branchId,
           custNm: item.custNm,
@@ -716,7 +716,7 @@ class RealmSync<M extends IJsonSerializable>
           // Do something with each transaction
           print(transaction.reference);
           ITransaction? local =
-              await ProxyService.isar.getTransactionById(id: transaction.id);
+              await ProxyService.isar.getTransactionById(id: transaction.id!);
           if (local != null) {
             Conversation conversation = Conversation.notificaton(
                 userName: ProxyService.box.getUserPhone()!,

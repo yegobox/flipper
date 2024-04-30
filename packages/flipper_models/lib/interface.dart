@@ -12,8 +12,8 @@ abstract class IsarApiInterface {
   Future<List<Business>> businesses({int? userId});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({int? businessId});
-  Future<double> stocks({String? productId, String? variantId});
-  Stream<double> getStockStream({String? productId, String? variantId});
+  Future<double> stocks({int? productId, int? variantId});
+  Stream<double> getStockStream({int? productId, int? variantId});
   Future<List<ITransaction>> transactionsFuture({
     String? status,
     String? transactionType,
@@ -21,11 +21,11 @@ abstract class IsarApiInterface {
     bool isCashOut = false,
     bool includePending = false,
   });
-  Stream<List<Product>> productStreams({String? prodIndex});
+  Stream<List<Product>> productStreams({int? prodIndex});
   Stream<List<ITransaction>> orders({required int branchId});
-  Future<List<Product>> getProductList({String? prodIndex});
-  Future<Stock> stockByVariantId(
-      {required String variantId, bool nonZeroValue = false});
+  Future<List<Product>> getProductList({int? prodIndex});
+  Future<Stock?> stockByVariantId(
+      {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
   Future<Category?> activeCategory({required int branchId});
@@ -34,14 +34,14 @@ abstract class IsarApiInterface {
   Stream<double> getStockValue({required int branchId});
   Future<int> update<T>({required T data, bool localUpdate = false});
 
-  Future<bool> delete({required String id, String? endPoint});
-  Future<PColor?> getColor({required String id, String? endPoint});
-  Future<Stock?> getStock({required int branchId, required String variantId});
+  Future<bool> delete({required int id, String? endPoint});
+  Future<PColor?> getColor({required int id});
+  Future<Stock?> getStock({required int branchId, required int variantId});
   Future<List<Variant>> variants({
     required int branchId,
-    String? productId,
+    int? productId,
   });
-  Future<Variant?> variant({String? variantId, String? name});
+  Future<Variant?> variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({required List<Variant> variations});
@@ -49,18 +49,18 @@ abstract class IsarApiInterface {
   Future<int> addFavorite({required Favorite data});
   Future<List<Favorite>> getFavorites();
   Future<Favorite?> getFavoriteById({required int favId});
-  Future<Favorite?> getFavoriteByProdId({required String prodId});
+  Future<Favorite?> getFavoriteByProdId({required int prodId});
   Future<Favorite?> getFavoriteByIndex({required int favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required int favIndex});
   Stream<ITenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
-  Future<Product?> getProduct({required String id});
+  Future<Product?> getProduct({required int id});
   Future<Product?> getProductByBarCode({required String barCode});
   Future<List<Product?>> getProductByName({required String name});
   // Future
   //this function for now figure out what is the business id on backend side.
-  Future<Product> createProduct(
+  Future<Product?> createProduct(
       {required Product product, bool skipRegularVariant = false});
   Future<void> logOut();
   Future<void> logOutLight();
@@ -76,7 +76,7 @@ abstract class IsarApiInterface {
 
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
-  Future<TransactionItem?> getTransactionItemById({required String id});
+  Future<TransactionItem?> getTransactionItemById({required int id});
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate});
   Future<Variant?> getCustomVariant();
@@ -107,29 +107,29 @@ abstract class IsarApiInterface {
 
   Future<Business?> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId});
+      {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
-      {required String customerId, String? transactionId});
+      {required int customerId, int? transactionId});
   Future removeCustomerFromTransaction(
-      {required String customerId, required String transactionId});
-  Future<Customer?> getCustomer({String? key, String? id});
+      {required int customerId, required int transactionId});
+  Future<Customer?> getCustomer({String? key, int? id});
 
-  ITransaction? getTransactionById({required String id});
+  Future<ITransaction?> getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
   Stream<List<ITransaction>> getTransactionsByCustomerId(
-      {required String customerId});
-  Future<int> deleteTransactionByIndex({required String transactionIndex});
+      {required int customerId});
+  Future<int> deleteTransactionByIndex({required int transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({String? productId});
-  Stream<List<Variant>> getVariantByProductIdStream({String? productId});
+  Future<List<Variant>> getVariantByProductId({int? productId});
+  Stream<List<Variant>> getVariantByProductIdStream({int? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
   Future<TransactionItem?> getTransactionItemByVariantId(
-      {required String variantId, required String? transactionId});
+      {required int variantId, required int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required String? transactionId});
+      {required int? transactionId});
   //abstract method to update business
 
   //analytics
@@ -176,7 +176,7 @@ abstract class IsarApiInterface {
       {required Business business,
       required Branch branch,
       required String userType});
-  Pointss addPoint({required int userId, required int point});
+  Future<Pointss> addPoint({required int userId, required int point});
 
   Future<Pointss?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
@@ -195,11 +195,11 @@ abstract class IsarApiInterface {
 
   /// get a list of transactionItems given transactionId
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId,
+      {required int transactionId,
       required bool doneWithTransaction,
       required bool active});
 
-  Future<Variant?> getVariantById({required String id});
+  Future<Variant?> getVariantById({required int id});
   bool isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required EBMApiResponse signature,
@@ -207,9 +207,9 @@ abstract class IsarApiInterface {
       required String qrCode,
       required String receiptType,
       required Counter counter});
-  Future<Receipt?> getReceipt({required String transactionId});
+  Future<Receipt?> getReceipt({required int transactionId});
 
-  Future<void> refund({required String itemId});
+  Future<void> refund({required int itemId});
   Future<bool> isDrawerOpen({required int cashierId});
   Future<Drawers?> getDrawer({required int cashierId});
   Future<Branch?> defaultBranch();
@@ -222,15 +222,15 @@ abstract class IsarApiInterface {
   Future<void> loadCounterFromOnline({required int businessId});
 
   String dbPath();
-  Future<bool> bindProduct({required String productId, required int tenantId});
+  Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
 
   Future<void> deleteAllProducts();
-  Future<Stock?> getStockById({required String id});
+  Future<Stock?> getStockById({required int id});
 
   /// socials methods
   Stream<Social> socialsStream({required int branchId});
-  Future<Social?> getSocialById({required String id});
+  Future<Social?> getSocialById({required int id});
 
   Future<List<BusinessType>> businessTypes();
 
@@ -239,9 +239,9 @@ abstract class IsarApiInterface {
   Future<void> sendScheduleMessages();
   Future<Conversation?> getConversation({required String messageId});
   Future<List<Conversation>> getScheduleMessages();
-  Future<int> registerOnSocial({String phoneNumberOrEmail, String password});
+  Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password});
   Future<SocialToken?> loginOnSocial(
-      {String phoneNumberOrEmail, String password});
+      {String? phoneNumberOrEmail, String? password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});
 
@@ -253,7 +253,7 @@ abstract class IsarApiInterface {
 
   Future<Device?> getDevice(
       {required String phone, required String linkingCode});
-  Future<Device?> getDeviceById({required String id});
+  Future<Device?> getDeviceById({required int id});
   Future<List<Device>> getDevices({required int businessId});
   Future<List<Device>> unpublishedDevices({required int businessId});
   Future<void> loadConversations(
@@ -264,7 +264,7 @@ abstract class IsarApiInterface {
   Future<List<Social>> activesocialAccounts({required int branchId});
 
   Future<Stock?> addStockToVariant({required Variant variant});
-  Stream<List<Variant>> geVariantStreamByProductId({required String productId});
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId});
 
   Future<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});

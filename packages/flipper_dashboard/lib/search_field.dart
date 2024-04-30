@@ -66,8 +66,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
     if (value.isNotEmpty) {
       Variant? variant = await ProxyService.isar.variant(name: value);
       if (variant != null) {
-        Stock stock = await ProxyService.isar
-            .stockByVariantId(variantId: variant.id, nonZeroValue: false);
+        Stock? stock = await ProxyService.isar
+            .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
         ITransaction currentTransaction = await ProxyService.isar
             .manageTransaction(transactionType: TransactionType.custom);
 
@@ -76,7 +76,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
           amountTotal: variant.retailPrice,
           customItem: false,
           pendingTransaction: currentTransaction,
-          currentStock: stock.currentStock,
+          currentStock: stock!.currentStock,
         );
         await model.keyboardKeyPressed(key: '+');
         ref.refresh(pendingTransactionProvider(TransactionType.custom).future);

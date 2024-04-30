@@ -5,6 +5,12 @@ import 'package:flipper_models/isar_models.dart';
 
 class IsarAPIMock<M> implements IsarApiInterface {
   @override
+  Future<Branch?> activeBranch() {
+    // TODO: implement activeBranch
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Category?> activeCategory({required int branchId}) {
     // TODO: implement activeCategory
     throw UnimplementedError();
@@ -24,7 +30,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId}) {
+      {required Customer customer, required int transactionId}) {
     // TODO: implement addCustomer
     throw UnimplementedError();
   }
@@ -36,7 +42,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Pointss addPoint({required int userId, required int point}) {
+  Future<Pointss> addPoint({required int userId, required int point}) {
     // TODO: implement addPoint
     throw UnimplementedError();
   }
@@ -68,8 +74,8 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future assignCustomerToTransaction(
-      {required String customerId, String? transactionId}) {
-    // TODO: implement assingTransactionToCustomer
+      {required int customerId, int? transactionId}) {
+    // TODO: implement assignCustomerToTransaction
     throw UnimplementedError();
   }
 
@@ -80,7 +86,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> bindProduct({required String productId, required int tenantId}) {
+  Future<bool> bindProduct({required int productId, required int tenantId}) {
     // TODO: implement bindProduct
     throw UnimplementedError();
   }
@@ -178,7 +184,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Product> createProduct(
+  Future<Product?> createProduct(
       {required Product product, bool skipRegularVariant = false}) {
     // TODO: implement createProduct
     throw UnimplementedError();
@@ -226,7 +232,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required String id, String? endPoint}) {
+  Future<bool> delete({required int id, String? endPoint}) {
     // TODO: implement delete
     throw UnimplementedError();
   }
@@ -244,7 +250,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<int> deleteTransactionByIndex({required String transactionIndex}) {
+  Future<int> deleteTransactionByIndex({required int transactionIndex}) {
     // TODO: implement deleteTransactionByIndex
     throw UnimplementedError();
   }
@@ -268,8 +274,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required String productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
     // TODO: implement geVariantStreamByProductId
     throw UnimplementedError();
   }
@@ -287,7 +292,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<PColor?> getColor({required String id, String? endPoint}) {
+  Future<PColor?> getColor({required int id}) {
     // TODO: implement getColor
     throw UnimplementedError();
   }
@@ -305,13 +310,20 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
+  Future<Counter?> getCounter(
+      {required int branchId, required String receiptType}) {
+    // TODO: implement getCounter
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Variant?> getCustomVariant() {
     // TODO: implement getCustomVariant
     throw UnimplementedError();
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, String? id}) {
+  Future<Customer?> getCustomer({String? key, int? id}) {
     // TODO: implement getCustomer
     throw UnimplementedError();
   }
@@ -330,7 +342,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Device?> getDeviceById({required String id}) {
+  Future<Device?> getDeviceById({required int id}) {
     // TODO: implement getDeviceById
     throw UnimplementedError();
   }
@@ -378,7 +390,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required String prodId}) {
+  Future<Favorite?> getFavoriteByProdId({required int prodId}) {
     // TODO: implement getFavoriteByProdId
     throw UnimplementedError();
   }
@@ -408,7 +420,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Product?> getProduct({required String id}) {
+  Future<Product?> getProduct({required int id}) {
     // TODO: implement getProduct
     throw UnimplementedError();
   }
@@ -420,13 +432,19 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Product>> getProductList({String? prodIndex}) {
+  Future<List<Product?>> getProductByName({required String name}) {
+    // TODO: implement getProductByName
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<Product>> getProductList({int? prodIndex}) {
     // TODO: implement getProductList
     throw UnimplementedError();
   }
 
   @override
-  Future<Receipt?> getReceipt({required String transactionId}) {
+  Future<Receipt?> getReceipt({required int transactionId}) {
     // TODO: implement getReceipt
     throw UnimplementedError();
   }
@@ -444,7 +462,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Social?> getSocialById({required String id}) {
+  Future<Social?> getSocialById({required int id}) {
     // TODO: implement getSocialById
     throw UnimplementedError();
   }
@@ -456,14 +474,26 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Stock?> getStock({required int branchId, required String variantId}) {
+  Future<Stock?> getStock({required int branchId, required int variantId}) {
     // TODO: implement getStock
     throw UnimplementedError();
   }
 
   @override
-  Future<Stock?> getStockById({required String id}) {
+  Future<Stock?> getStockById({required int id}) {
     // TODO: implement getStockById
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> getStockStream({int? productId, int? variantId}) {
+    // TODO: implement getStockStream
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<double> getStockValue({required int branchId}) {
+    // TODO: implement getStockValue
     throw UnimplementedError();
   }
 
@@ -486,27 +516,27 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  ITransaction? getTransactionById({required String id}) {
+  Future<ITransaction?> getTransactionById({required int id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemById({required String id}) {
+  Future<TransactionItem?> getTransactionItemById({required int id}) {
     // TODO: implement getTransactionItemById
     throw UnimplementedError();
   }
 
   @override
   Future<TransactionItem?> getTransactionItemByVariantId(
-      {required String variantId, required String? transactionId}) {
+      {required int variantId, required int? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
   }
 
   @override
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required String? transactionId}) {
+      {required int? transactionId}) {
     // TODO: implement getTransactionItemsByTransactionId
     throw UnimplementedError();
   }
@@ -520,7 +550,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Stream<List<ITransaction>> getTransactionsByCustomerId(
-      {required String customerId}) {
+      {required int customerId}) {
     // TODO: implement getTransactionsByCustomerId
     throw UnimplementedError();
   }
@@ -541,14 +571,20 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({required String id}) {
+  Future<Variant?> getVariantById({required int id}) {
     // TODO: implement getVariantById
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({String? productId}) {
+  Future<List<Variant>> getVariantByProductId({int? productId}) {
     // TODO: implement getVariantByProductId
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
+    // TODO: implement getVariantByProductIdStream
     throw UnimplementedError();
   }
 
@@ -597,8 +633,9 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<void> logOut() async {
-    /// mock this function
+  Future<void> logOut() {
+    // TODO: implement logOut
+    throw UnimplementedError();
   }
 
   @override
@@ -660,7 +697,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Product>> productStreams({String? prodIndex}) {
+  Future<Permission?> permission({required int userId}) {
+    // TODO: implement permission
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<Product>> productStreams({int? prodIndex}) {
     // TODO: implement productStreams
     throw UnimplementedError();
   }
@@ -697,7 +740,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<void> refund({required String itemId}) {
+  Future<void> refund({required int itemId}) {
     // TODO: implement refund
     throw UnimplementedError();
   }
@@ -705,6 +748,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   @override
   Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password}) {
     // TODO: implement registerOnSocial
+    throw UnimplementedError();
+  }
+
+  @override
+  Future removeCustomerFromTransaction(
+      {required int customerId, required int transactionId}) {
+    // TODO: implement removeCustomerFromTransaction
     throw UnimplementedError();
   }
 
@@ -768,14 +818,14 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Stock> stockByVariantId(
-      {required String variantId, bool nonZeroValue = false}) {
+  Future<Stock?> stockByVariantId(
+      {required int variantId, bool nonZeroValue = false}) {
     // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
   @override
-  Future<double> stocks({String? productId, String? variantId}) {
+  Future<double> stocks({int? productId, int? variantId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
@@ -836,10 +886,17 @@ class IsarAPIMock<M> implements IsarApiInterface {
 
   @override
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId,
+      {required int transactionId,
       required bool doneWithTransaction,
       required bool active}) {
     // TODO: implement transactionItems
+    throw UnimplementedError();
+  }
+
+  @override
+  Stream<List<ITransaction>> transactionList(
+      {DateTime? startDate, DateTime? endDate}) {
+    // TODO: implement transactionList
     throw UnimplementedError();
   }
 
@@ -903,75 +960,16 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> variant({String? variantId, String? name}) {
+  Future<Variant?> variant({int? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Variant>> variants({required int branchId, String? productId}) {
+  Future<List<Variant>> variants({required int branchId, int? productId}) {
     // TODO: implement variants
     throw UnimplementedError();
   }
 
-  Future<IsarApiInterface> getInstance() async {
-    return this;
-  }
-
-  @override
-  Stream<double> getStockStream({String? productId, String? variantId}) {
-    // TODO: implement getStockStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<Product?>> getProductByName({required String name}) {
-    // TODO: implement getProductByName
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
-    // TODO: implement getVariantByProductIdStream
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<double> getStockValue({required int branchId}) {
-    // TODO: implement getStockValue
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Branch?> activeBranch() {
-    // TODO: implement activeBranch
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Permission?> permission({required int userId}) {
-    // TODO: implement permission
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Counter?> getCounter(
-      {required int branchId, required String receiptType}) {
-    // TODO: implement getCounter
-    throw UnimplementedError();
-  }
-
-  @override
-  Future removeCustomerFromTransaction(
-      {required String customerId, required String transactionId}) {
-    // TODO: implement removeCustomerFromTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<ITransaction>> transactionList(
-      {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError();
-  }
+  getInstance() {}
 }

@@ -6,7 +6,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class AddToFavorites extends StatelessWidget {
   final int favoriteIndex;
-  final List<String> existingFavs; // Make this field 'final'
+  final List<int> existingFavs; // Make this field 'final'
 
   AddToFavorites({
     Key? key,

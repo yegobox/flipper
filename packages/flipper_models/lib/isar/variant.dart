@@ -14,14 +14,14 @@ part 'variant.g.dart';
 class Variant extends IJsonSerializable {
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? deletedAt;
-  late String id;
+  Id? id;
   @Index()
   late String name;
   @JsonKey(fromJson: _colorFromJson)
   String color;
   late String sku;
   @Index()
-  late String productId;
+  late int productId;
   late String unit;
   late String productName;
   late int branchId;

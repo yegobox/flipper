@@ -12,7 +12,7 @@ class RealmCustomer extends _RealmCustomer
   static var _defaultsSet = false;
 
   RealmCustomer(
-    String id,
+    int id,
     ObjectId realmId, {
     String? custNm,
     String? email,
@@ -67,9 +67,9 @@ class RealmCustomer extends _RealmCustomer
   RealmCustomer._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -280,7 +280,7 @@ class RealmCustomer extends _RealmCustomer
     register(_toEJson, _fromEJson);
     return SchemaObject(
         ObjectType.realmObject, RealmCustomer, 'RealmCustomer', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('custNm', RealmPropertyType.string, optional: true),

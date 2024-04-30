@@ -15,7 +15,7 @@ part 'history.g.dart';
 @JsonSerializable()
 @Collection()
 class History extends IJsonSerializable {
-  late String id;
+  Id? id;
   late int modelId;
 
   @JsonKey(includeIfNull: true)

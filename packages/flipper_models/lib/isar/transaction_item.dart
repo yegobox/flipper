@@ -8,11 +8,11 @@ part 'transaction_item.g.dart';
 @JsonSerializable()
 @Collection()
 class TransactionItem extends IJsonSerializable {
-  late String id;
+  Id? id;
   late String name;
   @Index()
-  late String transactionId;
-  late String variantId;
+  late int transactionId;
+  late int variantId;
   // quantity
   late double qty;
   late double price;
@@ -147,7 +147,6 @@ class TransactionItem extends IJsonSerializable {
     this.pkgUnitCd,
     this.qtyUnitCd,
     this.itemNm,
-    
     this.splyAmt,
     this.tin,
     this.bhfId,

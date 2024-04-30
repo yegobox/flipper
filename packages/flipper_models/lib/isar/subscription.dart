@@ -19,7 +19,7 @@ class Subscription {
     required this.descriptor,
   });
 
-  late String id;
+  Id? id;
   late int interval;
   late String lastBillingDate;
   late String nextBillingDate;

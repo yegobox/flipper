@@ -9,7 +9,7 @@ part 'counter.g.dart';
 @JsonSerializable()
 @Collection()
 class Counter extends IJsonSerializable {
-  final int id;
+  Id? id;
   final int businessId;
   final int branchId;
   late String receiptType;

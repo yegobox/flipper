@@ -17,7 +17,7 @@ class EBM extends IJsonSerializable {
     required this.branchId,
     this.taxServerUrl,
   });
-  late String id;
+  Id? id;
   String bhfId;
   int tinNumber;
   String dvcSrlNo;

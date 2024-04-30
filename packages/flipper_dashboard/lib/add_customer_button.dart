@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class AddCustomerButton extends StatelessWidget {
   AddCustomerButton({Key? key, required this.transactionId}) : super(key: key);
 
-  final String? transactionId;
+  final int? transactionId;
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -47,7 +47,7 @@ class AddCustomerButton extends StatelessWidget {
                   return Padding(
                     padding: const EdgeInsets.only(top: 20.0),
                     child: Customers(
-                      transactionId: transactionId ?? "0",
+                      transactionId: transactionId ?? 0,
                     ),
                   );
                 },

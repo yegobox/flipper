@@ -1,5 +1,4 @@
 import 'package:flipper_models/isar_models.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -129,7 +128,7 @@ class TicketsState extends ConsumerState<Tickets>
                                   return GestureDetector(
                                     onTap: () async {
                                       await model.resumeTransaction(
-                                          ticketId: e.id);
+                                          ticketId: e.id!);
                                       _routerService
                                           .clearStackAndShow(FlipperAppRoute());
                                     },

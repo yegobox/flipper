@@ -11,7 +11,7 @@ part 'SyncRecord.g.dart';
 @JsonSerializable()
 @Collection()
 class SyncRecord extends IJsonSerializable {
-  late String id;
+  Id? id;
   String modelId;
   DateTime createdAt;
   int branchId;

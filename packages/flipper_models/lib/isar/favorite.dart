@@ -9,12 +9,12 @@ part 'favorite.g.dart';
 @JsonSerializable()
 @Collection()
 class Favorite extends IJsonSerializable {
-  late int id;
+  Id? id;
 
   @Index(unique: true)
   int? favIndex;
 
-  String? productId;
+  int? productId;
   int? branchId;
 
   @JsonKey(includeIfNull: true)

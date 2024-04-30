@@ -62,19 +62,18 @@ class Business extends IJsonSerializable {
     this.taxEnabled,
     this.taxServerUrl,
     this.isDefault,
-
     this.businessTypeId,
     this.deletedAt,
   });
 
   Business.copy(Business original,
-      {bool? active, String? action, String? encryptionKey,String? name})
+      {bool? active, String? action, String? encryptionKey, String? name})
       : id = original.id,
-        name = name?? original.name,
+        name = name ?? original.name,
         action = action ?? original.action,
         encryptionKey = encryptionKey ?? original.encryptionKey,
         active = active ?? original.active;
-  late int id;
+  Id? id;
   String? name;
   String? currency;
   String? categoryId;

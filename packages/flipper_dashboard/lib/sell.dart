@@ -33,8 +33,8 @@ class SellState extends ConsumerState<Sell> {
       onViewModelReady: (model) async {
         ///start by clearning the previous amountTotal and Quantity as it is confusing some time!
         model.clearPreviousSaleCounts();
-        model.toggleCheckbox(variantId: '-1');
-        await model.getVariants(productId: widget.product.id);
+        model.toggleCheckbox(variantId: -1);
+        await model.getVariants(productId: widget.product.id!);
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -62,7 +62,7 @@ class SellState extends ConsumerState<Sell> {
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
-                  currentStock: stock.currentStock,
+                  currentStock: stock!.currentStock,
                   pendingTransaction: pendingTransaction.value!.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),

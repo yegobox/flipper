@@ -8,7 +8,7 @@ part 'purchase.g.dart';
 @JsonSerializable()
 @Collection()
 class Purchase extends IJsonSerializable {
-  late String id;
+  Id? id;
   // these are item on the
   List<String> itemIds;
   // add the following

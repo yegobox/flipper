@@ -25,10 +25,10 @@ class Branch extends IJsonSerializable {
   Branch.copy(Branch other, {bool? active, String? name})
       : isDefault = other.isDefault,
         action = other.action,
-        name = name?? other.name,
+        name = name ?? other.name,
         id = other.id,
         active = active ?? other.active;
-  late int id;
+  Id? id;
   bool? active;
 
   String? description;

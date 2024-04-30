@@ -12,7 +12,7 @@ class Discount {
       this.amount,
       required this.branchId});
 
-  late String id;
+  Id? id;
   late String name;
 
   /// this is to get ready when there will be option for percentage instead of amount!

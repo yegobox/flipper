@@ -59,13 +59,13 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void takePicture(
-      {required String productId,
+      {required int productId,
       required Function(String) callBack,
       required URLTYPE urlType}) {
     uploader.clearUploads();
     ProxyService.upload
         .takePicture(urlType: urlType, id: productId, uploader: uploader);
-    handleUploaderResult(urlType, id, callBack);
+    handleUploaderResult(urlType, productId, callBack);
   }
 
   void updateBusinessProfile({required String url}) async {

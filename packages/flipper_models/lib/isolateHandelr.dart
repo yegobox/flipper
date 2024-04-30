@@ -4,7 +4,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/realm/realmCounter.dart';
 import 'package:flipper_models/realm/realmITransaction.dart';
-// import 'package:flipper_models/realm/realmIUnit.dart';
 import 'package:flipper_models/realm/realmProduct.dart';
 import 'package:flipper_models/realm/realmStock.dart';
 import 'package:flipper_models/realm/realmTransactionItem.dart';
@@ -26,49 +25,49 @@ mixin IsolateHandler {
     do {
       // load all variants
       List<Variant> variants =
-          await isar.read((isar) => isar.variants.where().findAll());
+          await isar.writeTxn(() async => isar.variants.where().findAll());
       for (Variant variant in variants) {
         if (!variant.ebmSynced) {
           try {
             RWTax().saveItem(variation: variant);
             variant.ebmSynced = true;
-            isar.write((isar) => isar.variants.put(variant));
+            isar.writeTxn(() async => isar.variants.put(variant));
           } catch (e) {
             EBMHandler().handleNotificationMessaging(e);
             variant.ebmSynced = false;
-            isar.write((isar) => isar.variants.put(variant));
+            isar.writeTxn(() async => isar.variants.put(variant));
           }
         }
       }
       // load all stock
       List<Stock> stocks =
-          await isar.read((isar) => isar.stocks.where().findAll());
+          await isar.writeTxn(() async => isar.stocks.where().findAll());
       for (Stock stock in stocks) {
         if (!stock.ebmSynced) {
           try {
             RWTax().saveStock(stock: stock);
             stock.ebmSynced = true;
-            isar.write((isar) => isar.stocks.put(stock));
+            isar.writeTxn(() async => isar.stocks.put(stock));
           } catch (e) {
             EBMHandler().handleNotificationMessaging(e);
             stock.ebmSynced = false;
-            isar.write((isar) => isar.stocks.put(stock));
+            isar.writeTxn(() async => isar.stocks.put(stock));
           }
         }
       }
       // load all customer
       List<Customer> customers =
-          await isar.read((isar) => isar.customers.where().findAll());
+          await isar.writeTxn(() async => isar.customers.where().findAll());
       for (Customer customer in customers) {
         if (!customer.ebmSynced) {
           try {
             RWTax().saveCustomer(customer: customer);
             customer.ebmSynced = true;
-            isar.write((isar) => isar.customers.put(customer));
+            isar.writeTxn(() async => isar.customers.put(customer));
           } catch (e) {
             EBMHandler().handleNotificationMessaging(e);
             customer.ebmSynced = false;
-            isar.write((isar) => isar.customers.put(customer));
+            isar.writeTxn(() async => isar.customers.put(customer));
           }
         }
       }
@@ -79,7 +78,7 @@ mixin IsolateHandler {
     isar = await openIsarIsolate();
     // do the actual isar update
     if (value is Product) {
-      isar.write((isar) => isar.products.put(value));
+      isar.writeTxn(() async => isar.products.put(value));
     }
   }
 
@@ -134,19 +133,20 @@ mixin IsolateHandler {
     }
   }
 
-  static void handlecounter(RealmCounter result, SendPort sendPort) {
+  static Future<void> handlecounter(
+      RealmCounter result, SendPort sendPort) async {
     final model = createCounterModel(result);
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
     }
     Counter data = Counter.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    Counter? localTransaction = isar.counters
-        .where()
+    Counter? localTransaction = await isar.counters
+        .filter()
         .receiptTypeEqualTo(result.receiptType!.toUpperCase())
         .findFirst();
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.counters.put(data);
       });
       sendPort.send('Created Counter ${model.id}');
@@ -155,7 +155,7 @@ mixin IsolateHandler {
       data.action = AppActions.synchronized;
 
       data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.counters.put(data);
       });
       sendPort.send('Updated Counter ${model.id}');
@@ -291,7 +291,7 @@ mixin IsolateHandler {
     return config;
   }
 
-  static void handleStock(RealmStock result, SendPort sendPort) {
+  static Future<void> handleStock(RealmStock result, SendPort sendPort) async {
     final model = createStockModel(result);
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
@@ -299,9 +299,9 @@ mixin IsolateHandler {
     // handleItem(model: model, branchId: result.branchId);
     Stock data = Stock.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    Stock? localTransaction = isar.stocks.get(data.id);
+    Stock? localTransaction = await isar.stocks.get(data.id!);
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.stocks.put(data);
       });
       sendPort.send('Created Stock ${model.id}');
@@ -310,14 +310,15 @@ mixin IsolateHandler {
       data.action = AppActions.synchronized;
 
       data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.stocks.put(data);
       });
       sendPort.send('Updated Stock ${model.id}');
     }
   }
 
-  static void handleProduct(RealmProduct result, SendPort sendPort) {
+  static Future<void> handleProduct(
+      RealmProduct result, SendPort sendPort) async {
     final model = createProductModel(result);
 
     sendPort.send('Received Product ${model.id}');
@@ -327,9 +328,9 @@ mixin IsolateHandler {
     }
     Product data = Product.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    Product? localTransaction = isar.products.get(data.id);
+    Product? localTransaction = await isar.products.get(data.id!);
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.products.put(data);
       });
       sendPort.send('Created Product ${model.id}');
@@ -338,23 +339,24 @@ mixin IsolateHandler {
       data.action = AppActions.synchronized;
 
       data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.products.put(data);
       });
       sendPort.send('Updated Product ${model.id}');
     }
   }
 
-  static void handleVariant(RealmVariant result, SendPort sendPort) {
+  static Future<void> handleVariant(
+      RealmVariant result, SendPort sendPort) async {
     final model = createVariantModel(result);
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
     }
     Variant data = Variant.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    Variant? localTransaction = isar.variants.get(data.id);
+    Variant? localTransaction = await isar.variants.get(data.id!);
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.variants.put(data);
       });
       sendPort.send('Created Variant ${model.id}');
@@ -363,15 +365,15 @@ mixin IsolateHandler {
       data.action = AppActions.synchronized;
 
       data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.variants.put(data);
       });
       sendPort.send('Updated Variant ${model.id}');
     }
   }
 
-  static void handleTransactionItem(
-      RealmITransactionItem result, SendPort sendPort) {
+  static Future<void> handleTransactionItem(
+      RealmITransactionItem result, SendPort sendPort) async {
     final model = createTransactionItemModel(result);
     if (model.action == AppActions.deleted && model.deletedAt == null) {
       model.deletedAt = DateTime.now();
@@ -379,9 +381,10 @@ mixin IsolateHandler {
     //handleItem(model: model, branchId: result.branchId);
     TransactionItem data = TransactionItem.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    TransactionItem? localTransaction = isar.transactionItems.get(data.id);
+    TransactionItem? localTransaction =
+        await isar.transactionItems.get(data.id!);
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.transactionItems.put(data);
       });
       sendPort.send('Created transactionItem ${model.id}');
@@ -390,15 +393,15 @@ mixin IsolateHandler {
       data.action = AppActions.synchronized;
 
       data.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.transactionItems.put(data);
       });
       sendPort.send('Updated transactionItem ${model.id}');
     }
   }
 
-  static void handleTransactionData(
-      RealmITransaction result, SendPort sendPort) {
+  static Future<void> handleTransactionData(
+      RealmITransaction result, SendPort sendPort) async {
     final model = iTransactionModel(result);
 
     /// avoid saving saving a pending transaction to avoid
@@ -412,9 +415,9 @@ mixin IsolateHandler {
     }
     ITransaction data = ITransaction.fromJson(model.toJson());
     data.action = AppActions.synchronized;
-    ITransaction? localTransaction = isar.iTransactions.get(data.id);
+    ITransaction? localTransaction = await isar.iTransactions.get(data.id!);
     if (localTransaction == null) {
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.iTransactions.put(data);
       });
 
@@ -423,7 +426,7 @@ mixin IsolateHandler {
         .isNewDateCompareTo(localTransaction.lastTouched)) {
       data.action = AppActions.synchronized;
 
-      isar.write((isar) {
+      isar.writeTxn(() async {
         isar.iTransactions.put(data);
       });
       sendPort.send('Updated transaction ${model.id}');
@@ -461,7 +464,7 @@ mixin IsolateHandler {
       businessId: realmProduct.businessId,
       branchId: realmProduct.branchId,
       supplierId: realmProduct.supplierId,
-      categoryId: realmProduct.categoryId,
+      categoryId: realmProduct.categoryId!,
       createdAt: realmProduct.createdAt,
       unit: realmProduct.unit,
       imageUrl: realmProduct.imageUrl,
@@ -628,10 +631,9 @@ mixin IsolateHandler {
 
   static Future<Isar> openIsarIsolate() async {
     return await Isar.open(
-      schemas: models,
+      models,
       // in isolate we don't pass in the directory
       directory: '',
-      engine: IsarEngine.isar,
       name: 'default',
       inspector: false,
     );

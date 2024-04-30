@@ -44,8 +44,8 @@ Map<int, String> positionString = {
   14: 'fifteenth',
   15: 'sixteenth'
 };
-typedef void DeleteProductFunction(String? id, String type);
-typedef void DeleteVariantFunction(String? id, String type);
+typedef void DeleteProductFunction(int? id, String type);
+typedef void DeleteVariantFunction(int? id, String type);
 
 class RowItem extends StatefulHookConsumerWidget {
   final String color;
@@ -80,7 +80,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.favIndex,
   }) : super(key: key);
 
-  static _defaultFunction(String? id, String type) {
+  static _defaultFunction(int? id, String type) {
     print("no function provided for the action");
   }
 
@@ -247,9 +247,9 @@ class _RowItemState extends ConsumerState<RowItem> {
           onPressed: (_) {
             if (widget.addToMenu == null) {
               if (widget.product?.id == null) {
-                widget.deleteVariant(widget.variant?.id, 'variant');
+                widget.deleteVariant(widget.variant?.id!, 'variant');
               } else {
-                widget.deleteProduct(widget.product?.id, 'product');
+                widget.deleteProduct(widget.product?.id!, 'product');
               }
             } else {
               widget.addToMenu!(widget.product ?? widget.variant);
@@ -331,7 +331,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                 onPressed: () => {
                   widget.model.addFavorite(
                     favIndex: widget.favIndex!,
-                    productId: widget.product!.id,
+                    productId: widget.product!.id!,
                   ),
                   widget.model.rebuildUi(),
                   Navigator.of(context).pop(),

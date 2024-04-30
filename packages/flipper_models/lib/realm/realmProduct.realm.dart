@@ -10,7 +10,7 @@ part of 'realmProduct.dart';
 class RealmProduct extends _RealmProduct
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmProduct(
-    String id,
+    int id,
     ObjectId realmId,
     String name,
     String color,
@@ -20,7 +20,7 @@ class RealmProduct extends _RealmProduct
     String? description,
     String? taxId,
     String? supplierId,
-    String? categoryId,
+    int? categoryId,
     String? createdAt,
     String? unit,
     String? imageUrl,
@@ -60,9 +60,9 @@ class RealmProduct extends _RealmProduct
   RealmProduct._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -110,11 +110,9 @@ class RealmProduct extends _RealmProduct
       RealmObjectBase.set(this, 'supplierId', value);
 
   @override
-  String? get categoryId =>
-      RealmObjectBase.get<String>(this, 'categoryId') as String?;
+  int? get categoryId => RealmObjectBase.get<int>(this, 'categoryId') as int?;
   @override
-  set categoryId(String? value) =>
-      RealmObjectBase.set(this, 'categoryId', value);
+  set categoryId(int? value) => RealmObjectBase.set(this, 'categoryId', value);
 
   @override
   String? get createdAt =>
@@ -284,7 +282,7 @@ class RealmProduct extends _RealmProduct
     RealmObjectBase.registerFactory(RealmProduct._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, RealmProduct, 'RealmProduct', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('name', RealmPropertyType.string),
@@ -294,7 +292,7 @@ class RealmProduct extends _RealmProduct
       SchemaProperty('businessId', RealmPropertyType.int),
       SchemaProperty('branchId', RealmPropertyType.int),
       SchemaProperty('supplierId', RealmPropertyType.string, optional: true),
-      SchemaProperty('categoryId', RealmPropertyType.string, optional: true),
+      SchemaProperty('categoryId', RealmPropertyType.int, optional: true),
       SchemaProperty('createdAt', RealmPropertyType.string, optional: true),
       SchemaProperty('unit', RealmPropertyType.string, optional: true),
       SchemaProperty('imageUrl', RealmPropertyType.string, optional: true),

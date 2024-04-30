@@ -15,7 +15,7 @@ abstract class RemoteInterface {
   Future<RecordModel?> create(
       {required Map<String, dynamic> collection,
       required String collectionName});
-  Future<void> hardDelete({required String id, required String collectionName});
+  Future<void> hardDelete({required int id, required String collectionName});
   Future<RecordModel?> update(
       {required Map<String, dynamic> data,
       required String collectionName,
@@ -34,7 +34,7 @@ mixin HandleItemMixin {
       ITransaction remoteTransaction = ITransaction.fromJson(model.toJson());
       remoteTransaction.action = AppActions.synchronized;
       ITransaction? localTransaction =
-          ProxyService.isar.getTransactionById(id: remoteTransaction.id);
+          await ProxyService.isar.getTransactionById(id: remoteTransaction.id!);
       log('ITransaction:prepare', name: 'handleItem');
       if (localTransaction == null &&
           remoteTransaction.branchId == ProxyService.box.getBranchId()) {
@@ -54,7 +54,7 @@ mixin HandleItemMixin {
       Stock remoteStock = Stock.fromJson(model.toJson());
       remoteStock.action = AppActions.synchronized;
       Stock? localStock =
-          await ProxyService.isar.getStockById(id: remoteStock.id);
+          await ProxyService.isar.getStockById(id: remoteStock.id!);
 
       if (localStock == null && remoteStock.branchId == branchId) {
         log('Stock:create', name: 'handleItem');
@@ -71,7 +71,7 @@ mixin HandleItemMixin {
       Variant remoteVariant = Variant.fromJson(model.toJson());
       remoteVariant.action = AppActions.synchronized;
       Variant? localVariant =
-          await ProxyService.isar.getVariantById(id: remoteVariant.id);
+          await ProxyService.isar.getVariantById(id: remoteVariant.id!);
 
       if (localVariant == null && remoteVariant.branchId == branchId) {
         log('Variant:create', name: 'handleItem');
@@ -89,7 +89,7 @@ mixin HandleItemMixin {
       Product remoteProduct = Product.fromJson(model.toJson());
       remoteProduct.action = AppActions.synchronized;
       Product? localProduct =
-          await ProxyService.isar.getProduct(id: remoteProduct.id);
+          await ProxyService.isar.getProduct(id: remoteProduct.id!);
 
       if (localProduct == null && remoteProduct.branchId == branchId) {
         log('Product:create', name: 'handleItem');
@@ -107,7 +107,7 @@ mixin HandleItemMixin {
       Device remoteDevice = Device.fromJson(model.toJson());
       remoteDevice.action = AppActions.synchronized;
       Device? localDevice =
-          await ProxyService.isar.getDeviceById(id: remoteDevice.id);
+          await ProxyService.isar.getDeviceById(id: remoteDevice.id!);
 
       if (localDevice == null && remoteDevice.branchId == branchId) {
         await ProxyService.isar.create(data: remoteDevice);
@@ -123,7 +123,7 @@ mixin HandleItemMixin {
       Social remoteSocial = Social.fromJson(model.toJson());
       remoteSocial.action = AppActions.synchronized;
       Social? localSocial =
-          await ProxyService.isar.getSocialById(id: remoteSocial.id);
+          await ProxyService.isar.getSocialById(id: remoteSocial.id!);
 
       if (localSocial == null &&
           remoteSocial.branchId == ProxyService.box.getBranchId()) {
@@ -168,7 +168,7 @@ mixin HandleItemMixin {
           TransactionItem.fromJson(model.toJson());
       remoteTransactionItem.action = AppActions.synchronized;
       TransactionItem? localTransaction = await ProxyService.isar
-          .getTransactionItemById(id: remoteTransactionItem.id);
+          .getTransactionItemById(id: remoteTransactionItem.id!);
 
       if (localTransaction == null) {
         log('TransactionItem:create', name: 'handleItem');
@@ -564,9 +564,9 @@ class RemoteService with HandleItemMixin implements RemoteInterface {
 
   @override
   Future<void> hardDelete(
-      {required String id, required String collectionName}) async {
+      {required int id, required String collectionName}) async {
     try {
-      await pb!.collection(collectionName).delete(id);
+      await pb!.collection(collectionName).delete(id.toString());
     } catch (e) {
       ProxyService.sentry.debug(event: e.toString());
     }

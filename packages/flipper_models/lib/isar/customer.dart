@@ -9,7 +9,7 @@ enum CUSTOMER_TYPE { BUSINESS, INDIVIDUAL }
 @JsonSerializable()
 @Collection()
 class Customer extends IJsonSerializable {
-  late String id;
+  Id? id;
   //customer name
   late String custNm;
   late String email;

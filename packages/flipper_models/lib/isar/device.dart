@@ -10,7 +10,7 @@ part 'device.g.dart';
 @JsonSerializable()
 @Collection()
 class Device extends IJsonSerializable {
-  late String id;
+  Id? id;
   String linkingCode;
   String deviceName;
   String deviceVersion;

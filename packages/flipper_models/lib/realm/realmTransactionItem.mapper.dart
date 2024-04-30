@@ -21,8 +21,8 @@ class $RealmITransactionItemMapper
   @override
   final String id = '\$RealmITransactionItem';
 
-  static String _$id($RealmITransactionItem v) => v.id;
-  static const Field<$RealmITransactionItem, String> _f$id =
+  static int _$id($RealmITransactionItem v) => v.id;
+  static const Field<$RealmITransactionItem, int> _f$id =
       Field('id', _$id, mode: FieldMode.member);
   static ObjectId _$realmId($RealmITransactionItem v) => v.realmId;
   static const Field<$RealmITransactionItem, ObjectId> _f$realmId =
@@ -30,11 +30,11 @@ class $RealmITransactionItemMapper
   static String _$name($RealmITransactionItem v) => v.name;
   static const Field<$RealmITransactionItem, String> _f$name =
       Field('name', _$name, mode: FieldMode.member);
-  static String _$transactionId($RealmITransactionItem v) => v.transactionId;
-  static const Field<$RealmITransactionItem, String> _f$transactionId =
+  static int _$transactionId($RealmITransactionItem v) => v.transactionId;
+  static const Field<$RealmITransactionItem, int> _f$transactionId =
       Field('transactionId', _$transactionId, mode: FieldMode.member);
-  static String _$variantId($RealmITransactionItem v) => v.variantId;
-  static const Field<$RealmITransactionItem, String> _f$variantId =
+  static int _$variantId($RealmITransactionItem v) => v.variantId;
+  static const Field<$RealmITransactionItem, int> _f$variantId =
       Field('variantId', _$variantId, mode: FieldMode.member);
   static double _$qty($RealmITransactionItem v) => v.qty;
   static const Field<$RealmITransactionItem, double> _f$qty =

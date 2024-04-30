@@ -4,10 +4,7 @@ import 'package:flipper_services/constants.dart';
 
 mixin HandleMoreMethod implements IsarApiInterface {
   @override
-  Future<Branch?> activeBranch() async {
-    // if (realm == null) return null;
-    // final person = realm!.query<RealmCounter>("isDefault == true").first;
-
+  Future<Branch?> activeBranch() {
     // TODO: implement activeBranch
     throw UnimplementedError();
   }
@@ -32,7 +29,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
 
   @override
   Future<Customer?> addCustomer(
-      {required Customer customer, required String transactionId}) {
+      {required Customer customer, required int transactionId}) {
     // TODO: implement addCustomer
     throw UnimplementedError();
   }
@@ -44,7 +41,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Pointss addPoint({required int userId, required int point}) {
+  Future<Pointss> addPoint({required int userId, required int point}) {
     // TODO: implement addPoint
     throw UnimplementedError();
   }
@@ -76,7 +73,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
 
   @override
   Future assignCustomerToTransaction(
-      {required String customerId, String? transactionId}) {
+      {required int customerId, int? transactionId}) {
     // TODO: implement assignCustomerToTransaction
     throw UnimplementedError();
   }
@@ -88,7 +85,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<bool> bindProduct({required String productId, required int tenantId}) {
+  Future<bool> bindProduct({required int productId, required int tenantId}) {
     // TODO: implement bindProduct
     throw UnimplementedError();
   }
@@ -186,7 +183,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Product> createProduct(
+  Future<Product?> createProduct(
       {required Product product, bool skipRegularVariant = false}) {
     // TODO: implement createProduct
     throw UnimplementedError();
@@ -234,7 +231,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<bool> delete({required String id, String? endPoint}) {
+  Future<bool> delete({required int id, String? endPoint}) {
     // TODO: implement delete
     throw UnimplementedError();
   }
@@ -252,7 +249,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<int> deleteTransactionByIndex({required String transactionIndex}) {
+  Future<int> deleteTransactionByIndex({required int transactionIndex}) {
     // TODO: implement deleteTransactionByIndex
     throw UnimplementedError();
   }
@@ -276,8 +273,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required String productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId({required int productId}) {
     // TODO: implement geVariantStreamByProductId
     throw UnimplementedError();
   }
@@ -295,7 +291,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<PColor?> getColor({required String id, String? endPoint}) {
+  Future<PColor?> getColor({required int id}) {
     // TODO: implement getColor
     throw UnimplementedError();
   }
@@ -326,7 +322,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, String? id}) {
+  Future<Customer?> getCustomer({String? key, int? id}) {
     // TODO: implement getCustomer
     throw UnimplementedError();
   }
@@ -345,7 +341,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Device?> getDeviceById({required String id}) {
+  Future<Device?> getDeviceById({required int id}) {
     // TODO: implement getDeviceById
     throw UnimplementedError();
   }
@@ -393,7 +389,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Favorite?> getFavoriteByProdId({required String prodId}) {
+  Future<Favorite?> getFavoriteByProdId({required int prodId}) {
     // TODO: implement getFavoriteByProdId
     throw UnimplementedError();
   }
@@ -423,7 +419,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Product?> getProduct({required String id}) {
+  Future<Product?> getProduct({required int id}) {
     // TODO: implement getProduct
     throw UnimplementedError();
   }
@@ -441,13 +437,13 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<List<Product>> getProductList({String? prodIndex}) {
+  Future<List<Product>> getProductList({int? prodIndex}) {
     // TODO: implement getProductList
     throw UnimplementedError();
   }
 
   @override
-  Future<Receipt?> getReceipt({required String transactionId}) {
+  Future<Receipt?> getReceipt({required int transactionId}) {
     // TODO: implement getReceipt
     throw UnimplementedError();
   }
@@ -465,7 +461,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Social?> getSocialById({required String id}) {
+  Future<Social?> getSocialById({required int id}) {
     // TODO: implement getSocialById
     throw UnimplementedError();
   }
@@ -477,19 +473,19 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Stock?> getStock({required int branchId, required String variantId}) {
+  Future<Stock?> getStock({required int branchId, required int variantId}) {
     // TODO: implement getStock
     throw UnimplementedError();
   }
 
   @override
-  Future<Stock?> getStockById({required String id}) {
+  Future<Stock?> getStockById({required int id}) {
     // TODO: implement getStockById
     throw UnimplementedError();
   }
 
   @override
-  Stream<double> getStockStream({String? productId, String? variantId}) {
+  Stream<double> getStockStream({int? productId, int? variantId}) {
     // TODO: implement getStockStream
     throw UnimplementedError();
   }
@@ -519,27 +515,27 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  ITransaction? getTransactionById({required String id}) {
+  Future<ITransaction?> getTransactionById({required int id}) {
     // TODO: implement getTransactionById
     throw UnimplementedError();
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemById({required String id}) {
+  Future<TransactionItem?> getTransactionItemById({required int id}) {
     // TODO: implement getTransactionItemById
     throw UnimplementedError();
   }
 
   @override
   Future<TransactionItem?> getTransactionItemByVariantId(
-      {required String variantId, required String? transactionId}) {
+      {required int variantId, required int? transactionId}) {
     // TODO: implement getTransactionItemByVariantId
     throw UnimplementedError();
   }
 
   @override
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
-      {required String? transactionId}) {
+      {required int? transactionId}) {
     // TODO: implement getTransactionItemsByTransactionId
     throw UnimplementedError();
   }
@@ -553,7 +549,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
 
   @override
   Stream<List<ITransaction>> getTransactionsByCustomerId(
-      {required String customerId}) {
+      {required int customerId}) {
     // TODO: implement getTransactionsByCustomerId
     throw UnimplementedError();
   }
@@ -574,19 +570,19 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> getVariantById({required String id}) {
+  Future<Variant?> getVariantById({required int id}) {
     // TODO: implement getVariantById
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({String? productId}) {
+  Future<List<Variant>> getVariantByProductId({int? productId}) {
     // TODO: implement getVariantByProductId
     throw UnimplementedError();
   }
 
   @override
-  Stream<List<Variant>> getVariantByProductIdStream({String? productId}) {
+  Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
     // TODO: implement getVariantByProductIdStream
     throw UnimplementedError();
   }
@@ -706,7 +702,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Stream<List<Product>> productStreams({String? prodIndex}) {
+  Stream<List<Product>> productStreams({int? prodIndex}) {
     // TODO: implement productStreams
     throw UnimplementedError();
   }
@@ -743,7 +739,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<void> refund({required String itemId}) {
+  Future<void> refund({required int itemId}) {
     // TODO: implement refund
     throw UnimplementedError();
   }
@@ -756,7 +752,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
 
   @override
   Future removeCustomerFromTransaction(
-      {required String customerId, required String transactionId}) {
+      {required int customerId, required int transactionId}) {
     // TODO: implement removeCustomerFromTransaction
     throw UnimplementedError();
   }
@@ -821,14 +817,14 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Stock> stockByVariantId(
-      {required String variantId, bool nonZeroValue = false}) {
+  Future<Stock?> stockByVariantId(
+      {required int variantId, bool nonZeroValue = false}) {
     // TODO: implement stockByVariantId
     throw UnimplementedError();
   }
 
   @override
-  Future<double> stocks({String? productId, String? variantId}) {
+  Future<double> stocks({int? productId, int? variantId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
@@ -889,7 +885,7 @@ mixin HandleMoreMethod implements IsarApiInterface {
 
   @override
   Future<List<TransactionItem>> transactionItems(
-      {required String transactionId,
+      {required int transactionId,
       required bool doneWithTransaction,
       required bool active}) {
     // TODO: implement transactionItems
@@ -963,13 +959,13 @@ mixin HandleMoreMethod implements IsarApiInterface {
   }
 
   @override
-  Future<Variant?> variant({String? variantId, String? name}) {
+  Future<Variant?> variant({int? variantId, String? name}) {
     // TODO: implement variant
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Variant>> variants({required int branchId, String? productId}) {
+  Future<List<Variant>> variants({required int branchId, int? productId}) {
     // TODO: implement variants
     throw UnimplementedError();
   }

@@ -1,6 +1,8 @@
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 part 'voucher.g.dart';
 
+@JsonSerializable()
 @Collection()
 class Voucher {
   Voucher({
@@ -12,7 +14,7 @@ class Voucher {
     this.usedAt,
     this.descriptor,
   });
-  late String id;
+  Id? id;
   int? value;
   int? interval;
   bool? used;

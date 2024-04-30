@@ -12,12 +12,12 @@ class RealmStock extends _RealmStock
   static var _defaultsSet = false;
 
   RealmStock(
-    String id,
+    int id,
     ObjectId realmId,
     int branchId,
-    String variantId,
+    int variantId,
     double currentStock,
-    String productId,
+    int productId,
     String action, {
     double? lowStock,
     bool? canTrackingStock,
@@ -59,9 +59,9 @@ class RealmStock extends _RealmStock
   RealmStock._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -75,10 +75,9 @@ class RealmStock extends _RealmStock
   set branchId(int value) => RealmObjectBase.set(this, 'branchId', value);
 
   @override
-  String get variantId =>
-      RealmObjectBase.get<String>(this, 'variantId') as String;
+  int get variantId => RealmObjectBase.get<int>(this, 'variantId') as int;
   @override
-  set variantId(String value) => RealmObjectBase.set(this, 'variantId', value);
+  set variantId(int value) => RealmObjectBase.set(this, 'variantId', value);
 
   @override
   double? get lowStock =>
@@ -108,10 +107,9 @@ class RealmStock extends _RealmStock
       RealmObjectBase.set(this, 'showLowStockAlert', value);
 
   @override
-  String get productId =>
-      RealmObjectBase.get<String>(this, 'productId') as String;
+  int get productId => RealmObjectBase.get<int>(this, 'productId') as int;
   @override
-  set productId(String value) => RealmObjectBase.set(this, 'productId', value);
+  set productId(int value) => RealmObjectBase.set(this, 'productId', value);
 
   @override
   bool? get active => RealmObjectBase.get<bool>(this, 'active') as bool?;
@@ -247,18 +245,18 @@ class RealmStock extends _RealmStock
     RealmObjectBase.registerFactory(RealmStock._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, RealmStock, 'RealmStock', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('branchId', RealmPropertyType.int),
-      SchemaProperty('variantId', RealmPropertyType.string),
+      SchemaProperty('variantId', RealmPropertyType.int),
       SchemaProperty('lowStock', RealmPropertyType.double, optional: true),
       SchemaProperty('currentStock', RealmPropertyType.double),
       SchemaProperty('canTrackingStock', RealmPropertyType.bool,
           optional: true),
       SchemaProperty('showLowStockAlert', RealmPropertyType.bool,
           optional: true),
-      SchemaProperty('productId', RealmPropertyType.string),
+      SchemaProperty('productId', RealmPropertyType.int),
       SchemaProperty('active', RealmPropertyType.bool, optional: true),
       SchemaProperty('value', RealmPropertyType.double, optional: true),
       SchemaProperty('rsdQty', RealmPropertyType.double, optional: true),

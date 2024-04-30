@@ -26,7 +26,7 @@ import 'package:intl/intl.dart';
 
 class AddProductView extends StatefulHookConsumerWidget {
   const AddProductView({Key? key, this.productId}) : super(key: key);
-  final String? productId;
+  final int? productId;
 
   @override
   AddProductViewState createState() => AddProductViewState();
@@ -314,7 +314,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       verticalSpaceSmall,
                       StreamBuilder<List<Variant>>(
                         stream: ProxyService.isar.geVariantStreamByProductId(
-                            productId: ref.read(productProvider)?.id ?? '0'),
+                            productId: ref.read(productProvider)?.id ?? 0),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -354,7 +354,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: ref.read(productProvider)!.id);
+                                  productId: ref.read(productProvider)!.id!);
                             },
                           ),
                         ),

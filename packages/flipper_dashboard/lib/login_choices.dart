@@ -19,7 +19,6 @@ class _LoginChoicesState extends State<LoginChoices> {
   List<Business> _businesses = [];
   bool _isNext = false;
 
-
   final _routerService = locator<RouterService>();
 
   @override
@@ -29,8 +28,8 @@ class _LoginChoicesState extends State<LoginChoices> {
       onViewModelReady: (model) async {
         List<Business> _b = await ProxyService.isar.businesses();
         List<Branch> branches = await ProxyService.isar.branches();
-        for(Branch branch in branches){
-          ProxyService.isar.update(data: branch..active =false);
+        for (Branch branch in branches) {
+          ProxyService.isar.update(data: branch..active = false);
         }
         model.branchesList(branches);
         setState(() {
@@ -94,38 +93,38 @@ class _LoginChoicesState extends State<LoginChoices> {
       },
     );
   }
+
   Future<void> chooseBusiness(
-      CoreViewModel model,
-      Business selectedBusiness,
-      ) async {
+    CoreViewModel model,
+    Business selectedBusiness,
+  ) async {
+    model.setDefaultBusiness(business: selectedBusiness);
+    ProxyService.box
+        .writeString(key: 'bhfId', value: selectedBusiness.bhfId ?? "");
+    ProxyService.box
+        .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
 
-      model.setDefaultBusiness(business: selectedBusiness);
-       ProxyService.box
-          .writeString(key: 'bhfId', value: selectedBusiness.bhfId ?? "");
-      ProxyService.box
-          .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
+    for (int i = 0; i < _businesses.length; i++) {
+      Business currentBusiness = _businesses[i];
 
-      for (int i = 0; i < _businesses.length; i++) {
-        Business currentBusiness = _businesses[i];
+      _businesses[i] = Business.copy(
+        currentBusiness,
+        active: currentBusiness.id == selectedBusiness.id,
+        name: currentBusiness.name,
+        // Specify new values for additional properties if needed
+        action: currentBusiness.action,
+        encryptionKey: currentBusiness.encryptionKey,
+      );
 
-        _businesses[i] = Business.copy(
-          currentBusiness,
-          active: currentBusiness.id == selectedBusiness.id,
-          name: currentBusiness.name,
-          // Specify new values for additional properties if needed
-          action: currentBusiness.action,
-          encryptionKey: currentBusiness.encryptionKey,
-        );
+      ProxyService.isar.update(data: _businesses[i]);
+    }
 
-         ProxyService.isar.update(data: _businesses[i]);
-      }
-
-      await ProxyService.box.writeInt(key: "businessId", value: selectedBusiness.id);
-      await Future.delayed(Duration(seconds: 3));
+    await ProxyService.box
+        .writeInt(key: "businessId", value: selectedBusiness.id!);
+    await Future.delayed(Duration(seconds: 3));
     setState(() {
-        _isNext = true;
+      _isNext = true;
     });
-
   }
 
   Widget _buildBranchListView(CoreViewModel model) {
@@ -143,7 +142,7 @@ class _LoginChoicesState extends State<LoginChoices> {
           trailing: Checkbox(
             value: branch.active, // Use the correct variable here
             onChanged: (value) async {
-              await chooseBranch( model, branch);
+              await chooseBranch(model, branch);
             },
           ),
         );
@@ -152,9 +151,9 @@ class _LoginChoicesState extends State<LoginChoices> {
   }
 
   Future<void> chooseBranch(
-      CoreViewModel model,
-      Branch branch,
-      ) async {
+    CoreViewModel model,
+    Branch branch,
+  ) async {
     model.setDefaultBranch(branch: branch);
 
     for (int i = 0; i < model.branches.length; i++) {
@@ -166,7 +165,7 @@ class _LoginChoicesState extends State<LoginChoices> {
         name: currentBranch.name,
       );
 
-       ProxyService.isar.update(data: model.branches[i]);
+      ProxyService.isar.update(data: model.branches[i]);
     }
 
     ProxyService.box.writeBool(key: "authComplete", value: true);
@@ -174,9 +173,9 @@ class _LoginChoicesState extends State<LoginChoices> {
     if (await ProxyService.isar
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
       _routerService.navigateTo(FlipperAppRoute());
-    }else{
+    } else {
       Drawers drawer = Drawers(
-        id: randomString(),
+        id: randomNumber(),
         openingBalance: 0.0,
         closingBalance: 0.0,
         cashierId: ProxyService.box.getBusinessId()!,

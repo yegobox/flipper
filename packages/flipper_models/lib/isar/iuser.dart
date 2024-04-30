@@ -14,7 +14,7 @@ class IUser {
       required this.channels,
       this.pin});
 
-  late int id;
+  Id? id;
   String phoneNumber;
   String token;
   String uid;

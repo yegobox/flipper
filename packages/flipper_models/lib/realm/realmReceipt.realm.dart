@@ -12,7 +12,7 @@ class RealmReceipt extends _RealmReceipt
   RealmReceipt(
     ObjectId realmId,
     int branchId, {
-    String? id,
+    int? id,
     String? resultCd,
     String? resultMsg,
     String? resultDt,
@@ -25,7 +25,7 @@ class RealmReceipt extends _RealmReceipt
     String? mrcNo,
     String? qrCode,
     String? receiptType,
-    String? transactionId,
+    int? transactionId,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -48,9 +48,9 @@ class RealmReceipt extends _RealmReceipt
   RealmReceipt._();
 
   @override
-  String? get id => RealmObjectBase.get<String>(this, 'id') as String?;
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
   @override
-  set id(String? value) => RealmObjectBase.set(this, 'id', value);
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -128,10 +128,10 @@ class RealmReceipt extends _RealmReceipt
       RealmObjectBase.set(this, 'receiptType', value);
 
   @override
-  String? get transactionId =>
-      RealmObjectBase.get<String>(this, 'transactionId') as String?;
+  int? get transactionId =>
+      RealmObjectBase.get<int>(this, 'transactionId') as int?;
   @override
-  set transactionId(String? value) =>
+  set transactionId(int? value) =>
       RealmObjectBase.set(this, 'transactionId', value);
 
   @override
@@ -214,7 +214,7 @@ class RealmReceipt extends _RealmReceipt
     RealmObjectBase.registerFactory(RealmReceipt._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, RealmReceipt, 'RealmReceipt', [
-      SchemaProperty('id', RealmPropertyType.string, optional: true),
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('resultCd', RealmPropertyType.string, optional: true),
@@ -230,7 +230,7 @@ class RealmReceipt extends _RealmReceipt
       SchemaProperty('mrcNo', RealmPropertyType.string, optional: true),
       SchemaProperty('qrCode', RealmPropertyType.string, optional: true),
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
-      SchemaProperty('transactionId', RealmPropertyType.string, optional: true),
+      SchemaProperty('transactionId', RealmPropertyType.int, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int),
     ]);
   }();

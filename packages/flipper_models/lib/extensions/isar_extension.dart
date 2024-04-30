@@ -1,13 +1,9 @@
-import 'dart:developer';
-
 import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
-extension IsarO<ID, OBJ> on IsarCollection<ID, OBJ> {
-  OBJ? onGet(ID id) => getAll([id]).firstOrNull;
-
+extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
   /// this create a standard local update withour necessarily calling
   /// our sync service such as realm or firestore
   void onUpdate(OBJ object) {

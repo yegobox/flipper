@@ -169,7 +169,7 @@ class NotificationsCubit {
     dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
     final notification = Notification(
-      id: conversation.id.codeUnitAt(0),
+      id: conversation.id.toString().codeUnitAt(0),
       title: conversation.body,
       body: dueDateFormatted,
       payload: jsonEncode(conversation.toJson()),
@@ -218,7 +218,7 @@ class NotificationsCubit {
   /// Snooze a task's notification.
   Future<void> snoozeTask(Conversation task) async {
     // log.v('Snoozing notification for task: ${task.id}');
-    await cancelNotification(task.id.codeUnitAt(0));
+    await cancelNotification(task.id.toString().codeUnitAt(0));
     // const snoozeDuration = Duration(minutes: 10);
     // final snoozeTime = DateTime.now().add(snoozeDuration);
     // final updatedTask = task.copyWith(dueDate: snoozeTime);
@@ -432,7 +432,7 @@ class NotificationsCubit {
     localNotification.onClick = () {
       _notificationCallback(NotificationResponse(
         notificationResponseType: NotificationResponseType.selectedNotification,
-        id: conversation.id.codeUnitAt(0),
+        id: conversation.id.toString().codeUnitAt(0),
         payload: jsonEncode(conversation.toJson()),
       ));
     };

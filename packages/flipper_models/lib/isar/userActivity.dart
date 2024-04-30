@@ -12,7 +12,7 @@ part 'userActivity.g.dart';
 @Collection()
 class UserActivity extends IJsonSerializable {
   DateTime timestamp;
-  String id;
+  Id? id;
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
   int userId;

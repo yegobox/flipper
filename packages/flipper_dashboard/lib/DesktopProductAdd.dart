@@ -34,7 +34,7 @@ class QuantityCell extends StatelessWidget {
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
-  final String? productId;
+  final int? productId;
 
   @override
   ProductEntryScreenState createState() => ProductEntryScreenState();
@@ -158,7 +158,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               onPressed: () {
                 double newQuantity =
                     double.tryParse(quantityController.text) ?? 0.0;
-                model.updateVariantQuantity(variant.id, newQuantity);
+                model.updateVariantQuantity(variant.id!, newQuantity);
                 Navigator.pop(context);
               },
               child: Text('Save'),
@@ -211,7 +211,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ),
             onChanged: (selectedUnit) {
               // Update the unit in your model or wherever you store it
-              model.updateVariantUnit(variant.id, selectedUnit!);
+              model.updateVariantUnit(variant.id!, selectedUnit!);
             },
           ),
         );
@@ -375,8 +375,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           }
         } else {
           // If productId is not given, create a new product
-          Product product = await model.createProduct(name: TEMP_PRODUCT);
-          ref.read(productProvider.notifier).emitProduct(value: product);
+          Product? product = await model.createProduct(name: TEMP_PRODUCT);
+          ref.read(productProvider.notifier).emitProduct(value: product!);
         }
 
         model.initialize();
@@ -606,7 +606,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                   DataCell(
                                     ElevatedButton(
                                       onPressed: () {
-                                        model.removeVariant(id: variant.id);
+                                        model.removeVariant(id: variant.id!);
                                       },
                                       child: const Text('Delete'),
                                     ),

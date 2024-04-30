@@ -9,7 +9,7 @@ part 'color.g.dart';
 @JsonSerializable()
 @Collection()
 class PColor extends IJsonSerializable {
-  late String id;
+  Id? id;
   late String? name;
   List<String>? colors;
   late int? branchId;

@@ -41,9 +41,9 @@ class VariationList extends StatelessWidget {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    FutureBuilder<Stock>(
+                    FutureBuilder<Stock?>(
                       future: ProxyService.isar.stockByVariantId(
-                        variantId: variant.id,
+                        variantId: variant.id!,
                       ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -68,7 +68,7 @@ class VariationList extends StatelessWidget {
                           onPressed: () {
                             _routerService.navigateTo(
                               ReceiveStockRoute(
-                                variantId: variant.id,
+                                variantId: variant.id!,
                                 existingStock:
                                     stock!.currentStock.toInt().toString(),
                               ),

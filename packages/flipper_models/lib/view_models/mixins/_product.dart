@@ -80,7 +80,7 @@ mixin ProductMixin {
     activeCat?.active = false;
     activeCat?.focused = false;
 
-    mproduct.categoryId = activeCat?.id;
+    mproduct.categoryId = activeCat?.id!;
 
     await ProxyService.isar.update(data: activeCat);
 
@@ -93,13 +93,13 @@ mixin ProductMixin {
     for (Variant variant in variants) {
       variant.productName = productName!;
 
-      variant.productId = mproduct.id;
+      variant.productId = mproduct.id!;
       variant.pkgUnitCd = "NT";
       variant.action =
           inUpdateProcess ? AppActions.updated : AppActions.created;
       await ProxyService.isar.update(data: variant);
     }
 
-    return await ProxyService.isar.getProduct(id: mproduct.id);
+    return await ProxyService.isar.getProduct(id: mproduct.id!);
   }
 }

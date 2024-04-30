@@ -89,7 +89,7 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
-      id: randomString(),
+      id: randomNumber(),
       businessId: businessId,
       token: token?.body.token,
       validFrom: token?.body.validFrom,
@@ -159,11 +159,11 @@ class AppService with ListenableServiceMixin {
 
     // Iterate over businesses and perform the operations
     for (Business business in businesses) {
-      await ProxyService.isar.tenantsFromOnline(businessId: business.id);
+      await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
     }
 
     for (Business business in businesses) {
-      await ProxyService.isar.loadCounterFromOnline(businessId: business.id);
+      await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
     }
   }
 

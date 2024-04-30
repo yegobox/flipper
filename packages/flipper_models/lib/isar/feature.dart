@@ -6,7 +6,7 @@ part 'feature.g.dart';
 class Feature {
   Feature({required this.id, required this.name});
 
-  late String id;
+  Id? id;
   late String name;
 
   factory Feature.fromMap(Map<String, dynamic> json) => Feature(

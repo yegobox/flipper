@@ -182,7 +182,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
         onViewModelReady: (model) async {
           List<TransactionItem> items = await ProxyService.isar
               .transactionItems(
-                  transactionId: widget.transaction.id,
+                  transactionId: widget.transaction.id!,
                   doneWithTransaction: true,
                   active: true);
 
@@ -381,10 +381,10 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
         });
   }
 
-  Future<void> refund(String id, CoreViewModel model) async {
+  Future<void> refund(int id, CoreViewModel model) async {
     ProxyService.isar.refund(itemId: id);
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: widget.transaction.id,
+        transactionId: widget.transaction.id!,
         doneWithTransaction: true,
         active: true);
 

@@ -8,7 +8,7 @@ part 'drawers.g.dart';
 @JsonSerializable()
 @Collection()
 class Drawers extends IJsonSerializable {
-  late String id;
+  Id? id;
   late double openingBalance;
   late double closingBalance;
   String? openingDateTime;
@@ -26,7 +26,7 @@ class Drawers extends IJsonSerializable {
   String? paymentMode;
   @Index()
   late int cashierId;
-  @Index(composite: ['cashierId'])
+  // @Index(composite:  ['cashierId'])
   late bool open;
 
   Drawers({

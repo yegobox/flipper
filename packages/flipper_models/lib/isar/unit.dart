@@ -8,7 +8,7 @@ part 'unit.g.dart';
 @JsonSerializable()
 @Collection()
 class IUnit extends IJsonSerializable {
-  late String id;
+  Id? id;
   @Index()
   late int branchId;
   late String name;

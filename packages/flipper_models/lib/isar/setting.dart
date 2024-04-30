@@ -29,7 +29,7 @@ class Setting extends IJsonSerializable {
     this.deletedAt,
   });
 
-  late String id;
+  Id? id;
   String? email;
   String? hasPin;
   @Index()

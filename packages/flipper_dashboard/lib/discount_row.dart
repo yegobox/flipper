@@ -73,7 +73,7 @@ class DiscountRow extends StatelessWidget {
           children: [
             // A SlidableAction can have an icon and/or a label.
             SlidableAction(
-              onPressed: doSomething(context, discount.id),
+              onPressed: doSomething(context, discount.id!),
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
@@ -83,7 +83,7 @@ class DiscountRow extends StatelessWidget {
         ));
   }
 
-  doSomething(BuildContext context, String id) {
+  doSomething(BuildContext context, int id) {
     delete(id);
   }
 }

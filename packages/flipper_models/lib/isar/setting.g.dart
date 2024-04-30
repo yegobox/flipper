@@ -3,2230 +3,1212 @@
 part of 'setting.dart';
 
 // **************************************************************************
-// _IsarCollectionGenerator
+// IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
-// ignore_for_file: type=lint
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetSettingCollection on Isar {
-  IsarCollection<String, Setting> get settings => this.collection();
+  IsarCollection<Setting> get settings => this.collection();
 }
 
-const SettingSchema = IsarGeneratedSchema(
-  schema: IsarSchema(
-    name: 'Setting',
-    idName: 'id',
-    embedded: false,
-    properties: [
-      IsarPropertySchema(
-        name: 'id',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'email',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'hasPin',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'userId',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'openReceiptFileOSaleComplete',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'autoPrint',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'sendDailyReport',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'defaultLanguage',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'attendnaceDocCreated',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'isAttendanceEnabled',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'type',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'enrolledInBot',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'deviceToken',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'businessPhoneNumber',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'autoRespond',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'token',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'businessId',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'createdAt',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'lastTouched',
-        type: IsarType.dateTime,
-      ),
-      IsarPropertySchema(
-        name: 'deletedAt',
-        type: IsarType.dateTime,
-      ),
-      IsarPropertySchema(
-        name: 'action',
-        type: IsarType.string,
-      ),
-    ],
-    indexes: [
-      IsarIndexSchema(
-        name: 'userId',
-        properties: [
-          "userId",
-        ],
-        unique: false,
-        hash: false,
-      ),
-      IsarIndexSchema(
-        name: 'businessId',
-        properties: [
-          "businessId",
-        ],
-        unique: false,
-        hash: false,
-      ),
-    ],
-  ),
-  converter: IsarObjectConverter<String, Setting>(
-    serialize: serializeSetting,
-    deserialize: deserializeSetting,
-    deserializeProperty: deserializeSettingProp,
-  ),
-  embeddedSchemas: [],
+const SettingSchema = CollectionSchema(
+  name: r'Setting',
+  id: 2542600759502230801,
+  properties: {
+    r'action': PropertySchema(
+      id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'attendnaceDocCreated': PropertySchema(
+      id: 1,
+      name: r'attendnaceDocCreated',
+      type: IsarType.bool,
+    ),
+    r'autoPrint': PropertySchema(
+      id: 2,
+      name: r'autoPrint',
+      type: IsarType.bool,
+    ),
+    r'autoRespond': PropertySchema(
+      id: 3,
+      name: r'autoRespond',
+      type: IsarType.bool,
+    ),
+    r'businessId': PropertySchema(
+      id: 4,
+      name: r'businessId',
+      type: IsarType.long,
+    ),
+    r'businessPhoneNumber': PropertySchema(
+      id: 5,
+      name: r'businessPhoneNumber',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 6,
+      name: r'createdAt',
+      type: IsarType.string,
+    ),
+    r'defaultLanguage': PropertySchema(
+      id: 7,
+      name: r'defaultLanguage',
+      type: IsarType.string,
+    ),
+    r'deletedAt': PropertySchema(
+      id: 8,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'deviceToken': PropertySchema(
+      id: 9,
+      name: r'deviceToken',
+      type: IsarType.string,
+    ),
+    r'email': PropertySchema(
+      id: 10,
+      name: r'email',
+      type: IsarType.string,
+    ),
+    r'enrolledInBot': PropertySchema(
+      id: 11,
+      name: r'enrolledInBot',
+      type: IsarType.bool,
+    ),
+    r'hasPin': PropertySchema(
+      id: 12,
+      name: r'hasPin',
+      type: IsarType.string,
+    ),
+    r'isAttendanceEnabled': PropertySchema(
+      id: 13,
+      name: r'isAttendanceEnabled',
+      type: IsarType.bool,
+    ),
+    r'lastTouched': PropertySchema(
+      id: 14,
+      name: r'lastTouched',
+      type: IsarType.dateTime,
+    ),
+    r'openReceiptFileOSaleComplete': PropertySchema(
+      id: 15,
+      name: r'openReceiptFileOSaleComplete',
+      type: IsarType.bool,
+    ),
+    r'sendDailyReport': PropertySchema(
+      id: 16,
+      name: r'sendDailyReport',
+      type: IsarType.bool,
+    ),
+    r'token': PropertySchema(
+      id: 17,
+      name: r'token',
+      type: IsarType.string,
+    ),
+    r'type': PropertySchema(
+      id: 18,
+      name: r'type',
+      type: IsarType.string,
+    ),
+    r'userId': PropertySchema(
+      id: 19,
+      name: r'userId',
+      type: IsarType.long,
+    )
+  },
+  estimateSize: _settingEstimateSize,
+  serialize: _settingSerialize,
+  deserialize: _settingDeserialize,
+  deserializeProp: _settingDeserializeProp,
+  idName: r'id',
+  indexes: {
+    r'userId': IndexSchema(
+      id: -2005826577402374815,
+      name: r'userId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'userId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'businessId': IndexSchema(
+      id: 2228048290814354584,
+      name: r'businessId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'businessId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'lastTouched': IndexSchema(
+      id: -1197289422054722944,
+      name: r'lastTouched',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'lastTouched',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    ),
+    r'deletedAt': IndexSchema(
+      id: -8969437169173379604,
+      name: r'deletedAt',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'deletedAt',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _settingGetId,
+  getLinks: _settingGetLinks,
+  attach: _settingAttach,
+  version: '3.1.0+1',
 );
 
-@isarProtected
-int serializeSetting(IsarWriter writer, Setting object) {
-  IsarCore.writeString(writer, 1, object.id);
+int _settingEstimateSize(
+  Setting object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.action.length * 3;
   {
-    final value = object.email;
-    if (value == null) {
-      IsarCore.writeNull(writer, 2);
-    } else {
-      IsarCore.writeString(writer, 2, value);
+    final value = object.businessPhoneNumber;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.hasPin;
-    if (value == null) {
-      IsarCore.writeNull(writer, 3);
-    } else {
-      IsarCore.writeString(writer, 3, value);
-    }
-  }
-  IsarCore.writeLong(writer, 4, object.userId ?? -9223372036854775808);
-  {
-    final value = object.openReceiptFileOSaleComplete;
-    if (value == null) {
-      IsarCore.writeNull(writer, 5);
-    } else {
-      IsarCore.writeBool(writer, 5, value);
-    }
-  }
-  {
-    final value = object.autoPrint;
-    if (value == null) {
-      IsarCore.writeNull(writer, 6);
-    } else {
-      IsarCore.writeBool(writer, 6, value);
-    }
-  }
-  {
-    final value = object.sendDailyReport;
-    if (value == null) {
-      IsarCore.writeNull(writer, 7);
-    } else {
-      IsarCore.writeBool(writer, 7, value);
+    final value = object.createdAt;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
     final value = object.defaultLanguage;
-    if (value == null) {
-      IsarCore.writeNull(writer, 8);
-    } else {
-      IsarCore.writeString(writer, 8, value);
-    }
-  }
-  {
-    final value = object.attendnaceDocCreated;
-    if (value == null) {
-      IsarCore.writeNull(writer, 9);
-    } else {
-      IsarCore.writeBool(writer, 9, value);
-    }
-  }
-  {
-    final value = object.isAttendanceEnabled;
-    if (value == null) {
-      IsarCore.writeNull(writer, 10);
-    } else {
-      IsarCore.writeBool(writer, 10, value);
-    }
-  }
-  {
-    final value = object.type;
-    if (value == null) {
-      IsarCore.writeNull(writer, 11);
-    } else {
-      IsarCore.writeString(writer, 11, value);
-    }
-  }
-  {
-    final value = object.enrolledInBot;
-    if (value == null) {
-      IsarCore.writeNull(writer, 12);
-    } else {
-      IsarCore.writeBool(writer, 12, value);
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
     final value = object.deviceToken;
-    if (value == null) {
-      IsarCore.writeNull(writer, 13);
-    } else {
-      IsarCore.writeString(writer, 13, value);
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.businessPhoneNumber;
-    if (value == null) {
-      IsarCore.writeNull(writer, 14);
-    } else {
-      IsarCore.writeString(writer, 14, value);
+    final value = object.email;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
-    final value = object.autoRespond;
-    if (value == null) {
-      IsarCore.writeNull(writer, 15);
-    } else {
-      IsarCore.writeBool(writer, 15, value);
+    final value = object.hasPin;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
   {
     final value = object.token;
-    if (value == null) {
-      IsarCore.writeNull(writer, 16);
-    } else {
-      IsarCore.writeString(writer, 16, value);
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
-  IsarCore.writeLong(writer, 17, object.businessId ?? -9223372036854775808);
   {
-    final value = object.createdAt;
-    if (value == null) {
-      IsarCore.writeNull(writer, 18);
-    } else {
-      IsarCore.writeString(writer, 18, value);
+    final value = object.type;
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
-  IsarCore.writeLong(
-      writer,
-      19,
-      object.lastTouched?.toUtc().microsecondsSinceEpoch ??
-          -9223372036854775808);
-  IsarCore.writeLong(writer, 20,
-      object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeString(writer, 21, object.action);
-  return Isar.fastHash(object.id);
+  return bytesCount;
 }
 
-@isarProtected
-Setting deserializeSetting(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
-  final String? _email;
-  _email = IsarCore.readString(reader, 2);
-  final String? _hasPin;
-  _hasPin = IsarCore.readString(reader, 3);
-  final int? _userId;
-  {
-    final value = IsarCore.readLong(reader, 4);
-    if (value == -9223372036854775808) {
-      _userId = null;
-    } else {
-      _userId = value;
-    }
-  }
-  final bool? _openReceiptFileOSaleComplete;
-  {
-    if (IsarCore.readNull(reader, 5)) {
-      _openReceiptFileOSaleComplete = null;
-    } else {
-      _openReceiptFileOSaleComplete = IsarCore.readBool(reader, 5);
-    }
-  }
-  final bool? _autoPrint;
-  {
-    if (IsarCore.readNull(reader, 6)) {
-      _autoPrint = null;
-    } else {
-      _autoPrint = IsarCore.readBool(reader, 6);
-    }
-  }
-  final bool? _sendDailyReport;
-  {
-    if (IsarCore.readNull(reader, 7)) {
-      _sendDailyReport = null;
-    } else {
-      _sendDailyReport = IsarCore.readBool(reader, 7);
-    }
-  }
-  final String? _defaultLanguage;
-  _defaultLanguage = IsarCore.readString(reader, 8);
-  final bool? _attendnaceDocCreated;
-  {
-    if (IsarCore.readNull(reader, 9)) {
-      _attendnaceDocCreated = null;
-    } else {
-      _attendnaceDocCreated = IsarCore.readBool(reader, 9);
-    }
-  }
-  final bool? _isAttendanceEnabled;
-  {
-    if (IsarCore.readNull(reader, 10)) {
-      _isAttendanceEnabled = null;
-    } else {
-      _isAttendanceEnabled = IsarCore.readBool(reader, 10);
-    }
-  }
-  final String? _type;
-  _type = IsarCore.readString(reader, 11);
-  final bool? _enrolledInBot;
-  {
-    if (IsarCore.readNull(reader, 12)) {
-      _enrolledInBot = null;
-    } else {
-      _enrolledInBot = IsarCore.readBool(reader, 12);
-    }
-  }
-  final String? _deviceToken;
-  _deviceToken = IsarCore.readString(reader, 13);
-  final String? _businessPhoneNumber;
-  _businessPhoneNumber = IsarCore.readString(reader, 14);
-  final bool? _autoRespond;
-  {
-    if (IsarCore.readNull(reader, 15)) {
-      _autoRespond = null;
-    } else {
-      _autoRespond = IsarCore.readBool(reader, 15);
-    }
-  }
-  final String? _token;
-  _token = IsarCore.readString(reader, 16);
-  final int? _businessId;
-  {
-    final value = IsarCore.readLong(reader, 17);
-    if (value == -9223372036854775808) {
-      _businessId = null;
-    } else {
-      _businessId = value;
-    }
-  }
-  final String? _createdAt;
-  _createdAt = IsarCore.readString(reader, 18);
-  final DateTime? _deletedAt;
-  {
-    final value = IsarCore.readLong(reader, 20);
-    if (value == -9223372036854775808) {
-      _deletedAt = null;
-    } else {
-      _deletedAt =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
+void _settingSerialize(
+  Setting object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.action);
+  writer.writeBool(offsets[1], object.attendnaceDocCreated);
+  writer.writeBool(offsets[2], object.autoPrint);
+  writer.writeBool(offsets[3], object.autoRespond);
+  writer.writeLong(offsets[4], object.businessId);
+  writer.writeString(offsets[5], object.businessPhoneNumber);
+  writer.writeString(offsets[6], object.createdAt);
+  writer.writeString(offsets[7], object.defaultLanguage);
+  writer.writeDateTime(offsets[8], object.deletedAt);
+  writer.writeString(offsets[9], object.deviceToken);
+  writer.writeString(offsets[10], object.email);
+  writer.writeBool(offsets[11], object.enrolledInBot);
+  writer.writeString(offsets[12], object.hasPin);
+  writer.writeBool(offsets[13], object.isAttendanceEnabled);
+  writer.writeDateTime(offsets[14], object.lastTouched);
+  writer.writeBool(offsets[15], object.openReceiptFileOSaleComplete);
+  writer.writeBool(offsets[16], object.sendDailyReport);
+  writer.writeString(offsets[17], object.token);
+  writer.writeString(offsets[18], object.type);
+  writer.writeLong(offsets[19], object.userId);
+}
+
+Setting _settingDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Setting(
-    id: _id,
-    email: _email,
-    hasPin: _hasPin,
-    userId: _userId,
-    openReceiptFileOSaleComplete: _openReceiptFileOSaleComplete,
-    autoPrint: _autoPrint,
-    sendDailyReport: _sendDailyReport,
-    defaultLanguage: _defaultLanguage,
-    attendnaceDocCreated: _attendnaceDocCreated,
-    isAttendanceEnabled: _isAttendanceEnabled,
-    type: _type,
-    enrolledInBot: _enrolledInBot,
-    deviceToken: _deviceToken,
-    businessPhoneNumber: _businessPhoneNumber,
-    autoRespond: _autoRespond,
-    token: _token,
-    businessId: _businessId,
-    createdAt: _createdAt,
-    deletedAt: _deletedAt,
+    attendnaceDocCreated: reader.readBoolOrNull(offsets[1]),
+    autoPrint: reader.readBoolOrNull(offsets[2]),
+    autoRespond: reader.readBoolOrNull(offsets[3]),
+    businessId: reader.readLongOrNull(offsets[4]),
+    businessPhoneNumber: reader.readStringOrNull(offsets[5]),
+    createdAt: reader.readStringOrNull(offsets[6]),
+    defaultLanguage: reader.readStringOrNull(offsets[7]),
+    deletedAt: reader.readDateTimeOrNull(offsets[8]),
+    deviceToken: reader.readStringOrNull(offsets[9]),
+    email: reader.readStringOrNull(offsets[10]),
+    enrolledInBot: reader.readBoolOrNull(offsets[11]),
+    hasPin: reader.readStringOrNull(offsets[12]),
+    id: id,
+    isAttendanceEnabled: reader.readBoolOrNull(offsets[13]),
+    openReceiptFileOSaleComplete: reader.readBoolOrNull(offsets[15]),
+    sendDailyReport: reader.readBoolOrNull(offsets[16]),
+    token: reader.readStringOrNull(offsets[17]),
+    type: reader.readStringOrNull(offsets[18]),
+    userId: reader.readLongOrNull(offsets[19]),
   );
-  {
-    final value = IsarCore.readLong(reader, 19);
-    if (value == -9223372036854775808) {
-      object.lastTouched = null;
-    } else {
-      object.lastTouched =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
-  object.action = IsarCore.readString(reader, 21) ?? '';
+  object.action = reader.readString(offsets[0]);
+  object.lastTouched = reader.readDateTimeOrNull(offsets[14]);
   return object;
 }
 
-@isarProtected
-dynamic deserializeSettingProp(IsarReader reader, int property) {
-  switch (property) {
+P _settingDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
     case 1:
-      return IsarCore.readString(reader, 1) ?? '';
+      return (reader.readBoolOrNull(offset)) as P;
     case 2:
-      return IsarCore.readString(reader, 2);
+      return (reader.readBoolOrNull(offset)) as P;
     case 3:
-      return IsarCore.readString(reader, 3);
+      return (reader.readBoolOrNull(offset)) as P;
     case 4:
-      {
-        final value = IsarCore.readLong(reader, 4);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
-      {
-        if (IsarCore.readNull(reader, 5)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 5);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 6:
-      {
-        if (IsarCore.readNull(reader, 6)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 6);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 7:
-      {
-        if (IsarCore.readNull(reader, 7)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 7);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 8:
-      return IsarCore.readString(reader, 8);
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 9:
-      {
-        if (IsarCore.readNull(reader, 9)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 9);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 10:
-      {
-        if (IsarCore.readNull(reader, 10)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 10);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 11:
-      return IsarCore.readString(reader, 11);
+      return (reader.readBoolOrNull(offset)) as P;
     case 12:
-      {
-        if (IsarCore.readNull(reader, 12)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 12);
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 13:
-      return IsarCore.readString(reader, 13);
+      return (reader.readBoolOrNull(offset)) as P;
     case 14:
-      return IsarCore.readString(reader, 14);
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 15:
-      {
-        if (IsarCore.readNull(reader, 15)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 15);
-        }
-      }
+      return (reader.readBoolOrNull(offset)) as P;
     case 16:
-      return IsarCore.readString(reader, 16);
+      return (reader.readBoolOrNull(offset)) as P;
     case 17:
-      {
-        final value = IsarCore.readLong(reader, 17);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return (reader.readStringOrNull(offset)) as P;
     case 18:
-      return IsarCore.readString(reader, 18);
+      return (reader.readStringOrNull(offset)) as P;
     case 19:
-      {
-        final value = IsarCore.readLong(reader, 19);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
-    case 20:
-      {
-        final value = IsarCore.readLong(reader, 20);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
-    case 21:
-      return IsarCore.readString(reader, 21) ?? '';
+      return (reader.readLongOrNull(offset)) as P;
     default:
-      throw ArgumentError('Unknown property: $property');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-sealed class _SettingUpdate {
-  bool call({
-    required String id,
-    String? email,
-    String? hasPin,
-    int? userId,
-    bool? openReceiptFileOSaleComplete,
-    bool? autoPrint,
-    bool? sendDailyReport,
-    String? defaultLanguage,
-    bool? attendnaceDocCreated,
-    bool? isAttendanceEnabled,
-    String? type,
-    bool? enrolledInBot,
-    String? deviceToken,
-    String? businessPhoneNumber,
-    bool? autoRespond,
-    String? token,
-    int? businessId,
-    String? createdAt,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
+Id _settingGetId(Setting object) {
+  return object.id ?? Isar.autoIncrement;
 }
 
-class _SettingUpdateImpl implements _SettingUpdate {
-  const _SettingUpdateImpl(this.collection);
+List<IsarLinkBase<dynamic>> _settingGetLinks(Setting object) {
+  return [];
+}
 
-  final IsarCollection<String, Setting> collection;
+void _settingAttach(IsarCollection<dynamic> col, Id id, Setting object) {
+  object.id = id;
+}
 
-  @override
-  bool call({
-    required String id,
-    Object? email = ignore,
-    Object? hasPin = ignore,
-    Object? userId = ignore,
-    Object? openReceiptFileOSaleComplete = ignore,
-    Object? autoPrint = ignore,
-    Object? sendDailyReport = ignore,
-    Object? defaultLanguage = ignore,
-    Object? attendnaceDocCreated = ignore,
-    Object? isAttendanceEnabled = ignore,
-    Object? type = ignore,
-    Object? enrolledInBot = ignore,
-    Object? deviceToken = ignore,
-    Object? businessPhoneNumber = ignore,
-    Object? autoRespond = ignore,
-    Object? token = ignore,
-    Object? businessId = ignore,
-    Object? createdAt = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return collection.updateProperties([
-          id
-        ], {
-          if (email != ignore) 2: email as String?,
-          if (hasPin != ignore) 3: hasPin as String?,
-          if (userId != ignore) 4: userId as int?,
-          if (openReceiptFileOSaleComplete != ignore)
-            5: openReceiptFileOSaleComplete as bool?,
-          if (autoPrint != ignore) 6: autoPrint as bool?,
-          if (sendDailyReport != ignore) 7: sendDailyReport as bool?,
-          if (defaultLanguage != ignore) 8: defaultLanguage as String?,
-          if (attendnaceDocCreated != ignore) 9: attendnaceDocCreated as bool?,
-          if (isAttendanceEnabled != ignore) 10: isAttendanceEnabled as bool?,
-          if (type != ignore) 11: type as String?,
-          if (enrolledInBot != ignore) 12: enrolledInBot as bool?,
-          if (deviceToken != ignore) 13: deviceToken as String?,
-          if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
-          if (autoRespond != ignore) 15: autoRespond as bool?,
-          if (token != ignore) 16: token as String?,
-          if (businessId != ignore) 17: businessId as int?,
-          if (createdAt != ignore) 18: createdAt as String?,
-          if (lastTouched != ignore) 19: lastTouched as DateTime?,
-          if (deletedAt != ignore) 20: deletedAt as DateTime?,
-          if (action != ignore) 21: action as String?,
-        }) >
-        0;
+extension SettingQueryWhereSort on QueryBuilder<Setting, Setting, QWhere> {
+  QueryBuilder<Setting, Setting, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
-}
 
-sealed class _SettingUpdateAll {
-  int call({
-    required List<String> id,
-    String? email,
-    String? hasPin,
-    int? userId,
-    bool? openReceiptFileOSaleComplete,
-    bool? autoPrint,
-    bool? sendDailyReport,
-    String? defaultLanguage,
-    bool? attendnaceDocCreated,
-    bool? isAttendanceEnabled,
-    String? type,
-    bool? enrolledInBot,
-    String? deviceToken,
-    String? businessPhoneNumber,
-    bool? autoRespond,
-    String? token,
-    int? businessId,
-    String? createdAt,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
-}
+  QueryBuilder<Setting, Setting, QAfterWhere> anyUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'userId'),
+      );
+    });
+  }
 
-class _SettingUpdateAllImpl implements _SettingUpdateAll {
-  const _SettingUpdateAllImpl(this.collection);
+  QueryBuilder<Setting, Setting, QAfterWhere> anyBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'businessId'),
+      );
+    });
+  }
 
-  final IsarCollection<String, Setting> collection;
+  QueryBuilder<Setting, Setting, QAfterWhere> anyLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'lastTouched'),
+      );
+    });
+  }
 
-  @override
-  int call({
-    required List<String> id,
-    Object? email = ignore,
-    Object? hasPin = ignore,
-    Object? userId = ignore,
-    Object? openReceiptFileOSaleComplete = ignore,
-    Object? autoPrint = ignore,
-    Object? sendDailyReport = ignore,
-    Object? defaultLanguage = ignore,
-    Object? attendnaceDocCreated = ignore,
-    Object? isAttendanceEnabled = ignore,
-    Object? type = ignore,
-    Object? enrolledInBot = ignore,
-    Object? deviceToken = ignore,
-    Object? businessPhoneNumber = ignore,
-    Object? autoRespond = ignore,
-    Object? token = ignore,
-    Object? businessId = ignore,
-    Object? createdAt = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return collection.updateProperties(id, {
-      if (email != ignore) 2: email as String?,
-      if (hasPin != ignore) 3: hasPin as String?,
-      if (userId != ignore) 4: userId as int?,
-      if (openReceiptFileOSaleComplete != ignore)
-        5: openReceiptFileOSaleComplete as bool?,
-      if (autoPrint != ignore) 6: autoPrint as bool?,
-      if (sendDailyReport != ignore) 7: sendDailyReport as bool?,
-      if (defaultLanguage != ignore) 8: defaultLanguage as String?,
-      if (attendnaceDocCreated != ignore) 9: attendnaceDocCreated as bool?,
-      if (isAttendanceEnabled != ignore) 10: isAttendanceEnabled as bool?,
-      if (type != ignore) 11: type as String?,
-      if (enrolledInBot != ignore) 12: enrolledInBot as bool?,
-      if (deviceToken != ignore) 13: deviceToken as String?,
-      if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
-      if (autoRespond != ignore) 15: autoRespond as bool?,
-      if (token != ignore) 16: token as String?,
-      if (businessId != ignore) 17: businessId as int?,
-      if (createdAt != ignore) 18: createdAt as String?,
-      if (lastTouched != ignore) 19: lastTouched as DateTime?,
-      if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (action != ignore) 21: action as String?,
+  QueryBuilder<Setting, Setting, QAfterWhere> anyDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'deletedAt'),
+      );
     });
   }
 }
 
-extension SettingUpdate on IsarCollection<String, Setting> {
-  _SettingUpdate get update => _SettingUpdateImpl(this);
-
-  _SettingUpdateAll get updateAll => _SettingUpdateAllImpl(this);
-}
-
-sealed class _SettingQueryUpdate {
-  int call({
-    String? email,
-    String? hasPin,
-    int? userId,
-    bool? openReceiptFileOSaleComplete,
-    bool? autoPrint,
-    bool? sendDailyReport,
-    String? defaultLanguage,
-    bool? attendnaceDocCreated,
-    bool? isAttendanceEnabled,
-    String? type,
-    bool? enrolledInBot,
-    String? deviceToken,
-    String? businessPhoneNumber,
-    bool? autoRespond,
-    String? token,
-    int? businessId,
-    String? createdAt,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
-}
-
-class _SettingQueryUpdateImpl implements _SettingQueryUpdate {
-  const _SettingQueryUpdateImpl(this.query, {this.limit});
-
-  final IsarQuery<Setting> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? email = ignore,
-    Object? hasPin = ignore,
-    Object? userId = ignore,
-    Object? openReceiptFileOSaleComplete = ignore,
-    Object? autoPrint = ignore,
-    Object? sendDailyReport = ignore,
-    Object? defaultLanguage = ignore,
-    Object? attendnaceDocCreated = ignore,
-    Object? isAttendanceEnabled = ignore,
-    Object? type = ignore,
-    Object? enrolledInBot = ignore,
-    Object? deviceToken = ignore,
-    Object? businessPhoneNumber = ignore,
-    Object? autoRespond = ignore,
-    Object? token = ignore,
-    Object? businessId = ignore,
-    Object? createdAt = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return query.updateProperties(limit: limit, {
-      if (email != ignore) 2: email as String?,
-      if (hasPin != ignore) 3: hasPin as String?,
-      if (userId != ignore) 4: userId as int?,
-      if (openReceiptFileOSaleComplete != ignore)
-        5: openReceiptFileOSaleComplete as bool?,
-      if (autoPrint != ignore) 6: autoPrint as bool?,
-      if (sendDailyReport != ignore) 7: sendDailyReport as bool?,
-      if (defaultLanguage != ignore) 8: defaultLanguage as String?,
-      if (attendnaceDocCreated != ignore) 9: attendnaceDocCreated as bool?,
-      if (isAttendanceEnabled != ignore) 10: isAttendanceEnabled as bool?,
-      if (type != ignore) 11: type as String?,
-      if (enrolledInBot != ignore) 12: enrolledInBot as bool?,
-      if (deviceToken != ignore) 13: deviceToken as String?,
-      if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
-      if (autoRespond != ignore) 15: autoRespond as bool?,
-      if (token != ignore) 16: token as String?,
-      if (businessId != ignore) 17: businessId as int?,
-      if (createdAt != ignore) 18: createdAt as String?,
-      if (lastTouched != ignore) 19: lastTouched as DateTime?,
-      if (deletedAt != ignore) 20: deletedAt as DateTime?,
-      if (action != ignore) 21: action as String?,
+extension SettingQueryWhere on QueryBuilder<Setting, Setting, QWhereClause> {
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
-}
 
-extension SettingQueryUpdate on IsarQuery<Setting> {
-  _SettingQueryUpdate get updateFirst =>
-      _SettingQueryUpdateImpl(this, limit: 1);
-
-  _SettingQueryUpdate get updateAll => _SettingQueryUpdateImpl(this);
-}
-
-class _SettingQueryBuilderUpdateImpl implements _SettingQueryUpdate {
-  const _SettingQueryBuilderUpdateImpl(this.query, {this.limit});
-
-  final QueryBuilder<Setting, Setting, QOperations> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? email = ignore,
-    Object? hasPin = ignore,
-    Object? userId = ignore,
-    Object? openReceiptFileOSaleComplete = ignore,
-    Object? autoPrint = ignore,
-    Object? sendDailyReport = ignore,
-    Object? defaultLanguage = ignore,
-    Object? attendnaceDocCreated = ignore,
-    Object? isAttendanceEnabled = ignore,
-    Object? type = ignore,
-    Object? enrolledInBot = ignore,
-    Object? deviceToken = ignore,
-    Object? businessPhoneNumber = ignore,
-    Object? autoRespond = ignore,
-    Object? token = ignore,
-    Object? businessId = ignore,
-    Object? createdAt = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    final q = query.build();
-    try {
-      return q.updateProperties(limit: limit, {
-        if (email != ignore) 2: email as String?,
-        if (hasPin != ignore) 3: hasPin as String?,
-        if (userId != ignore) 4: userId as int?,
-        if (openReceiptFileOSaleComplete != ignore)
-          5: openReceiptFileOSaleComplete as bool?,
-        if (autoPrint != ignore) 6: autoPrint as bool?,
-        if (sendDailyReport != ignore) 7: sendDailyReport as bool?,
-        if (defaultLanguage != ignore) 8: defaultLanguage as String?,
-        if (attendnaceDocCreated != ignore) 9: attendnaceDocCreated as bool?,
-        if (isAttendanceEnabled != ignore) 10: isAttendanceEnabled as bool?,
-        if (type != ignore) 11: type as String?,
-        if (enrolledInBot != ignore) 12: enrolledInBot as bool?,
-        if (deviceToken != ignore) 13: deviceToken as String?,
-        if (businessPhoneNumber != ignore) 14: businessPhoneNumber as String?,
-        if (autoRespond != ignore) 15: autoRespond as bool?,
-        if (token != ignore) 16: token as String?,
-        if (businessId != ignore) 17: businessId as int?,
-        if (createdAt != ignore) 18: createdAt as String?,
-        if (lastTouched != ignore) 19: lastTouched as DateTime?,
-        if (deletedAt != ignore) 20: deletedAt as DateTime?,
-        if (action != ignore) 21: action as String?,
-      });
-    } finally {
-      q.close();
-    }
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
-}
 
-extension SettingQueryBuilderUpdate
-    on QueryBuilder<Setting, Setting, QOperations> {
-  _SettingQueryUpdate get updateFirst =>
-      _SettingQueryBuilderUpdateImpl(this, limit: 1);
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
 
-  _SettingQueryUpdate get updateAll => _SettingQueryBuilderUpdateImpl(this);
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdEqualTo(int? userId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'userId',
+        value: [userId],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdNotEqualTo(
+      int? userId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [userId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'userId',
+              lower: [],
+              upper: [userId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdGreaterThan(
+    int? userId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [userId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdLessThan(
+    int? userId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [],
+        upper: [userId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> userIdBetween(
+    int? lowerUserId,
+    int? upperUserId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'userId',
+        lower: [lowerUserId],
+        includeLower: includeLower,
+        upper: [upperUserId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'businessId',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdEqualTo(
+      int? businessId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'businessId',
+        value: [businessId],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdNotEqualTo(
+      int? businessId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [businessId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'businessId',
+              lower: [],
+              upper: [businessId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdGreaterThan(
+    int? businessId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [businessId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdLessThan(
+    int? businessId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [],
+        upper: [businessId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> businessIdBetween(
+    int? lowerBusinessId,
+    int? upperBusinessId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'businessId',
+        lower: [lowerBusinessId],
+        includeLower: includeLower,
+        upper: [upperBusinessId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedEqualTo(
+      DateTime? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'lastTouched',
+        value: [lastTouched],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedNotEqualTo(
+      DateTime? lastTouched) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [lastTouched],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'lastTouched',
+              lower: [],
+              upper: [lastTouched],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedGreaterThan(
+    DateTime? lastTouched, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [lastTouched],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedLessThan(
+    DateTime? lastTouched, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [],
+        upper: [lastTouched],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> lastTouchedBetween(
+    DateTime? lowerLastTouched,
+    DateTime? upperLastTouched, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'lastTouched',
+        lower: [lowerLastTouched],
+        includeLower: includeLower,
+        upper: [upperLastTouched],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [null],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [null],
+        includeLower: false,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'deletedAt',
+        value: [deletedAt],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtNotEqualTo(
+      DateTime? deletedAt) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [deletedAt],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'deletedAt',
+              lower: [],
+              upper: [deletedAt],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtGreaterThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [deletedAt],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtLessThan(
+    DateTime? deletedAt, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [],
+        upper: [deletedAt],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterWhereClause> deletedAtBetween(
+    DateTime? lowerDeletedAt,
+    DateTime? upperDeletedAt, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'deletedAt',
+        lower: [lowerDeletedAt],
+        includeLower: includeLower,
+        upper: [upperDeletedAt],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension SettingQueryFilter
     on QueryBuilder<Setting, Setting, QFilterCondition> {
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionGreaterThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idGreaterThanOrEqualTo(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionLessThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idBetween(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionBetween(
     String lower,
     String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 1,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idStartsWith(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idEndsWith(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      emailGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 2,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailContains(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailMatches(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 2,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsEmpty() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 2,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotEmpty() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 2,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      hasPinGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 3,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 3,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 3,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 3,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 3,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdGreaterThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      userIdGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdLessThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdBetween(
-    int? lower,
-    int? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 4,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      openReceiptFileOSaleCompleteIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      openReceiptFileOSaleCompleteIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      openReceiptFileOSaleCompleteEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      sendDailyReportIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      sendDailyReportIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> sendDailyReportEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 7,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 8));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 8));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 8,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 8,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 8,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 8,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      defaultLanguageIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 8,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       attendnaceDocCreatedIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 9));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'attendnaceDocCreated',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       attendnaceDocCreatedIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 9));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'attendnaceDocCreated',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      attendnaceDocCreatedEqualTo(
-    bool? value,
-  ) {
+      attendnaceDocCreatedEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 9,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'attendnaceDocCreated',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      isAttendanceEnabledIsNull() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 10));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'autoPrint',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      isAttendanceEnabledIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 10));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      isAttendanceEnabledEqualTo(
-    bool? value,
-  ) {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 10,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'autoPrint',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNull() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoPrintEqualTo(
+      bool? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 11));
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'autoPrint',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 11));
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'autoRespond',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeEqualTo(
-    String? value, {
-    bool caseSensitive = true,
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'autoRespond',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'autoRespond',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'businessId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdGreaterThan(
+    int? value, {
+    bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdLessThan(
+    int? value, {
+    bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessId',
+        value: value,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      typeGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 11,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 11,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 11,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 11,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 11,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> enrolledInBotIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 12));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      enrolledInBotIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 12));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> enrolledInBotEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 12,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 13));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 13));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      deviceTokenGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      deviceTokenLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 13,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 13,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 13,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 13,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      deviceTokenIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 13,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 14));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'businessPhoneNumber',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 14));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'businessPhoneNumber',
+      ));
     });
   }
 
@@ -2236,77 +1218,43 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberGreaterThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      businessPhoneNumberGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberLessThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      businessPhoneNumberLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2314,17 +1262,19 @@ extension SettingQueryFilter
       businessPhoneNumberBetween(
     String? lower,
     String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 14,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'businessPhoneNumber',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2334,13 +1284,11 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2350,379 +1298,69 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 14,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'businessPhoneNumber',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 14,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'businessPhoneNumber',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 14,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'businessPhoneNumber',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
       businessPhoneNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 14,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 15));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 15));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> autoRespondEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 15,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 16));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 16));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenGreaterThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      tokenGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenLessThan(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenBetween(
-    String? lower,
-    String? upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 16,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 16,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 16,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 16,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 16,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 17));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 17));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 17,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdGreaterThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 17,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      businessIdGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 17,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdLessThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 17,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      businessIdLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 17,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> businessIdBetween(
-    int? lower,
-    int? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 17,
-          lower: lower,
-          upper: upper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'businessPhoneNumber',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 18));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'createdAt',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 18));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'createdAt',
+      ));
     });
   }
 
@@ -2731,92 +1369,60 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtGreaterThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      createdAtGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtLessThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      createdAtLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtBetween(
     String? lower,
     String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 18,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2825,13 +1431,11 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2840,13 +1444,11 @@ extension SettingQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2854,13 +1456,11 @@ extension SettingQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 18,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'createdAt',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -2868,396 +1468,1298 @@ extension SettingQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 18,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'createdAt',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 18,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> createdAtIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 18,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 19));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 19));
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 19,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedGreaterThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 19,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'createdAt',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      lastTouchedGreaterThanOrEqualTo(
-    DateTime? value,
-  ) {
+      defaultLanguageIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 19,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedLessThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 19,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'defaultLanguage',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      lastTouchedLessThanOrEqualTo(
-    DateTime? value,
-  ) {
+      defaultLanguageIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 19,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'defaultLanguage',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedBetween(
-    DateTime? lower,
-    DateTime? upper,
-  ) {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 19,
-          lower: lower,
-          upper: upper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'defaultLanguage',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'defaultLanguage',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> defaultLanguageMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'defaultLanguage',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'defaultLanguage',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      defaultLanguageIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'defaultLanguage',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 20));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 20));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtEqualTo(
-    DateTime? value,
-  ) {
+      DateTime? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 20,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtGreaterThan(
-    DateTime? value,
-  ) {
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 20,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      deletedAtGreaterThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 20,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtLessThan(
-    DateTime? value,
-  ) {
+    DateTime? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 20,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      deletedAtLessThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 20,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition> deletedAtBetween(
     DateTime? lower,
-    DateTime? upper,
-  ) {
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 20,
-          lower: lower,
-          upper: upper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEqualTo(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deviceToken',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deviceToken',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deviceToken',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionGreaterThan(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'deviceToken',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'deviceToken',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> deviceTokenIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deviceToken',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterFilterCondition>
-      actionGreaterThanOrEqualTo(
+      deviceTokenIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'deviceToken',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'email',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'email',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'email',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionLessThan(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 21,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionContains(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 21,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'email',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionMatches(
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 21,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'email',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsEmpty() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 21,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'email',
+        value: '',
+      ));
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterFilterCondition> actionIsNotEmpty() {
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> emailIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 21,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'email',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> enrolledInBotIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'enrolledInBot',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      enrolledInBotIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'enrolledInBot',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> enrolledInBotEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'enrolledInBot',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'hasPin',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'hasPin',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'hasPin',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'hasPin',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'hasPin',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'hasPin',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> hasPinIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'hasPin',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idEqualTo(Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idGreaterThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idLessThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> idBetween(
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      isAttendanceEnabledIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'isAttendanceEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      isAttendanceEnabledIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'isAttendanceEnabled',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      isAttendanceEnabledEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isAttendanceEnabled',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> lastTouchedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      openReceiptFileOSaleCompleteIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'openReceiptFileOSaleComplete',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      openReceiptFileOSaleCompleteIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'openReceiptFileOSaleComplete',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      openReceiptFileOSaleCompleteEqualTo(bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'openReceiptFileOSaleComplete',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      sendDailyReportIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'sendDailyReport',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition>
+      sendDailyReportIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'sendDailyReport',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> sendDailyReportEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'sendDailyReport',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'token',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'token',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'token',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'token',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'token',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'token',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> tokenIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'token',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'type',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'type',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeEqualTo(
+    String? value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeGreaterThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeLessThan(
+    String? value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeBetween(
+    String? lower,
+    String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'type',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> typeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'userId',
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'userId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterFilterCondition> userIdBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'userId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -3265,1160 +2767,775 @@ extension SettingQueryFilter
 extension SettingQueryObject
     on QueryBuilder<Setting, Setting, QFilterCondition> {}
 
+extension SettingQueryLinks
+    on QueryBuilder<Setting, Setting, QFilterCondition> {}
+
 extension SettingQuerySortBy on QueryBuilder<Setting, Setting, QSortBy> {
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAction() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByActionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEmail(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEmailDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByHasPin(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        3,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByHasPinDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        3,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy>
-      sortByOpenReceiptFileOSaleComplete() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy>
-      sortByOpenReceiptFileOSaleCompleteDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoPrint() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoPrintDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortBySendDailyReport() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortBySendDailyReportDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDefaultLanguage(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        8,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDefaultLanguageDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        8,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'action', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9);
+      return query.addSortBy(r'attendnaceDocCreated', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy>
       sortByAttendnaceDocCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9, sort: Sort.desc);
+      return query.addSortBy(r'attendnaceDocCreated', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsAttendanceEnabled() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoPrint() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10);
+      return query.addSortBy(r'autoPrint', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsAttendanceEnabledDesc() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoPrintDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByType(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        11,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByTypeDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        11,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEnrolledInBot() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(12);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEnrolledInBotDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(12, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeviceToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        13,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeviceTokenDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        13,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessPhoneNumber(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        14,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessPhoneNumberDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        14,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'autoPrint', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoRespond() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15);
+      return query.addSortBy(r'autoRespond', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByAutoRespondDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        16,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByTokenDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        16,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'autoRespond', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17);
+      return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17, sort: Sort.desc);
+      return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByCreatedAt(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        18,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'businessPhoneNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByCreatedAtDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByBusinessPhoneNumberDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        18,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'businessPhoneNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLastTouched() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLastTouchedDesc() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDefaultLanguage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultLanguage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDefaultLanguageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultLanguage', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20);
+      return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20, sort: Sort.desc);
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByAction(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeviceToken() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        21,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'deviceToken', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> sortByActionDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByDeviceTokenDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        21,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'deviceToken', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEmail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEmailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEnrolledInBot() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'enrolledInBot', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByEnrolledInBotDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'enrolledInBot', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByHasPin() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPin', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByHasPinDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPin', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsAttendanceEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAttendanceEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByIsAttendanceEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAttendanceEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy>
+      sortByOpenReceiptFileOSaleComplete() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy>
+      sortByOpenReceiptFileOSaleCompleteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortBySendDailyReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sendDailyReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortBySendDailyReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sendDailyReport', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByToken() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByTokenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> sortByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
     });
   }
 }
 
 extension SettingQuerySortThenBy
     on QueryBuilder<Setting, Setting, QSortThenBy> {
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAction() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
+      return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByActionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEmail(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEmailDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByHasPin(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByHasPinDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserIdDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy>
-      thenByOpenReceiptFileOSaleComplete() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy>
-      thenByOpenReceiptFileOSaleCompleteDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoPrint() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoPrintDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenBySendDailyReport() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenBySendDailyReportDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDefaultLanguage(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDefaultLanguageDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(8, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'action', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAttendnaceDocCreated() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9);
+      return query.addSortBy(r'attendnaceDocCreated', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy>
       thenByAttendnaceDocCreatedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(9, sort: Sort.desc);
+      return query.addSortBy(r'attendnaceDocCreated', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsAttendanceEnabled() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoPrint() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10);
+      return query.addSortBy(r'autoPrint', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsAttendanceEnabledDesc() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoPrintDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(10, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByType(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByTypeDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(11, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEnrolledInBot() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(12);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEnrolledInBotDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(12, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeviceToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(13, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeviceTokenDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(13, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessPhoneNumber(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(14, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessPhoneNumberDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(14, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'autoPrint', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoRespond() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15);
+      return query.addSortBy(r'autoRespond', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByAutoRespondDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(15, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(16, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByTokenDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(16, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'autoRespond', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17);
+      return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(17, sort: Sort.desc);
+      return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByCreatedAt(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(18, caseSensitive: caseSensitive);
+      return query.addSortBy(r'businessPhoneNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByCreatedAtDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByBusinessPhoneNumberDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(18, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'businessPhoneNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLastTouched() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLastTouchedDesc() {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(19, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDefaultLanguage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultLanguage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDefaultLanguageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'defaultLanguage', Sort.desc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20);
+      return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
   QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(20, sort: Sort.desc);
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByAction(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeviceToken() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21, caseSensitive: caseSensitive);
+      return query.addSortBy(r'deviceToken', Sort.asc);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterSortBy> thenByActionDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByDeviceTokenDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(21, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'deviceToken', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEmail() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEmailDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'email', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEnrolledInBot() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'enrolledInBot', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByEnrolledInBotDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'enrolledInBot', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByHasPin() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPin', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByHasPinDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'hasPin', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsAttendanceEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAttendanceEnabled', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByIsAttendanceEnabledDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isAttendanceEnabled', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy>
+      thenByOpenReceiptFileOSaleComplete() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy>
+      thenByOpenReceiptFileOSaleCompleteDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'openReceiptFileOSaleComplete', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenBySendDailyReport() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sendDailyReport', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenBySendDailyReportDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'sendDailyReport', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByToken() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByTokenDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'token', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QAfterSortBy> thenByUserIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'userId', Sort.desc);
     });
   }
 }
 
 extension SettingQueryWhereDistinct
     on QueryBuilder<Setting, Setting, QDistinct> {
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByEmail(
+  QueryBuilder<Setting, Setting, QDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByHasPin(
+  QueryBuilder<Setting, Setting, QDistinct> distinctByAttendnaceDocCreated() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'attendnaceDocCreated');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByAutoPrint() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'autoPrint');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByAutoRespond() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'autoRespond');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByBusinessId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'businessId');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByBusinessPhoneNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(3, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'businessPhoneNumber',
+          caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByUserId() {
+  QueryBuilder<Setting, Setting, QDistinct> distinctByCreatedAt(
+      {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4);
+      return query.addDistinctBy(r'createdAt', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct>
+  QueryBuilder<Setting, Setting, QDistinct> distinctByDefaultLanguage(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'defaultLanguage',
+          caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByDeletedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deletedAt');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByDeviceToken(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'deviceToken', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByEmail(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'email', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByEnrolledInBot() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'enrolledInBot');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByHasPin(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'hasPin', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByIsAttendanceEnabled() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isAttendanceEnabled');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct> distinctByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastTouched');
+    });
+  }
+
+  QueryBuilder<Setting, Setting, QDistinct>
       distinctByOpenReceiptFileOSaleComplete() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(5);
+      return query.addDistinctBy(r'openReceiptFileOSaleComplete');
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByAutoPrint() {
+  QueryBuilder<Setting, Setting, QDistinct> distinctBySendDailyReport() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(6);
+      return query.addDistinctBy(r'sendDailyReport');
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctBySendDailyReport() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(7);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByDefaultLanguage(
+  QueryBuilder<Setting, Setting, QDistinct> distinctByToken(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(8, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'token', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct>
-      distinctByAttendnaceDocCreated() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(9);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct>
-      distinctByIsAttendanceEnabled() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(10);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByType(
+  QueryBuilder<Setting, Setting, QDistinct> distinctByType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(11, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'type', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByEnrolledInBot() {
+  QueryBuilder<Setting, Setting, QDistinct> distinctByUserId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(12);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByDeviceToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(13, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByBusinessPhoneNumber(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(14, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByAutoRespond() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(15);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByToken(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(16, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByBusinessId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(17);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByCreatedAt(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(18, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByLastTouched() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(19);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByDeletedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(20);
-    });
-  }
-
-  QueryBuilder<Setting, Setting, QAfterDistinct> distinctByAction(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(21, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'userId');
     });
   }
 }
 
-extension SettingQueryProperty1 on QueryBuilder<Setting, Setting, QProperty> {
-  QueryBuilder<Setting, String, QAfterProperty> idProperty() {
+extension SettingQueryProperty
+    on QueryBuilder<Setting, Setting, QQueryProperty> {
+  QueryBuilder<Setting, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Setting, String?, QAfterProperty> emailProperty() {
+  QueryBuilder<Setting, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addPropertyName(r'action');
     });
   }
 
-  QueryBuilder<Setting, String?, QAfterProperty> hasPinProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Setting, int?, QAfterProperty> userIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty>
-      openReceiptFileOSaleCompleteProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> autoPrintProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> sendDailyReportProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> defaultLanguageProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(8);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> attendnaceDocCreatedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(9);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> isAttendanceEnabledProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> typeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> enrolledInBotProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(12);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> deviceTokenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(13);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> businessPhoneNumberProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(14);
-    });
-  }
-
-  QueryBuilder<Setting, bool?, QAfterProperty> autoRespondProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(15);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> tokenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(16);
-    });
-  }
-
-  QueryBuilder<Setting, int?, QAfterProperty> businessIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(17);
-    });
-  }
-
-  QueryBuilder<Setting, String?, QAfterProperty> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(18);
-    });
-  }
-
-  QueryBuilder<Setting, DateTime?, QAfterProperty> lastTouchedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(19);
-    });
-  }
-
-  QueryBuilder<Setting, DateTime?, QAfterProperty> deletedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(20);
-    });
-  }
-
-  QueryBuilder<Setting, String, QAfterProperty> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
-    });
-  }
-}
-
-extension SettingQueryProperty2<R> on QueryBuilder<Setting, R, QAfterProperty> {
-  QueryBuilder<Setting, (R, String), QAfterProperty> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<Setting, (R, String?), QAfterProperty> emailProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<Setting, (R, String?), QAfterProperty> hasPinProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Setting, (R, int?), QAfterProperty> userIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Setting, (R, bool?), QAfterProperty>
-      openReceiptFileOSaleCompleteProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<Setting, (R, bool?), QAfterProperty> autoPrintProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<Setting, (R, bool?), QAfterProperty> sendDailyReportProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-
-  QueryBuilder<Setting, (R, String?), QAfterProperty>
-      defaultLanguageProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(8);
-    });
-  }
-
-  QueryBuilder<Setting, (R, bool?), QAfterProperty>
+  QueryBuilder<Setting, bool?, QQueryOperations>
       attendnaceDocCreatedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(9);
+      return query.addPropertyName(r'attendnaceDocCreated');
     });
   }
 
-  QueryBuilder<Setting, (R, bool?), QAfterProperty>
-      isAttendanceEnabledProperty() {
+  QueryBuilder<Setting, bool?, QQueryOperations> autoPrintProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
+      return query.addPropertyName(r'autoPrint');
     });
   }
 
-  QueryBuilder<Setting, (R, String?), QAfterProperty> typeProperty() {
+  QueryBuilder<Setting, bool?, QQueryOperations> autoRespondProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
+      return query.addPropertyName(r'autoRespond');
     });
   }
 
-  QueryBuilder<Setting, (R, bool?), QAfterProperty> enrolledInBotProperty() {
+  QueryBuilder<Setting, int?, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(12);
+      return query.addPropertyName(r'businessId');
     });
   }
 
-  QueryBuilder<Setting, (R, String?), QAfterProperty> deviceTokenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(13);
-    });
-  }
-
-  QueryBuilder<Setting, (R, String?), QAfterProperty>
+  QueryBuilder<Setting, String?, QQueryOperations>
       businessPhoneNumberProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(14);
+      return query.addPropertyName(r'businessPhoneNumber');
     });
   }
 
-  QueryBuilder<Setting, (R, bool?), QAfterProperty> autoRespondProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(15);
+      return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<Setting, (R, String?), QAfterProperty> tokenProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> defaultLanguageProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(16);
+      return query.addPropertyName(r'defaultLanguage');
     });
   }
 
-  QueryBuilder<Setting, (R, int?), QAfterProperty> businessIdProperty() {
+  QueryBuilder<Setting, DateTime?, QQueryOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(17);
+      return query.addPropertyName(r'deletedAt');
     });
   }
 
-  QueryBuilder<Setting, (R, String?), QAfterProperty> createdAtProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> deviceTokenProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(18);
+      return query.addPropertyName(r'deviceToken');
     });
   }
 
-  QueryBuilder<Setting, (R, DateTime?), QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> emailProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(19);
+      return query.addPropertyName(r'email');
     });
   }
 
-  QueryBuilder<Setting, (R, DateTime?), QAfterProperty> deletedAtProperty() {
+  QueryBuilder<Setting, bool?, QQueryOperations> enrolledInBotProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(20);
+      return query.addPropertyName(r'enrolledInBot');
     });
   }
 
-  QueryBuilder<Setting, (R, String), QAfterProperty> actionProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> hasPinProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
+      return query.addPropertyName(r'hasPin');
     });
   }
-}
 
-extension SettingQueryProperty3<R1, R2>
-    on QueryBuilder<Setting, (R1, R2), QAfterProperty> {
-  QueryBuilder<Setting, (R1, R2, String), QOperations> idProperty() {
+  QueryBuilder<Setting, bool?, QQueryOperations> isAttendanceEnabledProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addPropertyName(r'isAttendanceEnabled');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> emailProperty() {
+  QueryBuilder<Setting, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addPropertyName(r'lastTouched');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> hasPinProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, int?), QOperations> userIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations>
+  QueryBuilder<Setting, bool?, QQueryOperations>
       openReceiptFileOSaleCompleteProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addPropertyName(r'openReceiptFileOSaleComplete');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations> autoPrintProperty() {
+  QueryBuilder<Setting, bool?, QQueryOperations> sendDailyReportProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addPropertyName(r'sendDailyReport');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations>
-      sendDailyReportProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> tokenProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
+      return query.addPropertyName(r'token');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, String?), QOperations>
-      defaultLanguageProperty() {
+  QueryBuilder<Setting, String?, QQueryOperations> typeProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(8);
+      return query.addPropertyName(r'type');
     });
   }
 
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations>
-      attendnaceDocCreatedProperty() {
+  QueryBuilder<Setting, int?, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(9);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations>
-      isAttendanceEnabledProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(10);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> typeProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(11);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations> enrolledInBotProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(12);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> deviceTokenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(13);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String?), QOperations>
-      businessPhoneNumberProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(14);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, bool?), QOperations> autoRespondProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(15);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> tokenProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(16);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, int?), QOperations> businessIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(17);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String?), QOperations> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(18);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, DateTime?), QOperations>
-      lastTouchedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(19);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, DateTime?), QOperations> deletedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(20);
-    });
-  }
-
-  QueryBuilder<Setting, (R1, R2, String), QOperations> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(21);
+      return query.addPropertyName(r'userId');
     });
   }
 }
@@ -4428,7 +3545,7 @@ extension SettingQueryProperty3<R1, R2>
 // **************************************************************************
 
 Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
-      id: json['id'] as String,
+      id: json['id'] as int?,
       email: json['email'] as String?,
       hasPin: json['hasPin'] as String?,
       userId: json['userId'] as int?,

@@ -23,7 +23,7 @@ class ITenant extends IJsonSerializable {
       this.sessionActive,
       this.isLongPressed = false,
       this.pin});
-  late int id;
+  Id? id;
   String name;
   String phoneNumber;
   String? email;

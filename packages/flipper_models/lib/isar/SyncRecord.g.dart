@@ -3,1148 +3,282 @@
 part of 'SyncRecord.dart';
 
 // **************************************************************************
-// _IsarCollectionGenerator
+// IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
-// ignore_for_file: type=lint
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetSyncRecordCollection on Isar {
-  IsarCollection<String, SyncRecord> get syncRecords => this.collection();
+  IsarCollection<SyncRecord> get syncRecords => this.collection();
 }
 
-const SyncRecordSchema = IsarGeneratedSchema(
-  schema: IsarSchema(
-    name: 'SyncRecord',
-    idName: 'id',
-    embedded: false,
-    properties: [
-      IsarPropertySchema(
-        name: 'id',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'modelId',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'createdAt',
-        type: IsarType.dateTime,
-      ),
-      IsarPropertySchema(
-        name: 'branchId',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'lastTouched',
-        type: IsarType.dateTime,
-      ),
-      IsarPropertySchema(
-        name: 'deletedAt',
-        type: IsarType.dateTime,
-      ),
-      IsarPropertySchema(
-        name: 'action',
-        type: IsarType.string,
-      ),
-    ],
-    indexes: [],
-  ),
-  converter: IsarObjectConverter<String, SyncRecord>(
-    serialize: serializeSyncRecord,
-    deserialize: deserializeSyncRecord,
-    deserializeProperty: deserializeSyncRecordProp,
-  ),
-  embeddedSchemas: [],
+const SyncRecordSchema = CollectionSchema(
+  name: r'SyncRecord',
+  id: -4886533455886102454,
+  properties: {
+    r'action': PropertySchema(
+      id: 0,
+      name: r'action',
+      type: IsarType.string,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
+      name: r'createdAt',
+      type: IsarType.dateTime,
+    ),
+    r'deletedAt': PropertySchema(
+      id: 3,
+      name: r'deletedAt',
+      type: IsarType.dateTime,
+    ),
+    r'lastTouched': PropertySchema(
+      id: 4,
+      name: r'lastTouched',
+      type: IsarType.dateTime,
+    ),
+    r'modelId': PropertySchema(
+      id: 5,
+      name: r'modelId',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _syncRecordEstimateSize,
+  serialize: _syncRecordSerialize,
+  deserialize: _syncRecordDeserialize,
+  deserializeProp: _syncRecordDeserializeProp,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _syncRecordGetId,
+  getLinks: _syncRecordGetLinks,
+  attach: _syncRecordAttach,
+  version: '3.1.0+1',
 );
 
-@isarProtected
-int serializeSyncRecord(IsarWriter writer, SyncRecord object) {
-  IsarCore.writeString(writer, 1, object.id);
-  IsarCore.writeString(writer, 2, object.modelId);
-  IsarCore.writeLong(
-      writer, 3, object.createdAt.toUtc().microsecondsSinceEpoch);
-  IsarCore.writeLong(writer, 4, object.branchId);
-  IsarCore.writeLong(
-      writer,
-      5,
-      object.lastTouched?.toUtc().microsecondsSinceEpoch ??
-          -9223372036854775808);
-  IsarCore.writeLong(writer, 6,
-      object.deletedAt?.toUtc().microsecondsSinceEpoch ?? -9223372036854775808);
-  IsarCore.writeString(writer, 7, object.action);
-  return Isar.fastHash(object.id);
+int _syncRecordEstimateSize(
+  SyncRecord object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.action.length * 3;
+  bytesCount += 3 + object.modelId.length * 3;
+  return bytesCount;
 }
 
-@isarProtected
-SyncRecord deserializeSyncRecord(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
-  final String _modelId;
-  _modelId = IsarCore.readString(reader, 2) ?? '';
-  final DateTime _createdAt;
-  {
-    final value = IsarCore.readLong(reader, 3);
-    if (value == -9223372036854775808) {
-      _createdAt =
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
-    } else {
-      _createdAt =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
-  final int _branchId;
-  _branchId = IsarCore.readLong(reader, 4);
+void _syncRecordSerialize(
+  SyncRecord object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeString(offsets[0], object.action);
+  writer.writeLong(offsets[1], object.branchId);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeDateTime(offsets[3], object.deletedAt);
+  writer.writeDateTime(offsets[4], object.lastTouched);
+  writer.writeString(offsets[5], object.modelId);
+}
+
+SyncRecord _syncRecordDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = SyncRecord(
-    id: _id,
-    modelId: _modelId,
-    createdAt: _createdAt,
-    branchId: _branchId,
+    branchId: reader.readLong(offsets[1]),
+    createdAt: reader.readDateTime(offsets[2]),
+    id: id,
+    modelId: reader.readString(offsets[5]),
   );
-  {
-    final value = IsarCore.readLong(reader, 5);
-    if (value == -9223372036854775808) {
-      object.lastTouched = null;
-    } else {
-      object.lastTouched =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
-  {
-    final value = IsarCore.readLong(reader, 6);
-    if (value == -9223372036854775808) {
-      object.deletedAt = null;
-    } else {
-      object.deletedAt =
-          DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true).toLocal();
-    }
-  }
-  object.action = IsarCore.readString(reader, 7) ?? '';
+  object.action = reader.readString(offsets[0]);
+  object.deletedAt = reader.readDateTimeOrNull(offsets[3]);
+  object.lastTouched = reader.readDateTimeOrNull(offsets[4]);
   return object;
 }
 
-@isarProtected
-dynamic deserializeSyncRecordProp(IsarReader reader, int property) {
-  switch (property) {
+P _syncRecordDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readString(offset)) as P;
     case 1:
-      return IsarCore.readString(reader, 1) ?? '';
+      return (reader.readLong(offset)) as P;
     case 2:
-      return IsarCore.readString(reader, 2) ?? '';
+      return (reader.readDateTime(offset)) as P;
     case 3:
-      {
-        final value = IsarCore.readLong(reader, 3);
-        if (value == -9223372036854775808) {
-          return DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
-      return IsarCore.readLong(reader, 4);
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
-      {
-        final value = IsarCore.readLong(reader, 5);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
-    case 6:
-      {
-        final value = IsarCore.readLong(reader, 6);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: true)
-              .toLocal();
-        }
-      }
-    case 7:
-      return IsarCore.readString(reader, 7) ?? '';
+      return (reader.readString(offset)) as P;
     default:
-      throw ArgumentError('Unknown property: $property');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-sealed class _SyncRecordUpdate {
-  bool call({
-    required String id,
-    String? modelId,
-    DateTime? createdAt,
-    int? branchId,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
+Id _syncRecordGetId(SyncRecord object) {
+  return object.id ?? Isar.autoIncrement;
 }
 
-class _SyncRecordUpdateImpl implements _SyncRecordUpdate {
-  const _SyncRecordUpdateImpl(this.collection);
-
-  final IsarCollection<String, SyncRecord> collection;
-
-  @override
-  bool call({
-    required String id,
-    Object? modelId = ignore,
-    Object? createdAt = ignore,
-    Object? branchId = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return collection.updateProperties([
-          id
-        ], {
-          if (modelId != ignore) 2: modelId as String?,
-          if (createdAt != ignore) 3: createdAt as DateTime?,
-          if (branchId != ignore) 4: branchId as int?,
-          if (lastTouched != ignore) 5: lastTouched as DateTime?,
-          if (deletedAt != ignore) 6: deletedAt as DateTime?,
-          if (action != ignore) 7: action as String?,
-        }) >
-        0;
-  }
+List<IsarLinkBase<dynamic>> _syncRecordGetLinks(SyncRecord object) {
+  return [];
 }
 
-sealed class _SyncRecordUpdateAll {
-  int call({
-    required List<String> id,
-    String? modelId,
-    DateTime? createdAt,
-    int? branchId,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
+void _syncRecordAttach(IsarCollection<dynamic> col, Id id, SyncRecord object) {
+  object.id = id;
 }
 
-class _SyncRecordUpdateAllImpl implements _SyncRecordUpdateAll {
-  const _SyncRecordUpdateAllImpl(this.collection);
-
-  final IsarCollection<String, SyncRecord> collection;
-
-  @override
-  int call({
-    required List<String> id,
-    Object? modelId = ignore,
-    Object? createdAt = ignore,
-    Object? branchId = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return collection.updateProperties(id, {
-      if (modelId != ignore) 2: modelId as String?,
-      if (createdAt != ignore) 3: createdAt as DateTime?,
-      if (branchId != ignore) 4: branchId as int?,
-      if (lastTouched != ignore) 5: lastTouched as DateTime?,
-      if (deletedAt != ignore) 6: deletedAt as DateTime?,
-      if (action != ignore) 7: action as String?,
+extension SyncRecordQueryWhereSort
+    on QueryBuilder<SyncRecord, SyncRecord, QWhere> {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension SyncRecordUpdate on IsarCollection<String, SyncRecord> {
-  _SyncRecordUpdate get update => _SyncRecordUpdateImpl(this);
-
-  _SyncRecordUpdateAll get updateAll => _SyncRecordUpdateAllImpl(this);
-}
-
-sealed class _SyncRecordQueryUpdate {
-  int call({
-    String? modelId,
-    DateTime? createdAt,
-    int? branchId,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    String? action,
-  });
-}
-
-class _SyncRecordQueryUpdateImpl implements _SyncRecordQueryUpdate {
-  const _SyncRecordQueryUpdateImpl(this.query, {this.limit});
-
-  final IsarQuery<SyncRecord> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? modelId = ignore,
-    Object? createdAt = ignore,
-    Object? branchId = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    return query.updateProperties(limit: limit, {
-      if (modelId != ignore) 2: modelId as String?,
-      if (createdAt != ignore) 3: createdAt as DateTime?,
-      if (branchId != ignore) 4: branchId as int?,
-      if (lastTouched != ignore) 5: lastTouched as DateTime?,
-      if (deletedAt != ignore) 6: deletedAt as DateTime?,
-      if (action != ignore) 7: action as String?,
+extension SyncRecordQueryWhere
+    on QueryBuilder<SyncRecord, SyncRecord, QWhereClause> {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhereClause> idEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
-}
 
-extension SyncRecordQueryUpdate on IsarQuery<SyncRecord> {
-  _SyncRecordQueryUpdate get updateFirst =>
-      _SyncRecordQueryUpdateImpl(this, limit: 1);
-
-  _SyncRecordQueryUpdate get updateAll => _SyncRecordQueryUpdateImpl(this);
-}
-
-class _SyncRecordQueryBuilderUpdateImpl implements _SyncRecordQueryUpdate {
-  const _SyncRecordQueryBuilderUpdateImpl(this.query, {this.limit});
-
-  final QueryBuilder<SyncRecord, SyncRecord, QOperations> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? modelId = ignore,
-    Object? createdAt = ignore,
-    Object? branchId = ignore,
-    Object? lastTouched = ignore,
-    Object? deletedAt = ignore,
-    Object? action = ignore,
-  }) {
-    final q = query.build();
-    try {
-      return q.updateProperties(limit: limit, {
-        if (modelId != ignore) 2: modelId as String?,
-        if (createdAt != ignore) 3: createdAt as DateTime?,
-        if (branchId != ignore) 4: branchId as int?,
-        if (lastTouched != ignore) 5: lastTouched as DateTime?,
-        if (deletedAt != ignore) 6: deletedAt as DateTime?,
-        if (action != ignore) 7: action as String?,
-      });
-    } finally {
-      q.close();
-    }
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhereClause> idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
-}
 
-extension SyncRecordQueryBuilderUpdate
-    on QueryBuilder<SyncRecord, SyncRecord, QOperations> {
-  _SyncRecordQueryUpdate get updateFirst =>
-      _SyncRecordQueryBuilderUpdateImpl(this, limit: 1);
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
 
-  _SyncRecordQueryUpdate get updateAll =>
-      _SyncRecordQueryBuilderUpdateImpl(this);
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension SyncRecordQueryFilter
     on QueryBuilder<SyncRecord, SyncRecord, QFilterCondition> {
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      idGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 1,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      modelIdGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      modelIdGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      modelIdLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 2,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 2,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 2,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      modelIdIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 2,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtEqualTo(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      createdAtGreaterThan(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      createdAtGreaterThanOrEqualTo(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtLessThan(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      createdAtLessThanOrEqualTo(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtBetween(
-    DateTime lower,
-    DateTime upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 3,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      branchIdGreaterThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      branchIdGreaterThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdLessThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      branchIdLessThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdBetween(
-    int lower,
-    int upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 4,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedGreaterThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedGreaterThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedLessThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedLessThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      lastTouchedBetween(
-    DateTime? lower,
-    DateTime? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 5,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      deletedAtIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      deletedAtIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      deletedAtGreaterThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      deletedAtGreaterThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtLessThan(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      deletedAtLessThanOrEqualTo(
-    DateTime? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtBetween(
-    DateTime? lower,
-    DateTime? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 6,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> actionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> actionGreaterThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      actionGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> actionLessThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
-      actionLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> actionBetween(
     String lower,
     String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 7,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'action',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1153,13 +287,11 @@ extension SyncRecordQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1168,13 +300,11 @@ extension SyncRecordQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1182,13 +312,11 @@ extension SyncRecordQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'action',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1196,36 +324,485 @@ extension SyncRecordQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 7,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'action',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 7,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'action',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
       actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 7,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'action',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtEqualTo(
+      DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      createdAtGreaterThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtLessThan(
+    DateTime value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> createdAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      deletedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      deletedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'deletedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      deletedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'deletedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> deletedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'deletedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idEqualTo(
+      Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idGreaterThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idLessThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> idBetween(
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastTouched',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastTouched',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      lastTouchedBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastTouched',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      modelIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'modelId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'modelId',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'modelId',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition> modelIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'modelId',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterFilterCondition>
+      modelIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'modelId',
+        value: '',
+      ));
     });
   }
 }
@@ -1233,389 +810,253 @@ extension SyncRecordQueryFilter
 extension SyncRecordQueryObject
     on QueryBuilder<SyncRecord, SyncRecord, QFilterCondition> {}
 
+extension SyncRecordQueryLinks
+    on QueryBuilder<SyncRecord, SyncRecord, QFilterCondition> {}
+
 extension SyncRecordQuerySortBy
     on QueryBuilder<SyncRecord, SyncRecord, QSortBy> {
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByAction() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByActionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByModelId(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByModelIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
+      return query.addSortBy(r'action', Sort.desc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByLastTouched() {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByLastTouchedDesc() {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByAction(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByActionDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByModelId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'modelId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> sortByModelIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'modelId', Sort.desc);
     });
   }
 }
 
 extension SyncRecordQuerySortThenBy
     on QueryBuilder<SyncRecord, SyncRecord, QSortThenBy> {
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenById(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByAction() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
+      return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByActionDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByModelId(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByModelIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
-    });
-  }
-
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
+      return query.addSortBy(r'action', Sort.desc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByLastTouched() {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByLastTouchedDesc() {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
   QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByAction(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, caseSensitive: caseSensitive);
+      return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByActionDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByLastTouched() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByLastTouchedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastTouched', Sort.desc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByModelId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'modelId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<SyncRecord, SyncRecord, QAfterSortBy> thenByModelIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'modelId', Sort.desc);
     });
   }
 }
 
 extension SyncRecordQueryWhereDistinct
     on QueryBuilder<SyncRecord, SyncRecord, QDistinct> {
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByModelId(
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByCreatedAt() {
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(3);
+      return query.addDistinctBy(r'branchId');
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByBranchId() {
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4);
+      return query.addDistinctBy(r'createdAt');
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByLastTouched() {
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(5);
+      return query.addDistinctBy(r'deletedAt');
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByDeletedAt() {
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(6);
+      return query.addDistinctBy(r'lastTouched');
     });
   }
 
-  QueryBuilder<SyncRecord, SyncRecord, QAfterDistinct> distinctByAction(
+  QueryBuilder<SyncRecord, SyncRecord, QDistinct> distinctByModelId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(7, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'modelId', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension SyncRecordQueryProperty1
-    on QueryBuilder<SyncRecord, SyncRecord, QProperty> {
-  QueryBuilder<SyncRecord, String, QAfterProperty> idProperty() {
+extension SyncRecordQueryProperty
+    on QueryBuilder<SyncRecord, SyncRecord, QQueryProperty> {
+  QueryBuilder<SyncRecord, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<SyncRecord, String, QAfterProperty> modelIdProperty() {
+  QueryBuilder<SyncRecord, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addPropertyName(r'action');
     });
   }
 
-  QueryBuilder<SyncRecord, DateTime, QAfterProperty> createdAtProperty() {
+  QueryBuilder<SyncRecord, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addPropertyName(r'branchId');
     });
   }
 
-  QueryBuilder<SyncRecord, int, QAfterProperty> branchIdProperty() {
+  QueryBuilder<SyncRecord, DateTime, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<SyncRecord, DateTime?, QAfterProperty> lastTouchedProperty() {
+  QueryBuilder<SyncRecord, DateTime?, QQueryOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addPropertyName(r'deletedAt');
     });
   }
 
-  QueryBuilder<SyncRecord, DateTime?, QAfterProperty> deletedAtProperty() {
+  QueryBuilder<SyncRecord, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addPropertyName(r'lastTouched');
     });
   }
 
-  QueryBuilder<SyncRecord, String, QAfterProperty> actionProperty() {
+  QueryBuilder<SyncRecord, String, QQueryOperations> modelIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-}
-
-extension SyncRecordQueryProperty2<R>
-    on QueryBuilder<SyncRecord, R, QAfterProperty> {
-  QueryBuilder<SyncRecord, (R, String), QAfterProperty> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, String), QAfterProperty> modelIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, DateTime), QAfterProperty> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, int), QAfterProperty> branchIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, DateTime?), QAfterProperty>
-      lastTouchedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, DateTime?), QAfterProperty> deletedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R, String), QAfterProperty> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-}
-
-extension SyncRecordQueryProperty3<R1, R2>
-    on QueryBuilder<SyncRecord, (R1, R2), QAfterProperty> {
-  QueryBuilder<SyncRecord, (R1, R2, String), QOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, String), QOperations> modelIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, DateTime), QOperations>
-      createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, int), QOperations> branchIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, DateTime?), QOperations>
-      lastTouchedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, DateTime?), QOperations>
-      deletedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<SyncRecord, (R1, R2, String), QOperations> actionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
+      return query.addPropertyName(r'modelId');
     });
   }
 }
@@ -1625,7 +1066,7 @@ extension SyncRecordQueryProperty3<R1, R2>
 // **************************************************************************
 
 SyncRecord _$SyncRecordFromJson(Map<String, dynamic> json) => SyncRecord(
-      id: json['id'] as String,
+      id: json['id'] as int?,
       modelId: json['modelId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
       branchId: json['branchId'] as int,

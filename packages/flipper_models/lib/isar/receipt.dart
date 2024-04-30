@@ -7,7 +7,7 @@ part 'receipt.g.dart';
 @JsonSerializable()
 @Collection()
 class Receipt extends IJsonSerializable {
-  late String id;
+  Id? id;
   late String resultCd;
   late String resultMsg;
   late String resultDt;
@@ -22,7 +22,7 @@ class Receipt extends IJsonSerializable {
   late String receiptType;
   late int branchId;
   @Index()
-  late String transactionId;
+  late int transactionId;
 
   DateTime? lastTouched;
   String action;

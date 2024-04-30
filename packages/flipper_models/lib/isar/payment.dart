@@ -1,16 +1,8 @@
-// To parse this JSON data, do
-//
-//     final payment = paymentFromMap(jsonString);
-
-import 'dart:convert';
-
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 part 'payment.g.dart';
 
-Payment paymentFromMap(String str) => Payment.fromMap(json.decode(str));
-
-String paymentToMap(Payment data) => json.encode(data.toMap());
-
+@JsonSerializable()
 @Collection()
 class Payment {
   Payment({
@@ -26,7 +18,7 @@ class Payment {
     required this.phoneNumber,
   });
 
-  late String id;
+  Id? id;
   late int amount;
   late int interval;
   late int userId;

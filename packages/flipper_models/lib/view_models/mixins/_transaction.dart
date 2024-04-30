@@ -23,10 +23,10 @@ mixin TransactionMixin {
 
     TransactionItem? existTransactionItem = await ProxyService.isar
         .getTransactionItemByVariantId(
-            variantId: variation.id, transactionId: pendingTransaction.id);
+            variantId: variation.id!, transactionId: pendingTransaction.id);
 
     await addTransactionItems(
-      variationId: variation.id,
+      variationId: variation.id!,
       pendingTransaction: pendingTransaction,
       name: name,
       variation: variation,
@@ -44,7 +44,7 @@ mixin TransactionMixin {
   /// when added and there is existing custom item in the list
   /// because we don't know if this is not something different you are selling at this point.
   Future<void> addTransactionItems({
-    required String variationId,
+    required int variationId,
     required ITransaction pendingTransaction,
     required String name,
     required Variant variation,
@@ -62,7 +62,7 @@ mixin TransactionMixin {
       item.active = true;
       await ProxyService.isar.update(data: item);
       List<TransactionItem> items = await ProxyService.isar.transactionItems(
-          transactionId: pendingTransaction.id,
+          transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
       pendingTransaction.subTotal =
@@ -74,7 +74,7 @@ mixin TransactionMixin {
     }
     // Create a new transaction item
     TransactionItem newItem = TransactionItem(
-        id: randomString(),
+        id: randomNumber(),
         branchId: variation.branchId,
         lastTouched: DateTime.now(),
         action: AppActions.created,
@@ -83,7 +83,7 @@ mixin TransactionMixin {
         variantId: variationId,
         name: name,
         discount: 0.0,
-        transactionId: pendingTransaction.id,
+        transactionId: pendingTransaction.id!,
         createdAt: DateTime.now().toString(),
         updatedAt: DateTime.now().toString(),
         isTaxExempted: variation.isTaxExempted,
@@ -125,7 +125,7 @@ mixin TransactionMixin {
         active: true);
 
     List<TransactionItem> items = await ProxyService.isar.transactionItems(
-        transactionId: pendingTransaction.id,
+        transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: true);
 

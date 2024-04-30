@@ -116,7 +116,7 @@ class EventService with TokenLogin implements EventInterface {
           if (device == null) {
             await ProxyService.isar.create(
                 data: Device(
-                    id: randomString(),
+                    id: randomNumber(),
                     pubNubPublished: false,
                     branchId: loginData.branchId,
                     businessId: loginData.businessId,
@@ -179,7 +179,7 @@ class EventService with TokenLogin implements EventInterface {
       if (device == null) {
         await ProxyService.isar.create(
             data: Device(
-                id: randomString(),
+                id: randomNumber(),
                 pubNubPublished: true,
                 action: AppActions.created,
                 branchId: deviceEvent.branchId,

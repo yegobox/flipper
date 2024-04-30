@@ -4,7 +4,7 @@ part 'realmITransaction.realm.dart';
 
 @RealmModel()
 class _RealmITransaction {
-  late String id;
+  late int id;
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;
@@ -24,7 +24,7 @@ class _RealmITransaction {
   String? receiptType;
   String? updatedAt;
 
-  String? customerId;
+  int? customerId;
   String? customerType;
   String? note;
 

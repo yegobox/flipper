@@ -7,13 +7,13 @@ part 'realmTransactionItem.mapper.dart';
 @MappableClass()
 @RealmModel()
 class $RealmITransactionItem with $RealmITransactionItemMappable {
-  late String id;
+  late int id;
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;
   late String name;
-  late String transactionId;
-  late String variantId;
+  late int transactionId;
+  late int variantId;
   // quantity
   late double qty;
   late double price;

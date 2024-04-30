@@ -3,424 +3,501 @@
 part of 'discount.dart';
 
 // **************************************************************************
-// _IsarCollectionGenerator
+// IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
-// ignore_for_file: type=lint
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetDiscountCollection on Isar {
-  IsarCollection<String, Discount> get discounts => this.collection();
+  IsarCollection<Discount> get discounts => this.collection();
 }
 
-const DiscountSchema = IsarGeneratedSchema(
-  schema: IsarSchema(
-    name: 'Discount',
-    idName: 'id',
-    embedded: false,
-    properties: [
-      IsarPropertySchema(
-        name: 'id',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'name',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'amount',
-        type: IsarType.double,
-      ),
-      IsarPropertySchema(
-        name: 'branchId',
-        type: IsarType.long,
-      ),
-    ],
-    indexes: [
-      IsarIndexSchema(
-        name: 'branchId',
-        properties: [
-          "branchId",
-        ],
-        unique: false,
-        hash: false,
-      ),
-    ],
-  ),
-  converter: IsarObjectConverter<String, Discount>(
-    serialize: serializeDiscount,
-    deserialize: deserializeDiscount,
-    deserializeProperty: deserializeDiscountProp,
-  ),
-  embeddedSchemas: [],
+const DiscountSchema = CollectionSchema(
+  name: r'Discount',
+  id: -5682473105823550468,
+  properties: {
+    r'amount': PropertySchema(
+      id: 0,
+      name: r'amount',
+      type: IsarType.double,
+    ),
+    r'branchId': PropertySchema(
+      id: 1,
+      name: r'branchId',
+      type: IsarType.long,
+    ),
+    r'name': PropertySchema(
+      id: 2,
+      name: r'name',
+      type: IsarType.string,
+    )
+  },
+  estimateSize: _discountEstimateSize,
+  serialize: _discountSerialize,
+  deserialize: _discountDeserialize,
+  deserializeProp: _discountDeserializeProp,
+  idName: r'id',
+  indexes: {
+    r'branchId': IndexSchema(
+      id: 2037049677925728410,
+      name: r'branchId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'branchId',
+          type: IndexType.value,
+          caseSensitive: false,
+        )
+      ],
+    )
+  },
+  links: {},
+  embeddedSchemas: {},
+  getId: _discountGetId,
+  getLinks: _discountGetLinks,
+  attach: _discountAttach,
+  version: '3.1.0+1',
 );
 
-@isarProtected
-int serializeDiscount(IsarWriter writer, Discount object) {
-  IsarCore.writeString(writer, 1, object.id);
-  IsarCore.writeString(writer, 2, object.name);
-  IsarCore.writeDouble(writer, 3, object.amount ?? double.nan);
-  IsarCore.writeLong(writer, 4, object.branchId);
-  return Isar.fastHash(object.id);
+int _discountEstimateSize(
+  Discount object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.name.length * 3;
+  return bytesCount;
 }
 
-@isarProtected
-Discount deserializeDiscount(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
-  final String _name;
-  _name = IsarCore.readString(reader, 2) ?? '';
-  final double? _amount;
-  {
-    final value = IsarCore.readDouble(reader, 3);
-    if (value.isNaN) {
-      _amount = null;
-    } else {
-      _amount = value;
-    }
-  }
-  final int _branchId;
-  _branchId = IsarCore.readLong(reader, 4);
+void _discountSerialize(
+  Discount object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDouble(offsets[0], object.amount);
+  writer.writeLong(offsets[1], object.branchId);
+  writer.writeString(offsets[2], object.name);
+}
+
+Discount _discountDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Discount(
-    id: _id,
-    name: _name,
-    amount: _amount,
-    branchId: _branchId,
+    amount: reader.readDoubleOrNull(offsets[0]),
+    branchId: reader.readLong(offsets[1]),
+    id: id,
+    name: reader.readString(offsets[2]),
   );
   return object;
 }
 
-@isarProtected
-dynamic deserializeDiscountProp(IsarReader reader, int property) {
-  switch (property) {
+P _discountDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDoubleOrNull(offset)) as P;
     case 1:
-      return IsarCore.readString(reader, 1) ?? '';
+      return (reader.readLong(offset)) as P;
     case 2:
-      return IsarCore.readString(reader, 2) ?? '';
-    case 3:
-      {
-        final value = IsarCore.readDouble(reader, 3);
-        if (value.isNaN) {
-          return null;
-        } else {
-          return value;
-        }
-      }
-    case 4:
-      return IsarCore.readLong(reader, 4);
+      return (reader.readString(offset)) as P;
     default:
-      throw ArgumentError('Unknown property: $property');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-sealed class _DiscountUpdate {
-  bool call({
-    required String id,
-    String? name,
-    double? amount,
-    int? branchId,
-  });
+Id _discountGetId(Discount object) {
+  return object.id ?? Isar.autoIncrement;
 }
 
-class _DiscountUpdateImpl implements _DiscountUpdate {
-  const _DiscountUpdateImpl(this.collection);
+List<IsarLinkBase<dynamic>> _discountGetLinks(Discount object) {
+  return [];
+}
 
-  final IsarCollection<String, Discount> collection;
+void _discountAttach(IsarCollection<dynamic> col, Id id, Discount object) {
+  object.id = id;
+}
 
-  @override
-  bool call({
-    required String id,
-    Object? name = ignore,
-    Object? amount = ignore,
-    Object? branchId = ignore,
-  }) {
-    return collection.updateProperties([
-          id
-        ], {
-          if (name != ignore) 2: name as String?,
-          if (amount != ignore) 3: amount as double?,
-          if (branchId != ignore) 4: branchId as int?,
-        }) >
-        0;
+extension DiscountQueryWhereSort on QueryBuilder<Discount, Discount, QWhere> {
+  QueryBuilder<Discount, Discount, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
   }
-}
 
-sealed class _DiscountUpdateAll {
-  int call({
-    required List<String> id,
-    String? name,
-    double? amount,
-    int? branchId,
-  });
-}
-
-class _DiscountUpdateAllImpl implements _DiscountUpdateAll {
-  const _DiscountUpdateAllImpl(this.collection);
-
-  final IsarCollection<String, Discount> collection;
-
-  @override
-  int call({
-    required List<String> id,
-    Object? name = ignore,
-    Object? amount = ignore,
-    Object? branchId = ignore,
-  }) {
-    return collection.updateProperties(id, {
-      if (name != ignore) 2: name as String?,
-      if (amount != ignore) 3: amount as double?,
-      if (branchId != ignore) 4: branchId as int?,
+  QueryBuilder<Discount, Discount, QAfterWhere> anyBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        const IndexWhereClause.any(indexName: r'branchId'),
+      );
     });
   }
 }
 
-extension DiscountUpdate on IsarCollection<String, Discount> {
-  _DiscountUpdate get update => _DiscountUpdateImpl(this);
-
-  _DiscountUpdateAll get updateAll => _DiscountUpdateAllImpl(this);
-}
-
-sealed class _DiscountQueryUpdate {
-  int call({
-    String? name,
-    double? amount,
-    int? branchId,
-  });
-}
-
-class _DiscountQueryUpdateImpl implements _DiscountQueryUpdate {
-  const _DiscountQueryUpdateImpl(this.query, {this.limit});
-
-  final IsarQuery<Discount> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? name = ignore,
-    Object? amount = ignore,
-    Object? branchId = ignore,
-  }) {
-    return query.updateProperties(limit: limit, {
-      if (name != ignore) 2: name as String?,
-      if (amount != ignore) 3: amount as double?,
-      if (branchId != ignore) 4: branchId as int?,
+extension DiscountQueryWhere on QueryBuilder<Discount, Discount, QWhereClause> {
+  QueryBuilder<Discount, Discount, QAfterWhereClause> idEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
-}
 
-extension DiscountQueryUpdate on IsarQuery<Discount> {
-  _DiscountQueryUpdate get updateFirst =>
-      _DiscountQueryUpdateImpl(this, limit: 1);
-
-  _DiscountQueryUpdate get updateAll => _DiscountQueryUpdateImpl(this);
-}
-
-class _DiscountQueryBuilderUpdateImpl implements _DiscountQueryUpdate {
-  const _DiscountQueryBuilderUpdateImpl(this.query, {this.limit});
-
-  final QueryBuilder<Discount, Discount, QOperations> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? name = ignore,
-    Object? amount = ignore,
-    Object? branchId = ignore,
-  }) {
-    final q = query.build();
-    try {
-      return q.updateProperties(limit: limit, {
-        if (name != ignore) 2: name as String?,
-        if (amount != ignore) 3: amount as double?,
-        if (branchId != ignore) 4: branchId as int?,
-      });
-    } finally {
-      q.close();
-    }
+  QueryBuilder<Discount, Discount, QAfterWhereClause> idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
-}
 
-extension DiscountQueryBuilderUpdate
-    on QueryBuilder<Discount, Discount, QOperations> {
-  _DiscountQueryUpdate get updateFirst =>
-      _DiscountQueryBuilderUpdateImpl(this, limit: 1);
+  QueryBuilder<Discount, Discount, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
 
-  _DiscountQueryUpdate get updateAll => _DiscountQueryBuilderUpdateImpl(this);
+  QueryBuilder<Discount, Discount, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> branchIdEqualTo(
+      int branchId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.equalTo(
+        indexName: r'branchId',
+        value: [branchId],
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> branchIdNotEqualTo(
+      int branchId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'branchId',
+              lower: [],
+              upper: [branchId],
+              includeUpper: false,
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'branchId',
+              lower: [branchId],
+              includeLower: false,
+              upper: [],
+            ));
+      } else {
+        return query
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'branchId',
+              lower: [branchId],
+              includeLower: false,
+              upper: [],
+            ))
+            .addWhereClause(IndexWhereClause.between(
+              indexName: r'branchId',
+              lower: [],
+              upper: [branchId],
+              includeUpper: false,
+            ));
+      }
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> branchIdGreaterThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'branchId',
+        lower: [branchId],
+        includeLower: include,
+        upper: [],
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> branchIdLessThan(
+    int branchId, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'branchId',
+        lower: [],
+        upper: [branchId],
+        includeUpper: include,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterWhereClause> branchIdBetween(
+    int lowerBranchId,
+    int upperBranchId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IndexWhereClause.between(
+        indexName: r'branchId',
+        lower: [lowerBranchId],
+        includeLower: includeLower,
+        upper: [upperBranchId],
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension DiscountQueryFilter
     on QueryBuilder<Discount, Discount, QFilterCondition> {
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idEqualTo(
-    String value, {
-    bool caseSensitive = true,
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'amount',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'amount',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'amount',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'amount',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'branchId',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'branchId',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterFilterCondition> idEqualTo(Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> idGreaterThan(
-    String value, {
-    bool caseSensitive = true,
+    Id? value, {
+    bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      idGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
+    Id? value, {
+    bool include = false,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> idBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 1,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idContains(
-      String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
@@ -429,91 +506,60 @@ extension DiscountQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameGreaterThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      nameGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameLessThan(
     String value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> nameLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 2,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'name',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -522,13 +568,11 @@ extension DiscountQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -537,13 +581,11 @@ extension DiscountQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -551,13 +593,11 @@ extension DiscountQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 2,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'name',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -565,223 +605,29 @@ extension DiscountQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 2,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'name',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 2,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'name',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterFilterCondition> nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 2,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountEqualTo(
-    double? value, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 3,
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountGreaterThan(
-    double? value, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 3,
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      amountGreaterThanOrEqualTo(
-    double? value, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 3,
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountLessThan(
-    double? value, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 3,
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      amountLessThanOrEqualTo(
-    double? value, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 3,
-          value: value,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> amountBetween(
-    double? lower,
-    double? upper, {
-    double epsilon = Filter.epsilon,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 3,
-          lower: lower,
-          upper: upper,
-          epsilon: epsilon,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdGreaterThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      branchIdGreaterThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdLessThan(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition>
-      branchIdLessThanOrEqualTo(
-    int value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterFilterCondition> branchIdBetween(
-    int lower,
-    int upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 4,
-          lower: lower,
-          upper: upper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'name',
+        value: '',
+      ));
     });
   }
 }
@@ -789,228 +635,143 @@ extension DiscountQueryFilter
 extension DiscountQueryObject
     on QueryBuilder<Discount, Discount, QFilterCondition> {}
 
+extension DiscountQueryLinks
+    on QueryBuilder<Discount, Discount, QFilterCondition> {}
+
 extension DiscountQuerySortBy on QueryBuilder<Discount, Discount, QSortBy> {
-  QueryBuilder<Discount, Discount, QAfterSortBy> sortById(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> sortByName(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> sortByNameDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        2,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
   QueryBuilder<Discount, Discount, QAfterSortBy> sortByAmount() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
+      return query.addSortBy(r'amount', Sort.asc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> sortByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
+      return query.addSortBy(r'amount', Sort.desc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> sortByName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> sortByNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
     });
   }
 }
 
 extension DiscountQuerySortThenBy
     on QueryBuilder<Discount, Discount, QSortThenBy> {
-  QueryBuilder<Discount, Discount, QAfterSortBy> thenById(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> thenByName(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterSortBy> thenByNameDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<Discount, Discount, QAfterSortBy> thenByAmount() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
+      return query.addSortBy(r'amount', Sort.asc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> thenByAmountDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
+      return query.addSortBy(r'amount', Sort.desc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
+      return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
   QueryBuilder<Discount, Discount, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
+      return query.addSortBy(r'branchId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> thenByName() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QAfterSortBy> thenByNameDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'name', Sort.desc);
     });
   }
 }
 
 extension DiscountQueryWhereDistinct
     on QueryBuilder<Discount, Discount, QDistinct> {
-  QueryBuilder<Discount, Discount, QAfterDistinct> distinctByName(
+  QueryBuilder<Discount, Discount, QDistinct> distinctByAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'amount');
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QDistinct> distinctByBranchId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'branchId');
+    });
+  }
+
+  QueryBuilder<Discount, Discount, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterDistinct> distinctByAmount() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(3);
-    });
-  }
-
-  QueryBuilder<Discount, Discount, QAfterDistinct> distinctByBranchId() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4);
+      return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension DiscountQueryProperty1
-    on QueryBuilder<Discount, Discount, QProperty> {
-  QueryBuilder<Discount, String, QAfterProperty> idProperty() {
+extension DiscountQueryProperty
+    on QueryBuilder<Discount, Discount, QQueryProperty> {
+  QueryBuilder<Discount, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Discount, String, QAfterProperty> nameProperty() {
+  QueryBuilder<Discount, double?, QQueryOperations> amountProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addPropertyName(r'amount');
     });
   }
 
-  QueryBuilder<Discount, double?, QAfterProperty> amountProperty() {
+  QueryBuilder<Discount, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addPropertyName(r'branchId');
     });
   }
 
-  QueryBuilder<Discount, int, QAfterProperty> branchIdProperty() {
+  QueryBuilder<Discount, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-}
-
-extension DiscountQueryProperty2<R>
-    on QueryBuilder<Discount, R, QAfterProperty> {
-  QueryBuilder<Discount, (R, String), QAfterProperty> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<Discount, (R, String), QAfterProperty> nameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<Discount, (R, double?), QAfterProperty> amountProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Discount, (R, int), QAfterProperty> branchIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-}
-
-extension DiscountQueryProperty3<R1, R2>
-    on QueryBuilder<Discount, (R1, R2), QAfterProperty> {
-  QueryBuilder<Discount, (R1, R2, String), QOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<Discount, (R1, R2, String), QOperations> nameProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<Discount, (R1, R2, double?), QOperations> amountProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Discount, (R1, R2, int), QOperations> branchIdProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addPropertyName(r'name');
     });
   }
 }
@@ -1020,7 +781,7 @@ extension DiscountQueryProperty3<R1, R2>
 // **************************************************************************
 
 Discount _$DiscountFromJson(Map<String, dynamic> json) => Discount(
-      id: json['id'] as String,
+      id: json['id'] as int?,
       name: json['name'] as String,
       amount: (json['amount'] as num?)?.toDouble(),
       branchId: json['branchId'] as int,

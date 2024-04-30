@@ -12,12 +12,12 @@ class RealmVariant extends _RealmVariant
   static var _defaultsSet = false;
 
   RealmVariant(
-    String id,
+    int id,
     ObjectId realmId,
     String name,
     String color,
     String sku,
-    String productId,
+    int productId,
     String unit,
     String productName,
     int branchId,
@@ -125,9 +125,9 @@ class RealmVariant extends _RealmVariant
   RealmVariant._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -151,10 +151,9 @@ class RealmVariant extends _RealmVariant
   set sku(String value) => RealmObjectBase.set(this, 'sku', value);
 
   @override
-  String get productId =>
-      RealmObjectBase.get<String>(this, 'productId') as String;
+  int get productId => RealmObjectBase.get<int>(this, 'productId') as int;
   @override
-  set productId(String value) => RealmObjectBase.set(this, 'productId', value);
+  set productId(int value) => RealmObjectBase.set(this, 'productId', value);
 
   @override
   String get unit => RealmObjectBase.get<String>(this, 'unit') as String;
@@ -597,13 +596,13 @@ class RealmVariant extends _RealmVariant
     RealmObjectBase.registerFactory(RealmVariant._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, RealmVariant, 'RealmVariant', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('name', RealmPropertyType.string),
       SchemaProperty('color', RealmPropertyType.string),
       SchemaProperty('sku', RealmPropertyType.string),
-      SchemaProperty('productId', RealmPropertyType.string),
+      SchemaProperty('productId', RealmPropertyType.int),
       SchemaProperty('unit', RealmPropertyType.string),
       SchemaProperty('productName', RealmPropertyType.string),
       SchemaProperty('branchId', RealmPropertyType.int),

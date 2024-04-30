@@ -17,7 +17,7 @@ class Pin {
     required this.branchId,
     required this.businessId,
   });
-  late int id;
+  Id? id;
   late String userId;
   late String phoneNumber;
   late int pin;

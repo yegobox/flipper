@@ -25,7 +25,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
-  final List<String> existingFavs;
+  final List<int> existingFavs;
 
   ProductView.normalMode({Key? key})
       : favIndex = null,
@@ -160,7 +160,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     Variant variant,
   ) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id));
+    final stockStream = ref.watch(stockByVariantIdProvider(variant.id!));
 
     return stockStream.when(
       data: (double stock) {
@@ -317,7 +317,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     }
   }
 
-  String? productId;
+  int? productId;
   Widget buildProductRows(
     BuildContext context,
     ProductViewModel model,
@@ -339,7 +339,7 @@ class ProductViewState extends ConsumerState<ProductView> {
               /// fetch variants for this selected product
 
               setState(() {
-                productId = products[index].id;
+                productId = products[index].id!;
               });
             },
             children: [
@@ -408,7 +408,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                 },
                 body: ref
                     .watch(variantsProvider(
-                        matchedProduct == null ? "0" : matchedProduct.id))
+                        matchedProduct == null ? 0 : matchedProduct.id))
                     .when(
                       loading: () => Text("searching..."),
                       error: (error, stackTrace) => Text(error.toString()),

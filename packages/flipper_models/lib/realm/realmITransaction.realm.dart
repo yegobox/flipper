@@ -10,7 +10,7 @@ part of 'realmITransaction.dart';
 class RealmITransaction extends _RealmITransaction
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmITransaction(
-    String id,
+    int id,
     ObjectId realmId,
     String reference,
     String transactionNumber,
@@ -26,7 +26,7 @@ class RealmITransaction extends _RealmITransaction
     String? categoryId,
     String? receiptType,
     String? updatedAt,
-    String? customerId,
+    int? customerId,
     String? customerType,
     String? note,
     DateTime? lastTouched,
@@ -62,9 +62,9 @@ class RealmITransaction extends _RealmITransaction
   RealmITransaction._();
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   ObjectId get realmId =>
@@ -156,11 +156,9 @@ class RealmITransaction extends _RealmITransaction
   set updatedAt(String? value) => RealmObjectBase.set(this, 'updatedAt', value);
 
   @override
-  String? get customerId =>
-      RealmObjectBase.get<String>(this, 'customerId') as String?;
+  int? get customerId => RealmObjectBase.get<int>(this, 'customerId') as int?;
   @override
-  set customerId(String? value) =>
-      RealmObjectBase.set(this, 'customerId', value);
+  set customerId(int? value) => RealmObjectBase.set(this, 'customerId', value);
 
   @override
   String? get customerType =>
@@ -303,7 +301,7 @@ class RealmITransaction extends _RealmITransaction
     register(_toEJson, _fromEJson);
     return SchemaObject(
         ObjectType.realmObject, RealmITransaction, 'RealmITransaction', [
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('reference', RealmPropertyType.string),
@@ -319,7 +317,7 @@ class RealmITransaction extends _RealmITransaction
       SchemaProperty('createdAt', RealmPropertyType.string),
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
       SchemaProperty('updatedAt', RealmPropertyType.string, optional: true),
-      SchemaProperty('customerId', RealmPropertyType.string, optional: true),
+      SchemaProperty('customerId', RealmPropertyType.int, optional: true),
       SchemaProperty('customerType', RealmPropertyType.string, optional: true),
       SchemaProperty('note', RealmPropertyType.string, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,

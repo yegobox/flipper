@@ -244,7 +244,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     await ProxyService.isar.transactionItems(
                       doneWithTransaction: false,
                       active: true,
-                      transactionId: widget.transaction.id,
+                      transactionId: widget.transaction.id!,
                     );
                   } else {
                     showSnackBar(context,

@@ -105,21 +105,21 @@ class FirestoreSync<M extends IJsonSerializable>
     }
   }
 
-  String getItemId<T>(T item) {
+  int getItemId<T>(T item) {
     if (item is Product) {
-      return item.id;
+      return item.id!;
     } else if (item is Variant) {
-      return item.id;
+      return item.id!;
     } else if (item is Stock) {
-      return item.id;
+      return item.id!;
     } else if (item is Device) {
-      return item.id;
+      return item.id!;
     } else if (item is ITransaction) {
-      return item.id;
+      return item.id!;
     } else if (item is TransactionItem) {
-      return item.id;
+      return item.id!;
     } else if (item is Drawers) {
-      return item.id;
+      return item.id!;
     } else {
       throw ArgumentError('Unsupported type: $T');
     }

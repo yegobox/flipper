@@ -49,10 +49,11 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                   style: const TextStyle(color: Colors.black),
                 ),
                 trailing: Radio<String>(
-                  value: categories[i].id,
+                  value: categories[i].id!.toString(),
                   //This radio button is considered selected if its value matches the groupValue.
-                  groupValue:
-                      categories[i].focused == true ? categories[i].id : '0',
+                  groupValue: categories[i].focused == true
+                      ? categories[i].id.toString()
+                      : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
                     log("Category name: " + categories[i].name);
@@ -96,10 +97,11 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                   style: const TextStyle(color: Colors.black),
                 ),
                 trailing: Radio<String>(
-                  value: categories[i].id,
+                  value: categories[i].id.toString(),
                   //This radio button is considered selected if its value matches the groupValue.
-                  groupValue:
-                      categories[i].focused == true ? categories[i].id : '0',
+                  groupValue: categories[i].focused == true
+                      ? categories[i].id.toString()
+                      : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
                     log("Category name: " + categories[i].name);

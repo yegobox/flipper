@@ -17,7 +17,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 class Customers extends StatefulHookConsumerWidget {
   Customers({Key? key, this.transactionId}) : super(key: key);
-  final String? transactionId;
+  final int? transactionId;
 
   @override
   CustomersState createState() => CustomersState();
@@ -109,7 +109,7 @@ class CustomersState extends ConsumerState<Customers> {
                                 customersRef.asData?.value ?? [], searchKeyword)
                             .first;
                         await model.assignToSale(
-                          customerId: customer.id,
+                          customerId: customer.id!,
                           transactionId: widget.transactionId!,
                         );
                         showAlert(context,
@@ -141,7 +141,7 @@ class CustomersState extends ConsumerState<Customers> {
                   child: GestureDetector(
                     onTap: () async {
                       await model.assignToSale(
-                        customerId: customer.id,
+                        customerId: customer.id!,
                         transactionId: widget.transactionId!,
                       );
 
@@ -186,7 +186,7 @@ class CustomersState extends ConsumerState<Customers> {
                     children: [
                       SlidableAction(
                         onPressed: (_) async {
-                          model.deleteCustomer(customer.id, (message) {
+                          model.deleteCustomer(customer.id!, (message) {
                             toast(message);
                           });
 
@@ -210,7 +210,7 @@ class CustomersState extends ConsumerState<Customers> {
                       SlidableAction(
                         onPressed: (_) async {
                           await model.assignToSale(
-                            customerId: customer.id,
+                            customerId: customer.id!,
                             transactionId: widget.transactionId!,
                           );
 
@@ -225,7 +225,7 @@ class CustomersState extends ConsumerState<Customers> {
                       SlidableAction(
                         onPressed: (_) async {
                           await model.removeFromSale(
-                            customerId: customer.id,
+                            customerId: customer.id!,
                             transactionId: widget.transactionId!,
                           );
                           model.getTransactionById();
@@ -253,7 +253,7 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   void _showModalBottomSheet(
-      BuildContext context, String transactionId, searchedKey) {
+      BuildContext context, int transactionId, searchedKey) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(

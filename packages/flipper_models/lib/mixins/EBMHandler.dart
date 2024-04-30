@@ -91,7 +91,7 @@ class EBMHandler<OBJ> {
       required String receiptType,
       required ITransaction transaction}) async {
     Receipt? receipt =
-        await ProxyService.isar.getReceipt(transactionId: transaction.id);
+        await ProxyService.isar.getReceipt(transactionId: transaction.id!);
 
     Print print = Print();
     log(items.toString(), name: "Items");

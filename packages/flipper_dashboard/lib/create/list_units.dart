@@ -22,8 +22,8 @@ class ListUnits extends StatelessWidget {
             style: const TextStyle(color: Colors.black),
           ),
           trailing: Radio<String>(
-            value: unit.id,
-            groupValue: unit.active ? unit.id : '0',
+            value: unit.id.toString(),
+            groupValue: unit.active ? unit.id.toString() : '0',
             onChanged: (_) => _onUnitTapped(model, unit),
           ),
         ),
@@ -32,7 +32,8 @@ class ListUnits extends StatelessWidget {
   }
 
   void _onUnitTapped(ProductViewModel model, IUnit unit) {
-    model.saveFocusedUnit(newUnit: unit, id: model.product?.id, type: type);
+    model.saveFocusedUnit(
+        newUnit: unit, id: model.product?.id.toString(), type: type);
   }
 
   @override

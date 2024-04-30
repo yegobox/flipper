@@ -7,7 +7,7 @@ part 'itransaction.g.dart';
 @JsonSerializable()
 @Collection()
 class ITransaction extends IJsonSerializable {
-  late String id;
+  Id? id;
   late String reference;
   String? categoryId;
   late String transactionNumber;
@@ -25,7 +25,7 @@ class ITransaction extends IJsonSerializable {
   String? receiptType;
   String? updatedAt;
 
-  String? customerId;
+  int? customerId;
   String? customerType;
   String? note;
 
@@ -135,9 +135,9 @@ class ITransaction extends IJsonSerializable {
     int? supplierId,
     String? receiptType,
     String? updatedAt,
-    String? customerId,
+    int? customerId,
     String? note,
-    String? id,
+    int? id,
     DateTime? lastTouched,
     String? action,
     String? ticketName,

@@ -12,7 +12,7 @@ import 'divider.dart';
 
 class AddVariation extends StatefulWidget {
   const AddVariation({Key? key, required this.productId}) : super(key: key);
-  final String productId;
+  final int productId;
   static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
@@ -59,8 +59,8 @@ class _AddVariationState extends State<AddVariation> {
                         .toString()
                         .substring(0, 5);
                 if (AddVariation._formKey.currentState!.validate()) {
-                  final variantId = randomString();
-                  String id = randomString();
+                  final variantId = randomNumber();
+                  int id = randomNumber();
                   List<Variant> variations = [];
                   Variant data = Variant(
                       id: id,
@@ -69,7 +69,7 @@ class _AddVariationState extends State<AddVariation> {
                       sku: sku,
                       lastTouched: DateTime.now(),
                       action: "create",
-                      productId: model.product!.id,
+                      productId: model.product!.id!,
                       unit: model.productService.currentUnit!,
                       productName: nameController.text,
                       branchId: ProxyService.box.getBranchId()!,
@@ -80,7 +80,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..sku = sku
                     ..retailPrice = double.parse(retailController.text)
                     ..supplyPrice = double.parse(costController.text)
-                    ..productId = model.product!.id
+                    ..productId = model.product!.id!
                     ..unit = model.productService.currentUnit!
                     ..isTaxExempted = isTaxExempted
                     ..productName = model.product!.name

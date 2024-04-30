@@ -9,17 +9,17 @@ part 'stock.g.dart';
 @JsonSerializable()
 @Collection()
 class Stock extends IJsonSerializable {
-  late String id;
+  Id? id;
   @Index()
   late int branchId;
-  late String variantId;
+  late int variantId;
   double? lowStock;
   late double currentStock;
 
   bool? canTrackingStock;
   bool? showLowStockAlert;
   @Index()
-  late String productId;
+  late int productId;
   bool? active;
   // the value of stock is currentStock * retailPrice
   double? value;

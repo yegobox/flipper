@@ -11,7 +11,7 @@ class RealmIUnit extends _RealmIUnit
     with RealmEntity, RealmObjectBase, RealmObject {
   RealmIUnit(
     ObjectId realmId,
-    String id,
+    int id,
     int branchId,
     String name,
     String value,
@@ -34,9 +34,9 @@ class RealmIUnit extends _RealmIUnit
   set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
-  String get id => RealmObjectBase.get<String>(this, 'id') as String;
+  int get id => RealmObjectBase.get<int>(this, 'id') as int;
   @override
-  set id(String value) => RealmObjectBase.set(this, 'id', value);
+  set id(int value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   int get branchId => RealmObjectBase.get<int>(this, 'branchId') as int;
@@ -105,7 +105,7 @@ class RealmIUnit extends _RealmIUnit
     return SchemaObject(ObjectType.realmObject, RealmIUnit, 'RealmIUnit', [
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
-      SchemaProperty('id', RealmPropertyType.string),
+      SchemaProperty('id', RealmPropertyType.int),
       SchemaProperty('branchId', RealmPropertyType.int),
       SchemaProperty('name', RealmPropertyType.string),
       SchemaProperty('value', RealmPropertyType.string),

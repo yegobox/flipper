@@ -32,7 +32,7 @@ class Profile extends IJsonSerializable {
     this.deletedAt,
   });
 
-  late String id;
+  Id? id;
   String? name;
   String? email;
   String? phone;

@@ -160,8 +160,8 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
             }
 
             /// push related stock
-            Stock stock =
-                await ProxyService.isar.stockByVariantId(variantId: variant.id);
+            Stock? stock = await ProxyService.isar
+                .stockByVariantId(variantId: variant.id!);
             Map<String, dynamic>? stockRecord = await _push(stock as M);
             if (stockRecord != null && stockRecord.isNotEmpty) {
               Stock s = Stock.fromJson(stockRecord);
@@ -228,7 +228,7 @@ class SynchronizationService<M extends IJsonSerializable> implements Sync<M> {
     // TODO: implement onSave
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> syncCounter() {
     // TODO: implement syncCounter

@@ -15,7 +15,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   final _routerService = locator<RouterService>();
   void openDrawer() {
     Drawers drawer = Drawers(
-      id: randomString(),
+      id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
       cashierId: ProxyService.box.getBusinessId()!,

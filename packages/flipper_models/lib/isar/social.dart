@@ -9,7 +9,7 @@ part 'social.g.dart';
 @JsonSerializable()
 @Collection()
 class Social extends IJsonSerializable {
-  late String id;
+  Id? id;
 
   bool isAccountSet;
 

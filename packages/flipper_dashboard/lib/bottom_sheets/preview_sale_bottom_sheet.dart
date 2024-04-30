@@ -121,8 +121,8 @@ class PreviewSaleBottomSheetState
   Widget build(BuildContext context) {
     final transaction =
         ref.watch(pendingTransactionProvider(TransactionType.custom));
-    final transactionItemsNotifier = ref
-        .watch(transactionItemsProvider(transaction.value?.value?.id).notifier);
+    final transactionItemsNotifier = ref.watch(
+        transactionItemsProvider(transaction.value?.value?.id!).notifier);
 
     final totalPayable = transactionItemsNotifier.totalPayable;
 
@@ -142,7 +142,7 @@ class PreviewSaleBottomSheetState
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.mode == SellingMode.forSelling
-            ? AddCustomerButton(transactionId: transaction.value?.value?.id)
+            ? AddCustomerButton(transactionId: transaction.value?.value?.id!)
             : SizedBox.shrink(),
         Expanded(
           child: ListView.builder(
@@ -170,7 +170,7 @@ class PreviewSaleBottomSheetState
                 context: context,
                 delete: (item) async {
                   model.deleteTransactionItem(
-                    id: item.id,
+                    id: item.id!,
                     context: context,
                   );
                   ref.refresh(

@@ -23,13 +23,13 @@ class ForceDataEntryService {
     if (branchId == null || businessId == null) {
       return;
     }
-   
+
     List<Product> products =
         await ProxyService.isar.products(branchId: branchId);
     if (products.isEmpty) {
       await ProxyService.isar.createProduct(
           product: Product(
-              id: randomString(),
+              id: randomNumber(),
               name: "Custom Amount",
               action: 'create',
               lastTouched: DateTime.now(),
@@ -56,7 +56,7 @@ class ForceDataEntryService {
     List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);
     if (kColors.isEmpty) {
       final PColor color = PColor(
-          id: randomString(),
+          id: randomNumber(),
           colors: colors,
           branchId: branchId,
           lastTouched: DateTime.now(),

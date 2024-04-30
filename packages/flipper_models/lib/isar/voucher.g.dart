@@ -3,955 +3,307 @@
 part of 'voucher.dart';
 
 // **************************************************************************
-// _IsarCollectionGenerator
+// IsarCollectionGenerator
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, invalid_use_of_protected_member, lines_longer_than_80_chars, constant_identifier_names, avoid_js_rounded_ints, no_leading_underscores_for_local_identifiers, require_trailing_commas, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_in_if_null_operators, library_private_types_in_public_api, prefer_const_constructors
-// ignore_for_file: type=lint
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
 extension GetVoucherCollection on Isar {
-  IsarCollection<String, Voucher> get vouchers => this.collection();
+  IsarCollection<Voucher> get vouchers => this.collection();
 }
 
-const VoucherSchema = IsarGeneratedSchema(
-  schema: IsarSchema(
-    name: 'Voucher',
-    idName: 'id',
-    embedded: false,
-    properties: [
-      IsarPropertySchema(
-        name: 'id',
-        type: IsarType.string,
-      ),
-      IsarPropertySchema(
-        name: 'value',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'interval',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'used',
-        type: IsarType.bool,
-      ),
-      IsarPropertySchema(
-        name: 'createdAt',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'usedAt',
-        type: IsarType.long,
-      ),
-      IsarPropertySchema(
-        name: 'descriptor',
-        type: IsarType.string,
-      ),
-    ],
-    indexes: [],
-  ),
-  converter: IsarObjectConverter<String, Voucher>(
-    serialize: serializeVoucher,
-    deserialize: deserializeVoucher,
-    deserializeProperty: deserializeVoucherProp,
-  ),
-  embeddedSchemas: [],
+const VoucherSchema = CollectionSchema(
+  name: r'Voucher',
+  id: 6548118931563840322,
+  properties: {
+    r'createdAt': PropertySchema(
+      id: 0,
+      name: r'createdAt',
+      type: IsarType.long,
+    ),
+    r'descriptor': PropertySchema(
+      id: 1,
+      name: r'descriptor',
+      type: IsarType.string,
+    ),
+    r'interval': PropertySchema(
+      id: 2,
+      name: r'interval',
+      type: IsarType.long,
+    ),
+    r'used': PropertySchema(
+      id: 3,
+      name: r'used',
+      type: IsarType.bool,
+    ),
+    r'usedAt': PropertySchema(
+      id: 4,
+      name: r'usedAt',
+      type: IsarType.long,
+    ),
+    r'value': PropertySchema(
+      id: 5,
+      name: r'value',
+      type: IsarType.long,
+    )
+  },
+  estimateSize: _voucherEstimateSize,
+  serialize: _voucherSerialize,
+  deserialize: _voucherDeserialize,
+  deserializeProp: _voucherDeserializeProp,
+  idName: r'id',
+  indexes: {},
+  links: {},
+  embeddedSchemas: {},
+  getId: _voucherGetId,
+  getLinks: _voucherGetLinks,
+  attach: _voucherAttach,
+  version: '3.1.0+1',
 );
 
-@isarProtected
-int serializeVoucher(IsarWriter writer, Voucher object) {
-  IsarCore.writeString(writer, 1, object.id);
-  IsarCore.writeLong(writer, 2, object.value ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 3, object.interval ?? -9223372036854775808);
-  {
-    final value = object.used;
-    if (value == null) {
-      IsarCore.writeNull(writer, 4);
-    } else {
-      IsarCore.writeBool(writer, 4, value);
-    }
-  }
-  IsarCore.writeLong(writer, 5, object.createdAt ?? -9223372036854775808);
-  IsarCore.writeLong(writer, 6, object.usedAt ?? -9223372036854775808);
+int _voucherEstimateSize(
+  Voucher object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
   {
     final value = object.descriptor;
-    if (value == null) {
-      IsarCore.writeNull(writer, 7);
-    } else {
-      IsarCore.writeString(writer, 7, value);
+    if (value != null) {
+      bytesCount += 3 + value.length * 3;
     }
   }
-  return Isar.fastHash(object.id);
+  return bytesCount;
 }
 
-@isarProtected
-Voucher deserializeVoucher(IsarReader reader) {
-  final String _id;
-  _id = IsarCore.readString(reader, 1) ?? '';
-  final int? _value;
-  {
-    final value = IsarCore.readLong(reader, 2);
-    if (value == -9223372036854775808) {
-      _value = null;
-    } else {
-      _value = value;
-    }
-  }
-  final int? _interval;
-  {
-    final value = IsarCore.readLong(reader, 3);
-    if (value == -9223372036854775808) {
-      _interval = null;
-    } else {
-      _interval = value;
-    }
-  }
-  final bool? _used;
-  {
-    if (IsarCore.readNull(reader, 4)) {
-      _used = null;
-    } else {
-      _used = IsarCore.readBool(reader, 4);
-    }
-  }
-  final int? _createdAt;
-  {
-    final value = IsarCore.readLong(reader, 5);
-    if (value == -9223372036854775808) {
-      _createdAt = null;
-    } else {
-      _createdAt = value;
-    }
-  }
-  final int? _usedAt;
-  {
-    final value = IsarCore.readLong(reader, 6);
-    if (value == -9223372036854775808) {
-      _usedAt = null;
-    } else {
-      _usedAt = value;
-    }
-  }
-  final String? _descriptor;
-  _descriptor = IsarCore.readString(reader, 7);
+void _voucherSerialize(
+  Voucher object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeLong(offsets[0], object.createdAt);
+  writer.writeString(offsets[1], object.descriptor);
+  writer.writeLong(offsets[2], object.interval);
+  writer.writeBool(offsets[3], object.used);
+  writer.writeLong(offsets[4], object.usedAt);
+  writer.writeLong(offsets[5], object.value);
+}
+
+Voucher _voucherDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
   final object = Voucher(
-    id: _id,
-    value: _value,
-    interval: _interval,
-    used: _used,
-    createdAt: _createdAt,
-    usedAt: _usedAt,
-    descriptor: _descriptor,
+    createdAt: reader.readLongOrNull(offsets[0]),
+    descriptor: reader.readStringOrNull(offsets[1]),
+    id: id,
+    interval: reader.readLongOrNull(offsets[2]),
+    used: reader.readBoolOrNull(offsets[3]),
+    usedAt: reader.readLongOrNull(offsets[4]),
+    value: reader.readLongOrNull(offsets[5]),
   );
   return object;
 }
 
-@isarProtected
-dynamic deserializeVoucherProp(IsarReader reader, int property) {
-  switch (property) {
+P _voucherDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readLongOrNull(offset)) as P;
     case 1:
-      return IsarCore.readString(reader, 1) ?? '';
+      return (reader.readStringOrNull(offset)) as P;
     case 2:
-      {
-        final value = IsarCore.readLong(reader, 2);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return (reader.readLongOrNull(offset)) as P;
     case 3:
-      {
-        final value = IsarCore.readLong(reader, 3);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
+      return (reader.readBoolOrNull(offset)) as P;
     case 4:
-      {
-        if (IsarCore.readNull(reader, 4)) {
-          return null;
-        } else {
-          return IsarCore.readBool(reader, 4);
-        }
-      }
+      return (reader.readLongOrNull(offset)) as P;
     case 5:
-      {
-        final value = IsarCore.readLong(reader, 5);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
-    case 6:
-      {
-        final value = IsarCore.readLong(reader, 6);
-        if (value == -9223372036854775808) {
-          return null;
-        } else {
-          return value;
-        }
-      }
-    case 7:
-      return IsarCore.readString(reader, 7);
+      return (reader.readLongOrNull(offset)) as P;
     default:
-      throw ArgumentError('Unknown property: $property');
+      throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-sealed class _VoucherUpdate {
-  bool call({
-    required String id,
-    int? value,
-    int? interval,
-    bool? used,
-    int? createdAt,
-    int? usedAt,
-    String? descriptor,
-  });
+Id _voucherGetId(Voucher object) {
+  return object.id ?? Isar.autoIncrement;
 }
 
-class _VoucherUpdateImpl implements _VoucherUpdate {
-  const _VoucherUpdateImpl(this.collection);
-
-  final IsarCollection<String, Voucher> collection;
-
-  @override
-  bool call({
-    required String id,
-    Object? value = ignore,
-    Object? interval = ignore,
-    Object? used = ignore,
-    Object? createdAt = ignore,
-    Object? usedAt = ignore,
-    Object? descriptor = ignore,
-  }) {
-    return collection.updateProperties([
-          id
-        ], {
-          if (value != ignore) 2: value as int?,
-          if (interval != ignore) 3: interval as int?,
-          if (used != ignore) 4: used as bool?,
-          if (createdAt != ignore) 5: createdAt as int?,
-          if (usedAt != ignore) 6: usedAt as int?,
-          if (descriptor != ignore) 7: descriptor as String?,
-        }) >
-        0;
-  }
+List<IsarLinkBase<dynamic>> _voucherGetLinks(Voucher object) {
+  return [];
 }
 
-sealed class _VoucherUpdateAll {
-  int call({
-    required List<String> id,
-    int? value,
-    int? interval,
-    bool? used,
-    int? createdAt,
-    int? usedAt,
-    String? descriptor,
-  });
+void _voucherAttach(IsarCollection<dynamic> col, Id id, Voucher object) {
+  object.id = id;
 }
 
-class _VoucherUpdateAllImpl implements _VoucherUpdateAll {
-  const _VoucherUpdateAllImpl(this.collection);
-
-  final IsarCollection<String, Voucher> collection;
-
-  @override
-  int call({
-    required List<String> id,
-    Object? value = ignore,
-    Object? interval = ignore,
-    Object? used = ignore,
-    Object? createdAt = ignore,
-    Object? usedAt = ignore,
-    Object? descriptor = ignore,
-  }) {
-    return collection.updateProperties(id, {
-      if (value != ignore) 2: value as int?,
-      if (interval != ignore) 3: interval as int?,
-      if (used != ignore) 4: used as bool?,
-      if (createdAt != ignore) 5: createdAt as int?,
-      if (usedAt != ignore) 6: usedAt as int?,
-      if (descriptor != ignore) 7: descriptor as String?,
+extension VoucherQueryWhereSort on QueryBuilder<Voucher, Voucher, QWhere> {
+  QueryBuilder<Voucher, Voucher, QAfterWhere> anyId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension VoucherUpdate on IsarCollection<String, Voucher> {
-  _VoucherUpdate get update => _VoucherUpdateImpl(this);
-
-  _VoucherUpdateAll get updateAll => _VoucherUpdateAllImpl(this);
-}
-
-sealed class _VoucherQueryUpdate {
-  int call({
-    int? value,
-    int? interval,
-    bool? used,
-    int? createdAt,
-    int? usedAt,
-    String? descriptor,
-  });
-}
-
-class _VoucherQueryUpdateImpl implements _VoucherQueryUpdate {
-  const _VoucherQueryUpdateImpl(this.query, {this.limit});
-
-  final IsarQuery<Voucher> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? value = ignore,
-    Object? interval = ignore,
-    Object? used = ignore,
-    Object? createdAt = ignore,
-    Object? usedAt = ignore,
-    Object? descriptor = ignore,
-  }) {
-    return query.updateProperties(limit: limit, {
-      if (value != ignore) 2: value as int?,
-      if (interval != ignore) 3: interval as int?,
-      if (used != ignore) 4: used as bool?,
-      if (createdAt != ignore) 5: createdAt as int?,
-      if (usedAt != ignore) 6: usedAt as int?,
-      if (descriptor != ignore) 7: descriptor as String?,
+extension VoucherQueryWhere on QueryBuilder<Voucher, Voucher, QWhereClause> {
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: id,
+        upper: id,
+      ));
     });
   }
-}
 
-extension VoucherQueryUpdate on IsarQuery<Voucher> {
-  _VoucherQueryUpdate get updateFirst =>
-      _VoucherQueryUpdateImpl(this, limit: 1);
-
-  _VoucherQueryUpdate get updateAll => _VoucherQueryUpdateImpl(this);
-}
-
-class _VoucherQueryBuilderUpdateImpl implements _VoucherQueryUpdate {
-  const _VoucherQueryBuilderUpdateImpl(this.query, {this.limit});
-
-  final QueryBuilder<Voucher, Voucher, QOperations> query;
-  final int? limit;
-
-  @override
-  int call({
-    Object? value = ignore,
-    Object? interval = ignore,
-    Object? used = ignore,
-    Object? createdAt = ignore,
-    Object? usedAt = ignore,
-    Object? descriptor = ignore,
-  }) {
-    final q = query.build();
-    try {
-      return q.updateProperties(limit: limit, {
-        if (value != ignore) 2: value as int?,
-        if (interval != ignore) 3: interval as int?,
-        if (used != ignore) 4: used as bool?,
-        if (createdAt != ignore) 5: createdAt as int?,
-        if (usedAt != ignore) 6: usedAt as int?,
-        if (descriptor != ignore) 7: descriptor as String?,
-      });
-    } finally {
-      q.close();
-    }
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idNotEqualTo(Id id) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: id, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: id, includeUpper: false),
+            );
+      }
+    });
   }
-}
 
-extension VoucherQueryBuilderUpdate
-    on QueryBuilder<Voucher, Voucher, QOperations> {
-  _VoucherQueryUpdate get updateFirst =>
-      _VoucherQueryBuilderUpdateImpl(this, limit: 1);
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idGreaterThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: id, includeLower: include),
+      );
+    });
+  }
 
-  _VoucherQueryUpdate get updateAll => _VoucherQueryBuilderUpdateImpl(this);
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idLessThan(Id id,
+      {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: id, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterWhereClause> idBetween(
+    Id lowerId,
+    Id upperId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(IdWhereClause.between(
+        lower: lowerId,
+        includeLower: includeLower,
+        upper: upperId,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
 }
 
 extension VoucherQueryFilter
     on QueryBuilder<Voucher, Voucher, QFilterCondition> {
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idGreaterThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idGreaterThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idLessThan(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idLessThanOrEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idBetween(
-    String lower,
-    String upper, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 1,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idContains(String value,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 1,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 1,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 1,
-          value: '',
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 2));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 2,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueGreaterThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 2,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      valueGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 2,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueLessThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 2,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 2,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueBetween(
-    int? lower,
-    int? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 2,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 3));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalGreaterThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      intervalGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalLessThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      intervalLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 3,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalBetween(
-    int? lower,
-    int? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 3,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 4));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 4,
-          value: value,
-        ),
-      );
-    });
-  }
-
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'createdAt',
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 5));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'createdAt',
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtEqualTo(
-    int? value,
-  ) {
+      int? value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtGreaterThan(
-    int? value,
-  ) {
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      createdAtGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtLessThan(
-    int? value,
-  ) {
+    int? value, {
+    bool include = false,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 5,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      createdAtLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 5,
-          value: value,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'createdAt',
+        value: value,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> createdAtBetween(
     int? lower,
-    int? upper,
-  ) {
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 5,
-          lower: lower,
-          upper: upper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 6));
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtGreaterThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      usedAtGreaterThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtLessThan(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtLessThanOrEqualTo(
-    int? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 6,
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtBetween(
-    int? lower,
-    int? upper,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 6,
-          lower: lower,
-          upper: upper,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'createdAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'descriptor',
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsNotNull() {
-    return QueryBuilder.apply(not(), (query) {
-      return query.addFilterCondition(const IsNullCondition(property: 7));
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'descriptor',
+      ));
     });
   }
 
@@ -960,92 +312,60 @@ extension VoucherQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorGreaterThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      descriptorGreaterThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        GreaterOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorLessThan(
     String? value, {
+    bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterFilterCondition>
-      descriptorLessThanOrEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        LessOrEqualCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorBetween(
     String? lower,
     String? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        BetweenCondition(
-          property: 7,
-          lower: lower,
-          upper: upper,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'descriptor',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1054,13 +374,11 @@ extension VoucherQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        StartsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1069,13 +387,11 @@ extension VoucherQueryFilter
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        EndsWithCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1083,13 +399,11 @@ extension VoucherQueryFilter
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        ContainsCondition(
-          property: 7,
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'descriptor',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
@@ -1097,35 +411,330 @@ extension VoucherQueryFilter
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        MatchesCondition(
-          property: 7,
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'descriptor',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const EqualCondition(
-          property: 7,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'descriptor',
+        value: '',
+      ));
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterFilterCondition> descriptorIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const GreaterCondition(
-          property: 7,
-          value: '',
-        ),
-      );
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'descriptor',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'id',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idEqualTo(Id? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idGreaterThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idLessThan(
+    Id? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'id',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> idBetween(
+    Id? lower,
+    Id? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'id',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'interval',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'interval',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'interval',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> intervalBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'interval',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'used',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedEqualTo(
+      bool? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'used',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'usedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'usedAt',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'usedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'usedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'usedAt',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> usedAtBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'usedAt',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'value',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'value',
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueEqualTo(
+      int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'value',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueGreaterThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'value',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueLessThan(
+    int? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'value',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterFilterCondition> valueBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'value',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
     });
   }
 }
@@ -1133,370 +742,275 @@ extension VoucherQueryFilter
 extension VoucherQueryObject
     on QueryBuilder<Voucher, Voucher, QFilterCondition> {}
 
+extension VoucherQueryLinks
+    on QueryBuilder<Voucher, Voucher, QFilterCondition> {}
+
 extension VoucherQuerySortBy on QueryBuilder<Voucher, Voucher, QSortBy> {
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortById(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        1,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValue() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValueDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByInterval() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByIntervalDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
-    });
-  }
-
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'descriptor', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'descriptor', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(r'usedAt', Sort.asc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByUsedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(r'usedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptor(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValue() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'value', Sort.asc);
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByDescriptorDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> sortByValueDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(
-        7,
-        sort: Sort.desc,
-        caseSensitive: caseSensitive,
-      );
+      return query.addSortBy(r'value', Sort.desc);
     });
   }
 }
 
 extension VoucherQuerySortThenBy
     on QueryBuilder<Voucher, Voucher, QSortThenBy> {
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenById(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIdDesc(
-      {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(1, sort: Sort.desc, caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValue() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValueDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(2, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByInterval() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIntervalDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(3, sort: Sort.desc);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(4, sort: Sort.desc);
-    });
-  }
-
   QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5);
+      return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(5, sort: Sort.desc);
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptor() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'descriptor', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptorDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'descriptor', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByIntervalDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'interval', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'used', Sort.desc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6);
+      return query.addSortBy(r'usedAt', Sort.asc);
     });
   }
 
   QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByUsedAtDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(6, sort: Sort.desc);
+      return query.addSortBy(r'usedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptor(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValue() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, caseSensitive: caseSensitive);
+      return query.addSortBy(r'value', Sort.asc);
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByDescriptorDesc(
-      {bool caseSensitive = true}) {
+  QueryBuilder<Voucher, Voucher, QAfterSortBy> thenByValueDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(7, sort: Sort.desc, caseSensitive: caseSensitive);
+      return query.addSortBy(r'value', Sort.desc);
     });
   }
 }
 
 extension VoucherQueryWhereDistinct
     on QueryBuilder<Voucher, Voucher, QDistinct> {
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByValue() {
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(2);
+      return query.addDistinctBy(r'createdAt');
     });
   }
 
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByInterval() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(3);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByUsed() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(4);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(5);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByUsedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(6);
-    });
-  }
-
-  QueryBuilder<Voucher, Voucher, QAfterDistinct> distinctByDescriptor(
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByDescriptor(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(7, caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'descriptor', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByInterval() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'interval');
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByUsed() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'used');
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByUsedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'usedAt');
+    });
+  }
+
+  QueryBuilder<Voucher, Voucher, QDistinct> distinctByValue() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'value');
     });
   }
 }
 
-extension VoucherQueryProperty1 on QueryBuilder<Voucher, Voucher, QProperty> {
-  QueryBuilder<Voucher, String, QAfterProperty> idProperty() {
+extension VoucherQueryProperty
+    on QueryBuilder<Voucher, Voucher, QQueryProperty> {
+  QueryBuilder<Voucher, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
+      return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Voucher, int?, QAfterProperty> valueProperty() {
+  QueryBuilder<Voucher, int?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
+      return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<Voucher, int?, QAfterProperty> intervalProperty() {
+  QueryBuilder<Voucher, String?, QQueryOperations> descriptorProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
+      return query.addPropertyName(r'descriptor');
     });
   }
 
-  QueryBuilder<Voucher, bool?, QAfterProperty> usedProperty() {
+  QueryBuilder<Voucher, int?, QQueryOperations> intervalProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
+      return query.addPropertyName(r'interval');
     });
   }
 
-  QueryBuilder<Voucher, int?, QAfterProperty> createdAtProperty() {
+  QueryBuilder<Voucher, bool?, QQueryOperations> usedProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
+      return query.addPropertyName(r'used');
     });
   }
 
-  QueryBuilder<Voucher, int?, QAfterProperty> usedAtProperty() {
+  QueryBuilder<Voucher, int?, QQueryOperations> usedAtProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
+      return query.addPropertyName(r'usedAt');
     });
   }
 
-  QueryBuilder<Voucher, String?, QAfterProperty> descriptorProperty() {
+  QueryBuilder<Voucher, int?, QQueryOperations> valueProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
+      return query.addPropertyName(r'value');
     });
   }
 }
 
-extension VoucherQueryProperty2<R> on QueryBuilder<Voucher, R, QAfterProperty> {
-  QueryBuilder<Voucher, (R, String), QAfterProperty> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
-  QueryBuilder<Voucher, (R, int?), QAfterProperty> valueProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
+Voucher _$VoucherFromJson(Map<String, dynamic> json) => Voucher(
+      id: json['id'] as int?,
+      value: json['value'] as int?,
+      interval: json['interval'] as int?,
+      used: json['used'] as bool?,
+      createdAt: json['createdAt'] as int?,
+      usedAt: json['usedAt'] as int?,
+      descriptor: json['descriptor'] as String?,
+    );
 
-  QueryBuilder<Voucher, (R, int?), QAfterProperty> intervalProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Voucher, (R, bool?), QAfterProperty> usedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Voucher, (R, int?), QAfterProperty> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<Voucher, (R, int?), QAfterProperty> usedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<Voucher, (R, String?), QAfterProperty> descriptorProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-}
-
-extension VoucherQueryProperty3<R1, R2>
-    on QueryBuilder<Voucher, (R1, R2), QAfterProperty> {
-  QueryBuilder<Voucher, (R1, R2, String), QOperations> idProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(1);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, int?), QOperations> valueProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(2);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, int?), QOperations> intervalProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(3);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, bool?), QOperations> usedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(4);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, int?), QOperations> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(5);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, int?), QOperations> usedAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(6);
-    });
-  }
-
-  QueryBuilder<Voucher, (R1, R2, String?), QOperations> descriptorProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addProperty(7);
-    });
-  }
-}
+Map<String, dynamic> _$VoucherToJson(Voucher instance) => <String, dynamic>{
+      'id': instance.id,
+      'value': instance.value,
+      'interval': instance.interval,
+      'used': instance.used,
+      'createdAt': instance.createdAt,
+      'usedAt': instance.usedAt,
+      'descriptor': instance.descriptor,
+    };

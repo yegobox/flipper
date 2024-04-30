@@ -79,15 +79,15 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
 }
 
 final stockByVariantIdProvider =
-    StreamProvider.autoDispose.family<double, String>((ref, variantId) {
+    StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   return ProxyService.isar.getStockStream(variantId: variantId);
 });
 
 final variantsProvider = FutureProvider.autoDispose
-    .family<List<Variant>, String?>((ref, productId) async {
+    .family<List<Variant>, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
   final variants = await ProxyService.isar.variants(
-      branchId: ProxyService.box.getBranchId()!, productId: productId ?? "");
+      branchId: ProxyService.box.getBranchId()!, productId: productId ?? 0);
 
   return variants;
 });
@@ -103,23 +103,23 @@ final pendingTransactionProvider = FutureProvider.autoDispose
   }
 });
 
-final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
-    TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, String?>(
+final transactionItemsProvider = StateNotifierProvider.autoDispose
+    .family<TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, int?>(
   (ref, currentTransaction) {
     return TransactionItemsNotifier(
-        currentTransaction: currentTransaction ?? "0");
+        currentTransaction: currentTransaction ?? 0);
   },
 );
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  TransactionItemsNotifier({required String currentTransaction})
+  TransactionItemsNotifier({required int currentTransaction})
       : super(AsyncLoading()) {
     loadItems(currentTransaction: currentTransaction);
   }
 
   Future<List<TransactionItem>> loadItems(
-      {required String currentTransaction}) async {
+      {required int currentTransaction}) async {
     try {
       state = AsyncLoading();
 
@@ -322,7 +322,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
     state = AsyncData(updatedProducts);
   }
 
-  void deleteProduct({required String productId}) {
+  void deleteProduct({required int productId}) {
     state.maybeWhen(
       data: (currentData) {
         final updatedProducts =
@@ -433,7 +433,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 }
 
 final variantsFutureProvider = FutureProvider.autoDispose
-    .family<AsyncValue<List<Variant>>, String>((ref, productId) async {
+    .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
   final data =
       await ProxyService.isar.getVariantByProductId(productId: productId);
   return AsyncData(data);

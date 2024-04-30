@@ -1013,7 +1013,7 @@ class PhoneInputScreenArgs {
 class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
   AddProductViewRoute({
     _i4.Key? key,
-    String? productId,
+    int? productId,
   }) : super(
           AddProductViewRoute.name,
           path: '/add-product-view',
@@ -1034,7 +1034,7 @@ class AddProductViewArgs {
 
   final _i4.Key? key;
 
-  final String? productId;
+  final int? productId;
 
   @override
   String toString() {
@@ -1048,7 +1048,7 @@ class AddToFavoritesRoute extends _i3.PageRouteInfo<AddToFavoritesArgs> {
   AddToFavoritesRoute({
     _i4.Key? key,
     required int favoriteIndex,
-    required List<String> existingFavs,
+    required List<int> existingFavs,
   }) : super(
           AddToFavoritesRoute.name,
           path: '/add-to-favorites',
@@ -1073,7 +1073,7 @@ class AddToFavoritesArgs {
 
   final int favoriteIndex;
 
-  final List<String> existingFavs;
+  final List<int> existingFavs;
 
   @override
   String toString() {
@@ -1183,7 +1183,7 @@ class ColorTileArgs {
 class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
     _i4.Key? key,
-    required String variantId,
+    required int variantId,
     String? existingStock,
   }) : super(
           ReceiveStockRoute.name,
@@ -1207,7 +1207,7 @@ class ReceiveStockArgs {
 
   final _i4.Key? key;
 
-  final String variantId;
+  final int variantId;
 
   final String? existingStock;
 
@@ -1222,7 +1222,7 @@ class ReceiveStockArgs {
 class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
   AddVariationRoute({
     _i4.Key? key,
-    required String productId,
+    required int productId,
   }) : super(
           AddVariationRoute.name,
           path: '/add-variation',
@@ -1243,7 +1243,7 @@ class AddVariationArgs {
 
   final _i4.Key? key;
 
-  final String productId;
+  final int productId;
 
   @override
   String toString() {
@@ -1574,7 +1574,7 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
     _i4.Key? key,
-    String? transactionId,
+    int? transactionId,
   }) : super(
           CustomersRoute.name,
           path: '/Customers',
@@ -1595,7 +1595,7 @@ class CustomersArgs {
 
   final _i4.Key? key;
 
-  final String? transactionId;
+  final int? transactionId;
 
   @override
   String toString() {
@@ -2215,7 +2215,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToAddProductView({
     _i4.Key? key,
-    String? productId,
+    int? productId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2230,7 +2230,7 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToAddToFavorites({
     _i4.Key? key,
     required int favoriteIndex,
-    required List<String> existingFavs,
+    required List<int> existingFavs,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2287,7 +2287,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToReceiveStock({
     _i4.Key? key,
-    required String variantId,
+    required int variantId,
     String? existingStock,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
@@ -2303,7 +2303,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToAddVariation({
     _i4.Key? key,
-    required String productId,
+    required int productId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2463,7 +2463,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToCustomers({
     _i4.Key? key,
-    String? transactionId,
+    int? transactionId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2832,7 +2832,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithAddProductView({
     _i4.Key? key,
-    String? productId,
+    int? productId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -2847,7 +2847,7 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> replaceWithAddToFavorites({
     _i4.Key? key,
     required int favoriteIndex,
-    required List<String> existingFavs,
+    required List<int> existingFavs,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -2904,7 +2904,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithReceiveStock({
     _i4.Key? key,
-    required String variantId,
+    required int variantId,
     String? existingStock,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
@@ -2920,7 +2920,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithAddVariation({
     _i4.Key? key,
-    required String productId,
+    required int productId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -3080,7 +3080,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithCustomers({
     _i4.Key? key,
-    String? transactionId,
+    int? transactionId,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(

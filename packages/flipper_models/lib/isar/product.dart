@@ -10,7 +10,7 @@ part 'product.g.dart';
 @JsonSerializable()
 @Collection()
 class Product extends IJsonSerializable {
-  late String id;
+  Id? id;
   @Index()
   late String name;
   String? description;
@@ -20,7 +20,7 @@ class Product extends IJsonSerializable {
   @Index()
   late int branchId;
   String? supplierId;
-  String? categoryId;
+  int? categoryId;
   String? createdAt;
   String? unit;
   String? imageUrl;

@@ -19,7 +19,7 @@ class Token extends IJsonSerializable {
     this.validUntil,
     this.deletedAt,
   });
-  late String id;
+  Id? id;
   String type;
   String? token;
   DateTime? validFrom;

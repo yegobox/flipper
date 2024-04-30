@@ -13,7 +13,7 @@ class Permission {
     required this.name,
     required this.userId,
   });
-  late int id;
+  Id? id;
   late String name;
   late int userId;
 

@@ -62,9 +62,9 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         name: variantName,
         retailPrice: retailPrice,
         supplyPrice: supplyPrice,
-        id: randomString(),
+        id: randomNumber(),
         sku: variantName,
-        productId: product.id,
+        productId: product.id!,
         color: currentColor,
         unit: 'Per Item',
         productName: productName ?? product.name,
@@ -79,7 +79,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     notifyListeners();
   }
 
-  Future<Product> createProduct({required String name}) async {
+  Future<Product?> createProduct({required String name}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.isar.createProduct(
@@ -89,7 +89,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         businessId: businessId,
         branchId: branchId,
         action: AppActions.created,
-        id: randomString(),
+        id: randomNumber(),
         lastTouched: DateTime.now(),
       ),
       skipRegularVariant: true,
@@ -101,14 +101,14 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     notifyListeners();
   }
 
-  void removeVariant({required String id}) {
+  void removeVariant({required int id}) {
     // Find the index of the variant with the specified id
     int index = scannedVariants.indexWhere((variant) => variant.id == id);
 
     if (index != -1) {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
-      ProxyService.isar.delete(id: matchedVariant.id, endPoint: 'variant');
+      ProxyService.isar.delete(id: matchedVariant.id!, endPoint: 'variant');
       scannedVariants.removeAt(index);
       notifyListeners();
     }
@@ -128,7 +128,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     notifyListeners();
   }
 
-  void updateVariantQuantity(String id, double newQuantity) {
+  void updateVariantQuantity(int id, double newQuantity) {
     try {
       // Find the variant with the specified id
       Variant variant =
@@ -146,14 +146,14 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.isar.delete(id: variant.id, endPoint: 'variant');
+      await ProxyService.isar.delete(id: variant.id!, endPoint: 'variant');
     }
 
     scannedVariants.clear();
     notifyListeners();
   }
 
-  void updateVariantUnit(String id, String? selectedUnit) {
+  void updateVariantUnit(int id, String? selectedUnit) {
     try {
       // Find the variant with the specified id
       Variant variant =

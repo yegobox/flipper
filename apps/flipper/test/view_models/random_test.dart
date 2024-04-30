@@ -3,9 +3,9 @@ import 'package:test/test.dart';
 
 void main() {
   test('generateRandomString returns a string of length 15', () {
-    final result = randomString();
+    final result = randomNumber();
     expect(result, isA<String>());
-    expect(result.length, equals(15));
+    expect(result.toString().length, equals(15));
   });
 
   test('generateRandomInts returns a ints of length 15', () {
@@ -21,8 +21,8 @@ void main() {
   });
 
   test('generateRandomString generates different strings each time', () {
-    final result1 = randomString();
-    final result2 = randomString();
+    final result1 = randomNumber();
+    final result2 = randomNumber();
     expect(result1, isNot(equals(result2)));
   });
 }

@@ -7,7 +7,7 @@ class _RealmIUnit {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String id;
+  late int id;
   late int branchId;
   late String name;
   late String value;

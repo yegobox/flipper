@@ -4,7 +4,7 @@ part 'realmCustomer.realm.dart';
 
 @RealmModel()
 class _RealmCustomer {
-  late String id;
+  late int id;
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;

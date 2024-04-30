@@ -7,7 +7,7 @@ part 'category.g.dart';
 @JsonSerializable()
 @Collection()
 class Category extends IJsonSerializable {
-  late String id;
+  Id? id;
   late bool active;
   late bool focused;
   late String name;

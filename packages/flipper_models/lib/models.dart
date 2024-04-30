@@ -1,6 +1,6 @@
 import 'package:flipper_models/isar_models.dart';
 
-const models = [
+final List<CollectionSchema> models = [
   ITransactionSchema,
   BusinessSchema,
   BranchSchema,

@@ -216,7 +216,8 @@ class TransactionDataSource extends DataGridSource {
   void buildPaginatedDataGridRows(List<ITransaction> paginatedTransactions) {
     dataGridRows = paginatedTransactions.map<DataGridRow>((transaction) {
       return DataGridRow(cells: [
-        DataGridCell<String>(columnName: 'id', value: transaction.id),
+        DataGridCell<String>(
+            columnName: 'id', value: transaction.id!.toString()),
         DataGridCell<String>(
             columnName: 'Type', value: transaction.receiptType ?? "-"),
         DataGridCell<double>(columnName: 'Amount', value: transaction.subTotal),

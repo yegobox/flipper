@@ -9,11 +9,11 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
     list.add(SingleChildScrollView(
       child: InkWell(
         onTap: () {
-          model.loadVariantStock(variantId: variant.id);
+          model.loadVariantStock(variantId: variant.id!);
           model.handleCustomQtySetBeforeSelectingVariation();
 
           model.keypad.setAmount(amount: variant.retailPrice * model.quantity);
-          model.toggleCheckbox(variantId: variant.id);
+          model.toggleCheckbox(variantId: variant.id!);
         },
         child: Padding(
           padding: const EdgeInsets.only(left: 2, right: 2.0, top: 4),
@@ -26,7 +26,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   FutureBuilder<Variant?>(
-                      future: model.getVariant(variantId: variant.id),
+                      future: model.getVariant(variantId: variant.id!),
                       builder: (context, snapshot) {
                         return snapshot.hasData
                             ? Expanded(
@@ -59,16 +59,16 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                     ),
                     Radio<String>(
                       // toggleable: true,
-                      value: variant.id,
-                      groupValue: model.checked,
+                      value: variant.id!.toString(),
+                      groupValue: model.checked.toString(),
                       onChanged: (value) {
-                        model.toggleCheckbox(variantId: variant.id);
-                        model.loadVariantStock(variantId: variant.id);
+                        model.toggleCheckbox(variantId: variant.id!);
+                        model.loadVariantStock(variantId: variant.id!);
                         model.handleCustomQtySetBeforeSelectingVariation();
 
                         model.keypad.setAmount(
                             amount: variant.retailPrice * model.quantity);
-                        model.toggleCheckbox(variantId: variant.id);
+                        model.toggleCheckbox(variantId: variant.id!);
                       },
                     ),
                   ]),
