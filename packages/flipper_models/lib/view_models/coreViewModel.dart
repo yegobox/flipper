@@ -12,6 +12,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import 'mixins/all.dart';
 
@@ -104,9 +105,10 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
+  final talker = TalkerFlutter.init();
   Future<void> keyboardKeyPressed(
       {required String key, String? transactionType = 'custom'}) async {
-    ProxyService.analytics.trackEvent("keypad", {'feature_name': 'keypad_tab'});
+    talker.info({'feature_name': 'keypad_tab'});
     ProxyService.keypad.addKey(key);
 
     ITransaction? pendingTransaction = await ProxyService.isar

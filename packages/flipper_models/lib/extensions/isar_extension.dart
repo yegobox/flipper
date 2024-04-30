@@ -10,8 +10,8 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
     put(object);
   }
 
-  void onPut(OBJ object) {
-    put(object);
+  Future<Id> onPut(OBJ object) async {
+    final result = await put(object);
 
     /// when it is time to print receipt do it right way.
     EBMHandler(object: object).handleReceipt();
@@ -101,5 +101,7 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
         ProxyService.realm.onSave<Customer>(item: object);
       }
     }
+
+    return result;
   }
 }

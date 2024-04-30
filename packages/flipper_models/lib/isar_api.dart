@@ -1067,53 +1067,56 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
 
   @override
   Future<Variant?> getCustomVariant() async {
-    int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-    Product? product =
-        await isar.products.filter().nameEqualTo('Custom Amount').findFirst();
-    if (product == null) {
-      int id = randomNumber();
-      Product? newProduct = await createProduct(
-          product: Product(
-              id: id,
-              lastTouched: DateTime.now(),
-              name: "Custom Amount",
-              action: 'create',
-              businessId: businessId,
-              color: "#e74c3c",
-              createdAt: DateTime.now().toIso8601String(),
-              branchId: businessId));
-      // add this newProduct's variant to the RRA isar
-      Variant? variant = await isar.variants
-          .filter()
-          .productIdEqualTo(newProduct!.id!)
-          .findFirst();
+    final branchId = ProxyService.box.getBranchId()!;
+    final businessId = ProxyService.box.getBusinessId()!;
 
-      return variant!;
-    } else {
-      Variant? variation = await isar.variants
-          .filter()
-          .productIdEqualTo(product.id!)
-          .findFirst();
-      // if it happen that this product does not have a custom variant add it
-      variation =
-          await ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
-              variation, product, branchId);
-      return variation;
+    // Find product with name CUSTOM_PRODUCT
+    Product? product =
+        await isar.products.filter().nameEqualTo(CUSTOM_PRODUCT).findFirst();
+
+    if (product == null) {
+      // Create a new custom product if it doesn't exist
+      product = await createProduct(
+        product: Product(
+          id: randomNumber(),
+          lastTouched: DateTime.now(),
+          name: CUSTOM_PRODUCT,
+          action: 'create',
+          businessId: businessId,
+          color: "#e74c3c",
+          createdAt: DateTime.now().toIso8601String(),
+          branchId: businessId,
+        ),
+      );
     }
+
+    // Find variant associated with the custom product
+    Variant? variant =
+        await isar.variants.filter().productIdEqualTo(product!.id!).findFirst();
+
+    if (variant == null) {
+      // If the variant doesn't exist, add it
+      variant = await addMissingVariant(
+        variant,
+        product,
+        branchId,
+      );
+    }
+
+    return variant;
   }
 
-  Future<Variant?> ifPreConditionOfSellingACustomProductDoesNotMeetAddMissings(
+  Future<Variant?> addMissingVariant(
       Variant? variation, Product product, int branchId) async {
-    int variantId = randomNumber();
     if (variation == null) {
+      int variantId = randomNumber();
       // add variant to this product
       Business? business = await getBusiness();
       String clip = 'flipper' +
           DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
       isar.writeTxn(() async {
-        isar.variants.onPut(
+        await isar.variants.onPut(
           Variant(
               id: variantId,
               lastTouched: DateTime.now(),
@@ -1189,10 +1192,11 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           ..active = false
           ..productId = product.id!
           ..rsdQty = 0.0;
-        isar.stocks.onPut(stock);
+        await isar.stocks.onPut(stock);
       });
+      return await isar.variants.get(variantId);
     }
-    return isar.variants.get(variantId);
+    return variation;
   }
 
   @override
