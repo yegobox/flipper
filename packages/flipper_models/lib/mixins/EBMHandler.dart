@@ -39,7 +39,7 @@ class EBMHandler<OBJ> {
   Future<void> handleReceiptGeneration(
       {required ITransaction transaction, String? purchaseCode}) async {
     if (await ProxyService.isar.isTaxEnabled()) {
-      Business? business = await ProxyService.isar.getBusiness();
+      IBusiness? business = await ProxyService.isar.getBusiness();
       List<TransactionItem> items =
           await ProxyService.isar.getTransactionItemsByTransactionId(
         transactionId: transaction.id,
@@ -87,7 +87,7 @@ class EBMHandler<OBJ> {
    */
   Future<void> printReceipt(
       {required List<TransactionItem> items,
-      required Business business,
+      required IBusiness business,
       required String receiptType,
       required ITransaction transaction}) async {
     Receipt? receipt =
@@ -139,7 +139,7 @@ class EBMHandler<OBJ> {
   */
   Future<void> generateRRAReceiptSignature({
     required List<TransactionItem> items,
-    required Business business,
+    required IBusiness business,
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,

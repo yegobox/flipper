@@ -245,8 +245,8 @@ class _TenantAddState extends State<TenantAdd> {
   }
 
   Future<void> _addUser(FlipperBaseModel model) async {
-    Business? business = await ProxyService.isar.defaultBusiness();
-    Branch? branch = await ProxyService.isar.defaultBranch();
+    IBusiness? business = await ProxyService.isar.defaultBusiness();
+    IBranch? branch = await ProxyService.isar.defaultBranch();
 
     /// when a business add a tenant, this tenant might not have the account to flipper yet
     /// but the user will be created, it is important to know that this tenant added
@@ -332,7 +332,7 @@ class _TenantAddState extends State<TenantAdd> {
                         tenant.isLongPressed = false;
                       });
                     } else {
-                      await _toggleNFC(tenant as Tenant, model);
+                      await _toggleNFC(tenant as ITenant, model);
                     }
                   },
                   onLongPress: () {
@@ -374,7 +374,7 @@ class _TenantAddState extends State<TenantAdd> {
     );
   }
 
-  Future<void> _toggleNFC(Tenant tenant, FlipperBaseModel model) async {
+  Future<void> _toggleNFC(ITenant tenant, FlipperBaseModel model) async {
     tenant.nfcEnabled = !tenant.nfcEnabled;
     try {
       await AppService().nfc.stopNfc();

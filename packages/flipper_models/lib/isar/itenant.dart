@@ -9,7 +9,7 @@ part 'itenant.g.dart';
 
 @JsonSerializable()
 @Collection()
-class ITenant extends IJsonSerializable {
+class IITenant extends IJsonSerializable {
   Id? id;
   String name;
   String phoneNumber;
@@ -38,7 +38,7 @@ class ITenant extends IJsonSerializable {
   @ignore
   bool isLongPressed;
 
-  ITenant(
+  IITenant(
       {required this.id,
       required this.name,
       required this.phoneNumber,
@@ -51,11 +51,11 @@ class ITenant extends IJsonSerializable {
       this.sessionActive,
       this.isLongPressed = false,
       this.pin});
-  factory ITenant.fromRecord(RecordModel record) =>
-      ITenant.fromJson(record.toJson());
+  factory IITenant.fromRecord(RecordModel record) =>
+      IITenant.fromJson(record.toJson());
 
-  factory ITenant.fromJson(Map<String, dynamic> json) =>
-      _$ITenantFromJson(json);
+  factory IITenant.fromJson(Map<String, dynamic> json) =>
+      _$IITenantFromJson(json);
   @override
-  Map<String, dynamic> toJson() => _$ITenantToJson(this);
+  Map<String, dynamic> toJson() => _$IITenantToJson(this);
 }

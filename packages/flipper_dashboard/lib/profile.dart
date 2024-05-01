@@ -25,7 +25,7 @@ class ProfileWidget extends StatefulWidget {
     this.showIcon = true,
     this.size = 50,
   });
-  final Branch branch;
+  final IBranch branch;
   final double? size;
   final bool showIcon;
   final bool sessionActive;
@@ -128,7 +128,7 @@ class PDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Business?>(
+    return FutureBuilder<IBusiness?>(
       future:
           ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
@@ -240,7 +240,7 @@ class PMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Business?>(
+    return FutureBuilder<IBusiness?>(
       future:
           ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {

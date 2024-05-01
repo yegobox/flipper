@@ -14,8 +14,8 @@ class SettingViewModel extends CoreViewModel {
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
 
-  Business? _business;
-  Business? get business => _business;
+  IBusiness? _business;
+  IBusiness? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isar
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -125,7 +125,7 @@ class SettingViewModel extends CoreViewModel {
       } else {
         await ProxyService.isar.createGoogleSheetDoc(email: setting.email!);
 
-        Business? business = await ProxyService.isar.getBusiness();
+        IBusiness? business = await ProxyService.isar.getBusiness();
         business!.email = setting.email;
         await ProxyService.isar.update(
           data: business,
@@ -147,7 +147,7 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        Business? business = await ProxyService.isar.getBusiness();
+        IBusiness? business = await ProxyService.isar.getBusiness();
         ProxyService.isar
             .enableAttendance(businessId: business!.id!, email: setting.email!);
       }

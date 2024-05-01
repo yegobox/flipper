@@ -73,11 +73,11 @@ class _Business {
 
   DateTime? lastTouched;
 
-  late String action;
+  String? action;
 
   DateTime? deletedAt;
 
-  late String encryptionKey;
+  String? encryptionKey;
 }
 
 @RealmModel()
@@ -86,14 +86,15 @@ class _Category {
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;
-  late bool active;
-  late bool focused;
-  late String name;
+  bool? active;
+  bool? focused;
+  String? name;
 
-  late int branchId;
+  int? branchId;
   @override
   DateTime? deletedAt;
   DateTime? lastTouched;
+  String? action;
 }
 
 @RealmModel()
@@ -219,21 +220,22 @@ class _Device {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String linkingCode;
-  late String deviceName;
-  late String deviceVersion;
-  late bool pubNubPublished;
-  late String phone;
-  late int branchId;
-  late int businessId;
-  late int userId;
-  late String defaultApp;
+  String? linkingCode;
+  String? deviceName;
+  String? deviceVersion;
+  bool? pubNubPublished;
+  String? phone;
+  int? branchId;
+  int? businessId;
+  int? userId;
+  String? defaultApp;
 
   /// for sync
 
   DateTime? lastTouched;
+  DateTime? deletedAt;
 
-  late String action;
+  String? action;
 }
 
 @RealmModel()
@@ -257,8 +259,8 @@ class _Drawers {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late double openingBalance;
-  late double closingBalance;
+  double? openingBalance;
+  double? closingBalance;
   String? openingDateTime;
   String? closingDateTime;
   int? csSaleCount;
@@ -272,9 +274,8 @@ class _Drawers {
   int? incompleteSale;
   int? otherTransactions;
   String? paymentMode;
-  late int cashierId;
-  // @Index(composite:  ['cashierId'])
-  late bool open;
+  int? cashierId;
+  bool? open;
 }
 
 @RealmModel()
@@ -323,13 +324,13 @@ class _Product {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String name;
+  String? name;
   String? description;
   String? taxId;
-  late String color;
-  late int businessId;
+  String? color;
+  int? businessId;
 
-  late int branchId;
+  int? branchId;
   String? supplierId;
   int? categoryId;
   String? createdAt;
@@ -342,6 +343,11 @@ class _Product {
 
   int? bindedToTenantId;
   bool? isFavorite;
+
+  DateTime? lastTouched;
+
+  String? action;
+  DateTime? deletedAt;
 }
 
 @RealmModel()
@@ -351,24 +357,24 @@ class _Receipt {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String resultCd;
-  late String resultMsg;
-  late String resultDt;
-  late int rcptNo;
-  late String intrlData;
-  late String rcptSign;
-  late int totRcptNo;
-  late String vsdcRcptPbctDate;
-  late String sdcId;
-  late String mrcNo;
-  late String qrCode;
-  late String receiptType;
-  late int branchId;
+  String? resultCd;
+  String? resultMsg;
+  String? resultDt;
+  int? rcptNo;
+  String? intrlData;
+  String? rcptSign;
+  int? totRcptNo;
+  String? vsdcRcptPbctDate;
+  String? sdcId;
+  String? mrcNo;
+  String? qrCode;
+  String? receiptType;
+  int? branchId;
 
-  late int transactionId;
+  int? transactionId;
 
   DateTime? lastTouched;
-  late String action;
+  String? action;
 }
 
 @RealmModel()
@@ -401,6 +407,7 @@ class _Setting {
   DateTime? lastTouched;
 
   DateTime? deletedAt;
+  String? action;
 }
 
 @RealmModel()
@@ -412,11 +419,11 @@ class _Stock {
 
   int? branchId;
   int? variantId;
-  double? lowStock;
+  double? lowStock = 0;
   double? currentStock;
 
-  bool? canTrackingStock;
-  bool? showLowStockAlert;
+  bool? canTrackingStock = true;
+  bool? showLowStockAlert = true;
 
   int? productId;
   bool? active;
@@ -450,18 +457,18 @@ class _Variant {
 
   DateTime? deletedAt;
 
-  late String name;
-  late String color;
-  late String sku;
+  String? name;
+  String? color;
+  String? sku;
 
-  late int productId;
-  late String unit;
-  late String productName;
-  late int branchId;
-  late String? taxName;
+  int? productId;
+  String? unit;
+  String? productName;
+  int? branchId;
+  String? taxName;
   double? taxPercentage;
 
-  late bool isTaxExempted;
+  bool? isTaxExempted;
 
   // add RRA fields
   String? itemSeq;
@@ -537,11 +544,11 @@ class _Variant {
 
   DateTime? lastTouched;
 
-  late double supplyPrice;
+  double? supplyPrice;
 
-  late double retailPrice;
+  double? retailPrice;
 
-  late String action;
+  String? action;
 
   /// these fields are empty in normal business when this item is owned by a business
   /// but in case when this item is owned by a supplier then these fields will be filled
@@ -554,7 +561,7 @@ class _Variant {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  late bool ebmSynced;
+  bool? ebmSynced = false;
 }
 
 @RealmModel()
@@ -660,17 +667,17 @@ class _ITransaction {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String reference;
+  String? reference;
   String? categoryId;
-  late String transactionNumber;
-  late int branchId;
-  late String status;
-  late String transactionType;
-  late double subTotal;
-  late String paymentType;
-  late double cashReceived;
-  late double customerChangeDue;
-  late String createdAt;
+  String? transactionNumber;
+  int? branchId;
+  String? status;
+  String? transactionType;
+  double? subTotal;
+  String? paymentType;
+  double? cashReceived;
+  double? customerChangeDue;
+  String? createdAt;
   // add receipt type offerered on this transaction
   /// remember we also have receipt model where each receipt generated is saved.
   String? receiptType;
@@ -682,7 +689,7 @@ class _ITransaction {
 
   DateTime? lastTouched;
 
-  late String action;
+  String? action;
 
   // int categoryId;
 
@@ -696,12 +703,12 @@ class _ITransaction {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  late bool ebmSynced;
+  bool? ebmSynced;
 
   // Add methods to check type
-  late bool isIncome;
+  bool? isIncome;
 
-  late bool isExpense;
+  bool? isExpense;
   // bool isIncome() {
   //   return this.transactionType == "cashIn" ||
   //       this == "sale" ||
@@ -720,46 +727,14 @@ class _IUnit {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late int branchId;
-  late String name;
-  late String value;
-  late bool active;
+  int? branchId;
+  String? name;
+  String? value;
+  bool? active;
 
   DateTime? lastTouched;
 
-  late String action;
-}
-
-@RealmModel()
-class _ITenant {
-  int? id;
-  @PrimaryKey()
-  @MapTo('_id')
-  late ObjectId realmId;
-
-  late String name;
-  late String phoneNumber;
-  String? email;
-  late bool nfcEnabled;
-  late int businessId;
-  late int userId;
-  String? imageUrl;
-
-  DateTime? lastTouched;
-  DateTime? deletedAt;
-
-  int? pin;
-
-  /// [sessionActive] is not comming from server, this is to check which
-  /// tenant is currently have active session but the main session will be still active
-  bool? sessionActive;
-
-  late bool isDefault;
-
-  ///helper property, these are property that are not peristed
-  ///but used in ui to achieve some functionality
-
-  bool? isLongPressed;
+  String? action;
 }
 
 @RealmModel()
@@ -783,23 +758,50 @@ class _Tenant {
   @MapTo('_id')
   late ObjectId realmId;
 
-  late String name;
-  late String phoneNumber;
-  String? email; // Make email nullable
-  // List<Permission> permissions;
-  // List<Branch> branches;
-  // List<Business> businesses;
-  late int businessId;
-  late bool nfcEnabled;
+  String? name;
+  String? phoneNumber;
+  String? email;
+  bool? nfcEnabled;
+  int? businessId;
+  int? userId;
+  String? imageUrl;
 
-  late int userId;
+  DateTime? lastTouched;
+  DateTime? deletedAt;
 
   int? pin;
 
-  late bool isDefault;
+  /// [sessionActive] is not comming from server, this is to check which
+  /// tenant is currently have active session but the main session will be still active
+  bool? sessionActive;
+
+  bool? isDefault;
 
   ///helper property, these are property that are not peristed
   ///but used in ui to achieve some functionality
 
   bool? isLongPressed;
+}
+
+@RealmModel()
+class _Pin {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  ObjectId? realmId;
+  String? userId;
+  String? phoneNumber;
+  int? pin;
+  int? branchId;
+  int? businessId;
+}
+
+@RealmModel()
+class _Permission {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  ObjectId? realmId;
+  String? name;
+  int? userId;
 }

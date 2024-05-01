@@ -9,13 +9,13 @@ part of 'permission.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetPermissionCollection on Isar {
-  IsarCollection<Permission> get permissions => this.collection();
+extension GetIPermissionCollection on Isar {
+  IsarCollection<IPermission> get iPermissions => this.collection();
 }
 
-const PermissionSchema = CollectionSchema(
-  name: r'Permission',
-  id: 5583744244740860356,
+const IPermissionSchema = CollectionSchema(
+  name: r'IPermission',
+  id: 7436146057923468513,
   properties: {
     r'name': PropertySchema(
       id: 0,
@@ -28,22 +28,22 @@ const PermissionSchema = CollectionSchema(
       type: IsarType.long,
     )
   },
-  estimateSize: _permissionEstimateSize,
-  serialize: _permissionSerialize,
-  deserialize: _permissionDeserialize,
-  deserializeProp: _permissionDeserializeProp,
+  estimateSize: _iPermissionEstimateSize,
+  serialize: _iPermissionSerialize,
+  deserialize: _iPermissionDeserialize,
+  deserializeProp: _iPermissionDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
   embeddedSchemas: {},
-  getId: _permissionGetId,
-  getLinks: _permissionGetLinks,
-  attach: _permissionAttach,
+  getId: _iPermissionGetId,
+  getLinks: _iPermissionGetLinks,
+  attach: _iPermissionAttach,
   version: '3.1.0+1',
 );
 
-int _permissionEstimateSize(
-  Permission object,
+int _iPermissionEstimateSize(
+  IPermission object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -52,8 +52,8 @@ int _permissionEstimateSize(
   return bytesCount;
 }
 
-void _permissionSerialize(
-  Permission object,
+void _iPermissionSerialize(
+  IPermission object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -62,13 +62,13 @@ void _permissionSerialize(
   writer.writeLong(offsets[1], object.userId);
 }
 
-Permission _permissionDeserialize(
+IPermission _iPermissionDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Permission(
+  final object = IPermission(
     id: id,
     name: reader.readString(offsets[0]),
     userId: reader.readLong(offsets[1]),
@@ -76,7 +76,7 @@ Permission _permissionDeserialize(
   return object;
 }
 
-P _permissionDeserializeProp<P>(
+P _iPermissionDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -92,30 +92,31 @@ P _permissionDeserializeProp<P>(
   }
 }
 
-Id _permissionGetId(Permission object) {
+Id _iPermissionGetId(IPermission object) {
   return object.id ?? Isar.autoIncrement;
 }
 
-List<IsarLinkBase<dynamic>> _permissionGetLinks(Permission object) {
+List<IsarLinkBase<dynamic>> _iPermissionGetLinks(IPermission object) {
   return [];
 }
 
-void _permissionAttach(IsarCollection<dynamic> col, Id id, Permission object) {
+void _iPermissionAttach(
+    IsarCollection<dynamic> col, Id id, IPermission object) {
   object.id = id;
 }
 
-extension PermissionQueryWhereSort
-    on QueryBuilder<Permission, Permission, QWhere> {
-  QueryBuilder<Permission, Permission, QAfterWhere> anyId() {
+extension IPermissionQueryWhereSort
+    on QueryBuilder<IPermission, IPermission, QWhere> {
+  QueryBuilder<IPermission, IPermission, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension PermissionQueryWhere
-    on QueryBuilder<Permission, Permission, QWhereClause> {
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idEqualTo(Id id) {
+extension IPermissionQueryWhere
+    on QueryBuilder<IPermission, IPermission, QWhereClause> {
+  QueryBuilder<IPermission, IPermission, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -124,7 +125,8 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<IPermission, IPermission, QAfterWhereClause> idNotEqualTo(
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -146,7 +148,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idGreaterThan(Id id,
+  QueryBuilder<IPermission, IPermission, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -155,7 +157,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<IPermission, IPermission, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -164,7 +166,7 @@ extension PermissionQueryWhere
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterWhereClause> idBetween(
+  QueryBuilder<IPermission, IPermission, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -181,9 +183,9 @@ extension PermissionQueryWhere
   }
 }
 
-extension PermissionQueryFilter
-    on QueryBuilder<Permission, Permission, QFilterCondition> {
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idIsNull() {
+extension IPermissionQueryFilter
+    on QueryBuilder<IPermission, IPermission, QFilterCondition> {
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'id',
@@ -191,7 +193,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idIsNotNull() {
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'id',
@@ -199,7 +201,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idEqualTo(
       Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -209,7 +211,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idGreaterThan(
     Id? value, {
     bool include = false,
   }) {
@@ -222,7 +224,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idLessThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idLessThan(
     Id? value, {
     bool include = false,
   }) {
@@ -235,7 +237,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> idBetween(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> idBetween(
     Id? lower,
     Id? upper, {
     bool includeLower = true,
@@ -252,7 +254,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameEqualTo(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -265,7 +267,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameGreaterThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -280,7 +282,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameLessThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -295,7 +297,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameBetween(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -314,7 +316,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameStartsWith(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -327,7 +329,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameEndsWith(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -340,7 +342,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameContains(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -352,7 +354,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameMatches(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -364,7 +366,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameIsEmpty() {
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'name',
@@ -373,7 +375,8 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> nameIsNotEmpty() {
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition>
+      nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'name',
@@ -382,7 +385,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdEqualTo(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> userIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -392,7 +395,8 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdGreaterThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition>
+      userIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -405,7 +409,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdLessThan(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> userIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -418,7 +422,7 @@ extension PermissionQueryFilter
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterFilterCondition> userIdBetween(
+  QueryBuilder<IPermission, IPermission, QAfterFilterCondition> userIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -436,109 +440,109 @@ extension PermissionQueryFilter
   }
 }
 
-extension PermissionQueryObject
-    on QueryBuilder<Permission, Permission, QFilterCondition> {}
+extension IPermissionQueryObject
+    on QueryBuilder<IPermission, IPermission, QFilterCondition> {}
 
-extension PermissionQueryLinks
-    on QueryBuilder<Permission, Permission, QFilterCondition> {}
+extension IPermissionQueryLinks
+    on QueryBuilder<IPermission, IPermission, QFilterCondition> {}
 
-extension PermissionQuerySortBy
-    on QueryBuilder<Permission, Permission, QSortBy> {
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortByName() {
+extension IPermissionQuerySortBy
+    on QueryBuilder<IPermission, IPermission, QSortBy> {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortByUserId() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> sortByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> sortByUserIdDesc() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> sortByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
     });
   }
 }
 
-extension PermissionQuerySortThenBy
-    on QueryBuilder<Permission, Permission, QSortThenBy> {
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenById() {
+extension IPermissionQuerySortThenBy
+    on QueryBuilder<IPermission, IPermission, QSortThenBy> {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByName() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByUserId() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.asc);
     });
   }
 
-  QueryBuilder<Permission, Permission, QAfterSortBy> thenByUserIdDesc() {
+  QueryBuilder<IPermission, IPermission, QAfterSortBy> thenByUserIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userId', Sort.desc);
     });
   }
 }
 
-extension PermissionQueryWhereDistinct
-    on QueryBuilder<Permission, Permission, QDistinct> {
-  QueryBuilder<Permission, Permission, QDistinct> distinctByName(
+extension IPermissionQueryWhereDistinct
+    on QueryBuilder<IPermission, IPermission, QDistinct> {
+  QueryBuilder<IPermission, IPermission, QDistinct> distinctByName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Permission, Permission, QDistinct> distinctByUserId() {
+  QueryBuilder<IPermission, IPermission, QDistinct> distinctByUserId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userId');
     });
   }
 }
 
-extension PermissionQueryProperty
-    on QueryBuilder<Permission, Permission, QQueryProperty> {
-  QueryBuilder<Permission, int, QQueryOperations> idProperty() {
+extension IPermissionQueryProperty
+    on QueryBuilder<IPermission, IPermission, QQueryProperty> {
+  QueryBuilder<IPermission, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Permission, String, QQueryOperations> nameProperty() {
+  QueryBuilder<IPermission, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
     });
   }
 
-  QueryBuilder<Permission, int, QQueryOperations> userIdProperty() {
+  QueryBuilder<IPermission, int, QQueryOperations> userIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userId');
     });
@@ -549,13 +553,13 @@ extension PermissionQueryProperty
 // JsonSerializableGenerator
 // **************************************************************************
 
-Permission _$PermissionFromJson(Map<String, dynamic> json) => Permission(
+IPermission _$IPermissionFromJson(Map<String, dynamic> json) => IPermission(
       id: json['id'] as int?,
       name: json['name'] as String,
       userId: json['userId'] as int,
     );
 
-Map<String, dynamic> _$PermissionToJson(Permission instance) =>
+Map<String, dynamic> _$IPermissionToJson(IPermission instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

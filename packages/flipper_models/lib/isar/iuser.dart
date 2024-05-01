@@ -18,7 +18,7 @@ class IUser {
   String phoneNumber;
   String token;
   String uid;
-  List<Tenant> tenants;
+  List<ITenant> tenants;
   List<String> channels;
   int? pin;
 

@@ -116,7 +116,7 @@ class _AppsState extends ConsumerState<Apps> {
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
-          child: FutureBuilder<Branch?>(
+          child: FutureBuilder<IBranch?>(
             future: ProxyService.isar.activeBranch(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
@@ -246,7 +246,7 @@ class _AppsState extends ConsumerState<Apps> {
                       : SizedBox.shrink(),
                   Center(
                     child: Column(children: [
-                      FutureBuilder<Permission?>(
+                      FutureBuilder<IPermission?>(
                         future: ProxyService.isar
                             .permission(userId: ProxyService.box.getUserId()!),
                         builder: (context, snapshot) {

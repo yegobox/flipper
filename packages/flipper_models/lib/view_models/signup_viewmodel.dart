@@ -84,7 +84,7 @@ class SignupViewModel extends ReactiveViewModel {
 
       String? referralCode = getReferralCode();
 
-      List<Tenant> tenants = await registerTenant(referralCode);
+      List<ITenant> tenants = await registerTenant(referralCode);
 
       if (tenants.isNotEmpty) {
         await postRegistrationTasks(tenants);
@@ -114,7 +114,7 @@ class SignupViewModel extends ReactiveViewModel {
     return ProxyService.box.readString(key: 'referralCode');
   }
 
-  Future<List<Tenant>> registerTenant(String? referralCode) async {
+  Future<List<ITenant>> registerTenant(String? referralCode) async {
     return await ProxyService.isar.signup(business: {
       'name': kName,
       'latitude': latitude,
@@ -132,7 +132,7 @@ class SignupViewModel extends ReactiveViewModel {
     });
   }
 
-  Future<void> postRegistrationTasks(List<Tenant> tenants) async {
+  Future<void> postRegistrationTasks(List<ITenant> tenants) async {
     await pocketDbRegistration();
 
     if (businessType.id == "2") {
@@ -140,8 +140,8 @@ class SignupViewModel extends ReactiveViewModel {
     }
 
     await saveBusinessId(tenants);
-    Business? business = await getBusiness(tenants);
-    List<Branch> branches = await getBranches(business);
+    IBusiness? business = await getBusiness(tenants);
+    List<IBranch> branches = await getBranches(business);
     await saveBranchId(branches);
 
     appService.appInit();
@@ -163,27 +163,27 @@ class SignupViewModel extends ReactiveViewModel {
     );
   }
 
-  Future<void> saveBusinessId(List<Tenant> tenants) {
+  Future<void> saveBusinessId(List<ITenant> tenants) {
     return ProxyService.box.writeInt(
       key: 'businessId',
       value: tenants.first.businesses.first.id!,
     );
   }
 
-  Future<Business?> getBusiness(List<Tenant> tenants) {
+  Future<IBusiness?> getBusiness(List<ITenant> tenants) {
     return ProxyService.isar
         .getBusiness(businessId: tenants.first.businesses.first.id);
   }
 
-  Future<List<Branch>> getBranches(Business? business) {
+  Future<List<IBranch>> getBranches(IBusiness? business) {
     return ProxyService.isar.branches(businessId: business!.id);
   }
 
-  Future<void> saveBranchId(List<Branch> branches) {
+  Future<void> saveBranchId(List<IBranch> branches) {
     return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id!);
   }
 
-  Future<void> createDefaultCategory(List<Branch> branches) async {
+  Future<void> createDefaultCategory(List<IBranch> branches) async {
     final Category category = Category(
       active: true,
       focused: true,
@@ -194,7 +194,7 @@ class SignupViewModel extends ReactiveViewModel {
     ProxyService.isar.create<Category>(data: category);
   }
 
-  Future<void> createDefaultColor(List<Branch> branches) async {
+  Future<void> createDefaultColor(List<IBranch> branches) async {
     final PColor color = PColor(
       id: randomNumber(),
       colors: [

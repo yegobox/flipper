@@ -345,8 +345,8 @@ class CoreViewModel extends FlipperBaseModel
     return await ProxyService.isar.productsFuture(branchId: branchId);
   }
 
-  Business get businesses => app.business!;
-  Branch? get branch => app.branch;
+  IBusiness get businesses => app.business!;
+  IBranch? get branch => app.branch;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -655,7 +655,7 @@ class CoreViewModel extends FlipperBaseModel
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = await ProxyService.isar.getBusiness();
+      IBusiness? business = await ProxyService.isar.getBusiness();
       final drive = GoogleDrive();
       if (business!.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
@@ -742,20 +742,20 @@ class CoreViewModel extends FlipperBaseModel
     app.setActiveBranch(branch: branch);
   }
 
-  Future<void> setDefaultBusiness({required Business business}) async {
+  Future<void> setDefaultBusiness({required IBusiness business}) async {
     app.setBusiness(business: business);
-    List<Business> businesses = await ProxyService.isar.businesses();
-    for (Business business in businesses) {
+    List<IBusiness> businesses = await ProxyService.isar.businesses();
+    for (IBusiness business in businesses) {
       await ProxyService.isar.update(data: business..isDefault = false);
     }
     ProxyService.isar.update(data: business..isDefault = true);
     ProxyService.box.writeInt(key: 'businessId', value: business.id!);
   }
 
-  Future<void> setDefaultBranch({required Branch branch}) async {
+  Future<void> setDefaultBranch({required IBranch branch}) async {
     //first set other branch to not active
-    List<Branch> branches = await ProxyService.isar.branches();
-    for (Branch branch in branches) {
+    List<IBranch> branches = await ProxyService.isar.branches();
+    for (IBranch branch in branches) {
       await ProxyService.isar.update(data: branch..isDefault = false);
     }
     ProxyService.isar.update(data: branch..isDefault = true);
@@ -790,8 +790,8 @@ class CoreViewModel extends FlipperBaseModel
         pendingTransaction: pendingTransaction);
   }
 
-  List<Branch> branches = [];
-  void branchesList(List<Branch> value) {
+  List<IBranch> branches = [];
+  void branchesList(List<IBranch> value) {
     branches = value;
     notifyListeners();
   }
@@ -832,7 +832,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<int> updateUserWithPinCode({required String pin}) async {
-    Business? business = await ProxyService.isar
+    IBusiness? business = await ProxyService.isar
         .getBusiness(businessId: ProxyService.box.getBusinessId());
 
     /// set the pin for the current business default tenant

@@ -41,7 +41,7 @@ class UploadViewModel extends ProductViewModel {
         if (urlType == URLTYPE.BUSINESS) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          Business? business = await ProxyService.isar
+          IBusiness? business = await ProxyService.isar
               .getBusiness(businessId: ProxyService.box.getBusinessId()!);
           business!.imageUrl = uploadResponse.url;
           ProxyService.isar.update(data: business);

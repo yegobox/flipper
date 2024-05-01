@@ -21,7 +21,7 @@ class GmailLikeLetter extends StatefulWidget {
     required this.sessionActive,
   }) : super(key: key);
 
-  final Branch branch;
+  final IBranch branch;
   final double? size;
   final bool sessionActive;
 

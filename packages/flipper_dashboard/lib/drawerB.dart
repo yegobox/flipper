@@ -54,7 +54,7 @@ class MyDrawer extends StatelessWidget {
                   ),
                 );
               }),
-          FutureBuilder<List<Business>>(
+          FutureBuilder<List<IBusiness>>(
             future: ProxyService.isar.businesses(),
             builder: (context, businessSnapshot) {
               if (businessSnapshot.connectionState == ConnectionState.waiting) {
@@ -66,9 +66,9 @@ class MyDrawer extends StatelessWidget {
                     'Error loading businesses: ${businessSnapshot.error}');
               }
 
-              final List<Business> businesses = businessSnapshot.data ?? [];
+              final List<IBusiness> businesses = businessSnapshot.data ?? [];
 
-              return FutureBuilder<List<Branch>>(
+              return FutureBuilder<List<IBranch>>(
                 future: ProxyService.isar.branches(
                     businessId: businesses
                         .first.id), // Replace with your logic to fetch branches
@@ -83,7 +83,7 @@ class MyDrawer extends StatelessWidget {
                         'Error loading branches: ${branchSnapshot.error}');
                   }
 
-                  final List<Branch> branches = branchSnapshot.data ?? [];
+                  final List<IBranch> branches = branchSnapshot.data ?? [];
 
                   // Extract business names and filter out null values
                   final List<String> businessNames = businesses

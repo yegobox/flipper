@@ -23,7 +23,7 @@ class FlipperDrawer extends StatefulWidget {
   final Function preferenceController;
   final Function inviteController;
   final Function addWorkSpace;
-  final List<model.Business> businesses;
+  final List<model.IBusiness> businesses;
 
   @override
   State<FlipperDrawer> createState() => _FlipperDrawerState();

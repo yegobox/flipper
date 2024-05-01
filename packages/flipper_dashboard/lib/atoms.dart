@@ -60,7 +60,7 @@ AnimatedContainer avatar({
   );
 }
 
-Widget avatarBuilder(Business business, Color _circleColor) {
+Widget avatarBuilder(IBusiness business, Color _circleColor) {
   return business.businessUrl == null
       ? avatar(
           color: _circleColor,

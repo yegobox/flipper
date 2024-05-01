@@ -103,7 +103,7 @@ class GoogleDrive {
   Future<http.Client> backUpNow() async {
     Directory dir = await getApplicationDocumentsDirectory();
     File file = File(path.context.canonicalize(dir.path + '/db/isar'));
-    Business? business = await ProxyService.isar.getBusiness();
+    IBusiness? business = await ProxyService.isar.getBusiness();
     final httpClient = await silentLogin();
     if (business!.backUpEnabled!) {
       await upload(file);
@@ -117,7 +117,7 @@ class GoogleDrive {
     return httpClient;
   }
 
-  Future<void> updateBusiness(Business business) async {
+  Future<void> updateBusiness(IBusiness business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
 
@@ -154,7 +154,7 @@ class GoogleDrive {
     // log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
-    Business? business = await ProxyService.isar.getBusiness();
+    IBusiness? business = await ProxyService.isar.getBusiness();
     business!.backupFileId = fileUploaded.id;
     await ProxyService.isar.update(data: business);
     ProxyService.isar.update(data: business);

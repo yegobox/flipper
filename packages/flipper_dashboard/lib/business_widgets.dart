@@ -50,11 +50,11 @@ class BusinessButton extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final Business business;
+  final IBusiness business;
   final bool hasUpdates;
   final bool isActive;
 
-  final Function(Business) onPressedCircle;
+  final Function(IBusiness) onPressedCircle;
 
   @override
   Widget build(BuildContext context) {

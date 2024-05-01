@@ -5,7 +5,7 @@ import 'package:flipper_models/isar_models.dart';
 
 class IsarAPIMock<M> implements IsarApiInterface {
   @override
-  Future<Branch?> activeBranch() {
+  Future<IBranch?> activeBranch() {
     // TODO: implement activeBranch
     throw UnimplementedError();
   }
@@ -92,7 +92,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Branch>> branches({int? businessId}) {
+  Future<List<IBranch>> branches({int? businessId}) {
     // TODO: implement branches
     throw UnimplementedError();
   }
@@ -104,7 +104,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Business>> businesses({int? userId}) {
+  Future<List<IBusiness>> businesses({int? userId}) {
     // TODO: implement businesses
     throw UnimplementedError();
   }
@@ -220,13 +220,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Branch?> defaultBranch() {
+  Future<IBranch?> defaultBranch() {
     // TODO: implement defaultBranch
     throw UnimplementedError();
   }
 
   @override
-  Future<Business?> defaultBusiness() {
+  Future<IBusiness?> defaultBusiness() {
     // TODO: implement defaultBusiness
     throw UnimplementedError();
   }
@@ -280,13 +280,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Business?> getBusiness({int? businessId}) {
+  Future<IBusiness?> getBusiness({int? businessId}) {
     // TODO: implement getBusiness
     throw UnimplementedError();
   }
 
   @override
-  Future<Business?> getBusinessFromOnlineGivenId({required int id}) {
+  Future<IBusiness?> getBusinessFromOnlineGivenId({required int id}) {
     // TODO: implement getBusinessFromOnlineGivenId
     throw UnimplementedError();
   }
@@ -298,7 +298,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Business>> getContacts() {
+  Future<List<IBusiness>> getContacts() {
     // TODO: implement getContacts
     throw UnimplementedError();
   }
@@ -402,7 +402,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Business> getOnlineBusiness({required int userId}) {
+  Future<IBusiness> getOnlineBusiness({required int userId}) {
     // TODO: implement getOnlineBusiness
     throw UnimplementedError();
   }
@@ -697,7 +697,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Permission?> permission({required int userId}) {
+  Future<IPermission?> permission({required int userId}) {
     // TODO: implement permission
     throw UnimplementedError();
   }
@@ -766,9 +766,9 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
+  Future<ITenant> saveTenant(String phoneNumber, String name,
+      {required IBusiness business,
+      required IBranch branch,
       required String userType}) {
     // TODO: implement saveTenant
     throw UnimplementedError();
@@ -794,7 +794,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<Tenant>> signup({required Map business}) {
+  Future<List<ITenant>> signup({required Map business}) {
     // TODO: implement signup
     throw UnimplementedError();
   }

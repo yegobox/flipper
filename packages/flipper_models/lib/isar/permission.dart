@@ -7,8 +7,8 @@ part 'permission.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Permission {
-  Permission({
+class IPermission {
+  IPermission({
     required this.id,
     required this.name,
     required this.userId,
@@ -17,11 +17,11 @@ class Permission {
   late String name;
   late int userId;
 
-  factory Permission.fromRecord(RecordModel record) =>
-      Permission.fromJson(record.toJson());
+  factory IPermission.fromRecord(RecordModel record) =>
+      IPermission.fromJson(record.toJson());
 
-  factory Permission.fromJson(Map<String, dynamic> json) =>
-      _$PermissionFromJson(json);
+  factory IPermission.fromJson(Map<String, dynamic> json) =>
+      _$IPermissionFromJson(json);
 
-  Map<String, dynamic> toJson() => _$PermissionToJson(this);
+  Map<String, dynamic> toJson() => _$IPermissionToJson(this);
 }

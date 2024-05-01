@@ -33,7 +33,7 @@ OverlayEntry insertOverlay(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      FutureBuilder<Branch?>(
+                      FutureBuilder<IBranch?>(
                         future: ProxyService.isar.activeBranch(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -41,7 +41,7 @@ OverlayEntry insertOverlay(
                               !snapshot.hasData) {
                             return SizedBox.shrink();
                           }
-                          Branch branch = snapshot.data!;
+                          IBranch branch = snapshot.data!;
                           return Padding(
                             padding: const EdgeInsets.only(
                                 bottom: 12.0), // Adjust spacing

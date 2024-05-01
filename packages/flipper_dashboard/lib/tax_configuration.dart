@@ -40,7 +40,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
             isTaxEnabled = true;
           });
         }
-        Business? business = await ProxyService.isar.getBusiness();
+        IBusiness? business = await ProxyService.isar.getBusiness();
         model.isEbmActive = business?.tinNumber != null &&
             business?.bhfId != null &&
             business?.dvcSrlNo != null &&

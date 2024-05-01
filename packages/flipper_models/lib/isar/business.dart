@@ -20,8 +20,8 @@ part 'business.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Business extends IJsonSerializable {
-  Business({
+class IBusiness extends IJsonSerializable {
+  IBusiness({
     required this.id,
     required this.action,
     required this.encryptionKey,
@@ -66,7 +66,7 @@ class Business extends IJsonSerializable {
     this.deletedAt,
   });
 
-  Business.copy(Business original,
+  IBusiness.copy(IBusiness original,
       {bool? active, String? action, String? encryptionKey, String? name})
       : id = original.id,
         name = name ?? original.name,
@@ -126,10 +126,10 @@ class Business extends IJsonSerializable {
 
   String encryptionKey;
 
-  factory Business.fromRecord(RecordModel record) =>
-      Business.fromJson(record.toJson());
+  factory IBusiness.fromRecord(RecordModel record) =>
+      IBusiness.fromJson(record.toJson());
 
-  factory Business.fromJson(Map<String, dynamic> json) {
+  factory IBusiness.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
     json['lastTouched'] ??= json['lastTouched'].toString().isEmpty

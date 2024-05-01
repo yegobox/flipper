@@ -51,7 +51,7 @@ class _AddVariationState extends State<AddVariation> {
               disableButton: model.lock,
               rightActionButtonName: 'Save',
               onActionButtonClicked: () async {
-                Business? business = await ProxyService.isar.getBusiness();
+                IBusiness? business = await ProxyService.isar.getBusiness();
                 String itemPrefix = "flip-";
                 String clip = itemPrefix +
                     DateTime.now()

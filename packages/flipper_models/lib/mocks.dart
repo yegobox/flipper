@@ -334,7 +334,7 @@ final productMock = Product(
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final branchMock = Branch(
+final branchMock = IBranch(
   action: AppActions.created,
   id: randomNumber(),
   active: false,

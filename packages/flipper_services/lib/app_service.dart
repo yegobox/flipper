@@ -23,21 +23,21 @@ class AppService with ListenableServiceMixin {
   List<Category> get categories => _categories.value;
   // TODO: make _business nullable when starting
 
-  final _business = ReactiveValue<isar.Business?>(isar.Business(
+  final _business = ReactiveValue<isar.IBusiness?>(isar.IBusiness(
     id: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
     action: AppActions.created,
   ));
-  isar.Business? get business => _business.value;
-  setBusiness({required isar.Business business}) {
+  isar.IBusiness? get business => _business.value;
+  setBusiness({required isar.IBusiness business}) {
     _business.value = business;
   }
 
-  final _branch = ReactiveValue<isar.Branch?>(null);
-  isar.Branch? get branch => _branch.value;
+  final _branch = ReactiveValue<isar.IBranch?>(null);
+  isar.IBranch? get branch => _branch.value;
 
-  setActiveBranch({required isar.Branch branch}) {
+  setActiveBranch({required isar.IBranch branch}) {
     _branch.value = branch;
   }
 
@@ -100,12 +100,12 @@ class AppService with ListenableServiceMixin {
     await ProxyService.isar.create(data: data);
   }
 
-  final _contacts = ReactiveValue<List<Business>>([]);
-  List<Business> get contacts => _contacts.value;
+  final _contacts = ReactiveValue<List<IBusiness>>([]);
+  List<IBusiness> get contacts => _contacts.value;
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    List<Business> contacts = await ProxyService.isar.getContacts();
+    List<IBusiness> contacts = await ProxyService.isar.getContacts();
     _contacts.value = contacts;
   }
 
@@ -116,11 +116,11 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<isar.Business> businesses = await ProxyService.isar.businesses();
+    List<isar.IBusiness> businesses = await ProxyService.isar.businesses();
 
     if (businesses.isEmpty) {
       try {
-        Business business =
+        IBusiness business =
             await ProxyService.isar.getOnlineBusiness(userId: userId);
         businesses.add(business);
       } catch (e) {
@@ -130,7 +130,7 @@ class AppService with ListenableServiceMixin {
 
     await loadTenants(businesses);
 
-    List<isar.Branch> branches = await ProxyService.isar.branches();
+    List<isar.IBranch> branches = await ProxyService.isar.branches();
 
     bool authComplete = await ProxyService.box.authComplete();
 
@@ -147,7 +147,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<void> loadTenants(List<Business> businesses) async {
+  Future<void> loadTenants(List<IBusiness> businesses) async {
     bool authComplete = await ProxyService.box.authComplete();
     // Check for internet connectivity
     var connectivityResult = await Connectivity().checkConnectivity();
@@ -158,11 +158,11 @@ class AppService with ListenableServiceMixin {
     }
 
     // Iterate over businesses and perform the operations
-    for (Business business in businesses) {
+    for (IBusiness business in businesses) {
       await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
     }
 
-    for (Business business in businesses) {
+    for (IBusiness business in businesses) {
       await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
     }
   }

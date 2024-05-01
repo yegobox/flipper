@@ -4,14 +4,14 @@ import 'package:flipper_services/constants.dart';
 
 abstract class IsarApiInterface {
   Future<List<Product>> products({required int branchId});
-  Future<List<Tenant>> signup({required Map business});
+  Future<List<ITenant>> signup({required Map business});
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType});
   Future<IUser> login(
       {required String userPhone, required bool skipDefaultAppSetup});
-  Future<List<Business>> businesses({int? userId});
-  Future<Business> getOnlineBusiness({required int userId});
-  Future<List<Branch>> branches({int? businessId});
+  Future<List<IBusiness>> businesses({int? userId});
+  Future<IBusiness> getOnlineBusiness({required int userId});
+  Future<List<IBranch>> branches({int? businessId});
   Future<double> stocks({int? productId, int? variantId});
   Stream<double> getStockStream({int? productId, int? variantId});
   Future<List<ITransaction>> transactionsFuture({
@@ -52,7 +52,7 @@ abstract class IsarApiInterface {
   Future<Favorite?> getFavoriteByProdId({required int prodId});
   Future<Favorite?> getFavoriteByIndex({required int favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required int favIndex});
-  Stream<ITenant?> getDefaultTenant({required int businessId});
+  Stream<IITenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   Future<Product?> getProduct({required int id});
@@ -103,9 +103,9 @@ abstract class IsarApiInterface {
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
 
-  Future<List<Business>> getContacts();
+  Future<List<IBusiness>> getContacts();
 
-  Future<Business?> getBusiness({int? businessId});
+  Future<IBusiness?> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
@@ -149,12 +149,12 @@ abstract class IsarApiInterface {
 
   Future<int> userNameAvailable({required String name});
 
-  Future<List<ITenant>> tenants({int? businessId});
-  Future<ITenant?> getTenantBYUserId({required int userId});
-  Future<Branch?> activeBranch();
-  Future<ITenant?> getTenantBYPin({required int pin});
-  Future<List<ITenant>> tenantsFromOnline({required int businessId});
-  Future<Business?> getBusinessFromOnlineGivenId({required int id});
+  Future<List<IITenant>> tenants({int? businessId});
+  Future<IITenant?> getTenantBYUserId({required int userId});
+  Future<IBranch?> activeBranch();
+  Future<IITenant?> getTenantBYPin({required int pin});
+  Future<List<IITenant>> tenantsFromOnline({required int businessId});
+  Future<IBusiness?> getBusinessFromOnlineGivenId({required int id});
 
   Future<void> syncProduct(
       {required Product product,
@@ -172,9 +172,9 @@ abstract class IsarApiInterface {
 
   Future<Profile?> profile({required int businessId});
   Future<Profile?> updateProfile({required Profile profile});
-  Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
+  Future<ITenant> saveTenant(String phoneNumber, String name,
+      {required IBusiness business,
+      required IBranch branch,
       required String userType});
   Future<Pointss> addPoint({required int userId, required int point});
 
@@ -212,8 +212,8 @@ abstract class IsarApiInterface {
   Future<void> refund({required int itemId});
   Future<bool> isDrawerOpen({required int cashierId});
   Future<Drawers?> getDrawer({required int cashierId});
-  Future<Branch?> defaultBranch();
-  Future<Business?> defaultBusiness();
+  Future<IBranch?> defaultBranch();
+  Future<IBusiness?> defaultBusiness();
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
@@ -282,10 +282,10 @@ abstract class IsarApiInterface {
       {required String message, required Conversation latestConversation});
   Future<EBM?> getEbmByBranchId({required int branchId});
 
-  // Future<ITenant> authState({required int branchId});
+  // Future<IITenant> authState({required int branchId});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  Stream<ITenant?> authState({required int branchId});
+  Stream<IITenant?> authState({required int branchId});
 
   Future<List<UserActivity>> activities({required int userId});
   Future<void> recordUserActivity(
@@ -295,5 +295,5 @@ abstract class IsarApiInterface {
 
   void clear();
   Future<List<SyncRecord>> syncedModels({required int branchId});
-  Future<Permission?> permission({required int userId});
+  Future<IPermission?> permission({required int userId});
 }

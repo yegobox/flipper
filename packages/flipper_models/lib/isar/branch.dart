@@ -9,8 +9,8 @@ part 'branch.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Branch extends IJsonSerializable {
-  Branch({
+class IBranch extends IJsonSerializable {
+  IBranch({
     required this.isDefault,
     required this.action,
     required this.id,
@@ -22,7 +22,7 @@ class Branch extends IJsonSerializable {
     this.latitude,
     this.deletedAt,
   });
-  Branch.copy(Branch other, {bool? active, String? name})
+  IBranch.copy(IBranch other, {bool? active, String? name})
       : isDefault = other.isDefault,
         action = other.action,
         name = name ?? other.name,
@@ -46,10 +46,10 @@ class Branch extends IJsonSerializable {
 
   @Index()
   DateTime? deletedAt;
-  factory Branch.fromRecord(RecordModel record) =>
-      Branch.fromJson(record.toJson());
+  factory IBranch.fromRecord(RecordModel record) =>
+      IBranch.fromJson(record.toJson());
 
-  factory Branch.fromJson(Map<String, dynamic> json) {
+  factory IBranch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
 
@@ -61,9 +61,9 @@ class Branch extends IJsonSerializable {
 
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.created;
-    return _$BranchFromJson(json);
+    return _$IBranchFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() => _$BranchToJson(this);
+  Map<String, dynamic> toJson() => _$IBranchToJson(this);
 }

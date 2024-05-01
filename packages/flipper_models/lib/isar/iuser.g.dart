@@ -12,7 +12,7 @@ IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
       token: json['token'] as String,
       uid: json['uid'] as String,
       tenants: (json['tenants'] as List<dynamic>)
-          .map((e) => Tenant.fromJson(e as Map<String, dynamic>))
+          .map((e) => ITenant.fromJson(e as Map<String, dynamic>))
           .toList(),
       channels:
           (json['channels'] as List<dynamic>).map((e) => e as String).toList(),

@@ -5,14 +5,14 @@ import 'package:flipper_models/isar_models.dart';
 part 'tenant.g.dart';
 
 @JsonSerializable()
-class Tenant {
+class ITenant {
   late int id;
   String name;
   String phoneNumber;
   String? email; // Make email nullable
-  List<Permission> permissions;
-  List<Branch> branches;
-  List<Business> businesses;
+  List<IPermission> permissions;
+  List<IBranch> branches;
+  List<IBusiness> businesses;
   int businessId;
   bool nfcEnabled;
 
@@ -27,7 +27,7 @@ class Tenant {
   @ignore
   bool isLongPressed;
 
-  Tenant(
+  ITenant(
       {required this.id,
       required this.name,
       required this.phoneNumber,
@@ -41,16 +41,17 @@ class Tenant {
       required this.isDefault,
       this.isLongPressed = false,
       this.pin});
-  factory Tenant.fromRawJson(String str) => Tenant.fromJson(json.decode(str));
+  factory ITenant.fromRawJson(String str) => ITenant.fromJson(json.decode(str));
 
-  factory Tenant.fromJson(Map<String, dynamic> json) => _$TenantFromJson(json);
+  factory ITenant.fromJson(Map<String, dynamic> json) =>
+      _$ITenantFromJson(json);
 
-  Map<String, dynamic> toJson() => _$TenantToJson(this);
+  Map<String, dynamic> toJson() => _$ITenantToJson(this);
 
-  static List<Tenant> fromJsonList(String str) {
+  static List<ITenant> fromJsonList(String str) {
     final List<dynamic> jsonData = json.decode(str);
     return jsonData
-        .map((item) => Tenant.fromJson(item as Map<String, dynamic>))
+        .map((item) => ITenant.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 }

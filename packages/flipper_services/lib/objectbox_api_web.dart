@@ -7,7 +7,7 @@ late Isar isar;
 
 class ObjectBoxApi extends MobileUpload implements Api {
   @override
-  Future<List<Business>> getOnlineBusiness({required String userId}) {
+  Future<List<IBusiness>> getOnlineBusiness({required String userId}) {
     // TODO: implement getOnlineBusiness
     throw UnimplementedError();
   }

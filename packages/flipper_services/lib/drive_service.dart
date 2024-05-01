@@ -102,7 +102,7 @@ class GoogleDrive {
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
 
-  Future<void> updateBusiness(Business business) async {
+  Future<void> updateBusiness(IBusiness business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
 
@@ -142,7 +142,7 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    Business? business = await ProxyService.isar.getBusiness();
+    IBusiness? business = await ProxyService.isar.getBusiness();
     business!.backupFileId = fileUploaded.id;
     await ProxyService.isar.update(data: business);
     ProxyService.isar.update(data: business);

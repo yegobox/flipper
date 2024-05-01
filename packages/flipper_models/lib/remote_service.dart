@@ -149,7 +149,7 @@ mixin HandleItemMixin {
         }
         await ProxyService.isar.create(data: ebm);
         // update business
-        Business? business = await ProxyService.isar.getBusiness();
+        IBusiness? business = await ProxyService.isar.getBusiness();
         business!.bhfId = ebm.bhfId;
         business.taxServerUrl = ebm.taxServerUrl;
         business.tinNumber = ebm.tinNumber;

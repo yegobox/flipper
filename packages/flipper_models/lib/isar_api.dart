@@ -488,30 +488,31 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     }
   }
 
-  // get list of Business from isar where userId = userId
+  // get list of IBusiness from isar where userId = userId
   // if list is empty then get list from online
   @override
-  Future<List<Business>> businesses({int? userId}) async {
-    List<Business> businesses = [];
+  Future<List<IBusiness>> businesses({int? userId}) async {
+    List<IBusiness> businesses = [];
     if (userId != null) {
-      businesses = await isar.business.filter().userIdEqualTo(userId).findAll();
+      businesses =
+          await isar.iBusiness.filter().userIdEqualTo(userId).findAll();
     } else {
-      businesses = await isar.business.filter().deletedAtIsNull().findAll();
+      businesses = await isar.iBusiness.filter().deletedAtIsNull().findAll();
     }
 
     return businesses;
   }
 
   @override
-  Future<List<Branch>> branches({int? businessId}) async {
+  Future<List<IBranch>> branches({int? businessId}) async {
     // if in local isar we have no branch fetch it from online
     if (businessId != null) {
-      return await isar.branchs
+      return await isar.iBranchs
           .filter()
           .businessIdEqualTo(businessId)
           .findAll();
     } else {
-      return await isar.branchs.filter().deletedAtIsNull().findAll();
+      return await isar.iBranchs.filter().deletedAtIsNull().findAll();
     }
   }
 
@@ -682,7 +683,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<void> createGoogleSheetDoc({required String email}) async {
     // TODOre-work on this until it work 100%;
-    Business? business = await getBusiness();
+    IBusiness? business = await getBusiness();
     String docName = business!.name! + '- Report';
 
     await flipperHttpClient.post(
@@ -733,7 +734,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   @override
   Future<Product?> createProduct(
       {required Product product, bool skipRegularVariant = false}) async {
-    final Business? business = await getBusiness();
+    final IBusiness? business = await getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
     final int businessId = ProxyService.box.getBusinessId()!;
 
@@ -778,7 +779,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   Variant _createRegularVariant(
-      Product product, int branchId, Business? business) {
+      Product product, int branchId, IBusiness? business) {
     final int variantId = randomNumber();
     return Variant(
       lastTouched: DateTime.now(),
@@ -823,7 +824,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     ///for now manually enable ebm by default, this will enable us
     ///to fast test the ebm integration with no friction!
     return true;
-    // Business? business = await getBusiness();
+    // IBusiness? business = await getBusiness();
     // bool isEbmEnabled = business?.tinNumber != null &&
     //     business?.bhfId != null &&
     //     business?.dvcSrlNo != null &&
@@ -938,12 +939,12 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         break;
       case 'business':
         isar.writeTxn(() async {
-          isar.business.delete(id);
+          isar.iBusiness.delete(id);
         });
         break;
       case 'branch':
         isar.writeTxn(() async {
-          isar.branchs.delete(id);
+          isar.iBranchs.delete(id);
           return true;
         });
         break;
@@ -985,7 +986,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         );
         if (response.statusCode == 200) {
           isar.writeTxn(() async {
-            isar.iTenants.delete(id);
+            isar.iITenants.delete(id);
             return true;
           });
         }
@@ -1007,7 +1008,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     /// call to create attendance document
     /// get business from store
 
-    Business? business = await isar.business.get(businessId);
+    IBusiness? business = await isar.iBusiness.get(businessId);
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/createAttendanceDoc"),
       body: jsonEncode({
@@ -1028,32 +1029,33 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Business?> getBusiness({int? businessId}) async {
+  Future<IBusiness?> getBusiness({int? businessId}) async {
     if (businessId != null) {
-      return await isar.business.get(businessId);
+      return await isar.iBusiness.get(businessId);
     } else {
       ///FIXME: what will happen if a user has multiple business associated to him
       ///the code bellow suggest that the first in row will be returned which can be wrong.
       int? userId = ProxyService.box.getUserId();
-      return await isar.business.filter().userIdEqualTo(userId).findFirst();
+      return await isar.iBusiness.filter().userIdEqualTo(userId).findFirst();
     }
   }
 
   @override
-  Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
-    Business? business = await isar.business.filter().idEqualTo(id).findFirst();
+  Future<IBusiness?> getBusinessFromOnlineGivenId({required int id}) async {
+    IBusiness? business =
+        await isar.iBusiness.filter().idEqualTo(id).findFirst();
     if (business != null) return business;
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
       int id = randomNumber();
-      Business business = Business.fromJson(json.decode(response.body));
+      IBusiness business = IBusiness.fromJson(json.decode(response.body));
       // TODO: check if in incoming object we have an id
       business.id = id;
       isar.writeTxn(() async {
-        isar.business.put(business);
+        isar.iBusiness.put(business);
       });
-      return isar.business.get(id);
+      return isar.iBusiness.get(id);
     }
     return null;
   }
@@ -1064,7 +1066,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<List<Business>> getContacts() {
+  Future<List<IBusiness>> getContacts() {
     // TODO: implement getContacts
     throw UnimplementedError();
   }
@@ -1115,7 +1117,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     if (variation == null) {
       int variantId = randomNumber();
       // add variant to this product
-      Business? business = await getBusiness();
+      IBusiness? business = await getBusiness();
       String clip = 'flipper' +
           DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
@@ -1209,7 +1211,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Business> getOnlineBusiness({required int userId}) async {
+  Future<IBusiness> getOnlineBusiness({required int userId}) async {
     final response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
@@ -1217,17 +1219,18 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       throw SessionException(term: "session expired");
     }
     if (response.statusCode == 404) {
-      throw BusinessNotFoundException(term: "Business not found");
+      throw BusinessNotFoundException(term: "IBusiness not found");
     }
 
-    Business? business = await isar.business
-        .get(Business.fromJson(json.decode(response.body)).id!);
+    IBusiness? business = await isar.iBusiness
+        .get(IBusiness.fromJson(json.decode(response.body)).id!);
 
     if (business == null) {
       isar.writeTxn(() async {
-        isar.business.put(Business.fromJson(json.decode(response.body)));
+        isar.iBusiness.put(IBusiness.fromJson(json.decode(response.body)));
       });
-      business = await isar.business.filter().userIdEqualTo(userId).findFirst();
+      business =
+          await isar.iBusiness.filter().userIdEqualTo(userId).findFirst();
     }
     ProxyService.box.writeInt(key: 'businessId', value: business!.id!);
 
@@ -1374,10 +1377,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     ///logout the realm and delete realm file
     // await ProxyService.realm.logout();
     isar.writeTxn(() async {
-      isar.business.clear();
-      isar.branchs.clear();
-      isar.iTenants.clear();
-      isar.permissions.clear();
+      isar.iBusiness.clear();
+      isar.iBranchs.clear();
+      isar.iITenants.clear();
+      isar.iPermissions.clear();
       isar.userActivitys.clear();
       isar.pins.clear();
     });
@@ -1414,9 +1417,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
+  Future<ITenant> saveTenant(String phoneNumber, String name,
+      {required IBusiness business,
+      required IBranch branch,
       required String userType}) async {
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/tenant"),
@@ -1432,8 +1435,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       }),
     );
     if (response.statusCode == 200) {
-      Tenant jTenant = Tenant.fromRawJson(response.body);
-      ITenant iTenant = ITenant(
+      ITenant jTenant = ITenant.fromRawJson(response.body);
+      IITenant iTenant = IITenant(
           isDefault: jTenant.isDefault,
           id: randomNumber(),
           name: jTenant.name,
@@ -1447,59 +1450,59 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         for (var business in jTenant.businesses) {
           // Check if the business with the same ID already exists
           var existingBusiness =
-              await isar.business.filter().idEqualTo(business.id).findFirst();
+              await isar.iBusiness.filter().idEqualTo(business.id).findFirst();
           if (existingBusiness == null) {
-            isar.business.put(business);
+            isar.iBusiness.put(business);
           }
         }
 
         for (var branch in jTenant.branches) {
           // Check if the branch with the same ID already exists
           var existingBranch =
-              await isar.branchs.filter().idEqualTo(branch.id).findFirst();
+              await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
           if (existingBranch == null) {
-            isar.branchs.put(branch);
+            isar.iBranchs.put(branch);
           }
         }
 
         for (var permission in jTenant.permissions) {
           // Check if the permission with the same ID already exists
-          var existingPermission = await isar.permissions
+          var existingPermission = await isar.iPermissions
               .filter()
               .idEqualTo(permission.id)
               .findFirst();
           if (existingPermission == null) {
             // Permission doesn't exist, add it
-            isar.permissions.put(permission);
+            isar.iPermissions.put(permission);
           }
         }
       });
 
       isar.writeTxn(() async {
         var tenant =
-            await isar.iTenants.filter().idEqualTo(iTenant.id).findFirst();
+            await isar.iITenants.filter().idEqualTo(iTenant.id).findFirst();
         if (tenant == null) {
-          isar.iTenants.put(iTenant);
+          isar.iITenants.put(iTenant);
         }
       });
 
-      return Tenant.fromRawJson(response.body);
+      return ITenant.fromRawJson(response.body);
     } else {
       throw InternalServerError(term: "internal server error");
     }
   }
 
   @override
-  Future<List<Tenant>> signup({required Map business}) async {
+  Future<List<ITenant>> signup({required Map business}) async {
     log(business.toString(), name: "Signup");
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
     );
     if (response.statusCode == 200) {
-      for (Tenant tenant in Tenant.fromJsonList(response.body)) {
-        Tenant jTenant = tenant;
-        ITenant iTenant = ITenant(
+      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+        ITenant jTenant = tenant;
+        IITenant iTenant = IITenant(
             isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
@@ -1510,19 +1513,19 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
             phoneNumber: jTenant.phoneNumber);
 
         isar.writeTxn(() async {
-          isar.business.putAll(jTenant.businesses);
+          isar.iBusiness.putAll(jTenant.businesses);
         });
         isar.writeTxn(() async {
-          isar.branchs.putAll(jTenant.branches);
+          isar.iBranchs.putAll(jTenant.branches);
         });
         isar.writeTxn(() async {
-          isar.permissions.putAll(jTenant.permissions);
+          isar.iPermissions.putAll(jTenant.permissions);
         });
         isar.writeTxn(() async {
-          isar.iTenants.put(iTenant);
+          isar.iITenants.put(iTenant);
         });
       }
-      return Tenant.fromJsonList(response.body);
+      return ITenant.fromJsonList(response.body);
     } else {
       throw InternalServerError(term: response.body.toString());
     }
@@ -1623,8 +1626,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         );
       }
 
-      for (Tenant tenant in user.tenants) {
-        ITenant iTenant = ITenant(
+      for (ITenant tenant in user.tenants) {
+        IITenant iTenant = IITenant(
             isDefault: tenant.isDefault,
             id: tenant.id,
             name: tenant.name,
@@ -1636,21 +1639,21 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
             pin: tenant.pin);
 
         isar.writeTxn(() async {
-          isar.business.putAll(tenant.businesses);
+          isar.iBusiness.putAll(tenant.businesses);
         });
         isar.writeTxn(() async {
-          isar.branchs.putAll(tenant.branches);
+          isar.iBranchs.putAll(tenant.branches);
         });
         isar.writeTxn(() async {
-          isar.permissions.putAll(tenant.permissions);
+          isar.iPermissions.putAll(tenant.permissions);
         });
 
         isar.writeTxn(() async {
           if (user.id == iTenant.userId) {
             iTenant.sessionActive = true;
-            isar.iTenants.put(iTenant);
+            isar.iITenants.put(iTenant);
           } else {
-            isar.iTenants.put(iTenant);
+            isar.iITenants.put(iTenant);
           }
         });
       }
@@ -1715,7 +1718,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       {required double amount, required phoneNumber}) async {
     int userId = ProxyService.box.getUserId()!;
     var headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-    Business? bu = await getBusiness();
+    IBusiness? bu = await getBusiness();
     // ignore: fixme
     // FIXME: this endpoint is no longer working
     String businessName = bu!.name!;
@@ -2132,8 +2135,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       isar.writeTxn(() async {
         ProxyService.box
             .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
-        Business? business =
-            await isar.business.filter().userIdEqualTo(ebm.userId).findFirst();
+        IBusiness? business =
+            await isar.iBusiness.filter().userIdEqualTo(ebm.userId).findFirst();
         business
           ?..dvcSrlNo = ebm.dvcSrlNo
           ..tinNumber = ebm.tinNumber
@@ -2141,9 +2144,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
           ..taxServerUrl = ebm.taxServerUrl
           ..taxEnabled = true;
         if (localUpdate) {
-          isar.business.onUpdate(business!);
+          isar.iBusiness.onUpdate(business!);
         } else {
-          isar.business.onPut(business!);
+          isar.iBusiness.onPut(business!);
         }
       });
     }
@@ -2161,10 +2164,10 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         }
       });
     }
-    if (data is Business) {
+    if (data is IBusiness) {
       final business = data;
       isar.writeTxn(() async {
-        isar.business.put(business);
+        isar.iBusiness.put(business);
       });
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/business/${business.id}"),
@@ -2175,9 +2178,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       }
     }
 
-    if (data is Branch) {
+    if (data is IBranch) {
       isar.writeTxn(() async {
-        isar.branchs.put(data);
+        isar.iBranchs.put(data);
       });
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/branch/${data.id}"),
@@ -2224,9 +2227,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       //   throw InternalServerError(term: "error patching the counter");
       // }
     }
-    if (data is Branch) {
+    if (data is IBranch) {
       isar.writeTxn(() async {
-        isar.branchs.put(data);
+        isar.iBranchs.put(data);
       });
       try {
         await flipperHttpClient.patch(
@@ -2249,14 +2252,14 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
       );
       return response.statusCode;
     }
-    if (data is ITenant) {
+    if (data is IITenant) {
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
         body: jsonEncode(data.toJson()),
       );
       if (response.statusCode == 200) {
         isar.writeTxn(() async {
-          isar.iTenants.onPut(data);
+          isar.iITenants.onPut(data);
         });
       }
       return response.statusCode;
@@ -2524,22 +2527,22 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITenant>> tenants({int? businessId}) async {
+  Future<List<IITenant>> tenants({int? businessId}) async {
     if (businessId != null) {
-      return isar.iTenants.filter().businessIdEqualTo(businessId).findAll();
+      return isar.iITenants.filter().businessIdEqualTo(businessId).findAll();
     } else {
-      return isar.iTenants.filter().deletedAtIsNull().findAll();
+      return isar.iITenants.filter().deletedAtIsNull().findAll();
     }
   }
 
   @override
-  Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+  Future<List<IITenant>> tenantsFromOnline({required int businessId}) async {
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
-      for (Tenant tenant in Tenant.fromJsonList(response.body)) {
-        Tenant jTenant = tenant;
-        ITenant iTenant = ITenant(
+      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+        ITenant jTenant = tenant;
+        IITenant iTenant = IITenant(
             isDefault: jTenant.isDefault,
             id: jTenant.id,
             name: jTenant.name,
@@ -2550,15 +2553,15 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
             phoneNumber: jTenant.phoneNumber);
 
         isar.writeTxn(() async {
-          isar.business.putAll(jTenant.businesses);
-          isar.branchs.putAll(jTenant.branches);
-          isar.permissions.putAll(jTenant.permissions);
+          isar.iBusiness.putAll(jTenant.businesses);
+          isar.iBranchs.putAll(jTenant.branches);
+          isar.iPermissions.putAll(jTenant.permissions);
         });
         isar.writeTxn(() async {
-          isar.iTenants.put(iTenant);
+          isar.iITenants.put(iTenant);
         });
       }
-      return await isar.iTenants
+      return await isar.iITenants
           .filter()
           .businessIdEqualTo(businessId)
           .findAll();
@@ -2567,13 +2570,13 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Branch?> defaultBranch() async {
-    return await isar.branchs.filter().isDefaultEqualTo(true).findFirst();
+  Future<IBranch?> defaultBranch() async {
+    return await isar.iBranchs.filter().isDefaultEqualTo(true).findFirst();
   }
 
   @override
-  Future<Business?> defaultBusiness() async {
-    return await isar.business.filter().isDefaultEqualTo(true).findFirst();
+  Future<IBusiness?> defaultBusiness() async {
+    return await isar.iBusiness.filter().isDefaultEqualTo(true).findFirst();
   }
 
   @override
@@ -2968,13 +2971,13 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<ITenant?> getTenantBYUserId({required int userId}) async {
-    return await isar.iTenants.filter().userIdEqualTo(userId).findFirst();
+  Future<IITenant?> getTenantBYUserId({required int userId}) async {
+    return await isar.iITenants.filter().userIdEqualTo(userId).findFirst();
   }
 
   @override
-  Future<ITenant?> getTenantBYPin({required int pin}) async {
-    return await isar.iTenants
+  Future<IITenant?> getTenantBYPin({required int pin}) async {
+    return await isar.iITenants
         .filter()
         .pinEqualTo(pin)
         .and()
@@ -3596,9 +3599,9 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Stream<ITenant?> authState({required int branchId}) {
+  Stream<IITenant?> authState({required int branchId}) {
     int userId = ProxyService.box.getUserId()!;
-    return isar.iTenants
+    return isar.iITenants
         .filter()
         .userIdEqualTo(userId)
         .deletedAtIsNull()
@@ -3618,7 +3621,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
         log(noActivity.toString(), name: 'session');
         log(userId.toString(), name: 'session');
         if (noActivity) {
-          ITenant? tenant =
+          IITenant? tenant =
               await getTenantBYUserId(userId: ProxyService.box.getUserId()!);
           tenant?.sessionActive = false;
           update(data: tenant);
@@ -3673,8 +3676,8 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   //  @override
   ///TODO: @Richard add flag from backend to define if tenant is default
   @override
-  Stream<ITenant?> getDefaultTenant({required int businessId}) {
-    return isar.iTenants
+  Stream<IITenant?> getDefaultTenant({required int businessId}) {
+    return isar.iITenants
         .filter()
         .businessIdEqualTo(businessId)
         .deletedAtIsNull()
@@ -3754,13 +3757,13 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
   }
 
   @override
-  Future<Branch?> activeBranch() async {
-    return await isar.branchs.filter().isDefaultEqualTo(true).findFirst();
+  Future<IBranch?> activeBranch() async {
+    return await isar.iBranchs.filter().isDefaultEqualTo(true).findFirst();
   }
 
   @override
-  Future<Permission?> permission({required int userId}) async {
-    return await isar.permissions.filter().userIdEqualTo(userId).findFirst();
+  Future<IPermission?> permission({required int userId}) async {
+    return await isar.iPermissions.filter().userIdEqualTo(userId).findFirst();
   }
 
   @override

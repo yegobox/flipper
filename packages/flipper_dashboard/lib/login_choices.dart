@@ -16,7 +16,7 @@ class LoginChoices extends StatefulWidget {
 }
 
 class _LoginChoicesState extends State<LoginChoices> {
-  List<Business> _businesses = [];
+  List<IBusiness> _businesses = [];
   bool _isNext = false;
 
   final _routerService = locator<RouterService>();
@@ -26,9 +26,9 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<Business> _b = await ProxyService.isar.businesses();
-        List<Branch> branches = await ProxyService.isar.branches();
-        for (Branch branch in branches) {
+        List<IBusiness> _b = await ProxyService.isar.businesses();
+        List<IBranch> branches = await ProxyService.isar.branches();
+        for (IBranch branch in branches) {
           ProxyService.isar.update(data: branch..active = false);
         }
         model.branchesList(branches);
@@ -71,7 +71,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ListView.builder(
       itemCount: _businesses.length,
       itemBuilder: (context, index) {
-        Business business = _businesses[index];
+        IBusiness business = _businesses[index];
         return ListTile(
           tileColor: Colors.white,
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -96,7 +96,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   Future<void> chooseBusiness(
     CoreViewModel model,
-    Business selectedBusiness,
+    IBusiness selectedBusiness,
   ) async {
     model.setDefaultBusiness(business: selectedBusiness);
     ProxyService.box
@@ -105,9 +105,9 @@ class _LoginChoicesState extends State<LoginChoices> {
         .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
 
     for (int i = 0; i < _businesses.length; i++) {
-      Business currentBusiness = _businesses[i];
+      IBusiness currentBusiness = _businesses[i];
 
-      _businesses[i] = Business.copy(
+      _businesses[i] = IBusiness.copy(
         currentBusiness,
         active: currentBusiness.id == selectedBusiness.id,
         name: currentBusiness.name,
@@ -131,7 +131,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ListView.builder(
       itemCount: model.branches.length,
       itemBuilder: (context, index) {
-        Branch branch = model.branches[index];
+        IBranch branch = model.branches[index];
         return ListTile(
           tileColor: Colors.white,
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -152,14 +152,14 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   Future<void> chooseBranch(
     CoreViewModel model,
-    Branch branch,
+    IBranch branch,
   ) async {
     model.setDefaultBranch(branch: branch);
 
     for (int i = 0; i < model.branches.length; i++) {
-      Branch currentBranch = model.branches[i];
+      IBranch currentBranch = model.branches[i];
 
-      model.branches[i] = Branch.copy(
+      model.branches[i] = IBranch.copy(
         currentBranch,
         active: currentBranch.id == branch.id,
         name: currentBranch.name,

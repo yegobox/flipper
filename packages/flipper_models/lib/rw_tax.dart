@@ -223,7 +223,7 @@ class RWTax implements TaxApi {
     required Counter counter,
     String? purchaseCode,
   }) async {
-    Business? business = await ProxyService.isar.getBusiness();
+    IBusiness? business = await ProxyService.isar.getBusiness();
     String date = DateTime.now()
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')

@@ -123,7 +123,7 @@ class CronService {
   }
 
   Future<void> _setupFirebase() async {
-    Business? business = await ProxyService.isar.getBusiness();
+    IBusiness? business = await ProxyService.isar.getBusiness();
     ProxyService.syncFirestore.configure();
     String? token;
 

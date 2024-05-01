@@ -6,19 +6,19 @@ part of 'tenant.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Tenant _$TenantFromJson(Map<String, dynamic> json) => Tenant(
+ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       id: json['id'] as int,
       name: json['name'] as String,
       phoneNumber: json['phoneNumber'] as String,
       email: json['email'] as String?,
       permissions: (json['permissions'] as List<dynamic>)
-          .map((e) => Permission.fromJson(e as Map<String, dynamic>))
+          .map((e) => IPermission.fromJson(e as Map<String, dynamic>))
           .toList(),
       branches: (json['branches'] as List<dynamic>)
-          .map((e) => Branch.fromJson(e as Map<String, dynamic>))
+          .map((e) => IBranch.fromJson(e as Map<String, dynamic>))
           .toList(),
       businesses: (json['businesses'] as List<dynamic>)
-          .map((e) => Business.fromJson(e as Map<String, dynamic>))
+          .map((e) => IBusiness.fromJson(e as Map<String, dynamic>))
           .toList(),
       businessId: json['businessId'] as int,
       nfcEnabled: json['nfcEnabled'] as bool,
@@ -28,7 +28,7 @@ Tenant _$TenantFromJson(Map<String, dynamic> json) => Tenant(
       pin: json['pin'] as int?,
     );
 
-Map<String, dynamic> _$TenantToJson(Tenant instance) => <String, dynamic>{
+Map<String, dynamic> _$ITenantToJson(ITenant instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'phoneNumber': instance.phoneNumber,

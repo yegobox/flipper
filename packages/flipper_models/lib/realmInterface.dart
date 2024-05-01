@@ -2,9 +2,11 @@ import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/constants.dart';
 
+import 'isar/tenant.dart';
+
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
-  Future<List<Tenant>> signup({required Map business});
+  Future<List<ITenant>> signup({required Map business});
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType});
   // Future<IUser> login(
@@ -52,7 +54,7 @@ abstract class RealmApiInterface {
   Future<Favorite?> getFavoriteByProdId({required int prodId});
   Future<Favorite?> getFavoriteByIndex({required int favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required int favIndex});
-  Stream<ITenant?> getDefaultTenant({required int businessId});
+  Stream<Tenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   Future<Product?> getProduct({required int id});
@@ -150,9 +152,9 @@ abstract class RealmApiInterface {
   Future<int> userNameAvailable({required String name});
 
   Future<List<ITenant>> tenants({int? businessId});
-  Future<ITenant?> getTenantBYUserId({required int userId});
+  Future<Tenant?> getTenantBYUserId({required int userId});
   Future<Branch?> activeBranch();
-  Future<ITenant?> getTenantBYPin({required int pin});
+  Future<Tenant?> getTenantBYPin({required int pin});
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
@@ -285,7 +287,7 @@ abstract class RealmApiInterface {
   // Future<ITenant> authState({required int branchId});
 
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  Stream<ITenant?> authState({required int branchId});
+  Stream<Tenant?> authState({required int branchId});
 
   // Future<List<UserActivity>> activities({required int userId});
   Future<void> recordUserActivity(
