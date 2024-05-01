@@ -291,8 +291,7 @@ class RealmSync<M extends IJsonSerializable>
 
   @override
   Future<Stock?> addStockToVariant({required Variant variant}) {
-    // TODO: implement addStockToVariant
-    throw UnimplementedError();
+    Stock stock = Stock( ObjectId,retailPrice: variant.retailPrice,)
   }
 
   @override
