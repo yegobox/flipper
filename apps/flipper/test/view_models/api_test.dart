@@ -1,39 +1,39 @@
+import 'package:flipper_models/RealmSync.dart';
 import 'package:test/test.dart';
-import 'common.dart';
 
 void main() {
-  group('Isar API', () {
+  group('Isar Realm API!', () {
     // late Product product;
     // late Order order;
-
+    RealmSync realm = RealmSync();
     setUpAll(() async {
-      // registerServices();
-      // await setupLocator();
-      // ProxyService.box.write(key: 'userId', value: 1);
-      // ProxyService.box.write(key: 'businessId', value: 1);
-      // ProxyService.box.write(key: 'branchId', value: 1);
+      await realm.configure(inTesting: true);
     });
 
-    tearDownAll(() {
-      // unregisterServices();
-      // ProxyService.box.remove(key: "userId");
-      // ProxyService.box.remove(key: "businessId");
-      // ProxyService.box.remove(key: "branchId");
-    });
+    tearDownAll(() {});
 
-    isarTest('Test we have a Testing product', () async {
-      // expect(1, 1);
-      // product = await ProxyService.isarApi
-      //     .createProduct(product: Product()..name = "Testing");
-      // expect(product, isA<Product>());
-      // expect("Testing", product.name);
-      expect(1, 1);
-    });
-
-    isarTest('Test can create order', () async {
-      // order = await ProxyService.isar.manageOrder();
-      // expect(order, isA<Order>());
-      expect(1, 1);
+    test('Realm API', () async {
+      expect(2, 2);
     });
   });
 }
+
+// https://stackoverflow.com/questions/49004259/hot-reload-during-unit-testing
+// https://www.tobinharris.com/past/2020/6/12/automatically-running-flutter-tests-when-a-file-changes/
+// https://docs.page/invertase/spec
+// https://medium.com/flutter-community/shortening-flutter-test-feedback-cycle-in-vs-code-890ab15c0b2d
+
+
+// import 'package:flutter_test/flutter_test.dart';
+// import 'package:realm/realm.dart';
+// import 'package:realm_unittest/main.dart';
+
+// void main() {
+//   test('Test with Realm', () {
+//     final realm = Realm(Configuration.inMemory([Counter.schema]));
+//     realm.write(() {
+//       realm.add(Counter(0));
+//     });
+//     expect(realm.all<Counter>().first.value, 0);
+//   });
+// }

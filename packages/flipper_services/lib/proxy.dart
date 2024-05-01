@@ -1,6 +1,7 @@
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/RealmSync.dart';
 import 'package:flipper_models/http_client_interface.dart';
+import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
@@ -64,6 +65,7 @@ final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
 final IsarApiInterface _isar = getIt<IsarApiInterface>();
+final RealmApiInterface _realm = getIt<RealmApiInterface>();
 final TaxApi _tax = getIt<TaxApi>();
 final WhatsApp _whatsApp = getIt<WhatsApp>();
 final Messaging _messaging = getIt<Messaging>();
@@ -80,6 +82,7 @@ abstract class ProxyService {
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
   static IsarApiInterface get isar => _isar;
+  static RealmApiInterface get realm => _realm;
 
   static EventInterface get event => _event;
   static Crash get crash => _crash;
@@ -103,7 +106,7 @@ abstract class ProxyService {
   static Review get review => _review;
   static Sync get sync => _syncApi;
   static SyncFirestore get syncFirestore => _syncFirestore;
-  static SyncReaml get realm => _syncRealm;
+  // static SyncReaml get synci => _syncRealm;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

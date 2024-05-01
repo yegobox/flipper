@@ -10,19 +10,6 @@ part 'itenant.g.dart';
 @JsonSerializable()
 @Collection()
 class ITenant extends IJsonSerializable {
-  ITenant(
-      {required this.id,
-      required this.name,
-      required this.phoneNumber,
-      required this.email,
-      required this.nfcEnabled,
-      required this.businessId,
-      required this.userId,
-      required this.isDefault,
-      this.deletedAt,
-      this.sessionActive,
-      this.isLongPressed = false,
-      this.pin});
   Id? id;
   String name;
   String phoneNumber;
@@ -50,6 +37,20 @@ class ITenant extends IJsonSerializable {
   ///but used in ui to achieve some functionality
   @ignore
   bool isLongPressed;
+
+  ITenant(
+      {required this.id,
+      required this.name,
+      required this.phoneNumber,
+      required this.email,
+      required this.nfcEnabled,
+      required this.businessId,
+      required this.userId,
+      required this.isDefault,
+      this.deletedAt,
+      this.sessionActive,
+      this.isLongPressed = false,
+      this.pin});
   factory ITenant.fromRecord(RecordModel record) =>
       ITenant.fromJson(record.toJson());
 

@@ -53,21 +53,21 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
       //await ProxyService.realm.configure();
       if (object is TransactionItem) {
         // log(object.toJson().toString(), name: 'onPut');
-        ProxyService.realm.onSave<TransactionItem>(item: object);
+        // ProxyService.realm.onSave<TransactionItem>(item: object);
       }
       if (object is ITransaction) {
         // log(object.toJson().toString(), name: 'onPut');
-        ProxyService.realm.onSave<ITransaction>(item: object);
+        // ProxyService.realm.onSave<ITransaction>(item: object);
       }
 
       if (object is Product) {
         // log(object.toJson().toString(), name: 'onPut');
-        ProxyService.realm.onSave<Product>(item: object);
+        // ProxyService.realm.onSave<Product>(item: object);
       }
 
       if (object is Stock) {
         // log(object.toJson().toString(), name: 'onPut');
-        ProxyService.realm.onSave<Stock>(item: object);
+        // ProxyService.realm.onSave<Stock>(item: object);
       }
       if (object is Variant) {
         // log(object.toJson().toString(), name: 'onPut');
@@ -86,19 +86,19 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
         ProxyService.isar.update(data: variant, localUpdate: true);
 
         /// save extra fields that where not provided
-        ProxyService.realm.onSave<Variant>(item: variant);
+        // ProxyService.realm.onSave<Variant>(item: variant);
       }
       if (object is IUnit) {
-        ProxyService.realm.onSave<IUnit>(item: object);
+        // ProxyService.realm.onSave<IUnit>(item: object);
       }
       if (object is Receipt) {
-        ProxyService.realm.onSave<Receipt>(item: object);
+        // ProxyService.realm.onSave<Receipt>(item: object);
       }
       if (object is Counter) {
-        ProxyService.realm.onSave<Counter>(item: object);
+        // ProxyService.realm.onSave<Counter>(item: object);
       }
       if (object is Customer) {
-        ProxyService.realm.onSave<Customer>(item: object);
+        // ProxyService.realm.onSave<Customer>(item: object);
       }
     }
 

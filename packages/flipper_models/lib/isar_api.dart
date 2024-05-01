@@ -1372,7 +1372,7 @@ class IsarAPI<M> with IsolateHandler implements IsarApiInterface {
     await firebase.FirebaseAuth.instance.signOut();
 
     ///logout the realm and delete realm file
-    await ProxyService.realm.logout();
+    // await ProxyService.realm.logout();
     isar.writeTxn(() async {
       isar.business.clear();
       isar.branchs.clear();

@@ -7,6 +7,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/mocks/isarApiMock.dart';
+import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -16,7 +17,6 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
-import 'package:flipper_models/sync.dart';
 import 'package:flipper_services/abstractions/system_time.dart';
 import 'package:flipper_services/billing_service.dart';
 import 'package:flipper_services/blue_thooth_service.dart';
@@ -75,7 +75,7 @@ abstract class ServicesModule {
   }
 
   @preResolve
-  Future<RemoteInterface> get remoteApi async {
+  Future<RemoteInterface> remoteApi() async {
     try {
       return await RemoteService();
     } catch (e) {
@@ -85,7 +85,7 @@ abstract class ServicesModule {
   }
 
   @preResolve
-  Future<HttpClientInterface> get httpClient async {
+  Future<HttpClientInterface> httpClient() async {
     if ((const bool.fromEnvironment('Test') == true)) {
       return MockHttpClient();
     } else {
@@ -254,7 +254,7 @@ abstract class ServicesModule {
 
   @preResolve
   @LazySingleton()
-  Future<LocalStorage> get box async {
+  Future<LocalStorage> box() async {
     if ((const bool.fromEnvironment('Test') == true)) {
       return await SharedPreferenceStorageMock().initializePreferences();
     } else {
@@ -274,6 +274,13 @@ abstract class ServicesModule {
 
       return await IsarAPI().getInstance();
     }
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<RealmApiInterface> realmApi() async {
+    return await RealmSync()
+        .configure(inTesting: bool.fromEnvironment('Test') == true);
   }
 
   //TODOcheck if code from LanguageService can work fully on windows
@@ -339,10 +346,10 @@ abstract class ServicesModule {
     return CronService();
   }
 
-  @LazySingleton()
-  Sync sync() {
-    return Sync.create();
-  }
+  // @LazySingleton()
+  // Sync sync() {
+  //   return Sync.create();
+  // }
 
   @LazySingleton()
   SyncFirestore syncFirestore() {

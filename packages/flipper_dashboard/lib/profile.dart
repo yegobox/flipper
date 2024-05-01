@@ -147,7 +147,7 @@ class PDesktop extends StatelessWidget {
                 if (value == "syncCounter") {
                   log('sync counter selected');
 
-                  await ProxyService.realm.syncCounter();
+                  // await ProxyService.realm.syncCounter();
 
                   showSnackBar(context, "Your counter is up to date",
                       textColor: Colors.white, backgroundColor: Colors.green);

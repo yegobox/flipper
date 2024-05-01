@@ -6,21 +6,6 @@ part 'tenant.g.dart';
 
 @JsonSerializable()
 class Tenant {
-  Tenant(
-      {required this.id,
-      required this.name,
-      required this.phoneNumber,
-      this.email, // Allow nullable email
-      required this.permissions,
-      required this.branches,
-      required this.businesses,
-      required this.businessId,
-      required this.nfcEnabled,
-      required this.userId,
-      required this.isDefault,
-      this.isLongPressed = false,
-      this.pin});
-
   late int id;
   String name;
   String phoneNumber;
@@ -42,6 +27,20 @@ class Tenant {
   @ignore
   bool isLongPressed;
 
+  Tenant(
+      {required this.id,
+      required this.name,
+      required this.phoneNumber,
+      this.email, // Allow nullable email
+      required this.permissions,
+      required this.branches,
+      required this.businesses,
+      required this.businessId,
+      required this.nfcEnabled,
+      required this.userId,
+      required this.isDefault,
+      this.isLongPressed = false,
+      this.pin});
   factory Tenant.fromRawJson(String str) => Tenant.fromJson(json.decode(str));
 
   factory Tenant.fromJson(Map<String, dynamic> json) => _$TenantFromJson(json);

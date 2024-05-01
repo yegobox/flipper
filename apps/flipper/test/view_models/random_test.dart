@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('generateRandomString returns a string of length 15', () {
-    final result = randomNumber();
+    final result = randomString();
     expect(result, isA<String>());
     expect(result.toString().length, equals(15));
   });

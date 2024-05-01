@@ -1,7 +1,5 @@
 library flipper_models;
 
-import 'package:flipper_models/isar/random.dart';
-
 import 'DateTimeConverter.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';

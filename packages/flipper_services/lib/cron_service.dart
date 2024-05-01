@@ -37,7 +37,7 @@ class CronService {
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     await initDependencies();
-    await ProxyService.sync.pull();
+    // await ProxyService.sync.pull();
     sendPort.send('Done sending data to http server');
   }
 
@@ -85,14 +85,13 @@ class CronService {
     // create a compute function to keep track of unsaved data back to EBM do this in background
     await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     await _setupFirebase();
-    await _setupRealm();
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
     if (!isWeb) {
-      ProxyService.realm.pull();
+      // ProxyService.realm.pull();
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      ProxyService.realm.pull();
+      // ProxyService.realm.pull();
     });
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
@@ -140,7 +139,7 @@ class CronService {
   Future<void> _syncPullData() async {
     if (ProxyService.remoteConfig.isSyncAvailable() &&
         ProxyService.remoteConfig.isHttpSyncAvailable()) {
-      ProxyService.sync.pull();
+      // ProxyService.sync.pull();
     }
   }
 
@@ -187,12 +186,6 @@ class CronService {
 
   Duration _getDemoPrintDuration() {
     return Duration(minutes: kDebugMode ? 10 : 20);
-  }
-
-  Future<void> _setupRealm() async {
-    if (!isWeb) {
-      await ProxyService.realm.configure();
-    }
   }
 
   Duration _getHeartBeatDuration() {

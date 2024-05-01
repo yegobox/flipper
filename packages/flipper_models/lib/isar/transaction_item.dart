@@ -96,6 +96,9 @@ class TransactionItem extends IJsonSerializable {
   DateTime? lastTouched;
   @JsonKey(fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
   DateTime? deletedAt;
+  String action;
+
+  int branchId;
 
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
@@ -161,10 +164,6 @@ class TransactionItem extends IJsonSerializable {
     this.lastTouched,
     this.deletedAt,
   });
-
-  String action;
-
-  int branchId;
 
   factory TransactionItem.fromRecord(RecordModel record) =>
       TransactionItem.fromJson(record.toJson());
