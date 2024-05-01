@@ -204,7 +204,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         },
         child: Scaffold(
           appBar: _buildAppBar(),
-          body: StreamBuilder<ITenant?>(
+          body: StreamBuilder<IITenant?>(
             stream: ProxyService.isar
                 .authState(branchId: ProxyService.box.getBranchId() ?? 0),
             builder: (context, snapshot) {
@@ -236,7 +236,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   Widget _buildAppLayoutDrawer(BuildContext context, CoreViewModel model,
-      AsyncSnapshot<ITenant?> snapshot) {
+      AsyncSnapshot<IITenant?> snapshot) {
     if (snapshot.hasData &&
         !(snapshot.data!.sessionActive == null
             ? false
@@ -254,7 +254,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _handleSessionInactive(
-      BuildContext context, CoreViewModel model, ITenant tenant) {
+      BuildContext context, CoreViewModel model, IITenant tenant) {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
           (tenant.pin != null && tenant.pin != 0)) {
@@ -265,20 +265,20 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Future<void> _showLocalAuthOverlay(
       BuildContext context, CoreViewModel model) async {
-    List<ITenant> tenants = await ProxyService.isar
+    List<IITenant> tenants = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     screenLock(
       context: context,
       correctString: model.passCode,
       canCancel: false,
       onUnlocked: () async {
-        ITenant? tenant = await ProxyService.isar
+        IITenant? tenant = await ProxyService.isar
             .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
         model.weakUp(userId: tenant!.userId, pin: model.passCode);
         Navigator.of(context).maybePop();
       },
       onValidate: (input) async {
-        for (ITenant tenant in tenants) {
+        for (IITenant tenant in tenants) {
           log(tenant.pin.toString(), name: 'given pins');
           if (input.allMatches(tenant.pin.toString()).isNotEmpty) {
             model.passCode = input;

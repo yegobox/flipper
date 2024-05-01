@@ -27,11 +27,11 @@ class FlipperBaseModel extends ReactiveViewModel {
     _routerService.navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
   }
 
-  List<ITenant> _tenants = [];
-  List<ITenant> get tenants => _tenants;
+  List<IITenant> _tenants = [];
+  List<IITenant> get tenants => _tenants;
 
   Future<void> loadTenants() async {
-    List<ITenant> users = await ProxyService.isar
+    List<IITenant> users = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     _tenants = [...users];
     rebuildUi();

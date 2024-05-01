@@ -39,8 +39,9 @@ Widget SettingLayout(
                     ),
                   ),
                   onPressed: (BuildContext context) async {
-                    ITenant? tenant = await ProxyService.isar.getTenantBYUserId(
-                        userId: ProxyService.box.getUserId()!);
+                    IITenant? tenant = await ProxyService.isar
+                        .getTenantBYUserId(
+                            userId: ProxyService.box.getUserId()!);
                     _routerService
                         .navigateTo(DevicesRoute(pin: tenant?.userId));
                   },

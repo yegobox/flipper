@@ -10,7 +10,7 @@ class MyDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          FutureBuilder<ITenant?>(
+          FutureBuilder<IITenant?>(
               future: ProxyService.isar
                   .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
               builder: (context, snapshot) {

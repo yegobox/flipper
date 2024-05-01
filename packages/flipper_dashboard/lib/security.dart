@@ -50,7 +50,7 @@ class SecurityState extends ConsumerState<Security> {
                         ),
                         SizedBox(height: 10),
                         Flexible(
-                          child: StreamBuilder<ITenant?>(
+                          child: StreamBuilder<IITenant?>(
                               stream: ProxyService.isar.getDefaultTenant(
                                   businessId:
                                       ProxyService.box.getBusinessId()!),

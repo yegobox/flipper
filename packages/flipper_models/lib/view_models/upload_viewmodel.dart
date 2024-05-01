@@ -69,7 +69,7 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void updateBusinessProfile({required String url}) async {
-    ITenant? tenant = await ProxyService.isar
+    IITenant? tenant = await ProxyService.isar
         .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
     // update business as well as for this time tenant is the same as busienss
 

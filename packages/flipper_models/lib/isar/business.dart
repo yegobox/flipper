@@ -141,9 +141,9 @@ class IBusiness extends IJsonSerializable {
       json['userId'] = int.tryParse(json['userId']) ?? json['userId'];
     }
 
-    return _$BusinessFromJson(json);
+    return _$IBusinessFromJson(json);
   }
 
   @override
-  Map<String, dynamic> toJson() => _$BusinessToJson(this);
+  Map<String, dynamic> toJson() => _$IBusinessToJson(this);
 }

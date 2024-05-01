@@ -80,7 +80,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<ITenant?> authState({required int branchId}) {
+  Stream<IITenant?> authState({required int branchId}) {
     // TODO: implement authState
     throw UnimplementedError();
   }
@@ -329,7 +329,7 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Stream<ITenant?> getDefaultTenant({required int businessId}) {
+  Stream<IITenant?> getDefaultTenant({required int businessId}) {
     // TODO: implement getDefaultTenant
     throw UnimplementedError();
   }
@@ -498,13 +498,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<ITenant?> getTenantBYPin({required int pin}) {
+  Future<IITenant?> getTenantBYPin({required int pin}) {
     // TODO: implement getTenantBYPin
     throw UnimplementedError();
   }
 
   @override
-  Future<ITenant?> getTenantBYUserId({required int userId}) {
+  Future<IITenant?> getTenantBYUserId({required int userId}) {
     // TODO: implement getTenantBYUserId
     throw UnimplementedError();
   }
@@ -861,13 +861,13 @@ class IsarAPIMock<M> implements IsarApiInterface {
   }
 
   @override
-  Future<List<ITenant>> tenants({int? businessId}) {
+  Future<List<IITenant>> tenants({int? businessId}) {
     // TODO: implement tenants
     throw UnimplementedError();
   }
 
   @override
-  Future<List<ITenant>> tenantsFromOnline({required int businessId}) {
+  Future<List<IITenant>> tenantsFromOnline({required int businessId}) {
     // TODO: implement tenantsFromOnline
     throw UnimplementedError();
   }

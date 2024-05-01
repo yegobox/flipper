@@ -2,8 +2,8 @@ import 'package:flipper_models/isar_models.dart';
 
 final List<CollectionSchema> models = [
   ITransactionSchema,
-  BusinessSchema,
-  BranchSchema,
+  IBusinessSchema,
+  IBranchSchema,
   TransactionItemSchema,
   ProductSchema,
   VariantSchema,
@@ -22,8 +22,8 @@ final List<CollectionSchema> models = [
   PinSchema,
   ReceiptSchema,
   DrawersSchema,
-  ITenantSchema,
-  PermissionSchema,
+  IITenantSchema,
+  IPermissionSchema,
   CounterSchema,
   TokenSchema,
   SocialSchema,

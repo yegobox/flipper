@@ -826,7 +826,8 @@ class CoreViewModel extends FlipperBaseModel
       activity: 'session',
     );
     ProxyService.box.writeInt(key: 'userId', value: userId);
-    ITenant? tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
+    IITenant? tenant =
+        await ProxyService.isar.getTenantBYUserId(userId: userId);
     tenant?.sessionActive = true;
     ProxyService.isar.update(data: tenant);
   }
@@ -838,7 +839,7 @@ class CoreViewModel extends FlipperBaseModel
     /// set the pin for the current business default tenant
     if (business != null) {
       /// get the default tenant
-      ITenant? tenant = await ProxyService.isar.getTenantBYUserId(
+      IITenant? tenant = await ProxyService.isar.getTenantBYUserId(
         userId: business.userId!,
       );
       final response = await ProxyService.isar.update(

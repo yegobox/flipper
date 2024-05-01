@@ -7,7 +7,7 @@ import 'package:flipper_models/isar_models.dart';
 class ListTenants extends StatelessWidget {
   ListTenants(
       {required this.tenants, required this.product, required this.model});
-  final List<ITenant> tenants;
+  final List<IITenant> tenants;
   final Product product;
   final ProductViewModel model;
   @override
