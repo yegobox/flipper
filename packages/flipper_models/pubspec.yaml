@@ -41,7 +41,7 @@ dependencies:
   isolated_worker: ^0.1.1
   # adding realm to replace firestore on desktop in transporting data to cloud
   realm: ^2.1.0
-  realm_dart: ^2.1.0
+  #realm_dart: ^2.1.0
   uuid: ^4.3.3
   dart_mappable: ^4.2.1
   dio: ^5.4.3+1

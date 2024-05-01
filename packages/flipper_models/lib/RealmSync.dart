@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realmInterface.dart';
@@ -225,28 +226,67 @@ class RealmSync<M extends IJsonSerializable>
   }
 
   @override
-  Future<Branch?> activeBranch() {
-    // TODO: implement activeBranch
-    throw UnimplementedError();
+  Future<Branch?> activeBranch() async {
+    // TODO: since this will be cross shared to avoid users accessing other branch data also add branchId to the query
+    // and also because this will be using in unit testing avoid using something that will require getIt instance
+    return realm!.query<Branch>(r'isDefault == $0', [true]).firstOrNull;
   }
 
   @override
-  Future<Category?> activeCategory({required int branchId}) {
-    // TODO: implement activeCategory
-    throw UnimplementedError();
+  Future<Category?> activeCategory({required int branchId}) async {
+    return realm!.query<Category>(
+        r'focused == $0 && active == $1 && branchId == $2 && deletedAt == null',
+        [true, true, branchId]).firstOrNull;
   }
 
   @override
-  Future<Customer?> addCustomer(
-      {required Customer customer, required int transactionId}) {
-    // TODO: implement addCustomer
-    throw UnimplementedError();
+  Future<Customer?> addCustomer({
+    required Customer customer,
+    required int transactionId,
+  }) async {
+    try {
+      // Open a write transaction
+      realm!.write(() {
+        // Add the customer to the Realm
+        realm!.add(customer, update: true);
+
+        // Get the transaction from Realm
+        final transaction =
+            realm!.all<ITransaction>().firstWhere((t) => t.id == transactionId);
+
+        // Update the transaction with the customer ID
+        transaction.customerId = customer.id;
+      });
+
+      return realm!.query<Customer>(r'id == $0', [customer.id]).first;
+    } catch (e) {
+      print('Failed to add customer: $e');
+      rethrow;
+    }
   }
 
   @override
-  Future<int> addFavorite({required Favorite data}) {
-    // TODO: implement addFavorite
-    throw UnimplementedError();
+  Future<int> addFavorite({required Favorite data}) async {
+    try {
+      final fav = realm!.query<Favorite>(
+          r'favIndex == $0 && deletedAt == null', [data.favIndex!]).firstOrNull;
+
+      if (fav == null) {
+        data.id = randomNumber();
+        await realm!.write(() {
+          realm!.add(data);
+        });
+        return 200;
+      } else {
+        await realm!.write(() {
+          fav.productId = data.productId;
+        });
+        return 200;
+      }
+    } catch (e) {
+      print('Error adding favorite: $e');
+      rethrow;
+    }
   }
 
   @override

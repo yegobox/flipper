@@ -3,9 +3,10 @@ part 'schemas.realm.dart';
 
 @RealmModel()
 class _Branch {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  ObjectId? realmId;
   bool? active;
 
   String? description;
@@ -14,20 +15,21 @@ class _Branch {
   String? longitude;
   String? latitude;
 
-  late bool isDefault;
+  bool? isDefault;
 
   DateTime? lastTouched;
 
-  late String action;
+  String? action;
 
   DateTime? deletedAt;
 }
 
 @RealmModel()
 class _Business {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   String? name;
   String? currency;
   String? categoryId;
@@ -80,9 +82,10 @@ class _Business {
 
 @RealmModel()
 class _Category {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   late bool active;
   late bool focused;
   late String name;
@@ -95,9 +98,10 @@ class _Category {
 
 @RealmModel()
 class _PColor {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   late String? name;
   // List<String>? colors;
   late int? branchId;
@@ -112,9 +116,10 @@ class _PColor {
 
 @RealmModel()
 class _Conversation {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   late String userName;
   late String body;
   String? avatar;
@@ -144,9 +149,10 @@ class _Conversation {
 
 @RealmModel()
 class _Counter {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late int businessId;
   late int branchId;
@@ -159,9 +165,10 @@ class _Counter {
 
 @RealmModel()
 class _Customer {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   //customer name
   late String custNm;
@@ -207,9 +214,10 @@ class _Customer {
 
 @RealmModel()
 class _Device {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String linkingCode;
   late String deviceName;
@@ -230,9 +238,10 @@ class _Device {
 
 @RealmModel()
 class _Discount {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String name;
 
@@ -243,9 +252,10 @@ class _Discount {
 
 @RealmModel()
 class _Drawers {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late double openingBalance;
   late double closingBalance;
@@ -269,9 +279,10 @@ class _Drawers {
 
 @RealmModel()
 class _EBM {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String bhfId;
   late int tinNumber;
@@ -288,9 +299,10 @@ class _EBM {
 
 @RealmModel()
 class _Favorite {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   int? favIndex;
 
@@ -306,9 +318,10 @@ class _Favorite {
 
 @RealmModel()
 class _Product {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String name;
   String? description;
@@ -333,9 +346,10 @@ class _Product {
 
 @RealmModel()
 class _Receipt {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String resultCd;
   late String resultMsg;
@@ -359,9 +373,10 @@ class _Receipt {
 
 @RealmModel()
 class _Setting {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   String? email;
 
@@ -390,19 +405,20 @@ class _Setting {
 
 @RealmModel()
 class _Stock {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  ObjectId? realmId;
 
-  late int branchId;
-  late int variantId;
+  int? branchId;
+  int? variantId;
   double? lowStock;
-  late double currentStock;
+  double? currentStock;
 
   bool? canTrackingStock;
   bool? showLowStockAlert;
 
-  late int productId;
+  int? productId;
   bool? active;
   // the value of stock is currentStock * retailPrice
   double? value;
@@ -414,7 +430,7 @@ class _Stock {
 
   DateTime? lastTouched;
 
-  late String action;
+  String? action;
 
   DateTime? deletedAt;
 
@@ -422,14 +438,15 @@ class _Stock {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  late bool ebmSynced;
+  bool? ebmSynced;
 }
 
 @RealmModel()
 class _Variant {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   DateTime? deletedAt;
 
@@ -542,9 +559,10 @@ class _Variant {
 
 @RealmModel()
 class _TransactionItem {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String name;
 
@@ -637,9 +655,10 @@ class _TransactionItem {
 
 @RealmModel()
 class _ITransaction {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String reference;
   String? categoryId;
@@ -696,9 +715,10 @@ class _ITransaction {
 
 @RealmModel()
 class _IUnit {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late int branchId;
   late String name;
@@ -712,9 +732,10 @@ class _IUnit {
 
 @RealmModel()
 class _ITenant {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String name;
   late String phoneNumber;
@@ -743,9 +764,10 @@ class _ITenant {
 
 @RealmModel()
 class _Voucher {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
   int? value;
   int? interval;
   bool? used;
@@ -756,9 +778,10 @@ class _Voucher {
 
 @RealmModel()
 class _Tenant {
+  int? id;
   @PrimaryKey()
-  @MapTo("_id")
-  late ObjectId id;
+  @MapTo('_id')
+  late ObjectId realmId;
 
   late String name;
   late String phoneNumber;

@@ -83,6 +83,7 @@ class App {}
 // TODO: before adding a package see from the bellow list if we don't
 // modal_bottom_sheet: ^3.0.0-pre
 // `dart run build_runner build --delete-conflicting-outputs`
+// `dart run realm generate --watch`
 // dart pub cache clean
 //  dart pub global run melos bootstrap
 // While debugging if you lost communication, then you can not use the Hot-Reload or Hot-Restart feature. So, instead of re-building or installing new applications, you can attach existing installed applications.
