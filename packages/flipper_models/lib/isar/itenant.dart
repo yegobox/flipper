@@ -1,6 +1,6 @@
 library flipper_models;
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:isar/isar.dart';
 import 'package:json_annotation/json_annotation.dart';

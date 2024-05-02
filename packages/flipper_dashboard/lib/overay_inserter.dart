@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/pininput.dart';
 import 'package:flipper_dashboard/profile.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
@@ -33,7 +33,7 @@ OverlayEntry insertOverlay(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      FutureBuilder<IBranch?>(
+                      FutureBuilder<Branch?>(
                         future: ProxyService.isar.activeBranch(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
@@ -41,14 +41,14 @@ OverlayEntry insertOverlay(
                               !snapshot.hasData) {
                             return SizedBox.shrink();
                           }
-                          IBranch branch = snapshot.data!;
+                          Branch branch = snapshot.data!;
                           return Padding(
                             padding: const EdgeInsets.only(
                                 bottom: 12.0), // Adjust spacing
                             child: ProfileWidget(
                               branch: branch,
                               size: 25,
-                              sessionActive: branch.isDefault,
+                              sessionActive: branch.isDefault!,
                               showIcon: false,
                             ),
                           );

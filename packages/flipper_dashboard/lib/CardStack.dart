@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
 class CardStack extends StatefulWidget {
@@ -66,7 +66,7 @@ class _CardStackState extends State<CardStack> {
                       ),
                       child: Center(
                         child: Text(
-                          widget.products[displayIndex].name,
+                          widget.products[displayIndex].name!,
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),

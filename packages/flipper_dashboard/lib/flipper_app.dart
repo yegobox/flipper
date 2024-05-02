@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
@@ -204,7 +204,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         },
         child: Scaffold(
           appBar: _buildAppBar(),
-          body: StreamBuilder<IITenant?>(
+          body: StreamBuilder<Tenant?>(
             stream: ProxyService.isar
                 .authState(branchId: ProxyService.box.getBranchId() ?? 0),
             builder: (context, snapshot) {
@@ -236,7 +236,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   Widget _buildAppLayoutDrawer(BuildContext context, CoreViewModel model,
-      AsyncSnapshot<IITenant?> snapshot) {
+      AsyncSnapshot<Tenant?> snapshot) {
     if (snapshot.hasData &&
         !(snapshot.data!.sessionActive == null
             ? false
@@ -254,7 +254,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _handleSessionInactive(
-      BuildContext context, CoreViewModel model, IITenant tenant) {
+      BuildContext context, CoreViewModel model, Tenant tenant) {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (ProxyService.remoteConfig.isLocalAuthAvailable() &&
           (tenant.pin != null && tenant.pin != 0)) {
@@ -265,20 +265,20 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Future<void> _showLocalAuthOverlay(
       BuildContext context, CoreViewModel model) async {
-    List<IITenant> tenants = await ProxyService.isar
+    List<Tenant> tenants = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     screenLock(
       context: context,
       correctString: model.passCode,
       canCancel: false,
       onUnlocked: () async {
-        IITenant? tenant = await ProxyService.isar
+        Tenant? tenant = await ProxyService.isar
             .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
-        model.weakUp(userId: tenant!.userId, pin: model.passCode);
+        model.weakUp(userId: tenant!.userId!, pin: model.passCode);
         Navigator.of(context).maybePop();
       },
       onValidate: (input) async {
-        for (IITenant tenant in tenants) {
+        for (Tenant tenant in tenants) {
           log(tenant.pin.toString(), name: 'given pins');
           if (input.allMatches(tenant.pin.toString()).isNotEmpty) {
             model.passCode = input;

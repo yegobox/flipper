@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 import 'package:flipper_dashboard/itemRow.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -37,8 +37,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                       itemBuilder: (context, index) {
                         return RowItem(
                           variant: products[index],
-                          color: products[index].color,
-                          name: products[index].name,
+                          color: products[index].color!,
+                          name: products[index].name!,
                           stock: 1,
                           model: model,
                           addToMenu: (item) async {

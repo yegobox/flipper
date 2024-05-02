@@ -8,7 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:overlay_support/overlay_support.dart';

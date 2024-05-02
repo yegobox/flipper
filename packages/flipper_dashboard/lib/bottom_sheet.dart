@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 

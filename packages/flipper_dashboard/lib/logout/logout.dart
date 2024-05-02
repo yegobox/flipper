@@ -1,10 +1,9 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'logout_model.dart';
 
 const double _graphicSize = 60;
@@ -102,12 +101,12 @@ class LogOut extends StackedView<LogoutModel> {
                           });
 
                           try {
-                            await ProxyService.remote.hardDelete(
-                                id: device.id!, collectionName: 'devices');
-                            await ProxyService.isar.delete(
-                              endPoint: 'device',
-                              id: device.id!,
-                            );
+                            // await ProxyService.remote.hardDelete(
+                            //     id: device.id!, collectionName: 'devices');
+                            // await ProxyService.isar.delete(
+                            //   endPoint: 'device',
+                            //   id: device.id!,
+                            // );
                           } catch (e) {}
                           completer(DialogResponse(confirmed: true));
                         }
@@ -141,6 +140,6 @@ class LogOut extends StackedView<LogoutModel> {
 
   String _getDeviceName(customData) {
     Device device = customData;
-    return device.deviceName;
+    return device.deviceName!;
   }
 }

@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -189,8 +189,8 @@ class TransactionsState extends ConsumerState<Transactions> {
           : (transaction.transactionType == 'Cash In')
               ? 'Cash In'
               : 'Sales';
-      if (lastSeen != transaction.createdAt.substring(0, 10)) {
-        lastSeen = transaction.createdAt.substring(0, 10);
+      if (lastSeen != transaction.createdAt!.substring(0, 10)) {
+        lastSeen = transaction.createdAt!.substring(0, 10);
 
         list.add(
           Container(
@@ -201,7 +201,7 @@ class TransactionsState extends ConsumerState<Transactions> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(isEquivalentToToday(transaction.createdAt),
+                    Text(isEquivalentToToday(transaction.createdAt!),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.w400,

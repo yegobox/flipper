@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -39,9 +39,8 @@ Widget SettingLayout(
                     ),
                   ),
                   onPressed: (BuildContext context) async {
-                    IITenant? tenant = await ProxyService.isar
-                        .getTenantBYUserId(
-                            userId: ProxyService.box.getUserId()!);
+                    Tenant? tenant = await ProxyService.isar.getTenantBYUserId(
+                        userId: ProxyService.box.getUserId()!);
                     _routerService
                         .navigateTo(DevicesRoute(pin: tenant?.userId));
                   },
@@ -134,7 +133,7 @@ Widget SettingLayout(
                     final data = await ProxyService.isar
                         .getTransactionsAmountsSum(
                             period: TransactionPeriod.today);
-                    isar.Drawers? drawer = await ProxyService.isar.getDrawer(
+                    Drawers? drawer = await ProxyService.isar.getDrawer(
                       cashierId: ProxyService.box.getBusinessId()!,
                     );
                     if (drawer != null) {

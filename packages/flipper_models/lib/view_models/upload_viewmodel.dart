@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/upload_response.dart';
@@ -41,9 +41,9 @@ class UploadViewModel extends ProductViewModel {
         if (urlType == URLTYPE.BUSINESS) {
           final UploadResponse uploadResponse =
               uploadResponseFromJson(result.response!);
-          IBusiness? business = await ProxyService.isar
+          Business business = await ProxyService.isar
               .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-          business!.imageUrl = uploadResponse.url;
+          business.imageUrl = uploadResponse.url;
           ProxyService.isar.update(data: business);
           updateBusinessProfile(url: uploadResponse.url);
           callBack(uploadResponse.url);
@@ -69,7 +69,7 @@ class UploadViewModel extends ProductViewModel {
   }
 
   void updateBusinessProfile({required String url}) async {
-    IITenant? tenant = await ProxyService.isar
+    Tenant? tenant = await ProxyService.isar
         .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
     // update business as well as for this time tenant is the same as busienss
 

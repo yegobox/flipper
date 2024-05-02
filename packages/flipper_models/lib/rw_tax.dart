@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
-import 'package:flipper_models/models.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
@@ -45,18 +44,6 @@ class RWTax implements TaxApi {
     }
   }
 
-  Isar? isar;
-  Future<Isar> openIsarIsolate() async {
-    if (isar != null) return isar!;
-    return await Isar.open(
-      models,
-      // in isolate we don't pass in the directory
-      directory: '',
-      name: 'default',
-      inspector: false,
-    );
-  }
-
   /// save or update stock of item saved before.
   /// so it is an item i.e variant we pass back
   /// The API will not fail even if the item Code @[itemCd] is not found
@@ -67,17 +54,17 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock({required Stock stock}) async {
-    await openIsarIsolate();
-
     try {
       /// because updating stock in in rra work is just passing item with updated qty
       /// we first get the item from db update the query from our stock model and pass it
-      Variant? variant = await await isar!.variants.get(stock.variantId);
+      Variant? variant =
+          await ProxyService.isar.getVariantById(id: stock.variantId!);
 
       /// update the remaining stock of this item in rra
       variant!.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
-          ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
+          ebmUrl + "/stockMaster/saveStockMaster",
+          variant.toEJson() as Map<String, dynamic>);
       final stringResponse = response.data.toString();
       //handleResponseLogging(stringResponse, variant, stock);
       sendEmailLogging(
@@ -151,14 +138,15 @@ class RWTax implements TaxApi {
   Future<bool> saveItem({required Variant variation}) async {
     final url = '$ebmUrl/items/saveItems';
     try {
-      final response = await sendPostRequest(url, variation.toJson());
+      final response = await sendPostRequest(
+          url, variation.toEJson() as Map<String, dynamic>);
       if (response.statusCode == 200) {
         final data = EBMApiResponse.fromJson(response.data);
         if (data.resultCd != 000) {
           throw Exception(data.resultMsg);
         }
         sendEmailLogging(
-          requestBody: variation.toJson().toString(),
+          requestBody: variation.toEJson().toString(),
           subject: "Worked",
           body: response.data.toString(),
         );
@@ -223,18 +211,18 @@ class RWTax implements TaxApi {
     required Counter counter,
     String? purchaseCode,
   }) async {
-    IBusiness? business = await ProxyService.isar.getBusiness();
+    Business? business = await ProxyService.isar.getBusiness();
     String date = DateTime.now()
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')
         .substring(0, 14);
 
     List<Map<String, dynamic>> itemsList =
-        items.map((item) => item.toJson()).toList();
+        items.map((item) => item.toEJson() as Map<String, dynamic>).toList();
 
     double totalMinusExemptedProducts = items
-        .where((item) => !item.isTaxExempted)
-        .fold(0, (sum, item) => sum + (item.prc * item.qty));
+        .where((item) => !item.isTaxExempted!)
+        .fold(0, (sum, item) => sum + (item.prc! * item.qty!));
 
     String salesTyCd;
     String rcptTyCd;
@@ -377,11 +365,12 @@ class RWTax implements TaxApi {
     final url = '$ebmUrl/branches/saveBrancheCustomers';
 
     try {
-      final response = await sendPostRequest(url, customer.toJson());
+      final response = await sendPostRequest(
+          url, customer.toEJson() as Map<String, dynamic>);
 
       if (response.statusCode == 200) {
         sendEmailLogging(
-          requestBody: customer.toJson().toString(),
+          requestBody: customer.toEJson().toString(),
           subject: "Worked",
           body: response.data.toString(),
         );

@@ -1,8 +1,6 @@
 import 'package:flipper_models/FirestoreSync.dart';
-import 'package:flipper_models/RealmSync.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/realmInterface.dart';
-import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -34,7 +32,6 @@ import 'country_service.dart';
 import 'firebase_messaging.dart';
 import 'locator.dart';
 import 'product_service.dart';
-import 'package:flipper_models/interface.dart';
 import 'package:flipper_models/tax_api.dart';
 
 final Api _apiService = getIt<Api>();
@@ -64,25 +61,25 @@ final SyncReaml _syncRealm = getIt<SyncReaml>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
-final IsarApiInterface _isar = getIt<IsarApiInterface>();
+// final IsarApiInterface _isar = getIt<IsarApiInterface>();
 final RealmApiInterface _realm = getIt<RealmApiInterface>();
 final TaxApi _tax = getIt<TaxApi>();
 final WhatsApp _whatsApp = getIt<WhatsApp>();
 final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
-final RemoteInterface _remote = getIt<RemoteInterface>();
+// final RemoteInterface _remote = getIt<RemoteInterface>();
 final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
 final Device _device = getIt<Device>();
 
 abstract class ProxyService {
-  static RemoteInterface get remote => _remote;
+  // static RemoteInterface get remote => _remote;
   static HttpClientInterface get httpClient => _httpClient;
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
-  static IsarApiInterface get isar => _isar;
-  static RealmApiInterface get realm => _realm;
+  // static IsarApiInterface get isar => _isar;
+  static RealmApiInterface get isar => _realm;
 
   static EventInterface get event => _event;
   static Crash get crash => _crash;

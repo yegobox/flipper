@@ -2,7 +2,7 @@
 // import 'dart:io';
 
 // import 'package:flipper_models/box/objectbox.dart';
-// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/realm_model_export.dart';
 // import 'package:flipper_routing/routes.logger.dart';
 // import 'package:flipper_services/dio_client.dart';
 // import 'package:flipper_services/mobile_upload.dart';

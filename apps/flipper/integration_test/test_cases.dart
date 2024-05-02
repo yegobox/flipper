@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// Import the relevant file
-import 'package:nock/nock.dart';
-
-import 'package:integration_test/integration_test.dart';
 
 import 'package:flipper_rw/main.dart' as app;
 
@@ -37,6 +33,7 @@ Future<void> enterNonEmptyPINAndLogIn(WidgetTester tester) async {
   await tester.pumpAndSettle(const Duration(seconds: 10));
   await tester.tap(find.byKey(const Key('openDrawerPage')));
 }
+
 /// end of desktop
 
 /// start of android

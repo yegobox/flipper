@@ -5,7 +5,8 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
+import 'package:realm/realm.dart';
 
 /// there is a case we need to force some data to be added for a given user
 /// this is the class to help with that.
@@ -28,7 +29,7 @@ class ForceDataEntryService {
         await ProxyService.isar.products(branchId: branchId);
     if (products.isEmpty) {
       await ProxyService.isar.createProduct(
-          product: Product(
+          product: Product(ObjectId(),
               id: randomNumber(),
               name: "Custom Amount",
               action: 'create',
@@ -55,7 +56,7 @@ class ForceDataEntryService {
     int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);
     if (kColors.isEmpty) {
-      final PColor color = PColor(
+      final PColor color = PColor(ObjectId(),
           id: randomNumber(),
           colors: colors,
           branchId: branchId,

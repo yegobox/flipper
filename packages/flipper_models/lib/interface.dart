@@ -105,7 +105,7 @@ abstract class IsarApiInterface {
 
   Future<List<IBusiness>> getContacts();
 
-  Future<IBusiness?> getBusiness({int? businessId});
+  Future<IBusiness> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
@@ -151,10 +151,10 @@ abstract class IsarApiInterface {
 
   Future<List<IITenant>> tenants({int? businessId});
   Future<IITenant?> getTenantBYUserId({required int userId});
-  Future<IBranch?> activeBranch();
+  Future<IBranch> activeBranch();
   Future<IITenant?> getTenantBYPin({required int pin});
   Future<List<IITenant>> tenantsFromOnline({required int businessId});
-  Future<IBusiness?> getBusinessFromOnlineGivenId({required int id});
+  Future<IBusiness> getBusinessFromOnlineGivenId({required int id});
 
   Future<void> syncProduct(
       {required Product product,
@@ -212,8 +212,8 @@ abstract class IsarApiInterface {
   Future<void> refund({required int itemId});
   Future<bool> isDrawerOpen({required int cashierId});
   Future<Drawers?> getDrawer({required int cashierId});
-  Future<IBranch?> defaultBranch();
-  Future<IBusiness?> defaultBusiness();
+  Future<IBranch> defaultBranch();
+  Future<IBusiness> defaultBusiness();
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
@@ -235,17 +235,17 @@ abstract class IsarApiInterface {
   Future<List<BusinessType>> businessTypes();
 
   /// list messages
-  Stream<List<Conversation>> conversations({String? conversationId});
+  Stream<List<IConversation>> conversations({String? conversationId});
   Future<void> sendScheduleMessages();
-  Future<Conversation?> getConversation({required String messageId});
-  Future<List<Conversation>> getScheduleMessages();
+  Future<IConversation?> getConversation({required String messageId});
+  Future<List<IConversation>> getScheduleMessages();
   Future<int> registerOnSocial({String? phoneNumberOrEmail, String? password});
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
   Future<bool> isTokenValid(
       {required String tokenType, required int businessId});
 
-  Stream<List<Conversation>> getTop5RecentConversations();
+  Stream<List<IConversation>> getTop5RecentConversations();
 
   //
   Future<void> patchSocialSetting({required Setting setting});
@@ -278,8 +278,8 @@ abstract class IsarApiInterface {
         List<ITransaction> transactions,
         List<TransactionItem> transactionItems
       })> getUnSyncedData();
-  Future<Conversation> sendMessage(
-      {required String message, required Conversation latestConversation});
+  Future<IConversation> sendMessage(
+      {required String message, required IConversation latestConversation});
   Future<EBM?> getEbmByBranchId({required int branchId});
 
   // Future<IITenant> authState({required int branchId});

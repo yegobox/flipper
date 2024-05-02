@@ -1,5 +1,5 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 abstract class Api<T> {
-  Future<List<IBusiness>> getOnlineBusiness({required String userId});
+  Future<List<Business>> getOnlineBusiness({required String userId});
 }

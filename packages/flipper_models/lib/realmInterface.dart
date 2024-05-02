@@ -1,8 +1,31 @@
+import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/isar/business_type.dart';
+import 'package:flipper_models/isar/iuser.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/isar/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/sync.dart';
+import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:realm/realm.dart';
 
 import 'isar/tenant.dart';
+
+extension StringToIntList on String {
+  List<int> toIntList() {
+    return this.split(',').map((e) => int.parse(e.trim())).toList();
+  }
+}
+
+abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
+  factory SyncReaml.create() => RealmAPI<M>();
+
+  T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
+
+  void close();
+
+  Future<bool> logout();
+}
 
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
@@ -12,6 +35,8 @@ abstract class RealmApiInterface {
   // Future<IUser> login(
   //     {required String userPhone, required bool skipDefaultAppSetup});
   Future<List<Business>> businesses({int? userId});
+  Future<SocialToken?> loginOnSocial(
+      {String? phoneNumberOrEmail, String? password});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({int? businessId});
   Future<double> stocks({int? productId, int? variantId});
@@ -107,7 +132,7 @@ abstract class RealmApiInterface {
 
   Future<List<Business>> getContacts();
 
-  Future<Business?> getBusiness({int? businessId});
+  Future<Business> getBusiness({int? businessId});
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
@@ -150,10 +175,14 @@ abstract class RealmApiInterface {
   bool suggestRestore();
 
   Future<int> userNameAvailable({required String name});
+  Future<IUser> login(
+      {required String userPhone, required bool skipDefaultAppSetup});
 
-  Future<List<ITenant>> tenants({int? businessId});
+  Future<LPermission?> permission({required int userId});
+
+  Future<List<Tenant>> tenants({int? businessId});
   Future<Tenant?> getTenantBYUserId({required int userId});
-  Future<Branch?> activeBranch();
+  Future<Branch> activeBranch();
   Future<Tenant?> getTenantBYPin({required int pin});
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
@@ -298,4 +327,6 @@ abstract class RealmApiInterface {
   void clear();
   // Future<List<SyncRecord>> syncedModels({required int branchId});
   // Future<Permission?> permission({required int userId});
+
+  Future<List<BusinessType>> businessTypes();
 }

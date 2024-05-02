@@ -5,7 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class VariationList extends StatelessWidget {

@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -83,7 +82,8 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
-    await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+    // TODO: re-work on this
+    // await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     await _setupFirebase();
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
@@ -123,14 +123,14 @@ class CronService {
   }
 
   Future<void> _setupFirebase() async {
-    IBusiness? business = await ProxyService.isar.getBusiness();
+    Business? business = await ProxyService.isar.getBusiness();
     ProxyService.syncFirestore.configure();
     String? token;
 
     if (!Platform.isWindows && !isMacOs && !isIos) {
       token = await FirebaseMessaging.instance.getToken();
       if (business != null) {
-        Map updatedBusiness = business.toJson();
+        Map updatedBusiness = business.toEJson() as Map<String, dynamic>;
         updatedBusiness['deviceToken'] = token.toString();
       }
     }

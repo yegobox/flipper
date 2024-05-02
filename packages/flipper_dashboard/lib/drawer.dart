@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:intl/intl.dart';
@@ -98,7 +98,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 50.0),
             child: Text(
-              _formatClosingBalance(widget.drawer.closingBalance),
+              _formatClosingBalance(widget.drawer.closingBalance!),
               style: GoogleFonts.poppins(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,

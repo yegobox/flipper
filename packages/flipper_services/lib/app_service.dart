@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart' as isar;
 import 'package:flipper_services/constants.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -23,21 +23,22 @@ class AppService with ListenableServiceMixin {
   List<Category> get categories => _categories.value;
   // TODO: make _business nullable when starting
 
-  final _business = ReactiveValue<isar.IBusiness?>(isar.IBusiness(
+  final _business = ReactiveValue<Business>(Business(
+    ObjectId(),
     id: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
     action: AppActions.created,
   ));
-  isar.IBusiness? get business => _business.value;
-  setBusiness({required isar.IBusiness business}) {
+  Business get business => _business.value;
+  setBusiness({required Business business}) {
     _business.value = business;
   }
 
-  final _branch = ReactiveValue<isar.IBranch?>(null);
-  isar.IBranch? get branch => _branch.value;
+  final _branch = ReactiveValue<Branch?>(null);
+  Branch? get branch => _branch.value;
 
-  setActiveBranch({required isar.IBranch branch}) {
+  setActiveBranch({required Branch branch}) {
     _branch.value = branch;
   }
 
@@ -89,6 +90,7 @@ class AppService with ListenableServiceMixin {
 
     final businessId = ProxyService.box.getBusinessId()!;
     final data = Token(
+      ObjectId(),
       id: randomNumber(),
       businessId: businessId,
       token: token?.body.token,
@@ -100,12 +102,12 @@ class AppService with ListenableServiceMixin {
     await ProxyService.isar.create(data: data);
   }
 
-  final _contacts = ReactiveValue<List<IBusiness>>([]);
-  List<IBusiness> get contacts => _contacts.value;
+  final _contacts = ReactiveValue<List<Business>>([]);
+  List<Business> get contacts => _contacts.value;
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    List<IBusiness> contacts = await ProxyService.isar.getContacts();
+    List<Business> contacts = await ProxyService.isar.getContacts();
     _contacts.value = contacts;
   }
 
@@ -116,11 +118,11 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<isar.IBusiness> businesses = await ProxyService.isar.businesses();
+    List<Business> businesses = await ProxyService.isar.businesses();
 
     if (businesses.isEmpty) {
       try {
-        IBusiness business =
+        Business business =
             await ProxyService.isar.getOnlineBusiness(userId: userId);
         businesses.add(business);
       } catch (e) {
@@ -130,7 +132,7 @@ class AppService with ListenableServiceMixin {
 
     await loadTenants(businesses);
 
-    List<isar.IBranch> branches = await ProxyService.isar.branches();
+    List<Branch> branches = await ProxyService.isar.branches();
 
     bool authComplete = await ProxyService.box.authComplete();
 
@@ -147,7 +149,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<void> loadTenants(List<IBusiness> businesses) async {
+  Future<void> loadTenants(List<Business> businesses) async {
     bool authComplete = await ProxyService.box.authComplete();
     // Check for internet connectivity
     var connectivityResult = await Connectivity().checkConnectivity();
@@ -158,11 +160,11 @@ class AppService with ListenableServiceMixin {
     }
 
     // Iterate over businesses and perform the operations
-    for (IBusiness business in businesses) {
+    for (Business business in businesses) {
       await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
     }
 
-    for (IBusiness business in businesses) {
+    for (Business business in businesses) {
       await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
     }
   }

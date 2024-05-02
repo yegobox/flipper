@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:realm/realm.dart';
 
 import 'mixins/_product.dart';
 
@@ -59,6 +60,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     // If no matching variant was found, add a new one
     scannedVariants.add(
       Variant(
+        ObjectId(),
         name: variantName,
         retailPrice: retailPrice,
         supplyPrice: supplyPrice,
@@ -84,6 +86,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.isar.createProduct(
       product: Product(
+        ObjectId(),
         name: name,
         color: COLOR,
         businessId: businessId,

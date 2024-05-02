@@ -3,7 +3,7 @@ library flipper_models;
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/app_service.dart';
@@ -29,8 +29,6 @@ class StartupViewModel extends FlipperBaseModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
-      log("User " + ProxyService.box.getUserId().toString(),
-          name: 'runStartupLogic');
 
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.isar
@@ -49,7 +47,7 @@ class StartupViewModel extends FlipperBaseModel {
         }
       }
     } catch (e, stackTrace) {
-      log("${e}");
+      log("In catch block ${e}");
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {

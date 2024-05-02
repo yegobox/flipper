@@ -9,7 +9,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class QuantityCell extends StatelessWidget {
   final double? quantity;
@@ -189,7 +189,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         return Container(
           width: double.infinity, // Adjust the width as needed
           child: DropdownSearch<String>(
-            items: units.asData!.value.map((unit) => unit.name).toList(),
+            items: units.asData!.value.map((unit) => unit.name!).toList(),
             selectedItem: variant.unit,
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
@@ -353,7 +353,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           ref.read(productProvider.notifier).emitProduct(value: product);
 
           // Populate product name with the name of the product being edited
-          productNameController.text = product.name;
+          productNameController.text = product.name!;
           model.setProductName(name: product.name);
 
           // Populate variants related to the product
@@ -371,7 +371,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // If there are variants, set the color to the color of the first variant
           if (variants.isNotEmpty) {
-            pickerColor = _getColorOrDefault(variants.first.color);
+            pickerColor = _getColorOrDefault(variants.first.color!);
           }
         } else {
           // If productId is not given, create a new product
@@ -572,7 +572,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               rows:
                                   model.scannedVariants.reversed.map((variant) {
                                 return DataRow(cells: [
-                                  DataCell(Text(variant.name)),
+                                  DataCell(Text(variant.name!)),
                                   DataCell(Text(
                                       variant.retailPrice.toStringAsFixed(2))),
                                   DataCell(

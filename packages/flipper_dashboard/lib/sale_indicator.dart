@@ -1,6 +1,6 @@
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/cupertino.dart';

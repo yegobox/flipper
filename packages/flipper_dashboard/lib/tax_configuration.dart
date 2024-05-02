@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_dashboard/widgets/mini_app_icon.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -40,7 +40,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
             isTaxEnabled = true;
           });
         }
-        IBusiness? business = await ProxyService.isar.getBusiness();
+        Business? business = await ProxyService.isar.getBusiness();
         model.isEbmActive = business?.tinNumber != null &&
             business?.bhfId != null &&
             business?.dvcSrlNo != null &&

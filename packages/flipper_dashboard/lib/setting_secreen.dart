@@ -8,7 +8,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override

@@ -9,7 +9,7 @@ import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';

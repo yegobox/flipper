@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -116,7 +116,7 @@ class _AppsState extends ConsumerState<Apps> {
         bottomSpacer: 48.99,
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
-          child: FutureBuilder<IBranch?>(
+          child: FutureBuilder<Branch>(
             future: ProxyService.isar.activeBranch(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
@@ -246,7 +246,7 @@ class _AppsState extends ConsumerState<Apps> {
                       : SizedBox.shrink(),
                   Center(
                     child: Column(children: [
-                      FutureBuilder<IPermission?>(
+                      FutureBuilder<LPermission?>(
                         future: ProxyService.isar
                             .permission(userId: ProxyService.box.getUserId()!),
                         builder: (context, snapshot) {
@@ -285,7 +285,7 @@ class _AppsState extends ConsumerState<Apps> {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
         .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(oldDate))
+            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
@@ -317,7 +317,7 @@ class _AppsState extends ConsumerState<Apps> {
     DateTime oldDate = _calculateStartingDate(transactionPeriod);
     List<ITransaction> filteredTransactions = transactions
         .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(oldDate))
+            DateTime.parse(transaction.createdAt!).isAfter(oldDate))
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
@@ -334,7 +334,7 @@ class _AppsState extends ConsumerState<Apps> {
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
         .where((transaction) =>
-            DateTime.parse(transaction.createdAt).isAfter(startingDate))
+            DateTime.parse(transaction.createdAt!).isAfter(startingDate))
         .toList();
   }
 
@@ -404,7 +404,7 @@ class _AppsState extends ConsumerState<Apps> {
 
           List<ITransaction> filteredTransactions = [];
           for (final transaction in transactions) {
-            temporaryDate = DateTime.parse(transaction.createdAt);
+            temporaryDate = DateTime.parse(transaction.createdAt!);
             if (temporaryDate.isAfter(oldDate)) {
               filteredTransactions.add(transaction);
             }

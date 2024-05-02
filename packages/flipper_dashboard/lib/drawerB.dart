@@ -1,7 +1,7 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class MyDrawer extends StatelessWidget {
   @override
@@ -10,7 +10,7 @@ class MyDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          FutureBuilder<IITenant?>(
+          FutureBuilder<Tenant?>(
               future: ProxyService.isar
                   .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
               builder: (context, snapshot) {
@@ -54,7 +54,7 @@ class MyDrawer extends StatelessWidget {
                   ),
                 );
               }),
-          FutureBuilder<List<IBusiness>>(
+          FutureBuilder<List<Business>>(
             future: ProxyService.isar.businesses(),
             builder: (context, businessSnapshot) {
               if (businessSnapshot.connectionState == ConnectionState.waiting) {
@@ -66,9 +66,9 @@ class MyDrawer extends StatelessWidget {
                     'Error loading businesses: ${businessSnapshot.error}');
               }
 
-              final List<IBusiness> businesses = businessSnapshot.data ?? [];
+              final List<Business> businesses = businessSnapshot.data ?? [];
 
-              return FutureBuilder<List<IBranch>>(
+              return FutureBuilder<List<Branch>>(
                 future: ProxyService.isar.branches(
                     businessId: businesses
                         .first.id), // Replace with your logic to fetch branches
@@ -83,7 +83,7 @@ class MyDrawer extends StatelessWidget {
                         'Error loading branches: ${branchSnapshot.error}');
                   }
 
-                  final List<IBranch> branches = branchSnapshot.data ?? [];
+                  final List<Branch> branches = branchSnapshot.data ?? [];
 
                   // Extract business names and filter out null values
                   final List<String> businessNames = businesses

@@ -9,7 +9,7 @@ import 'dart:ui' as _i7;
 
 import 'package:firebase_auth/firebase_auth.dart' as _i6;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i5;
-import 'package:flipper_models/isar_models.dart' as _i8;
+import 'package:flipper_models/realm_model_export.dart' as _i8;
 import 'package:flutter/material.dart' as _i4;
 import 'package:stacked/stacked.dart' as _i3;
 import 'package:stacked_services/stacked_services.dart' as _i2;

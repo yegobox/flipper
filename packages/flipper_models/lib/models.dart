@@ -27,7 +27,7 @@ final List<CollectionSchema> models = [
   CounterSchema,
   TokenSchema,
   SocialSchema,
-  ConversationSchema,
+  IConversationSchema,
   DeviceSchema,
   FavoriteSchema,
   EBMSchema,

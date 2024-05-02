@@ -2,7 +2,7 @@ import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
 class SettingViewModel extends CoreViewModel {
@@ -14,8 +14,8 @@ class SettingViewModel extends CoreViewModel {
   Setting? get setting => _setting;
   bool get updateStart => _updateStarted;
 
-  IBusiness? _business;
-  IBusiness? get business => _business;
+  Business? _business;
+  Business? get business => _business;
   getBusiness() async {
     _business = await ProxyService.isar
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
@@ -53,10 +53,10 @@ class SettingViewModel extends CoreViewModel {
     return await kSetting.updateSettings(map: map);
   }
 
-  Future<Profile?> updateProfile({required Profile profile}) async {
-    _updateStarted = true;
-    return ProxyService.isar.updateProfile(profile: profile);
-  }
+  // Future<Profile?> updateProfile({required Profile profile}) async {
+  //   _updateStarted = true;
+  //   return ProxyService.isar.updateProfile(profile: profile);
+  // }
 
   loadUserSettings() async {
     int businessId = ProxyService.box.getBusinessId()!;
@@ -125,8 +125,8 @@ class SettingViewModel extends CoreViewModel {
       } else {
         await ProxyService.isar.createGoogleSheetDoc(email: setting.email!);
 
-        IBusiness? business = await ProxyService.isar.getBusiness();
-        business!.email = setting.email;
+        Business business = await ProxyService.isar.getBusiness();
+        business.email = setting.email;
         await ProxyService.isar.update(
           data: business,
         );
@@ -147,9 +147,9 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        IBusiness? business = await ProxyService.isar.getBusiness();
+        Business business = await ProxyService.isar.getBusiness();
         ProxyService.isar
-            .enableAttendance(businessId: business!.id!, email: setting.email!);
+            .enableAttendance(businessId: business.id!, email: setting.email!);
       }
     } else {
       callback(2);
@@ -158,7 +158,7 @@ class SettingViewModel extends CoreViewModel {
 
   Pin? pin;
   Future<void> createPin() async {
-    pin = await ProxyService.isar.createPin();
+    // pin = await ProxyService.isar.createPin();
     notifyListeners();
   }
 
@@ -172,8 +172,8 @@ class SettingViewModel extends CoreViewModel {
       Voucher? voucher = await ProxyService.billing
           .useVoucher(voucher: int.parse(text), userId: userId);
       if (voucher != null) {
-        ProxyService.billing.addPoints(points: voucher.value, userId: userId);
-        List<Feature> features = [];
+        // ProxyService.billing.addPoints(points: voucher.value, userId: userId);
+        // List<Feature> features = [];
 
         _isProceeding = false;
         notifyListeners();

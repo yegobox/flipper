@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_viewmodel.dart';
@@ -79,7 +79,7 @@ class MessageDisplayMobile extends StatelessWidget {
           ),
         ],
       ),
-      title: Text(conversations![index].userName,
+      title: Text(conversations![index].userName!,
           style: GoogleFonts.poppins(
             fontSize: 17.0,
             fontWeight: FontWeight.w500,
@@ -95,9 +95,9 @@ class MessageDisplayMobile extends StatelessWidget {
             final Conversation? lastConversation =
                 conversations.isNotEmpty ? conversations.last : null;
             return Text(
-              lastConversation!.body.length > 40
-                  ? lastConversation.body.substring(0, 40) + "..."
-                  : lastConversation.body,
+              lastConversation!.body!.length > 40
+                  ? lastConversation.body!.substring(0, 40) + "..."
+                  : lastConversation.body!,
               style: GoogleFonts.poppins(
                 fontSize: 17.0,
                 fontWeight: FontWeight.w300,
@@ -184,8 +184,8 @@ class MessagesDisplayDesktop extends StatelessWidget {
               ),
             ],
           ),
-          title: Text(chat.userName),
-          subtitle: Text(conversations[index].body),
+          title: Text(chat.userName!),
+          subtitle: Text(conversations[index].body!),
           trailing: Text(
               timeago.format(DateTime.parse(conversations[index].createdAt!))),
           onTap: () {

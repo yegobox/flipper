@@ -1,4 +1,5 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar/social.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';
 import 'package:flipper_socials/ui/widgets/bubble_type.dart';
@@ -27,8 +28,9 @@ class HomeViewMobile extends ViewModelWidget<social.HomeViewModel> {
         padding: const EdgeInsets.only(top: 20.0),
         child: Scaffold(
           body: StreamBuilder<Social>(
-              stream: ProxyService.isar.socialsStream(
-                  branchId: ProxyService.box.getBranchId() ?? 0),
+              stream: null,
+              // stream: ProxyService.isar
+              //     .socialsStream(branchId: ProxyService.box.getBranchId() ?? 0),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return const ChatListView();

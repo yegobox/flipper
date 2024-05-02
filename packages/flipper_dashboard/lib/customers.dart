@@ -7,7 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'add_customer.dart';
 import 'customappbar.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -160,14 +160,14 @@ class CustomersState extends ConsumerState<Customers> {
                             width: 58,
                             child: TextDrawable(
                               backgroundColor: Colors.green,
-                              text: customer.custNm + "(${customer.telNo})",
+                              text: customer.custNm! + "(${customer.telNo})",
                               isTappable: true,
                               onTap: null,
                               boxShape: BoxShape.rectangle,
                             ),
                           ),
                           title: Text(
-                            (customer.custNm) +
+                            (customer.custNm!) +
                                 "(${customer.telNo} ${customer.custTin})",
                             style: const TextStyle(color: Colors.black),
                           ),

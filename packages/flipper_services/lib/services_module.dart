@@ -1,14 +1,10 @@
-import 'dart:developer';
-
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/MockHttpClient.dart';
-import 'package:flipper_models/RealmSync.dart';
+import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/marketing.dart';
-import 'package:flipper_models/mocks/isarApiMock.dart';
 import 'package:flipper_models/realmInterface.dart';
-import 'package:flipper_models/remote_service.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -39,7 +35,6 @@ import 'package:flipper_services/sharing_service.dart';
 import 'package:flipper_services/status.dart';
 import 'package:flipper_services/system_time_service.dart';
 import 'package:injectable/injectable.dart';
-import 'package:flipper_models/isar_models.dart';
 import 'WindowLocationService.dart';
 import 'WindowsBlueToothPrinterService.dart';
 import 'abstractions/dynamic_link.dart';
@@ -57,7 +52,6 @@ import 'local_notification_service.dart';
 import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
-import 'package:flipper_models/isar_api.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:flipper_services/DeviceIdService.dart' as dev;
@@ -74,15 +68,15 @@ abstract class ServicesModule {
     return NotificationStream();
   }
 
-  @preResolve
-  Future<RemoteInterface> remoteApi() async {
-    try {
-      return await RemoteService();
-    } catch (e) {
-      // Handle the error or retry logic here
-      return await Future.error(e);
-    }
-  }
+  // @preResolve
+  // Future<RemoteInterface> remoteApi() async {
+  //   try {
+  //     return await RemoteService();
+  //   } catch (e) {
+  //     // Handle the error or retry logic here
+  //     return await Future.error(e);
+  //   }
+  // }
 
   @preResolve
   Future<HttpClientInterface> httpClient() async {
@@ -262,25 +256,27 @@ abstract class ServicesModule {
     }
   }
 
-  @preResolve
-  @LazySingleton()
-  Future<IsarApiInterface> isarApi() async {
-    //first check if we are in testing mode.
-    if ((const bool.fromEnvironment('Test') == true)) {
-      log("in test mode");
-      return await IsarAPIMock().getInstance();
-    } else {
-      log('in prod mode');
+  // @preResolve
+  // @LazySingleton()
+  // Future<IsarApiInterface> isarApi() async {
+  //   //first check if we are in testing mode.
+  //   if ((const bool.fromEnvironment('Test') == true)) {
+  //     log("in test mode");
+  //     return await IsarAPIMock().getInstance();
+  //   } else {
+  //     log('in prod mode');
 
-      return await IsarAPI().getInstance();
-    }
-  }
+  //     return await IsarAPI().getInstance();
+  //   }
+  // }
 
   @preResolve
   @LazySingleton()
   Future<RealmApiInterface> realmApi() async {
-    return await RealmSync()
-        .configure(inTesting: bool.fromEnvironment('Test') == true);
+    return await RealmAPI().configure(
+        inTesting: bool.fromEnvironment('Test') == true,
+        encryptionKey:
+            "255,127,225,47,153,12,216,192,168,83,5,110,69,108,17,239,25,17,228,125,159,97,202,180,199,78,240,210,189,227,24,186,234,72,160,179,190,60,3,213,213,250,250,7,249,96,114,48,59,228,163,153,200,239,102,163,187,244,48,225,156,219,211,253");
   }
 
   //TODOcheck if code from LanguageService can work fully on windows

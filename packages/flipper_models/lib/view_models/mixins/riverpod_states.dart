@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -164,7 +164,7 @@ class TransactionItemsNotifier
   double get totalPayable {
     return state.maybeWhen(
       data: (items) {
-        return items.fold(0, (a, b) => a + (b.price * b.qty));
+        return items.fold(0, (a, b) => a + (b.price! * b.qty!));
       },
       orElse: () => 0.0,
     );
@@ -202,7 +202,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
       // Apply search if searchString is not empty
       final filteredVariants = searchString.isNotEmpty
           ? allVariants
-              .where((variant) => variant.name
+              .where((variant) => variant.name!
                   .toLowerCase()
                   .contains(searchString.toLowerCase()))
               .toList()
@@ -261,7 +261,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       data: (currentData) {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id && !p.searchMatch) {
+          if (p.id == product.id && !p.searchMatch!) {
             p.searchMatch = true;
           } else {
             // Set searchMatch to false for other products
@@ -301,7 +301,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       // Apply search filter to the merged list
       List<Product> matchingProducts = products
           .where((product) =>
-              product.name.toLowerCase().contains(searchString.toLowerCase()))
+              product.name!.toLowerCase().contains(searchString.toLowerCase()))
           .toList();
 
       state = AsyncData(matchingProducts);
@@ -388,7 +388,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
       if (searchString.isNotEmpty) {
         customers = customers
-            .where((customer) => customer.custNm
+            .where((customer) => customer.custNm!
                 .toLowerCase()
                 .contains(searchString.toLowerCase()))
             .toList();
@@ -423,7 +423,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
   ) {
     if (searchString.isNotEmpty) {
       return customers
-          .where((customer) => customer.custNm
+          .where((customer) => customer.custNm!
               .toLowerCase()
               .contains(searchString.toLowerCase()))
           .toList();

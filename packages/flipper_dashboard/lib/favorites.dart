@@ -2,7 +2,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
@@ -268,9 +268,9 @@ class _FavoritesState extends State<Favorites> {
                   child: Text(
                     favProd.imageUrl != null && !favProd.imageUrl!.isEmpty
                         ? ''
-                        : favProd.name.length > 1
-                            ? favProd.name.substring(0, 2)
-                            : favProd.name.toUpperCase(),
+                        : favProd.name!.length > 1
+                            ? favProd.name!.substring(0, 2)
+                            : favProd.name!.toUpperCase(),
                     style:
                         GoogleFonts.poppins(fontSize: 36, color: Colors.white),
                   ),
@@ -305,7 +305,7 @@ class _FavoritesState extends State<Favorites> {
             ),
           ),
           Center(
-            child: Text(favProd.name),
+            child: Text(favProd.name!),
           ),
         ],
       ),

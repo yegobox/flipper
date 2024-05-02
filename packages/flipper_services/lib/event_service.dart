@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
@@ -9,6 +10,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'login_event.dart';
 import 'dart:io';
@@ -115,7 +117,7 @@ class EventService with TokenLogin implements EventInterface {
               .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
           if (device == null) {
             await ProxyService.isar.create(
-                data: Device(
+                data: Device(ObjectId(),
                     id: randomNumber(),
                     pubNubPublished: false,
                     branchId: loginData.branchId,
@@ -151,7 +153,8 @@ class EventService with TokenLogin implements EventInterface {
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       log("received message aha!");
-      Conversation conversation = Conversation.fromJson(envelope.payload);
+      isar.IConversation conversation =
+          isar.IConversation.fromJson(envelope.payload);
 
       Conversation? localConversation = await ProxyService.isar
           .getConversation(messageId: conversation.messageId!);
@@ -178,7 +181,7 @@ class EventService with TokenLogin implements EventInterface {
 
       if (device == null) {
         await ProxyService.isar.create(
-            data: Device(
+            data: Device(ObjectId(),
                 id: randomNumber(),
                 pubNubPublished: true,
                 action: AppActions.created,

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -103,9 +103,9 @@ class GoogleDrive {
   Future<http.Client> backUpNow() async {
     Directory dir = await getApplicationDocumentsDirectory();
     File file = File(path.context.canonicalize(dir.path + '/db/isar'));
-    IBusiness? business = await ProxyService.isar.getBusiness();
+    Business business = await ProxyService.isar.getBusiness();
     final httpClient = await silentLogin();
-    if (business!.backUpEnabled!) {
+    if (business.backUpEnabled!) {
       await upload(file);
       await updateBusiness(business);
       return httpClient;
@@ -117,14 +117,14 @@ class GoogleDrive {
     return httpClient;
   }
 
-  Future<void> updateBusiness(IBusiness business) async {
+  Future<void> updateBusiness(Business business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
 
     /// notify the online that user has enabled the backup
     /// also update the property locally.
     await ProxyService.isar.update(data: business);
-    ProxyService.isar.update(data: business.toJson());
+    ProxyService.isar.update(data: business.toEJson());
   }
 
   /// Upload File to user's Google Drive appData folder
@@ -154,8 +154,8 @@ class GoogleDrive {
     // log.w("Result ${response.toJson()}");
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
-    IBusiness? business = await ProxyService.isar.getBusiness();
-    business!.backupFileId = fileUploaded.id;
+    Business business = await ProxyService.isar.getBusiness();
+    business.backupFileId = fileUploaded.id;
     await ProxyService.isar.update(data: business);
     ProxyService.isar.update(data: business);
     // downloadGoogleDriveFile('data', fileUploaded.id);

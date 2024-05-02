@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

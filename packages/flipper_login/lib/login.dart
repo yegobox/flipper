@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'dart:ui' as ui;
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/locator.dart' as loc;

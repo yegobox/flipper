@@ -1,7 +1,7 @@
 // import 'package:flipper_services/keypad_service.dart';
 // import 'package:test/test.dart';
 // import '../helpers/test_helpers.dart';
-// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/realm_model_export.dart';
 
 import 'package:test/test.dart';
 

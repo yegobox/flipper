@@ -58,7 +58,7 @@
 // }
 
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'customappbar.dart';
@@ -96,12 +96,12 @@ class SellState extends ConsumerState<Sell> {
 
   String buildTitle(CoreViewModel model) {
     if (model.amountTotal.toString() == 'null') {
-      return widget.product.name;
+      return widget.product.name!;
     }
     if (model.amountTotal == 0) {
       return '';
     }
-    return widget.product.name + ' Frw' + model.amountTotal.toInt().toString();
+    return widget.product.name! + ' Frw' + model.amountTotal.toInt().toString();
   }
 
   Widget Quantity(
@@ -607,7 +607,7 @@ class SellState extends ConsumerState<Sell> {
                             return snapshot.hasData
                                 ? Expanded(
                                     child: Text(
-                                      snapshot.data!.name,
+                                      snapshot.data!.name!,
                                       style: GoogleFonts.lato(
                                         textStyle: TextStyle(
                                             fontWeight: FontWeight.w700,
@@ -693,7 +693,7 @@ class SellState extends ConsumerState<Sell> {
                       Row(
                         children: [
                           Text(
-                            widget.product.name,
+                            widget.product.name!,
                             style: GoogleFonts.rubik(
                               textStyle: TextStyle(
                                   fontWeight: FontWeight.w500,

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/secure_storage.dart';
 import 'package:googleapis/drive/v3.dart' as ga;
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:path/path.dart' as path;
 import 'package:http/http.dart' as http;
@@ -102,7 +102,7 @@ class GoogleDrive {
   /// if is the first time it will call the authentication with normal prompt flow
   /// if the token is not expired it will return the http client
 
-  Future<void> updateBusiness(IBusiness business) async {
+  Future<void> updateBusiness(Business business) async {
     business.backUpEnabled = true;
     business.lastDbBackup = DateTime.now().toIso8601String();
 
@@ -142,8 +142,8 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    IBusiness? business = await ProxyService.isar.getBusiness();
-    business!.backupFileId = fileUploaded.id;
+    Business business = await ProxyService.isar.getBusiness();
+    business.backupFileId = fileUploaded.id;
     await ProxyService.isar.update(data: business);
     ProxyService.isar.update(data: business);
     ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);

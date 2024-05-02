@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 String titleWidget({required CoreViewModel model, required String name}) {
   if (model.amountTotal == 0) {

@@ -9,13 +9,13 @@ part of 'conversation.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetConversationCollection on Isar {
-  IsarCollection<Conversation> get conversations => this.collection();
+extension GetIConversationCollection on Isar {
+  IsarCollection<IConversation> get iConversations => this.collection();
 }
 
-const ConversationSchema = CollectionSchema(
-  name: r'Conversation',
-  id: 7261696243536555740,
+const IConversationSchema = CollectionSchema(
+  name: r'IConversation',
+  id: -4914531911888437428,
   properties: {
     r'action': PropertySchema(
       id: 0,
@@ -113,10 +113,10 @@ const ConversationSchema = CollectionSchema(
       type: IsarType.string,
     )
   },
-  estimateSize: _conversationEstimateSize,
-  serialize: _conversationSerialize,
-  deserialize: _conversationDeserialize,
-  deserializeProp: _conversationDeserializeProp,
+  estimateSize: _iConversationEstimateSize,
+  serialize: _iConversationSerialize,
+  deserialize: _iConversationDeserialize,
+  deserializeProp: _iConversationDeserializeProp,
   idName: r'id',
   indexes: {
     r'createdAt': IndexSchema(
@@ -174,14 +174,14 @@ const ConversationSchema = CollectionSchema(
   },
   links: {},
   embeddedSchemas: {},
-  getId: _conversationGetId,
-  getLinks: _conversationGetLinks,
-  attach: _conversationAttach,
+  getId: _iConversationGetId,
+  getLinks: _iConversationGetLinks,
+  attach: _iConversationAttach,
   version: '3.1.0+1',
 );
 
-int _conversationEstimateSize(
-  Conversation object,
+int _iConversationEstimateSize(
+  IConversation object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -258,8 +258,8 @@ int _conversationEstimateSize(
   return bytesCount;
 }
 
-void _conversationSerialize(
-  Conversation object,
+void _iConversationSerialize(
+  IConversation object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -285,13 +285,13 @@ void _conversationSerialize(
   writer.writeString(offsets[18], object.userName);
 }
 
-Conversation _conversationDeserialize(
+IConversation _iConversationDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Conversation(
+  final object = IConversation(
     avatar: reader.readStringOrNull(offsets[1]),
     body: reader.readString(offsets[2]),
     businessId: reader.readLongOrNull(offsets[3]),
@@ -316,7 +316,7 @@ Conversation _conversationDeserialize(
   return object;
 }
 
-P _conversationDeserializeProp<P>(
+P _iConversationDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -366,28 +366,28 @@ P _conversationDeserializeProp<P>(
   }
 }
 
-Id _conversationGetId(Conversation object) {
+Id _iConversationGetId(IConversation object) {
   return object.id ?? Isar.autoIncrement;
 }
 
-List<IsarLinkBase<dynamic>> _conversationGetLinks(Conversation object) {
+List<IsarLinkBase<dynamic>> _iConversationGetLinks(IConversation object) {
   return [];
 }
 
-void _conversationAttach(
-    IsarCollection<dynamic> col, Id id, Conversation object) {
+void _iConversationAttach(
+    IsarCollection<dynamic> col, Id id, IConversation object) {
   object.id = id;
 }
 
-extension ConversationQueryWhereSort
-    on QueryBuilder<Conversation, Conversation, QWhere> {
-  QueryBuilder<Conversation, Conversation, QAfterWhere> anyId() {
+extension IConversationQueryWhereSort
+    on QueryBuilder<IConversation, IConversation, QWhere> {
+  QueryBuilder<IConversation, IConversation, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhere> anyLastTouched() {
+  QueryBuilder<IConversation, IConversation, QAfterWhere> anyLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'lastTouched'),
@@ -395,7 +395,7 @@ extension ConversationQueryWhereSort
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhere> anyDeletedAt() {
+  QueryBuilder<IConversation, IConversation, QAfterWhere> anyDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         const IndexWhereClause.any(indexName: r'deletedAt'),
@@ -404,9 +404,10 @@ extension ConversationQueryWhereSort
   }
 }
 
-extension ConversationQueryWhere
-    on QueryBuilder<Conversation, Conversation, QWhereClause> {
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idEqualTo(Id id) {
+extension IConversationQueryWhere
+    on QueryBuilder<IConversation, IConversation, QWhereClause> {
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause> idEqualTo(
+      Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -415,7 +416,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idNotEqualTo(
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause> idNotEqualTo(
       Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -438,7 +439,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause> idGreaterThan(
       Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
@@ -448,7 +449,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause> idLessThan(
+      Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -457,7 +459,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> idBetween(
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -473,7 +475,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -483,7 +485,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       createdAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
@@ -495,8 +497,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> createdAtEqualTo(
-      String? createdAt) {
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
+      createdAtEqualTo(String? createdAt) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'createdAt',
@@ -505,7 +507,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       createdAtNotEqualTo(String? createdAt) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -540,7 +542,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       messageIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -550,7 +552,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       messageIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
@@ -562,8 +564,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> messageIdEqualTo(
-      String? messageId) {
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
+      messageIdEqualTo(String? messageId) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'messageId',
@@ -572,7 +574,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       messageIdNotEqualTo(String? messageId) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -607,7 +609,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -617,7 +619,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
@@ -629,7 +631,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedEqualTo(DateTime? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -639,7 +641,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedNotEqualTo(DateTime? lastTouched) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -674,7 +676,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedGreaterThan(
     DateTime? lastTouched, {
     bool include = false,
@@ -689,7 +691,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedLessThan(
     DateTime? lastTouched, {
     bool include = false,
@@ -704,7 +706,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       lastTouchedBetween(
     DateTime? lowerLastTouched,
     DateTime? upperLastTouched, {
@@ -722,7 +724,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
@@ -732,7 +734,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       deletedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.between(
@@ -744,8 +746,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> deletedAtEqualTo(
-      DateTime? deletedAt) {
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
+      deletedAtEqualTo(DateTime? deletedAt) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IndexWhereClause.equalTo(
         indexName: r'deletedAt',
@@ -754,7 +756,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       deletedAtNotEqualTo(DateTime? deletedAt) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
@@ -789,7 +791,7 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause>
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
       deletedAtGreaterThan(
     DateTime? deletedAt, {
     bool include = false,
@@ -804,7 +806,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> deletedAtLessThan(
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
+      deletedAtLessThan(
     DateTime? deletedAt, {
     bool include = false,
   }) {
@@ -818,7 +821,8 @@ extension ConversationQueryWhere
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterWhereClause> deletedAtBetween(
+  QueryBuilder<IConversation, IConversation, QAfterWhereClause>
+      deletedAtBetween(
     DateTime? lowerDeletedAt,
     DateTime? upperDeletedAt, {
     bool includeLower = true,
@@ -836,9 +840,10 @@ extension ConversationQueryWhere
   }
 }
 
-extension ConversationQueryFilter
-    on QueryBuilder<Conversation, Conversation, QFilterCondition> {
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> actionEqualTo(
+extension IConversationQueryFilter
+    on QueryBuilder<IConversation, IConversation, QFilterCondition> {
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      actionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -851,7 +856,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionGreaterThan(
     String value, {
     bool include = false,
@@ -867,7 +872,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionLessThan(
     String value, {
     bool include = false,
@@ -883,7 +888,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> actionBetween(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      actionBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -902,7 +908,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -916,7 +922,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -930,7 +936,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -941,9 +947,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> actionMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      actionMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'action',
@@ -953,7 +958,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -963,7 +968,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -973,7 +978,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -982,7 +987,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -991,7 +996,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarEqualTo(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      avatarEqualTo(
     String? value, {
     bool caseSensitive = true,
   }) {
@@ -1004,7 +1010,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarGreaterThan(
     String? value, {
     bool include = false,
@@ -1020,7 +1026,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarLessThan(
     String? value, {
     bool include = false,
@@ -1036,7 +1042,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarBetween(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      avatarBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -1055,7 +1062,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1069,7 +1076,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1083,7 +1090,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1094,9 +1101,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> avatarMatches(
-      String pattern,
-      {bool caseSensitive = true}) {
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      avatarMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
         property: r'avatar',
@@ -1106,7 +1112,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1116,7 +1122,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       avatarIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1126,7 +1132,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyEqualTo(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> bodyEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1139,7 +1145,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       bodyGreaterThan(
     String value, {
     bool include = false,
@@ -1155,7 +1161,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyLessThan(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      bodyLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -1170,7 +1177,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyBetween(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> bodyBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -1189,7 +1196,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       bodyStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1203,7 +1210,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyEndsWith(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      bodyEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -1216,9 +1224,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyContains(
-      String value,
-      {bool caseSensitive = true}) {
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      bodyContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
         property: r'body',
@@ -1228,7 +1235,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> bodyMatches(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> bodyMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1240,7 +1247,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       bodyIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1250,7 +1257,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       bodyIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1260,7 +1267,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1269,7 +1276,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1278,7 +1285,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdEqualTo(int? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1288,7 +1295,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdGreaterThan(
     int? value, {
     bool include = false,
@@ -1302,7 +1309,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdLessThan(
     int? value, {
     bool include = false,
@@ -1316,7 +1323,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessIdBetween(
     int? lower,
     int? upper, {
@@ -1334,7 +1341,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1343,7 +1350,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1352,7 +1359,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1366,7 +1373,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberGreaterThan(
     String? value, {
     bool include = false,
@@ -1382,7 +1389,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberLessThan(
     String? value, {
     bool include = false,
@@ -1398,7 +1405,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberBetween(
     String? lower,
     String? upper, {
@@ -1418,7 +1425,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1432,7 +1439,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1446,7 +1453,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1457,7 +1464,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1468,7 +1475,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1478,7 +1485,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       businessPhoneNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1488,7 +1495,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1497,7 +1504,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1506,7 +1513,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1520,7 +1527,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeGreaterThan(
     String? value, {
     bool include = false,
@@ -1536,7 +1543,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeLessThan(
     String? value, {
     bool include = false,
@@ -1552,7 +1559,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeBetween(
     String? lower,
     String? upper, {
@@ -1572,7 +1579,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1586,7 +1593,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1600,7 +1607,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1611,7 +1618,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1622,7 +1629,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1632,7 +1639,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       channelTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1642,7 +1649,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1651,7 +1658,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1660,7 +1667,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1674,7 +1681,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdGreaterThan(
     String? value, {
     bool include = false,
@@ -1690,7 +1697,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdLessThan(
     String? value, {
     bool include = false,
@@ -1706,7 +1713,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdBetween(
     String? lower,
     String? upper, {
@@ -1726,7 +1733,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1740,7 +1747,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1754,7 +1761,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1765,7 +1772,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1776,7 +1783,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1786,7 +1793,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       conversationIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1796,7 +1803,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1805,7 +1812,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1814,7 +1821,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -1828,7 +1835,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtGreaterThan(
     String? value, {
     bool include = false,
@@ -1844,7 +1851,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtLessThan(
     String? value, {
     bool include = false,
@@ -1860,7 +1867,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtBetween(
     String? lower,
     String? upper, {
@@ -1880,7 +1887,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -1894,7 +1901,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -1908,7 +1915,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -1919,7 +1926,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -1930,7 +1937,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1940,7 +1947,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       createdAtIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -1950,7 +1957,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -1959,7 +1966,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -1968,7 +1975,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -1978,7 +1985,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -1992,7 +1999,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtLessThan(
     DateTime? value, {
     bool include = false,
@@ -2006,7 +2013,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deletedAtBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -2024,7 +2031,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deliveredIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2033,7 +2040,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deliveredIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2042,7 +2049,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       deliveredEqualTo(bool? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2052,7 +2059,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2061,7 +2068,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2070,7 +2077,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2084,7 +2091,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberGreaterThan(
     String? value, {
     bool include = false,
@@ -2100,7 +2107,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberLessThan(
     String? value, {
     bool include = false,
@@ -2116,7 +2123,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberBetween(
     String? lower,
     String? upper, {
@@ -2136,7 +2143,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2150,7 +2157,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2164,7 +2171,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -2175,7 +2182,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -2186,7 +2193,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2196,7 +2203,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       fromNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2206,7 +2213,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idIsNull() {
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'id',
@@ -2214,7 +2221,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       idIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2223,7 +2230,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idEqualTo(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> idEqualTo(
       Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2233,7 +2240,8 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
+      idGreaterThan(
     Id? value, {
     bool include = false,
   }) {
@@ -2246,7 +2254,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idLessThan(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> idLessThan(
     Id? value, {
     bool include = false,
   }) {
@@ -2259,7 +2267,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition> idBetween(
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition> idBetween(
     Id? lower,
     Id? upper, {
     bool includeLower = true,
@@ -2276,7 +2284,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2285,7 +2293,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2294,7 +2302,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2304,7 +2312,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -2318,7 +2326,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedLessThan(
     DateTime? value, {
     bool include = false,
@@ -2332,7 +2340,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       lastTouchedBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -2350,7 +2358,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2359,7 +2367,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2368,7 +2376,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2382,7 +2390,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdGreaterThan(
     String? value, {
     bool include = false,
@@ -2398,7 +2406,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdLessThan(
     String? value, {
     bool include = false,
@@ -2414,7 +2422,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdBetween(
     String? lower,
     String? upper, {
@@ -2434,7 +2442,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2448,7 +2456,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2462,7 +2470,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -2473,7 +2481,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -2484,7 +2492,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2494,7 +2502,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2504,7 +2512,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2513,7 +2521,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2522,7 +2530,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2536,7 +2544,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeGreaterThan(
     String? value, {
     bool include = false,
@@ -2552,7 +2560,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeLessThan(
     String? value, {
     bool include = false,
@@ -2568,7 +2576,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeBetween(
     String? lower,
     String? upper, {
@@ -2588,7 +2596,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2602,7 +2610,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2616,7 +2624,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -2627,7 +2635,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -2638,7 +2646,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2648,7 +2656,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       messageTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2658,7 +2666,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2667,7 +2675,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2676,7 +2684,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2690,7 +2698,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdGreaterThan(
     String? value, {
     bool include = false,
@@ -2706,7 +2714,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdLessThan(
     String? value, {
     bool include = false,
@@ -2722,7 +2730,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdBetween(
     String? lower,
     String? upper, {
@@ -2742,7 +2750,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2756,7 +2764,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2770,7 +2778,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -2781,7 +2789,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -2792,7 +2800,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2802,7 +2810,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       phoneNumberIdIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2812,7 +2820,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2821,7 +2829,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2830,7 +2838,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -2844,7 +2852,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByGreaterThan(
     String? value, {
     bool include = false,
@@ -2860,7 +2868,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByLessThan(
     String? value, {
     bool include = false,
@@ -2876,7 +2884,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByBetween(
     String? lower,
     String? upper, {
@@ -2896,7 +2904,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -2910,7 +2918,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -2924,7 +2932,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -2935,7 +2943,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -2946,7 +2954,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2956,7 +2964,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       respondedByIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -2966,7 +2974,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -2975,7 +2983,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -2984,7 +2992,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -2994,7 +3002,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtGreaterThan(
     DateTime? value, {
     bool include = false,
@@ -3008,7 +3016,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtLessThan(
     DateTime? value, {
     bool include = false,
@@ -3022,7 +3030,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       scheduledAtBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -3040,7 +3048,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
@@ -3049,7 +3057,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
@@ -3058,7 +3066,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberEqualTo(
     String? value, {
     bool caseSensitive = true,
@@ -3072,7 +3080,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberGreaterThan(
     String? value, {
     bool include = false,
@@ -3088,7 +3096,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberLessThan(
     String? value, {
     bool include = false,
@@ -3104,7 +3112,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberBetween(
     String? lower,
     String? upper, {
@@ -3124,7 +3132,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -3138,7 +3146,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -3152,7 +3160,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -3163,7 +3171,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -3174,7 +3182,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -3184,7 +3192,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       toNumberIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3194,7 +3202,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -3208,7 +3216,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameGreaterThan(
     String value, {
     bool include = false,
@@ -3224,7 +3232,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameLessThan(
     String value, {
     bool include = false,
@@ -3240,7 +3248,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameBetween(
     String lower,
     String upper, {
@@ -3260,7 +3268,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameStartsWith(
     String value, {
     bool caseSensitive = true,
@@ -3274,7 +3282,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameEndsWith(
     String value, {
     bool caseSensitive = true,
@@ -3288,7 +3296,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.contains(
@@ -3299,7 +3307,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.matches(
@@ -3310,7 +3318,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -3320,7 +3328,7 @@ extension ConversationQueryFilter
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterFilterCondition>
+  QueryBuilder<IConversation, IConversation, QAfterFilterCondition>
       userNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -3331,540 +3339,554 @@ extension ConversationQueryFilter
   }
 }
 
-extension ConversationQueryObject
-    on QueryBuilder<Conversation, Conversation, QFilterCondition> {}
+extension IConversationQueryObject
+    on QueryBuilder<IConversation, IConversation, QFilterCondition> {}
 
-extension ConversationQueryLinks
-    on QueryBuilder<Conversation, Conversation, QFilterCondition> {}
+extension IConversationQueryLinks
+    on QueryBuilder<IConversation, IConversation, QFilterCondition> {}
 
-extension ConversationQuerySortBy
-    on QueryBuilder<Conversation, Conversation, QSortBy> {
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByAction() {
+extension IConversationQuerySortBy
+    on QueryBuilder<IConversation, IConversation, QSortBy> {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByAction() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByActionDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByActionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByAvatar() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByAvatar() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'avatar', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByAvatarDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByAvatarDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'avatar', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBody() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByBody() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'body', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBodyDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByBodyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'body', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByBusinessId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByBusinessPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessPhoneNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByBusinessPhoneNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessPhoneNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByChannelType() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByChannelType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'channelType', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByChannelTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'channelType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByConversationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'conversationId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByConversationIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'conversationId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByCreatedAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByCreatedAtDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDeletedAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDeletedAtDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDelivered() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByDelivered() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'delivered', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByDeliveredDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByDeliveredDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'delivered', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByFromNumber() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByFromNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByFromNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByLastTouched() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByMessageId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageIdDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByMessageIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByMessageType() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByMessageType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByPhoneNumberId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByPhoneNumberId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumberId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByPhoneNumberIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumberId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByRespondedBy() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByRespondedBy() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByRespondedByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByScheduledAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       sortByScheduledAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByToNumber() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByToNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'toNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByToNumberDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByToNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'toNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByUserName() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> sortByUserName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userName', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> sortByUserNameDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      sortByUserNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userName', Sort.desc);
     });
   }
 }
 
-extension ConversationQuerySortThenBy
-    on QueryBuilder<Conversation, Conversation, QSortThenBy> {
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByAction() {
+extension IConversationQuerySortThenBy
+    on QueryBuilder<IConversation, IConversation, QSortThenBy> {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByAction() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByActionDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByActionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByAvatar() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByAvatar() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'avatar', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByAvatarDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByAvatarDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'avatar', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBody() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByBody() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'body', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBodyDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByBodyDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'body', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByBusinessId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByBusinessPhoneNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessPhoneNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByBusinessPhoneNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessPhoneNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByChannelType() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByChannelType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'channelType', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByChannelTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'channelType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByConversationId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'conversationId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByConversationIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'conversationId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByCreatedAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByCreatedAtDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByCreatedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'createdAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDeletedAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDeletedAtDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDelivered() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByDelivered() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'delivered', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByDeliveredDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByDeliveredDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'delivered', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByFromNumber() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByFromNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByFromNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'fromNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenById() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByLastTouched() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByMessageId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageIdDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByMessageIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByMessageType() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByMessageType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByMessageTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'messageType', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByPhoneNumberId() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByPhoneNumberId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumberId', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByPhoneNumberIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'phoneNumberId', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByRespondedBy() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByRespondedBy() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByRespondedByDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'respondedBy', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByScheduledAt() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy>
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
       thenByScheduledAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'scheduledAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByToNumber() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByToNumber() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'toNumber', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByToNumberDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByToNumberDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'toNumber', Sort.desc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByUserName() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy> thenByUserName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userName', Sort.asc);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QAfterSortBy> thenByUserNameDesc() {
+  QueryBuilder<IConversation, IConversation, QAfterSortBy>
+      thenByUserNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'userName', Sort.desc);
     });
   }
 }
 
-extension ConversationQueryWhereDistinct
-    on QueryBuilder<Conversation, Conversation, QDistinct> {
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByAction(
+extension IConversationQueryWhereDistinct
+    on QueryBuilder<IConversation, IConversation, QDistinct> {
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByAvatar(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByAvatar(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'avatar', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByBody(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByBody(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'body', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByBusinessId() {
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'businessId');
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct>
+  QueryBuilder<IConversation, IConversation, QDistinct>
       distinctByBusinessPhoneNumber({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'businessPhoneNumber',
@@ -3872,68 +3894,69 @@ extension ConversationQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByChannelType(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByChannelType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'channelType', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByConversationId(
-      {bool caseSensitive = true}) {
+  QueryBuilder<IConversation, IConversation, QDistinct>
+      distinctByConversationId({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'conversationId',
           caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByCreatedAt(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByCreatedAt(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByDeletedAt() {
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'deletedAt');
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByDelivered() {
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByDelivered() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'delivered');
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByFromNumber(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByFromNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'fromNumber', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByLastTouched() {
+  QueryBuilder<IConversation, IConversation, QDistinct>
+      distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastTouched');
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByMessageId(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByMessageId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'messageId', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByMessageType(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByMessageType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'messageType', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByPhoneNumberId(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByPhoneNumberId(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'phoneNumberId',
@@ -3941,27 +3964,28 @@ extension ConversationQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByRespondedBy(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByRespondedBy(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'respondedBy', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByScheduledAt() {
+  QueryBuilder<IConversation, IConversation, QDistinct>
+      distinctByScheduledAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'scheduledAt');
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByToNumber(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByToNumber(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'toNumber', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Conversation, Conversation, QDistinct> distinctByUserName(
+  QueryBuilder<IConversation, IConversation, QDistinct> distinctByUserName(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'userName', caseSensitive: caseSensitive);
@@ -3969,128 +3993,128 @@ extension ConversationQueryWhereDistinct
   }
 }
 
-extension ConversationQueryProperty
-    on QueryBuilder<Conversation, Conversation, QQueryProperty> {
-  QueryBuilder<Conversation, int, QQueryOperations> idProperty() {
+extension IConversationQueryProperty
+    on QueryBuilder<IConversation, IConversation, QQueryProperty> {
+  QueryBuilder<IConversation, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Conversation, String, QQueryOperations> actionProperty() {
+  QueryBuilder<IConversation, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> avatarProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> avatarProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'avatar');
     });
   }
 
-  QueryBuilder<Conversation, String, QQueryOperations> bodyProperty() {
+  QueryBuilder<IConversation, String, QQueryOperations> bodyProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'body');
     });
   }
 
-  QueryBuilder<Conversation, int?, QQueryOperations> businessIdProperty() {
+  QueryBuilder<IConversation, int?, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessId');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations>
+  QueryBuilder<IConversation, String?, QQueryOperations>
       businessPhoneNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessPhoneNumber');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> channelTypeProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> channelTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'channelType');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations>
+  QueryBuilder<IConversation, String?, QQueryOperations>
       conversationIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'conversationId');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> createdAtProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
     });
   }
 
-  QueryBuilder<Conversation, DateTime?, QQueryOperations> deletedAtProperty() {
+  QueryBuilder<IConversation, DateTime?, QQueryOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deletedAt');
     });
   }
 
-  QueryBuilder<Conversation, bool?, QQueryOperations> deliveredProperty() {
+  QueryBuilder<IConversation, bool?, QQueryOperations> deliveredProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'delivered');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> fromNumberProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> fromNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'fromNumber');
     });
   }
 
-  QueryBuilder<Conversation, DateTime?, QQueryOperations>
+  QueryBuilder<IConversation, DateTime?, QQueryOperations>
       lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> messageIdProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> messageIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messageId');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> messageTypeProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> messageTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'messageType');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations>
+  QueryBuilder<IConversation, String?, QQueryOperations>
       phoneNumberIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'phoneNumberId');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> respondedByProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> respondedByProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'respondedBy');
     });
   }
 
-  QueryBuilder<Conversation, DateTime?, QQueryOperations>
+  QueryBuilder<IConversation, DateTime?, QQueryOperations>
       scheduledAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'scheduledAt');
     });
   }
 
-  QueryBuilder<Conversation, String?, QQueryOperations> toNumberProperty() {
+  QueryBuilder<IConversation, String?, QQueryOperations> toNumberProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'toNumber');
     });
   }
 
-  QueryBuilder<Conversation, String, QQueryOperations> userNameProperty() {
+  QueryBuilder<IConversation, String, QQueryOperations> userNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'userName');
     });
@@ -4101,7 +4125,8 @@ extension ConversationQueryProperty
 // JsonSerializableGenerator
 // **************************************************************************
 
-Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
+IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
+    IConversation(
       userName: json['userName'] as String? ?? 'Awesome Richie',
       body: json['body'] as String,
       avatar: json['avatar'] as String?,
@@ -4130,7 +4155,7 @@ Conversation _$ConversationFromJson(Map<String, dynamic> json) => Conversation(
           ? null
           : DateTime.parse(json['lastTouched'] as String);
 
-Map<String, dynamic> _$ConversationToJson(Conversation instance) =>
+Map<String, dynamic> _$IConversationToJson(IConversation instance) =>
     <String, dynamic>{
       'action': instance.action,
       'id': instance.id,

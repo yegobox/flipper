@@ -1,6 +1,6 @@
 import 'package:flipper_dashboard/preview_sale_button.dart';
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';

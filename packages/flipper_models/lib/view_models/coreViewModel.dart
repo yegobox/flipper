@@ -5,12 +5,13 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -189,7 +190,7 @@ class CoreViewModel extends FlipperBaseModel
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
-        : variation.productName;
+        : variation.productName!;
     // update the transaction item
     if (items.isEmpty) {
       TransactionItem newItem = newTransactionItem(
@@ -228,7 +229,7 @@ class CoreViewModel extends FlipperBaseModel
 
       String name = variation.productName != 'Custom Amount'
           ? '${variation.productName}(${variation.name})'
-          : variation.productName;
+          : variation.productName!;
 
       TransactionItem? existTransactionItem = await ProxyService.isar
           .getTransactionItemByVariantId(
@@ -284,6 +285,7 @@ class CoreViewModel extends FlipperBaseModel
       String name, ITransaction pendingTransaction, Stock stock) {
     int branchId = ProxyService.box.getBranchId()!;
     return TransactionItem(
+      ObjectId(),
       id: randomNumber(),
       qty: 1,
       action: AppActions.created,
@@ -328,7 +330,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
-    final Category category = Category(
+    final Category category = Category(ObjectId(),
         name: categoryName!,
         active: true,
         focused: false,
@@ -345,8 +347,8 @@ class CoreViewModel extends FlipperBaseModel
     return await ProxyService.isar.productsFuture(branchId: branchId);
   }
 
-  IBusiness get businesses => app.business!;
-  IBranch? get branch => app.branch;
+  Business get businesses => app.business;
+  Branch? get branch => app.branch;
 
   void pop() {
     ProxyService.keypad.pop();
@@ -358,7 +360,7 @@ class CoreViewModel extends FlipperBaseModel
 
   void handleCustomQtySetBeforeSelectingVariation() {
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
     }
   }
 
@@ -366,7 +368,7 @@ class CoreViewModel extends FlipperBaseModel
   void customQtyIncrease(double quantity) {
     ProxyService.keypad.increaseQty(custom: true, qty: quantity);
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
     }
   }
 
@@ -374,7 +376,7 @@ class CoreViewModel extends FlipperBaseModel
   void decreaseQty(Function callback) {
     ProxyService.keypad.decreaseQty();
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
     }
     callback(quantity);
   }
@@ -384,7 +386,7 @@ class CoreViewModel extends FlipperBaseModel
   void increaseQty({required Function callback, required bool custom}) {
     ProxyService.keypad.increaseQty(custom: custom);
     if (_currentItemStock != null) {
-      keypad.setAmount(amount: _currentItemStock!.retailPrice! * quantity);
+      keypad.setAmount(amount: _currentItemStock!.retailPrice * quantity);
       rebuildUi();
     }
     callback(keypad.quantity);
@@ -469,8 +471,8 @@ class CoreViewModel extends FlipperBaseModel
       required String paymentType}) async {
     final transaction = await ProxyService.isar
         .manageTransaction(transactionType: TransactionType.custom);
-    await ProxyService.isar
-        .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
+    // await ProxyService.isar
+    //     .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.isar.collectPayment(
         cashReceived: cashReceived,
         transaction: transaction,
@@ -517,6 +519,7 @@ class CoreViewModel extends FlipperBaseModel
     int branchId = ProxyService.box.getBranchId()!;
     ProxyService.isar.addCustomer(
         customer: Customer(
+          ObjectId(),
           custNm: name,
           id: randomNumber(),
           action: AppActions.created,
@@ -622,8 +625,7 @@ class CoreViewModel extends FlipperBaseModel
 
     num? totalPayable = items.fold(0, (a, b) => a! + (b.price * b.qty));
 
-    num? totalDiscount = items.fold(
-        0, (a, b) => a! + (b.discount == null ? 0 : b.discount!.toInt()));
+    num? totalDiscount = items.fold(0, (a, b) => a! + (b.discount.toInt()));
 
     keypad.setTotalPayable(
         amount: totalDiscount != 0.0
@@ -655,9 +657,9 @@ class CoreViewModel extends FlipperBaseModel
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      IBusiness? business = await ProxyService.isar.getBusiness();
+      Business? business = await ProxyService.isar.getBusiness();
       final drive = GoogleDrive();
-      if (business!.backupFileId != null) {
+      if (business.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
         callback(1);
       } else {
@@ -736,26 +738,24 @@ class CoreViewModel extends FlipperBaseModel
 
   void defaultBranch() async {
     final branch = await ProxyService.isar.activeBranch();
-    if (branch == null) {
-      throw Exception("no active branch");
-    }
+
     app.setActiveBranch(branch: branch);
   }
 
-  Future<void> setDefaultBusiness({required IBusiness business}) async {
+  Future<void> setDefaultBusiness({required Business business}) async {
     app.setBusiness(business: business);
-    List<IBusiness> businesses = await ProxyService.isar.businesses();
-    for (IBusiness business in businesses) {
+    List<Business> businesses = await ProxyService.isar.businesses();
+    for (Business business in businesses) {
       await ProxyService.isar.update(data: business..isDefault = false);
     }
     ProxyService.isar.update(data: business..isDefault = true);
     ProxyService.box.writeInt(key: 'businessId', value: business.id!);
   }
 
-  Future<void> setDefaultBranch({required IBranch branch}) async {
+  Future<void> setDefaultBranch({required Branch branch}) async {
     //first set other branch to not active
-    List<IBranch> branches = await ProxyService.isar.branches();
-    for (IBranch branch in branches) {
+    List<Branch> branches = await ProxyService.isar.branches();
+    for (Branch branch in branches) {
       await ProxyService.isar.update(data: branch..isDefault = false);
     }
     ProxyService.isar.update(data: branch..isDefault = true);
@@ -790,8 +790,8 @@ class CoreViewModel extends FlipperBaseModel
         pendingTransaction: pendingTransaction);
   }
 
-  List<IBranch> branches = [];
-  void branchesList(List<IBranch> value) {
+  List<Branch> branches = [];
+  void branchesList(List<Branch> value) {
     branches = value;
     notifyListeners();
   }
@@ -826,46 +826,45 @@ class CoreViewModel extends FlipperBaseModel
       activity: 'session',
     );
     ProxyService.box.writeInt(key: 'userId', value: userId);
-    IITenant? tenant =
-        await ProxyService.isar.getTenantBYUserId(userId: userId);
+    Tenant? tenant = await ProxyService.isar.getTenantBYUserId(userId: userId);
     tenant?.sessionActive = true;
     ProxyService.isar.update(data: tenant);
   }
 
   Future<int> updateUserWithPinCode({required String pin}) async {
-    IBusiness? business = await ProxyService.isar
+    Business? business = await ProxyService.isar
         .getBusiness(businessId: ProxyService.box.getBusinessId());
 
     /// set the pin for the current business default tenant
-    if (business != null) {
-      /// get the default tenant
-      IITenant? tenant = await ProxyService.isar.getTenantBYUserId(
-        userId: business.userId!,
-      );
-      final response = await ProxyService.isar.update(
-        data: User(
-          id: tenant!.userId,
-          phoneNumber: tenant.phoneNumber,
-          pin: pin,
-        ),
-      );
-      if (response == 200) {
-        tenant.pin = int.tryParse(pin);
-        ProxyService.isar.update(data: tenant);
-        ProxyService.notification.sendLocalNotification(
-            payload: Conversation(
-                userName: tenant.name,
-                body: 'Pin has been added to your account successfully',
-                avatar: "",
-                channelType: "",
-                messageId: randomNumber().toString(),
-                createdAt: DateTime.now().toIso8601String(),
-                fromNumber: tenant.phoneNumber,
-                toNumber: tenant.phoneNumber,
-                businessId: tenant.businessId));
-      }
-      return response;
-    }
+    // if (business != null) {
+    /// get the default tenant
+    Tenant? tenant = await ProxyService.isar.getTenantBYUserId(
+      userId: business.userId!,
+    );
+    // final response = await ProxyService.isar.update(
+    //   data: User(
+    //     id: tenant!.userId,
+    //     phoneNumber: tenant.phoneNumber,
+    //     pin: pin,
+    //   ),
+    // );
+    // if (response == 200) {
+    //   tenant.pin = int.tryParse(pin);
+    //   ProxyService.isar.update(data: tenant);
+    //   ProxyService.notification.sendLocalNotification(
+    //       payload: Conversation(ObjectId(),
+    //           userName: tenant.name,
+    //           body: 'Pin has been added to your account successfully',
+    //           avatar: "",
+    //           channelType: "",
+    //           messageId: randomNumber().toString(),
+    //           createdAt: DateTime.now().toIso8601String(),
+    //           fromNumber: tenant.phoneNumber,
+    //           toNumber: tenant.phoneNumber,
+    //           businessId: tenant.businessId));
+    // }
+    // return response;
+
     return 0;
   }
 }

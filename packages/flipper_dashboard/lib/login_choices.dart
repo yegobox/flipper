@@ -1,7 +1,8 @@
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ class LoginChoices extends StatefulWidget {
 }
 
 class _LoginChoicesState extends State<LoginChoices> {
-  List<IBusiness> _businesses = [];
+  List<Business> _businesses = [];
   bool _isNext = false;
 
   final _routerService = locator<RouterService>();
@@ -26,9 +27,9 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<IBusiness> _b = await ProxyService.isar.businesses();
-        List<IBranch> branches = await ProxyService.isar.branches();
-        for (IBranch branch in branches) {
+        List<Business> _b = await ProxyService.isar.businesses();
+        List<Branch> branches = await ProxyService.isar.branches();
+        for (Branch branch in branches) {
           ProxyService.isar.update(data: branch..active = false);
         }
         model.branchesList(branches);
@@ -71,7 +72,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ListView.builder(
       itemCount: _businesses.length,
       itemBuilder: (context, index) {
-        IBusiness business = _businesses[index];
+        Business business = _businesses[index];
         return ListTile(
           tileColor: Colors.white,
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -96,7 +97,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   Future<void> chooseBusiness(
     CoreViewModel model,
-    IBusiness selectedBusiness,
+    Business selectedBusiness,
   ) async {
     model.setDefaultBusiness(business: selectedBusiness);
     ProxyService.box
@@ -105,16 +106,10 @@ class _LoginChoicesState extends State<LoginChoices> {
         .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
 
     for (int i = 0; i < _businesses.length; i++) {
-      IBusiness currentBusiness = _businesses[i];
+      Business currentBusiness = _businesses[i];
 
-      _businesses[i] = IBusiness.copy(
-        currentBusiness,
-        active: currentBusiness.id == selectedBusiness.id,
-        name: currentBusiness.name,
-        // Specify new values for additional properties if needed
-        action: currentBusiness.action,
-        encryptionKey: currentBusiness.encryptionKey,
-      );
+      currentBusiness.name = currentBusiness.name;
+      currentBusiness.active = currentBusiness.id == selectedBusiness.id;
 
       ProxyService.isar.update(data: _businesses[i]);
     }
@@ -131,7 +126,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ListView.builder(
       itemCount: model.branches.length,
       itemBuilder: (context, index) {
-        IBranch branch = model.branches[index];
+        Branch branch = model.branches[index];
         return ListTile(
           tileColor: Colors.white,
           contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -152,18 +147,15 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   Future<void> chooseBranch(
     CoreViewModel model,
-    IBranch branch,
+    Branch branch,
   ) async {
     model.setDefaultBranch(branch: branch);
 
     for (int i = 0; i < model.branches.length; i++) {
-      IBranch currentBranch = model.branches[i];
+      Branch currentBranch = model.branches[i];
 
-      model.branches[i] = IBranch.copy(
-        currentBranch,
-        active: currentBranch.id == branch.id,
-        name: currentBranch.name,
-      );
+      currentBranch.active = currentBranch.id == branch.id;
+      currentBranch.name = currentBranch.name;
 
       ProxyService.isar.update(data: model.branches[i]);
     }
@@ -175,6 +167,7 @@ class _LoginChoicesState extends State<LoginChoices> {
       _routerService.navigateTo(FlipperAppRoute());
     } else {
       Drawers drawer = Drawers(
+        ObjectId(),
         id: randomNumber(),
         openingBalance: 0.0,
         closingBalance: 0.0,

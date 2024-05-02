@@ -1,11 +1,11 @@
 library flipper_models;
 
-// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/realm_model_export.dart';
 
 import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +16,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flutter_riverpod/src/consumer.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:stacked/stacked.dart';
@@ -102,8 +103,8 @@ class ProductViewModel extends FlipperBaseModel
       Product? product = await ProxyService.isar.getProduct(id: productId);
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
-      kProductName = product.name;
-      setCurrentColor(color: product.color);
+      kProductName = product.name!;
+      setCurrentColor(color: product.color!);
       notifyListeners();
       return product;
     }
@@ -111,6 +112,7 @@ class ProductViewModel extends FlipperBaseModel
     /// create a temp product or return it if it exists
     Product? product = await ProxyService.isar.createProduct(
       product: Product(
+        ObjectId(),
         id: randomNumber(),
         name: TEMP_PRODUCT,
         action: AppActions.created,
@@ -122,8 +124,8 @@ class ProductViewModel extends FlipperBaseModel
     );
 
     setCurrentProduct(currentProduct: product!);
-    kProductName = product.name;
-    setCurrentColor(color: product.color);
+    kProductName = product.name!;
+    setCurrentColor(color: product.color!);
     rebuildUi();
     return product;
   }
@@ -148,7 +150,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
     if (productName == null) return;
-    final Category category = Category(
+    final Category category = Category(ObjectId(),
         name: productName!,
         active: true,
         focused: false,
@@ -162,7 +164,7 @@ class ProductViewModel extends FlipperBaseModel
   void updateCategory({required Category category}) async {
     int branchId = ProxyService.box.getBranchId()!;
     for (Category category in categories) {
-      if (category.focused) {
+      if (category.focused!) {
         Category cat = category;
         cat.focused = false;
         cat.branchId = branchId;
@@ -190,7 +192,7 @@ class ProductViewModel extends FlipperBaseModel
     final int branchId = ProxyService.box.getBranchId()!;
     log('updating unit', name: 'saveFocusedUnit');
     for (IUnit unit in units) {
-      if (unit.active) {
+      if (unit.active!) {
         unit.active = false;
         unit.branchId = branchId;
         await ProxyService.isar.update(data: unit);
@@ -347,6 +349,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<int> addFavorite(
       {required int favIndex, required int productId}) async {
     final favorite = Favorite(
+      ObjectId(),
       favIndex: favIndex,
       productId: productId,
       branchId: ProxyService.box.getBranchId(),
@@ -391,7 +394,7 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   Stream<String> getProductName() async* {
-    yield product != null ? product!.name : '';
+    yield product != null ? product!.name! : '';
   }
 
   void deleteDiscount({id}) {

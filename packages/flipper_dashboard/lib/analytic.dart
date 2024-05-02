@@ -1,6 +1,6 @@
 // import 'package:ant_icons/ant_icons.dart';
 // import 'package:feather_icons/feather_icons.dart';
-// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/realm_model_export.dart';
 // import 'package:flipper_dashboard/customappbar.dart';
 // import 'package:flutter/material.dart';
 // import 'package:ionicons/ionicons.dart';

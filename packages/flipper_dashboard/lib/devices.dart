@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -165,7 +165,7 @@ class Devices extends ConsumerWidget {
                           'assets/${deviceList[index].deviceName}.png',
                           package: 'flipper_dashboard',
                         ),
-                        title: Text(deviceList[index].deviceName),
+                        title: Text(deviceList[index].deviceName!),
                         trailing: IconButton(
                           icon: Icon(Icons.delete),
                           onPressed: () {

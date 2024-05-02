@@ -1,6 +1,6 @@
 library flipper_dashboard;
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';

@@ -2,7 +2,7 @@ import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';

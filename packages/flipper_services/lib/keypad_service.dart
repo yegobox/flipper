@@ -2,7 +2,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/helpers/stack.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class KeyPadService with ListenableServiceMixin {
   final _key = ReactiveValue<String>("0.00");

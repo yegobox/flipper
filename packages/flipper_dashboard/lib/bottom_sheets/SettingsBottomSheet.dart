@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/widgets/SettingLayout.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

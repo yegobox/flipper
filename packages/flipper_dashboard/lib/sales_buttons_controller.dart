@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/preview_sale_button.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
 class SalesButtonsController extends StatelessWidget {

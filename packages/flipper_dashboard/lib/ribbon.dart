@@ -1,3 +1,4 @@
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -154,7 +155,7 @@ class IconRowState extends ConsumerState<IconRow> {
       // Perform some action when the button is pressed
       final data = await ProxyService.isar
           .getTransactionsAmountsSum(period: TransactionPeriod.today);
-      isar.Drawers? drawer = await ProxyService.isar.getDrawer(
+      Drawers? drawer = await ProxyService.isar.getDrawer(
         cashierId: ProxyService.box.getBusinessId()!,
       );
       if (drawer != null) {

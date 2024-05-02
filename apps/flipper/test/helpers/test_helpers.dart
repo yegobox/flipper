@@ -4,7 +4,7 @@
 // import 'package:flipper_services/abstractions/location.dart';
 // import 'package:flipper_services/abstractions/remote.dart';
 // import 'package:flipper_services/billing_service.dart';
-// import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/realm_model_export.dart';
 // import 'package:flipper_services/abstractions/storage.dart';
 // import 'package:flipper_services/app_service.dart';
 // import 'package:flipper_services/keypad_service.dart';

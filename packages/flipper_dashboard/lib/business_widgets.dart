@@ -1,7 +1,7 @@
 import 'package:flipper_ui/helpers/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class BusinessSettingButton extends StatelessWidget {
   const BusinessSettingButton({Key? key, this.image, required this.onPressed})
@@ -50,11 +50,11 @@ class BusinessButton extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final IBusiness business;
+  final Business business;
   final bool hasUpdates;
   final bool isActive;
 
-  final Function(IBusiness) onPressedCircle;
+  final Function(Business) onPressedCircle;
 
   @override
   Widget build(BuildContext context) {
@@ -170,16 +170,8 @@ class _Style {
   static const double circleHighlightBorderRadius = 10.0;
   static const double circleHighlightWidth = 4.0;
   static const double circleUnreadIndicatorWidth = 14.0;
-  static Padding defaultPadding =
-      Padding(padding: EdgeInsets.only(top: padding));
 
   // ignore: unused_field
   static const double firstSectionHeight = 100.0;
   static const double flipperButtonWidth = 44.0;
-  static const double fourthSectionHeight = 180.0;
-  static const double itemHeight = 52.0;
-  static double padding = 8;
-  static const double separatorHeight = 2.0;
-  static const double separatorWidth = 48.0;
-  static const double thirdSectionHeight = 60.0;
 }

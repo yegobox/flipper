@@ -4,7 +4,8 @@ import 'package:flipper_dashboard/create/section_select_unit.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -51,7 +52,7 @@ class _AddVariationState extends State<AddVariation> {
               disableButton: model.lock,
               rightActionButtonName: 'Save',
               onActionButtonClicked: () async {
-                IBusiness? business = await ProxyService.isar.getBusiness();
+                Business business = await ProxyService.isar.getBusiness();
                 String itemPrefix = "flip-";
                 String clip = itemPrefix +
                     DateTime.now()
@@ -62,7 +63,7 @@ class _AddVariationState extends State<AddVariation> {
                   final variantId = randomNumber();
                   int id = randomNumber();
                   List<Variant> variations = [];
-                  Variant data = Variant(
+                  Variant data = Variant(ObjectId(),
                       id: id,
                       color: model.product!.color,
                       name: nameController.text,
@@ -175,8 +176,10 @@ class _AddVariationState extends State<AddVariation> {
                             child: TextFormField(
                                 onChanged: (String value) {
                                   if (value == '') {
-                                    sku = DateTime.now().year.toString() +
-                                        const Uuid().v1().substring(0, 4);
+                                    sku = DateTime.now()
+                                        .year
+                                        .toString()
+                                        .substring(0, 4);
                                   } else {
                                     sku = DateTime.now().year.toString() + sku;
                                   }

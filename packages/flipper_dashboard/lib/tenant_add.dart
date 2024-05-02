@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
@@ -245,8 +245,8 @@ class _TenantAddState extends State<TenantAdd> {
   }
 
   Future<void> _addUser(FlipperBaseModel model) async {
-    IBusiness? business = await ProxyService.isar.defaultBusiness();
-    IBranch? branch = await ProxyService.isar.defaultBranch();
+    Business? business = await ProxyService.isar.defaultBusiness();
+    Branch? branch = await ProxyService.isar.defaultBranch();
 
     /// when a business add a tenant, this tenant might not have the account to flipper yet
     /// but the user will be created, it is important to know that this tenant added
@@ -296,7 +296,7 @@ class _TenantAddState extends State<TenantAdd> {
           shrinkWrap: true,
           children: model.tenants.map((tenant) {
             return Dismissible(
-              key: Key(tenant.name),
+              key: Key(tenant.name!),
               onDismissed: (direction) async {
                 if (direction == DismissDirection.endToStart) {
                   // User swiped to delete
@@ -332,7 +332,7 @@ class _TenantAddState extends State<TenantAdd> {
                         tenant.isLongPressed = false;
                       });
                     } else {
-                      await _toggleNFC(tenant as ITenant, model);
+                      await _toggleNFC(tenant, model);
                     }
                   },
                   onLongPress: () {
@@ -345,7 +345,7 @@ class _TenantAddState extends State<TenantAdd> {
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue,
                     child: Text(
-                      tenant.name.substring(0, 1).toUpperCase(),
+                      tenant.name!.substring(0, 1).toUpperCase(),
                       style: TextStyle(
                         color: Colors.white,
                         fontFamily: 'Poppins',
@@ -353,7 +353,7 @@ class _TenantAddState extends State<TenantAdd> {
                     ),
                   ),
                   title: Text(
-                    tenant.name,
+                    tenant.name!,
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
@@ -374,7 +374,7 @@ class _TenantAddState extends State<TenantAdd> {
     );
   }
 
-  Future<void> _toggleNFC(ITenant tenant, FlipperBaseModel model) async {
+  Future<void> _toggleNFC(Tenant tenant, FlipperBaseModel model) async {
     tenant.nfcEnabled = !tenant.nfcEnabled;
     try {
       await AppService().nfc.stopNfc();
@@ -384,7 +384,7 @@ class _TenantAddState extends State<TenantAdd> {
             nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
 
             showToast(context, 'You have added NFC card to ${tenant.name}');
-            await ProxyService.isar.update<ITenant>(data: tenant as ITenant);
+            await ProxyService.isar.update<Tenant>(data: tenant);
             model.loadTenants();
           },
           textData:

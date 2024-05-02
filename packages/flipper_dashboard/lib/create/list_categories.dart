@@ -5,7 +5,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked_services/stacked_services.dart';
@@ -40,12 +40,12 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           GestureDetector(
             onTap: () {
               model.updateCategory(category: categories[i]);
-              log("Category name: " + categories[i].name);
+              log("Category name: " + categories[i].name!);
             },
             child: SingleChildScrollView(
               child: ListTile(
                 title: Text(
-                  categories[i].name,
+                  categories[i].name!,
                   style: const TextStyle(color: Colors.black),
                 ),
                 trailing: Radio<String>(
@@ -56,7 +56,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                       : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
-                    log("Category name: " + categories[i].name);
+                    log("Category name: " + categories[i].name!);
                   },
                 ),
               ),
@@ -88,12 +88,12 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           GestureDetector(
             onTap: () {
               model.updateCategory(category: categories[i]);
-              log("Category name: " + categories[i].name);
+              log("Category name: " + categories[i].name!);
             },
             child: SingleChildScrollView(
               child: ListTile(
                 title: Text(
-                  categories[i].name,
+                  categories[i].name!,
                   style: const TextStyle(color: Colors.black),
                 ),
                 trailing: Radio<String>(
@@ -104,7 +104,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                       : '0',
                   onChanged: (value) {
                     model.updateCategory(category: categories[i]);
-                    log("Category name: " + categories[i].name);
+                    log("Category name: " + categories[i].name!);
                   },
                 ),
               ),

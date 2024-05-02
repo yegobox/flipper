@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -86,7 +86,7 @@ class PreviewSaleBottomSheetState
           leading: Container(
             width: 100,
             child: Text(
-              item.name.substring(0, 10),
+              item.name!.substring(0, 10),
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,

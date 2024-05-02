@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
@@ -48,7 +48,7 @@ class ProductService with ListenableServiceMixin {
           sink.add(products); // Pass through all products if query is empty
         } else {
           final filteredProducts = products.where((product) =>
-              product.name.toLowerCase().contains(query.toLowerCase()));
+              product.name!.toLowerCase().contains(query.toLowerCase()));
           sink.add(filteredProducts.toList()); // Add filtered products to sink
         }
       },

@@ -8,7 +8,7 @@ import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flipper_dashboard/transactionList.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -186,7 +186,7 @@ class ProductViewState extends ConsumerState<ProductView> {
       stock: stock,
       model: model,
       variant: variant,
-      name: variant.name,
+      name: variant.name ?? "",
       edit: (productId) {
         _routerService.navigateTo(
           AddProductViewRoute(productId: productId),
@@ -250,7 +250,7 @@ class ProductViewState extends ConsumerState<ProductView> {
 
   Widget buildProfileWidget() {
     return isDesktopOrWeb
-        ? FutureBuilder<IBranch?>(
+        ? FutureBuilder<Branch?>(
             future: ProxyService.isar.activeBranch(),
             builder: (a, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
@@ -354,7 +354,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                         stock: stock.data ?? 0.0,
                         model: model,
                         product: product,
-                        name: product.name,
+                        name: product.name ?? "",
                         addToMenu: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
@@ -418,7 +418,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                         itemBuilder: (context, index) {
                           final variant = variants[index];
                           return ListTile(
-                            trailing: Text(variant.name),
+                            trailing: Text(variant.name ?? ""),
                             leading:
                                 Text(variant.retailPrice.toString() + " RWF"),
                           );

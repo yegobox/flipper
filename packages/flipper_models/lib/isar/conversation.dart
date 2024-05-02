@@ -9,7 +9,7 @@ part 'conversation.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Conversation extends IJsonSerializable {
+class IConversation extends IJsonSerializable {
   Id? id;
   @JsonKey(defaultValue: 'Awesome Richie')
   String userName;
@@ -40,7 +40,7 @@ class Conversation extends IJsonSerializable {
   DateTime? lastTouched;
   @Index()
   DateTime? deletedAt;
-  Conversation(
+  IConversation(
       {required this.userName,
       required this.body,
       this.avatar,
@@ -60,17 +60,18 @@ class Conversation extends IJsonSerializable {
       this.deletedAt,
       this.id = 0});
 
-  Conversation.notificaton(
+  IConversation.notificaton(
       {required this.userName, required this.body, required this.id});
 
-  factory Conversation.fromRecord(RecordModel record) =>
-      Conversation.fromJson(record.toJson());
+  factory IConversation.fromRecord(RecordModel record) =>
+      IConversation.fromJson(record.toJson());
 
-  factory Conversation.fromJson(Map<String, dynamic> json) =>
-      _$ConversationFromJson(json);
+  factory IConversation.fromJson(Map<String, dynamic> json) =>
+      _$IConversationFromJson(json);
 
-  static List<Conversation> fromJsonList(String str) => List<Conversation>.from(
-      json.decode(str).map((x) => Conversation.fromJson(x)));
+  static List<IConversation> fromJsonList(String str) =>
+      List<IConversation>.from(
+          json.decode(str).map((x) => IConversation.fromJson(x)));
   @override
-  Map<String, dynamic> toJson() => _$ConversationToJson(this);
+  Map<String, dynamic> toJson() => _$IConversationToJson(this);
 }

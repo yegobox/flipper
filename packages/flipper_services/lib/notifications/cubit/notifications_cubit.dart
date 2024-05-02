@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-
-import 'package:flipper_models/isar/conversation.dart';
+import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'
@@ -170,9 +170,9 @@ class NotificationsCubit {
 
     final notification = Notification(
       id: conversation.id.toString().codeUnitAt(0),
-      title: conversation.body,
+      title: conversation.body!,
       body: dueDateFormatted,
-      payload: jsonEncode(conversation.toJson()),
+      payload: jsonEncode(conversation.toEJson() as Map<String, dynamic>),
     );
 
     if (isLinux || isWindows) {
@@ -286,7 +286,7 @@ class NotificationsCubit {
       return;
     }
 
-    final task = Conversation.fromJson(jsonDecode(notification.payload!));
+    final task = IConversation.fromJson(jsonDecode(notification.payload!));
 
     // log.v('Scheduling notification for task: ${task.id}');
 
@@ -330,7 +330,7 @@ class NotificationsCubit {
   /// This will register a notification with the OS.
   Future<void> _scheduleNotificationMobile(Notification notification) async {
     final conversation =
-        Conversation.fromJson(jsonDecode(notification.payload!));
+        IConversation.fromJson(jsonDecode(notification.payload!));
 
     // // log.v('Scheduling notification for task: ${task.id}');
 
@@ -413,7 +413,7 @@ class NotificationsCubit {
   /// `_scheduleNotificationDesktop` should be used instead.
   Future<void> _scheduleNotificationWindows(Notification notification) async {
     final conversation =
-        Conversation.fromJson(jsonDecode(notification.payload!));
+        IConversation.fromJson(jsonDecode(notification.payload!));
     // log.v('Scheduling notification for task: ${task.id}');
 
     final createdAt = conversation.createdAt;

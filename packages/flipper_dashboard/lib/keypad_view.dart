@@ -5,7 +5,7 @@ library pos;
 import 'dart:developer';
 
 import 'package:flipper_dashboard/create/category_selector.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

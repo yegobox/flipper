@@ -1,9 +1,10 @@
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:realm/realm.dart';
 
 mixin TransactionMixin {
   final KeyPadService keypad = getIt<KeyPadService>();
@@ -17,7 +18,7 @@ mixin TransactionMixin {
       required double currentStock}) async {
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
-        : variation.productName;
+        : variation.productName!;
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
 
@@ -55,7 +56,7 @@ mixin TransactionMixin {
   }) async {
     if (item != null && !isCustom) {
       // Update existing transaction item
-      item.qty += quantity.toDouble();
+      item.qty = (item.qty ?? 0) + quantity;
       item.price = amountTotal / quantity;
 
       /// this is to automatically show item in shoping cart
@@ -66,14 +67,14 @@ mixin TransactionMixin {
           doneWithTransaction: false,
           active: true);
       pendingTransaction.subTotal =
-          items.fold(0, (a, b) => a + (b.price * b.qty));
+          items.fold(0, (a, b) => a! + (b.price! * b.qty!));
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
       await ProxyService.isar.update(data: pendingTransaction);
 
       return;
     }
     // Create a new transaction item
-    TransactionItem newItem = TransactionItem(
+    TransactionItem newItem = TransactionItem(ObjectId(),
         id: randomNumber(),
         branchId: variation.branchId,
         lastTouched: DateTime.now(),
@@ -89,7 +90,8 @@ mixin TransactionMixin {
         isTaxExempted: variation.isTaxExempted,
         dcRt: 0.0,
         dcAmt: 0.0,
-        taxblAmt: pendingTransaction.subTotal,
+        taxblAmt:
+            (pendingTransaction.subTotal ?? 0.0) + (amountTotal / quantity),
         taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
         totAmt: variation.retailPrice,
         itemSeq: variation.itemSeq,
@@ -130,7 +132,7 @@ mixin TransactionMixin {
         active: true);
 
     pendingTransaction.subTotal =
-        items.fold(0, (a, b) => a + (b.price * b.qty));
+        items.fold(0, (a, b) => a! + (b.price! * b.qty!));
 
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
 

@@ -2,7 +2,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'customappbar.dart';
 import 'package:stacked/stacked.dart';
@@ -48,7 +48,7 @@ class SellState extends ConsumerState<Sell> {
             },
             title: titleWidget(
               model: model,
-              name: widget.product.name,
+              name: widget.product.name!,
             ),
             rightActionButtonName: 'Save',
             disableButton: false,
@@ -87,7 +87,7 @@ class SellState extends ConsumerState<Sell> {
                       Row(
                         children: [
                           Text(
-                            widget.product.name,
+                            widget.product.name!,
                             style: primaryTextStyle.copyWith(
                                 fontWeight: FontWeight.w500,
                                 fontSize: 17,

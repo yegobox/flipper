@@ -2,11 +2,12 @@ import 'dart:developer';
 
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
+import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
 class EBMHandler<OBJ> {
@@ -39,7 +40,7 @@ class EBMHandler<OBJ> {
   Future<void> handleReceiptGeneration(
       {required ITransaction transaction, String? purchaseCode}) async {
     if (await ProxyService.isar.isTaxEnabled()) {
-      IBusiness? business = await ProxyService.isar.getBusiness();
+      Business? business = await ProxyService.isar.getBusiness();
       List<TransactionItem> items =
           await ProxyService.isar.getTransactionItemsByTransactionId(
         transactionId: transaction.id,
@@ -87,7 +88,7 @@ class EBMHandler<OBJ> {
    */
   Future<void> printReceipt(
       {required List<TransactionItem> items,
-      required IBusiness business,
+      required Business business,
       required String receiptType,
       required ITransaction transaction}) async {
     Receipt? receipt =
@@ -95,7 +96,6 @@ class EBMHandler<OBJ> {
 
     Print print = Print();
     log(items.toString(), name: "Items");
-    log(transaction.toJson().toString(), name: "ITransaction");
     print.print(
       grandTotal: transaction.subTotal,
       currencySymbol: "RW",
@@ -108,14 +108,14 @@ class EBMHandler<OBJ> {
       cash: transaction.subTotal,
       received: transaction.cashReceived,
       payMode: "Cash",
-      mrc: receipt!.mrcNo,
-      internalData: receipt.intrlData,
-      receiptQrCode: receipt.qrCode,
-      receiptSignature: receipt.rcptSign,
+      mrc: receipt!.mrcNo ?? "",
+      internalData: receipt.intrlData ?? "",
+      receiptQrCode: receipt.qrCode ?? "",
+      receiptSignature: receipt.rcptSign ?? "",
       cashierName: business.name!,
-      sdcId: receipt.sdcId,
-      sdcReceiptNum: receipt.receiptType,
-      invoiceNum: receipt.totRcptNo,
+      sdcId: receipt.sdcId ?? "",
+      sdcReceiptNum: receipt.receiptType ?? "",
+      invoiceNum: receipt.totRcptNo ?? 0,
       brandName: business.name!,
       brandAddress: business.adrs ?? "Kigali,Rwanda",
       brandTel: ProxyService.box.getUserPhone()!,
@@ -139,7 +139,7 @@ class EBMHandler<OBJ> {
   */
   Future<void> generateRRAReceiptSignature({
     required List<TransactionItem> items,
-    required IBusiness business,
+    required Business business,
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -153,6 +153,7 @@ class EBMHandler<OBJ> {
     if (counter == null) {
       ProxyService.isar.create<Counter>(
         data: Counter(
+          ObjectId(),
           id: randomNumber(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,

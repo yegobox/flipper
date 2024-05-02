@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 
 final List<Color> colors = [
@@ -21,7 +21,7 @@ class GmailLikeLetter extends StatefulWidget {
     required this.sessionActive,
   }) : super(key: key);
 
-  final IBranch branch;
+  final Branch branch;
   final double? size;
   final bool sessionActive;
 

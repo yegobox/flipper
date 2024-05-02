@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 
 class ConversationAdapter implements types.Message {
@@ -11,7 +11,7 @@ class ConversationAdapter implements types.Message {
         id: conversation.id.toString(),
         author: types.User(
             id: conversation.fromNumber ?? "", imageUrl: conversation.avatar),
-        text: conversation.body,
+        text: conversation.body!,
         createdAt:
             DateTime.parse(conversation.createdAt!).millisecondsSinceEpoch,
         roomId: conversation.fromNumber);

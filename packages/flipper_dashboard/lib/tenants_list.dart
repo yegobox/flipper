@@ -2,12 +2,12 @@ import 'dart:developer';
 
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 class ListTenants extends StatelessWidget {
   ListTenants(
       {required this.tenants, required this.product, required this.model});
-  final List<IITenant> tenants;
+  final List<Tenant> tenants;
   final Product product;
   final ProductViewModel model;
   @override
@@ -29,7 +29,7 @@ class ListTenants extends StatelessWidget {
                       children: [
                         Expanded(
                           child: ListTile(
-                            title: Text(tenants[index].name),
+                            title: Text(tenants[index].name!),
                           ),
                         ),
                         TextButton(

@@ -1,8 +1,9 @@
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:realm/realm.dart';
 
 final List<Map<String, dynamic>> mockUnits = [
   {'id': randomNumber(), 'name': 'Per Item', 'value': '', 'active': true},
@@ -228,7 +229,7 @@ final List<Map<String, dynamic>> mockUnits = [
 ];
 
 // variation mock
-final variationMock = Variant(
+final variationMock = Variant(ObjectId(),
     action: 'create',
     color: '#cc',
     name: 'Regular',
@@ -255,7 +256,7 @@ final variationMock = Variant(
   ..supplyPrice = 0.0;
 
 // stock
-final stockMock = Stock(
+final stockMock = Stock(ObjectId(),
     lastTouched: DateTime.now(),
     branchId: 11,
     id: randomNumber(),
@@ -277,12 +278,13 @@ final stockMock = Stock(
 
 // transaction mock
 ITransaction? TransactionFMock = ITransaction(
+  ObjectId(),
   lastTouched: DateTime.now(),
   action: AppActions.created,
   id: randomNumber(),
   supplierId: 1,
-  reference: Uuid().v1(),
-  transactionNumber: Uuid().v1(),
+  reference: "2333",
+  transactionNumber: "3333",
   status: "pending",
   transactionType: 'local',
   subTotal: 0,
@@ -296,7 +298,7 @@ ITransaction? TransactionFMock = ITransaction(
 
 final AppService _appService = getIt<AppService>();
 
-final customProductMock = Product(
+final customProductMock = Product(ObjectId(),
     id: randomNumber(),
     action: 'create',
     lastTouched: DateTime.now(),
@@ -315,7 +317,7 @@ final customProductMock = Product(
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final productMock = Product(
+final productMock = Product(ObjectId(),
     id: randomNumber(),
     lastTouched: DateTime.now(),
     action: 'create',
@@ -334,7 +336,8 @@ final productMock = Product(
   ..unit = "kg"
   ..createdAt = DateTime.now().toIso8601String();
 
-final branchMock = IBranch(
+final branchMock = Branch(
+  ObjectId(),
   action: AppActions.created,
   id: randomNumber(),
   active: false,

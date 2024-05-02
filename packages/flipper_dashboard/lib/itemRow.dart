@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -10,7 +9,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
@@ -186,7 +185,7 @@ class _RowItemState extends ConsumerState<RowItem> {
 
           for (var variant in variants) {
             if (variant.retailPrice != 0) {
-              firstNonZeroRetailPrice = variant.retailPrice;
+              firstNonZeroRetailPrice = variant.retailPrice ?? 0;
               break;
             }
           }
@@ -357,7 +356,7 @@ class _RowItemState extends ConsumerState<RowItem> {
     } else {
       // copy variant.name to clipboard, handy tool when want to copy name for some use.
       if (widget.variant != null) {
-        await Clipboard.setData(ClipboardData(text: widget.variant!.name));
+        await Clipboard.setData(ClipboardData(text: widget.variant!.name!));
       }
       if (widget.variant == null) {
         _routerService.navigateTo(SellRoute(product: widget.product!));

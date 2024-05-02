@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
@@ -49,15 +49,15 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
     try {
       setIsprocessing(value: true);
       log("${pinCode}", name: "YUUUU");
-      Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
+      // Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
 
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-      log("${pin?.toJson().toString()}", name: "YUUUU");
+      // log("${pin?.toJson().toString()}", name: "YUUUU");
       // Perform user login
-      await ProxyService.isar.login(
-        skipDefaultAppSetup: false,
-        userPhone: pin!.phoneNumber,
-      );
+      // await ProxyService.isar.login(
+      //   skipDefaultAppSetup: false,
+      //   userPhone: pin!.phoneNumber,
+      // );
 
       // Clear and re-sign in with Firebase anonymously
       await FirebaseAuth.instance.signOut();

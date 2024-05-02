@@ -1,5 +1,5 @@
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';

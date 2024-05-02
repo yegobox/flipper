@@ -2,7 +2,7 @@ import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

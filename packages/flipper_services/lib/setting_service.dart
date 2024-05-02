@@ -1,7 +1,8 @@
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsService with ListenableServiceMixin {
@@ -34,7 +35,8 @@ class SettingsService with ListenableServiceMixin {
     Setting? setting =
         await ProxyService.isar.getSetting(businessId: businessId);
     if (setting != null) {
-      Map<String, dynamic> settingsMap = setting.toJson();
+      Map<String, dynamic> settingsMap =
+          setting.toEJson() as Map<String, dynamic>;
       //replace a key in settings_map if the key match with the key from map
       settingsMap.forEach((key, value) {
         if (map.containsKey(key)) {
@@ -50,10 +52,11 @@ class SettingsService with ListenableServiceMixin {
         kMap[key] = value;
       });
       Setting setting = Setting(
+        ObjectId(),
         id: randomNumber(),
         email: kMap['email'] ?? '',
         userId: userId,
-        hasPin: kMap['hasPin'] ?? '',
+        hasPin: kMap['hasPin'] ?? false,
         type: kMap['type'] ?? '',
         businessId: ProxyService.box.getBusinessId(),
         attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
@@ -122,6 +125,7 @@ class SettingsService with ListenableServiceMixin {
       }
 
       Setting(
+        ObjectId(),
         userId: setting.userId,
         id: setting.id,
         email: setting.email,
@@ -134,7 +138,7 @@ class SettingsService with ListenableServiceMixin {
         autoPrint: setting.autoPrint,
         isAttendanceEnabled: _isAttendanceEnabled.value,
       );
-      updateSettings(map: setting.toJson());
+      updateSettings(map: setting.toEJson() as Map<String, dynamic>);
       notifyListeners();
     }
   }
@@ -148,6 +152,7 @@ class SettingsService with ListenableServiceMixin {
         _sendDailReport.value = !setting.sendDailyReport!;
       }
       Setting(
+        ObjectId(),
         id: setting.id,
         userId: setting.userId,
         email: setting.email,
@@ -159,7 +164,7 @@ class SettingsService with ListenableServiceMixin {
         openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
         autoPrint: setting.autoPrint,
       );
-      updateSettings(map: setting.toJson());
+      updateSettings(map: setting.toEJson() as Map<String, dynamic>);
       notifyListeners();
     }
   }

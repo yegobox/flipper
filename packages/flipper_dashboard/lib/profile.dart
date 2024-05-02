@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_dashboard/progress.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/constants.dart';
@@ -25,7 +25,7 @@ class ProfileWidget extends StatefulWidget {
     this.showIcon = true,
     this.size = 50,
   });
-  final IBranch branch;
+  final Branch branch;
   final double? size;
   final bool showIcon;
   final bool sessionActive;
@@ -128,7 +128,7 @@ class PDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<IBusiness?>(
+    return FutureBuilder<Business?>(
       future:
           ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
@@ -240,7 +240,7 @@ class PMobile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<IBusiness?>(
+    return FutureBuilder<Business?>(
       future:
           ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {

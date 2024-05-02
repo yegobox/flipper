@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -12,7 +12,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
           model.loadVariantStock(variantId: variant.id!);
           model.handleCustomQtySetBeforeSelectingVariation();
 
-          model.keypad.setAmount(amount: variant.retailPrice * model.quantity);
+          model.keypad.setAmount(amount: variant.retailPrice! * model.quantity);
           model.toggleCheckbox(variantId: variant.id!);
         },
         child: Padding(
@@ -32,11 +32,11 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                             ? Expanded(
                                 child: Text(
                                   snapshot.data!.name == 'Regular'
-                                      ? snapshot.data!.productName +
+                                      ? snapshot.data!.productName! +
                                           "(" +
-                                          snapshot.data!.name +
+                                          snapshot.data!.name! +
                                           ")"
-                                      : snapshot.data!.name,
+                                      : snapshot.data!.name!,
                                   style: GoogleFonts.poppins(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.w700,
@@ -49,7 +49,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                       }),
                   Row(children: [
                     Text(
-                      'Frw${variant.retailPrice.toStringAsFixed(2)}',
+                      'Frw${variant.retailPrice!.toStringAsFixed(2)}',
                       style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -67,7 +67,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                         model.handleCustomQtySetBeforeSelectingVariation();
 
                         model.keypad.setAmount(
-                            amount: variant.retailPrice * model.quantity);
+                            amount: variant.retailPrice! * model.quantity);
                         model.toggleCheckbox(variantId: variant.id!);
                       },
                     ),

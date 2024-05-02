@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 
 Widget BuildGaugeOrList(
     {required BuildContext context,
@@ -52,7 +52,7 @@ Widget BuildGaugeOrList(
 
         List<ITransaction> filteredTransactions = [];
         for (final transaction in model.transactions) {
-          temporaryDate = DateTime.parse(transaction.createdAt);
+          temporaryDate = DateTime.parse(transaction.createdAt!);
           if (temporaryDate.isAfter(oldDate)) {
             filteredTransactions.add(transaction);
           }
@@ -121,14 +121,14 @@ Widget BuildGaugeOrList(
                             fontSize: 17, fontWeight: FontWeight.bold)),
                     subtitle: Text(
                         DateFormat('dd/MM/yyyy')
-                            .format(DateTime.parse(transaction.createdAt)),
+                            .format(DateTime.parse(transaction.createdAt!)),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,
                             color: Colors.grey)),
                     trailing: Text(
                         DateFormat('HH:mm')
-                            .format(DateTime.parse(transaction.createdAt)),
+                            .format(DateTime.parse(transaction.createdAt!)),
                         style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,

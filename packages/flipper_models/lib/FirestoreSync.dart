@@ -4,8 +4,6 @@ import 'package:flipper_models/isar_models.dart';
 import 'package:flipper_models/sync_service.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
-import 'remote_service.dart';
 import 'sync.dart';
 // import 'firebase_options.dart';
 // import 'package:firebase_core/firebase_core.dart';
@@ -17,9 +15,7 @@ abstract class SyncFirestore<M extends IJsonSerializable> implements Sync {
   void configure();
 }
 
-class FirestoreSync<M extends IJsonSerializable>
-    with HandleItemMixin
-    implements SyncFirestore<M> {
+class FirestoreSync<M extends IJsonSerializable> implements SyncFirestore<M> {
   @override
   Future<void> onSave<T extends IJsonSerializable>({required T item}) async {
     throw UnimplementedError();

@@ -1,8 +1,9 @@
 import 'package:flipper_models/isar/random.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -15,6 +16,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   final _routerService = locator<RouterService>();
   void openDrawer() {
     Drawers drawer = Drawers(
+      ObjectId(),
       id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
@@ -27,11 +29,11 @@ class FlipperBaseModel extends ReactiveViewModel {
     _routerService.navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
   }
 
-  List<IITenant> _tenants = [];
-  List<IITenant> get tenants => _tenants;
+  List<Tenant> _tenants = [];
+  List<Tenant> get tenants => _tenants;
 
   Future<void> loadTenants() async {
-    List<IITenant> users = await ProxyService.isar
+    List<Tenant> users = await ProxyService.isar
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     _tenants = [...users];
     rebuildUi();

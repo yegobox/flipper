@@ -2,15 +2,16 @@ library flipper_models;
 
 import 'dart:developer';
 
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
-import 'package:flutter/foundation.dart' as found;
+// import 'package:firebase_auth/firebase_auth.dart' as firebase;
+import 'package:flipper_models/isar/business_type.dart';
+import 'package:flipper_models/isar/tenant.dart';
 import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/mocks.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/constants.dart';
@@ -18,8 +19,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'gate.dart';
-
-import 'package:http/http.dart' as http;
 
 class SignupViewModel extends ReactiveViewModel {
   final appService = loc.getIt<AppService>();
@@ -140,8 +139,8 @@ class SignupViewModel extends ReactiveViewModel {
     }
 
     await saveBusinessId(tenants);
-    IBusiness? business = await getBusiness(tenants);
-    List<IBranch> branches = await getBranches(business);
+    Business business = await getBusiness(tenants);
+    List<Branch> branches = await getBranches(business);
     await saveBranchId(branches);
 
     appService.appInit();
@@ -170,21 +169,22 @@ class SignupViewModel extends ReactiveViewModel {
     );
   }
 
-  Future<IBusiness?> getBusiness(List<ITenant> tenants) {
+  Future<Business> getBusiness(List<ITenant> tenants) {
     return ProxyService.isar
         .getBusiness(businessId: tenants.first.businesses.first.id);
   }
 
-  Future<List<IBranch>> getBranches(IBusiness? business) {
-    return ProxyService.isar.branches(businessId: business!.id);
+  Future<List<Branch>> getBranches(Business business) {
+    return ProxyService.isar.branches(businessId: business.id);
   }
 
-  Future<void> saveBranchId(List<IBranch> branches) {
+  Future<void> saveBranchId(List<Branch> branches) {
     return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id!);
   }
 
-  Future<void> createDefaultCategory(List<IBranch> branches) async {
+  Future<void> createDefaultCategory(List<Branch> branches) async {
     final Category category = Category(
+      ObjectId(),
       active: true,
       focused: true,
       name: "NONE",
@@ -194,8 +194,9 @@ class SignupViewModel extends ReactiveViewModel {
     ProxyService.isar.create<Category>(data: category);
   }
 
-  Future<void> createDefaultColor(List<IBranch> branches) async {
+  Future<void> createDefaultColor(List<Branch> branches) async {
     final PColor color = PColor(
+      ObjectId(),
       id: randomNumber(),
       colors: [
         '#d63031',
@@ -225,53 +226,54 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> pocketDbRegistration() async {
-    String? pocketDbToken;
-    if (found.kDebugMode) {
-      pocketDbToken = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
-          AppSecrets.debugPassword, AppSecrets.debugEmail);
-    } else {
-      pocketDbToken = await ProxyService.remote.getToken(
-          AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
-    }
-    firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
-    var headers = {
-      'Authorization':
-          'Bearer ' + (pocketDbToken ?? ''), // Ensure pocketDbToken is not null
-    };
-    var request = http.MultipartRequest(
-      'POST',
-      Uri.parse(AppSecrets.apiUrlDebug + '/api/collections/users/records'),
-    );
+    throw UnimplementedError();
+    // String? pocketDbToken;
+    // if (found.kDebugMode) {
+    //   pocketDbToken = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
+    //       AppSecrets.debugPassword, AppSecrets.debugEmail);
+    // } else {
+    //   pocketDbToken = await ProxyService.remote.getToken(
+    //       AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
+    // }
+    // firebase.User? firebaseUser = firebase.FirebaseAuth.instance.currentUser;
+    // var headers = {
+    //   'Authorization':
+    //       'Bearer ' + (pocketDbToken ?? ''), // Ensure pocketDbToken is not null
+    // };
+    // var request = http.MultipartRequest(
+    //   'POST',
+    //   Uri.parse(AppSecrets.apiUrlDebug + '/api/collections/users/records'),
+    // );
 
-    String? userEmail = firebaseUser?.email;
-    String? userPhoneNumber = firebaseUser?.phoneNumber;
+    // String? userEmail = firebaseUser?.email;
+    // String? userPhoneNumber = firebaseUser?.phoneNumber;
 
-    String? email;
+    // String? email;
 
-    if (userEmail != null) {
-      email = userEmail;
-    } else if (userPhoneNumber != null) {
-      email = userPhoneNumber.replaceAll(RegExp(r'[^0-9]'), '') + '@gmail.com';
-    } else {
-      email = null; // Handle this case as needed
-    }
-    // Handle null cases and provide non-nullable values
-    request.fields.addAll({
-      'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
-      'passwordConfirm': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
-      'email': email!,
-      'username': firebaseUser?.displayName ?? '',
-      'verified': 'true', // Assuming 'verified' is expected to be a string
-    });
+    // if (userEmail != null) {
+    //   email = userEmail;
+    // } else if (userPhoneNumber != null) {
+    //   email = userPhoneNumber.replaceAll(RegExp(r'[^0-9]'), '') + '@gmail.com';
+    // } else {
+    //   email = null; // Handle this case as needed
+    // }
+    // // Handle null cases and provide non-nullable values
+    // request.fields.addAll({
+    //   'password': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
+    //   'passwordConfirm': firebaseUser?.email ?? firebaseUser?.phoneNumber ?? '',
+    //   'email': email!,
+    //   'username': firebaseUser?.displayName ?? '',
+    //   'verified': 'true', // Assuming 'verified' is expected to be a string
+    // });
 
-    request.headers.addAll(headers);
+    // request.headers.addAll(headers);
 
-    http.StreamedResponse response = await request.send();
+    // http.StreamedResponse response = await request.send();
 
-    if (response.statusCode == 200) {
-      print(await response.stream.bytesToString());
-    } else {
-      print(response.reasonPhrase);
-    }
+    // if (response.statusCode == 200) {
+    //   print(await response.stream.bytesToString());
+    // } else {
+    //   print(response.reasonPhrase);
+    // }
   }
 }

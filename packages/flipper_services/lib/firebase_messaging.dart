@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/isar/social.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
@@ -59,39 +60,39 @@ class FirebaseMessagingService implements Messaging {
     String? _token = await token();
 
     int branchId = ProxyService.box.getBranchId() ?? 0;
-    List<Social> activeSocialAccount =
-        await ProxyService.isar.activesocialAccounts(branchId: branchId);
+    // List<Social> activeSocialAccount =
+    //     await ProxyService.isar.activesocialAccounts(branchId: branchId);
 
-    if (ProxyService.box.getDefaultApp() == 2 &&
-        activeSocialAccount.isNotEmpty &&
-        !ProxyService.box.getIsTokenRegistered()! &&
-        !kDebugMode) {
-      bool isSocialLoggedIn = await appService.isSocialLoggedin();
+    // if (ProxyService.box.getDefaultApp() == 2 &&
+    //     activeSocialAccount.isNotEmpty &&
+    //     !ProxyService.box.getIsTokenRegistered()! &&
+    //     !kDebugMode) {
+    //   bool isSocialLoggedIn = await appService.isSocialLoggedin();
 
-      if (isSocialLoggedIn) {
-        Setting? setting = await ProxyService.isar.getSocialSetting();
-        if (setting == null) {
-          throw Exception("Failed to retrieve social settings.");
-        }
-        setting.deviceToken = _token;
-        ProxyService.isar.patchSocialSetting(setting: setting);
-      } else {
-        await appService.logSocial();
-      }
+    //   if (isSocialLoggedIn) {
+    //     Setting? setting = await ProxyService.isar.getSocialSetting();
+    //     if (setting == null) {
+    //       throw Exception("Failed to retrieve social settings.");
+    //     }
+    //     setting.deviceToken = _token;
+    //     ProxyService.isar.patchSocialSetting(setting: setting);
+    //   } else {
+    //     await appService.logSocial();
+    //   }
 
-      try {
-        await ProxyService.remote.create(
-          collection: {
-            "deviceToken": _token,
-            "businessId": branchId,
-          },
-          collectionName: 'messagings',
-        );
-        ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
-      } catch (e) {
-        ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
-      }
-    }
+    //   try {
+    //     await ProxyService.remote.create(
+    //       collection: {
+    //         "deviceToken": _token,
+    //         "businessId": branchId,
+    //       },
+    //       collectionName: 'messagings',
+    //     );
+    //     ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
+    //   } catch (e) {
+    //     ProxyService.box.writeBool(key: 'getIsTokenRegistered', value: true);
+    //   }
+    // }
   }
 
   @override
@@ -115,21 +116,21 @@ class FirebaseMessagingService implements Messaging {
       final conversationKey = message.data['conversation'];
       Map<String, dynamic> conversationMap = json.decode(conversationKey);
 
-      Conversation conversation = Conversation.fromJson(conversationMap);
-      // delay so if there is other transaction going on to complete first e.g from pubnub
-      Future.delayed(Duration(seconds: 20));
-      Conversation? conversationExistOnLocal = await ProxyService.isar
-          .getConversation(messageId: conversation.messageId!);
-      if (conversationExistOnLocal == null) {
-        if (showLocalNotification) {
-          await NotificationsCubit.instance.scheduleNotification(conversation);
-        }
-        await ProxyService.isar.create(data: conversation);
-      }
-      if (isNotificationClicked) {
-        _routerService.navigateTo(ConversationHistoryRoute(
-            conversationId: conversation.conversationId!));
-      }
+      // Conversation conversation = Conversation.fromJson(conversationMap);
+      // // delay so if there is other transaction going on to complete first e.g from pubnub
+      // Future.delayed(Duration(seconds: 20));
+      // Conversation? conversationExistOnLocal = await ProxyService.isar
+      //     .getConversation(messageId: conversation.messageId!);
+      // if (conversationExistOnLocal == null) {
+      //   if (showLocalNotification) {
+      //     await NotificationsCubit.instance.scheduleNotification(conversation);
+      //   }
+      //   await ProxyService.isar.create(data: conversation);
+      // }
+      // if (isNotificationClicked) {
+      //   _routerService.navigateTo(ConversationHistoryRoute(
+      //       conversationId: conversation.conversationId!));
+      // }
     }
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -53,7 +53,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
                       title: Text(
                           items[index].qty.toInt().toString() +
                               " x " +
-                              items[index].name,
+                              items[index].name!,
                           style: GoogleFonts.poppins(
                               fontSize: 14, color: Colors.grey.shade600)),
                       trailing: Text(
@@ -88,8 +88,8 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   }
 
   Widget transactionStatusHeader() {
-    String status = widget.transaction.status.substring(0, 1).toUpperCase() +
-        widget.transaction.status.substring(1);
+    String status = widget.transaction.status!.substring(0, 1).toUpperCase() +
+        widget.transaction.status!.substring(1);
     Color statusColor;
     if (status == "Pending") {
       statusColor = Colors.orange;
@@ -140,16 +140,16 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
     List<TransactionStatus> statuses = [];
     TransactionStatus initialPending = TransactionStatus(
         status: "PENDING",
-        dateTime: DateTime.parse(widget.transaction.createdAt));
+        dateTime: DateTime.parse(widget.transaction.createdAt!));
     statuses.insert(0, initialPending);
 
-    String currentStatus = widget.transaction.status;
+    String currentStatus = widget.transaction.status!;
 
     if (currentStatus != "pending") {
       TransactionStatus current = TransactionStatus(
           status: currentStatus.toUpperCase() +
               ": " +
-              widget.transaction.paymentType.toUpperCase(),
+              widget.transaction.paymentType!.toUpperCase(),
           dateTime: DateTime.parse(widget.transaction.updatedAt!));
       statuses.insert(0, current);
     }
