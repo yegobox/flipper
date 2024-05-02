@@ -2245,10 +2245,10 @@ class RealmAPI<M extends IJsonSerializable>
         realm = Realm(config);
       }
       // Realm.logger.level = RealmLogLevel.trace;
-      updateSubscription(branchId, businessId);
+      await updateSubscription(branchId, businessId);
 
       /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-      realm?.subscriptions.waitForSynchronization();
+      await realm?.subscriptions.waitForSynchronization();
     } else {
       //  open local database not synced one!
       talker.info(
@@ -2292,14 +2292,15 @@ class RealmAPI<M extends IJsonSerializable>
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
-    final permission = realm!
-        .query<LPermission>(r'userId == $0', [ProxyService.box.getUserId()!]);
+    final permission = realm!.query<LPermission>(
+        r'userId == $0', [ProxyService.box.getUserId() ?? 0]);
 
-    final pin =
-        realm!.query<Pin>(r'userId == $0', [ProxyService.box.getUserId()!]);
+    final pin = realm!.query<Pin>(
+        r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
 
     // fake subscription as I normally do not these model synced accros devices but I don't know how I can pause one model
     final token = realm!.query<Token>(r'id == $0', [0]);
+    final tenant = realm!.query<Tenant>(r'id == $0', [0]);
 
     await token.subscribe(
         name: "token-${businessId}",
@@ -2308,6 +2309,12 @@ class RealmAPI<M extends IJsonSerializable>
     // end of fake subs
 
     // https://stackoverflow.com/questions/66565463/disable-realm-sync-only-for-non-premium-users
+
+    await tenant.subscribe(
+        name: "tenant-${businessId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
+
     await permission.subscribe(
         name: "permission-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
