@@ -21,4 +21,9 @@ final realmModels = [
   Drawers.schema,
   TransactionItem.schema,
   ITransaction.schema,
+  Discount.schema,
+  LPermission.schema,
+  Setting.schema,
+  Voucher.schema,
+  Token.schema,
 ];

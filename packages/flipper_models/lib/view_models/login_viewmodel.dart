@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/app_service.dart';
@@ -10,6 +11,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+
+import 'package:talker_flutter/talker_flutter.dart';
 
 mixin TokenLogin {
   Future<void> tokenLogin(String token) async {
@@ -41,23 +44,22 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
   }
 
   bool _isProceeding = false;
-
+  final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({
     required String pinCode,
   }) async {
     try {
       setIsprocessing(value: true);
-      log("${pinCode}", name: "YUUUU");
-      // Pin? pin = await ProxyService.isar.getPin(pin: pinCode);
+      IPin? pin = await ProxyService.isar.getPin(pin: pinCode);
 
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-      // log("${pin?.toJson().toString()}", name: "YUUUU");
+      talker.info("${pin?.toJson().toString()}");
       // Perform user login
-      // await ProxyService.isar.login(
-      //   skipDefaultAppSetup: false,
-      //   userPhone: pin!.phoneNumber,
-      // );
+      await ProxyService.isar.login(
+        skipDefaultAppSetup: false,
+        userPhone: pin!.phoneNumber,
+      );
 
       // Clear and re-sign in with Firebase anonymously
       await FirebaseAuth.instance.signOut();

@@ -19,7 +19,7 @@ final List<CollectionSchema> models = [
   SettingSchema,
   DiscountSchema,
   CustomerSchema,
-  PinSchema,
+  IPinSchema,
   ReceiptSchema,
   DrawersSchema,
   IITenantSchema,

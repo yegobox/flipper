@@ -1,6 +1,7 @@
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/isar/business_type.dart';
 import 'package:flipper_models/isar/iuser.dart';
+import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_models/isar/receipt_signature.dart';
 import 'package:flipper_models/isar/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
@@ -34,7 +35,7 @@ abstract class RealmApiInterface {
       {required int branchId, required String transactionType});
   // Future<IUser> login(
   //     {required String userPhone, required bool skipDefaultAppSetup});
-  Future<List<Business>> businesses({int? userId});
+  Future<List<Business>> businesses({required int userId});
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
   Future<Business> getOnlineBusiness({required int userId});
@@ -329,4 +330,5 @@ abstract class RealmApiInterface {
   // Future<Permission?> permission({required int userId});
 
   Future<List<BusinessType>> businessTypes();
+  Future<IPin?> getPin({required String pin});
 }

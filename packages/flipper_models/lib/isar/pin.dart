@@ -8,8 +8,8 @@ part 'pin.g.dart';
 /// extends IJsonSerializable and have sync properties
 @JsonSerializable()
 @Collection()
-class Pin {
-  Pin({
+class IPin {
+  IPin({
     required this.id,
     required this.userId,
     required this.phoneNumber,
@@ -24,10 +24,10 @@ class Pin {
   late int branchId;
   late int businessId;
 
-  factory Pin.fromRecord(RecordModel record) => Pin.fromJson(record.toJson());
-  factory Pin.fromJson(Map<String, dynamic> json) {
-    return _$PinFromJson(json);
+  factory IPin.fromRecord(RecordModel record) => IPin.fromJson(record.toJson());
+  factory IPin.fromJson(Map<String, dynamic> json) {
+    return _$IPinFromJson(json);
   }
 
-  Map<String, dynamic> toJson() => _$PinToJson(this);
+  Map<String, dynamic> toJson() => _$IPinToJson(this);
 }

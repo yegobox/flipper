@@ -180,8 +180,8 @@ abstract class IsarApiInterface {
 
   Future<Pointss?> getPoints({required int userId});
   void consumePoints({required int userId, required int points});
-  Future<Pin?> createPin();
-  Future<Pin?> getPin({required String pin});
+  Future<IPin?> createPin();
+  Future<IPin?> getPin({required String pin});
 
   Future<List<Product>> productsFuture({required int branchId});
 

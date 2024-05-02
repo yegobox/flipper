@@ -27,7 +27,8 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<Business> _b = await ProxyService.isar.businesses();
+        List<Business> _b = await ProxyService.isar
+            .businesses(userId: ProxyService.box.getUserId()!);
         List<Branch> branches = await ProxyService.isar.branches();
         for (Branch branch in branches) {
           ProxyService.isar.update(data: branch..active = false);
@@ -172,7 +173,7 @@ class _LoginChoicesState extends State<LoginChoices> {
         openingBalance: 0.0,
         closingBalance: 0.0,
         cashierId: ProxyService.box.getBusinessId()!,
-        tradeName: ProxyService.app.business!.name,
+        tradeName: ProxyService.app.business.name,
         openingDateTime: DateTime.now().toIso8601String(),
         open: true,
       );

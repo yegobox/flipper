@@ -118,7 +118,8 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<Business> businesses = await ProxyService.isar.businesses();
+    List<Business> businesses = await ProxyService.isar
+        .businesses(userId: ProxyService.box.getUserId()!);
 
     if (businesses.isEmpty) {
       try {

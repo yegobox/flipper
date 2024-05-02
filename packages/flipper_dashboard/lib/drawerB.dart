@@ -55,7 +55,8 @@ class MyDrawer extends StatelessWidget {
                 );
               }),
           FutureBuilder<List<Business>>(
-            future: ProxyService.isar.businesses(),
+            future: ProxyService.isar
+                .businesses(userId: ProxyService.box.getUserId()!),
             builder: (context, businessSnapshot) {
               if (businessSnapshot.connectionState == ConnectionState.waiting) {
                 return CircularProgressIndicator();

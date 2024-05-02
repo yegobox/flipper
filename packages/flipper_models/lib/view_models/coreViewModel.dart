@@ -744,7 +744,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> setDefaultBusiness({required Business business}) async {
     app.setBusiness(business: business);
-    List<Business> businesses = await ProxyService.isar.businesses();
+    List<Business> businesses = await ProxyService.isar
+        .businesses(userId: ProxyService.box.getUserId()!);
     for (Business business in businesses) {
       await ProxyService.isar.update(data: business..isDefault = false);
     }

@@ -1279,23 +1279,23 @@
 //   /// since tennat has userId which is a pin, we need to think if
 //   /// we still need to create & get pin
 //   @override
-//   Future<Pin?> getPin({required String pin}) async {
-//     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
+  // Future<Pin?> getPin({required String pin}) async {
+  //   final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
 
-//     try {
-//       final http.Response response = await http.get(uri);
+  //   try {
+  //     final http.Response response = await http.get(uri);
 
-//       if (response.statusCode == 200) {
-//         return Pin.fromJson(json.decode(response.body));
-//       } else if (response.statusCode == 404) {
-//         throw ErrorReadingFromYBServer(term: response.body);
-//       } else {
-//         throw ErrorReadingFromYBServer(term: response.body);
-//       }
-//     } catch (error) {
-//       throw ErrorReadingFromYBServer(term: error.toString());
-//     }
-//   }
+  //     if (response.statusCode == 200) {
+  //       return Pin.fromJson(json.decode(response.body));
+  //     } else if (response.statusCode == 404) {
+  //       throw ErrorReadingFromYBServer(term: response.body);
+  //     } else {
+  //       throw ErrorReadingFromYBServer(term: response.body);
+  //     }
+  //   } catch (error) {
+  //     throw ErrorReadingFromYBServer(term: error.toString());
+  //   }
+  // }
 
 //   @override
 //   Future<Pointss?> getPoints({required int userId}) async {
@@ -2537,36 +2537,36 @@
 
 //   @override
 //   Future<List<IITenant>> tenantsFromOnline({required int businessId}) async {
-//     final http.Response response = await flipperHttpClient
-//         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-//     if (response.statusCode == 200) {
-//       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-//         ITenant jTenant = tenant;
-//         IITenant iTenant = IITenant(
-//             isDefault: jTenant.isDefault,
-//             id: jTenant.id,
-//             name: jTenant.name,
-//             userId: jTenant.userId,
-//             businessId: jTenant.businessId,
-//             nfcEnabled: jTenant.nfcEnabled,
-//             email: jTenant.email,
-//             phoneNumber: jTenant.phoneNumber);
+    // final http.Response response = await flipperHttpClient
+    //     .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    // if (response.statusCode == 200) {
+    //   for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+    //     ITenant jTenant = tenant;
+    //     IITenant iTenant = IITenant(
+    //         isDefault: jTenant.isDefault,
+    //         id: jTenant.id,
+    //         name: jTenant.name,
+    //         userId: jTenant.userId,
+    //         businessId: jTenant.businessId,
+    //         nfcEnabled: jTenant.nfcEnabled,
+    //         email: jTenant.email,
+    //         phoneNumber: jTenant.phoneNumber);
 
-//         isar.writeTxn(() async {
-//           isar.iBusiness.putAll(jTenant.businesses);
-//           isar.iBranchs.putAll(jTenant.branches);
-//           isar.iPermissions.putAll(jTenant.permissions);
-//         });
-//         isar.writeTxn(() async {
-//           isar.iITenants.put(iTenant);
-//         });
-//       }
-//       return await isar.iITenants
-//           .filter()
-//           .businessIdEqualTo(businessId)
-//           .findAll();
-//     }
-//     throw InternalServerException(term: "we got unexpected response");
+    //     isar.writeTxn(() async {
+    //       isar.iBusiness.putAll(jTenant.businesses);
+    //       isar.iBranchs.putAll(jTenant.branches);
+    //       isar.iPermissions.putAll(jTenant.permissions);
+    //     });
+    //     isar.writeTxn(() async {
+    //       isar.iITenants.put(iTenant);
+    //     });
+    //   }
+    //   return await isar.iITenants
+    //       .filter()
+    //       .businessIdEqualTo(businessId)
+    //       .findAll();
+    // }
+    // throw InternalServerException(term: "we got unexpected response");
 //   }
 
 //   @override
