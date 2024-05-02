@@ -24,7 +24,7 @@ final List<CollectionSchema> models = [
   DrawersSchema,
   IITenantSchema,
   IPermissionSchema,
-  CounterSchema,
+  ICounterSchema,
   TokenSchema,
   SocialSchema,
   IConversationSchema,

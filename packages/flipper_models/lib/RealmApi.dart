@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/isar/business_type.dart';
+import 'package:flipper_models/isar/counter.dart';
 import 'package:flipper_models/isar/iuser.dart';
 import 'package:flipper_models/isar/permission.dart';
 import 'package:flipper_models/isar/pin.dart';
@@ -1459,9 +1460,34 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> loadCounterFromOnline({required int businessId}) {
-    // TODO: implement loadCounterFromOnline
-    throw UnimplementedError();
+  Future<void> loadCounterFromOnline({required int businessId}) async {
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonResponse = json.decode(response.body);
+      List<ICounter> counters = ICounter.fromJsonList(jsonResponse);
+
+      /// first check if we don't have local counter that we are overwriting
+      List<Counter> localCounters =
+          realm!.query<Counter>(r'businessId == $0', [businessId]).toList();
+      if (localCounters.isNotEmpty) return;
+      for (ICounter counter in counters) {
+        realm!.write(() {
+          realm!.add<Counter>(Counter(
+            ObjectId(),
+            id: counter.id,
+            branchId: counter.branchId,
+            businessId: counter.businessId,
+            totRcptNo: counter.totRcptNo,
+            curRcptNo: counter.curRcptNo,
+            receiptType: counter.receiptType,
+          ));
+        });
+      }
+    } else {
+      throw InternalServerError(term: "Error loading the counters");
+    }
   }
 
   @override
@@ -1775,14 +1801,21 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<List<ITenant>> signup({required Map business}) async {
-    log(business.toString(), name: "Signup");
+    talker.info(business.toString());
     final http.Response response = await flipperHttpClient.post(
       Uri.parse("$apihub/v2/api/business"),
       body: jsonEncode(business),
     );
     if (response.statusCode == 200) {
+      /// because we want to close the inMemory realm db
+      /// as soon as possible so I can be able to save real data into realm
+      /// then I call login in here after signup as login handle configuring
+      await login(
+          userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
+
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
+
         Tenant iTenant = Tenant(ObjectId(),
             isDefault: jTenant.isDefault,
             id: jTenant.id,
@@ -2094,14 +2127,57 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<ITransaction>> transactionsStream(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      bool includePending = false}) {
-    // TODO: implement transactionsStream
-    throw UnimplementedError();
+  @override
+  Stream<List<ITransaction>> transactionsStream({
+    String? status,
+    String? transactionType,
+    int? branchId,
+    bool isCashOut = false,
+    bool includePending = false,
+  }) {
+    final branchIdValue = branchId ?? ProxyService.box.getBranchId()!;
+
+    final queryString = r'''
+    (status == $0 OR $0 == null)
+    AND (
+      (transactionType == $1 AND $1 == 'cashOut')
+      OR ($1 != 'cashOut' AND (
+        transactionType == 'cashIn'
+        OR transactionType == 'sale'
+        OR transactionType == 'custom'
+        OR transactionType == 'onlineSale'
+      ))
+    )
+    AND branchId == $2
+    AND deletedAt == null
+  ''';
+
+    final query = realm!.query<ITransaction>(
+      queryString,
+      [
+        status ?? COMPLETE,
+        transactionType,
+        branchIdValue,
+      ],
+    );
+
+    StreamController<List<ITransaction>>? controller;
+    controller = StreamController<List<ITransaction>>.broadcast(
+      onListen: () async {
+        final initialResults = await query.toList();
+        controller!.sink.add(initialResults.toList());
+
+        query.changes.listen((results) {
+          controller!.sink.add(results.results.toList());
+        });
+      },
+      onCancel: () {
+        query.unsubscribe();
+        controller!.close();
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
@@ -2174,17 +2250,22 @@ class RealmAPI<M extends IJsonSerializable>
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
     }
-    if (realm != null) {
-      return this;
-    }
+
     Configuration config;
 
     if (inTesting) {
+      if (realm != null) {
+        realm!.close();
+      }
       config = Configuration.inMemory(realmModels);
       realm = Realm(config);
     } else if (ProxyService.box.getBranchId() != null ||
-        ProxyService.box.getBusinessId() != null ||
-        ProxyService.box.encryptionKey() != null) {
+        ProxyService.box.getBusinessId() != null) {
+      /// because most likely we will open the realm with sync after we opened in memory database
+      /// then we need to close the one recently opened
+      if (realm != null) {
+        realm!.close();
+      }
       talker.info("opening the synced realm for the app to run on launch");
 
       // List<int> key = ProxyService.box.encryptionKey().toIntList();
@@ -2232,16 +2313,20 @@ class RealmAPI<M extends IJsonSerializable>
         ),
       );
       try {
-        //  realm = Realm(config);
-        realm = await Realm.open(config, cancellationToken: token,
-            onProgressCallback: (syncProgress) {
-          if (syncProgress.progressEstimate == 1.0) {
-            talker.info('All bytes transferred!');
-          }
-        });
-        talker.info("Opened realm[1]");
+        if (await ProxyService.status.isInternetAvailable()) {
+          talker.info("Opened realm[1] with  internet access!");
+          realm = await Realm.open(config, cancellationToken: token,
+              onProgressCallback: (syncProgress) {
+            if (syncProgress.progressEstimate == 1.0) {
+              talker.info('All bytes transferred!');
+            }
+          });
+        } else {
+          talker.info("Opened realm[1] with no internet access!");
+          realm = Realm(config);
+        }
       } catch (e) {
-        talker.info("Opened realm[2]");
+        talker.info("Opened realm in catch ");
         realm = Realm(config);
       }
       // Realm.logger.level = RealmLogLevel.trace;
@@ -2640,7 +2725,9 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<IUser> login(
-      {required String userPhone, required bool skipDefaultAppSetup}) async {
+      {required String userPhone,
+      required bool skipDefaultAppSetup,
+      bool stopAfterConfigure = false}) async {
     log(userPhone, name: "userPhoneLoginWith");
     String phoneNumber = userPhone;
 
@@ -2663,53 +2750,12 @@ class RealmAPI<M extends IJsonSerializable>
 
       // Create an IUser object using the fromJson constructor
       IUser user = IUser.fromJson(jsonResponse);
-      await ProxyService.box.writeString(
-        key: 'userPhone',
-        value: userPhone,
-      );
-      await ProxyService.box.writeString(
-        key: 'bearerToken',
-        value: user.token,
-      );
-      log(user.toJson().toString(), name: "loggedIn");
+      await _configureTheBox(userPhone, user);
 
-      /// the token from firebase that link this user with firebase
-      /// so it can be used to login to other devices
-      await ProxyService.box.writeString(
-        key: 'uid',
-        value: user.uid,
-      );
-      await ProxyService.box.writeInt(
-        key: 'userId',
-        value: user.id!,
-      );
-
-      if (user.tenants.isEmpty) {
-        throw BusinessNotFoundException(
-            term:
-                "No tenant added to the user, if a business is added it should have one tenant");
-      }
-      if (user.tenants.first.businesses.isEmpty ||
-          user.tenants.first.branches.isEmpty) {
-        throw BusinessNotFoundException(
-            term:
-                "No tenant added to the user, if a business is added it should have one tenant");
-      }
-      await ProxyService.box.writeInt(
-        key: 'branchId',
-        value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!,
-      );
-
-      log(user.id.toString(), name: 'login');
-      await ProxyService.box.writeInt(
-        key: 'businessId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!,
-      );
-      await ProxyService.box.writeString(
-        key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey,
-      );
+      /// after we login this is the best time to open the synced database to start persisting the data
+      await configure(
+          inTesting: false, encryptionKey: ProxyService.box.encryptionKey());
+      if (stopAfterConfigure) return user;
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.writeString(
           key: 'defaultApp',
@@ -2737,16 +2783,6 @@ class RealmAPI<M extends IJsonSerializable>
             userId: user.id!,
             phoneNumber: tenant.phoneNumber,
             pin: tenant.pin);
-
-        // isar.writeTxn(() async {
-        //   isar.iBusiness.putAll(tenant.businesses);
-        // });
-        // isar.writeTxn(() async {
-        //   isar.iBranchs.putAll(tenant.branches);
-        // });
-        // isar.writeTxn(() async {
-        //   isar.iPermissions.putAll(tenant.permissions);
-        // });
 
         realm!.write(() {
           for (IBusiness business in tenant.businesses) {
@@ -2854,6 +2890,7 @@ class RealmAPI<M extends IJsonSerializable>
           });
         }
       }
+
       return user;
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
@@ -2863,6 +2900,54 @@ class RealmAPI<M extends IJsonSerializable>
       log(response.body.toString(), name: "login error");
       throw Exception(response.body.toString());
     }
+  }
+
+  Future<void> _configureTheBox(String userPhone, IUser user) async {
+    await ProxyService.box.writeString(
+      key: 'userPhone',
+      value: userPhone,
+    );
+    await ProxyService.box.writeString(
+      key: 'bearerToken',
+      value: user.token,
+    );
+
+    /// the token from firebase that link this user with firebase
+    /// so it can be used to login to other devices
+    await ProxyService.box.writeString(
+      key: 'uid',
+      value: user.uid,
+    );
+    await ProxyService.box.writeInt(
+      key: 'userId',
+      value: user.id!,
+    );
+
+    if (user.tenants.isEmpty) {
+      throw BusinessNotFoundException(
+          term:
+              "No tenant added to the user, if a business is added it should have one tenant");
+    }
+    if (user.tenants.first.businesses.isEmpty ||
+        user.tenants.first.branches.isEmpty) {
+      throw BusinessNotFoundException(
+          term:
+              "No tenant added to the user, if a business is added it should have one tenant");
+    }
+    await ProxyService.box.writeInt(
+      key: 'branchId',
+      value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!,
+    );
+
+    log(user.id.toString(), name: 'login');
+    await ProxyService.box.writeInt(
+      key: 'businessId',
+      value: user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!,
+    );
+    await ProxyService.box.writeString(
+      key: 'encryptionKey',
+      value: user.tenants.first.businesses.first.encryptionKey,
+    );
   }
 
   @override

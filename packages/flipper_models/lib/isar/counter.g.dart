@@ -9,13 +9,13 @@ part of 'counter.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetCounterCollection on Isar {
-  IsarCollection<Counter> get counters => this.collection();
+extension GetICounterCollection on Isar {
+  IsarCollection<ICounter> get iCounters => this.collection();
 }
 
-const CounterSchema = CollectionSchema(
-  name: r'Counter',
-  id: -8560901831524329398,
+const ICounterSchema = CollectionSchema(
+  name: r'ICounter',
+  id: 2262460088481352541,
   properties: {
     r'action': PropertySchema(
       id: 0,
@@ -58,22 +58,22 @@ const CounterSchema = CollectionSchema(
       type: IsarType.long,
     )
   },
-  estimateSize: _counterEstimateSize,
-  serialize: _counterSerialize,
-  deserialize: _counterDeserialize,
-  deserializeProp: _counterDeserializeProp,
+  estimateSize: _iCounterEstimateSize,
+  serialize: _iCounterSerialize,
+  deserialize: _iCounterDeserialize,
+  deserializeProp: _iCounterDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {},
   embeddedSchemas: {},
-  getId: _counterGetId,
-  getLinks: _counterGetLinks,
-  attach: _counterAttach,
+  getId: _iCounterGetId,
+  getLinks: _iCounterGetLinks,
+  attach: _iCounterAttach,
   version: '3.1.0+1',
 );
 
-int _counterEstimateSize(
-  Counter object,
+int _iCounterEstimateSize(
+  ICounter object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -83,8 +83,8 @@ int _counterEstimateSize(
   return bytesCount;
 }
 
-void _counterSerialize(
-  Counter object,
+void _iCounterSerialize(
+  ICounter object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
@@ -99,13 +99,13 @@ void _counterSerialize(
   writer.writeLong(offsets[7], object.totRcptNo);
 }
 
-Counter _counterDeserialize(
+ICounter _iCounterDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = Counter(
+  final object = ICounter(
     action: reader.readStringOrNull(offsets[0]) ?? "created",
     branchId: reader.readLong(offsets[1]),
     businessId: reader.readLong(offsets[2]),
@@ -119,7 +119,7 @@ Counter _counterDeserialize(
   return object;
 }
 
-P _counterDeserializeProp<P>(
+P _iCounterDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -147,28 +147,28 @@ P _counterDeserializeProp<P>(
   }
 }
 
-Id _counterGetId(Counter object) {
+Id _iCounterGetId(ICounter object) {
   return object.id ?? Isar.autoIncrement;
 }
 
-List<IsarLinkBase<dynamic>> _counterGetLinks(Counter object) {
+List<IsarLinkBase<dynamic>> _iCounterGetLinks(ICounter object) {
   return [];
 }
 
-void _counterAttach(IsarCollection<dynamic> col, Id id, Counter object) {
+void _iCounterAttach(IsarCollection<dynamic> col, Id id, ICounter object) {
   object.id = id;
 }
 
-extension CounterQueryWhereSort on QueryBuilder<Counter, Counter, QWhere> {
-  QueryBuilder<Counter, Counter, QAfterWhere> anyId() {
+extension ICounterQueryWhereSort on QueryBuilder<ICounter, ICounter, QWhere> {
+  QueryBuilder<ICounter, ICounter, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idEqualTo(Id id) {
+extension ICounterQueryWhere on QueryBuilder<ICounter, ICounter, QWhereClause> {
+  QueryBuilder<ICounter, ICounter, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(
         lower: id,
@@ -177,7 +177,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<ICounter, ICounter, QAfterWhereClause> idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -199,7 +199,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idGreaterThan(Id id,
+  QueryBuilder<ICounter, ICounter, QAfterWhereClause> idGreaterThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -208,7 +208,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idLessThan(Id id,
+  QueryBuilder<ICounter, ICounter, QAfterWhereClause> idLessThan(Id id,
       {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
@@ -217,7 +217,7 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterWhereClause> idBetween(
+  QueryBuilder<ICounter, ICounter, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -234,9 +234,9 @@ extension CounterQueryWhere on QueryBuilder<Counter, Counter, QWhereClause> {
   }
 }
 
-extension CounterQueryFilter
-    on QueryBuilder<Counter, Counter, QFilterCondition> {
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionEqualTo(
+extension ICounterQueryFilter
+    on QueryBuilder<ICounter, ICounter, QFilterCondition> {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -249,7 +249,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -264,7 +264,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -279,7 +279,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -298,7 +298,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionStartsWith(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -311,7 +311,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionEndsWith(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -324,7 +324,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionContains(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -336,7 +336,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionMatches(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -348,7 +348,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionIsEmpty() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'action',
@@ -357,7 +357,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> actionIsNotEmpty() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> actionIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'action',
@@ -366,7 +366,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> branchIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -376,7 +376,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> branchIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -389,7 +389,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> branchIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -402,7 +402,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> branchIdBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> branchIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -419,7 +419,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> businessIdEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -429,7 +429,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> businessIdGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -442,7 +442,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> businessIdLessThan(
     int value, {
     bool include = false,
   }) {
@@ -455,7 +455,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> businessIdBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> businessIdBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -472,7 +472,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> curRcptNoEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -482,7 +482,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> curRcptNoGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -495,7 +495,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> curRcptNoLessThan(
     int value, {
     bool include = false,
   }) {
@@ -508,7 +508,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> curRcptNoBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> curRcptNoBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -525,7 +525,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtIsNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'deletedAt',
@@ -533,7 +533,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtIsNotNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'deletedAt',
@@ -541,7 +541,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtEqualTo(
       DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -551,7 +551,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtGreaterThan(
     DateTime? value, {
     bool include = false,
   }) {
@@ -564,7 +564,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtLessThan(
     DateTime? value, {
     bool include = false,
   }) {
@@ -577,7 +577,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> deletedAtBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> deletedAtBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -594,7 +594,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'id',
@@ -602,7 +602,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idIsNotNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'id',
@@ -610,7 +610,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idEqualTo(Id? value) {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idEqualTo(Id? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'id',
@@ -619,7 +619,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idGreaterThan(
     Id? value, {
     bool include = false,
   }) {
@@ -632,7 +632,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idLessThan(
     Id? value, {
     bool include = false,
   }) {
@@ -645,7 +645,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> idBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> idBetween(
     Id? lower,
     Id? upper, {
     bool includeLower = true,
@@ -662,7 +662,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedIsNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> lastTouchedIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNull(
         property: r'lastTouched',
@@ -670,7 +670,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedIsNotNull() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition>
+      lastTouchedIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(const FilterCondition.isNotNull(
         property: r'lastTouched',
@@ -678,7 +679,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> lastTouchedEqualTo(
       DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -688,7 +689,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition>
+      lastTouchedGreaterThan(
     DateTime? value, {
     bool include = false,
   }) {
@@ -701,7 +703,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> lastTouchedLessThan(
     DateTime? value, {
     bool include = false,
   }) {
@@ -714,7 +716,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> lastTouchedBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> lastTouchedBetween(
     DateTime? lower,
     DateTime? upper, {
     bool includeLower = true,
@@ -731,7 +733,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeEqualTo(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -744,7 +746,8 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition>
+      receiptTypeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -759,7 +762,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
@@ -774,7 +777,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -793,7 +796,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeStartsWith(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeStartsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -806,7 +809,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeEndsWith(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeEndsWith(
     String value, {
     bool caseSensitive = true,
   }) {
@@ -819,7 +822,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeContains(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeContains(
       String value,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -831,7 +834,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeMatches(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeMatches(
       String pattern,
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -843,7 +846,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> receiptTypeIsEmpty() {
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> receiptTypeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'receiptType',
@@ -852,7 +855,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition>
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition>
       receiptTypeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
@@ -862,7 +865,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoEqualTo(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> totRcptNoEqualTo(
       int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
@@ -872,7 +875,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoGreaterThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> totRcptNoGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -885,7 +888,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoLessThan(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> totRcptNoLessThan(
     int value, {
     bool include = false,
   }) {
@@ -898,7 +901,7 @@ extension CounterQueryFilter
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterFilterCondition> totRcptNoBetween(
+  QueryBuilder<ICounter, ICounter, QAfterFilterCondition> totRcptNoBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -916,325 +919,325 @@ extension CounterQueryFilter
   }
 }
 
-extension CounterQueryObject
-    on QueryBuilder<Counter, Counter, QFilterCondition> {}
+extension ICounterQueryObject
+    on QueryBuilder<ICounter, ICounter, QFilterCondition> {}
 
-extension CounterQueryLinks
-    on QueryBuilder<Counter, Counter, QFilterCondition> {}
+extension ICounterQueryLinks
+    on QueryBuilder<ICounter, ICounter, QFilterCondition> {}
 
-extension CounterQuerySortBy on QueryBuilder<Counter, Counter, QSortBy> {
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByAction() {
+extension ICounterQuerySortBy on QueryBuilder<ICounter, ICounter, QSortBy> {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByAction() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByActionDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByActionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchId() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBranchIdDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBusinessId() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByBusinessIdDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNo() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByCurRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'curRcptNo', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByCurRcptNoDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByCurRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'curRcptNo', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByDeletedAt() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByDeletedAtDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByLastTouched() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByLastTouchedDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptType() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByReceiptType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'receiptType', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByReceiptTypeDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByReceiptTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'receiptType', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByTotRcptNo() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totRcptNo', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> sortByTotRcptNoDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> sortByTotRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totRcptNo', Sort.desc);
     });
   }
 }
 
-extension CounterQuerySortThenBy
-    on QueryBuilder<Counter, Counter, QSortThenBy> {
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByAction() {
+extension ICounterQuerySortThenBy
+    on QueryBuilder<ICounter, ICounter, QSortThenBy> {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByAction() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByActionDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByActionDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'action', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchId() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBranchIdDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByBranchIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'branchId', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBusinessId() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByBusinessIdDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByBusinessIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'businessId', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNo() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByCurRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'curRcptNo', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByCurRcptNoDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByCurRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'curRcptNo', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByDeletedAt() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByDeletedAtDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByDeletedAtDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'deletedAt', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenById() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByLastTouched() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByLastTouchedDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByLastTouchedDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastTouched', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptType() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByReceiptType() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'receiptType', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByReceiptTypeDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByReceiptTypeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'receiptType', Sort.desc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByTotRcptNo() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totRcptNo', Sort.asc);
     });
   }
 
-  QueryBuilder<Counter, Counter, QAfterSortBy> thenByTotRcptNoDesc() {
+  QueryBuilder<ICounter, ICounter, QAfterSortBy> thenByTotRcptNoDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'totRcptNo', Sort.desc);
     });
   }
 }
 
-extension CounterQueryWhereDistinct
-    on QueryBuilder<Counter, Counter, QDistinct> {
-  QueryBuilder<Counter, Counter, QDistinct> distinctByAction(
+extension ICounterQueryWhereDistinct
+    on QueryBuilder<ICounter, ICounter, QDistinct> {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByAction(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'action', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByBranchId() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByBranchId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'branchId');
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByBusinessId() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByBusinessId() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'businessId');
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByCurRcptNo() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByCurRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'curRcptNo');
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByDeletedAt() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByDeletedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'deletedAt');
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByLastTouched() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByLastTouched() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastTouched');
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByReceiptType(
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByReceiptType(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'receiptType', caseSensitive: caseSensitive);
     });
   }
 
-  QueryBuilder<Counter, Counter, QDistinct> distinctByTotRcptNo() {
+  QueryBuilder<ICounter, ICounter, QDistinct> distinctByTotRcptNo() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'totRcptNo');
     });
   }
 }
 
-extension CounterQueryProperty
-    on QueryBuilder<Counter, Counter, QQueryProperty> {
-  QueryBuilder<Counter, int, QQueryOperations> idProperty() {
+extension ICounterQueryProperty
+    on QueryBuilder<ICounter, ICounter, QQueryProperty> {
+  QueryBuilder<ICounter, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<Counter, String, QQueryOperations> actionProperty() {
+  QueryBuilder<ICounter, String, QQueryOperations> actionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'action');
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> branchIdProperty() {
+  QueryBuilder<ICounter, int, QQueryOperations> branchIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'branchId');
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> businessIdProperty() {
+  QueryBuilder<ICounter, int, QQueryOperations> businessIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'businessId');
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> curRcptNoProperty() {
+  QueryBuilder<ICounter, int, QQueryOperations> curRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'curRcptNo');
     });
   }
 
-  QueryBuilder<Counter, DateTime?, QQueryOperations> deletedAtProperty() {
+  QueryBuilder<ICounter, DateTime?, QQueryOperations> deletedAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'deletedAt');
     });
   }
 
-  QueryBuilder<Counter, DateTime?, QQueryOperations> lastTouchedProperty() {
+  QueryBuilder<ICounter, DateTime?, QQueryOperations> lastTouchedProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastTouched');
     });
   }
 
-  QueryBuilder<Counter, String, QQueryOperations> receiptTypeProperty() {
+  QueryBuilder<ICounter, String, QQueryOperations> receiptTypeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'receiptType');
     });
   }
 
-  QueryBuilder<Counter, int, QQueryOperations> totRcptNoProperty() {
+  QueryBuilder<ICounter, int, QQueryOperations> totRcptNoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'totRcptNo');
     });
@@ -1245,7 +1248,7 @@ extension CounterQueryProperty
 // JsonSerializableGenerator
 // **************************************************************************
 
-Counter _$CounterFromJson(Map<String, dynamic> json) => Counter(
+ICounter _$ICounterFromJson(Map<String, dynamic> json) => ICounter(
       id: json['id'] as int?,
       businessId: json['businessId'] as int,
       branchId: json['branchId'] as int,
@@ -1260,7 +1263,7 @@ Counter _$CounterFromJson(Map<String, dynamic> json) => Counter(
         ? null
         : DateTime.parse(json['deletedAt'] as String);
 
-Map<String, dynamic> _$CounterToJson(Counter instance) => <String, dynamic>{
+Map<String, dynamic> _$ICounterToJson(ICounter instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'id': instance.id,
       'businessId': instance.businessId,

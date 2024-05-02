@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:stacked/stacked.dart';
 
 abstract class Status {
@@ -8,6 +9,7 @@ abstract class Status {
   void updateStatusColor();
   ReactiveValue<Color?> get statusColor;
   ReactiveValue<String?> get statusText;
+  Future<bool> isInternetAvailable();
 }
 
 class StatusAppBarForWindowsAndWeb
@@ -45,6 +47,11 @@ class StatusAppBarForWindowsAndWeb
 
   StatusAppBarForWindowsAndWeb() {
     listenToReactiveValues([_statusColor, _statusText]);
+  }
+
+  @override
+  Future<bool> isInternetAvailable() async {
+    return await InternetConnectionChecker().hasConnection;
   }
 }
 
@@ -85,5 +92,9 @@ class StatusAppBarForAndroidAndIos
 
   StatusAppBarForAndroidAndIos() {
     listenToReactiveValues([_statusColor, _statusText]);
+  }
+  @override
+  Future<bool> isInternetAvailable() async {
+    return await InternetConnectionChecker().hasConnection;
   }
 }

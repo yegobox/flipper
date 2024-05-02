@@ -177,7 +177,9 @@ abstract class RealmApiInterface {
 
   Future<int> userNameAvailable({required String name});
   Future<IUser> login(
-      {required String userPhone, required bool skipDefaultAppSetup});
+      {required String userPhone,
+      required bool skipDefaultAppSetup,
+      bool stopAfterConfigure = false});
 
   Future<LPermission?> permission({required int userId});
 

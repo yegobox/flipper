@@ -94,7 +94,7 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
       if (object is Receipt) {
         // ProxyService.realm.onSave<Receipt>(item: object);
       }
-      if (object is Counter) {
+      if (object is ICounter) {
         // ProxyService.realm.onSave<Counter>(item: object);
       }
       if (object is Customer) {

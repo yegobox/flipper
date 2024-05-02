@@ -8,7 +8,7 @@ part 'counter.g.dart';
 
 @JsonSerializable()
 @Collection()
-class Counter extends IJsonSerializable {
+class ICounter extends IJsonSerializable {
   Id? id;
   final int businessId;
   final int branchId;
@@ -19,7 +19,7 @@ class Counter extends IJsonSerializable {
   DateTime? lastTouched;
   String action;
 
-  Counter({
+  ICounter({
     required this.id,
     required this.businessId,
     required this.branchId,
@@ -30,17 +30,18 @@ class Counter extends IJsonSerializable {
     this.action = "created",
   });
 
-  factory Counter.fromRawJson(String str) => Counter.fromJson(json.decode(str));
+  factory ICounter.fromRawJson(String str) =>
+      ICounter.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Counter.fromJson(Map<String, dynamic> json) =>
-      _$CounterFromJson(json);
+  factory ICounter.fromJson(Map<String, dynamic> json) =>
+      _$ICounterFromJson(json);
 
   @override
-  Map<String, dynamic> toJson() => _$CounterToJson(this);
+  Map<String, dynamic> toJson() => _$ICounterToJson(this);
 
-  static List<Counter> fromJsonList(List<dynamic> jsonList) {
-    return jsonList.map((item) => Counter.fromJson(item)).toList();
+  static List<ICounter> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((item) => ICounter.fromJson(item)).toList();
   }
 }

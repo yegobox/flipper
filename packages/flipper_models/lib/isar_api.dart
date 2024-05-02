@@ -2630,35 +2630,35 @@
 //   //       .findFirst());
 //   // }
 
-//   @override
-//   Future<void> loadCounterFromOnline({required int businessId}) async {
-//     final http.Response response = await flipperHttpClient
-//         .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+  // @override
+  // Future<void> loadCounterFromOnline({required int businessId}) async {
+  //   final http.Response response = await flipperHttpClient
+  //       .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
 
-//     if (response.statusCode == 200) {
-//       final List<dynamic> jsonResponse = json.decode(response.body);
-//       List<Counter> counters = Counter.fromJsonList(jsonResponse);
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> jsonResponse = json.decode(response.body);
+  //     List<Counter> counters = Counter.fromJsonList(jsonResponse);
 
-//       /// first check if we don't have local counter that we are overwriting
-//       List<Counter> localCounters =
-//           await isar.counters.filter().deletedAtIsNull().findAll();
-//       if (localCounters.isNotEmpty) return;
-//       for (Counter counter in counters) {
-//         isar.writeTxn(() async {
-//           isar.counters.put(Counter(
-//             id: counter.id,
-//             branchId: counter.branchId,
-//             businessId: counter.businessId,
-//             totRcptNo: counter.totRcptNo,
-//             curRcptNo: counter.curRcptNo,
-//             receiptType: counter.receiptType,
-//           ));
-//         });
-//       }
-//     } else {
-//       throw InternalServerError(term: "Error loading the counters");
-//     }
-//   }
+  //     /// first check if we don't have local counter that we are overwriting
+  //     List<Counter> localCounters =
+  //         await isar.counters.filter().deletedAtIsNull().findAll();
+  //     if (localCounters.isNotEmpty) return;
+  //     for (Counter counter in counters) {
+  //       isar.writeTxn(() async {
+  //         isar.counters.put(Counter(
+  //           id: counter.id,
+  //           branchId: counter.branchId,
+  //           businessId: counter.businessId,
+  //           totRcptNo: counter.totRcptNo,
+  //           curRcptNo: counter.curRcptNo,
+  //           receiptType: counter.receiptType,
+  //         ));
+  //       });
+  //     }
+  //   } else {
+  //     throw InternalServerError(term: "Error loading the counters");
+  //   }
+  // }
 
 //   @override
 //   Future<bool> bindProduct(
@@ -3302,40 +3302,40 @@
 //     return transactions;
 //   }
 
-//   @override
-//   Stream<List<ITransaction>> transactionsStream({
-//     String? status,
-//     String? transactionType,
-//     int? branchId,
-//     bool isCashOut = false,
-//     bool includePending = false,
-//   }) {
-//     final isarQuery =
-//         isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
+  // @override
+  // Stream<List<ITransaction>> transactionsStream({
+  //   String? status,
+  //   String? transactionType,
+  //   int? branchId,
+  //   bool isCashOut = false,
+  //   bool includePending = false,
+  // }) {
+  //   final isarQuery =
+  //       isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
 
-//     if (isCashOut) {
-//       isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
-//     } else {
-//       isarQuery
-//           .or()
-//           .transactionTypeEqualTo(TransactionType.cashIn)
-//           .or()
-//           .transactionTypeEqualTo(TransactionType.sale)
-//           .or()
-//           .transactionTypeEqualTo(TransactionType.custom)
-//           .or()
-//           .transactionTypeEqualTo(TransactionType.onlineSale);
-//     }
+  //   if (isCashOut) {
+  //     isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
+  //   } else {
+  //     isarQuery
+  //         .or()
+  //         .transactionTypeEqualTo(TransactionType.cashIn)
+  //         .or()
+  //         .transactionTypeEqualTo(TransactionType.sale)
+  //         .or()
+  //         .transactionTypeEqualTo(TransactionType.custom)
+  //         .or()
+  //         .transactionTypeEqualTo(TransactionType.onlineSale);
+  //   }
 
-//     if (branchId != null) {
-//       isarQuery.and().branchIdEqualTo(branchId);
-//     } else {
-//       branchId = ProxyService.box.getBranchId()!;
-//       isarQuery.and().branchIdEqualTo(branchId);
-//     }
+  //   if (branchId != null) {
+  //     isarQuery.and().branchIdEqualTo(branchId);
+  //   } else {
+  //     branchId = ProxyService.box.getBranchId()!;
+  //     isarQuery.and().branchIdEqualTo(branchId);
+  //   }
 
-//     return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
-//   }
+  //   return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
+  // }
 
 //   @override
 //   Future<List<TransactionItem>> transactionItems(

@@ -206,7 +206,7 @@ abstract class IsarApiInterface {
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
-      required Counter counter});
+      required ICounter counter});
   Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});
@@ -217,7 +217,7 @@ abstract class IsarApiInterface {
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
-  Future<Counter?> getCounter(
+  Future<ICounter?> getCounter(
       {required int branchId, required String receiptType});
   Future<void> loadCounterFromOnline({required int businessId});
 
