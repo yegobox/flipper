@@ -275,6 +275,7 @@ class _Drawers {
   String? paymentMode;
   int? cashierId;
   bool? open;
+  DateTime? deletedAt;
 }
 
 @RealmModel()

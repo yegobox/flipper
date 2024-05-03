@@ -78,7 +78,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Category?> activeCategory({required int branchId}) async {
     return realm!.query<Category>(
-        r'focused == $0 && active == $1 && branchId == $2 && deletedAt == null',
+        r'focused == $0 && active == $1 && branchId == $2 && deletedAt == nil',
         [true, true, branchId]).firstOrNull;
   }
 
@@ -112,7 +112,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<int> addFavorite({required Favorite data}) async {
     try {
       final fav = realm!.query<Favorite>(
-          r'favIndex == $0 && deletedAt == null', [data.favIndex!]).firstOrNull;
+          r'favIndex == $0 && deletedAt == nil', [data.favIndex!]).firstOrNull;
 
       if (fav == null) {
         data.id = randomNumber();
@@ -253,20 +253,20 @@ class RealmAPI<M extends IJsonSerializable>
     final userId = ProxyService.box.getUserId();
 
     if (userId == null) {
-      // Handle the case where userId is null, perhaps throw an exception or return an error Stream
-      throw Exception('User ID is null');
+      // Handle the case where userId == null, perhaps throw an exception or return an error Stream
+      throw Exception('User ID == nil');
     }
 
     if (realm == null) {
-      // Handle the case where realm is null, perhaps throw an exception or return an error Stream
-      throw Exception('Realm is null');
+      // Handle the case where realm == null, perhaps throw an exception or return an error Stream
+      throw Exception('Realm == nil');
     }
 
     final controller = StreamController<Tenant?>();
 
     realm!
         .query<Tenant>(
-          r'userId == $0 && deletedAt == null',
+          r'userId == $0 && deletedAt == nil',
           [userId],
         )
         .changes
@@ -319,7 +319,7 @@ class RealmAPI<M extends IJsonSerializable>
         [businessId],
       ).toList();
     } else {
-      throw Exception("BusinessId is requred");
+      throw Exception("BusinessId is required");
     }
   }
 
@@ -886,7 +886,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
     return realm!.query<Counter>(
-        r'branchId == $0 AND receiptType == $1 AND deletedAt == null',
+        r'branchId == $0 AND receiptType == $1 AND deletedAt == nil',
         [branchId, receiptType]).firstOrNull;
   }
 
@@ -897,7 +897,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     // Find product with name CUSTOM_PRODUCT
     Product? product = realm!.query<Product>(
-        r'name == $0 AND branchId== $1 AND deletedAt == null',
+        r'name == $0 AND branchId== $1 AND deletedAt == nil',
         [CUSTOM_PRODUCT, branchId]).firstOrNull;
 
     if (product == null) {
@@ -946,7 +946,7 @@ class RealmAPI<M extends IJsonSerializable>
       ).firstOrNull;
     } else if (key != null) {
       final customer = realm!.query<Customer>(
-        r'(custNm CONTAINS $1 OR email CONTAINS $1 OR telNo CONTAINS $1) AND deletedAt IS NULL',
+        r'(custNm CONTAINS $1 OR email CONTAINS $1 OR telNo CONTAINS $1) AND deletedAt == nil',
         [key],
       ).firstOrNull;
       return customer;
@@ -959,13 +959,13 @@ class RealmAPI<M extends IJsonSerializable>
   Stream<Tenant?> getDefaultTenant({required int businessId}) async* {
     realm!
         .query<Tenant>(
-          r'businessId == $0 AND deletedAt IS NULL',
+          r'businessId == $0 AND deletedAt == nil',
           [businessId],
         )
         .changes
         .listen((_) async* {
           yield realm!.query<Tenant>(
-            r'businessId == $0 AND deletedAt IS NULL',
+            r'businessId == $0 AND deletedAt == nil',
             [businessId],
           ).firstOrNull;
         });
@@ -976,7 +976,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required String phone, required String linkingCode}) async {
     // get device from realm with linking code and return it
     return realm!.query<Device>(
-      r'phone == $0 AND linkingCode == $1 AND deletedAt IS NULL',
+      r'phone == $0 AND linkingCode == $1 AND deletedAt == nil',
       [phone, linkingCode],
     ).firstOrNull;
   }
@@ -994,7 +994,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<Device>> getDevices({required int businessId}) async {
     // get device from realm with linking code and return it
     return realm!.query<Device>(
-      r'businessId == $0 AND deletedAt IS NULL',
+      r'businessId == $0 AND deletedAt == nil',
       [businessId],
     ).toList();
   }
@@ -1027,7 +1027,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Favorite?> getFavoriteById({required int favId}) async {
     // Get a favorite
     return realm!.query<Favorite>(
-      r'id == $0 AND deletedAt IS NULL',
+      r'id == $0 AND deletedAt == nil',
       [favId],
     ).firstOrNull;
   }
@@ -1035,7 +1035,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Favorite?> getFavoriteByIndex({required int favIndex}) async {
     return realm!.query<Favorite>(
-        r'favIndex == $0 AND deletedAt IS NULL', [favIndex]).firstOrNull;
+        r'favIndex == $0 AND deletedAt == nil', [favIndex]).firstOrNull;
   }
 
   @override
@@ -1043,13 +1043,13 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       realm!
           .query<Favorite>(
-            r'favIndex == $0 AND deletedAt IS NULL',
+            r'favIndex == $0 AND deletedAt == nil',
             [favIndex],
           )
           .changes
           .listen((_) async* {
             yield realm!.query<Favorite>(
-              r'favIndex == $0 AND deletedAt IS NULL',
+              r'favIndex == $0 AND deletedAt == nil',
               [favIndex],
             ).firstOrNull;
           });
@@ -1063,7 +1063,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Favorite?> getFavoriteByProdId({required int prodId}) async {
     return realm!.query<Favorite>(
-      r'productId == $0 AND deletedAt IS NULL',
+      r'productId == $0 AND deletedAt == nil',
       [prodId],
     ).firstOrNull;
   }
@@ -1072,7 +1072,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<Favorite>> getFavorites() async {
     return realm!
         .query<Favorite>(
-          r'deletedAt IS NULL',
+          r'deletedAt == nil',
         )
         .toList();
   }
@@ -1171,7 +1171,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Product?> getProduct({required int id}) async {
     return realm!.query<Product>(
-      r'id == $0 AND deletedAt IS NULL',
+      r'id == $0 AND deletedAt == nil',
       [id],
     ).firstOrNull;
   }
@@ -1180,7 +1180,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Product?> getProductByBarCode({required String barCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
     return realm!.query<Product>(
-      r'barCode == $0 AND deletedAt IS NULL AND branchId ==$1',
+      r'barCode == $0 AND deletedAt == null AND branchId ==$1',
       [barCode, branchId],
     ).firstOrNull;
   }
@@ -1200,7 +1200,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     // No need for completer as Realm provides built-in async support
     final queryBuilder = realm!.query<Product>(
-      r'branchId == $0  AND id =  $1 AND deletedAt IS NULL',
+      r'branchId == $0  AND id =  $1 AND deletedAt == nil',
       [branchId, prodIndex],
     );
 
@@ -1210,7 +1210,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Receipt?> getReceipt({required int transactionId}) async {
     return realm!.query<Receipt>(
-      r'transactionId == $0 AND deletedAt IS NULL',
+      r'transactionId == $0 AND deletedAt == nil',
       [transactionId],
     ).firstOrNull;
   }
@@ -1237,7 +1237,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Stock?> getStock(
       {required int branchId, required int variantId}) async {
     return realm!.query<Stock>(
-      r'variantId == $0 AND branchId == $1 AND deletedAt IS NULL',
+      r'variantId == $0 AND branchId == $1 AND deletedAt == nil',
       [variantId, branchId],
     ).firstOrNull;
   }
@@ -1331,7 +1331,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<TransactionItem?> getTransactionItemByVariantId(
       {required int variantId, required int? transactionId}) async {
     return realm!.query<TransactionItem>(
-      r'variantId == $0 AND transactionId == $1 AND deletedAt IS NULL',
+      r'variantId == $0 AND transactionId == $1 AND deletedAt == nil',
       [variantId, transactionId],
     ).firstOrNull;
   }
@@ -1340,7 +1340,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) async {
     return realm!.query<TransactionItem>(
-      r'transactionId == $0 AND deletedAt IS NULL',
+      r'transactionId == $0 AND deletedAt == nil',
       [transactionId],
     ).toList();
   }
@@ -1351,7 +1351,7 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<ITransaction>>.broadcast();
 
     final query = realm!.query<ITransaction>(
-      r'customerId == $0 AND deletedAt IS NULL',
+      r'customerId == $0 AND deletedAt == nil',
       [customerId],
     );
 
@@ -1378,7 +1378,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Variant?> getVariantById({required int id}) async {
     return realm!.query<Variant>(
-      r'id == $0 AND deletedAt IS NULL',
+      r'id == $0 AND deletedAt == nil',
       [id],
     ).firstOrNull;
   }
@@ -1386,7 +1386,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Variant>> getVariantByProductId({int? productId}) async {
     return realm!.query<Variant>(
-      r'productId == $0 AND deletedAt IS NULL',
+      r'productId == $0 AND deletedAt == nil',
       [productId],
     ).toList();
   }
@@ -1396,7 +1396,7 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<Variant>>.broadcast();
 
     final query = realm!.query<Variant>(
-      r'productId == $0 AND deletedAt IS NULL',
+      r'productId == $0 AND deletedAt == nil',
       [productId],
     );
 
@@ -1422,7 +1422,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<bool> isDrawerOpen({required int cashierId}) async {
     return realm!.query<Drawers>(
-          r'cashierId == $0 AND deletedAt IS NULL',
+          r'cashierId == $0 AND deletedAt == nil',
           [cashierId],
         ).firstOrNull !=
         null;
@@ -1613,7 +1613,7 @@ class RealmAPI<M extends IJsonSerializable>
       realm!.add<Drawers>(drawer..id = id);
     });
     return realm!.query<Drawers>(
-      r'id == $0 AND deletedAt IS NULL',
+      r'id == $0 AND deletedAt == nil',
       [id],
     ).firstOrNull;
   }
@@ -1623,7 +1623,7 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<ITransaction>>.broadcast();
 
     final query = realm!.query<ITransaction>(
-      r'status == $0 AND supplierId == $1 AND deletedAt IS NULL',
+      r'status == $0 AND supplierId == $1 AND deletedAt == nil',
       [PENDING, branchId],
     );
 
@@ -1657,7 +1657,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType}) async {
     return realm!.query<ITransaction>(
-      r'branchId == $0 AND transactionType == $1 AND deletedAt IS NULL',
+      r'branchId == $0 AND transactionType == $1 AND deletedAt == nil',
       [branchId, transactionType],
     ).firstOrNull;
   }
@@ -1669,12 +1669,12 @@ class RealmAPI<M extends IJsonSerializable>
     RealmResults<Product> query;
     if (prodIndex == null) {
       query = realm!.query<Product>(
-        r'branchId == $0  AND deletedAt IS NULL',
+        r'branchId == $0  AND deletedAt == nil',
         [branchId],
       );
     } else {
       query = realm!.query<Product>(
-        r'branchId == $0 AND id == $1 AND deletedAt IS NULL',
+        r'branchId == $0 AND id == $1 AND deletedAt == nil',
         [branchId, prodIndex],
       );
     }
@@ -1700,7 +1700,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Product>> products({required int branchId}) async {
     return realm!.query<Product>(
-      r'branchId == $0  AND deletedAt IS NULL',
+      r'branchId == $0  AND deletedAt == nil',
       [branchId],
     ).toList();
   }
@@ -1716,7 +1716,7 @@ class RealmAPI<M extends IJsonSerializable>
     // if we have no recent product please load without the condition
     if (allProducts.isEmpty) {
       allProducts = realm!.query<Product>(
-        r'branchId == $0 && deletedAt == null',
+        r'branchId == $0 && deletedAt == nil',
         [branchId],
       ).toList();
     }
@@ -2135,32 +2135,29 @@ class RealmAPI<M extends IJsonSerializable>
     bool isCashOut = false,
     bool includePending = false,
   }) {
-    final branchIdValue = branchId ?? ProxyService.box.getBranchId()!;
-
-    final queryString = r'''
-    (status == $0 OR $0 == null)
-    AND (
-      (transactionType == $1 AND $1 == 'cashOut')
-      OR ($1 != 'cashOut' AND (
-        transactionType == 'cashIn'
-        OR transactionType == 'sale'
-        OR transactionType == 'custom'
-        OR transactionType == 'onlineSale'
-      ))
-    )
-    AND branchId == $2
-    AND deletedAt == null
-  ''';
-
+    String queryString = "";
+    if (isCashOut) {
+      queryString = queryString = r'''deletedAt = nil
+        && status == $0
+        && (
+          transactionType IN ANY {'cashOut'} && branchId == $1
+        )
+    ''';
+    } else {
+      queryString = r'''deletedAt = nil
+        && status == $0
+        && (
+          transactionType IN ANY {'cashIn', 'sale', 'custom', 'onlineSale'} && branchId == $1
+        )
+    ''';
+    }
     final query = realm!.query<ITransaction>(
       queryString,
       [
-        status ?? COMPLETE,
-        transactionType,
-        branchIdValue,
+        status ?? 'COMPLETE',
+        branchId,
       ],
     );
-
     StreamController<List<ITransaction>>? controller;
     controller = StreamController<List<ITransaction>>.broadcast(
       onListen: () async {
@@ -2238,8 +2235,8 @@ class RealmAPI<M extends IJsonSerializable>
     return "$realmDirectory/$fileName";
   }
 
-  Future<RealmApiInterface> configure(
-      {required bool inTesting, required String encryptionKey}) async {
+  @override
+  Future<RealmApiInterface> configure({required bool inTesting}) async {
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -2281,7 +2278,7 @@ class RealmAPI<M extends IJsonSerializable>
       config = Configuration.flexibleSync(
         user,
         realmModels,
-        encryptionKey: encryptionKey.toIntList(),
+        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
         path: path,
         clientResetHandler: RecoverUnsyncedChangesHandler(
           onBeforeReset: (beforeResetRealm) {
@@ -2522,11 +2519,11 @@ class RealmAPI<M extends IJsonSerializable>
   void _processVariant(int branchId, Variant variation) {
     int stockId = randomNumber();
     Variant? variant = realm!.query<Variant>(
-        r'id == $0 && branchId == $1 && deletedAt == null',
+        r'id == $0 && branchId == $1 && deletedAt == nil',
         [variation.id, branchId]).firstOrNull;
     if (variant != null) {
       Stock? stock = realm!.query<Stock>(
-          r'id == $0 &&  branchId == $1 && deletedAt == null',
+          r'id == $0 &&  branchId == $1 && deletedAt == nil',
           [stockId, branchId]).firstOrNull;
       if (stock == null) {
         final newStock = Stock(ObjectId(),
@@ -2728,7 +2725,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false}) async {
-    log(userPhone, name: "userPhoneLoginWith");
+    talker.info(userPhone);
     String phoneNumber = userPhone;
 
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
@@ -2753,8 +2750,7 @@ class RealmAPI<M extends IJsonSerializable>
       await _configureTheBox(userPhone, user);
 
       /// after we login this is the best time to open the synced database to start persisting the data
-      await configure(
-          inTesting: false, encryptionKey: ProxyService.box.encryptionKey());
+      await configure(inTesting: false);
       if (stopAfterConfigure) return user;
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.writeString(
@@ -2939,7 +2935,7 @@ class RealmAPI<M extends IJsonSerializable>
       value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!,
     );
 
-    log(user.id.toString(), name: 'login');
+    talker.info("UserId:" + user.id.toString());
     await ProxyService.box.writeInt(
       key: 'businessId',
       value: user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!,
@@ -2981,5 +2977,10 @@ class RealmAPI<M extends IJsonSerializable>
     } catch (error) {
       throw ErrorReadingFromYBServer(term: error.toString());
     }
+  }
+
+  @override
+  bool isRealmClosed() {
+    return realm?.isClosed ?? true;
   }
 }

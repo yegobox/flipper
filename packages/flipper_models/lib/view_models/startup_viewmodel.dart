@@ -21,8 +21,13 @@ class StartupViewModel extends FlipperBaseModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
-    //log(ProxyService.box.getBusinessId()?.toString() ?? "no BusinessId");
     try {
+      /// there is cases where when app re-start and then for some reason the realm is closed
+      /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
+      if (ProxyService.isar.isRealmClosed()) {
+        await ProxyService.isar.configure(inTesting: false);
+      }
+
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {
         log("refreshCredentials");

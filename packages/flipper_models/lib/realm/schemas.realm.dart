@@ -2162,6 +2162,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     String? paymentMode,
     int? cashierId,
     bool? open,
+    DateTime? deletedAt,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -2182,6 +2183,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'paymentMode', paymentMode);
     RealmObjectBase.set(this, 'cashierId', cashierId);
     RealmObjectBase.set(this, 'open', open);
+    RealmObjectBase.set(this, 'deletedAt', deletedAt);
   }
 
   Drawers._();
@@ -2307,6 +2309,13 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
   set open(bool? value) => RealmObjectBase.set(this, 'open', value);
 
   @override
+  DateTime? get deletedAt =>
+      RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
+  @override
+  set deletedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'deletedAt', value);
+
+  @override
   Stream<RealmObjectChanges<Drawers>> get changes =>
       RealmObjectBase.getChanges<Drawers>(this);
 
@@ -2334,6 +2343,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       'paymentMode': paymentMode.toEJson(),
       'cashierId': cashierId.toEJson(),
       'open': open.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
     };
   }
 
@@ -2360,6 +2370,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
         'paymentMode': EJsonValue paymentMode,
         'cashierId': EJsonValue cashierId,
         'open': EJsonValue open,
+        'deletedAt': EJsonValue deletedAt,
       } =>
         Drawers(
           fromEJson(realmId),
@@ -2381,6 +2392,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
           paymentMode: fromEJson(paymentMode),
           cashierId: fromEJson(cashierId),
           open: fromEJson(open),
+          deletedAt: fromEJson(deletedAt),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2417,6 +2429,7 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('paymentMode', RealmPropertyType.string, optional: true),
       SchemaProperty('cashierId', RealmPropertyType.int, optional: true),
       SchemaProperty('open', RealmPropertyType.bool, optional: true),
+      SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 

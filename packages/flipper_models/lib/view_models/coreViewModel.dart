@@ -755,7 +755,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> setDefaultBranch({required Branch branch}) async {
     //first set other branch to not active
-    List<Branch> branches = await ProxyService.isar.branches();
+    List<Branch> branches = await ProxyService.isar
+        .branches(businessId: ProxyService.box.getBusinessId());
     for (Branch branch in branches) {
       await ProxyService.isar.update(data: branch..isDefault = false);
     }

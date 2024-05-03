@@ -333,4 +333,6 @@ abstract class RealmApiInterface {
 
   Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin({required String pin});
+  bool isRealmClosed();
+  Future<RealmApiInterface> configure({required bool inTesting});
 }

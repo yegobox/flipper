@@ -133,7 +133,8 @@ class AppService with ListenableServiceMixin {
 
     await loadTenants(businesses);
 
-    List<Branch> branches = await ProxyService.isar.branches();
+    List<Branch> branches = await ProxyService.isar
+        .branches(businessId: ProxyService.box.getBusinessId());
 
     bool authComplete = await ProxyService.box.authComplete();
 

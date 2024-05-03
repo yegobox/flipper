@@ -24,6 +24,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO:re-work on this for the feature to work!
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {

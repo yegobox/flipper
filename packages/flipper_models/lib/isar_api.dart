@@ -3310,31 +3310,31 @@
   //   bool isCashOut = false,
   //   bool includePending = false,
   // }) {
-  //   final isarQuery =
-  //       isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
+    // final isarQuery =
+    //     isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
 
-  //   if (isCashOut) {
-  //     isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
-  //   } else {
-  //     isarQuery
-  //         .or()
-  //         .transactionTypeEqualTo(TransactionType.cashIn)
-  //         .or()
-  //         .transactionTypeEqualTo(TransactionType.sale)
-  //         .or()
-  //         .transactionTypeEqualTo(TransactionType.custom)
-  //         .or()
-  //         .transactionTypeEqualTo(TransactionType.onlineSale);
-  //   }
+    // if (isCashOut) {
+    //   isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
+    // } else {
+    //   isarQuery
+    //       .or()
+    //       .transactionTypeEqualTo(TransactionType.cashIn)
+    //       .or()
+    //       .transactionTypeEqualTo(TransactionType.sale)
+    //       .or()
+    //       .transactionTypeEqualTo(TransactionType.custom)
+    //       .or()
+    //       .transactionTypeEqualTo(TransactionType.onlineSale);
+    // }
 
-  //   if (branchId != null) {
-  //     isarQuery.and().branchIdEqualTo(branchId);
-  //   } else {
-  //     branchId = ProxyService.box.getBranchId()!;
-  //     isarQuery.and().branchIdEqualTo(branchId);
-  //   }
+    // if (branchId != null) {
+    //   isarQuery.and().branchIdEqualTo(branchId);
+    // } else {
+    //   branchId = ProxyService.box.getBranchId()!;
+    //   isarQuery.and().branchIdEqualTo(branchId);
+    // }
 
-  //   return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
+    // return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
   // }
 
 //   @override
