@@ -110,7 +110,9 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> keyboardKeyPressed(
       {required String key, String? transactionType = 'custom'}) async {
     talker.info({'feature_name': 'keypad_tab'});
-    ProxyService.keypad.addKey(key);
+    if (double.tryParse(key) != null) {
+      ProxyService.keypad.addKey(key);
+    }
 
     ITransaction? pendingTransaction = await ProxyService.isar
         .manageTransaction(transactionType: transactionType!);
@@ -155,7 +157,7 @@ class CoreViewModel extends FlipperBaseModel
       ProxyService.keypad.reset();
       return;
     }
-
+    ProxyService.keypad.reset();
     TransactionItem itemToDelete = items.last;
     await ProxyService.isar
         .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
@@ -169,7 +171,6 @@ class CoreViewModel extends FlipperBaseModel
         updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
     await ProxyService.isar.update(data: pendingTransaction);
-    ProxyService.keypad.reset();
 
     ITransaction? updatedTransaction =
         await ProxyService.isar.getTransactionById(id: pendingTransaction.id!);
@@ -192,9 +193,49 @@ class CoreViewModel extends FlipperBaseModel
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
     // update the transaction item
+    // if (items.isEmpty) {
+    // TransactionItem newItem = newTransactionItem(
+    //     amount, variation, name, pendingTransaction, stock!);
+    // newItem.action = AppActions.created;
+    // await ProxyService.isar
+    //     .addTransactionItem(transaction: pendingTransaction, item: newItem);
+    // items = await ProxyService.isar.transactionItems(
+    //     transactionId: pendingTransaction.id!,
+    //     doneWithTransaction: false,
+    //     active: true);
+    // } else {
+    // items = await ProxyService.isar.transactionItems(
+    //     transactionId: pendingTransaction.id!,
+    //     doneWithTransaction: false,
+    //     active: true);
+    // }
+
+    // pendingTransaction.subTotal =
+    //     items.fold(0, (a, b) => a + (b.price * b.qty));
+    // pendingTransaction.updatedAt = DateTime.now().toIso8601String();
+    // await ProxyService.isar.update(data: pendingTransaction);
+    talker.info("here we come");
     if (items.isEmpty) {
-      TransactionItem newItem = newTransactionItem(
-          amount, variation, name, pendingTransaction, stock!);
+      talker.info("Empty sir");
+      TransactionItem newItem = TransactionItem(
+        ObjectId(),
+        id: randomNumber(),
+        qty: 1,
+        action: AppActions.created,
+        price: amount / 1,
+        variantId: variation.id!,
+        name: name,
+        branchId: ProxyService.box.getBranchId(),
+        discount: 0.0,
+        prc: variation.retailPrice,
+        doneWithTransaction: false,
+        active: false,
+        transactionId: pendingTransaction.id!,
+        createdAt: DateTime.now().toString(),
+        updatedAt: DateTime.now().toString(),
+        isTaxExempted: variation.isTaxExempted,
+        remainingStock: stock?.currentStock ?? 0 - 1,
+      );
       newItem.action = AppActions.created;
       await ProxyService.isar
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
@@ -208,17 +249,12 @@ class CoreViewModel extends FlipperBaseModel
           doneWithTransaction: false,
           active: true);
     }
-
-    pendingTransaction.subTotal =
-        items.fold(0, (a, b) => a + (b.price * b.qty));
-    pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-    await ProxyService.isar.update(data: pendingTransaction);
-
     keypad.setTransaction(pendingTransaction);
   }
 
   void handleMultipleDigitKey(
       List<TransactionItem> items, ITransaction pendingTransaction) async {
+    talker.info(ProxyService.keypad.key);
     double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.isar.getCustomVariant();
     if (variation == null) return;
@@ -249,8 +285,25 @@ class CoreViewModel extends FlipperBaseModel
         ProxyService.isar.update(data: pendingTransaction);
         ProxyService.isar.update(data: existTransactionItem);
       } else {
-        TransactionItem newItem = newTransactionItem(
-            amount, variation, name, pendingTransaction, stock!);
+        TransactionItem newItem = TransactionItem(
+          ObjectId(),
+          id: randomNumber(),
+          qty: 1,
+          action: AppActions.created,
+          price: amount / 1,
+          variantId: variation.id!,
+          name: name,
+          branchId: ProxyService.box.getBranchId(),
+          discount: 0.0,
+          prc: variation.retailPrice,
+          doneWithTransaction: false,
+          active: false,
+          transactionId: pendingTransaction.id!,
+          createdAt: DateTime.now().toString(),
+          updatedAt: DateTime.now().toString(),
+          isTaxExempted: variation.isTaxExempted,
+          remainingStock: stock?.currentStock ?? 0 - 1,
+        );
 
         List<TransactionItem> items = await ProxyService.isar.transactionItems(
             transactionId: pendingTransaction.id!,
@@ -279,30 +332,6 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionById(id: pendingTransaction.id!);
       keypad.setTransaction(updatedTransaction);
     }
-  }
-
-  TransactionItem newTransactionItem(double amount, Variant variation,
-      String name, ITransaction pendingTransaction, Stock stock) {
-    int branchId = ProxyService.box.getBranchId()!;
-    return TransactionItem(
-      ObjectId(),
-      id: randomNumber(),
-      qty: 1,
-      action: AppActions.created,
-      price: amount / 1,
-      variantId: variation.id!,
-      name: name,
-      branchId: branchId,
-      discount: 0.0,
-      prc: variation.retailPrice,
-      doneWithTransaction: false,
-      active: false,
-      transactionId: pendingTransaction.id!,
-      createdAt: DateTime.now().toString(),
-      updatedAt: DateTime.now().toString(),
-      isTaxExempted: variation.isTaxExempted,
-      remainingStock: stock.currentStock - 1,
-    );
   }
 
   /// the function is useful on completing a sale since we need to look for this past transaction

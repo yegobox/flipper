@@ -1417,80 +1417,80 @@
 //   }
 
 //   @override
-//   Future<ITenant> saveTenant(String phoneNumber, String name,
-//       {required IBusiness business,
-//       required IBranch branch,
-//       required String userType}) async {
-//     final http.Response response = await flipperHttpClient.post(
-//       Uri.parse("$apihub/v2/api/tenant"),
-//       body: jsonEncode({
-//         "phoneNumber": phoneNumber,
-//         "name": name,
-//         "businessId": business.id,
-//         "permissions": [
-//           {"name": userType.toLowerCase()}
-//         ],
-//         "businesses": [business.toJson()],
-//         "branches": [branch.toJson()]
-//       }),
-//     );
-//     if (response.statusCode == 200) {
-//       ITenant jTenant = ITenant.fromRawJson(response.body);
-//       IITenant iTenant = IITenant(
-//           isDefault: jTenant.isDefault,
-//           id: randomNumber(),
-//           name: jTenant.name,
-//           businessId: jTenant.businessId,
-//           email: jTenant.email,
-//           userId: jTenant.userId,
-//           nfcEnabled: jTenant.nfcEnabled,
-//           phoneNumber: jTenant.phoneNumber);
+  // Future<ITenant> saveTenant(String phoneNumber, String name,
+  //     {required IBusiness business,
+  //     required IBranch branch,
+  //     required String userType}) async {
+  //   final http.Response response = await flipperHttpClient.post(
+  //     Uri.parse("$apihub/v2/api/tenant"),
+  //     body: jsonEncode({
+  //       "phoneNumber": phoneNumber,
+  //       "name": name,
+  //       "businessId": business.id,
+  //       "permissions": [
+  //         {"name": userType.toLowerCase()}
+  //       ],
+  //       "businesses": [business.toJson()],
+  //       "branches": [branch.toJson()]
+  //     }),
+  //   );
+  //   if (response.statusCode == 200) {
+  //     ITenant jTenant = ITenant.fromRawJson(response.body);
+  //     IITenant iTenant = IITenant(
+  //         isDefault: jTenant.isDefault,
+  //         id: randomNumber(),
+  //         name: jTenant.name,
+  //         businessId: jTenant.businessId,
+  //         email: jTenant.email,
+  //         userId: jTenant.userId,
+  //         nfcEnabled: jTenant.nfcEnabled,
+  //         phoneNumber: jTenant.phoneNumber);
 
-//       isar.writeTxn(() async {
-//         for (var business in jTenant.businesses) {
-//           // Check if the business with the same ID already exists
-//           var existingBusiness =
-//               await isar.iBusiness.filter().idEqualTo(business.id).findFirst();
-//           if (existingBusiness == null) {
-//             isar.iBusiness.put(business);
-//           }
-//         }
+  //     isar.writeTxn(() async {
+  //       for (var business in jTenant.businesses) {
+  //         // Check if the business with the same ID already exists
+  //         var existingBusiness =
+  //             await isar.iBusiness.filter().idEqualTo(business.id).findFirst();
+  //         if (existingBusiness == null) {
+  //           isar.iBusiness.put(business);
+  //         }
+  //       }
 
-//         for (var branch in jTenant.branches) {
-//           // Check if the branch with the same ID already exists
-//           var existingBranch =
-//               await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
-//           if (existingBranch == null) {
-//             isar.iBranchs.put(branch);
-//           }
-//         }
+  //       for (var branch in jTenant.branches) {
+  //         // Check if the branch with the same ID already exists
+  //         var existingBranch =
+  //             await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
+  //         if (existingBranch == null) {
+  //           isar.iBranchs.put(branch);
+  //         }
+  //       }
 
-//         for (var permission in jTenant.permissions) {
-//           // Check if the permission with the same ID already exists
-//           var existingPermission = await isar.iPermissions
-//               .filter()
-//               .idEqualTo(permission.id)
-//               .findFirst();
-//           if (existingPermission == null) {
-//             // Permission doesn't exist, add it
-//             isar.iPermissions.put(permission);
-//           }
-//         }
-//       });
+  //       for (var permission in jTenant.permissions) {
+  //         // Check if the permission with the same ID already exists
+  //         var existingPermission = await isar.iPermissions
+  //             .filter()
+  //             .idEqualTo(permission.id)
+  //             .findFirst();
+  //         if (existingPermission == null) {
+  //           // Permission doesn't exist, add it
+  //           isar.iPermissions.put(permission);
+  //         }
+  //       }
+  //     });
 
-//       isar.writeTxn(() async {
-//         var tenant =
-//             await isar.iITenants.filter().idEqualTo(iTenant.id).findFirst();
-//         if (tenant == null) {
-//           isar.iITenants.put(iTenant);
-//         }
-//       });
+  //     isar.writeTxn(() async {
+  //       var tenant =
+  //           await isar.iITenants.filter().idEqualTo(iTenant.id).findFirst();
+  //       if (tenant == null) {
+  //         isar.iITenants.put(iTenant);
+  //       }
+  //     });
 
-//       return ITenant.fromRawJson(response.body);
-//     } else {
-//       throw InternalServerError(term: "internal server error");
-//     }
-//   }
+  //     return ITenant.fromRawJson(response.body);
+  //   } else {
+  //     throw InternalServerError(term: "internal server error");
+  //   }
+  // }
 
 //   @override
 //   Future<List<ITenant>> signup({required Map business}) async {

@@ -50,6 +50,7 @@ abstract class RealmApiInterface {
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({int? prodIndex});
+
   Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex});
   Future<Stock?> stockByVariantId(
@@ -335,4 +336,8 @@ abstract class RealmApiInterface {
   Future<IPin?> getPin({required String pin});
   bool isRealmClosed();
   Future<RealmApiInterface> configure({required bool inTesting});
+  Stream<List<TransactionItem>> transactionItemsStreams(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active});
 }

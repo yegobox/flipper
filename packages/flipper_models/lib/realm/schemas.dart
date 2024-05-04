@@ -15,7 +15,7 @@ class _Branch {
   String? longitude;
   String? latitude;
 
-  late bool isDefault = false;
+  bool isDefault = false;
 
   DateTime? lastTouched;
 
@@ -198,7 +198,7 @@ class _Customer {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool? ebmSynced;
+  bool ebmSynced = false;
   DateTime? lastTouched;
 
   String? action;
@@ -449,7 +449,7 @@ class _Stock {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool? ebmSynced;
+  bool ebmSynced = false;
 }
 
 @RealmModel()
@@ -565,7 +565,7 @@ class _Variant {
   /// and this operation might fail at time of us making the call and our software can work offline
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
-  bool? ebmSynced = false;
+  bool ebmSynced = false;
 }
 
 @RealmModel()

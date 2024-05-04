@@ -161,7 +161,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required ITransaction transaction,
       required TransactionItem item}) async {
     talker.info(item.toEJson());
-    realm!.write(() => realm!.put<TransactionItem>(item));
+    realm!.write(() => realm!.add<TransactionItem>(item));
   }
 
   @override
@@ -403,8 +403,9 @@ class RealmAPI<M extends IJsonSerializable>
 
     transaction.updatedAt = DateTime.now().toIso8601String();
     transaction.createdAt = DateTime.now().toIso8601String();
-    log(DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
-        name: "LocalDate");
+    talker.info(
+      DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
+    );
     transaction.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
 
     await update(data: transaction);
@@ -493,7 +494,7 @@ class RealmAPI<M extends IJsonSerializable>
       PColor color = data;
       realm!.write(() {
         for (String colorName in data.colors) {
-          realm!.put(
+          realm!.put<PColor>(
             PColor(
               ObjectId(),
               id: randomNumber(),
@@ -517,7 +518,7 @@ class RealmAPI<M extends IJsonSerializable>
     if (data is Conversation) {
       Conversation conversation = data;
       realm!.write(() {
-        realm!.put(conversation);
+        realm!.put<Conversation>(conversation);
       });
       return null;
     }
@@ -530,55 +531,55 @@ class RealmAPI<M extends IJsonSerializable>
     }
     if (data is Product) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Product>(data);
       });
     }
     if (data is Variant) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Variant>(data);
       });
       return null;
     }
     if (data is Favorite) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Favorite>(data);
       });
       return null;
     }
     if (data is Stock) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Stock>(data);
       });
       return null;
     }
 
     if (data is Token) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Token>(data);
       });
       return null;
     }
     if (data is Setting) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<Setting>(data);
       });
       return null;
     }
     if (data is EBM) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<EBM>(data);
       });
       return null;
     }
     if (data is ITransaction) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<ITransaction>(data);
       });
       return null;
     }
     if (data is TransactionItem) {
       realm!.write(() {
-        realm!.put(data);
+        realm!.put<TransactionItem>(data);
       });
       return null;
     }
@@ -836,15 +837,12 @@ class RealmAPI<M extends IJsonSerializable>
         break;
       case 'transactionItem':
         realm!.write(() {
-          TransactionItem? transactionItems =
+          TransactionItem? transactionItem =
               realm!.query<TransactionItem>(r'id == $0 ', [id]).firstOrNull;
-          ;
-          if (transactionItems != null) {
-            transactionItems.deletedAt = deletionTime;
-            transactionItems.action = AppActions.deleted;
-            return true;
+
+          if (transactionItem != null) {
+            realm!.delete<TransactionItem>(transactionItem);
           }
-          return false;
         });
         break;
       case 'customer':
@@ -2435,16 +2433,12 @@ class RealmAPI<M extends IJsonSerializable>
     int branchId = ProxyService.box.getBranchId()!;
     String queryString = "";
 
-    queryString = r'''deletedAt = nil
-        && doneWithTransaction == $0
-        && (
-          branchId ==$1 && active == $2 && transactionId == $3
-        )
-    ''';
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3 && deletedAt = nil';
 
     return realm!.query<TransactionItem>(
       queryString,
-      [doneWithTransaction, branchId, active, transactionId],
+      [transactionId, doneWithTransaction, branchId, active],
     ).toList();
   }
 
@@ -2852,7 +2846,7 @@ class RealmAPI<M extends IJsonSerializable>
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId() ?? 0;
     final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v2-' +
+    final realmDirectory = '${appDocsDirectory.path}/flipper-v3-' +
         branchId.toString() +
         "_" +
         businessId.toString();
@@ -2924,41 +2918,40 @@ class RealmAPI<M extends IJsonSerializable>
         }),
       );
       // realm = await Realm.open(config);
-      CancellationToken token = CancellationToken();
+      // CancellationToken token = CancellationToken();
 
       // Cancel the open operation after 30 seconds.
       // Alternatively, you could display a loading dialog and bind the cancellation
       // to a button the user can click to stop the wait.
-      Future<void>.delayed(
-        const Duration(seconds: 30),
-        () => token.cancel(
-          CancelledException(
-            cancellationReason: "Realm took too long to open",
-          ),
-        ),
-      );
-      try {
-        if (await ProxyService.status.isInternetAvailable()) {
-          talker.info("Opened realm[1] with  internet access!");
-          realm = await Realm.open(config, cancellationToken: token,
-              onProgressCallback: (syncProgress) {
-            if (syncProgress.progressEstimate == 1.0) {
-              talker.info('All bytes transferred!');
-            }
-          });
-        } else {
-          talker.info("Opened realm[1] with no internet access!");
-          realm = Realm(config);
-        }
-      } catch (e) {
-        talker.info("Opened realm in catch ");
-        realm = Realm(config);
-      }
+      // Future<void>.delayed(
+      //   const Duration(seconds: 30),
+      //   () => token.cancel(
+      //     CancelledException(
+      //       cancellationReason: "Realm took too long to open",
+      //     ),
+      //   ),
+      // );
+      // try {
+      //   if (await ProxyService.status.isInternetAvailable()) {
+      //     talker.info("Opened realm[1] with  internet access!");
+      //     realm = await Realm.open(config, cancellationToken: token,
+      //         onProgressCallback: (syncProgress) {
+      //       if (syncProgress.progressEstimate == 1.0) {
+      //         talker.info('All bytes transferred!');
+      //       }
+      //     });
+      //   } else {
+      //     talker.info("Opened realm[1] with no internet access!");
+      //     realm = Realm(config);
+      //   }
+      // } catch (e) {
+      //   talker.info("Opened realm in catch ");
+      //   realm = Realm(config);
+      // }
+      // talker.info("Opened realm in catch ");
+      realm = Realm(config);
       // Realm.logger.level = RealmLogLevel.trace;
       await updateSubscription(branchId, businessId);
-
-      /// removed await on bellow line because when it is in bootstrap, it might freeze the app
-      await realm?.subscriptions.waitForSynchronization();
     } else {
       //  open local database not synced one!
       talker.info(
@@ -3619,5 +3612,37 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   bool isRealmClosed() {
     return realm?.isClosed ?? true;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemsStreams(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active}) async* {
+    final controller = StreamController<List<TransactionItem>>.broadcast();
+
+    final query = realm!.query<TransactionItem>(
+      r'transactionId == $0 AND doneWithTransaction ==$1 AND active == $2 AND deletedAt == nil',
+      [transactionId, doneWithTransaction, active],
+    );
+
+    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedTransactions =
+            event.results.whereType<TransactionItem>().toList();
+        if (changedTransactions.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    yield* controller.stream;
   }
 }

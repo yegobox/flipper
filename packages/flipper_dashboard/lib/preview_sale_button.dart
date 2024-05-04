@@ -96,7 +96,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
         ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
         : ref.watch(pendingTransactionProvider(TransactionType.custom));
     final itemCount = ref
-            .watch(transactionItemsProvider(transaction.value?.value?.id))
+            .watch(transactionItemsStreamProvider(transaction.value?.value?.id))
             .value
             ?.length ??
         0;

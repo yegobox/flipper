@@ -5,6 +5,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import '_transaction.dart';
 // import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -102,6 +103,7 @@ final pendingTransactionProvider = FutureProvider.autoDispose
     return AsyncError(error, StackTrace.current);
   }
 });
+final talker = TalkerFlutter.init();
 
 final transactionItemsProvider = StateNotifierProvider.autoDispose
     .family<TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, int?>(
@@ -121,6 +123,7 @@ class TransactionItemsNotifier
   Future<List<TransactionItem>> loadItems(
       {required int currentTransaction}) async {
     try {
+      talker.info("Loading transactionId ${currentTransaction}");
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
@@ -519,4 +522,19 @@ final transactionListProvider =
     // If an error occurs in the stream, emit the error so that the UI can display it
     return [];
   });
+});
+
+// final transactionItemsStreamPtovider =
+//     StreamProvider.autoDispose<List<ITransaction>>((ref) {
+//   int branchId = ProxyService.box.getBranchId() ?? 0;
+//   return ProxyService.isar.orders(branchId: branchId);
+// });
+
+final transactionItemsStreamProvider = StreamProvider.autoDispose
+    .family<List<TransactionItem>, int?>((ref, transactionId) {
+  return ProxyService.isar.transactionItemsStreams(
+    transactionId: transactionId ?? 0,
+    doneWithTransaction: false,
+    active: false,
+  );
 });
