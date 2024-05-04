@@ -1,4 +1,3 @@
-export 'package:isar/isar.dart';
 export 'helperModels/DateTimeConverter.dart';
 export 'helperModels/points.dart';
 export 'helperModels/pin.dart';

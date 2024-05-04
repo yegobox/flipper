@@ -7,7 +7,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_linux
   flutter_localization
   flutter_window_close
-  isar_flutter_libs
   local_notifier
   printing
   realm

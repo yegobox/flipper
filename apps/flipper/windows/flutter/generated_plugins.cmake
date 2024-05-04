@@ -13,7 +13,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   flutter_localization
   flutter_window_close
   geolocator_windows
-  isar_flutter_libs
   local_auth_windows
   local_notifier
   permission_handler_windows

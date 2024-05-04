@@ -24,7 +24,7 @@ class ITenant {
 
   ///helper property, these are property that are not peristed
   ///but used in ui to achieve some functionality
-  @ignore
+
   bool isLongPressed;
 
   ITenant(
