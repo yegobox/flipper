@@ -1,7 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'dart:async';
-
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.dialogs.dart';

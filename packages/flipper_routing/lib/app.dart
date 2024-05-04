@@ -399,3 +399,5 @@ class App {}
 
 // https://pub.dev/packages/requests_inspector
 
+// Now need to heavily use sizer: ^2.0.15 for managing the scalability
+

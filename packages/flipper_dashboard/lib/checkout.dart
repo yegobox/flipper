@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';

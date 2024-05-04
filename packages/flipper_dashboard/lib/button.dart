@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 
 //Add this CustomPaint widget to the Widget Tree
 

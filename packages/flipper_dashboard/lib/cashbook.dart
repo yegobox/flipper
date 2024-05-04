@@ -8,7 +8,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
 import 'customappbar.dart';
 import 'widgets/dropdown.dart';
 

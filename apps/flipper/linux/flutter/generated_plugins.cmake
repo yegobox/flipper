@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_webview_auth
+  device_type
   file_selector_linux
   flutter_localization
   flutter_window_close

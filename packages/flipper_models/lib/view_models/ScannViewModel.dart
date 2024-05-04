@@ -7,6 +7,7 @@ import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 import 'mixins/_product.dart';
 
@@ -36,6 +37,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     notifyListeners();
   }
 
+  final talker = TalkerFlutter.init();
   void onAddVariant(
       {required String variantName,
       required bool isTaxExempted,
@@ -51,12 +53,13 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         // If found, update it
         variant.retailPrice = retailPrice;
         variant.supplyPrice = supplyPrice;
-        variant.qty = (variant.qty ?? 0) + 1; // Increment the quantity safely
+        variant.qty = (variant.qty) + 1; // Increment the quantity safely
         notifyListeners();
         return;
       }
     }
-
+    talker.info(
+        "Scanned or about to create variant with productId ${product.id}");
     // If no matching variant was found, add a new one
     scannedVariants.add(
       Variant(
@@ -66,7 +69,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         supplyPrice: supplyPrice,
         id: randomNumber(),
         sku: variantName,
-        productId: product.id!,
+        productId: product.id,
         color: currentColor,
         unit: 'Per Item',
         productName: productName ?? product.name,

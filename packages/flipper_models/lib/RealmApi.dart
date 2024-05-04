@@ -173,23 +173,25 @@ class RealmAPI<M extends IJsonSerializable>
     final branchId = ProxyService.box.getBranchId()!;
 
     try {
+      final unitsToAdd = <IUnit>[];
       // Open a write transaction
-      realm!.write(() {
-        for (Map map in units) {
-          final unit = IUnit(
-            ObjectId(),
-            active: map['active'],
-            branchId: branchId,
-            id: randomNumber(),
-            name: map['name'],
-            action: AppActions.created,
-            lastTouched: DateTime.now(),
-            value: map['value'],
-          );
+      for (Map map in units) {
+        final unit = IUnit(
+          ObjectId(),
+          active: map['active'],
+          branchId: branchId,
+          id: randomNumber(),
+          name: map['name'],
+          action: AppActions.created,
+          lastTouched: DateTime.now(),
+          value: map['value'],
+        );
 
-          // Add the unit to Realm
-          realm!.put<IUnit>(unit);
-        }
+        // Add the unit to Realm
+        unitsToAdd.add(unit);
+      }
+      realm!.write(() {
+        realm!.addAll<IUnit>(unitsToAdd);
       });
 
       return 200; // Return a success code

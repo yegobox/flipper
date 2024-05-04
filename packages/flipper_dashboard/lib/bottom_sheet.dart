@@ -1,6 +1,4 @@
 import 'package:flipper_localize/flipper_localize.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/bottom_sheets/general_bottom_sheet.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';

@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:developer';
+import 'package:device_type/device_type.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -214,12 +215,18 @@ class SearchFieldState extends ConsumerState<SearchField> {
     _hasText = false;
   }
 
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
+  }
+
   void _handleAddProduct() {
     showDialog(
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
-        child: isDesktopOrWeb ? ProductEntryScreen() : AddProductButtons(),
+        child: _getDeviceType(context) == "Phone"
+            ? AddProductButtons()
+            : ProductEntryScreen(),
       ),
     );
   }

@@ -12,16 +12,12 @@ class MockHttpClient extends http.BaseClient implements HttpClientInterface {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     String apihub = '';
-    String commApi = '';
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
-      commApi = AppSecrets.commApi;
     } else if (foundation.kDebugMode && isAndroid) {
       apihub = AppSecrets.apihubUat;
-      commApi = AppSecrets.commApi;
     } else if (!foundation.kDebugMode) {
       apihub = AppSecrets.apihubProd;
-      commApi = AppSecrets.commApi;
     }
 
     // Mock implementation for testing

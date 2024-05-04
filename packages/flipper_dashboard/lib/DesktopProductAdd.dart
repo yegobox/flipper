@@ -189,30 +189,30 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         return Container(
           width: double.infinity, // Adjust the width as needed
           child: DropdownSearch<String>(
-            items: units.asData!.value.map((unit) => unit.name!).toList(),
+            items: units.asData?.value.map((unit) => unit.name!).toList() ?? [],
             selectedItem: variant.unit,
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none, // Remove the border
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide.none, // Remove the border when disabled
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none, // Remove the border when enabled
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none, // Remove the border when focused
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide:
+                      BorderSide.none, // Remove the border when in error state
+                ),
                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
               ),
             ),
-            popupProps: PopupPropsMultiSelection.modalBottomSheet(
-              isFilterOnline: true,
-              showSelectedItems: true,
-              showSearchBox: true,
-              searchFieldProps: TextFieldProps(
-                  decoration: InputDecoration(border: OutlineInputBorder())),
-              modalBottomSheetProps: ModalBottomSheetProps(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-            onChanged: (selectedUnit) {
-              // Update the unit in your model or wherever you store it
-              model.updateVariantUnit(variant.id!, selectedUnit!);
-            },
           ),
         );
       },
@@ -561,6 +561,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         child: ListView(
                           children: [
                             DataTable(
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors
+                                      .transparent, // Set the border color to transparent to remove the border
+                                ),
+                              ),
                               columns: const [
                                 DataColumn(label: Text('Variant Name')),
                                 DataColumn(label: Text('Price')),
@@ -571,47 +577,62 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                               ],
                               rows:
                                   model.scannedVariants.reversed.map((variant) {
-                                return DataRow(cells: [
-                                  DataCell(Text(variant.name!)),
-                                  DataCell(Text(
-                                      variant.retailPrice.toStringAsFixed(2))),
-                                  DataCell(
-                                    Text(
-                                      variant.lastTouched == null
-                                          ? ''
-                                          : variant.lastTouched!
-                                              .toLocal()
-                                              .toIso8601String(),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    QuantityCell(
-                                      quantity: variant.qty,
-                                      onEdit: () {
-                                        _showEditQuantityDialog(
-                                          context,
-                                          variant,
-                                          model,
-                                          () {
-                                            FocusScope.of(context).requestFocus(
-                                                scannedInputFocusNode);
+                                return DataRow(
+                                    color: MaterialStateProperty.resolveWith<
+                                        Color?>((Set<MaterialState> states) {
+                                      if (states
+                                          .contains(MaterialState.selected)) {
+                                        return Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.08);
+                                      }
+                                      return null; // Use the default value.
+                                    }),
+                                    cells: [
+                                      DataCell(Text(variant.name!)),
+                                      DataCell(Text(variant.retailPrice
+                                          .toStringAsFixed(2))),
+                                      DataCell(
+                                        Text(
+                                          variant.lastTouched == null
+                                              ? ''
+                                              : variant.lastTouched!
+                                                  .toLocal()
+                                                  .toIso8601String(),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        QuantityCell(
+                                          quantity: variant.qty,
+                                          onEdit: () {
+                                            _showEditQuantityDialog(
+                                              context,
+                                              variant,
+                                              model,
+                                              () {
+                                                FocusScope.of(context)
+                                                    .requestFocus(
+                                                        scannedInputFocusNode);
+                                              },
+                                            );
                                           },
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  DataCell(
-                                    _buildUnitDropdown(context, variant, model),
-                                  ),
-                                  DataCell(
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        model.removeVariant(id: variant.id!);
-                                      },
-                                      child: const Text('Delete'),
-                                    ),
-                                  ),
-                                ]);
+                                        ),
+                                      ),
+                                      DataCell(
+                                        _buildUnitDropdown(
+                                            context, variant, model),
+                                      ),
+                                      DataCell(
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            model.removeVariant(
+                                                id: variant.id!);
+                                          },
+                                          child: const Text('Delete'),
+                                        ),
+                                      ),
+                                    ]);
                               }).toList(),
                             ),
                           ],

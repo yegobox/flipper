@@ -41,10 +41,10 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
           });
         }
         Business? business = await ProxyService.realm.getBusiness();
-        model.isEbmActive = business?.tinNumber != null &&
-            business?.bhfId != null &&
-            business?.dvcSrlNo != null &&
-            business?.taxEnabled == true;
+        model.isEbmActive = business.tinNumber != null &&
+            business.bhfId != null &&
+            business.dvcSrlNo != null &&
+            business.taxEnabled == true;
       },
       builder: (context, model, child) {
         return Scaffold(
