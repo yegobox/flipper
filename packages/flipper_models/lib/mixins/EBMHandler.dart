@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 

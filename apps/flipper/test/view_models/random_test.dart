@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -8,10 +8,23 @@ void main() {
     expect(result.toString().length, equals(15));
   });
 
-  test('generateRandomInts returns a ints of length 15', () {
-    final result = randomNumber();
-    expect(result, isA<int>());
-    expect(result.toString().length, equals(15));
+  test('randomNumber() generates unique 15-digit integers', () {
+    Set<int> generatedNumbers = {};
+
+    for (int i = 0; i < 1000; i++) {
+      final result = randomNumber();
+
+      // Check if the result is an integer
+      expect(result, isA<int>());
+
+      // Check if the result has 15 digits
+      expect(result.toString().length, equals(15));
+
+      // Check if the result is unique
+      expect(generatedNumbers.contains(result), isFalse);
+
+      generatedNumbers.add(result);
+    }
   });
 
   test('generateRandomInt generates different ints each time', () {

@@ -1,5 +1,5 @@
 export 'exceptions.dart';
-export 'isar/extensions.dart';
+export 'helperModels/extensions.dart';
 export 'package:flipper_models/realm/schemas.dart';
 export 'package:flipper_models/view_models/login_viewmodel.dart';
 

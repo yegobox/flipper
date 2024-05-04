@@ -1,9 +1,10 @@
 // import 'dart:io';
 // import 'dart:isolate';
-import 'package:flipper_models/isar_models.dart';
+// import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync_service.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:flipper_services/constants.dart';
+import 'realm/schemas.dart';
 import 'sync.dart';
 // import 'firebase_options.dart';
 // import 'package:firebase_core/firebase_core.dart';
@@ -160,26 +161,8 @@ class FirestoreSync<M extends IJsonSerializable> implements SyncFirestore<M> {
   @override
   Future<void> push() async {}
 
-  IJsonSerializable getSpecificModel(
-      String collectionName, Map<String, dynamic> data) {
-    switch (collectionName) {
-      case 'products':
-        return Product.fromJson(data);
-      case 'variants':
-        return Variant.fromJson(data);
-      case 'stocks':
-        return Stock.fromJson(data);
-      case 'devices':
-        return Device.fromJson(data);
-      case 'transactions':
-        return ITransaction.fromJson(data);
-      case 'transactionItems':
-        return TransactionItem.fromJson(data);
-      case 'drawers':
-        return Drawers.fromJson(data);
-      default:
-        throw ArgumentError('Unsupported collection name: $collectionName');
-    }
+  Object getSpecificModel(String collectionName, Map<String, dynamic> data) {
+    return data as Object;
   }
 
   @override

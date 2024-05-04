@@ -1,16 +1,16 @@
 import 'package:flipper_models/RealmApi.dart';
-import 'package:flipper_models/isar/business_type.dart';
-import 'package:flipper_models/isar/iuser.dart';
-import 'package:flipper_models/isar/pin.dart';
-import 'package:flipper_models/isar/receipt_signature.dart';
-import 'package:flipper_models/isar/social_token.dart';
+import 'package:flipper_models/helperModels/business_type.dart';
+import 'package:flipper_models/helperModels/iuser.dart';
+import 'package:flipper_models/helperModels/pin.dart';
+import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 
-import 'isar/tenant.dart';
+import 'helperModels/tenant.dart';
 
 extension StringToIntList on String {
   List<int> toIntList() {

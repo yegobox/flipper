@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';

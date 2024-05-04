@@ -5,11 +5,10 @@ import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:isar/isar.dart';
+
 import 'package:realm/realm.dart';
 
 import 'package:flutter/services.dart';
-import 'models.dart';
 
 mixin IsolateHandler {
   static Future<void> syncUnsynced(List<dynamic> args) async {
@@ -163,14 +162,4 @@ mixin IsolateHandler {
   ///});
   /// within also have the isar as required also initiated at the same tim
   /// in isolate
-
-  static Future<Isar> openIsarIsolate() async {
-    return await Isar.open(
-      models,
-      // in isolate we don't pass in the directory
-      directory: '',
-      name: 'default',
-      inspector: false,
-    );
-  }
 }

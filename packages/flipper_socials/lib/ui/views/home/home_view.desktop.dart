@@ -1,4 +1,4 @@
-import 'package:flipper_models/isar_models.dart';
+import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';
 import 'package:flipper_socials/ui/widgets/bubble_type.dart';
 import 'package:flipper_socials/ui/widgets/chat_bubble.dart';
@@ -6,8 +6,6 @@ import 'package:flipper_socials/ui/widgets/custom_paint.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
 
 class HomeViewDesktop extends ViewModelWidget<CoreViewModel> {
   const HomeViewDesktop({super.key});

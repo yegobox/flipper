@@ -1,6 +1,6 @@
 import 'dart:developer';
-import 'package:flipper_models/isar/random.dart';
-import 'package:flipper_models/isar_models.dart' as isar;
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helper_models.dart' as helper;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
@@ -153,8 +153,8 @@ class EventService with TokenLogin implements EventInterface {
     nub.Subscription subscription = pubnub!.subscribe(channels: {channel});
     subscription.messages.listen((envelope) async {
       log("received message aha!");
-      isar.IConversation conversation =
-          isar.IConversation.fromJson(envelope.payload);
+      helper.IConversation conversation =
+          helper.IConversation.fromJson(envelope.payload);
 
       Conversation? localConversation = await ProxyService.realm
           .getConversation(messageId: conversation.messageId!);

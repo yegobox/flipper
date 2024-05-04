@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';

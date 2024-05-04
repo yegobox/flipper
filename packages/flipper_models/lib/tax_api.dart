@@ -1,5 +1,5 @@
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/isar/receipt_signature.dart';
+import 'package:flipper_models/helperModels/receipt_signature.dart';
 
 abstract class TaxApi {
   Future<bool> saveStock({required Stock stock});

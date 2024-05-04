@@ -1,6 +1,4 @@
-import 'package:flipper_models/isar/social.dart';
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_socials/ui/views/chat_list/chat_list_view.dart';
 import 'package:flipper_socials/ui/widgets/bubble_type.dart';
 import 'package:flipper_socials/ui/widgets/chat_bubble.dart';

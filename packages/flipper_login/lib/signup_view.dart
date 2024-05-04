@@ -1,6 +1,6 @@
 import 'dart:developer';
 import 'dart:convert';
-import 'package:flipper_models/isar/business_type.dart';
+import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';

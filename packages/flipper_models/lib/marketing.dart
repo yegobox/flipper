@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:flipper_models/sms.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
-import 'isar_models.dart';
+import 'helper_models.dart';
 import 'whatsapp.dart';
 
 class Marketing implements WhatsApp, SMS {

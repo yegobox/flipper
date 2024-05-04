@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import 'package:flipper_models/isar/utils.dart';
-import 'package:flipper_models/isar/extensions.dart';
+import 'package:flipper_models/helperModels/utils.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
 
 void main() {
   group('String to Int List Extension Tests', () {

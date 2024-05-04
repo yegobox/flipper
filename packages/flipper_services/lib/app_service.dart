@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
-import 'package:flipper_models/isar/random.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
