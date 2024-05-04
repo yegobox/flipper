@@ -202,25 +202,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> addVariant({required List<Variant> variations}) async {
-    final branchId = ProxyService.box.getBranchId()!;
-
-    try {
-      // Open a write transaction
-      realm!.write(() {
-        for (final variation in variations) {
-          _processVariant(branchId, variation);
-        }
-      });
-
-      return 200;
-    } catch (e) {
-      print('Failed to add variants: $e');
-      rethrow;
-    }
-  }
-
-  @override
   Future<void> assignCustomerToTransaction({
     required int customerId,
     int? transactionId,
@@ -2961,6 +2942,23 @@ class RealmAPI<M extends IJsonSerializable>
     return true;
   }
 
+  @override
+  Future<int> addVariant({required List<Variant> variations}) async {
+    final branchId = ProxyService.box.getBranchId()!;
+
+    try {
+      // Open a write transaction
+      for (final variation in variations) {
+        _processVariant(branchId, variation);
+      }
+
+      return 200;
+    } catch (e) {
+      print('Failed to add variants: $e');
+      rethrow;
+    }
+  }
+
   void _processVariant(int branchId, Variant variation) {
     int stockId = randomNumber();
     Variant? variant = realm!.query<Variant>(
@@ -2984,14 +2982,12 @@ class RealmAPI<M extends IJsonSerializable>
             value: (variation.qty * (variation.retailPrice)).toDouble(),
             productId: variation.productId,
             active: false);
-        realm!.write(() => realm!.put<Stock>(newStock));
+        realm!.write(() => realm!.add<Stock>(newStock));
       }
       stock!.currentStock = stock.currentStock + variation.qty;
 
       /// rsdQty is the remaining stock that is not yet sold bas
       stock.rsdQty = stock.currentStock + variation.qty;
-
-      log(variation.qty.toString(), name: 'Incoming updated quantity');
 
       stock.action = AppActions.updated;
       stock.lastTouched = DateTime.now().toLocal();

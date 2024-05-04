@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -17,51 +18,54 @@ mixin ProductMixin {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
-    for (var variant in variations!) {
-      RegExp regExp = RegExp(r'^([^:]*):');
+    try {
+      for (var variant in variations!) {
+        variant.pkgUnitCd = packagingUnit;
+        final number = randomNumber().toString().substring(0, 5);
+        variant.itemClsCd =
+            "5020230602"; // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+        variant.itemCd = randomNumber().toString().substring(0, 5);
+        variant.modrNm = number;
+        variant.modrId = number;
+        variant.itemNm = variant.name;
+        variant.pkgUnitCd = "BJ";
+        variant.regrId = randomNumber().toString().substring(0, 5);
+        variant.rsdQty = variant.qty;
+        variant.itemTyCd = "2"; // this is a finished product
+        /// available type for itemTyCd are 1 for raw material and 3 for service
+        /// is insurance applicable default is not applicable
+        variant.isrcAplcbYn = "N";
+        variant.useYn = "N";
 
-      variant.pkgUnitCd = regExp.firstMatch(packagingUnit!)!.group(1)!;
-      final number = randomNumber().toString().substring(0, 5);
-      variant.itemClsCd =
-          "5020230602"; // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-      variant.itemCd = randomNumber().toString().substring(0, 5);
-      variant.modrNm = number;
-      variant.modrId = number;
-      variant.itemNm = variant.name;
-      variant.pkgUnitCd = "BJ";
-      variant.regrId = randomNumber().toString().substring(0, 5);
-      variant.rsdQty = variant.qty;
-      variant.itemTyCd = "2"; // this is a finished product
-      /// available type for itemTyCd are 1 for raw material and 3 for service
-      /// is insurance applicable default is not applicable
-      variant.isrcAplcbYn = "N";
-      variant.useYn = "N";
+        /// country of origin for this item we default until we support something different
+        /// and this will happen when we do import.
+        variant.orgnNatCd = "RW";
 
-      /// country of origin for this item we default until we support something different
-      /// and this will happen when we do import.
-      variant.orgnNatCd = "RW";
+        /// registration name
+        variant.regrNm = variant.name;
 
-      /// registration name
-      variant.regrNm = variant.name;
+        /// taxation type code
+        variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
+        // default unit price
+        variant.dftPrc = variant.retailPrice;
 
-      /// taxation type code
-      variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
-      // default unit price
-      variant.dftPrc = variant.retailPrice;
+        // NOTE: I believe bellow item are required when saving purchase
+        ///but I wonder how to get them when saving an item.
+        variant.spplrItemCd = randomNumber().toString().substring(0, 5);
+        variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
+        variant.spplrItemNm = variant.name;
 
-      // NOTE: I believe bellow item are required when saving purchase
-      ///but I wonder how to get them when saving an item.
-      variant.spplrItemCd = randomNumber().toString().substring(0, 5);
-      variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
-      variant.spplrItemNm = variant.name;
-
-      /// Packaging Unit
-      variant.qtyUnitCd = "U"; // see 4.6 in doc
+        /// Packaging Unit
+        variant.qtyUnitCd = "U"; // see 4.6 in doc
+      }
+      int result = await ProxyService.realm.addVariant(
+        variations: variations,
+      );
+      return result;
+    } catch (e) {
+      talker.error(e);
+      throw e;
     }
-    int result = await ProxyService.realm.addVariant(
-      variations: variations,
-    );
-    return result;
   }
 
   /// Add a product into the system
@@ -70,33 +74,57 @@ mixin ProductMixin {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
     ProxyService.realm.realm!.writeAsync(() async {
-      mproduct.name = productName!;
-      mproduct.barCode = productService.barCode.toString();
-      mproduct.color = currentColor;
+      ProxyService.realm.realm!.write(() {
+        mproduct.name = productName!;
+        mproduct.barCode = productService.barCode.toString();
+        mproduct.color = currentColor;
+      });
 
       Category? activeCat = await ProxyService.realm
           .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
-      activeCat?.active = false;
-      activeCat?.focused = false;
+      ProxyService.realm.realm!.writeAsync(() async {
+        // Update activeCat only if necessary
+        if (activeCat?.active != false) {
+          activeCat?.active = false;
+        }
+        if (activeCat?.focused != false) {
+          activeCat?.focused = false;
+        }
 
-      mproduct.categoryId = activeCat?.id!;
+        // Update mproduct.id only if it hasn't been set yet
+        if (mproduct.categoryId == null) {
+          mproduct.categoryId = activeCat?.id!;
+        }
 
-      mproduct.action =
-          inUpdateProcess ? AppActions.updated : AppActions.created;
-
-      List<Variant> variants = await ProxyService.realm
-          .getVariantByProductId(productId: mproduct.id);
-
-      for (Variant variant in variants) {
-        variant.productName = productName!;
-
-        variant.productId = mproduct.id!;
-        variant.pkgUnitCd = "NT";
-        variant.action =
+        mproduct.action =
             inUpdateProcess ? AppActions.updated : AppActions.created;
-      }
+
+        // Fetch variants asynchronously outside the loop
+        List<Variant> variants = await ProxyService.realm
+            .getVariantByProductId(productId: mproduct.id);
+
+        // Update variants efficiently using a for loop with conditional updates
+        for (Variant variant in variants) {
+          if (variant.productName != productName) {
+            variant.productName = productName!;
+          }
+
+          if (variant.productId != mproduct.id) {
+            variant.productId = mproduct.id!;
+          }
+
+          // Update pkgUnitCd only if necessary (assuming it's not always changing)
+          if (variant.pkgUnitCd != "NT") {
+            variant.pkgUnitCd = "NT";
+          }
+
+          variant.action =
+              inUpdateProcess ? AppActions.updated : AppActions.created;
+        }
+      });
     });
+
     return await ProxyService.realm.getProduct(id: mproduct.id!);
   }
 }
