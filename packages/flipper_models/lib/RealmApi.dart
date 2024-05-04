@@ -10,6 +10,7 @@ import 'package:flipper_models/isar/iuser.dart';
 import 'package:flipper_models/isar/permission.dart';
 import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_models/isar/social_token.dart';
+import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:http/http.dart' as http;
@@ -467,8 +468,121 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   T? create<T>({required T data}) {
-    // TODO: implement create
-    throw UnimplementedError();
+    /// update user activity model
+
+    if (data is Counter) {
+      Counter counter = data;
+      realm!.write(() {
+        realm!.put<Counter>(counter);
+        // Return the created conversation
+      }); // Cast the result to type T
+      return data;
+    }
+
+    /// end with updating user activity
+    if (data is Conversation) {
+      Conversation conversation = data;
+      realm!.write(() {
+        realm!.put<Conversation>(conversation);
+        // Return the created conversation
+      }); // Cast the result to type T
+      return data;
+    }
+
+    if (data is PColor) {
+      PColor color = data;
+      realm!.write(() {
+        for (String colorName in data.colors) {
+          realm!.put(
+            PColor(
+              ObjectId(),
+              id: randomNumber(),
+              lastTouched: DateTime.now(),
+              action: AppActions.created,
+              name: colorName,
+              active: color.active,
+              branchId: color.branchId,
+            ),
+          );
+        }
+      });
+    }
+    if (data is Device) {
+      Device device = data;
+      realm!.write(() {
+        realm!.add<Device>(device);
+      });
+      return null;
+    }
+    if (data is Conversation) {
+      Conversation conversation = data;
+      realm!.write(() {
+        realm!.put(conversation);
+      });
+      return null;
+    }
+    if (data is Category) {
+      Category category = data;
+      realm!.write(() {
+        realm!.put(category);
+      });
+      return null;
+    }
+    if (data is Product) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+    }
+    if (data is Variant) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is Favorite) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is Stock) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+
+    if (data is Token) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is Setting) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is EBM) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is ITransaction) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    if (data is TransactionItem) {
+      realm!.write(() {
+        realm!.put(data);
+      });
+      return null;
+    }
+    return null;
   }
 
   @override
@@ -1786,9 +1900,150 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Tenant> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
-      required String userType}) {
-    // TODO: implement saveTenant
-    throw UnimplementedError();
+      required String userType}) async {
+    final http.Response response = await flipperHttpClient.post(
+      Uri.parse("$apihub/v2/api/tenant"),
+      body: jsonEncode({
+        "phoneNumber": phoneNumber,
+        "name": name,
+        "businessId": business.id,
+        "permissions": [
+          {"name": userType.toLowerCase()}
+        ],
+        "businesses": [business.toEJson()],
+        "branches": [branch.toEJson()]
+      }),
+    );
+    if (response.statusCode == 200) {
+      ITenant jTenant = ITenant.fromRawJson(response.body);
+      ITenant iTenant = ITenant(
+          businesses: jTenant.businesses,
+          branches: jTenant.branches,
+          isDefault: jTenant.isDefault,
+          id: randomNumber(),
+          permissions: jTenant.permissions,
+          name: jTenant.name,
+          businessId: jTenant.businessId,
+          email: jTenant.email,
+          userId: jTenant.userId,
+          nfcEnabled: jTenant.nfcEnabled,
+          phoneNumber: jTenant.phoneNumber);
+      final branchToAdd = <Branch>[];
+      final permissionToAdd = <LPermission>[];
+      final businessToAdd = <Business>[];
+
+      for (var business in jTenant.businesses) {
+        Business? existingBusiness =
+            realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
+        if (existingBusiness == null) {
+          businessToAdd.add(Business(
+            ObjectId(),
+            id: business.id,
+            userId: business.userId,
+            name: business.name,
+            currency: business.currency,
+            categoryId: business.categoryId,
+            latitude: business.latitude,
+            longitude: business.longitude,
+            timeZone: business.timeZone,
+            country: business.country,
+            businessUrl: business.businessUrl,
+            hexColor: business.hexColor,
+            imageUrl: business.imageUrl,
+            type: business.type,
+            active: business.active,
+            chatUid: business.chatUid,
+            metadata: business.metadata,
+            role: business.role,
+            lastSeen: business.lastSeen,
+            firstName: business.firstName,
+            lastName: business.lastName,
+            createdAt: business.createdAt,
+            deviceToken: business.deviceToken,
+            backUpEnabled: business.backUpEnabled,
+            subscriptionPlan: business.subscriptionPlan,
+            nextBillingDate: business.nextBillingDate,
+            previousBillingDate: business.previousBillingDate,
+            isLastSubscriptionPaymentSucceeded:
+                business.isLastSubscriptionPaymentSucceeded,
+            backupFileId: business.backupFileId,
+            email: business.email,
+            lastDbBackup: business.lastDbBackup,
+            fullName: business.fullName,
+            tinNumber: business.tinNumber,
+            bhfId: business.bhfId,
+            dvcSrlNo: business.dvcSrlNo,
+            adrs: business.adrs,
+            taxEnabled: business.taxEnabled,
+            taxServerUrl: business.taxServerUrl,
+            isDefault: business.isDefault,
+            businessTypeId: business.businessTypeId,
+            lastTouched: business.lastTouched,
+            action: business.action,
+            deletedAt: business.deletedAt,
+            encryptionKey: business.encryptionKey,
+          ));
+        }
+      }
+
+      for (var branch in jTenant.branches) {
+        // Check if the branch with the same ID already exists
+        // var existingBranch =
+        //     await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
+        final existingBranch =
+            realm!.query<Branch>(r'id==$0', [branch.id]).firstOrNull;
+        if (existingBranch == null) {
+          Branch br = Branch(ObjectId(),
+              id: branch.id,
+              name: branch.name,
+              businessId: branch.businessId,
+              action: branch.action,
+              active: branch.active,
+              lastTouched: branch.lastTouched,
+              latitude: branch.latitude,
+              longitude: branch.longitude);
+          branchToAdd.add(br);
+        }
+      }
+
+      for (var permission in jTenant.permissions) {
+        LPermission? existingPermission =
+            realm!.query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+        if (existingPermission == null) {
+          // Permission doesn't exist, add it
+          permissionToAdd.add(LPermission(ObjectId(),
+              name: permission.name,
+              id: permission.id,
+              userId: permission.userId));
+        }
+      }
+
+      Tenant? tenantToAdd;
+      Tenant? tenant =
+          realm!.query<Tenant>(r'id==$0', [iTenant.id]).firstOrNull;
+      if (tenant == null) {
+        tenantToAdd = Tenant(ObjectId(),
+            name: jTenant.name,
+            phoneNumber: jTenant.phoneNumber,
+            email: jTenant.email,
+            nfcEnabled: jTenant.nfcEnabled,
+            businessId: jTenant.businessId,
+            userId: jTenant.userId,
+            isDefault: jTenant.isDefault,
+            pin: jTenant.pin);
+        realm!.put<Tenant>(tenantToAdd);
+      }
+
+      realm!.write(() {
+        realm!.addAll<Business>(businessToAdd);
+        realm!.addAll<Branch>(branchToAdd);
+        realm!.addAll<LPermission>(permissionToAdd);
+      });
+
+      return tenantToAdd!;
+    } else {
+      throw InternalServerError(term: "internal server error");
+    }
   }
 
   @override
@@ -1940,15 +2195,33 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<Stock?> stockByVariantId(
-      {required int variantId, bool nonZeroValue = false}) {
-    // TODO: implement stockByVariantId
-    throw UnimplementedError();
+      {required int variantId, bool nonZeroValue = false}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    if (nonZeroValue) {
+      return realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1 && retailPrice > 0 && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    } else {
+      return realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1  && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    }
   }
 
   @override
-  Future<double> stocks({int? productId, int? variantId}) {
-    // TODO: implement stocks
-    throw UnimplementedError();
+  Future<double> stocks({int? productId, int? variantId}) async {
+    double totalStock = 0.0;
+    if (productId != null) {
+      List<Stock> stocks =
+          realm!.query<Stock>(r'productId == $0', [productId]).toList();
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    } else if (variantId != null) {
+      List<Stock> stocks =
+          realm!.query<Stock>(r'variantId == $0', [variantId]).toList();
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+      totalStock = stocks.fold(0.0, (sum, stock) => sum + (stock.currentStock));
+    }
+    return totalStock;
   }
 
   @override
@@ -1976,9 +2249,12 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Tenant>> tenants({int? businessId}) {
-    // TODO: implement tenants
-    throw UnimplementedError();
+  Future<List<Tenant>> tenants({int? businessId}) async {
+    if (businessId != null) {
+      return realm!.query<Tenant>(r'businessId == $0').toList();
+    } else {
+      return realm!.query<Tenant>(r'deletedAt == nil').toList();
+    }
   }
 
   @override
@@ -2107,9 +2383,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<ITransaction>> tickets() {
-    // TODO: implement tickets
-    throw UnimplementedError();
+  Future<List<ITransaction>> tickets() async {
+    return realm!.query<ITransaction>(
+        r'status == $0 && branchId == $1 && deletedAt == nil',
+        [PARKED, ProxyService.box.getBranchId()!]).toList();
   }
 
   @override
@@ -2174,8 +2451,33 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
-    // TODO: implement transactionList
-    throw UnimplementedError();
+    if (startDate == null || endDate == null) return Stream.empty();
+    final controller = StreamController<List<ITransaction>>.broadcast();
+
+    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    final query = realm!.query<ITransaction>(
+      r'lastTouched BETWEEN {$0,$1}',
+      [startDate, endDate],
+    );
+
+    StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedVariants =
+            event.results.whereType<ITransaction>().toList();
+        if (changedVariants.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override
@@ -2262,9 +2564,15 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<IUnit>> units({required int branchId}) {
-    // TODO: implement units
-    throw UnimplementedError();
+  Future<List<IUnit>> units({required int branchId}) async {
+    final existingUnits =
+        realm!.query<IUnit>(r'branchId == $0', [branchId]).toList();
+    if (existingUnits.isNotEmpty) {
+      return existingUnits;
+    }
+    await addUnits(units: mockUnits);
+    return realm!.query<IUnit>(
+        r'branchId ==$0 AND deletedAt == nil', [branchId]).toList();
   }
 
   @override
@@ -2517,15 +2825,27 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> variant({int? variantId, String? name}) {
-    // TODO: implement variant
-    throw UnimplementedError();
+  Future<Variant?> variant({int? variantId, String? name}) async {
+    if (variantId != null) {
+      return realm!.query<Variant>(r'id == $0', [variantId]).firstOrNull;
+    }
+    if (name != null) {
+      return realm!.query<Variant>(r'name == $0', [name]).firstOrNull;
+    }
+    return null;
   }
 
   @override
-  Future<List<Variant>> variants({required int branchId, int? productId}) {
-    // TODO: implement variants
-    throw UnimplementedError();
+  Future<List<Variant>> variants(
+      {required int branchId, int? productId}) async {
+    if (productId != null) {
+      return realm!.query<Variant>(
+          r'productId == $0 && branchId == $1 && retailPrice >0',
+          [productId, branchId]).toList();
+    } else {
+      return realm!.query<Variant>(
+          r'branchId == $1 && retailPrice >0', [branchId]).toList();
+    }
   }
 
   Future<String> absolutePath(String fileName) async {
