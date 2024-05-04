@@ -1823,7 +1823,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// then I call login in here after signup as login handle configuring
       await login(
           userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
-
+      final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
 
@@ -1921,10 +1921,11 @@ class RealmAPI<M extends IJsonSerializable>
             ));
           }
         });
-        // realm!.write(() {
-        //   realm!.put<Tenant>(iTenant);
-        // });
+        tenantToAdd.add(iTenant);
       }
+      realm!.write(() {
+        realm!.addAll<Tenant>(tenantToAdd);
+      });
       return ITenant.fromJsonList(response.body);
     } else {
       throw InternalServerError(term: response.body.toString());
@@ -1985,6 +1986,7 @@ class RealmAPI<M extends IJsonSerializable>
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
+      final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
         Tenant iTenant = Tenant(ObjectId(),
@@ -2094,10 +2096,11 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.addAll<LPermission>(permissionToAdd);
         });
 
-        // realm!.write(() {
-        //   realm!.put<Tenant>(iTenant);
-        // });
+        tenantToAdd.add(iTenant);
       }
+      realm!.write(() {
+        realm!.addAll<Tenant>(tenantToAdd);
+      });
       return ITenant.fromJsonList(response.body);
     }
     throw InternalServerException(term: "we got unexpected response");
