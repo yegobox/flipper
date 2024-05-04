@@ -10,6 +10,7 @@ import 'package:flipper_models/isar/iuser.dart';
 import 'package:flipper_models/isar/permission.dart';
 import 'package:flipper_models/isar/pin.dart';
 import 'package:flipper_models/isar/social_token.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -91,7 +92,7 @@ class RealmAPI<M extends IJsonSerializable>
       // Open a write transaction
       realm!.write(() {
         // Add the customer to the Realm
-        realm!.add(customer, update: true);
+        realm!.put(customer);
 
         // Get the transaction from Realm
         final transaction =
@@ -117,7 +118,7 @@ class RealmAPI<M extends IJsonSerializable>
       if (fav == null) {
         data.id = randomNumber();
         await realm!.write(() {
-          realm!.add<Favorite>(data);
+          realm!.put<Favorite>(data);
         });
         return 200;
       } else {
@@ -145,7 +146,7 @@ class RealmAPI<M extends IJsonSerializable>
     );
     try {
       realm!.write(() {
-        realm!.add<Stock>(stock);
+        realm!.put<Stock>(stock);
       });
       return stock;
     } catch (e) {
@@ -159,7 +160,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required ITransaction transaction,
       required TransactionItem item}) async {
     talker.info(item.toEJson());
-    realm!.write(() => realm!.add<TransactionItem>(item));
+    realm!.write(() => realm!.put<TransactionItem>(item));
   }
 
   @override
@@ -182,7 +183,7 @@ class RealmAPI<M extends IJsonSerializable>
           );
 
           // Add the unit to Realm
-          realm!.add<IUnit>(unit);
+          realm!.put<IUnit>(unit);
         }
       });
 
@@ -301,7 +302,7 @@ class RealmAPI<M extends IJsonSerializable>
       product.bindedToTenantId = tenantId;
 
       // realm!.write(() {
-      //   realm!.add<Product>(product);
+      //   realm!.put<Product>(product);
       // });
 
       return true;
@@ -340,7 +341,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<List<Category>> categories({required int branchId}) async {
-    //  return  isar.categorys.filter().branchIdEqualTo(branchId).findAll();
+    //  return  realm!categorys.filter().branchIdEqualTo(branchId).findAll();
     return realm!.query<Category>(
       r'branchId == $0 ',
       [branchId],
@@ -379,7 +380,7 @@ class RealmAPI<M extends IJsonSerializable>
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);
-    double subTotal = items.fold(0, (num a, b) => a + (b.price! * b.qty!));
+    double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
     transaction.customerChangeDue = (cashReceived - subTotal);
     transaction.paymentType = paymentType;
     transaction.cashReceived = cashReceived;
@@ -494,19 +495,19 @@ class RealmAPI<M extends IJsonSerializable>
         return existingProduct;
       }
     }
-    realm!.write(() async {
-      realm!.add<Product>(product);
+    realm!.write(() {
+      realm!.put<Product>(product);
 
       if (!skipRegularVariant) {
-        final Product? kProduct = realm!.query<Product>(
+        final Product kProduct = realm!.query<Product>(
           r'id == $0 ',
           [product.id],
-        ).firstOrNull;
+        ).first;
 
         // Create a Regular Variant
         final Variant newVariant =
             _createRegularVariant(product, branchId, business);
-        realm!.add<Variant>(newVariant);
+        realm!.put<Variant>(newVariant);
 
         // Create a Stock for the Regular Variant
         final Stock stock = Stock(
@@ -517,9 +518,9 @@ class RealmAPI<M extends IJsonSerializable>
           branchId: branchId,
           variantId: newVariant.id!,
           currentStock: 0.0,
-          productId: kProduct!.id!,
+          productId: kProduct.id!,
         );
-        realm!.add<Stock>(stock);
+        realm!.put<Stock>(stock);
       }
     });
 
@@ -559,7 +560,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     try {
       realm!.write(() {
-        realm!.add<Receipt>(receipt);
+        realm!.put<Receipt>(receipt);
       });
       return receipt;
     } catch (error) {
@@ -642,7 +643,7 @@ class RealmAPI<M extends IJsonSerializable>
         });
         break;
       case 'product':
-        realm!.write(() async {
+        realm!.write(() {
           Product? product =
               realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
           if (product != null) {
@@ -767,7 +768,7 @@ class RealmAPI<M extends IJsonSerializable>
     List<Product> products =
         await productsFuture(branchId: ProxyService.box.getBranchId()!);
     List<int> productIds = products.map((product) => product.id!).toList();
-    realm!.write(() async {
+    realm!.write(() {
       realm!.deleteMany(productIds
           .map((id) => realm!.query<Product>(r'id == $0', [id]).first));
     });
@@ -858,7 +859,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       business.id = id;
       realm!.write(() {
-        realm!.add<Business>(business);
+        realm!.put<Business>(business);
       });
       return business;
     }
@@ -1094,7 +1095,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (business == null) {
       realm!.write(() {
-        realm!.add<Business>(
+        realm!.put<Business>(
           Business(
             ObjectId(),
             id: IBusiness.fromJson(json.decode(response.body)).id,
@@ -1260,14 +1261,14 @@ class RealmAPI<M extends IJsonSerializable>
           [productId],
         );
         totalStock = query.fold<double>(
-            0.0, (sum, stock) => sum + stock.currentStock!.toDouble());
+            0.0, (sum, stock) => sum + stock.currentStock.toDouble());
       } else if (variantId != null) {
         final query = realm!.query<Stock>(
           r'variantId == $0',
           [variantId],
         );
         totalStock = query.fold<double>(
-            0.0, (sum, stock) => sum + stock.currentStock!.toDouble());
+            0.0, (sum, stock) => sum + stock.currentStock.toDouble());
       }
       yield totalStock;
       await Future.delayed(Duration(seconds: 1));
@@ -1474,7 +1475,7 @@ class RealmAPI<M extends IJsonSerializable>
       if (localCounters.isNotEmpty) return;
       for (ICounter counter in counters) {
         realm!.write(() {
-          realm!.add<Counter>(Counter(
+          realm!.put<Counter>(Counter(
             ObjectId(),
             id: counter.id,
             branchId: counter.branchId,
@@ -1558,7 +1559,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       // save transaction to isar
       realm!.write(() {
-        realm!.add<ITransaction>(transaction);
+        realm!.put<ITransaction>(transaction);
       });
 
       ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
@@ -1596,7 +1597,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       // save transaction to isar
       realm!.write(() {
-        realm!.add<ITransaction>(transaction);
+        realm!.put<ITransaction>(transaction);
       });
 
       ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
@@ -1610,7 +1611,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Drawers?> openDrawer({required Drawers drawer}) async {
     int id = randomNumber();
     realm!.write(() {
-      realm!.add<Drawers>(drawer..id = id);
+      realm!.put<Drawers>(drawer..id = id);
     });
     return realm!.query<Drawers>(
       r'id == $0 AND deletedAt == nil',
@@ -1708,9 +1709,10 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
     // Fetch all products based on branch ID and additional criteria
+    final date = DateTime.now().subtract(const Duration(days: 7));
     List<Product> allProducts = realm!.query<Product>(
-      r'branchId == $0 && deletedAt == null && lastTouched > ?',
-      [branchId, DateTime.now().subtract(const Duration(days: 7)).toString()],
+      r'branchId == $0 && deletedAt == nil && lastTouched > $1',
+      [branchId, date],
     ).toList();
 
     // if we have no recent product please load without the condition
@@ -1722,11 +1724,20 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     // Limit to the last 7 items
-    final filteredProducts = allProducts
-        .sublist(allProducts.length - 7)
-        .where((product) =>
-            product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
-        .toList();
+    List<Product> filteredProducts;
+
+    if (allProducts.length >= 7) {
+      filteredProducts = allProducts
+          .sublist(allProducts.length - 7)
+          .where((product) =>
+              product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
+          .toList();
+    } else {
+      filteredProducts = allProducts
+          .where((product) =>
+              product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
+          .toList();
+    }
 
     // Return the filtered list of products
     return filteredProducts;
@@ -1826,89 +1837,93 @@ class RealmAPI<M extends IJsonSerializable>
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
+        final businessToAdd = <Business>[];
+        for (IBusiness business in jTenant.businesses) {
+          Business biz = Business(
+            ObjectId(),
+            id: business.id,
+            userId: business.userId,
+            name: business.name,
+            currency: business.currency,
+            categoryId: business.categoryId,
+            latitude: business.latitude,
+            longitude: business.longitude,
+            timeZone: business.timeZone,
+            country: business.country,
+            businessUrl: business.businessUrl,
+            hexColor: business.hexColor,
+            imageUrl: business.imageUrl,
+            type: business.type,
+            active: business.active,
+            chatUid: business.chatUid,
+            metadata: business.metadata,
+            role: business.role,
+            lastSeen: business.lastSeen,
+            firstName: business.firstName,
+            lastName: business.lastName,
+            createdAt: business.createdAt,
+            deviceToken: business.deviceToken,
+            backUpEnabled: business.backUpEnabled,
+            subscriptionPlan: business.subscriptionPlan,
+            nextBillingDate: business.nextBillingDate,
+            previousBillingDate: business.previousBillingDate,
+            isLastSubscriptionPaymentSucceeded:
+                business.isLastSubscriptionPaymentSucceeded,
+            backupFileId: business.backupFileId,
+            email: business.email,
+            lastDbBackup: business.lastDbBackup,
+            fullName: business.fullName,
+            tinNumber: business.tinNumber,
+            bhfId: business.bhfId,
+            dvcSrlNo: business.dvcSrlNo,
+            adrs: business.adrs,
+            taxEnabled: business.taxEnabled,
+            taxServerUrl: business.taxServerUrl,
+            isDefault: business.isDefault,
+            businessTypeId: business.businessTypeId,
+            lastTouched: business.lastTouched,
+            action: business.action,
+            deletedAt: business.deletedAt,
+            encryptionKey: business.encryptionKey,
+          );
+          businessToAdd.add(biz);
+        }
         realm!.write(() {
-          for (IBusiness business in jTenant.businesses) {
-            Business biz = Business(
-              ObjectId(),
-              id: business.id,
-              userId: business.userId,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey,
-            );
-            realm!.add<Business>(biz);
-          }
+          realm!.addAll<Business>(businessToAdd);
         });
+        final branchToAdd = <Branch>[];
+        for (IBranch brannch in jTenant.branches) {
+          Branch branch = Branch(
+            ObjectId(),
+            id: brannch.id,
+            active: brannch.active,
+            description: brannch.description,
+            name: brannch.name,
+            businessId: brannch.businessId,
+            longitude: brannch.longitude,
+            latitude: brannch.latitude,
+            isDefault: brannch.isDefault,
+            lastTouched: brannch.lastTouched,
+            action: brannch.action,
+            deletedAt: brannch.deletedAt,
+          );
+          branchToAdd.add(branch);
+        }
         realm!.write(() {
-          for (IBranch brannch in jTenant.branches) {
-            Branch branch = Branch(
-              ObjectId(),
-              id: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt,
-            );
-            realm!.add<Branch>(branch);
-          }
+          realm!.addAll<Branch>(branchToAdd);
         });
         realm!.write(() {
           for (IPermission permission in jTenant.permissions) {
-            realm!.add<LPermission>(LPermission(
+            realm!.put<LPermission>(LPermission(
               ObjectId(),
               id: permission.id,
               name: permission.name,
             ));
           }
         });
-        realm!.write(() {
-          realm!.add<Tenant>(iTenant);
-        });
+        // realm!.write(() {
+        //   realm!.put<Tenant>(iTenant);
+        // });
       }
       return ITenant.fromJsonList(response.body);
     } else {
@@ -2034,7 +2049,7 @@ class RealmAPI<M extends IJsonSerializable>
             Business? exist =
                 realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
             if (exist == null) {
-              realm!.add<Business>(biz);
+              realm!.put<Business>(biz);
             }
           }
         });
@@ -2057,30 +2072,31 @@ class RealmAPI<M extends IJsonSerializable>
             Branch? exist =
                 realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
             if (exist == null) {
-              realm!.add<Branch>(branch);
+              realm!.put<Branch>(branch);
             }
           }
         });
-        realm!.write(() {
-          for (IPermission permission in jTenant.permissions) {
-            LPermission? exist = realm!
-                .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
-            if (exist == null) {
-              realm!.add<LPermission>(LPermission(
-                ObjectId(),
-                id: permission.id,
-                name: permission.name,
-              ));
-            }
+        final permissionToAdd = <LPermission>[];
+        for (IPermission permission in jTenant.permissions) {
+          LPermission? exist = realm!
+              .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+          if (exist == null) {
+            final perm = LPermission(
+              ObjectId(),
+              id: permission.id,
+              name: permission.name,
+            );
+            permissionToAdd.add(perm);
           }
-        });
-        LPermission? exist =
-            realm!.query<LPermission>(r'id == $0', [iTenant.id]).firstOrNull;
-        if (exist == null) {
-          realm!.write(() {
-            realm!.add<Tenant>(iTenant);
-          });
         }
+
+        realm!.write(() {
+          realm!.addAll<LPermission>(permissionToAdd);
+        });
+
+        // realm!.write(() {
+        //   realm!.put<Tenant>(iTenant);
+        // });
       }
       return ITenant.fromJsonList(response.body);
     }
@@ -2095,17 +2111,61 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Stream<List<ITransaction>> ticketsStreams() {
-    // TODO: implement ticketsStreams
-    throw UnimplementedError();
+    int branchId = ProxyService.box.getBranchId()!;
+    String queryString = "";
+
+    queryString = r'''deletedAt = nil
+        && status == $0
+        && (
+          transactionType IN ANY {'PARKED'} && branchId == $1
+        )
+    ''';
+
+    final query = realm!.query<ITransaction>(
+      queryString,
+      [
+        PARKED,
+        branchId,
+      ],
+    );
+    StreamController<List<ITransaction>>? controller;
+    controller = StreamController<List<ITransaction>>.broadcast(
+      onListen: () {
+        final initialResults = query.toList();
+        controller!.sink.add(initialResults.toList());
+
+        query.changes.listen((results) {
+          controller!.sink.add(results.results.toList());
+        });
+      },
+      onCancel: () {
+        query.unsubscribe();
+        controller!.close();
+      },
+    );
+
+    return controller.stream;
   }
 
   @override
   Future<List<TransactionItem>> transactionItems(
       {required int transactionId,
       required bool doneWithTransaction,
-      required bool active}) {
-    // TODO: implement transactionItems
-    throw UnimplementedError();
+      required bool active}) async {
+    int branchId = ProxyService.box.getBranchId()!;
+    String queryString = "";
+
+    queryString = r'''deletedAt = nil
+        && doneWithTransaction == $0
+        && (
+          branchId ==$1 && active == $2 && transactionId == $3
+        )
+    ''';
+
+    return realm!.query<TransactionItem>(
+      queryString,
+      [doneWithTransaction, branchId, active, transactionId],
+    ).toList();
   }
 
   @override
@@ -2121,9 +2181,30 @@ class RealmAPI<M extends IJsonSerializable>
       String? transactionType,
       int? branchId,
       bool isCashOut = false,
-      bool includePending = false}) {
-    // TODO: implement transactionsFuture
-    throw UnimplementedError();
+      bool includePending = false}) async {
+    String queryString = "";
+    if (isCashOut) {
+      queryString = r'''deletedAt = nil
+        && status == $0
+        && (
+          transactionType IN ANY {'cashOut'} && branchId == $1
+        )
+    ''';
+    } else {
+      queryString = r'''deletedAt = nil
+        && status == $0
+        && (
+          transactionType IN ANY {'cashIn', 'sale', 'custom', 'onlineSale'} && branchId == $1
+        )
+    ''';
+    }
+    return realm!.query<ITransaction>(
+      queryString,
+      [
+        status ?? 'COMPLETE',
+        branchId,
+      ],
+    ).toList();
   }
 
   @override
@@ -2137,7 +2218,7 @@ class RealmAPI<M extends IJsonSerializable>
   }) {
     String queryString = "";
     if (isCashOut) {
-      queryString = queryString = r'''deletedAt = nil
+      queryString = r'''deletedAt = nil
         && status == $0
         && (
           transactionType IN ANY {'cashOut'} && branchId == $1
@@ -2160,8 +2241,8 @@ class RealmAPI<M extends IJsonSerializable>
     );
     StreamController<List<ITransaction>>? controller;
     controller = StreamController<List<ITransaction>>.broadcast(
-      onListen: () async {
-        final initialResults = await query.toList();
+      onListen: () {
+        final initialResults = query.toList();
         controller!.sink.add(initialResults.toList());
 
         query.changes.listen((results) {
@@ -2190,9 +2271,233 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> update<T>({required T data, bool localUpdate = false}) {
-    // TODO: implement update
-    throw UnimplementedError();
+  Future<int> update<T>({required T data, bool localUpdate = false}) async {
+    /// update user activity
+    int userId = ProxyService.box.getUserId() ?? 0;
+    if (userId == 0) return 0;
+
+    if (data is Device) {
+      Device device = data;
+
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Device>(device, update: true);
+        } else {
+          realm!.add<Device>(device, update: true);
+        }
+      });
+    }
+
+    if (data is Product) {
+      Product product = data;
+      product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Product>(product, update: true);
+        } else {
+          realm!.add<Product>(product, update: true);
+        }
+      });
+    }
+    if (data is Favorite) {
+      Favorite fav = data;
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Favorite>(fav, update: true);
+        } else {
+          realm!.add<Favorite>(fav, update: true);
+        }
+      });
+    }
+    if (data is Variant) {
+      Variant variant = data;
+      variant.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Variant>(variant, update: true);
+        } else {
+          realm!.add<Variant>(variant, update: true);
+        }
+      });
+    }
+    if (data is Stock) {
+      Stock stock = data;
+      stock.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Stock>(stock, update: true);
+        } else {
+          realm!.add<Stock>(stock, update: true);
+        }
+      });
+    }
+    if (data is ITransaction) {
+      final transaction = data;
+      transaction.lastTouched =
+          DateTime.now().toLocal().add(Duration(hours: 2));
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<ITransaction>(transaction, update: true);
+        } else {
+          realm!.add<ITransaction>(transaction, update: true);
+        }
+      });
+    }
+    if (data is Category) {
+      final category = data;
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Category>(category, update: true);
+        } else {
+          realm!.add<Category>(category, update: true);
+        }
+      });
+    }
+    if (data is IUnit) {
+      final unit = data;
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<IUnit>(unit, update: true);
+        } else {
+          realm!.add<IUnit>(unit, update: true);
+        }
+      });
+    }
+    if (data is PColor) {
+      final color = data;
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<PColor>(color, update: true);
+        } else {
+          realm!.add<PColor>(color, update: true);
+        }
+      });
+    }
+    if (data is TransactionItem) {
+      data.lastTouched = DateTime.now().toLocal();
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<TransactionItem>(data, update: true);
+        } else {
+          realm!.add<TransactionItem>(data, update: true);
+        }
+      });
+    }
+    if (data is EBM) {
+      final ebm = data;
+      realm!.write(() {
+        ProxyService.box
+            .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
+
+        Business? business =
+            realm!.query<Business>(r'userId == $0', [ebm.userId]).first;
+
+        business
+          ..dvcSrlNo = ebm.dvcSrlNo
+          ..tinNumber = ebm.tinNumber
+          ..bhfId = ebm.bhfId
+          ..taxServerUrl = ebm.taxServerUrl
+          ..taxEnabled = true;
+        if (localUpdate) {
+          realm!.add<Business>(business, update: true);
+        } else {
+          realm!.add<Business>(business, update: true);
+        }
+      });
+    }
+    if (data is Token) {
+      final token = data;
+      token
+        ..token = token.token
+        ..businessId = token.businessId
+        ..type = token.type;
+      realm!.write(() {
+        if (localUpdate) {
+          realm!.add<Token>(token);
+        } else {
+          realm!.add<Token>(token);
+        }
+      });
+    }
+    if (data is Business) {
+      final business = data;
+      realm!.write(() {
+        realm!.add<Business>(business);
+      });
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/business/${business.id}"),
+        body: jsonEncode(business.toEJson()),
+      );
+      if (response.statusCode != 200) {
+        throw InternalServerError(term: "error patching the business");
+      }
+    }
+
+    if (data is Branch) {
+      realm!.write(() {
+        realm!.add<Branch>(data);
+      });
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/branch/${data.id}"),
+        body: jsonEncode(data.toEJson()),
+      );
+      if (response.statusCode != 200) {
+        throw InternalServerError(term: "error patching the branch");
+      }
+    }
+    if (data is Counter) {
+      Counter? iCounter = realm!.query<Counter>(
+          r'receiptType == $0', [data.receiptType!.toUpperCase()]).firstOrNull;
+      if (iCounter != null) {
+        iCounter.totRcptNo = data.totRcptNo;
+        iCounter.curRcptNo = data.curRcptNo;
+        realm!.write(() {
+          realm!.add<Counter>(iCounter);
+        });
+      } else {
+        realm!.write(() {
+          realm!.add<Counter>(data);
+        });
+      }
+    }
+    if (data is Branch) {
+      realm!.write(() {
+        realm!.add<Branch>(data);
+      });
+      try {
+        await flipperHttpClient.patch(
+          Uri.parse("$apihub/v2/api/branch/${data.id}"),
+          body: jsonEncode(data.toEJson()),
+        );
+      } catch (e) {}
+    }
+    if (data is Drawers) {
+      final drawer = data;
+
+      realm!.write(() {
+        realm!.add<Drawers>(drawer);
+      });
+    }
+    if (data is User) {
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/user"),
+        body: jsonEncode(data.toEJson()),
+      );
+      return response.statusCode;
+    }
+    if (data is Tenant) {
+      final response = await flipperHttpClient.patch(
+        Uri.parse("$apihub/v2/api/tenant/${data.id}"),
+        body: jsonEncode(data.toEJson()),
+      );
+      if (response.statusCode == 200) {
+        realm!.write(() {
+          realm!.add<Tenant>(data);
+        });
+      }
+      return response.statusCode;
+    }
+    return 0;
   }
 
   @override
@@ -2224,7 +2529,7 @@ class RealmAPI<M extends IJsonSerializable>
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId() ?? 0;
     final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-' +
+    final realmDirectory = '${appDocsDirectory.path}/flipper-v2-' +
         branchId.toString() +
         "_" +
         businessId.toString();
@@ -2354,7 +2659,7 @@ class RealmAPI<M extends IJsonSerializable>
     final receipt = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final customer = realm!.query<Customer>(r'branchId == $0', [branchId]);
     final category = realm!.query<Customer>(r'branchId == $0', [branchId]);
-    final branch = realm!.query<Branch>(r'id == $0', [branchId]);
+    final branch = realm!.query<Branch>(r'businessId == $0', [businessId]);
     final colors = realm!.query<PColor>(r'id == $0', [branchId]);
     final devices = realm!.query<Device>(r'branchId == $0', [branchId]);
 
@@ -2374,15 +2679,16 @@ class RealmAPI<M extends IJsonSerializable>
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
-    final permission = realm!.query<LPermission>(
-        r'userId == $0', [ProxyService.box.getUserId() ?? 0]);
+    final permission = realm!
+        .query<LPermission>(r'userId == $0', [ProxyService.box.getUserId()!]);
 
     final pin = realm!.query<Pin>(
         r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
 
     // fake subscription as I normally do not these model synced accros devices but I don't know how I can pause one model
-    final token = realm!.query<Token>(r'id == $0', [0]);
-    final tenant = realm!.query<Tenant>(r'id == $0', [0]);
+    final token = realm!.query<Token>(r'businessId == $0', [businessId]);
+    final tenant =
+        realm!.query<Tenant>(r'userId == $0', [ProxyService.box.getUserId()]);
 
     await token.subscribe(
         name: "token-${businessId}",
@@ -2539,19 +2845,19 @@ class RealmAPI<M extends IJsonSerializable>
             value: (variation.qty * (variation.retailPrice)).toDouble(),
             productId: variation.productId,
             active: false);
-        realm!.write(() => realm!.add<Stock>(newStock));
+        realm!.write(() => realm!.put<Stock>(newStock));
       }
       stock!.currentStock = stock.currentStock + variation.qty;
 
       /// rsdQty is the remaining stock that is not yet sold bas
       stock.rsdQty = stock.currentStock + variation.qty;
 
-      log(variation.qty!.toString(), name: 'Incoming updated quantity');
+      log(variation.qty.toString(), name: 'Incoming updated quantity');
 
       stock.action = AppActions.updated;
       stock.lastTouched = DateTime.now().toLocal();
       stock.value = (variation.qty * (variation.retailPrice)).toDouble();
-      realm!.write(() => realm!.add<Stock>(stock, update: true));
+      realm!.write(() => realm!.put<Stock>(stock));
 
       variant.qty = variation.qty;
       variant.retailPrice = variation.retailPrice;
@@ -2559,7 +2865,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       variant.action = AppActions.updated;
       variant.lastTouched = DateTime.now().toLocal();
-      realm!.write(() => realm!.add<Variant>(variant));
+      realm!.write(() => realm!.put<Variant>(variant));
     } else {
       int variationId = randomNumber();
       int stockId = randomNumber();
@@ -2569,7 +2875,7 @@ class RealmAPI<M extends IJsonSerializable>
       variation.action = AppActions.created;
       variation.retailPrice = variation.retailPrice;
       variation.supplyPrice = variation.supplyPrice;
-      realm!.write(() => realm!.add<Variant>(variation, update: true));
+      realm!.write(() => realm!.put<Variant>(variation));
       final newStock = Stock(
         ObjectId(),
         id: stockId,
@@ -2584,7 +2890,7 @@ class RealmAPI<M extends IJsonSerializable>
         productId: variation.productId,
       )..active = true;
 
-      realm!.write(() => realm!.add<Stock>(newStock));
+      realm!.write(() => realm!.put<Stock>(newStock));
     }
   }
 
@@ -2633,7 +2939,7 @@ class RealmAPI<M extends IJsonSerializable>
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
 
         realm!.write(() {
-          realm!.add<Variant>(
+          realm!.put<Variant>(
             Variant(ObjectId(),
                 id: variantId,
                 lastTouched: DateTime.now(),
@@ -2648,7 +2954,7 @@ class RealmAPI<M extends IJsonSerializable>
                 supplyPrice: 0.0,
                 retailPrice: 0.0,
                 itemCd: clip,
-                bhfId: business?.bhfId ?? '',
+                bhfId: business.bhfId ?? '',
                 isTaxExempted: false)
               ..name = 'Regular'
               ..productId = product.id!
@@ -2684,7 +2990,7 @@ class RealmAPI<M extends IJsonSerializable>
             ..active = false
             ..productId = product.id!
             ..rsdQty = 0.0;
-          realm!.add<Stock>(stock);
+          realm!.put<Stock>(stock);
         });
         return realm!.query<Variant>(
           r'id == $0 ',
@@ -2779,98 +3085,106 @@ class RealmAPI<M extends IJsonSerializable>
             userId: user.id!,
             phoneNumber: tenant.phoneNumber,
             pin: tenant.pin);
+        final businessesToAdd = <Business>[];
+        final branchToAdd = <Branch>[];
+
+        for (IBusiness business in tenant.businesses) {
+          Business biz = Business(
+            ObjectId(),
+            id: business.id,
+            userId: business.userId,
+            name: business.name,
+            currency: business.currency,
+            categoryId: business.categoryId,
+            latitude: business.latitude,
+            longitude: business.longitude,
+            timeZone: business.timeZone,
+            country: business.country,
+            businessUrl: business.businessUrl,
+            hexColor: business.hexColor,
+            imageUrl: business.imageUrl,
+            type: business.type,
+            active: business.active,
+            chatUid: business.chatUid,
+            metadata: business.metadata,
+            role: business.role,
+            lastSeen: business.lastSeen,
+            firstName: business.firstName,
+            lastName: business.lastName,
+            createdAt: business.createdAt,
+            deviceToken: business.deviceToken,
+            backUpEnabled: business.backUpEnabled,
+            subscriptionPlan: business.subscriptionPlan,
+            nextBillingDate: business.nextBillingDate,
+            previousBillingDate: business.previousBillingDate,
+            isLastSubscriptionPaymentSucceeded:
+                business.isLastSubscriptionPaymentSucceeded,
+            backupFileId: business.backupFileId,
+            email: business.email,
+            lastDbBackup: business.lastDbBackup,
+            fullName: business.fullName,
+            tinNumber: business.tinNumber,
+            bhfId: business.bhfId,
+            dvcSrlNo: business.dvcSrlNo,
+            adrs: business.adrs,
+            taxEnabled: business.taxEnabled,
+            taxServerUrl: business.taxServerUrl,
+            isDefault: business.isDefault,
+            businessTypeId: business.businessTypeId,
+            lastTouched: business.lastTouched,
+            action: business.action,
+            deletedAt: business.deletedAt,
+            encryptionKey: business.encryptionKey,
+          );
+          Business? exist =
+              realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
+          if (exist == null) {
+            businessesToAdd.add(biz);
+          }
+        }
+        realm!.writeAsync(() {
+          realm!.addAll<Business>(businessesToAdd);
+        });
+        for (IBranch brannch in tenant.branches) {
+          Branch branch = Branch(
+            ObjectId(),
+            id: brannch.id,
+            active: brannch.active,
+            description: brannch.description,
+            name: brannch.name,
+            businessId: brannch.businessId,
+            longitude: brannch.longitude,
+            latitude: brannch.latitude,
+            isDefault: brannch.isDefault,
+            lastTouched: brannch.lastTouched,
+            action: brannch.action,
+            deletedAt: brannch.deletedAt,
+          );
+          Branch? exist =
+              realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
+          if (exist == null) {
+            branchToAdd.add(branch);
+          }
+        }
 
         realm!.write(() {
-          for (IBusiness business in tenant.businesses) {
-            Business biz = Business(
-              ObjectId(),
-              id: business.id,
-              userId: business.userId,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey,
-            );
-            Business? exist =
-                realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
-            if (exist == null) {
-              realm!.add<Business>(biz);
-            }
-          }
+          realm!.addAll<Branch>(branchToAdd);
         });
-        realm!.write(() {
-          for (IBranch brannch in tenant.branches) {
-            Branch branch = Branch(
+        final permissionToAdd = <LPermission>[];
+        for (IPermission permission in tenant.permissions) {
+          LPermission? exist = realm!
+              .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+          if (exist == null) {
+            final perm = LPermission(
               ObjectId(),
-              id: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt,
+              id: permission.id,
+              name: permission.name,
             );
-            Branch? exist =
-                realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
-            if (exist == null) {
-              realm!.add<Branch>(branch);
-            }
+            permissionToAdd.add(perm);
           }
-        });
+        }
         realm!.write(() {
-          for (IPermission permission in tenant.permissions) {
-            LPermission? exist = realm!
-                .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
-            if (exist == null) {
-              realm!.add<LPermission>(LPermission(
-                ObjectId(),
-                id: permission.id,
-                name: permission.name,
-              ));
-            }
-          }
+          realm!.addAll<LPermission>(permissionToAdd);
         });
 
         Tenant? exist =
@@ -2879,9 +3193,9 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.write(() {
             if (user.id == iTenant.userId) {
               iTenant.sessionActive = true;
-              realm!.add<Tenant>(iTenant);
+              realm!.put<Tenant>(iTenant);
             } else {
-              realm!.add<Tenant>(iTenant);
+              realm!.put<Tenant>(iTenant);
             }
           });
         }

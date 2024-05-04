@@ -1279,23 +1279,23 @@
 //   /// since tennat has userId which is a pin, we need to think if
 //   /// we still need to create & get pin
 //   @override
-  // Future<Pin?> getPin({required String pin}) async {
-  //   final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
+//   Future<Pin?> getPin({required String pin}) async {
+//     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
 
-  //   try {
-  //     final http.Response response = await http.get(uri);
+//     try {
+//       final http.Response response = await http.get(uri);
 
-  //     if (response.statusCode == 200) {
-  //       return Pin.fromJson(json.decode(response.body));
-  //     } else if (response.statusCode == 404) {
-  //       throw ErrorReadingFromYBServer(term: response.body);
-  //     } else {
-  //       throw ErrorReadingFromYBServer(term: response.body);
-  //     }
-  //   } catch (error) {
-  //     throw ErrorReadingFromYBServer(term: error.toString());
-  //   }
-  // }
+//       if (response.statusCode == 200) {
+//         return Pin.fromJson(json.decode(response.body));
+//       } else if (response.statusCode == 404) {
+//         throw ErrorReadingFromYBServer(term: response.body);
+//       } else {
+//         throw ErrorReadingFromYBServer(term: response.body);
+//       }
+//     } catch (error) {
+//       throw ErrorReadingFromYBServer(term: error.toString());
+//     }
+//   }
 
 //   @override
 //   Future<Pointss?> getPoints({required int userId}) async {
@@ -1384,33 +1384,33 @@
 //       isar.userActivitys.clear();
 //       isar.pins.clear();
 //     });
-    // if (ProxyService.box.getUserId() != null &&
-    //     ProxyService.box.getBusinessId() != null) {
-    //   ProxyService.event.publish(loginDetails: {
-    //     'channel': "${ProxyService.box.getUserId()!}-logout",
-    //     'userId': ProxyService.box.getUserId()!,
-    //     'businessId': ProxyService.box.getBusinessId()!,
-    //     'branchId': ProxyService.box.getBranchId()!,
-    //     'phone': ProxyService.box.getUserPhone(),
-    //     'defaultApp': ProxyService.box.getDefaultApp(),
-    //     'deviceName': Platform.operatingSystem,
-    //     'deviceVersion': Platform.operatingSystemVersion,
-    //     'linkingCode': randomNumber().toString()
-    //   });
-    // }
+//     if (ProxyService.box.getUserId() != null &&
+//         ProxyService.box.getBusinessId() != null) {
+//       ProxyService.event.publish(loginDetails: {
+//         'channel': "${ProxyService.box.getUserId()!}-logout",
+//         'userId': ProxyService.box.getUserId()!,
+//         'businessId': ProxyService.box.getBusinessId()!,
+//         'branchId': ProxyService.box.getBranchId()!,
+//         'phone': ProxyService.box.getUserPhone(),
+//         'defaultApp': ProxyService.box.getDefaultApp(),
+//         'deviceName': Platform.operatingSystem,
+//         'deviceVersion': Platform.operatingSystemVersion,
+//         'linkingCode': randomNumber().toString()
+//       });
+//     }
 //     // for box clearing if we are using box then we need to be explicit
 //     // of the keys
-    // ProxyService.box.remove(key: 'userId');
-    // ProxyService.box.remove(key: 'getIsTokenRegistered');
-    // ProxyService.box.remove(key: 'bearerToken');
-    // ProxyService.box.remove(key: 'branchId');
-    // ProxyService.box.remove(key: 'userPhone');
-    // ProxyService.box.remove(key: 'UToken');
-    // ProxyService.box.remove(key: 'businessId');
-    // ProxyService.box.remove(key: 'defaultApp');
-    // ProxyService.box.remove(key: 'authComplete');
-    // // but for shared preference we can just clear them all
-    // ProxyService.box.clear();
+//     ProxyService.box.remove(key: 'userId');
+//     ProxyService.box.remove(key: 'getIsTokenRegistered');
+//     ProxyService.box.remove(key: 'bearerToken');
+//     ProxyService.box.remove(key: 'branchId');
+//     ProxyService.box.remove(key: 'userPhone');
+//     ProxyService.box.remove(key: 'UToken');
+//     ProxyService.box.remove(key: 'businessId');
+//     ProxyService.box.remove(key: 'defaultApp');
+//     ProxyService.box.remove(key: 'authComplete');
+//     // but for shared preference we can just clear them all
+//     ProxyService.box.clear();
 
 //     //https://github.com/firebase/flutterfire/issues/2185
 //     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
@@ -1531,142 +1531,142 @@
 //     }
 //   }
 
-  // bool isEmail(String input) {
-  //   // Implement your logic to check if input is an email
-  //   // You can use regular expressions or any other email validation mechanism
-  //   // For simplicity, this example checks if the input contains '@'
-  //   return input.contains('@');
-  // }
+//   bool isEmail(String input) {
+//     // Implement your logic to check if input is an email
+//     // You can use regular expressions or any other email validation mechanism
+//     // For simplicity, this example checks if the input contains '@'
+//     return input.contains('@');
+//   }
 
-  // @override
-  // Future<IUser> login(
-  //     {required String userPhone, required bool skipDefaultAppSetup}) async {
-  //   log(userPhone, name: "userPhoneLoginWith");
-  //   String phoneNumber = userPhone;
+//   @override
+//   Future<IUser> login(
+//       {required String userPhone, required bool skipDefaultAppSetup}) async {
+//     log(userPhone, name: "userPhoneLoginWith");
+//     String phoneNumber = userPhone;
 
-  //   if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
-  //     phoneNumber = '+' + phoneNumber;
-  //   }
-  //   http.Response response;
-  //   String? uid = firebase.FirebaseAuth.instance.currentUser?.uid ?? null;
+//     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
+//       phoneNumber = '+' + phoneNumber;
+//     }
+//     http.Response response;
+//     String? uid = firebase.FirebaseAuth.instance.currentUser?.uid ?? null;
 
-  //   response = await flipperHttpClient.post(
-  //     Uri.parse(apihub + '/v2/api/user'),
-  //     body: jsonEncode(
-  //       <String, String?>{'phoneNumber': phoneNumber, 'uid': uid},
-  //     ),
-  //   );
+//     response = await flipperHttpClient.post(
+//       Uri.parse(apihub + '/v2/api/user'),
+//       body: jsonEncode(
+//         <String, String?>{'phoneNumber': phoneNumber, 'uid': uid},
+//       ),
+//     );
 
-  //   if (response.statusCode == 200 && response.body.isNotEmpty) {
-  //     // Parse the JSON response
-  //     final Map<String, dynamic> jsonResponse = json.decode(response.body);
+//     if (response.statusCode == 200 && response.body.isNotEmpty) {
+//       // Parse the JSON response
+//       final Map<String, dynamic> jsonResponse = json.decode(response.body);
 
-  //     // Create an IUser object using the fromJson constructor
-  //     IUser user = IUser.fromJson(jsonResponse);
-  //     await ProxyService.box.writeString(
-  //       key: 'userPhone',
-  //       value: userPhone,
-  //     );
-  //     await ProxyService.box.writeString(
-  //       key: 'bearerToken',
-  //       value: user.token,
-  //     );
-  //     log(user.toJson().toString(), name: "loggedIn");
+//       // Create an IUser object using the fromJson constructor
+//       IUser user = IUser.fromJson(jsonResponse);
+//       await ProxyService.box.writeString(
+//         key: 'userPhone',
+//         value: userPhone,
+//       );
+//       await ProxyService.box.writeString(
+//         key: 'bearerToken',
+//         value: user.token,
+//       );
+//       log(user.toJson().toString(), name: "loggedIn");
 
-  //     /// the token from firebase that link this user with firebase
-  //     /// so it can be used to login to other devices
-  //     await ProxyService.box.writeString(
-  //       key: 'uid',
-  //       value: user.uid,
-  //     );
-  //     await ProxyService.box.writeInt(
-  //       key: 'userId',
-  //       value: user.id!,
-  //     );
+//       /// the token from firebase that link this user with firebase
+//       /// so it can be used to login to other devices
+//       await ProxyService.box.writeString(
+//         key: 'uid',
+//         value: user.uid,
+//       );
+//       await ProxyService.box.writeInt(
+//         key: 'userId',
+//         value: user.id!,
+//       );
 
-  //     if (user.tenants.isEmpty) {
-  //       throw BusinessNotFoundException(
-  //           term:
-  //               "No tenant added to the user, if a business is added it should have one tenant");
-  //     }
-  //     if (user.tenants.first.businesses.isEmpty ||
-  //         user.tenants.first.branches.isEmpty) {
-  //       throw BusinessNotFoundException(
-  //           term:
-  //               "No tenant added to the user, if a business is added it should have one tenant");
-  //     }
-  //     await ProxyService.box.writeInt(
-  //       key: 'branchId',
-  //       value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!,
-  //     );
+//       if (user.tenants.isEmpty) {
+//         throw BusinessNotFoundException(
+//             term:
+//                 "No tenant added to the user, if a business is added it should have one tenant");
+//       }
+//       if (user.tenants.first.businesses.isEmpty ||
+//           user.tenants.first.branches.isEmpty) {
+//         throw BusinessNotFoundException(
+//             term:
+//                 "No tenant added to the user, if a business is added it should have one tenant");
+//       }
+//       await ProxyService.box.writeInt(
+//         key: 'branchId',
+//         value: user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!,
+//       );
 
-  //     log(user.id.toString(), name: 'login');
-  //     await ProxyService.box.writeInt(
-  //       key: 'businessId',
-  //       value:
-  //           user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!,
-  //     );
-  //     await ProxyService.box.writeString(
-  //       key: 'encryptionKey',
-  //       value: user.tenants.first.businesses.first.encryptionKey,
-  //     );
-  //     if (skipDefaultAppSetup == false) {
-  //       await ProxyService.box.writeString(
-  //         key: 'defaultApp',
+//       log(user.id.toString(), name: 'login');
+//       await ProxyService.box.writeInt(
+//         key: 'businessId',
+//         value:
+//             user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!,
+//       );
+//       await ProxyService.box.writeString(
+//         key: 'encryptionKey',
+//         value: user.tenants.first.businesses.first.encryptionKey,
+//       );
+//       if (skipDefaultAppSetup == false) {
+//         await ProxyService.box.writeString(
+//           key: 'defaultApp',
 
-  //         /// because we don update default app from server
-  //         /// because we want the ability of switching apps to be entirely offline
-  //         /// then if we have a default app in the box we use it if it only different from "1"
-  //         value: user.tenants.isEmpty
-  //             ? 'null'
-  //             : ProxyService.box.getDefaultApp() != "1"
-  //                 ? ProxyService.box.getDefaultApp()
-  //                 : user.tenants.first.businesses.first.businessTypeId
-  //                     .toString(),
-  //       );
-  //     }
+//           /// because we don update default app from server
+//           /// because we want the ability of switching apps to be entirely offline
+//           /// then if we have a default app in the box we use it if it only different from "1"
+//           value: user.tenants.isEmpty
+//               ? 'null'
+//               : ProxyService.box.getDefaultApp() != "1"
+//                   ? ProxyService.box.getDefaultApp()
+//                   : user.tenants.first.businesses.first.businessTypeId
+//                       .toString(),
+//         );
+//       }
 
-  //     for (ITenant tenant in user.tenants) {
-  //       IITenant iTenant = IITenant(
-  //           isDefault: tenant.isDefault,
-  //           id: tenant.id,
-  //           name: tenant.name,
-  //           businessId: tenant.businessId,
-  //           nfcEnabled: tenant.nfcEnabled,
-  //           email: tenant.email,
-  //           userId: user.id!,
-  //           phoneNumber: tenant.phoneNumber,
-  //           pin: tenant.pin);
+//       for (ITenant tenant in user.tenants) {
+//         IITenant iTenant = IITenant(
+//             isDefault: tenant.isDefault,
+//             id: tenant.id,
+//             name: tenant.name,
+//             businessId: tenant.businessId,
+//             nfcEnabled: tenant.nfcEnabled,
+//             email: tenant.email,
+//             userId: user.id!,
+//             phoneNumber: tenant.phoneNumber,
+//             pin: tenant.pin);
 
-  //       isar.writeTxn(() async {
-  //         isar.iBusiness.putAll(tenant.businesses);
-  //       });
-  //       isar.writeTxn(() async {
-  //         isar.iBranchs.putAll(tenant.branches);
-  //       });
-  //       isar.writeTxn(() async {
-  //         isar.iPermissions.putAll(tenant.permissions);
-  //       });
+//         isar.writeTxn(() async {
+//           isar.iBusiness.putAll(tenant.businesses);
+//         });
+//         isar.writeTxn(() async {
+//           isar.iBranchs.putAll(tenant.branches);
+//         });
+//         isar.writeTxn(() async {
+//           isar.iPermissions.putAll(tenant.permissions);
+//         });
 
-  //       isar.writeTxn(() async {
-  //         if (user.id == iTenant.userId) {
-  //           iTenant.sessionActive = true;
-  //           isar.iITenants.put(iTenant);
-  //         } else {
-  //           isar.iITenants.put(iTenant);
-  //         }
-  //       });
-  //     }
-  //     return user;
-  //   } else if (response.statusCode == 401) {
-  //     throw SessionException(term: "session expired");
-  //   } else if (response.statusCode == 500) {
-  //     throw ErrorReadingFromYBServer(term: "Not found");
-  //   } else {
-  //     log(response.body.toString(), name: "login error");
-  //     throw Exception(response.body.toString());
-  //   }
-  // }
+//         isar.writeTxn(() async {
+//           if (user.id == iTenant.userId) {
+//             iTenant.sessionActive = true;
+//             isar.iITenants.put(iTenant);
+//           } else {
+//             isar.iITenants.put(iTenant);
+//           }
+//         });
+//       }
+//       return user;
+//     } else if (response.statusCode == 401) {
+//       throw SessionException(term: "session expired");
+//     } else if (response.statusCode == 500) {
+//       throw ErrorReadingFromYBServer(term: "Not found");
+//     } else {
+//       log(response.body.toString(), name: "login error");
+//       throw Exception(response.body.toString());
+//     }
+//   }
 
 //   @override
 //   Future<ITransaction?> pendingTransaction(
@@ -2005,267 +2005,267 @@
 //   }
 
 //   /// @Deprecated [endpoint] don't give the endpoint params
-//   @override
-//   Future<int> update<T>({required T data, bool localUpdate = false}) async {
-//     /// update user activity
-//     int userId = ProxyService.box.getUserId() ?? 0;
-//     if (userId == 0) return 0;
+  // @override
+  // Future<int> update<T>({required T data, bool localUpdate = false}) async {
+  //   /// update user activity
+  //   int userId = ProxyService.box.getUserId() ?? 0;
+  //   if (userId == 0) return 0;
 
-//     /// end updating user activity
-//     // int branchId = ProxyService.box.getBranchId()!;
-//     if (data is Device) {
-//       Device device = data;
+  //   /// end updating user activity
+  //   // int branchId = ProxyService.box.getBranchId()!;
+  //   if (data is Device) {
+  //     Device device = data;
 
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.devices.onUpdate(device);
-//         } else {
-//           isar.devices.onPut(device);
-//         }
-//       });
-//     }
-//     if (data is Social) {
-//       Social social = data;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.devices.onUpdate(device);
+  //       } else {
+  //         isar.devices.onPut(device);
+  //       }
+  //     });
+  //   }
+  //   if (data is Social) {
+  //     Social social = data;
 
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.socials.onUpdate(social);
-//         } else {
-//           isar.socials.onPut(social);
-//         }
-//       });
-//     }
-//     if (data is Product) {
-//       Product product = data;
-//       product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.products.onUpdate(product);
-//         } else {
-//           isar.products.onPut(product);
-//         }
-//       });
-//     }
-//     if (data is Favorite) {
-//       Favorite fav = data;
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.favorites.onUpdate(fav);
-//         } else {
-//           isar.favorites.onPut(fav);
-//         }
-//       });
-//     }
-//     if (data is Variant) {
-//       Variant variant = data;
-//       variant.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.variants.onUpdate(variant);
-//         } else {
-//           isar.variants.onPut(variant);
-//         }
-//       });
-//     }
-//     if (data is Stock) {
-//       Stock stock = data;
-//       stock.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.stocks.onUpdate(stock);
-//         } else {
-//           isar.stocks.onPut(stock);
-//         }
-//       });
-//     }
-//     if (data is ITransaction) {
-//       final transaction = data;
-//       transaction.lastTouched =
-//           DateTime.now().toLocal().add(Duration(hours: 2));
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.iTransactions.onUpdate(transaction);
-//         } else {
-//           isar.iTransactions.onPut(transaction);
-//         }
-//       });
-//     }
-//     if (data is Category) {
-//       final category = data;
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.categorys.onUpdate(category);
-//         } else {
-//           isar.categorys.onPut(category);
-//         }
-//       });
-//     }
-//     if (data is IUnit) {
-//       final unit = data;
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.iUnits.onUpdate(unit);
-//         } else {
-//           isar.iUnits.onPut(unit);
-//         }
-//       });
-//     }
-//     if (data is PColor) {
-//       final color = data;
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.pColors.onUpdate(color);
-//         } else {
-//           isar.pColors.onPut(color);
-//         }
-//       });
-//     }
-//     if (data is TransactionItem) {
-//       data.lastTouched = DateTime.now().toLocal();
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.transactionItems.onUpdate(data);
-//         } else {
-//           isar.transactionItems.onPut(data);
-//         }
-//       });
-//     }
-//     if (data is EBM) {
-//       final ebm = data;
-//       isar.writeTxn(() async {
-//         ProxyService.box
-//             .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
-//         IBusiness business =
-//             await isar.iBusiness.filter().userIdEqualTo(ebm.userId).findFirst();
-//         business
-//           ?..dvcSrlNo = ebm.dvcSrlNo
-//           ..tinNumber = ebm.tinNumber
-//           ..bhfId = ebm.bhfId
-//           ..taxServerUrl = ebm.taxServerUrl
-//           ..taxEnabled = true;
-//         if (localUpdate) {
-//           isar.iBusiness.onUpdate(business!);
-//         } else {
-//           isar.iBusiness.onPut(business!);
-//         }
-//       });
-//     }
-//     if (data is Token) {
-//       final token = data;
-//       token
-//         ..token = token.token
-//         ..businessId = token.businessId
-//         ..type = token.type;
-//       isar.writeTxn(() async {
-//         if (localUpdate) {
-//           isar.tokens.onUpdate(token);
-//         } else {
-//           isar.tokens.onPut(token);
-//         }
-//       });
-//     }
-//     if (data is IBusiness) {
-//       final business = data;
-//       isar.writeTxn(() async {
-//         isar.iBusiness.put(business);
-//       });
-//       final response = await flipperHttpClient.patch(
-//         Uri.parse("$apihub/v2/api/business/${business.id}"),
-//         body: jsonEncode(business.toJson()),
-//       );
-//       if (response.statusCode != 200) {
-//         throw InternalServerError(term: "error patching the business");
-//       }
-//     }
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.socials.onUpdate(social);
+  //       } else {
+  //         isar.socials.onPut(social);
+  //       }
+  //     });
+  //   }
+  //   if (data is Product) {
+  //     Product product = data;
+  //     product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.products.onUpdate(product);
+  //       } else {
+  //         isar.products.onPut(product);
+  //       }
+  //     });
+  //   }
+  //   if (data is Favorite) {
+  //     Favorite fav = data;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.favorites.onUpdate(fav);
+  //       } else {
+  //         isar.favorites.onPut(fav);
+  //       }
+  //     });
+  //   }
+  //   if (data is Variant) {
+  //     Variant variant = data;
+  //     variant.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.variants.onUpdate(variant);
+  //       } else {
+  //         isar.variants.onPut(variant);
+  //       }
+  //     });
+  //   }
+  //   if (data is Stock) {
+  //     Stock stock = data;
+  //     stock.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.stocks.onUpdate(stock);
+  //       } else {
+  //         isar.stocks.onPut(stock);
+  //       }
+  //     });
+  //   }
+  //   if (data is ITransaction) {
+  //     final transaction = data;
+  //     transaction.lastTouched =
+  //         DateTime.now().toLocal().add(Duration(hours: 2));
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.iTransactions.onUpdate(transaction);
+  //       } else {
+  //         isar.iTransactions.onPut(transaction);
+  //       }
+  //     });
+  //   }
+  //   if (data is Category) {
+  //     final category = data;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.categorys.onUpdate(category);
+  //       } else {
+  //         isar.categorys.onPut(category);
+  //       }
+  //     });
+  //   }
+  //   if (data is IUnit) {
+  //     final unit = data;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.iUnits.onUpdate(unit);
+  //       } else {
+  //         isar.iUnits.onPut(unit);
+  //       }
+  //     });
+  //   }
+  //   if (data is PColor) {
+  //     final color = data;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.pColors.onUpdate(color);
+  //       } else {
+  //         isar.pColors.onPut(color);
+  //       }
+  //     });
+  //   }
+  //   if (data is TransactionItem) {
+  //     data.lastTouched = DateTime.now().toLocal();
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.transactionItems.onUpdate(data);
+  //       } else {
+  //         isar.transactionItems.onPut(data);
+  //       }
+  //     });
+  //   }
+  //   if (data is EBM) {
+  //     final ebm = data;
+  //     isar.writeTxn(() async {
+  //       ProxyService.box
+  //           .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
+  //       IBusiness business =
+  //           await isar.iBusiness.filter().userIdEqualTo(ebm.userId).findFirst();
+  //       business
+  //         ?..dvcSrlNo = ebm.dvcSrlNo
+  //         ..tinNumber = ebm.tinNumber
+  //         ..bhfId = ebm.bhfId
+  //         ..taxServerUrl = ebm.taxServerUrl
+  //         ..taxEnabled = true;
+  //       if (localUpdate) {
+  //         isar.iBusiness.onUpdate(business!);
+  //       } else {
+  //         isar.iBusiness.onPut(business!);
+  //       }
+  //     });
+  //   }
+  //   if (data is Token) {
+  //     final token = data;
+  //     token
+  //       ..token = token.token
+  //       ..businessId = token.businessId
+  //       ..type = token.type;
+  //     isar.writeTxn(() async {
+  //       if (localUpdate) {
+  //         isar.tokens.onUpdate(token);
+  //       } else {
+  //         isar.tokens.onPut(token);
+  //       }
+  //     });
+  //   }
+  //   if (data is IBusiness) {
+  //     final business = data;
+  //     isar.writeTxn(() async {
+  //       isar.iBusiness.put(business);
+  //     });
+  //     final response = await flipperHttpClient.patch(
+  //       Uri.parse("$apihub/v2/api/business/${business.id}"),
+  //       body: jsonEncode(business.toJson()),
+  //     );
+  //     if (response.statusCode != 200) {
+  //       throw InternalServerError(term: "error patching the business");
+  //     }
+  //   }
 
-//     if (data is IBranch) {
-//       isar.writeTxn(() async {
-//         isar.iBranchs.put(data);
-//       });
-//       final response = await flipperHttpClient.patch(
-//         Uri.parse("$apihub/v2/api/branch/${data.id}"),
-//         body: jsonEncode(data.toJson()),
-//       );
-//       if (response.statusCode != 200) {
-//         throw InternalServerError(term: "error patching the branch");
-//       }
-//     }
-//     if (data is Counter) {
-//       Counter? iCounter = await isar.counters
-//           .filter()
-//           .receiptTypeEqualTo(data.receiptType.toUpperCase())
-//           .findFirst();
-//       if (iCounter != null) {
-//         iCounter.totRcptNo = data.totRcptNo;
-//         iCounter.curRcptNo = data.curRcptNo;
-//         isar.writeTxn(() async {
-//           isar.counters.onPut(iCounter);
-//         });
-//       } else {
-//         isar.writeTxn(() async {
-//           isar.counters.onPut(data);
-//         });
-//       }
+  //   if (data is IBranch) {
+  //     isar.writeTxn(() async {
+  //       isar.iBranchs.put(data);
+  //     });
+  //     final response = await flipperHttpClient.patch(
+  //       Uri.parse("$apihub/v2/api/branch/${data.id}"),
+  //       body: jsonEncode(data.toJson()),
+  //     );
+  //     if (response.statusCode != 200) {
+  //       throw InternalServerError(term: "error patching the branch");
+  //     }
+  //   }
+  //   if (data is Counter) {
+  //     Counter? iCounter = await isar.counters
+  //         .filter()
+  //         .receiptTypeEqualTo(data.receiptType.toUpperCase())
+  //         .findFirst();
+  //     if (iCounter != null) {
+  //       iCounter.totRcptNo = data.totRcptNo;
+  //       iCounter.curRcptNo = data.curRcptNo;
+  //       isar.writeTxn(() async {
+  //         isar.counters.onPut(iCounter);
+  //       });
+  //     } else {
+  //       isar.writeTxn(() async {
+  //         isar.counters.onPut(data);
+  //       });
+  //     }
 
-//       // final response = await flipperHttpClient.patch(
-//       //   Uri.parse("$apihub/v2/api/counter/${data.id}"),
-//       //   body: jsonEncode(data.toJson()),
-//       // );
-//       // if (response.statusCode == 200) {
-//       //   log(response.body, name: 'response.body');
-//       //   Counter counter = Counter.fromRawJson(response.body);
-//       //   isar. writeTxn(() {
-//       //     isar.counters.onPut(data
-//       //       ..branchId = counter.branchId
-//       //       ..businessId = counter.businessId
-//       //       ..receiptType = counter.receiptType
-//       //       ..id = data.id
-//       //       ..totRcptNo = counter.totRcptNo
-//       //       ..curRcptNo = counter.curRcptNo);
-//       //   });
-//       // } else {
-//       //   throw InternalServerError(term: "error patching the counter");
-//       // }
-//     }
-//     if (data is IBranch) {
-//       isar.writeTxn(() async {
-//         isar.iBranchs.put(data);
-//       });
-//       try {
-//         await flipperHttpClient.patch(
-//           Uri.parse("$apihub/v2/api/branch/${data.id}"),
-//           body: jsonEncode(data.toJson()),
-//         );
-//       } catch (e) {}
-//     }
-//     if (data is Drawers) {
-//       final drawer = data;
-//       drawer.lastTouched = DateTime.now().toLocal();
-//       isar.writeTxn(() async {
-//         isar.drawers.onPut(drawer);
-//       });
-//     }
-//     if (data is User) {
-//       final response = await flipperHttpClient.patch(
-//         Uri.parse("$apihub/v2/api/user"),
-//         body: jsonEncode(data.toJson()),
-//       );
-//       return response.statusCode;
-//     }
-//     if (data is IITenant) {
-//       final response = await flipperHttpClient.patch(
-//         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
-//         body: jsonEncode(data.toJson()),
-//       );
-//       if (response.statusCode == 200) {
-//         isar.writeTxn(() async {
-//           isar.iITenants.onPut(data);
-//         });
-//       }
-//       return response.statusCode;
-//     }
-//     return 0;
-//   }
+  //     // final response = await flipperHttpClient.patch(
+  //     //   Uri.parse("$apihub/v2/api/counter/${data.id}"),
+  //     //   body: jsonEncode(data.toJson()),
+  //     // );
+  //     // if (response.statusCode == 200) {
+  //     //   log(response.body, name: 'response.body');
+  //     //   Counter counter = Counter.fromRawJson(response.body);
+  //     //   isar. writeTxn(() {
+  //     //     isar.counters.onPut(data
+  //     //       ..branchId = counter.branchId
+  //     //       ..businessId = counter.businessId
+  //     //       ..receiptType = counter.receiptType
+  //     //       ..id = data.id
+  //     //       ..totRcptNo = counter.totRcptNo
+  //     //       ..curRcptNo = counter.curRcptNo);
+  //     //   });
+  //     // } else {
+  //     //   throw InternalServerError(term: "error patching the counter");
+  //     // }
+  //   }
+  //   if (data is IBranch) {
+  //     isar.writeTxn(() async {
+  //       isar.iBranchs.put(data);
+  //     });
+  //     try {
+  //       await flipperHttpClient.patch(
+  //         Uri.parse("$apihub/v2/api/branch/${data.id}"),
+  //         body: jsonEncode(data.toJson()),
+  //       );
+  //     } catch (e) {}
+  //   }
+  //   if (data is Drawers) {
+  //     final drawer = data;
+  //     drawer.lastTouched = DateTime.now().toLocal();
+  //     isar.writeTxn(() async {
+  //       isar.drawers.onPut(drawer);
+  //     });
+  //   }
+  //   if (data is User) {
+  //     final response = await flipperHttpClient.patch(
+  //       Uri.parse("$apihub/v2/api/user"),
+  //       body: jsonEncode(data.toJson()),
+  //     );
+  //     return response.statusCode;
+  //   }
+  //   if (data is IITenant) {
+  //     final response = await flipperHttpClient.patch(
+  //       Uri.parse("$apihub/v2/api/tenant/${data.id}"),
+  //       body: jsonEncode(data.toJson()),
+  //     );
+  //     if (response.statusCode == 200) {
+  //       isar.writeTxn(() async {
+  //         isar.iITenants.onPut(data);
+  //       });
+  //     }
+  //     return response.statusCode;
+  //   }
+  //   return 0;
+  // }
 
 //   @override
 //   Future<Profile?> updateProfile({required Profile profile}) async {
@@ -2537,36 +2537,36 @@
 
 //   @override
 //   Future<List<IITenant>> tenantsFromOnline({required int businessId}) async {
-    // final http.Response response = await flipperHttpClient
-    //     .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
-    // if (response.statusCode == 200) {
-    //   for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-    //     ITenant jTenant = tenant;
-    //     IITenant iTenant = IITenant(
-    //         isDefault: jTenant.isDefault,
-    //         id: jTenant.id,
-    //         name: jTenant.name,
-    //         userId: jTenant.userId,
-    //         businessId: jTenant.businessId,
-    //         nfcEnabled: jTenant.nfcEnabled,
-    //         email: jTenant.email,
-    //         phoneNumber: jTenant.phoneNumber);
+//     final http.Response response = await flipperHttpClient
+//         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+//     if (response.statusCode == 200) {
+//       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+//         ITenant jTenant = tenant;
+//         IITenant iTenant = IITenant(
+//             isDefault: jTenant.isDefault,
+//             id: jTenant.id,
+//             name: jTenant.name,
+//             userId: jTenant.userId,
+//             businessId: jTenant.businessId,
+//             nfcEnabled: jTenant.nfcEnabled,
+//             email: jTenant.email,
+//             phoneNumber: jTenant.phoneNumber);
 
-    //     isar.writeTxn(() async {
-    //       isar.iBusiness.putAll(jTenant.businesses);
-    //       isar.iBranchs.putAll(jTenant.branches);
-    //       isar.iPermissions.putAll(jTenant.permissions);
-    //     });
-    //     isar.writeTxn(() async {
-    //       isar.iITenants.put(iTenant);
-    //     });
-    //   }
-    //   return await isar.iITenants
-    //       .filter()
-    //       .businessIdEqualTo(businessId)
-    //       .findAll();
-    // }
-    // throw InternalServerException(term: "we got unexpected response");
+//         isar.writeTxn(() async {
+//           isar.iBusiness.putAll(jTenant.businesses);
+//           isar.iBranchs.putAll(jTenant.branches);
+//           isar.iPermissions.putAll(jTenant.permissions);
+//         });
+//         isar.writeTxn(() async {
+//           isar.iITenants.put(iTenant);
+//         });
+//       }
+//       return await isar.iITenants
+//           .filter()
+//           .businessIdEqualTo(businessId)
+//           .findAll();
+//     }
+//     throw InternalServerException(term: "we got unexpected response");
 //   }
 
 //   @override
@@ -2630,35 +2630,35 @@
 //   //       .findFirst());
 //   // }
 
-  // @override
-  // Future<void> loadCounterFromOnline({required int businessId}) async {
-  //   final http.Response response = await flipperHttpClient
-  //       .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+//   @override
+//   Future<void> loadCounterFromOnline({required int businessId}) async {
+//     final http.Response response = await flipperHttpClient
+//         .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
 
-  //   if (response.statusCode == 200) {
-  //     final List<dynamic> jsonResponse = json.decode(response.body);
-  //     List<Counter> counters = Counter.fromJsonList(jsonResponse);
+//     if (response.statusCode == 200) {
+//       final List<dynamic> jsonResponse = json.decode(response.body);
+//       List<Counter> counters = Counter.fromJsonList(jsonResponse);
 
-  //     /// first check if we don't have local counter that we are overwriting
-  //     List<Counter> localCounters =
-  //         await isar.counters.filter().deletedAtIsNull().findAll();
-  //     if (localCounters.isNotEmpty) return;
-  //     for (Counter counter in counters) {
-  //       isar.writeTxn(() async {
-  //         isar.counters.put(Counter(
-  //           id: counter.id,
-  //           branchId: counter.branchId,
-  //           businessId: counter.businessId,
-  //           totRcptNo: counter.totRcptNo,
-  //           curRcptNo: counter.curRcptNo,
-  //           receiptType: counter.receiptType,
-  //         ));
-  //       });
-  //     }
-  //   } else {
-  //     throw InternalServerError(term: "Error loading the counters");
-  //   }
-  // }
+//       /// first check if we don't have local counter that we are overwriting
+//       List<Counter> localCounters =
+//           await isar.counters.filter().deletedAtIsNull().findAll();
+//       if (localCounters.isNotEmpty) return;
+//       for (Counter counter in counters) {
+//         isar.writeTxn(() async {
+//           isar.counters.put(Counter(
+//             id: counter.id,
+//             branchId: counter.branchId,
+//             businessId: counter.businessId,
+//             totRcptNo: counter.totRcptNo,
+//             curRcptNo: counter.curRcptNo,
+//             receiptType: counter.receiptType,
+//           ));
+//         });
+//       }
+//     } else {
+//       throw InternalServerError(term: "Error loading the counters");
+//     }
+//   }
 
 //   @override
 //   Future<bool> bindProduct(
@@ -2712,19 +2712,19 @@
 //   }
 
 //   /// sincd this type does not change no point of getting it from the server
-  // @override
-  // Future<List<BusinessType>> businessTypes() async {
-  //   final responseJson = [
-  //     {"id": "1", "typeName": "Flipper Retailer"},
-  //     // {"id": "2", "typeName": "Flipper Connecta"},`
-  //   ];
-  //   Future.delayed(Duration(seconds: 5));
-  //   final response = http.Response(jsonEncode(responseJson), 200);
-  //   if (response.statusCode == 200) {
-  //     return BusinessType.fromJsonList(jsonEncode(responseJson));
-  //   }
-  //   return BusinessType.fromJsonList(jsonEncode(responseJson));
-  // }
+//   @override
+//   Future<List<BusinessType>> businessTypes() async {
+//     final responseJson = [
+//       {"id": "1", "typeName": "Flipper Retailer"},
+//       // {"id": "2", "typeName": "Flipper Connecta"},`
+//     ];
+//     Future.delayed(Duration(seconds: 5));
+//     final response = http.Response(jsonEncode(responseJson), 200);
+//     if (response.statusCode == 200) {
+//       return BusinessType.fromJsonList(jsonEncode(responseJson));
+//     }
+//     return BusinessType.fromJsonList(jsonEncode(responseJson));
+//   }
 
 //   @override
 //   Future<Social?> getSocialById({required int id}) async {
@@ -3302,40 +3302,40 @@
 //     return transactions;
 //   }
 
-  // @override
-  // Stream<List<ITransaction>> transactionsStream({
-  //   String? status,
-  //   String? transactionType,
-  //   int? branchId,
-  //   bool isCashOut = false,
-  //   bool includePending = false,
-  // }) {
-    // final isarQuery =
-    //     isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
+//   @override
+//   Stream<List<ITransaction>> transactionsStream({
+//     String? status,
+//     String? transactionType,
+//     int? branchId,
+//     bool isCashOut = false,
+//     bool includePending = false,
+//   }) {
+//     final isarQuery =
+//         isar.iTransactions.filter().statusEqualTo(status ?? COMPLETE);
 
-    // if (isCashOut) {
-    //   isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
-    // } else {
-    //   isarQuery
-    //       .or()
-    //       .transactionTypeEqualTo(TransactionType.cashIn)
-    //       .or()
-    //       .transactionTypeEqualTo(TransactionType.sale)
-    //       .or()
-    //       .transactionTypeEqualTo(TransactionType.custom)
-    //       .or()
-    //       .transactionTypeEqualTo(TransactionType.onlineSale);
-    // }
+//     if (isCashOut) {
+//       isarQuery.and().transactionTypeEqualTo(TransactionType.cashOut);
+//     } else {
+//       isarQuery
+//           .or()
+//           .transactionTypeEqualTo(TransactionType.cashIn)
+//           .or()
+//           .transactionTypeEqualTo(TransactionType.sale)
+//           .or()
+//           .transactionTypeEqualTo(TransactionType.custom)
+//           .or()
+//           .transactionTypeEqualTo(TransactionType.onlineSale);
+//     }
 
-    // if (branchId != null) {
-    //   isarQuery.and().branchIdEqualTo(branchId);
-    // } else {
-    //   branchId = ProxyService.box.getBranchId()!;
-    //   isarQuery.and().branchIdEqualTo(branchId);
-    // }
+//     if (branchId != null) {
+//       isarQuery.and().branchIdEqualTo(branchId);
+//     } else {
+//       branchId = ProxyService.box.getBranchId()!;
+//       isarQuery.and().branchIdEqualTo(branchId);
+//     }
 
-    // return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
-  // }
+//     return isarQuery.and().deletedAtIsNull().watch(fireImmediately: true);
+//   }
 
 //   @override
 //   Future<List<TransactionItem>> transactionItems(
@@ -3762,9 +3762,9 @@
 //   }
 
 //   @override
-  // Future<IPermission?> permission({required int userId}) async {
-  //   return await isar.iPermissions.filter().userIdEqualTo(userId).findFirst();
-  // }
+//   Future<IPermission?> permission({required int userId}) async {
+//     return await isar.iPermissions.filter().userIdEqualTo(userId).findFirst();
+//   }
 
 //   @override
 //   Future assignCustomerToTransaction(
