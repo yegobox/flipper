@@ -45,9 +45,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
         closeButton: CLOSEBUTTON.WIDGET,
         isDividerVisible: false,
         customLeadingWidget: back.BackButton(),
-        onPop: () async {
-          // _routerService.back();
-        },
+        onPop: () async {},
       ),
       body: Align(
         alignment: Alignment.center,
