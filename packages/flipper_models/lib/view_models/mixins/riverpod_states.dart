@@ -535,6 +535,6 @@ final transactionItemsStreamProvider = StreamProvider.autoDispose
   return ProxyService.realm.transactionItemsStreams(
     transactionId: transactionId ?? 0,
     doneWithTransaction: false,
-    active: false,
+    active: true,
   );
 });

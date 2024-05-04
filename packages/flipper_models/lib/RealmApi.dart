@@ -35,6 +35,7 @@ import 'package:flutter/foundation.dart' as foundation;
 
 class RealmAPI<M extends IJsonSerializable>
     implements SyncReaml<M>, RealmApiInterface {
+  @override
   Realm? realm;
   final talker = TalkerFlutter.init();
   late String apihub;

@@ -131,12 +131,14 @@ class CoreViewModel extends FlipperBaseModel
         break;
 
       case '+':
-        for (TransactionItem item in items) {
-          /// mark the item on the transaction as true so next time we will create new one
-          /// instead of updating existing one
-          item.active = true;
-          await ProxyService.realm.update(data: item);
-        }
+        ProxyService.realm.realm!.write(() {
+          for (TransactionItem item in items) {
+            /// mark the item on the transaction as true so next time we will create new one
+            /// instead of updating existing one
+            item.active = true;
+            // Wait for 500ms before updating the next item
+          }
+        });
         ProxyService.keypad.reset();
 
         break;

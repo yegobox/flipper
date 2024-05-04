@@ -340,4 +340,6 @@ abstract class RealmApiInterface {
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active});
+
+  Realm? realm;
 }
