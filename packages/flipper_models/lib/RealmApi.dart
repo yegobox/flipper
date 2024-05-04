@@ -2584,7 +2584,7 @@ class RealmAPI<M extends IJsonSerializable>
   /// that we modify the object and pass in the final object to be updated here later and that will not work with realm
   /// therefore we do the update within write function where the actual update is taking place to avoid crazy error or illusion
   @override
-  Future<int> update<T>({required T data}) async {
+  Future<int> updateNonRealm<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
