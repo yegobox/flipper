@@ -33,7 +33,7 @@ class SettingsService with ListenableServiceMixin {
     int businessId = ProxyService.box.getBusinessId()!;
 
     Setting? setting =
-        await ProxyService.isar.getSetting(businessId: businessId);
+        await ProxyService.realm.getSetting(businessId: businessId);
     if (setting != null) {
       Map<String, dynamic> settingsMap =
           setting.toEJson() as Map<String, dynamic>;
@@ -44,7 +44,7 @@ class SettingsService with ListenableServiceMixin {
         }
       });
 
-      ProxyService.isar.update(data: settingsMap);
+      ProxyService.realm.update(data: settingsMap);
       return true;
     } else {
       Map kMap = map;
@@ -66,13 +66,13 @@ class SettingsService with ListenableServiceMixin {
         autoPrint: kMap['autoPrint'] ?? false,
         isAttendanceEnabled: kMap['isAttendanceEnabled'] ?? false,
       );
-      await ProxyService.isar.createSetting(setting: setting);
+      await ProxyService.realm.createSetting(setting: setting);
       return true;
     }
   }
 
   Future<Setting?> settings() async {
-    return ProxyService.isar
+    return ProxyService.realm
         .getSetting(businessId: ProxyService.box.getBusinessId() ?? 0);
   }
 
@@ -174,7 +174,7 @@ class SettingsService with ListenableServiceMixin {
     Setting? setting = await settings();
     if (setting != null) {
       int businessId = ProxyService.box.getBusinessId()!;
-      await ProxyService.isar
+      await ProxyService.realm
           .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);
     } else {

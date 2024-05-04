@@ -51,17 +51,17 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
               // ProxyService.remote.listenToChanges();
             }
           });
-          ProxyService.isar.sendScheduleMessages();
+          ProxyService.realm.sendScheduleMessages();
           await ProxyService.messaging
               .initializeFirebaseMessagingAndSubscribeToBusinessNotifications();
-          ProxyService.isar
+          ProxyService.realm
               .loadConversations(businessId: ProxyService.box.getBusinessId()!);
         },
         builder: (build, viewModel, child) {
           return RefreshIndicator(
             onRefresh: () async {
-              ProxyService.isar.sendScheduleMessages();
-              ProxyService.isar.loadConversations(
+              ProxyService.realm.sendScheduleMessages();
+              ProxyService.realm.loadConversations(
                   businessId: ProxyService.box.getBusinessId()!);
             },
             child: AnnotatedRegion<SystemUiOverlayStyle>(
@@ -99,7 +99,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                   ],
                 ),
                 body: StreamBuilder<List<Conversation>>(
-                    stream: ProxyService.isar.conversations(),
+                    stream: ProxyService.realm.conversations(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data!.isNotEmpty) {
                         final _conversations = snapshot.data;
@@ -121,7 +121,7 @@ class _ChatListViewMobileState extends State<ChatListViewMobile>
                                 flexibleSpace: FlexibleSpaceBar(
                                   titlePadding: EdgeInsets.zero,
                                   title: StreamBuilder<List<Conversation>>(
-                                    stream: ProxyService.isar
+                                    stream: ProxyService.realm
                                         .getTop5RecentConversations(),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData &&

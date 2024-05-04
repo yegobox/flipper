@@ -64,11 +64,11 @@ class SearchFieldState extends ConsumerState<SearchField> {
     widget.controller.clear();
     _hasText = false;
     if (value.isNotEmpty) {
-      Variant? variant = await ProxyService.isar.variant(name: value);
+      Variant? variant = await ProxyService.realm.variant(name: value);
       if (variant != null) {
-        Stock? stock = await ProxyService.isar
+        Stock? stock = await ProxyService.realm
             .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
-        ITransaction currentTransaction = await ProxyService.isar
+        ITransaction currentTransaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.custom);
 
         await model.saveTransaction(

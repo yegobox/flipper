@@ -32,7 +32,8 @@ class MessageService with ReactiveServiceMixin {
   //load orders from Objectbox and update the orders list
   void loadTransactions() {
     int branchId = ProxyService.box.getBranchId()!;
-    _orders.value = ProxyService.isar.completedTransactions(branchId: branchId);
+    _orders.value =
+        ProxyService.realm.completedTransactions(branchId: branchId);
   }
 
   MessageService() {

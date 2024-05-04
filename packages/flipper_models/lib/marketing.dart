@@ -19,7 +19,7 @@ class Marketing implements WhatsApp, SMS {
   @override
   Future optIn() async {
     String phoneNumber = ProxyService.box.getUserPhone()!;
-    SocialToken? token = await ProxyService.isar.loginOnSocial(
+    SocialToken? token = await ProxyService.realm.loginOnSocial(
         password: phoneNumber.replaceAll("+", ""),
         phoneNumberOrEmail: phoneNumber.replaceAll("+", ""));
     var headers = {

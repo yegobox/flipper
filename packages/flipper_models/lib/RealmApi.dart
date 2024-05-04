@@ -2576,159 +2576,17 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> update<T>({required T data, bool localUpdate = false}) async {
+  Future<int> update<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
 
-    if (data is Device) {
-      Device device = data;
+    realm!.write(() {
+      _updateObject(data, realm!);
+    });
 
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Device>(device, update: true);
-        } else {
-          realm!.add<Device>(device, update: true);
-        }
-      });
-    }
-
-    if (data is Product) {
-      Product product = data;
-      product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Product>(product, update: true);
-        } else {
-          realm!.add<Product>(product, update: true);
-        }
-      });
-    }
-    if (data is Favorite) {
-      Favorite fav = data;
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Favorite>(fav, update: true);
-        } else {
-          realm!.add<Favorite>(fav, update: true);
-        }
-      });
-    }
-    if (data is Variant) {
-      Variant variant = data;
-      variant.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Variant>(variant, update: true);
-        } else {
-          realm!.add<Variant>(variant, update: true);
-        }
-      });
-    }
-    if (data is Stock) {
-      Stock stock = data;
-      stock.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Stock>(stock, update: true);
-        } else {
-          realm!.add<Stock>(stock, update: true);
-        }
-      });
-    }
-    if (data is ITransaction) {
-      final transaction = data;
-      transaction.lastTouched =
-          DateTime.now().toLocal().add(Duration(hours: 2));
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<ITransaction>(transaction, update: true);
-        } else {
-          realm!.add<ITransaction>(transaction, update: true);
-        }
-      });
-    }
-    if (data is Category) {
-      final category = data;
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Category>(category, update: true);
-        } else {
-          realm!.add<Category>(category, update: true);
-        }
-      });
-    }
-    if (data is IUnit) {
-      final unit = data;
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<IUnit>(unit, update: true);
-        } else {
-          realm!.add<IUnit>(unit, update: true);
-        }
-      });
-    }
-    if (data is PColor) {
-      final color = data;
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<PColor>(color, update: true);
-        } else {
-          realm!.add<PColor>(color, update: true);
-        }
-      });
-    }
-    if (data is TransactionItem) {
-      data.lastTouched = DateTime.now().toLocal();
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<TransactionItem>(data, update: true);
-        } else {
-          realm!.add<TransactionItem>(data, update: true);
-        }
-      });
-    }
-    if (data is EBM) {
-      final ebm = data;
-      realm!.write(() {
-        ProxyService.box
-            .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
-
-        Business? business =
-            realm!.query<Business>(r'userId == $0', [ebm.userId]).first;
-
-        business
-          ..dvcSrlNo = ebm.dvcSrlNo
-          ..tinNumber = ebm.tinNumber
-          ..bhfId = ebm.bhfId
-          ..taxServerUrl = ebm.taxServerUrl
-          ..taxEnabled = true;
-        if (localUpdate) {
-          realm!.add<Business>(business, update: true);
-        } else {
-          realm!.add<Business>(business, update: true);
-        }
-      });
-    }
-    if (data is Token) {
-      final token = data;
-      token
-        ..token = token.token
-        ..businessId = token.businessId
-        ..type = token.type;
-      realm!.write(() {
-        if (localUpdate) {
-          realm!.add<Token>(token);
-        } else {
-          realm!.add<Token>(token);
-        }
-      });
-    }
     if (data is Business) {
       final business = data;
-      realm!.write(() {
-        realm!.add<Business>(business);
-      });
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/business/${business.id}"),
         body: jsonEncode(business.toEJson()),
@@ -2736,61 +2594,22 @@ class RealmAPI<M extends IJsonSerializable>
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the business");
       }
-    }
-
-    if (data is Branch) {
-      realm!.write(() {
-        realm!.add<Branch>(data);
-      });
+    } else if (data is Branch) {
+      final branch = data;
       final response = await flipperHttpClient.patch(
-        Uri.parse("$apihub/v2/api/branch/${data.id}"),
-        body: jsonEncode(data.toEJson()),
+        Uri.parse("$apihub/v2/api/branch/${branch.id}"),
+        body: jsonEncode(branch.toEJson()),
       );
       if (response.statusCode != 200) {
         throw InternalServerError(term: "error patching the branch");
       }
-    }
-    if (data is Counter) {
-      Counter? iCounter = realm!.query<Counter>(
-          r'receiptType == $0', [data.receiptType!.toUpperCase()]).firstOrNull;
-      if (iCounter != null) {
-        iCounter.totRcptNo = data.totRcptNo;
-        iCounter.curRcptNo = data.curRcptNo;
-        realm!.write(() {
-          realm!.add<Counter>(iCounter);
-        });
-      } else {
-        realm!.write(() {
-          realm!.add<Counter>(data);
-        });
-      }
-    }
-    if (data is Branch) {
-      realm!.write(() {
-        realm!.add<Branch>(data);
-      });
-      try {
-        await flipperHttpClient.patch(
-          Uri.parse("$apihub/v2/api/branch/${data.id}"),
-          body: jsonEncode(data.toEJson()),
-        );
-      } catch (e) {}
-    }
-    if (data is Drawers) {
-      final drawer = data;
-
-      realm!.write(() {
-        realm!.add<Drawers>(drawer);
-      });
-    }
-    if (data is User) {
+    } else if (data is User) {
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/user"),
         body: jsonEncode(data.toEJson()),
       );
       return response.statusCode;
-    }
-    if (data is Tenant) {
+    } else if (data is Tenant) {
       final response = await flipperHttpClient.patch(
         Uri.parse("$apihub/v2/api/tenant/${data.id}"),
         body: jsonEncode(data.toEJson()),
@@ -2802,7 +2621,86 @@ class RealmAPI<M extends IJsonSerializable>
       }
       return response.statusCode;
     }
+
     return 0;
+  }
+
+  void _updateObject<T>(T data, Realm realm) {
+    if (data is Device) {
+      realm.add<Device>(data, update: true);
+    } else if (data is Product) {
+      final product = data;
+      product.lastTouched =
+          DateTime.now().toLocal().add(const Duration(hours: 2));
+      realm.add<Product>(product, update: true);
+    } else if (data is Favorite) {
+      final fav = data;
+      realm.add<Favorite>(fav, update: true);
+    } else if (data is Variant) {
+      final variant = data;
+      variant.lastTouched =
+          DateTime.now().toLocal().add(const Duration(hours: 2));
+      realm.add<Variant>(variant, update: true);
+    } else if (data is Stock) {
+      final stock = data;
+      stock.lastTouched =
+          DateTime.now().toLocal().add(const Duration(hours: 2));
+      realm.add<Stock>(stock, update: true);
+    } else if (data is ITransaction) {
+      final transaction = data;
+      transaction.lastTouched =
+          DateTime.now().toLocal().add(const Duration(hours: 2));
+      realm.add<ITransaction>(transaction, update: true);
+    } else if (data is Category) {
+      final category = data;
+      realm.add<Category>(category, update: true);
+    } else if (data is IUnit) {
+      final unit = data;
+      realm.add<IUnit>(unit, update: true);
+    } else if (data is PColor) {
+      final color = data;
+      realm.add<PColor>(color, update: true);
+    } else if (data is TransactionItem) {
+      data.lastTouched = DateTime.now().toLocal();
+      realm.add<TransactionItem>(data, update: true);
+    } else if (data is EBM) {
+      final ebm = data;
+      ProxyService.box
+          .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
+
+      Business? business =
+          realm.query<Business>(r'userId == $0', [ebm.userId]).first;
+
+      business
+        ..dvcSrlNo = ebm.dvcSrlNo
+        ..tinNumber = ebm.tinNumber
+        ..bhfId = ebm.bhfId
+        ..taxServerUrl = ebm.taxServerUrl
+        ..taxEnabled = true;
+      realm.add<Business>(business, update: true);
+    } else if (data is Token) {
+      final token = data;
+      token
+        ..token = token.token
+        ..businessId = token.businessId
+        ..type = token.type;
+      realm.add<Token>(token);
+    } else if (data is Counter) {
+      Counter? iCounter = realm.query<Counter>(
+        r'receiptType == $0',
+        [data.receiptType!.toUpperCase()],
+      ).firstOrNull;
+      if (iCounter != null) {
+        iCounter.totRcptNo = data.totRcptNo;
+        iCounter.curRcptNo = data.curRcptNo;
+        realm.add<Counter>(iCounter);
+      } else {
+        realm.add<Counter>(data);
+      }
+    } else if (data is Drawers) {
+      final drawer = data;
+      realm.add<Drawers>(drawer);
+    }
   }
 
   @override

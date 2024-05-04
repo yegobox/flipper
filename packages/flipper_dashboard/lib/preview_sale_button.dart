@@ -105,7 +105,6 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        // return Text("here");
         return SizedBox(
           height: 64,
           child: AnimatedBuilder(

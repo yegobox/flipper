@@ -110,7 +110,7 @@ class CronService {
     });
 
     Timer.periodic(_getpublushingDeviceDuration(), (Timer t) async {
-      ProxyService.isar.sendScheduleMessages();
+      ProxyService.realm.sendScheduleMessages();
       await _keepTryingPublishDevice(); // Add this line
     });
 
@@ -123,7 +123,7 @@ class CronService {
   }
 
   Future<void> _setupFirebase() async {
-    Business? business = await ProxyService.isar.getBusiness();
+    Business? business = await ProxyService.realm.getBusiness();
     ProxyService.syncFirestore.configure();
     String? token;
 

@@ -32,7 +32,7 @@ class PayableView extends StatelessWidget {
                 ticketHandler();
               },
               child: StreamBuilder<List<ITransaction>>(
-                stream: ProxyService.isar.ticketsStreams(),
+                stream: ProxyService.realm.ticketsStreams(),
                 builder: (context, snapshot) {
                   final List<ITransaction> transactions = snapshot.data ?? [];
                   final int tickets = transactions.length;

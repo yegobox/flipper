@@ -180,7 +180,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) async {
-          List<TransactionItem> items = await ProxyService.isar
+          List<TransactionItem> items = await ProxyService.realm
               .transactionItems(
                   transactionId: widget.transaction.id!,
                   doneWithTransaction: true,
@@ -382,8 +382,8 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
   }
 
   Future<void> refund(int id, CoreViewModel model) async {
-    ProxyService.isar.refund(itemId: id);
-    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+    ProxyService.realm.refund(itemId: id);
+    List<TransactionItem> items = await ProxyService.realm.transactionItems(
         transactionId: widget.transaction.id!,
         doneWithTransaction: true,
         active: true);

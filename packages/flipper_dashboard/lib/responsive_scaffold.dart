@@ -474,7 +474,7 @@ class _ResponsiveScaffoldState extends State<ResponsiveScaffold> {
                         // }
                       },
                       onLogout: () async {
-                        await ProxyService.isar.logOut();
+                        await ProxyService.realm.logOut();
                       },
                     ),
 
@@ -996,7 +996,7 @@ class _UserProfileState extends State<_UserProfile> {
                         const SizedBox(width: 10),
                         TextButton(
                           onPressed: () async {
-                            await ProxyService.isar.logOut();
+                            await ProxyService.realm.logOut();
                             _routerService.navigateTo(StartUpViewRoute());
                           },
                           child: Column(

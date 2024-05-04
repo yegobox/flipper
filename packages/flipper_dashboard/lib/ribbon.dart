@@ -103,7 +103,7 @@ class IconRowState extends ConsumerState<IconRow> {
                 isSelected: _isSelected[0],
               ),
             ),
-            ProxyService.isar.isTaxEnabled()
+            ProxyService.realm.isTaxEnabled()
                 ? IconText(
                     icon: Icons.sync,
                     text: 'Z Report',
@@ -153,16 +153,16 @@ class IconRowState extends ConsumerState<IconRow> {
     if (index == 2) {
       final _routerService = locator<RouterService>();
       // Perform some action when the button is pressed
-      final data = await ProxyService.isar
+      final data = await ProxyService.realm
           .getTransactionsAmountsSum(period: TransactionPeriod.today);
-      Drawers? drawer = await ProxyService.isar.getDrawer(
+      Drawers? drawer = await ProxyService.realm.getDrawer(
         cashierId: ProxyService.box.getBusinessId()!,
       );
       if (drawer != null) {
         /// update the drawer with closing balance
         drawer.closingBalance = data.income;
 
-        await ProxyService.isar.update(data: drawer);
+        await ProxyService.realm.update(data: drawer);
       }
       _routerService
           .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));

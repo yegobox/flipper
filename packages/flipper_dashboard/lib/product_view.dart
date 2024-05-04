@@ -194,10 +194,10 @@ class ProductViewState extends ConsumerState<ProductView> {
       },
       deleteProduct: (id, type) async {
         if (type == 'product') {
-          ProxyService.isar.delete(id: id!, endPoint: 'product');
+          ProxyService.realm.delete(id: id!, endPoint: 'product');
         }
         if (type == 'variant') {
-          ProxyService.isar.delete(id: id!, endPoint: 'variant');
+          ProxyService.realm.delete(id: id!, endPoint: 'variant');
         }
 
         // ignore: unused_result
@@ -251,7 +251,7 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget buildProfileWidget() {
     return isDesktopOrWeb
         ? FutureBuilder<Branch?>(
-            future: ProxyService.isar.activeBranch(),
+            future: ProxyService.realm.activeBranch(),
             builder: (a, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData) {
@@ -347,7 +347,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                 headerBuilder: (BuildContext context, bool isExpanded) {
                   final product = products[index];
                   return FutureBuilder<double>(
-                    future: ProxyService.isar.stocks(productId: product.id),
+                    future: ProxyService.realm.stocks(productId: product.id),
                     builder: (BuildContext context, stock) {
                       return RowItem(
                         color: product.color,

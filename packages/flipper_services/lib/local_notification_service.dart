@@ -21,12 +21,12 @@ class LocalNotificationService implements LNotification {
   @override
   Future<void> sendLocalNotification({Conversation? payload}) async {
     if (payload != null) {
-      await ProxyService.isar.create(data: payload);
+      await ProxyService.realm.create(data: payload);
       print('Received a new message in payload: ${payload.body}');
-      Conversation? localConversation = await ProxyService.isar
+      Conversation? localConversation = await ProxyService.realm
           .getConversation(messageId: payload.messageId!);
       if (localConversation == null) {
-        await ProxyService.isar.create(data: payload);
+        await ProxyService.realm.create(data: payload);
       }
       await NotificationsCubit.instance.scheduleNotification(payload);
     }

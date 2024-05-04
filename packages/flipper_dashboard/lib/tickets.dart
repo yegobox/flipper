@@ -119,7 +119,7 @@ class TicketsState extends ConsumerState<Tickets>
                       padding: const EdgeInsets.only(
                           left: 24.0, top: 20.0, right: 20.0),
                       child: StreamBuilder<List<ITransaction>>(
-                          stream: ProxyService.isar.ticketsStreams(),
+                          stream: ProxyService.realm.ticketsStreams(),
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               List<ITransaction> data = snapshot.data!;

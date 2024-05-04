@@ -146,7 +146,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
     initializeApplicationIfRequired();
     model.defaultBranch();
-    ProxyService.isar.refreshSession(
+    ProxyService.realm.refreshSession(
       branchId: ProxyService.box.getBranchId()!,
       refreshRate:
           kDebugMode ? 10 : ProxyService.remoteConfig.sessionTimeOutMinutes(),
@@ -205,7 +205,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         child: Scaffold(
           appBar: _buildAppBar(),
           body: StreamBuilder<Tenant?>(
-            stream: ProxyService.isar
+            stream: ProxyService.realm
                 .authState(branchId: ProxyService.box.getBranchId() ?? 0),
             builder: (context, snapshot) {
               return _buildAppLayoutDrawer(context, model, snapshot);
@@ -265,14 +265,14 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Future<void> _showLocalAuthOverlay(
       BuildContext context, CoreViewModel model) async {
-    List<Tenant> tenants = await ProxyService.isar
+    List<Tenant> tenants = await ProxyService.realm
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     screenLock(
       context: context,
       correctString: model.passCode,
       canCancel: false,
       onUnlocked: () async {
-        Tenant? tenant = await ProxyService.isar
+        Tenant? tenant = await ProxyService.realm
             .getTenantBYPin(pin: int.tryParse(model.passCode) ?? 0);
         model.weakUp(userId: tenant!.userId!, pin: model.passCode);
         Navigator.of(context).maybePop();

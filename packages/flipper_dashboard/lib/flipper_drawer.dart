@@ -130,7 +130,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                     top: 40.0),
                                                 child: InkWell(
                                                   onTap: () async {
-                                                    await ProxyService.isar
+                                                    await ProxyService.realm
                                                         .logOut();
                                                     _routerService.navigateTo(
                                                         StartUpViewRoute());

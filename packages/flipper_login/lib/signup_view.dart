@@ -44,7 +44,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   AsyncFieldValidationFormBloc(
       {required this.signupViewModel, required String country}) {
     countryName.updateInitialValue(country);
-    ProxyService.isar.businessTypes().then((data) {
+    ProxyService.realm.businessTypes().then((data) {
       // Update the items of the SelectFieldBloc
       log(data.toString(), name: 'AsyncFieldValidationFormBloc');
       // remove Flipper Connecta from data
@@ -78,7 +78,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     if (username == null) {
       return "Username/business name is required";
     }
-    int status = await ProxyService.isar.userNameAvailable(name: username);
+    int status = await ProxyService.realm.userNameAvailable(name: username);
 
     if (status == 200) {
       return 'That username is already taken';

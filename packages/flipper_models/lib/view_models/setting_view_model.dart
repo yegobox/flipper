@@ -17,7 +17,7 @@ class SettingViewModel extends CoreViewModel {
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
-    _business = await ProxyService.isar
+    _business = await ProxyService.realm
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
@@ -60,7 +60,7 @@ class SettingViewModel extends CoreViewModel {
 
   loadUserSettings() async {
     int businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.isar.getSetting(businessId: businessId);
+    _setting = await ProxyService.realm.getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -77,7 +77,7 @@ class SettingViewModel extends CoreViewModel {
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
       businessId = ProxyService.box.getBusinessId()!;
     }
-    return ProxyService.isar
+    return ProxyService.realm
         .isSubscribed(feature: 'sync', businessId: businessId);
   }
 
@@ -96,13 +96,13 @@ class SettingViewModel extends CoreViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed = ProxyService.isar
+    isSubscribed = ProxyService.realm
         .isSubscribed(businessId: businessId, feature: feature);
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      isSubscribed = ProxyService.isar.subscribe(
+      isSubscribed = ProxyService.realm.subscribe(
         businessId: businessId,
         feature: feature,
         agentCode: agentCode,
@@ -123,14 +123,14 @@ class SettingViewModel extends CoreViewModel {
       if (!RegExp(r"^[\w.+\-]+@gmail\.com$").hasMatch(setting.email!)) {
         callback(1);
       } else {
-        await ProxyService.isar.createGoogleSheetDoc(email: setting.email!);
+        await ProxyService.realm.createGoogleSheetDoc(email: setting.email!);
 
-        Business business = await ProxyService.isar.getBusiness();
+        Business business = await ProxyService.realm.getBusiness();
         business.email = setting.email;
-        await ProxyService.isar.update(
+        await ProxyService.realm.update(
           data: business,
         );
-        ProxyService.isar.update(
+        ProxyService.realm.update(
           data: business,
         );
       }
@@ -147,8 +147,8 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        Business business = await ProxyService.isar.getBusiness();
-        ProxyService.isar
+        Business business = await ProxyService.realm.getBusiness();
+        ProxyService.realm
             .enableAttendance(businessId: business.id!, email: setting.email!);
       }
     } else {

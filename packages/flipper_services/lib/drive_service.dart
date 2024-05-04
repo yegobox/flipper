@@ -108,7 +108,7 @@ class GoogleDrive {
 
     /// notify the online that user has enabled the backup
     /// also update the property locally.
-    await ProxyService.isar.update(data: business);
+    await ProxyService.realm.update(data: business);
   }
 
   /// Upload File to user's Google Drive appData folder
@@ -118,7 +118,7 @@ class GoogleDrive {
   /// and the second login will not prompt the user to login
   Future upload() async {
     // download files first before uploading
-    final dir = ProxyService.isar.dbPath();
+    final dir = ProxyService.realm.dbPath();
     // ProxyService.isarApi
     File file = File(path.context.canonicalize(dir + '/mdbx.dat'));
     // end of download
@@ -142,10 +142,10 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    Business business = await ProxyService.isar.getBusiness();
+    Business business = await ProxyService.realm.getBusiness();
     business.backupFileId = fileUploaded.id;
-    await ProxyService.isar.update(data: business);
-    ProxyService.isar.update(data: business);
+    await ProxyService.realm.update(data: business);
+    ProxyService.realm.update(data: business);
     ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
   }
 
@@ -164,7 +164,7 @@ class GoogleDrive {
     ga.Media file = (await drive.files
         .get(gdID, downloadOptions: ga.DownloadOptions.fullMedia)) as ga.Media;
 
-    final dir = ProxyService.isar.dbPath();
+    final dir = ProxyService.realm.dbPath();
 
     final saveFile = File(dir + '/$fName');
 

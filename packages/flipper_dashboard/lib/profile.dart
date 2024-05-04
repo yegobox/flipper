@@ -130,7 +130,7 @@ class PDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
       future:
-          ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
+          ProxyService.realm.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         // final data = snapshot.data;
         // final hasImage = data?.imageUrl != null;
@@ -141,7 +141,7 @@ class PDesktop extends StatelessWidget {
               onSelected: (value) async {
                 if (value == 'logOut') {
                   log('logout selected');
-                  await ProxyService.isar.logOut();
+                  await ProxyService.realm.logOut();
                   routeService.clearStackAndShow(LoginViewRoute());
                 }
                 if (value == "syncCounter") {
@@ -242,7 +242,7 @@ class PMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
       future:
-          ProxyService.isar.getBusiness(businessId: widget.branch.businessId),
+          ProxyService.realm.getBusiness(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
         // ignore: unused_local_variable

@@ -34,7 +34,7 @@ OverlayEntry insertOverlay(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       FutureBuilder<Branch?>(
-                        future: ProxyService.isar.activeBranch(),
+                        future: ProxyService.realm.activeBranch(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.waiting ||

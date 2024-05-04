@@ -239,9 +239,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             buildOutlinedButton(
               onPressed: () async {
                 model.keyboardKeyPressed(key: 'C');
-                if (await ProxyService.isar.isTaxEnabled()) {
+                if (await ProxyService.realm.isTaxEnabled()) {
                   if (model.receiptReady) {
-                    await ProxyService.isar.transactionItems(
+                    await ProxyService.realm.transactionItems(
                       doneWithTransaction: false,
                       active: true,
                       transactionId: widget.transaction.id!,

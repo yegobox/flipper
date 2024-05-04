@@ -58,7 +58,7 @@ mixin ProductMixin {
       /// Packaging Unit
       variant.qtyUnitCd = "U"; // see 4.6 in doc
     }
-    int result = await ProxyService.isar.addVariant(
+    int result = await ProxyService.realm.addVariant(
       variations: variations,
     );
     return result;
@@ -74,7 +74,7 @@ mixin ProductMixin {
     mproduct.barCode = productService.barCode.toString();
     mproduct.color = currentColor;
 
-    Category? activeCat = await ProxyService.isar
+    Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
     activeCat?.active = false;
@@ -82,13 +82,13 @@ mixin ProductMixin {
 
     mproduct.categoryId = activeCat?.id!;
 
-    await ProxyService.isar.update(data: activeCat);
+    await ProxyService.realm.update(data: activeCat);
 
     mproduct.action = inUpdateProcess ? AppActions.updated : AppActions.created;
 
-    await ProxyService.isar.update(data: mproduct);
+    await ProxyService.realm.update(data: mproduct);
     List<Variant> variants =
-        await ProxyService.isar.getVariantByProductId(productId: mproduct.id);
+        await ProxyService.realm.getVariantByProductId(productId: mproduct.id);
 
     for (Variant variant in variants) {
       variant.productName = productName!;
@@ -97,9 +97,9 @@ mixin ProductMixin {
       variant.pkgUnitCd = "NT";
       variant.action =
           inUpdateProcess ? AppActions.updated : AppActions.created;
-      await ProxyService.isar.update(data: variant);
+      await ProxyService.realm.update(data: variant);
     }
 
-    return await ProxyService.isar.getProduct(id: mproduct.id!);
+    return await ProxyService.realm.getProduct(id: mproduct.id!);
   }
 }

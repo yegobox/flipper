@@ -245,8 +245,8 @@ class _TenantAddState extends State<TenantAdd> {
   }
 
   Future<void> _addUser(FlipperBaseModel model) async {
-    Business? business = await ProxyService.isar.defaultBusiness();
-    Branch? branch = await ProxyService.isar.defaultBranch();
+    Business? business = await ProxyService.realm.defaultBusiness();
+    Branch? branch = await ProxyService.realm.defaultBranch();
 
     /// when a business add a tenant, this tenant might not have the account to flipper yet
     /// but the user will be created, it is important to know that this tenant added
@@ -254,7 +254,7 @@ class _TenantAddState extends State<TenantAdd> {
     /// either this user or tenant being added will be prompted to choose default business
     /// and default branch, also it is important to know that this tenant added
     /// will be working in scope defined by permission given at time of adding him
-    await ProxyService.isar.saveTenant(
+    await ProxyService.realm.saveTenant(
       _phoneController.text,
       _nameController.text,
       branch: branch!,
@@ -300,7 +300,7 @@ class _TenantAddState extends State<TenantAdd> {
               onDismissed: (direction) async {
                 if (direction == DismissDirection.endToStart) {
                   // User swiped to delete
-                  await ProxyService.isar
+                  await ProxyService.realm
                       .delete(id: tenant.id!, endPoint: 'tenant');
                   model.loadTenants();
                 }
@@ -325,7 +325,7 @@ class _TenantAddState extends State<TenantAdd> {
                   onTap: () async {
                     if (tenant.isLongPressed) {
                       // Reset the long-press state
-                      await ProxyService.isar
+                      await ProxyService.realm
                           .delete(id: tenant.id!, endPoint: 'tenant');
                       model.loadTenants();
                       setState(() {
@@ -384,7 +384,7 @@ class _TenantAddState extends State<TenantAdd> {
             nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
 
             showToast(context, 'You have added NFC card to ${tenant.name}');
-            await ProxyService.isar.update<Tenant>(data: tenant);
+            await ProxyService.realm.update<Tenant>(data: tenant);
             model.loadTenants();
           },
           textData:

@@ -40,7 +40,7 @@ mixin Properties {
 
 mixin SharebleMethods {
   Stream<Customer?> getCustomer({String? key, int? id}) {
-    return Stream.fromFuture(ProxyService.isar.getCustomer(key: key, id: id))
+    return Stream.fromFuture(ProxyService.realm.getCustomer(key: key, id: id))
         .asyncExpand((customer) async* {
       // Yield the customer as he become available
 
@@ -50,7 +50,7 @@ mixin SharebleMethods {
 
   Stream<List<TransactionItem>> transactionItemsStream(
       {required ITransaction transaction}) {
-    return Stream.fromFuture(ProxyService.isar.transactionItems(
+    return Stream.fromFuture(ProxyService.realm.transactionItems(
             transactionId: transaction.id!,
             doneWithTransaction: false,
             active: false))
@@ -62,7 +62,7 @@ mixin SharebleMethods {
   //Transaction functions
   Stream<List<ITransaction>> getTransactions({String? transactionStatus}) {
     return Stream.fromFuture(
-            ProxyService.isar.transactionsFuture(status: transactionStatus))
+            ProxyService.realm.transactionsFuture(status: transactionStatus))
         .asyncExpand((items) async* {
       // log(items.toString());
       yield items;
@@ -71,7 +71,7 @@ mixin SharebleMethods {
 
   Stream<List<ITransaction>> getCashInTransactions() {
     return Stream.fromFuture(
-            ProxyService.isar.transactionsFuture(isCashOut: false))
+            ProxyService.realm.transactionsFuture(isCashOut: false))
         .asyncExpand((items) async* {
       yield items;
     });
@@ -79,7 +79,7 @@ mixin SharebleMethods {
 
   Stream<List<ITransaction>> getCashOutTransactions() {
     return Stream.fromFuture(
-            ProxyService.isar.transactionsFuture(isCashOut: true))
+            ProxyService.realm.transactionsFuture(isCashOut: true))
         .asyncExpand((items) async* {
       yield items;
     });

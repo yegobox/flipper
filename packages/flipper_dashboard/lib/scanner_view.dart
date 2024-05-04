@@ -213,7 +213,7 @@ class ScannViewState extends ConsumerState<ScannView> {
     scanToLogin(result: scanData.code);
     if (widget.intent == ATTENDANCE) {
       bool isCheckInDone =
-          await ProxyService.isar.checkIn(checkInCode: scanData.code);
+          await ProxyService.realm.checkIn(checkInCode: scanData.code);
       if (isCheckInDone) {
         showSimpleNotification(
           const Text('Check In Successful'),

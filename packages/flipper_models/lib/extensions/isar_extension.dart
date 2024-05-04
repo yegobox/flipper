@@ -83,7 +83,7 @@ extension IsarO<ID, OBJ> on IsarCollection<OBJ> {
         variant.tin = ProxyService.box.tin();
 
         /// localUpdate provide localUpdate to avoid recursive calls
-        ProxyService.isar.update(data: variant, localUpdate: true);
+        ProxyService.realm.update(data: variant);
 
         /// save extra fields that where not provided
         // ProxyService.realm.onSave<Variant>(item: variant);

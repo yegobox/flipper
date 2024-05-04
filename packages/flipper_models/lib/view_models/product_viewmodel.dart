@@ -35,7 +35,7 @@ class ProductViewModel extends FlipperBaseModel
   List<IUnit> units = [];
   Future<void> loadUnits() async {
     int? branchId = ProxyService.box.getBranchId();
-    units = await ProxyService.isar.units(branchId: branchId!);
+    units = await ProxyService.realm.units(branchId: branchId!);
   }
 
   get categories => app.categories;
@@ -82,7 +82,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> loadColors() async {
     int? branchId = ProxyService.box.getBranchId();
 
-    colors = await ProxyService.isar.colors(branchId: branchId!);
+    colors = await ProxyService.realm.colors(branchId: branchId!);
     notifyListeners();
     for (PColor color in colors) {
       if (color.active) {
@@ -100,7 +100,7 @@ class ProductViewModel extends FlipperBaseModel
   String kProductName = 'null';
   Future<Product> getProduct({int? productId}) async {
     if (productId != null) {
-      Product? product = await ProxyService.isar.getProduct(id: productId);
+      Product? product = await ProxyService.realm.getProduct(id: productId);
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
       kProductName = product.name!;
@@ -110,7 +110,7 @@ class ProductViewModel extends FlipperBaseModel
     }
 
     /// create a temp product or return it if it exists
-    Product? product = await ProxyService.isar.createProduct(
+    Product? product = await ProxyService.realm.createProduct(
       product: Product(
         ObjectId(),
         id: randomNumber(),
@@ -157,7 +157,7 @@ class ProductViewModel extends FlipperBaseModel
         branchId: branchId!,
         id: randomNumber());
 
-    await ProxyService.isar.create(data: category);
+    await ProxyService.realm.create(data: category);
     app.loadCategories();
   }
 
@@ -169,7 +169,7 @@ class ProductViewModel extends FlipperBaseModel
         cat.focused = false;
         cat.branchId = branchId;
         cat.active = false;
-        await ProxyService.isar.update(
+        await ProxyService.realm.update(
           data: cat,
         );
       }
@@ -179,7 +179,7 @@ class ProductViewModel extends FlipperBaseModel
     cat.focused = true;
     cat.active = true;
     cat.branchId = branchId;
-    await ProxyService.isar.update(
+    await ProxyService.realm.update(
       data: cat,
     );
     app.loadCategories();
@@ -195,19 +195,19 @@ class ProductViewModel extends FlipperBaseModel
       if (unit.active!) {
         unit.active = false;
         unit.branchId = branchId;
-        await ProxyService.isar.update(data: unit);
+        await ProxyService.realm.update(data: unit);
       }
     }
     log('updating unit 1', name: 'saveFocusedUnit');
     newUnit.active = true;
     newUnit.branchId = branchId;
-    await ProxyService.isar.update(data: newUnit);
+    await ProxyService.realm.update(data: newUnit);
     log('updating unit 2', name: 'saveFocusedUnit');
     if (type == 'product') {
       product?.unit = newUnit.name;
-      await ProxyService.isar.update(data: product);
+      await ProxyService.realm.update(data: product);
       // get updated product
-      product = await ProxyService.isar.getProduct(id: product!.id!);
+      product = await ProxyService.realm.getProduct(id: product!.id!);
     }
     log('updating unit 3', name: 'saveFocusedUnit');
 
@@ -226,12 +226,12 @@ class ProductViewModel extends FlipperBaseModel
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
       Stock? stock =
-          await ProxyService.isar.stockByVariantId(variantId: variantId);
+          await ProxyService.realm.stockByVariantId(variantId: variantId);
 
       stock!.currentStock = _stockValue!;
 
-      ProxyService.isar.update(data: stock);
-      if (await ProxyService.isar.isTaxEnabled()) {
+      ProxyService.realm.update(data: stock);
+      if (await ProxyService.realm.isTaxEnabled()) {
         ProxyService.tax.saveStock(stock: stock);
       }
     }
@@ -245,10 +245,10 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void deleteVariant({required int id}) async {
-    Variant? variant = await ProxyService.isar.variant(variantId: id);
+    Variant? variant = await ProxyService.realm.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.isar.delete(id: id, endPoint: 'variation');
+      ProxyService.realm.delete(id: id, endPoint: 'variation');
       //this will reload the variations remain
       getProduct();
     }
@@ -259,21 +259,21 @@ class ProductViewModel extends FlipperBaseModel
     int branchId = ProxyService.box.getBranchId()!;
     for (PColor c in colors) {
       if (c.active) {
-        final PColor? _color = await ProxyService.isar.getColor(id: c.id!);
+        final PColor? _color = await ProxyService.realm.getColor(id: c.id!);
         _color!.active = false;
         _color.branchId = branchId;
-        await ProxyService.isar.update(data: _color);
+        await ProxyService.realm.update(data: _color);
       }
     }
 
-    final PColor? _color = await ProxyService.isar.getColor(id: color.id!);
+    final PColor? _color = await ProxyService.realm.getColor(id: color.id!);
 
     _color!.active = true;
     _color.branchId = branchId;
     product!.color = color.name!;
     widgetReference.read(productProvider.notifier).emitProduct(value: product!);
-    await ProxyService.isar.update(data: product);
-    await ProxyService.isar.update(data: _color);
+    await ProxyService.realm.update(data: product);
+    await ProxyService.realm.update(data: _color);
 
     setCurrentColor(color: color.name!);
 
@@ -300,8 +300,8 @@ class ProductViewModel extends FlipperBaseModel
     double? supplyPrice,
     double? retailPrice,
   }) async {
-    Product? product = await ProxyService.isar.getProduct(id: productId ?? 0);
-    List<Variant> variants = await ProxyService.isar.variants(
+    Product? product = await ProxyService.realm.getProduct(id: productId ?? 0);
+    List<Variant> variants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
     if (supplyPrice != null) {
       for (Variant variation in variants) {
@@ -311,14 +311,14 @@ class ProductViewModel extends FlipperBaseModel
           variation.action =
               inUpdateProcess ? AppActions.updated : AppActions.created;
           variation.productId = variation.productId;
-          ProxyService.isar.update(data: variation);
-          Stock? stock = await ProxyService.isar
+          ProxyService.realm.update(data: variation);
+          Stock? stock = await ProxyService.realm
               .stockByVariantId(variantId: variation.id!);
 
           stock!.supplyPrice = supplyPrice;
           stock.action =
               inUpdateProcess ? AppActions.updated : AppActions.created;
-          ProxyService.isar.update(data: stock);
+          ProxyService.realm.update(data: stock);
         }
       }
     }
@@ -332,14 +332,14 @@ class ProductViewModel extends FlipperBaseModel
           variation.action =
               inUpdateProcess ? AppActions.updated : AppActions.created;
           variation.productName = product!.name;
-          ProxyService.isar.update(data: variation);
-          Stock? stock = await ProxyService.isar
+          ProxyService.realm.update(data: variation);
+          Stock? stock = await ProxyService.realm
               .stockByVariantId(variantId: variation.id!);
 
           stock!.retailPrice = retailPrice;
           stock.action =
               inUpdateProcess ? AppActions.updated : AppActions.created;
-          await ProxyService.isar.update(data: stock);
+          await ProxyService.realm.update(data: stock);
         }
       }
     }
@@ -356,7 +356,7 @@ class ProductViewModel extends FlipperBaseModel
       action: AppActions.created,
     );
 
-    int res = await ProxyService.isar.addFavorite(data: favorite);
+    int res = await ProxyService.realm.addFavorite(data: favorite);
     rebuildUi();
 
     return res;
@@ -365,30 +365,30 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> deleteProduct({required int productId}) async {
     //get variants->delete
     int branchId = ProxyService.box.getBranchId()!;
-    List<Variant> variations = await ProxyService.isar
+    List<Variant> variations = await ProxyService.realm
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.isar.delete(id: variation.id!, endPoint: 'variant');
+      await ProxyService.realm.delete(id: variation.id!, endPoint: 'variant');
       //get stock->delete
       Stock? stock =
-          await ProxyService.isar.stockByVariantId(variantId: variation.id!);
+          await ProxyService.realm.stockByVariantId(variantId: variation.id!);
 
-      await ProxyService.isar.delete(id: stock!.id!, endPoint: 'stock');
+      await ProxyService.realm.delete(id: stock!.id!, endPoint: 'stock');
 
       Favorite? fav =
-          await ProxyService.isar.getFavoriteByProdId(prodId: productId);
+          await ProxyService.realm.getFavoriteByProdId(prodId: productId);
       if (fav != null) {
-        await ProxyService.isar.deleteFavoriteByIndex(favIndex: fav.id!);
+        await ProxyService.realm.deleteFavoriteByIndex(favIndex: fav.id!);
       }
     }
     //then delete the product
-    await ProxyService.isar.delete(id: productId, endPoint: 'product');
+    await ProxyService.realm.delete(id: productId, endPoint: 'product');
   }
 
   void updateExpiryDate(DateTime date) async {
     product!.expiryDate = date.toIso8601String();
-    ProxyService.isar.update(data: product);
-    Product? cProduct = await ProxyService.isar.getProduct(id: product!.id!);
+    ProxyService.realm.update(data: product);
+    Product? cProduct = await ProxyService.realm.getProduct(id: product!.id!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }
@@ -398,7 +398,7 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void deleteDiscount({id}) {
-    ProxyService.isar.delete(id: id, endPoint: 'discount');
+    ProxyService.realm.delete(id: id, endPoint: 'discount');
   }
 
   /// loop through transaction's items and update item with discount in consideration
@@ -409,18 +409,18 @@ class ProductViewModel extends FlipperBaseModel
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {
-      List<TransactionItem> transactionItems = await ProxyService.isar
+      List<TransactionItem> transactionItems = await ProxyService.realm
           .getTransactionItemsByTransactionId(transactionId: transaction.id);
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount! && item.discount == null) {
           item.discount = item.price;
 
-          await ProxyService.isar.update(data: item);
+          await ProxyService.realm.update(data: item);
         } else if (item.discount == null) {
           item.discount =
               discount.amount != null ? discount.amount!.toDouble() : 0.0;
 
-          await ProxyService.isar.update(data: item);
+          await ProxyService.realm.update(data: item);
         }
       }
       return true;
@@ -431,7 +431,7 @@ class ProductViewModel extends FlipperBaseModel
   Future<void> bindTenant(
       {required int tenantId, required int productId}) async {
     try {
-      await ProxyService.isar
+      await ProxyService.realm
           .bindProduct(productId: productId, tenantId: tenantId);
       rebuildUi();
     } catch (e) {

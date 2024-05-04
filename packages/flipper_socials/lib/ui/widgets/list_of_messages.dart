@@ -86,7 +86,7 @@ class MessageDisplayMobile extends StatelessWidget {
             color: Colors.black,
           )),
       subtitle: StreamBuilder(
-        stream: ProxyService.isar.conversations(
+        stream: ProxyService.realm.conversations(
             conversationId: conversations![index].conversationId!),
         builder:
             (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {
@@ -110,7 +110,7 @@ class MessageDisplayMobile extends StatelessWidget {
         },
       ),
       trailing: StreamBuilder(
-        stream: ProxyService.isar.conversations(
+        stream: ProxyService.realm.conversations(
             conversationId: conversations![index].conversationId!),
         builder:
             (BuildContext context, AsyncSnapshot<List<Conversation>> snapshot) {

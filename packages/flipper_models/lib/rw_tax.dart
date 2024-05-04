@@ -24,7 +24,7 @@ class RWTax implements TaxApi {
     required String dvcSrlNo,
   }) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
-    EBM? ebm = await ProxyService.isar
+    EBM? ebm = await ProxyService.realm
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
@@ -58,7 +58,7 @@ class RWTax implements TaxApi {
       /// because updating stock in in rra work is just passing item with updated qty
       /// we first get the item from db update the query from our stock model and pass it
       Variant? variant =
-          await ProxyService.isar.getVariantById(id: stock.variantId!);
+          await ProxyService.realm.getVariantById(id: stock.variantId!);
 
       /// update the remaining stock of this item in rra
       variant!.rsdQty = stock.currentStock;
@@ -170,7 +170,7 @@ class RWTax implements TaxApi {
     required String bhfId,
     String lastReqDt = "20210523000000",
   }) async {
-    EBM? ebm = await ProxyService.isar
+    EBM? ebm = await ProxyService.realm
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
       return false;
@@ -211,7 +211,7 @@ class RWTax implements TaxApi {
     required Counter counter,
     String? purchaseCode,
   }) async {
-    Business? business = await ProxyService.isar.getBusiness();
+    Business? business = await ProxyService.realm.getBusiness();
     String date = DateTime.now()
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')
@@ -288,7 +288,7 @@ class RWTax implements TaxApi {
       "itemList": itemsList
     };
     Customer? customer =
-        await ProxyService.isar.getCustomer(id: transaction.customerId);
+        await ProxyService.realm.getCustomer(id: transaction.customerId);
 
     Map<String, dynamic> finalData;
 

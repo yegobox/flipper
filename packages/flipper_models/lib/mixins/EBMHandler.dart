@@ -39,10 +39,10 @@ class EBMHandler<OBJ> {
   /// receipt, and handles any errors.
   Future<void> handleReceiptGeneration(
       {required ITransaction transaction, String? purchaseCode}) async {
-    if (await ProxyService.isar.isTaxEnabled()) {
-      Business? business = await ProxyService.isar.getBusiness();
+    if (await ProxyService.realm.isTaxEnabled()) {
+      Business? business = await ProxyService.realm.getBusiness();
       List<TransactionItem> items =
-          await ProxyService.isar.getTransactionItemsByTransactionId(
+          await ProxyService.realm.getTransactionItemsByTransactionId(
         transactionId: transaction.id,
       );
 
@@ -92,7 +92,7 @@ class EBMHandler<OBJ> {
       required String receiptType,
       required ITransaction transaction}) async {
     Receipt? receipt =
-        await ProxyService.isar.getReceipt(transactionId: transaction.id!);
+        await ProxyService.realm.getReceipt(transactionId: transaction.id!);
 
     Print print = Print();
     log(items.toString(), name: "Items");
@@ -147,11 +147,11 @@ class EBMHandler<OBJ> {
     // Use local counter as long as it is marked as synced.
     log(receiptType, name: "onBefore: current Counter");
     int branchId = ProxyService.box.getBranchId()!;
-    Counter? counter = await ProxyService.isar
+    Counter? counter = await ProxyService.realm
         .getCounter(branchId: branchId, receiptType: receiptType);
 
     if (counter == null) {
-      ProxyService.isar.create<Counter>(
+      ProxyService.realm.create<Counter>(
         data: Counter(
           ObjectId(),
           id: randomNumber(),
@@ -200,12 +200,12 @@ class EBMHandler<OBJ> {
   void updateTransactionAndDrawer(
       String receiptType, ITransaction transaction) async {
     await updateDrawer(receiptType, transaction);
-    ProxyService.isar.update(data: transaction);
+    ProxyService.realm.update(data: transaction);
   }
 
   Future<void> updateDrawer(
       String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.isar
+    Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
     drawer!
       ..cashierId = ProxyService.box.getBusinessId()!
@@ -234,11 +234,11 @@ class EBMHandler<OBJ> {
       ..openingDateTime = DateTime.now().toIso8601String()
       ..open = true;
     // update drawer
-    await ProxyService.isar.update(data: drawer);
+    await ProxyService.realm.update(data: drawer);
   }
 
   Future<void> updateCounter(Counter counter) async {
-    await ProxyService.isar.update(data: counter);
+    await ProxyService.realm.update(data: counter);
   }
 
   Future<void> createReceiptInIsar(
@@ -248,7 +248,7 @@ class EBMHandler<OBJ> {
     Counter counter,
     String receiptNumber,
   ) async {
-    await ProxyService.isar.createReceipt(
+    await ProxyService.realm.createReceipt(
       signature: receiptSignature,
       transaction: transaction,
       qrCode: qrCode,

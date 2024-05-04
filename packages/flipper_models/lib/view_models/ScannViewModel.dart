@@ -84,7 +84,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<Product?> createProduct({required String name}) async {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
-    return await ProxyService.isar.createProduct(
+    return await ProxyService.realm.createProduct(
       product: Product(
         ObjectId(),
         name: name,
@@ -111,7 +111,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     if (index != -1) {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
-      ProxyService.isar.delete(id: matchedVariant.id!, endPoint: 'variant');
+      ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
       scannedVariants.removeAt(index);
       notifyListeners();
     }
@@ -149,7 +149,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.isar.delete(id: variant.id!, endPoint: 'variant');
+      await ProxyService.realm.delete(id: variant.id!, endPoint: 'variant');
     }
 
     scannedVariants.clear();

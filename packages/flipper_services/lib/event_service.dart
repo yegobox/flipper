@@ -65,7 +65,7 @@ class EventService with TokenLogin implements EventInterface {
           ///TODO: work on making sure only specific device with specific linkingCode
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
-          ProxyService.isar.logOut();
+          ProxyService.realm.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         }
       });
@@ -110,13 +110,13 @@ class EventService with TokenLogin implements EventInterface {
         String deviceVersion = Platform.version;
         // publish the device name and version
 
-        Device? device = await ProxyService.isar.getDevice(
+        Device? device = await ProxyService.realm.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
-          await ProxyService.isar
+          await ProxyService.realm
               .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
           if (device == null) {
-            await ProxyService.isar.create(
+            await ProxyService.realm.create(
                 data: Device(ObjectId(),
                     id: randomNumber(),
                     pubNubPublished: false,
@@ -156,11 +156,11 @@ class EventService with TokenLogin implements EventInterface {
       isar.IConversation conversation =
           isar.IConversation.fromJson(envelope.payload);
 
-      Conversation? localConversation = await ProxyService.isar
+      Conversation? localConversation = await ProxyService.realm
           .getConversation(messageId: conversation.messageId!);
 
       if (localConversation == null) {
-        await ProxyService.isar.create(data: conversation);
+        await ProxyService.realm.create(data: conversation);
       }
     });
   }
@@ -176,11 +176,11 @@ class EventService with TokenLogin implements EventInterface {
     subscription.messages.listen((envelope) async {
       LoginData deviceEvent = LoginData.fromMap(envelope.payload);
 
-      Device? device = await ProxyService.isar.getDevice(
+      Device? device = await ProxyService.realm.getDevice(
           phone: deviceEvent.phone, linkingCode: deviceEvent.linkingCode);
 
       if (device == null) {
-        await ProxyService.isar.create(
+        await ProxyService.realm.create(
             data: Device(ObjectId(),
                 id: randomNumber(),
                 pubNubPublished: true,
@@ -200,7 +200,7 @@ class EventService with TokenLogin implements EventInterface {
   @override
   Future<void> keepTryingPublishDevice() async {
     if (ProxyService.box.getBusinessId() == null) return;
-    List<Device> devices = await ProxyService.isar
+    List<Device> devices = await ProxyService.realm
         .unpublishedDevices(businessId: ProxyService.box.getBusinessId()!);
     for (Device device in devices) {
       nub.PublishResult result = await publish(
@@ -218,7 +218,7 @@ class EventService with TokenLogin implements EventInterface {
       );
       if (result.description == 'Sent') {
         device.pubNubPublished = true;
-        await ProxyService.isar.update(data: device);
+        await ProxyService.realm.update(data: device);
       }
     }
   }

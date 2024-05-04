@@ -357,7 +357,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
           model.setProductName(name: product.name);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.isar
+          List<Variant> variants = await ProxyService.realm
               .getVariantByProductId(productId: widget.productId!);
 
           /// populate the supplyPrice and retailPrice of the first item

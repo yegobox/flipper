@@ -6,12 +6,12 @@ import 'package:flipper_services/proxy.dart';
 class DiscountViewModel extends ProductViewModel {
   Future<void> save({required String name, double? amount}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    await ProxyService.isar
+    await ProxyService.realm
         .saveDiscount(branchId: branchId, name: name, amount: amount);
   }
 
   update({required String name, required double amount, required int id}) {
-    ProxyService.isar.update(
+    ProxyService.realm.update(
       data: {'name': name, "amount": amount, "id": id},
     );
   }

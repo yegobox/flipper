@@ -33,7 +33,7 @@ class FlipperBaseModel extends ReactiveViewModel {
   List<Tenant> get tenants => _tenants;
 
   Future<void> loadTenants() async {
-    List<Tenant> users = await ProxyService.isar
+    List<Tenant> users = await ProxyService.realm
         .tenants(businessId: ProxyService.box.getBusinessId()!);
     _tenants = [...users];
     rebuildUi();

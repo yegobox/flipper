@@ -61,7 +61,7 @@ abstract class RealmApiInterface {
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
-  Future<int> update<T>({required T data, bool localUpdate = false});
+  Future<int> update<T>({required T data});
 
   Future<bool> delete({required int id, String? endPoint});
   Future<PColor?> getColor({required int id});

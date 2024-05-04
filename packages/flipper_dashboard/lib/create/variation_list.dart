@@ -42,7 +42,7 @@ class VariationList extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     FutureBuilder<Stock?>(
-                      future: ProxyService.isar.stockByVariantId(
+                      future: ProxyService.realm.stockByVariantId(
                         variantId: variant.id!,
                       ),
                       builder: (context, snapshot) {

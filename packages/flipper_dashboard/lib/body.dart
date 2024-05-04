@@ -30,7 +30,7 @@ Widget PaymentTicketManager(
     payable: PayableView(
       model: model,
       onClick: () async {
-        final transaction = await ProxyService.isar
+        final transaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.custom);
         if (transaction.subTotal == 0) {
           _routerService.navigateTo(PaymentsRoute(transaction: transaction));
@@ -43,7 +43,7 @@ Widget PaymentTicketManager(
         }
       },
       ticketHandler: () async {
-        ITransaction transaction = await ProxyService.isar
+        ITransaction transaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.custom);
         showModalBottomSheet(
           backgroundColor: Colors.red,

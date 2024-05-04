@@ -143,7 +143,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
               bottomSpacer: 52,
             ),
             body: FutureBuilder<List<Category>>(
-                future: ProxyService.isar
+                future: ProxyService.realm
                     .categories(branchId: ProxyService.box.getBranchId()!),
                 builder: (context, snapshot) {
                   return Column(
@@ -194,7 +194,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
               bottomSpacer: 52,
             ),
             body: FutureBuilder<List<Category>>(
-                future: ProxyService.isar
+                future: ProxyService.realm
                     .categories(branchId: ProxyService.box.getBranchId()!),
                 builder: (context, snapshot) {
                   return Column(

@@ -39,7 +39,7 @@ Widget SettingLayout(
                     ),
                   ),
                   onPressed: (BuildContext context) async {
-                    Tenant? tenant = await ProxyService.isar.getTenantBYUserId(
+                    Tenant? tenant = await ProxyService.realm.getTenantBYUserId(
                         userId: ProxyService.box.getUserId()!);
                     _routerService
                         .navigateTo(DevicesRoute(pin: tenant?.userId));
@@ -130,10 +130,10 @@ Widget SettingLayout(
                   onPressed: (BuildContext context) async {
                     log('here');
                     // get active drawer
-                    final data = await ProxyService.isar
+                    final data = await ProxyService.realm
                         .getTransactionsAmountsSum(
                             period: TransactionPeriod.today);
-                    Drawers? drawer = await ProxyService.isar.getDrawer(
+                    Drawers? drawer = await ProxyService.realm.getDrawer(
                       cashierId: ProxyService.box.getBusinessId()!,
                     );
                     if (drawer != null) {
@@ -141,7 +141,7 @@ Widget SettingLayout(
                       drawer.closingBalance = data.income;
                       log(drawer.closingBalance.toString(),
                           name: 'drawerBalance');
-                      ProxyService.isar.update(data: drawer);
+                      ProxyService.realm.update(data: drawer);
                     }
                     _routerService.navigateTo(
                         DrawerScreenRoute(open: "close", drawer: drawer!));

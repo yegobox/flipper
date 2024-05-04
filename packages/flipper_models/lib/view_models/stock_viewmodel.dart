@@ -8,7 +8,7 @@ class StockViewModel extends BaseViewModel {
   get stocks => _stocks;
 
   loadStockByProductId({required int productId}) async {
-    _stocks = await ProxyService.isar.stocks(productId: productId);
+    _stocks = await ProxyService.realm.stocks(productId: productId);
     notifyListeners();
   }
 }

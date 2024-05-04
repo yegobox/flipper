@@ -179,7 +179,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   void handleOpenDrawer() {
-    ProxyService.isar.openDrawer(
+    ProxyService.realm.openDrawer(
       drawer: widget.drawer
         ..openingBalance = double.tryParse(_controller.text) ?? 0,
     );
@@ -189,14 +189,14 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   void handleCloseDrawer() async {
-    ProxyService.isar.update(
+    ProxyService.realm.update(
       data: widget.drawer
         ..closingBalance = double.parse(_controller.text)
         ..closingDateTime = DateTime.now().toIso8601String()
         ..open = false,
     );
 
-    await ProxyService.isar.logOut();
+    await ProxyService.realm.logOut();
     _routerService.navigateTo(LoginViewRoute());
   }
 }

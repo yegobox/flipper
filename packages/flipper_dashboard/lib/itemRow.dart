@@ -171,7 +171,7 @@ class _RowItemState extends ConsumerState<RowItem> {
     return Container(
       width: 80,
       child: StreamBuilder<List<Variant>>(
-        stream: ProxyService.isar.getVariantByProductIdStream(
+        stream: ProxyService.realm.getVariantByProductIdStream(
           productId: widget.product?.id,
         ),
         builder: (context, snapshot) {

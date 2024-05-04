@@ -45,7 +45,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
             },
           ),
           body: StreamBuilder<List<Conversation>>(
-            stream: ProxyService.isar.conversations(
+            stream: ProxyService.realm.conversations(
               conversationId: widget.conversationId,
             ),
             builder: (context, snapshot) {
@@ -97,7 +97,7 @@ class _ConversationHistoryState extends State<ConversationHistory>
   }
 
   Future<void> _click(types.PartialText message) async {
-    Conversation conversation = await ProxyService.isar.sendMessage(
+    Conversation conversation = await ProxyService.realm.sendMessage(
       message: message.text,
       latestConversation: latestConversation!,
     );

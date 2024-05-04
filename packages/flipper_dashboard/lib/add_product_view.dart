@@ -69,7 +69,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
         // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
-          List<Variant> variants = await ProxyService.isar
+          List<Variant> variants = await ProxyService.realm
               .getVariantByProductId(productId: widget.productId!);
 
           // Filter variants to get the regular variant.
@@ -313,7 +313,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       verticalSpaceSmall,
                       verticalSpaceSmall,
                       StreamBuilder<List<Variant>>(
-                        stream: ProxyService.isar.geVariantStreamByProductId(
+                        stream: ProxyService.realm.geVariantStreamByProductId(
                             productId: ref.read(productProvider)?.id ?? 0),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==

@@ -28,11 +28,11 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<Business> _b = await ProxyService.isar
+        List<Business> _b = await ProxyService.realm
             .businesses(userId: ProxyService.box.getUserId()!);
-        List<Branch> branches = await ProxyService.isar.branches();
+        List<Branch> branches = await ProxyService.realm.branches();
         for (Branch branch in branches) {
-          ProxyService.isar.update(data: branch..active = false);
+          ProxyService.realm.update(data: branch..active = false);
         }
         model.branchesList(branches);
         setState(() {
@@ -113,7 +113,7 @@ class _LoginChoicesState extends State<LoginChoices> {
       currentBusiness.name = currentBusiness.name;
       currentBusiness.active = currentBusiness.id == selectedBusiness.id;
 
-      ProxyService.isar.update(data: _businesses[i]);
+      ProxyService.realm.update(data: _businesses[i]);
     }
 
     await ProxyService.box
@@ -159,12 +159,12 @@ class _LoginChoicesState extends State<LoginChoices> {
       currentBranch.active = currentBranch.id == branch.id;
       currentBranch.name = currentBranch.name;
 
-      ProxyService.isar.update(data: model.branches[i]);
+      ProxyService.realm.update(data: model.branches[i]);
     }
 
     ProxyService.box.writeBool(key: "authComplete", value: true);
 
-    if (await ProxyService.isar
+    if (await ProxyService.realm
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
       _routerService.navigateTo(FlipperAppRoute());
     } else {

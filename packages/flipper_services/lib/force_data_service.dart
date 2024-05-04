@@ -26,9 +26,9 @@ class ForceDataEntryService {
     }
 
     List<Product> products =
-        await ProxyService.isar.products(branchId: branchId);
+        await ProxyService.realm.products(branchId: branchId);
     if (products.isEmpty) {
-      await ProxyService.isar.createProduct(
+      await ProxyService.realm.createProduct(
           product: Product(ObjectId(),
               id: randomNumber(),
               name: "Custom Amount",
@@ -54,7 +54,7 @@ class ForceDataEntryService {
     ];
 
     int branchid = ProxyService.box.getBranchId()!;
-    List<PColor> kColors = await ProxyService.isar.colors(branchId: branchid);
+    List<PColor> kColors = await ProxyService.realm.colors(branchId: branchid);
     if (kColors.isEmpty) {
       final PColor color = PColor(ObjectId(),
           id: randomNumber(),
@@ -64,12 +64,12 @@ class ForceDataEntryService {
           action: AppActions.created,
           name: "#d63031",
           active: false);
-      await ProxyService.isar.create<PColor>(data: color);
+      await ProxyService.realm.create<PColor>(data: color);
     }
-    List<IUnit> kUnits = await ProxyService.isar.units(branchId: branchid);
+    List<IUnit> kUnits = await ProxyService.realm.units(branchId: branchid);
 
     if (kUnits.isEmpty) {
-      await ProxyService.isar.addUnits(units: mockUnits);
+      await ProxyService.realm.addUnits(units: mockUnits);
     }
   }
 }

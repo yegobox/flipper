@@ -8,7 +8,7 @@ class BillingService {
 
   Future<Voucher?> useVoucher({int? voucher, int? userId}) async {
     Voucher? voucherUse =
-        await ProxyService.isar.consumeVoucher(voucherCode: voucher!);
+        await ProxyService.realm.consumeVoucher(voucherCode: voucher!);
     if (voucherUse != null) {
       return voucherUse;
     } else {

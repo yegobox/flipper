@@ -112,7 +112,7 @@ class LogOut extends StackedView<LogoutModel> {
                         }
                       } else {
                         //this is mobile client we can safely logout without deleting devices
-                        await ProxyService.isar.logOut();
+                        await ProxyService.realm.logOut();
 
                         viewModel.runStartupLogic(refreshCredentials: true);
                         completer(DialogResponse(confirmed: true));

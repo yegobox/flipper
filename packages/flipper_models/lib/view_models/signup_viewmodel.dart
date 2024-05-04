@@ -114,7 +114,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<List<ITenant>> registerTenant(String? referralCode) async {
-    return await ProxyService.isar.signup(business: {
+    return await ProxyService.realm.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
@@ -156,7 +156,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> registerOnSocial() {
-    return ProxyService.isar.registerOnSocial(
+    return ProxyService.realm.registerOnSocial(
       password: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
       phoneNumberOrEmail: ProxyService.box.getUserPhone()!.replaceAll("+", ""),
     );
@@ -170,12 +170,12 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<Business> getBusiness(List<ITenant> tenants) {
-    return ProxyService.isar
+    return ProxyService.realm
         .getBusiness(businessId: tenants.first.businesses.first.id);
   }
 
   Future<List<Branch>> getBranches(Business business) {
-    return ProxyService.isar.branches(businessId: business.id);
+    return ProxyService.realm.branches(businessId: business.id);
   }
 
   Future<void> saveBranchId(List<Branch> branches) {
@@ -191,7 +191,7 @@ class SignupViewModel extends ReactiveViewModel {
       id: randomNumber(),
       branchId: branches[0].id!,
     );
-    ProxyService.isar.create<Category>(data: category);
+    ProxyService.realm.create<Category>(data: category);
   }
 
   Future<void> createDefaultColor(List<Branch> branches) async {
@@ -214,11 +214,11 @@ class SignupViewModel extends ReactiveViewModel {
       branchId: branches[0].id,
       name: 'color',
     );
-    ProxyService.isar.create<PColor>(data: color);
+    ProxyService.realm.create<PColor>(data: color);
   }
 
   Future<void> addDefaultUnits() {
-    return ProxyService.isar.addUnits(units: mockUnits);
+    return ProxyService.realm.addUnits(units: mockUnits);
   }
 
   void bootstrapData() {

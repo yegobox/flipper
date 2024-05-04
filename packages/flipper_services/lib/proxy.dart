@@ -79,7 +79,7 @@ abstract class ProxyService {
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
   // static IsarApiInterface get isar => _isar;
-  static RealmApiInterface get isar => _realm;
+  static RealmApiInterface get realm => _realm;
 
   static EventInterface get event => _event;
   static Crash get crash => _crash;

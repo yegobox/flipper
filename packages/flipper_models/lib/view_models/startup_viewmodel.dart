@@ -24,8 +24,8 @@ class StartupViewModel extends FlipperBaseModel {
     try {
       /// there is cases where when app re-start and then for some reason the realm is closed
       /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
-      if (ProxyService.isar.isRealmClosed()) {
-        await ProxyService.isar.configure(inTesting: false);
+      if (ProxyService.realm.isRealmClosed()) {
+        await ProxyService.realm.configure(inTesting: false);
       }
 
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
@@ -36,7 +36,7 @@ class StartupViewModel extends FlipperBaseModel {
       await appService.appInit();
 
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (await ProxyService.isar
+      if (await ProxyService.realm
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
@@ -57,7 +57,7 @@ class StartupViewModel extends FlipperBaseModel {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is ErrorReadingFromYBServer) {
         log(stackTrace.toString(), name: 'runStartupLogic');
-        await ProxyService.isar.logOut();
+        await ProxyService.realm.logOut();
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         if (Platform.isWindows) {
@@ -68,7 +68,7 @@ class StartupViewModel extends FlipperBaseModel {
 
           ProxyService.notie.sendData(
               'Could not login business with user ${ProxyService.box.getUserId()} not found!');
-          await ProxyService.isar.logOut();
+          await ProxyService.realm.logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         } else {
           _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
@@ -76,7 +76,7 @@ class StartupViewModel extends FlipperBaseModel {
       } else {
         log(e.toString(), name: 'runStartupLogic');
         log(stackTrace.toString(), name: 'runStartupLogic');
-        await ProxyService.isar.logOut();
+        await ProxyService.realm.logOut();
         //remove startup view from the stack
         _routerService.clearStackAndShow(LoginViewRoute());
       }

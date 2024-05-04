@@ -55,7 +55,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 ?.value;
                             iTransaction!.supplierId = variant.branchId;
 
-                            await ProxyService.isar.update(data: iTransaction);
+                            await ProxyService.realm.update(data: iTransaction);
 
                             // add item to cart
                             ref

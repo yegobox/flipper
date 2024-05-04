@@ -317,7 +317,7 @@ class _FavoritesState extends State<Favorites> {
     return StreamBuilder<Favorite?>(
       initialData: null,
       stream:
-          ProxyService.isar.getFavoriteByIndexStream(favIndex: adjustedIndex),
+          ProxyService.realm.getFavoriteByIndexStream(favIndex: adjustedIndex),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return _favoriteEmpty(adjustedIndex);
@@ -326,7 +326,7 @@ class _FavoritesState extends State<Favorites> {
           int prodId = favorite.productId!;
 
           return StreamBuilder<List<Product>>(
-            stream: ProxyService.isar.productStreams(prodIndex: prodId),
+            stream: ProxyService.realm.productStreams(prodIndex: prodId),
             builder: (context, snapshot) {
               if (snapshot.hasError) {
                 return Text('Error: ${snapshot.error}');

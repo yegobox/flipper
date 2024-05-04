@@ -22,7 +22,7 @@ mixin TransactionMixin {
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
 
-    TransactionItem? existTransactionItem = await ProxyService.isar
+    TransactionItem? existTransactionItem = await ProxyService.realm
         .getTransactionItemByVariantId(
             variantId: variation.id!, transactionId: pendingTransaction.id);
 
@@ -61,15 +61,15 @@ mixin TransactionMixin {
 
       /// this is to automatically show item in shoping cart
       item.active = true;
-      await ProxyService.isar.update(data: item);
-      List<TransactionItem> items = await ProxyService.isar.transactionItems(
+      await ProxyService.realm.update(data: item);
+      List<TransactionItem> items = await ProxyService.realm.transactionItems(
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
       pendingTransaction.subTotal =
           items.fold(0, (a, b) => a! + (b.price! * b.qty!));
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-      await ProxyService.isar.update(data: pendingTransaction);
+      await ProxyService.realm.update(data: pendingTransaction);
 
       return;
     }
@@ -126,7 +126,7 @@ mixin TransactionMixin {
         doneWithTransaction: false,
         active: true);
 
-    List<TransactionItem> items = await ProxyService.isar.transactionItems(
+    List<TransactionItem> items = await ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: true);
@@ -136,10 +136,10 @@ mixin TransactionMixin {
 
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
 
-    await ProxyService.isar.update(data: pendingTransaction);
+    await ProxyService.realm.update(data: pendingTransaction);
 
     newItem.action = AppActions.created;
-    await ProxyService.isar
+    await ProxyService.realm
         .addTransactionItem(transaction: pendingTransaction, item: newItem);
   }
 }

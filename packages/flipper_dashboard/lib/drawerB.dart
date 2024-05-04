@@ -11,7 +11,7 @@ class MyDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           FutureBuilder<Tenant?>(
-              future: ProxyService.isar
+              future: ProxyService.realm
                   .getTenantBYUserId(userId: ProxyService.box.getUserId()!),
               builder: (context, snapshot) {
                 return DrawerHeader(
@@ -55,7 +55,7 @@ class MyDrawer extends StatelessWidget {
                 );
               }),
           FutureBuilder<List<Business>>(
-            future: ProxyService.isar
+            future: ProxyService.realm
                 .businesses(userId: ProxyService.box.getUserId()!),
             builder: (context, businessSnapshot) {
               if (businessSnapshot.connectionState == ConnectionState.waiting) {
@@ -70,7 +70,7 @@ class MyDrawer extends StatelessWidget {
               final List<Business> businesses = businessSnapshot.data ?? [];
 
               return FutureBuilder<List<Branch>>(
-                future: ProxyService.isar.branches(
+                future: ProxyService.realm.branches(
                     businessId: businesses
                         .first.id), // Replace with your logic to fetch branches
                 builder: (context, branchSnapshot) {

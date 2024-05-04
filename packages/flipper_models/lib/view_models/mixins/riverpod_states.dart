@@ -81,13 +81,13 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
 
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
-  return ProxyService.isar.getStockStream(variantId: variantId);
+  return ProxyService.realm.getStockStream(variantId: variantId);
 });
 
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
-  final variants = await ProxyService.isar.variants(
+  final variants = await ProxyService.realm.variants(
       branchId: ProxyService.box.getBranchId()!, productId: productId ?? 0);
 
   return variants;
@@ -97,7 +97,7 @@ final pendingTransactionProvider = FutureProvider.autoDispose
     .family<AsyncValue<ITransaction>, String>((ref, mode) async {
   try {
     ITransaction pendingTransaction =
-        await ProxyService.isar.manageTransaction(transactionType: mode);
+        await ProxyService.realm.manageTransaction(transactionType: mode);
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
@@ -127,7 +127,7 @@ class TransactionItemsNotifier
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
-      final items = await ProxyService.isar.transactionItems(
+      final items = await ProxyService.realm.transactionItems(
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);
@@ -145,11 +145,11 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       // Await the future and store the result in a local variable
-      final transaction = await ProxyService.isar
+      final transaction = await ProxyService.realm
           .manageTransaction(transactionType: TransactionType.custom);
 
       transaction.subTotal = totalPayable;
-      await ProxyService.isar.update(data: transaction);
+      await ProxyService.realm.update(data: transaction);
     } catch (error) {
       // Handle error
     }
@@ -198,7 +198,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   Future<void> loadVariants(
       {required bool scannMode, required String searchString}) async {
     try {
-      final allVariants = await ProxyService.isar.variants(
+      final allVariants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!,
       );
 
@@ -288,12 +288,12 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   }) async {
     try {
       List<Product> products =
-          await ProxyService.isar.productsFuture(branchId: branchId);
+          await ProxyService.realm.productsFuture(branchId: branchId);
 
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
         List<Product?> additionalProducts =
-            await ProxyService.isar.getProductByName(name: searchString);
+            await ProxyService.realm.getProductByName(name: searchString);
         log(additionalProducts.toString());
         // Filter out null products and cast non-null products to Product type
         products.addAll(additionalProducts
@@ -387,7 +387,7 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
       await Future.delayed(
           Duration(seconds: 3)); // await any ongoing database persistance
       List<Customer> customers =
-          await ProxyService.isar.customers(branchId: branchId);
+          await ProxyService.realm.customers(branchId: branchId);
 
       if (searchString.isNotEmpty) {
         customers = customers
@@ -438,14 +438,14 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
   final data =
-      await ProxyService.isar.getVariantByProductId(productId: productId);
+      await ProxyService.realm.getVariantByProductId(productId: productId);
   return AsyncData(data);
 });
 
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.isar.orders(branchId: branchId);
+  return ProxyService.realm.orders(branchId: branchId);
 });
 
 final transactionsStreamProvider =
@@ -453,7 +453,7 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.isar.transactionsStream();
+  final transactionsStream = ProxyService.realm.transactionsStream();
 
   // Return the stream
   return transactionsStream;
@@ -465,7 +465,7 @@ final unitsProvider =
     final branchId = ProxyService.box.getBranchId()!;
 
     // Check if units are already present in the database
-    final existingUnits = await ProxyService.isar.units(branchId: branchId);
+    final existingUnits = await ProxyService.realm.units(branchId: branchId);
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -515,8 +515,8 @@ final transactionListProvider =
   if (startDate == null || endDate == null) {
     return Stream.empty();
   }
-  final transactions =
-      ProxyService.isar.transactionList(startDate: startDate, endDate: endDate);
+  final transactions = ProxyService.realm
+      .transactionList(startDate: startDate, endDate: endDate);
 
   return transactions.handleError((error) {
     // If an error occurs in the stream, emit the error so that the UI can display it
@@ -532,7 +532,7 @@ final transactionListProvider =
 
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
-  return ProxyService.isar.transactionItemsStreams(
+  return ProxyService.realm.transactionItemsStreams(
     transactionId: transactionId ?? 0,
     doneWithTransaction: false,
     active: false,

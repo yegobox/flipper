@@ -46,7 +46,7 @@ class AppService with ListenableServiceMixin {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.isar.categories(branchId: branchId ?? 0);
+        await ProxyService.realm.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
@@ -63,7 +63,7 @@ class AppService with ListenableServiceMixin {
     if (ProxyService.box.getUserId() == null &&
         user != null &&
         businessId == null) {
-      await ProxyService.isar.login(
+      await ProxyService.realm.login(
           userPhone: user.phoneNumber ?? user.email!,
           skipDefaultAppSetup: false);
     }
@@ -80,7 +80,7 @@ class AppService with ListenableServiceMixin {
 
   Future<void> logSocial() async {
     final phoneNumber = ProxyService.box.getUserPhone()!.replaceFirst("+", "");
-    final token = await ProxyService.isar.loginOnSocial(
+    final token = await ProxyService.realm.loginOnSocial(
       password: phoneNumber,
       phoneNumberOrEmail: phoneNumber,
     );
@@ -99,7 +99,7 @@ class AppService with ListenableServiceMixin {
       type: socialApp,
     );
 
-    await ProxyService.isar.create(data: data);
+    await ProxyService.realm.create(data: data);
   }
 
   final _contacts = ReactiveValue<List<Business>>([]);
@@ -107,7 +107,7 @@ class AppService with ListenableServiceMixin {
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    List<Business> contacts = await ProxyService.isar.getContacts();
+    List<Business> contacts = await ProxyService.realm.getContacts();
     _contacts.value = contacts;
   }
 
@@ -118,13 +118,13 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<Business> businesses = await ProxyService.isar
+    List<Business> businesses = await ProxyService.realm
         .businesses(userId: ProxyService.box.getUserId()!);
 
     if (businesses.isEmpty) {
       try {
         Business business =
-            await ProxyService.isar.getOnlineBusiness(userId: userId);
+            await ProxyService.realm.getOnlineBusiness(userId: userId);
         businesses.add(business);
       } catch (e) {
         rethrow;
@@ -133,7 +133,7 @@ class AppService with ListenableServiceMixin {
 
     await loadTenants(businesses);
 
-    List<Branch> branches = await ProxyService.isar
+    List<Branch> branches = await ProxyService.realm
         .branches(businessId: ProxyService.box.getBusinessId());
 
     bool authComplete = await ProxyService.box.authComplete();
@@ -163,11 +163,11 @@ class AppService with ListenableServiceMixin {
 
     // Iterate over businesses and perform the operations
     for (Business business in businesses) {
-      await ProxyService.isar.tenantsFromOnline(businessId: business.id!);
+      await ProxyService.realm.tenantsFromOnline(businessId: business.id!);
     }
 
     for (Business business in businesses) {
-      await ProxyService.isar.loadCounterFromOnline(businessId: business.id!);
+      await ProxyService.realm.loadCounterFromOnline(businessId: business.id!);
     }
   }
 
@@ -193,7 +193,7 @@ class AppService with ListenableServiceMixin {
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
       int businessId = ProxyService.box.getBusinessId()!;
-      return await ProxyService.isar
+      return await ProxyService.realm
           .isTokenValid(businessId: businessId, tokenType: socialApp);
     }
 

@@ -35,12 +35,12 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
-        if (await ProxyService.isar.isTaxEnabled()) {
+        if (await ProxyService.realm.isTaxEnabled()) {
           setState(() {
             isTaxEnabled = true;
           });
         }
-        Business? business = await ProxyService.isar.getBusiness();
+        Business? business = await ProxyService.realm.getBusiness();
         model.isEbmActive = business?.tinNumber != null &&
             business?.bhfId != null &&
             business?.dvcSrlNo != null &&

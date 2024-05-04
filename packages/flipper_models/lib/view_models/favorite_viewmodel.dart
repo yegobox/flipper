@@ -19,13 +19,13 @@ class FavoriteViewModel extends ProductViewModel {
   bool inUpdateProcess = false;
 
   Future<List<Favorite>> getFavorites() async {
-    List<Favorite> res = await ProxyService.isar.getFavorites();
+    List<Favorite> res = await ProxyService.realm.getFavorites();
     return res;
   }
 
   Future<int> deleteFavoriteByIndex(int favIndex) async {
     Favorite? target = await getFavoriteByIndex(favIndex);
-    await ProxyService.isar.deleteFavoriteByIndex(favIndex: favIndex);
+    await ProxyService.realm.deleteFavoriteByIndex(favIndex: favIndex);
     notifyListeners();
 
     if (target != null) {
@@ -35,18 +35,18 @@ class FavoriteViewModel extends ProductViewModel {
   }
 
   Future<Favorite?> getFavoriteById(int favId) async {
-    Favorite? res = await ProxyService.isar.getFavoriteById(favId: favId);
+    Favorite? res = await ProxyService.realm.getFavoriteById(favId: favId);
     return res;
   }
 
   Future<Favorite?> getFavoriteByIndex(int favIndex) async {
     Favorite? res =
-        await ProxyService.isar.getFavoriteByIndex(favIndex: favIndex);
+        await ProxyService.realm.getFavoriteByIndex(favIndex: favIndex);
     return res;
   }
 
   Future<Product?> getProductById(int prodIndex) async {
-    Product? res = await ProxyService.isar.getProduct(id: prodIndex);
+    Product? res = await ProxyService.realm.getProduct(id: prodIndex);
     return res;
   }
 }
