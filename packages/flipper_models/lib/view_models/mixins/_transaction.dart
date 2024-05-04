@@ -55,91 +55,89 @@ mixin TransactionMixin {
     TransactionItem? item,
   }) async {
     if (item != null && !isCustom) {
-      // Update existing transaction item
-      item.qty = (item.qty ?? 0) + quantity;
-      item.price = amountTotal / quantity;
+      ProxyService.realm.realm!.writeAsync(() async {
+        // Update existing transaction item
+        item.qty = (item.qty) + quantity;
+        item.price = amountTotal / quantity;
 
-      /// this is to automatically show item in shoping cart
-      item.active = true;
-      await ProxyService.realm.update(data: item);
+        /// this is to automatically show item in shoping cart
+        item.active = true;
+        List<TransactionItem> items = await ProxyService.realm.transactionItems(
+            transactionId: pendingTransaction.id!,
+            doneWithTransaction: false,
+            active: true);
+        pendingTransaction.subTotal =
+            items.fold(0, (a, b) => a + (b.price * b.qty));
+        pendingTransaction.updatedAt = DateTime.now().toIso8601String();
+      });
+      return;
+    }
+    ProxyService.realm.realm!.writeAsync(() async {
+      // Create a new transaction item
+      TransactionItem newItem = TransactionItem(ObjectId(),
+          id: randomNumber(),
+          branchId: variation.branchId,
+          lastTouched: DateTime.now(),
+          action: AppActions.created,
+          qty: isCustom ? 1.0 : quantity,
+          price: amountTotal / quantity,
+          variantId: variationId,
+          name: name,
+          discount: 0.0,
+          transactionId: pendingTransaction.id!,
+          createdAt: DateTime.now().toString(),
+          updatedAt: DateTime.now().toString(),
+          isTaxExempted: variation.isTaxExempted,
+          dcRt: 0.0,
+          dcAmt: 0.0,
+          taxblAmt: (pendingTransaction.subTotal) + (amountTotal / quantity),
+          taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
+          totAmt: variation.retailPrice,
+          itemSeq: variation.itemSeq,
+          isrccCd: variation.isrccCd,
+          isrccNm: variation.isrccNm,
+          isrcRt: variation.isrcRt,
+          isrcAmt: variation.isrcAmt,
+          taxTyCd: variation.taxTyCd,
+          bcd: variation.bcd,
+          itemClsCd: variation.itemClsCd,
+          itemTyCd: variation.itemTyCd,
+          itemStdNm: variation.itemStdNm,
+          orgnNatCd: variation.orgnNatCd,
+          pkg: variation.pkg,
+          itemCd: variation.itemCd,
+          pkgUnitCd: variation.pkgUnitCd,
+          qtyUnitCd: variation.qtyUnitCd,
+          itemNm: variation.itemNm,
+          prc: variation.retailPrice,
+          splyAmt: variation.splyAmt,
+          tin: variation.tin,
+          bhfId: variation.bhfId,
+          dftPrc: variation.dftPrc,
+          addInfo: variation.addInfo,
+          isrcAplcbYn: variation.isrcAplcbYn,
+          useYn: variation.useYn,
+          regrId: variation.regrId,
+          regrNm: variation.regrNm,
+          modrId: variation.modrId,
+          modrNm: variation.modrNm,
+          remainingStock: currentStock - quantity,
+          doneWithTransaction: false,
+          active: true);
+
       List<TransactionItem> items = await ProxyService.realm.transactionItems(
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
+
       pendingTransaction.subTotal =
-          items.fold(0, (a, b) => a! + (b.price! * b.qty!));
+          items.fold(0, (a, b) => a + (b.price * b.qty));
+
       pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-      await ProxyService.realm.update(data: pendingTransaction);
 
-      return;
-    }
-    // Create a new transaction item
-    TransactionItem newItem = TransactionItem(ObjectId(),
-        id: randomNumber(),
-        branchId: variation.branchId,
-        lastTouched: DateTime.now(),
-        action: AppActions.created,
-        qty: isCustom ? 1.0 : quantity,
-        price: amountTotal / quantity,
-        variantId: variationId,
-        name: name,
-        discount: 0.0,
-        transactionId: pendingTransaction.id!,
-        createdAt: DateTime.now().toString(),
-        updatedAt: DateTime.now().toString(),
-        isTaxExempted: variation.isTaxExempted,
-        dcRt: 0.0,
-        dcAmt: 0.0,
-        taxblAmt:
-            (pendingTransaction.subTotal ?? 0.0) + (amountTotal / quantity),
-        taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
-        totAmt: variation.retailPrice,
-        itemSeq: variation.itemSeq,
-        isrccCd: variation.isrccCd,
-        isrccNm: variation.isrccNm,
-        isrcRt: variation.isrcRt,
-        isrcAmt: variation.isrcAmt,
-        taxTyCd: variation.taxTyCd,
-        bcd: variation.bcd,
-        itemClsCd: variation.itemClsCd,
-        itemTyCd: variation.itemTyCd,
-        itemStdNm: variation.itemStdNm,
-        orgnNatCd: variation.orgnNatCd,
-        pkg: variation.pkg,
-        itemCd: variation.itemCd,
-        pkgUnitCd: variation.pkgUnitCd,
-        qtyUnitCd: variation.qtyUnitCd,
-        itemNm: variation.itemNm,
-        prc: variation.retailPrice,
-        splyAmt: variation.splyAmt,
-        tin: variation.tin,
-        bhfId: variation.bhfId,
-        dftPrc: variation.dftPrc,
-        addInfo: variation.addInfo,
-        isrcAplcbYn: variation.isrcAplcbYn,
-        useYn: variation.useYn,
-        regrId: variation.regrId,
-        regrNm: variation.regrNm,
-        modrId: variation.modrId,
-        modrNm: variation.modrNm,
-        remainingStock: currentStock - quantity,
-        doneWithTransaction: false,
-        active: true);
-
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
-        transactionId: pendingTransaction.id!,
-        doneWithTransaction: false,
-        active: true);
-
-    pendingTransaction.subTotal =
-        items.fold(0, (a, b) => a! + (b.price! * b.qty!));
-
-    pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-
-    await ProxyService.realm.update(data: pendingTransaction);
-
-    newItem.action = AppActions.created;
-    await ProxyService.realm
-        .addTransactionItem(transaction: pendingTransaction, item: newItem);
+      newItem.action = AppActions.created;
+      await ProxyService.realm
+          .addTransactionItem(transaction: pendingTransaction, item: newItem);
+    });
   }
 }

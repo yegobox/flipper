@@ -33,6 +33,9 @@ import 'isar/tenant.dart';
 import 'package:realm/realm.dart';
 import 'package:flutter/foundation.dart' as foundation;
 
+// This issue describe how I can mark something for completion later
+// https://github.com/realm/realm-dart/issues/1203
+
 class RealmAPI<M extends IJsonSerializable>
     implements SyncReaml<M>, RealmApiInterface {
   @override
@@ -2576,16 +2579,15 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
+  /// Please do not place any realm update here since realm require that when we modify the property
+  /// of a model to do it within write transaction so the change take imediate effect and it was natural for our case
+  /// that we modify the object and pass in the final object to be updated here later and that will not work with realm
+  /// therefore we do the update within write function where the actual update is taking place to avoid crazy error or illusion
   @override
   Future<int> update<T>({required T data}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
-
-    realm!.write(() {
-      _updateObject(data, realm!);
-    });
-
     if (data is Business) {
       final business = data;
       final response = await flipperHttpClient.patch(
@@ -2624,84 +2626,6 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     return 0;
-  }
-
-  void _updateObject<T>(T data, Realm realm) {
-    if (data is Device) {
-      realm.add<Device>(data, update: true);
-    } else if (data is Product) {
-      final product = data;
-      product.lastTouched =
-          DateTime.now().toLocal().add(const Duration(hours: 2));
-      realm.add<Product>(product, update: true);
-    } else if (data is Favorite) {
-      final fav = data;
-      realm.add<Favorite>(fav, update: true);
-    } else if (data is Variant) {
-      final variant = data;
-      variant.lastTouched =
-          DateTime.now().toLocal().add(const Duration(hours: 2));
-      realm.add<Variant>(variant, update: true);
-    } else if (data is Stock) {
-      final stock = data;
-      stock.lastTouched =
-          DateTime.now().toLocal().add(const Duration(hours: 2));
-      realm.add<Stock>(stock, update: true);
-    } else if (data is ITransaction) {
-      final transaction = data;
-      transaction.lastTouched =
-          DateTime.now().toLocal().add(const Duration(hours: 2));
-      realm.add<ITransaction>(transaction, update: true);
-    } else if (data is Category) {
-      final category = data;
-      realm.add<Category>(category, update: true);
-    } else if (data is IUnit) {
-      final unit = data;
-      realm.add<IUnit>(unit, update: true);
-    } else if (data is PColor) {
-      final color = data;
-      realm.add<PColor>(color, update: true);
-    } else if (data is TransactionItem) {
-      data.lastTouched = DateTime.now().toLocal();
-      realm.add<TransactionItem>(data, update: true);
-    } else if (data is EBM) {
-      final ebm = data;
-      ProxyService.box
-          .writeString(key: "serverUrl", value: ebm.taxServerUrl ?? 'null');
-
-      Business? business =
-          realm.query<Business>(r'userId == $0', [ebm.userId]).first;
-
-      business
-        ..dvcSrlNo = ebm.dvcSrlNo
-        ..tinNumber = ebm.tinNumber
-        ..bhfId = ebm.bhfId
-        ..taxServerUrl = ebm.taxServerUrl
-        ..taxEnabled = true;
-      realm.add<Business>(business, update: true);
-    } else if (data is Token) {
-      final token = data;
-      token
-        ..token = token.token
-        ..businessId = token.businessId
-        ..type = token.type;
-      realm.add<Token>(token);
-    } else if (data is Counter) {
-      Counter? iCounter = realm.query<Counter>(
-        r'receiptType == $0',
-        [data.receiptType!.toUpperCase()],
-      ).firstOrNull;
-      if (iCounter != null) {
-        iCounter.totRcptNo = data.totRcptNo;
-        iCounter.curRcptNo = data.curRcptNo;
-        realm.add<Counter>(iCounter);
-      } else {
-        realm.add<Counter>(data);
-      }
-    } else if (data is Drawers) {
-      final drawer = data;
-      realm.add<Drawers>(drawer);
-    }
   }
 
   @override

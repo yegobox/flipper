@@ -53,9 +53,10 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                     TransactionType.cashOut))
                                 .value
                                 ?.value;
-                            iTransaction!.supplierId = variant.branchId;
 
-                            await ProxyService.realm.update(data: iTransaction);
+                            ProxyService.realm.realm!.write(() {
+                              iTransaction!.supplierId = variant.branchId;
+                            });
 
                             // add item to cart
                             ref
@@ -70,7 +71,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 currentStock: 1.0,
                                 amountTotal: variant.retailPrice,
                                 customItem: false,
-                                pendingTransaction: iTransaction);
+                                pendingTransaction: iTransaction!);
                             ref.refresh(
                                 transactionItemsProvider(iTransaction.id));
                           },

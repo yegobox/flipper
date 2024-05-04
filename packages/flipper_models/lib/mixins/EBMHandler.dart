@@ -49,7 +49,7 @@ class EBMHandler<OBJ> {
       try {
         await generateRRAReceiptSignature(
           items: items,
-          business: business!,
+          business: business,
           transaction: transaction,
           receiptType: transaction.receiptType!,
           purchaseCode: purchaseCode,
@@ -187,58 +187,49 @@ class EBMHandler<OBJ> {
 
       await createReceiptInIsar(
           receiptSignature, transaction, qrCode, counter, receiptNumber);
-
-      counter
-        ..totRcptNo = receiptSignature.data?.totRcptNo ?? 0 + 1
-        ..curRcptNo = receiptSignature.data?.rcptNo ?? 0 + 1;
-      updateCounter(counter);
+      ProxyService.realm.realm!.write(() {
+        counter
+          ..totRcptNo = receiptSignature.data?.totRcptNo ?? 0 + 1
+          ..curRcptNo = receiptSignature.data?.rcptNo ?? 0 + 1;
+      });
     } catch (e) {
       rethrow;
     }
-  }
-
-  void updateTransactionAndDrawer(
-      String receiptType, ITransaction transaction) async {
-    await updateDrawer(receiptType, transaction);
-    ProxyService.realm.update(data: transaction);
   }
 
   Future<void> updateDrawer(
       String receiptType, ITransaction transaction) async {
     Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
-    drawer!
-      ..cashierId = ProxyService.box.getBusinessId()!
-      ..nsSaleCount = receiptType == "NS"
-          ? drawer.nsSaleCount ?? 0 + 1
-          : drawer.nsSaleCount ?? 0
-      ..trSaleCount = receiptType == "TR"
-          ? drawer.trSaleCount ?? 0 + 1
-          : drawer.trSaleCount ?? 0
-      ..psSaleCount = receiptType == "PS"
-          ? drawer.psSaleCount ?? 0 + 1
-          : drawer.psSaleCount ?? 0
-      ..csSaleCount = receiptType == "CS"
-          ? drawer.csSaleCount ?? 0 + 1
-          : drawer.csSaleCount ?? 0
-      ..nrSaleCount = receiptType == "NR"
-          ? drawer.nrSaleCount ?? 0 + 1
-          : drawer.nrSaleCount ?? 0
-      ..incompleteSale = 0
-      ..totalCsSaleIncome = receiptType == "CS"
-          ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
-          : drawer.totalCsSaleIncome ?? 0
-      ..totalNsSaleIncome = receiptType == "NS"
-          ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
-          : drawer.totalNsSaleIncome ?? 0
-      ..openingDateTime = DateTime.now().toIso8601String()
-      ..open = true;
-    // update drawer
-    await ProxyService.realm.update(data: drawer);
-  }
 
-  Future<void> updateCounter(Counter counter) async {
-    await ProxyService.realm.update(data: counter);
+    ProxyService.realm.realm!.write(() {
+      drawer!
+        ..cashierId = ProxyService.box.getBusinessId()!
+        ..nsSaleCount = receiptType == "NS"
+            ? drawer.nsSaleCount ?? 0 + 1
+            : drawer.nsSaleCount ?? 0
+        ..trSaleCount = receiptType == "TR"
+            ? drawer.trSaleCount ?? 0 + 1
+            : drawer.trSaleCount ?? 0
+        ..psSaleCount = receiptType == "PS"
+            ? drawer.psSaleCount ?? 0 + 1
+            : drawer.psSaleCount ?? 0
+        ..csSaleCount = receiptType == "CS"
+            ? drawer.csSaleCount ?? 0 + 1
+            : drawer.csSaleCount ?? 0
+        ..nrSaleCount = receiptType == "NR"
+            ? drawer.nrSaleCount ?? 0 + 1
+            : drawer.nrSaleCount ?? 0
+        ..incompleteSale = 0
+        ..totalCsSaleIncome = receiptType == "CS"
+            ? drawer.totalCsSaleIncome ?? 0 + transaction.subTotal
+            : drawer.totalCsSaleIncome ?? 0
+        ..totalNsSaleIncome = receiptType == "NS"
+            ? drawer.totalNsSaleIncome ?? 0 + transaction.subTotal
+            : drawer.totalNsSaleIncome ?? 0
+        ..openingDateTime = DateTime.now().toIso8601String()
+        ..open = true;
+    });
   }
 
   Future<void> createReceiptInIsar(

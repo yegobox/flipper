@@ -69,37 +69,34 @@ mixin ProductMixin {
       {required Product mproduct, required bool inUpdateProcess}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
+    ProxyService.realm.realm!.writeAsync(() async {
+      mproduct.name = productName!;
+      mproduct.barCode = productService.barCode.toString();
+      mproduct.color = currentColor;
 
-    mproduct.name = productName!;
-    mproduct.barCode = productService.barCode.toString();
-    mproduct.color = currentColor;
+      Category? activeCat = await ProxyService.realm
+          .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
-    Category? activeCat = await ProxyService.realm
-        .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      activeCat?.active = false;
+      activeCat?.focused = false;
 
-    activeCat?.active = false;
-    activeCat?.focused = false;
+      mproduct.categoryId = activeCat?.id!;
 
-    mproduct.categoryId = activeCat?.id!;
-
-    await ProxyService.realm.update(data: activeCat);
-
-    mproduct.action = inUpdateProcess ? AppActions.updated : AppActions.created;
-
-    await ProxyService.realm.update(data: mproduct);
-    List<Variant> variants =
-        await ProxyService.realm.getVariantByProductId(productId: mproduct.id);
-
-    for (Variant variant in variants) {
-      variant.productName = productName!;
-
-      variant.productId = mproduct.id!;
-      variant.pkgUnitCd = "NT";
-      variant.action =
+      mproduct.action =
           inUpdateProcess ? AppActions.updated : AppActions.created;
-      await ProxyService.realm.update(data: variant);
-    }
 
+      List<Variant> variants = await ProxyService.realm
+          .getVariantByProductId(productId: mproduct.id);
+
+      for (Variant variant in variants) {
+        variant.productName = productName!;
+
+        variant.productId = mproduct.id!;
+        variant.pkgUnitCd = "NT";
+        variant.action =
+            inUpdateProcess ? AppActions.updated : AppActions.created;
+      }
+    });
     return await ProxyService.realm.getProduct(id: mproduct.id!);
   }
 }

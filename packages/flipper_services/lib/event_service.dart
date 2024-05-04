@@ -217,8 +217,9 @@ class EventService with TokenLogin implements EventInterface {
         },
       );
       if (result.description == 'Sent') {
-        device.pubNubPublished = true;
-        await ProxyService.realm.update(data: device);
+        ProxyService.realm.realm!.writeAsync(() async {
+          device.pubNubPublished = true;
+        });
       }
     }
   }

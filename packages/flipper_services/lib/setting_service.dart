@@ -38,13 +38,13 @@ class SettingsService with ListenableServiceMixin {
       Map<String, dynamic> settingsMap =
           setting.toEJson() as Map<String, dynamic>;
       //replace a key in settings_map if the key match with the key from map
-      settingsMap.forEach((key, value) {
-        if (map.containsKey(key)) {
-          settingsMap[key] = map[key];
-        }
+      ProxyService.realm.realm!.write(() {
+        settingsMap.forEach((key, value) {
+          if (map.containsKey(key)) {
+            settingsMap[key] = map[key];
+          }
+        });
       });
-
-      ProxyService.realm.update(data: settingsMap);
       return true;
     } else {
       Map kMap = map;

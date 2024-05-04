@@ -138,10 +138,10 @@ Widget SettingLayout(
                     );
                     if (drawer != null) {
                       /// update the drawer with closing balance
-                      drawer.closingBalance = data.income;
-                      log(drawer.closingBalance.toString(),
-                          name: 'drawerBalance');
-                      ProxyService.realm.update(data: drawer);
+
+                      ProxyService.realm.realm!.write(() {
+                        drawer.closingBalance = data.income;
+                      });
                     }
                     _routerService.navigateTo(
                         DrawerScreenRoute(open: "close", drawer: drawer!));

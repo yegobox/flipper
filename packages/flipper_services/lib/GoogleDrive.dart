@@ -118,13 +118,10 @@ class GoogleDrive {
   }
 
   Future<void> updateBusiness(Business business) async {
-    business.backUpEnabled = true;
-    business.lastDbBackup = DateTime.now().toIso8601String();
-
-    /// notify the online that user has enabled the backup
-    /// also update the property locally.
-    await ProxyService.realm.update(data: business);
-    ProxyService.realm.update(data: business.toEJson());
+    ProxyService.realm.realm!.write(() {
+      business.backUpEnabled = true;
+      business.lastDbBackup = DateTime.now().toIso8601String();
+    });
   }
 
   /// Upload File to user's Google Drive appData folder
@@ -155,9 +152,9 @@ class GoogleDrive {
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     //patch a business with lst backup fileId.
     Business business = await ProxyService.realm.getBusiness();
-    business.backupFileId = fileUploaded.id;
-    await ProxyService.realm.update(data: business);
-    ProxyService.realm.update(data: business);
+    ProxyService.realm.realm!.write(() {
+      business.backupFileId = fileUploaded.id;
+    });
     // downloadGoogleDriveFile('data', fileUploaded.id);
   }
 

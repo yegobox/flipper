@@ -190,34 +190,28 @@ class ProductViewModel extends FlipperBaseModel
   void saveFocusedUnit(
       {required IUnit newUnit, String? id, required String type}) async {
     final int branchId = ProxyService.box.getBranchId()!;
-    log('updating unit', name: 'saveFocusedUnit');
-    for (IUnit unit in units) {
-      if (unit.active!) {
-        unit.active = false;
-        unit.branchId = branchId;
-        await ProxyService.realm.update(data: unit);
+    ProxyService.realm.realm!.writeAsync(() async {
+      for (IUnit unit in units) {
+        if (unit.active) {
+          unit.active = false;
+          unit.branchId = branchId;
+        }
       }
-    }
-    log('updating unit 1', name: 'saveFocusedUnit');
-    newUnit.active = true;
-    newUnit.branchId = branchId;
-    await ProxyService.realm.update(data: newUnit);
-    log('updating unit 2', name: 'saveFocusedUnit');
-    if (type == 'product') {
-      product?.unit = newUnit.name;
-      await ProxyService.realm.update(data: product);
-      // get updated product
-      product = await ProxyService.realm.getProduct(id: product!.id!);
-    }
-    log('updating unit 3', name: 'saveFocusedUnit');
+      newUnit.active = true;
+      newUnit.branchId = branchId;
+      if (type == 'product') {
+        product?.unit = newUnit.name;
+        // get updated product
+        product = await ProxyService.realm.getProduct(id: product!.id!);
+      }
 
-    if (type == 'variant') {
-      // Update variants if needed
-      // final Map data = product.toJson();
-      // data['unit'] = unit.name;
-      // ProxyService.isar.update(data: data);
-    }
-
+      if (type == 'variant') {
+        // Update variants if needed
+        // final Map data = product.toJson();
+        // data['unit'] = unit.name;
+        // ProxyService.isar.update(data: data);
+      }
+    });
     loadUnits();
     log('updating unit 4', name: 'saveFocusedUnit');
     notifyListeners();
@@ -227,13 +221,9 @@ class ProductViewModel extends FlipperBaseModel
     if (_stockValue != null) {
       Stock? stock =
           await ProxyService.realm.stockByVariantId(variantId: variantId);
-
-      stock!.currentStock = _stockValue!;
-
-      ProxyService.realm.update(data: stock);
-      if (await ProxyService.realm.isTaxEnabled()) {
-        ProxyService.tax.saveStock(stock: stock);
-      }
+      ProxyService.realm.realm!.writeAsync(() async {
+        stock!.currentStock = _stockValue!;
+      });
     }
   }
 
@@ -260,20 +250,22 @@ class ProductViewModel extends FlipperBaseModel
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color = await ProxyService.realm.getColor(id: c.id!);
-        _color!.active = false;
-        _color.branchId = branchId;
-        await ProxyService.realm.update(data: _color);
+        ProxyService.realm.realm!.write(() {
+          _color!.active = false;
+          _color.branchId = branchId;
+        });
       }
     }
 
     final PColor? _color = await ProxyService.realm.getColor(id: color.id!);
-
-    _color!.active = true;
-    _color.branchId = branchId;
-    product!.color = color.name!;
-    widgetReference.read(productProvider.notifier).emitProduct(value: product!);
-    await ProxyService.realm.update(data: product);
-    await ProxyService.realm.update(data: _color);
+    ProxyService.realm.realm!.write(() {
+      _color!.active = true;
+      _color.branchId = branchId;
+      product!.color = color.name!;
+      widgetReference
+          .read(productProvider.notifier)
+          .emitProduct(value: product!);
+    });
 
     setCurrentColor(color: color.name!);
 
@@ -303,46 +295,45 @@ class ProductViewModel extends FlipperBaseModel
     Product? product = await ProxyService.realm.getProduct(id: productId ?? 0);
     List<Variant> variants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
-    if (supplyPrice != null) {
-      for (Variant variation in variants) {
-        if (variation.name == "Regular") {
-          variation.supplyPrice = supplyPrice;
-          variation.productName = product!.name;
-          variation.action =
-              inUpdateProcess ? AppActions.updated : AppActions.created;
-          variation.productId = variation.productId;
-          ProxyService.realm.update(data: variation);
-          Stock? stock = await ProxyService.realm
-              .stockByVariantId(variantId: variation.id!);
 
-          stock!.supplyPrice = supplyPrice;
-          stock.action =
-              inUpdateProcess ? AppActions.updated : AppActions.created;
-          ProxyService.realm.update(data: stock);
+    ProxyService.realm.realm!.writeAsync(() async {
+      if (supplyPrice != null) {
+        for (Variant variation in variants) {
+          if (variation.name == "Regular") {
+            variation.supplyPrice = supplyPrice;
+            variation.productName = product!.name;
+            variation.action =
+                inUpdateProcess ? AppActions.updated : AppActions.created;
+            variation.productId = variation.productId;
+            Stock? stock = await ProxyService.realm
+                .stockByVariantId(variantId: variation.id!);
+
+            stock!.supplyPrice = supplyPrice;
+            stock.action =
+                inUpdateProcess ? AppActions.updated : AppActions.created;
+          }
         }
       }
-    }
 
-    if (retailPrice != null) {
-      for (Variant variation in variants) {
-        if (variation.name == "Regular") {
-          variation.retailPrice = retailPrice;
-          variation.productId = variation.productId;
-          variation.prc = retailPrice;
-          variation.action =
-              inUpdateProcess ? AppActions.updated : AppActions.created;
-          variation.productName = product!.name;
-          ProxyService.realm.update(data: variation);
-          Stock? stock = await ProxyService.realm
-              .stockByVariantId(variantId: variation.id!);
+      if (retailPrice != null) {
+        for (Variant variation in variants) {
+          if (variation.name == "Regular") {
+            variation.retailPrice = retailPrice;
+            variation.productId = variation.productId;
+            variation.prc = retailPrice;
+            variation.action =
+                inUpdateProcess ? AppActions.updated : AppActions.created;
+            variation.productName = product!.name;
+            Stock? stock = await ProxyService.realm
+                .stockByVariantId(variantId: variation.id!);
 
-          stock!.retailPrice = retailPrice;
-          stock.action =
-              inUpdateProcess ? AppActions.updated : AppActions.created;
-          await ProxyService.realm.update(data: stock);
+            stock!.retailPrice = retailPrice;
+            stock.action =
+                inUpdateProcess ? AppActions.updated : AppActions.created;
+          }
         }
       }
-    }
+    });
   }
 
   /// Add a product into the favorites
@@ -386,8 +377,9 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void updateExpiryDate(DateTime date) async {
-    product!.expiryDate = date.toIso8601String();
-    ProxyService.realm.update(data: product);
+    ProxyService.realm.realm!.writeAsync(() async {
+      product!.expiryDate = date.toIso8601String();
+    });
     Product? cProduct = await ProxyService.realm.getProduct(id: product!.id!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
@@ -411,18 +403,15 @@ class ProductViewModel extends FlipperBaseModel
     if (transaction != null) {
       List<TransactionItem> transactionItems = await ProxyService.realm
           .getTransactionItemsByTransactionId(transactionId: transaction.id);
-      for (TransactionItem item in transactionItems) {
-        if (item.price.toInt() <= discount.amount! && item.discount == null) {
-          item.discount = item.price;
-
-          await ProxyService.realm.update(data: item);
-        } else if (item.discount == null) {
-          item.discount =
-              discount.amount != null ? discount.amount!.toDouble() : 0.0;
-
-          await ProxyService.realm.update(data: item);
+      ProxyService.realm.realm!.write(() {
+        for (TransactionItem item in transactionItems) {
+          if (item.price.toInt() <= discount.amount!) {
+            item.discount = item.price;
+          } else {
+            item.discount = discount.amount!.toDouble();
+          }
         }
-      }
+      });
       return true;
     }
     return false;

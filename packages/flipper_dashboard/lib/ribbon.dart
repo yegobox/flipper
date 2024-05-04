@@ -160,9 +160,10 @@ class IconRowState extends ConsumerState<IconRow> {
       );
       if (drawer != null) {
         /// update the drawer with closing balance
-        drawer.closingBalance = data.income;
 
-        await ProxyService.realm.update(data: drawer);
+        ProxyService.realm.realm!.write(() {
+          drawer.closingBalance = data.income;
+        });
       }
       _routerService
           .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));

@@ -29,9 +29,9 @@ class CashbookState extends ConsumerState<Cashbook> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<ITransaction> _transactions = await ProxyService.realm
-            .completedTransactions(branchId: ProxyService.box.getBranchId()!);
-        model.updateTransactionsList(newTransactions: _transactions);
+        // List<ITransaction> _transactions = await ProxyService.realm
+        //     .completedTransactions(branchId: ProxyService.box.getBranchId()!);
+        // model.updateTransactionsList(newTransactions: _transactions);
       },
       builder: (context, model, child) {
         return Scaffold(

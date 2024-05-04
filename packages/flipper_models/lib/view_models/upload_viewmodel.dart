@@ -24,31 +24,28 @@ class UploadViewModel extends ProductViewModel {
 
   void handleUploaderResult(URLTYPE urlType, id, Function(String) callBack) {
     uploader.result.listen((UploadTaskResponse result) async {
-      log(result.status.toString(), name: "status");
-      log(result.status!.description.toString(), name: "status description");
-      if (result.status?.description == "Completed") {
-        // uploader.clearUploads();
-        if (urlType == URLTYPE.PRODUCT) {
-          final UploadResponse uploadResponse =
-              uploadResponseFromJson(result.response!);
-          Product? product = await ProxyService.realm.getProduct(id: id);
-          product!.imageUrl = uploadResponse.url;
-          ProxyService.realm.update(data: product);
-          Product? kProduct = await ProxyService.realm.getProduct(id: id);
-          setCurrentProduct(currentProduct: kProduct!);
-          callBack(uploadResponse.url);
+      ProxyService.realm.realm!.writeAsync(() async {
+        if (result.status?.description == "Completed") {
+          if (urlType == URLTYPE.PRODUCT) {
+            final UploadResponse uploadResponse =
+                uploadResponseFromJson(result.response!);
+            Product? product = await ProxyService.realm.getProduct(id: id);
+            product!.imageUrl = uploadResponse.url;
+            Product? kProduct = await ProxyService.realm.getProduct(id: id);
+            setCurrentProduct(currentProduct: kProduct!);
+            callBack(uploadResponse.url);
+          }
+          if (urlType == URLTYPE.BUSINESS) {
+            final UploadResponse uploadResponse =
+                uploadResponseFromJson(result.response!);
+            Business business = await ProxyService.realm
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+            business.imageUrl = uploadResponse.url;
+            updateBusinessProfile(url: uploadResponse.url);
+            callBack(uploadResponse.url);
+          }
         }
-        if (urlType == URLTYPE.BUSINESS) {
-          final UploadResponse uploadResponse =
-              uploadResponseFromJson(result.response!);
-          Business business = await ProxyService.realm
-              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-          business.imageUrl = uploadResponse.url;
-          ProxyService.realm.update(data: business);
-          updateBusinessProfile(url: uploadResponse.url);
-          callBack(uploadResponse.url);
-        }
-      }
+      });
     }, onError: (ex, stacktrace) {
       log(ex);
     });
@@ -74,8 +71,9 @@ class UploadViewModel extends ProductViewModel {
     // update business as well as for this time tenant is the same as busienss
 
     if (tenant != null) {
-      tenant.imageUrl = url;
-      ProxyService.realm.update(data: tenant);
+      ProxyService.realm.realm!.write(() {
+        tenant.imageUrl = url;
+      });
     }
 
     /// if the user has enabled the flipper connecta update his profile image in contacts as well

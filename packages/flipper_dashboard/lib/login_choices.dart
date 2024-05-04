@@ -31,9 +31,11 @@ class _LoginChoicesState extends State<LoginChoices> {
         List<Business> _b = await ProxyService.realm
             .businesses(userId: ProxyService.box.getUserId()!);
         List<Branch> branches = await ProxyService.realm.branches();
-        for (Branch branch in branches) {
-          ProxyService.realm.update(data: branch..active = false);
-        }
+        ProxyService.realm.realm!.write(() {
+          for (Branch branch in branches) {
+            branch..active = false;
+          }
+        });
         model.branchesList(branches);
         setState(() {
           _businesses = _b;
@@ -113,7 +115,9 @@ class _LoginChoicesState extends State<LoginChoices> {
       currentBusiness.name = currentBusiness.name;
       currentBusiness.active = currentBusiness.id == selectedBusiness.id;
 
-      ProxyService.realm.update(data: _businesses[i]);
+      ProxyService.realm.realm!.write(() {
+        _businesses[i];
+      });
     }
 
     await ProxyService.box
@@ -159,7 +163,9 @@ class _LoginChoicesState extends State<LoginChoices> {
       currentBranch.active = currentBranch.id == branch.id;
       currentBranch.name = currentBranch.name;
 
-      ProxyService.realm.update(data: model.branches[i]);
+      ProxyService.realm.realm!.write(() {
+        model.branches[i];
+      });
     }
 
     ProxyService.box.writeBool(key: "authComplete", value: true);

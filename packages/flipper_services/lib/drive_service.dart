@@ -103,12 +103,10 @@ class GoogleDrive {
   /// if the token is not expired it will return the http client
 
   Future<void> updateBusiness(Business business) async {
-    business.backUpEnabled = true;
-    business.lastDbBackup = DateTime.now().toIso8601String();
-
-    /// notify the online that user has enabled the backup
-    /// also update the property locally.
-    await ProxyService.realm.update(data: business);
+    ProxyService.realm.realm!.write(() {
+      business.backUpEnabled = true;
+      business.lastDbBackup = DateTime.now().toIso8601String();
+    });
   }
 
   /// Upload File to user's Google Drive appData folder
@@ -142,10 +140,10 @@ class GoogleDrive {
     );
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
-    Business business = await ProxyService.realm.getBusiness();
-    business.backupFileId = fileUploaded.id;
-    await ProxyService.realm.update(data: business);
-    ProxyService.realm.update(data: business);
+    ProxyService.realm.realm!.writeAsync(() async {
+      Business business = await ProxyService.realm.getBusiness();
+      business.backupFileId = fileUploaded.id;
+    });
     ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);
   }
 
