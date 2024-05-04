@@ -1738,7 +1738,7 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<ITransaction>>.broadcast();
 
     final query = realm!.query<ITransaction>(
-      r'status == $0 AND supplierId == $1 AND deletedAt == nil',
+      r'status == $0 AND  supplierId == $1 AND deletedAt == nil',
       [PENDING, branchId],
     );
 
@@ -1746,9 +1746,9 @@ class RealmAPI<M extends IJsonSerializable>
 
     controller.onListen = () {
       subscription = query.changes.listen((event) {
-        final changedVariants =
+        final changedTransactions =
             event.results.whereType<ITransaction>().toList();
-        if (changedVariants.isNotEmpty) {
+        if (changedTransactions.isNotEmpty) {
           controller.add(query.toList());
         }
       });

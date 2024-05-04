@@ -197,8 +197,14 @@ class SearchFieldState extends ConsumerState<SearchField> {
               style: TextStyle(color: Colors.white)),
           child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
         ),
-      AsyncError() => Text("0"),
-      _ => const Text("0"),
+      AsyncError() => badges.Badge(
+          badgeContent: Text("0", style: TextStyle(color: Colors.white)),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+        ),
+      _ => const badges.Badge(
+          badgeContent: Text("0", style: TextStyle(color: Colors.white)),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+        ),
     };
   }
 
