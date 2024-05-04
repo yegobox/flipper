@@ -57,11 +57,11 @@ class _AddDiscountState extends State<AddDiscount> {
                             amount: double.parse(amountController.text),
                           );
                         } else {
-                          await model.update(
-                            name: nameController.text,
-                            amount: double.parse(amountController.text),
-                            id: widget.discount!.id!,
-                          );
+                          // await model.update(
+                          //   name: nameController.text,
+                          //   amount: double.parse(amountController.text),
+                          //   id: widget.discount!.id!,
+                          // );
                         }
                         _routerService.pop();
                         ;

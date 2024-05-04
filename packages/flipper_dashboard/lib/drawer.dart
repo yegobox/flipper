@@ -189,13 +189,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   void handleCloseDrawer() async {
-    ProxyService.realm.update(
-      data: widget.drawer
+    ProxyService.realm.realm!.write(() {
+      widget.drawer
         ..closingBalance = double.parse(_controller.text)
         ..closingDateTime = DateTime.now().toIso8601String()
-        ..open = false,
-    );
-
+        ..open = false;
+    });
     await ProxyService.realm.logOut();
     _routerService.navigateTo(LoginViewRoute());
   }

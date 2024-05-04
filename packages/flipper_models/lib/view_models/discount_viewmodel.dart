@@ -9,10 +9,4 @@ class DiscountViewModel extends ProductViewModel {
     await ProxyService.realm
         .saveDiscount(branchId: branchId, name: name, amount: amount);
   }
-
-  update({required String name, required double amount, required int id}) {
-    ProxyService.realm.update(
-      data: {'name': name, "amount": amount, "id": id},
-    );
-  }
 }

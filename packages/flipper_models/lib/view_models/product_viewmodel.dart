@@ -162,26 +162,22 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void updateCategory({required Category category}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-    for (Category category in categories) {
-      if (category.focused!) {
-        Category cat = category;
-        cat.focused = false;
-        cat.branchId = branchId;
-        cat.active = false;
-        await ProxyService.realm.update(
-          data: cat,
-        );
+    ProxyService.realm.realm!.write(() {
+      int branchId = ProxyService.box.getBranchId()!;
+      for (Category category in categories) {
+        if (category.focused) {
+          Category cat = category;
+          cat.focused = false;
+          cat.branchId = branchId;
+          cat.active = false;
+        }
       }
-    }
 
-    Category cat = category;
-    cat.focused = true;
-    cat.active = true;
-    cat.branchId = branchId;
-    await ProxyService.realm.update(
-      data: cat,
-    );
+      Category cat = category;
+      cat.focused = true;
+      cat.active = true;
+      cat.branchId = branchId;
+    });
     app.loadCategories();
   }
 

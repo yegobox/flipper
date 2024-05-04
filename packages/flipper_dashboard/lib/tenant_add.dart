@@ -384,7 +384,6 @@ class _TenantAddState extends State<TenantAdd> {
             nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
 
             showToast(context, 'You have added NFC card to ${tenant.name}');
-            await ProxyService.realm.update<Tenant>(data: tenant);
             model.loadTenants();
           },
           textData:

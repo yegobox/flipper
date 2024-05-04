@@ -379,59 +379,57 @@ class RealmAPI<M extends IJsonSerializable>
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType}) async {
-    transaction.status = COMPLETE;
+    ProxyService.realm.realm!.writeAsync(() async {
+      transaction.status = COMPLETE;
 
-    List<TransactionItem> items = await transactionItems(
-        transactionId: transaction.id!,
-        doneWithTransaction: false,
-        active: true);
-    double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
-    transaction.customerChangeDue = (cashReceived - subTotal);
-    transaction.paymentType = paymentType;
-    transaction.cashReceived = cashReceived;
-    transaction.subTotal = subTotal;
+      List<TransactionItem> items = await transactionItems(
+          transactionId: transaction.id!,
+          doneWithTransaction: false,
+          active: true);
+      double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
+      transaction.customerChangeDue = (cashReceived - subTotal);
+      transaction.paymentType = paymentType;
+      transaction.cashReceived = cashReceived;
+      transaction.subTotal = subTotal;
 
-    /// for now receipt type to be printed is in box shared preference
-    /// this ofcause has limitation that if more than two users are using device
-    /// one user will use configuration set by probably a different user, this need to change soon.
-    String receiptType = "ns";
-    if (ProxyService.box.isPoroformaMode()) {
-      receiptType = ReceiptType.ps;
-    }
-    if (ProxyService.box.isTrainingMode()) {
-      receiptType = ReceiptType.ts;
-    }
-    transaction.receiptType = receiptType;
-
-    /// refresh created as well to reflect when this transaction was created and completed
-
-    transaction.updatedAt = DateTime.now().toIso8601String();
-    transaction.createdAt = DateTime.now().toIso8601String();
-    talker.info(
-      DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
-    );
-    transaction.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-
-    await update(data: transaction);
-
-    for (TransactionItem item in items) {
-      Stock? stock = await stockByVariantId(variantId: item.variantId!);
-      stock!.currentStock = stock.currentStock - item.qty;
-      // stock value after item deduct
-      stock.value = stock.currentStock * (stock.retailPrice);
-      stock.action = AppActions.updated;
-      item.doneWithTransaction = true;
-      item.updatedAt = DateTime.now().toIso8601String();
-      await update(data: stock);
-      await update(data: item);
-      // search the related product and touch them to make them as most used
-      Variant? variant = await getVariantById(id: item.variantId!);
-      Product? product = await getProduct(id: variant?.productId ?? 0);
-      if (product != null) {
-        product.lastTouched = DateTime.now().toLocal().add(Duration(hours: 2));
-        await update(data: product);
+      /// for now receipt type to be printed is in box shared preference
+      /// this ofcause has limitation that if more than two users are using device
+      /// one user will use configuration set by probably a different user, this need to change soon.
+      String receiptType = "ns";
+      if (ProxyService.box.isPoroformaMode()) {
+        receiptType = ReceiptType.ps;
       }
-    }
+      if (ProxyService.box.isTrainingMode()) {
+        receiptType = ReceiptType.ts;
+      }
+      transaction.receiptType = receiptType;
+
+      /// refresh created as well to reflect when this transaction was created and completed
+
+      transaction.updatedAt = DateTime.now().toIso8601String();
+      transaction.createdAt = DateTime.now().toIso8601String();
+      talker.info(
+        DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
+      );
+      transaction.lastTouched =
+          DateTime.now().toLocal().add(Duration(hours: 2));
+      for (TransactionItem item in items) {
+        Stock? stock = await stockByVariantId(variantId: item.variantId!);
+        stock!.currentStock = stock.currentStock - item.qty;
+        // stock value after item deduct
+        stock.value = stock.currentStock * (stock.retailPrice);
+        stock.action = AppActions.updated;
+        item.doneWithTransaction = true;
+        item.updatedAt = DateTime.now().toIso8601String();
+        // search the related product and touch them to make them as most used
+        Variant? variant = await getVariantById(id: item.variantId!);
+        Product? product = await getProduct(id: variant?.productId ?? 0);
+        if (product != null) {
+          product.lastTouched =
+              DateTime.now().toLocal().add(Duration(hours: 2));
+        }
+      }
+    });
     // remove currentTransactionId from local storage to leave a room
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');

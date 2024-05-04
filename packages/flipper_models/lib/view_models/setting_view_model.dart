@@ -124,15 +124,10 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         await ProxyService.realm.createGoogleSheetDoc(email: setting.email!);
-
-        Business business = await ProxyService.realm.getBusiness();
-        business.email = setting.email;
-        await ProxyService.realm.update(
-          data: business,
-        );
-        ProxyService.realm.update(
-          data: business,
-        );
+        ProxyService.realm.realm!.writeAsync(() async {
+          Business business = await ProxyService.realm.getBusiness();
+          business.email = setting.email;
+        });
       }
     } else {
       callback(2);
