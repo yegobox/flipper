@@ -116,7 +116,7 @@ dependencies:
     git:
       url: https://github.com/ryojiro/flutter_datetime_picker.git
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
-  realm: ^2.1.0
+  realm: ^2.2.1
 
 dependency_overrides:
   http: ^1.2.1
