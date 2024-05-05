@@ -294,7 +294,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       if (searchString.isNotEmpty) {
         List<Product?> additionalProducts =
             await ProxyService.realm.getProductByName(name: searchString);
-        log(additionalProducts.toString());
+
         // Filter out null products and cast non-null products to Product type
         products.addAll(additionalProducts
             .where((product) => product != null)

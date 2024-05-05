@@ -595,34 +595,33 @@ class RealmAPI<M extends IJsonSerializable>
         return existingProduct;
       }
     }
-    realm!.write(() {
-      realm!.put<Product>(product);
 
-      if (!skipRegularVariant) {
-        final Product kProduct = realm!.query<Product>(
-          r'id == $0 ',
-          [product.id],
-        ).first;
+    await realm!.putAsync<Product>(product);
 
-        // Create a Regular Variant
-        final Variant newVariant =
-            _createRegularVariant(product, branchId, business);
-        realm!.put<Variant>(newVariant);
+    if (!skipRegularVariant) {
+      final Product kProduct = realm!.query<Product>(
+        r'id == $0 ',
+        [product.id],
+      ).first;
 
-        // Create a Stock for the Regular Variant
-        final Stock stock = Stock(
-          ObjectId(),
-          lastTouched: DateTime.now(),
-          id: randomNumber(),
-          action: 'create',
-          branchId: branchId,
-          variantId: newVariant.id!,
-          currentStock: 0.0,
-          productId: kProduct.id!,
-        );
-        realm!.put<Stock>(stock);
-      }
-    });
+      // Create a Regular Variant
+      final Variant newVariant =
+          _createRegularVariant(product, branchId, business);
+      await realm!.putAsync<Variant>(newVariant);
+
+      // Create a Stock for the Regular Variant
+      final Stock stock = Stock(
+        ObjectId(),
+        lastTouched: DateTime.now(),
+        id: randomNumber(),
+        action: 'create',
+        branchId: branchId,
+        variantId: newVariant.id!,
+        currentStock: 0.0,
+        productId: kProduct.id!,
+      );
+      await realm!.putAsync<Stock>(stock);
+    }
 
     return realm!.query<Product>(
       r'id == $0 ',
@@ -703,143 +702,91 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<bool> delete({required int id, String? endPoint}) async {
-    final DateTime deletionTime = DateTime.now();
-
     switch (endPoint) {
       case 'color':
+        PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
+
         realm!.write(() {
-          PColor? color = realm!.query<PColor>(r'id == $0 ', [id]).firstOrNull;
-
-          if (color != null) {
-            color.deletedAt = deletionTime;
-            color.action = AppActions.deleted;
-
-            return true;
-          }
-          return false;
+          realm!.delete<PColor>(color);
         });
         break;
       case 'device':
         realm!.write(() {
-          Device? device = realm!.query<Device>(r'id == $0 ', [id]).firstOrNull;
-          if (device != null) {
-            device.deletedAt = deletionTime;
-            device.action = AppActions.deleted;
-            return true;
-          }
+          Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
+          realm!.write(() {
+            realm!.delete<Device>(device);
+          });
           return false;
         });
         break;
       case 'category':
+        Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Category? category =
-              realm!.query<Category>(r'id == $0 ', [id]).firstOrNull;
-          if (category != null) {
-            category.deletedAt = deletionTime;
-            category.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Category>(category);
         });
         break;
       case 'product':
+        Product? product = realm!.query<Product>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Product? product =
-              realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
-          if (product != null) {
-            product.deletedAt = deletionTime;
-            product.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Product>(product);
         });
         break;
       case 'variant':
+        Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Variant? variant =
-              realm!.query<Variant>(r'id == $0 ', [id]).firstOrNull;
-          if (variant != null) {
-            variant.deletedAt = deletionTime;
-            variant.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Variant>(variant);
         });
         break;
       case 'stock':
+        Stock? stock = realm!.query<Stock>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Stock? stocks = realm!.query<Stock>(r'id == $0 ', [id]).firstOrNull;
-          if (stocks != null) {
-            stocks.deletedAt = deletionTime;
-            stocks.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Stock>(stock);
         });
         break;
       case 'setting':
+        Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Setting? setting =
-              realm!.query<Setting>(r'id == $0 ', [id]).firstOrNull;
-          if (setting != null) {
-            setting.deletedAt = deletionTime;
-            setting.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Setting>(setting);
         });
         break;
       case 'pin':
+        Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).first;
+
         realm!.write(() {
-          Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).firstOrNull;
-          if (pin != null) {
-            realm!.delete<Pin>(pin);
-            return true;
-          }
-          return false;
+          realm!.delete<Pin>(pin);
         });
         break;
       case 'business':
+        final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          final business =
-              realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
           realm!.delete<Business>(business!);
         });
         break;
       case 'branch':
+        final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
           realm!.delete<Branch>(business!);
         });
         break;
 
       case 'voucher':
+        final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          final business =
-              realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
           realm!.delete<Voucher>(business!);
         });
         break;
       case 'transactionItem':
-        realm!.write(() {
-          TransactionItem? transactionItem =
-              realm!.query<TransactionItem>(r'id == $0 ', [id]).firstOrNull;
+        TransactionItem? transactionItem =
+            realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
-          if (transactionItem != null) {
-            realm!.delete<TransactionItem>(transactionItem);
-          }
+        realm!.write(() {
+          realm!.delete<TransactionItem>(transactionItem);
         });
         break;
       case 'customer':
+        Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          Customer? customer =
-              realm!.query<Customer>(r'id == $0 ', [id]).firstOrNull;
-          if (customer != null) {
-            customer.deletedAt = deletionTime;
-            customer.action = AppActions.deleted;
-            return true;
-          }
-          return false;
+          realm!.delete<Customer>(customer);
         });
         break;
       case 'tenant':
@@ -3000,19 +2947,9 @@ class RealmAPI<M extends IJsonSerializable>
       variant.lastTouched = DateTime.now().toLocal();
       await realm!.putAsync<Variant>(variant);
     } else {
-      int variationId = randomNumber();
       int stockId = randomNumber();
 
-      variation = Variant(
-        ObjectId(),
-        pkg: "1",
-        id: variationId,
-        action: AppActions.created,
-        name: variation.name,
-        retailPrice: variation.retailPrice, // Use existing values
-        supplyPrice: variation.supplyPrice,
-      );
-      talker.info(variation.toEJson());
+      talker.info("Saving variant when scanning..... [1]");
 
       await realm!.putAsync<Variant>(variation);
 
@@ -3021,7 +2958,7 @@ class RealmAPI<M extends IJsonSerializable>
         id: stockId,
         lastTouched: DateTime.now(),
         branchId: branchId,
-        variantId: variationId,
+        variantId: variation.id,
         action: AppActions.created,
         retailPrice: variation.retailPrice,
         supplyPrice: variation.supplyPrice,
@@ -3063,8 +3000,8 @@ class RealmAPI<M extends IJsonSerializable>
 
   _findProductByBusinessId({required String name, required int businessId}) {
     return realm!.query<Product>(
-      r'businessId == $0 ',
-      [businessId],
+      r'businessId == $0 AND name == $1',
+      [businessId, name],
     ).firstOrNull;
   }
 

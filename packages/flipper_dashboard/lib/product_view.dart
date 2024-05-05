@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:io';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/discount_row.dart';
@@ -22,6 +24,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flutter/foundation.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -148,7 +151,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                   ],
                 );
               },
-              error: (error, e) => Text('error: $error'),
+              error: (error, e) => SizedBox.shrink(),
               loading: () => const CircularProgressIndicator(),
             ),
       ),
@@ -170,7 +173,7 @@ class ProductViewState extends ConsumerState<ProductView> {
           return buildRowItem(context, model, variant, stock);
         }
       },
-      error: (dynamic error, stackTrace) => Text(error.toString()),
+      error: (dynamic error, stackTrace) => SizedBox.shrink(),
       loading: () => CircularProgressIndicator(),
     );
   }
@@ -289,7 +292,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                 buildProductRows(context, model, value),
               ],
             ),
-          AsyncError(:final error) => Text('error: $error'),
+          AsyncError(:final error) => SizedBox.shrink(),
           _ => const CircularProgressIndicator(),
         },
       ),
@@ -377,13 +380,12 @@ class ProductViewState extends ConsumerState<ProductView> {
                         },
                         deleteProduct: (productId, type) async {
                           await model.deleteProduct(productId: productId!);
-                          ref
-                              .read(
-                                productsProvider(
-                                  ProxyService.box.getBranchId()!,
-                                ).notifier,
-                              )
-                              .deleteProduct(productId: productId);
+                          ref.refresh(
+                            productsProvider(
+                              ProxyService.box.getBranchId()!,
+                            ).notifier,
+                          );
+                          // .deleteProduct(productId: productId);
                         },
                         enableNfc: (product) {
                           showMaterialModalBottomSheet(
@@ -411,7 +413,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                         matchedProduct == null ? 0 : matchedProduct.id))
                     .when(
                       loading: () => Text("searching..."),
-                      error: (error, stackTrace) => Text(error.toString()),
+                      error: (error, stackTrace) => SizedBox.shrink(),
                       data: (variants) => ListView.builder(
                         shrinkWrap: true,
                         itemCount: variants.length,

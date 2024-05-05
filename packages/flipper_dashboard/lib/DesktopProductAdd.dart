@@ -284,20 +284,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product) {
-    _saveProductAndVariants(model, context, product);
-    // if (!_savingInProgress) {
-    //   setState(() {
-    //     _savingInProgress = true;
-    //   });
+    // _saveProductAndVariants(model, context, product);
+    if (!_savingInProgress) {
+      setState(() {
+        _savingInProgress = true;
+      });
 
-    //   if (model.scannedVariants.isEmpty) {
-    //     _showNoProductSavedToast();
-    //   } else {
-    //     _saveProductAndVariants(model, context, product);
-    //   }
-    // } else {
-    //   _showSaveInProgressToast();
-    // }
+      if (model.scannedVariants.isEmpty) {
+        _showNoProductSavedToast();
+      } else {
+        _saveProductAndVariants(model, context, product);
+      }
+    } else {
+      _showSaveInProgressToast();
+    }
   }
 
   Widget _buildDropdownButton(ScannViewModel model) {
