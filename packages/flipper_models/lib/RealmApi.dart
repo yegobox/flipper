@@ -2945,13 +2945,10 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<int> addVariant({required List<Variant> variations}) async {
     final branchId = ProxyService.box.getBranchId()!;
-
     try {
-      // Open a write transaction
       for (final variation in variations) {
-        _processVariant(branchId, variation);
+        await _processVariant(branchId, variation);
       }
-
       return 200;
     } catch (e) {
       print('Failed to add variants: $e');
@@ -2959,58 +2956,66 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  void _processVariant(int branchId, Variant variation) {
+  Future<void> _processVariant(int branchId, Variant variation) async {
     int stockId = randomNumber();
     Variant? variant = realm!.query<Variant>(
         r'id == $0 && branchId == $1 && deletedAt == nil',
         [variation.id, branchId]).firstOrNull;
+
     if (variant != null) {
       Stock? stock = realm!.query<Stock>(
-          r'id == $0 &&  branchId == $1 && deletedAt == nil',
+          r'id == $0 && branchId == $1 && deletedAt == nil',
           [stockId, branchId]).firstOrNull;
+
       if (stock == null) {
-        final newStock = Stock(ObjectId(),
-            id: stockId,
-            lastTouched: DateTime.now(),
-            branchId: branchId,
-            variantId: variation.id!,
-            action: AppActions.created,
-            retailPrice: variation.retailPrice,
-            supplyPrice: variation.supplyPrice,
-            currentStock: variation.qty,
-            rsdQty: variation.qty,
-            value: (variation.qty * (variation.retailPrice)).toDouble(),
-            productId: variation.productId,
-            active: false);
-        realm!.write(() => realm!.add<Stock>(newStock));
+        final newStock = Stock(
+          ObjectId(),
+          id: stockId,
+          lastTouched: DateTime.now(),
+          branchId: branchId,
+          variantId: variation.id!,
+          action: AppActions.created,
+          retailPrice: variation.retailPrice,
+          supplyPrice: variation.supplyPrice,
+          currentStock: variation.qty,
+          rsdQty: variation.qty,
+          value: (variation.qty * (variation.retailPrice)).toDouble(),
+          productId: variation.productId,
+          active: false,
+        );
+        await realm!.putAsync<Stock>(newStock);
       }
+
       stock!.currentStock = stock.currentStock + variation.qty;
-
-      /// rsdQty is the remaining stock that is not yet sold bas
       stock.rsdQty = stock.currentStock + variation.qty;
-
       stock.action = AppActions.updated;
       stock.lastTouched = DateTime.now().toLocal();
       stock.value = (variation.qty * (variation.retailPrice)).toDouble();
-      realm!.write(() => realm!.put<Stock>(stock));
+      await realm!.putAsync<Stock>(stock);
 
       variant.qty = variation.qty;
       variant.retailPrice = variation.retailPrice;
       variant.supplyPrice = variation.supplyPrice;
-
       variant.action = AppActions.updated;
       variant.lastTouched = DateTime.now().toLocal();
-      realm!.write(() => realm!.put<Variant>(variant));
+      await realm!.putAsync<Variant>(variant);
     } else {
       int variationId = randomNumber();
       int stockId = randomNumber();
 
-      variation.pkg = "1";
-      variation.id = variationId;
-      variation.action = AppActions.created;
-      variation.retailPrice = variation.retailPrice;
-      variation.supplyPrice = variation.supplyPrice;
-      realm!.write(() => realm!.put<Variant>(variation));
+      variation = Variant(
+        ObjectId(),
+        pkg: "1",
+        id: variationId,
+        action: AppActions.created,
+        name: variation.name,
+        retailPrice: variation.retailPrice, // Use existing values
+        supplyPrice: variation.supplyPrice,
+      );
+      talker.info(variation.toEJson());
+
+      await realm!.putAsync<Variant>(variation);
+
       final newStock = Stock(
         ObjectId(),
         id: stockId,
@@ -3025,7 +3030,7 @@ class RealmAPI<M extends IJsonSerializable>
         productId: variation.productId,
       )..active = true;
 
-      realm!.write(() => realm!.put<Stock>(newStock));
+      realm!.putAsync<Stock>(newStock);
     }
   }
 

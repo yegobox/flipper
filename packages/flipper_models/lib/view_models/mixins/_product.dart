@@ -62,8 +62,9 @@ mixin ProductMixin {
         variations: variations,
       );
       return result;
-    } catch (e) {
+    } catch (e, s) {
       talker.error(e);
+      talker.error(s);
       throw e;
     }
   }
@@ -74,16 +75,14 @@ mixin ProductMixin {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
     ProxyService.realm.realm!.writeAsync(() async {
-      ProxyService.realm.realm!.write(() {
-        mproduct.name = productName!;
-        mproduct.barCode = productService.barCode.toString();
-        mproduct.color = currentColor;
-      });
-
       Category? activeCat = await ProxyService.realm
           .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
       ProxyService.realm.realm!.writeAsync(() async {
+        mproduct.name = productName!;
+        mproduct.barCode = productService.barCode.toString();
+        mproduct.color = currentColor;
+
         // Update activeCat only if necessary
         if (activeCat?.active != false) {
           activeCat?.active = false;

@@ -3,17 +3,26 @@ import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 extension RealmExtension on Realm {
-  T put<T extends RealmObject>(
+  void put<T extends RealmObject>(
     T object, {
     Function(T)? onAdd,
   }) {
-    final addedObject = write(() {
+    write(() {
       final talker = TalkerFlutter.init();
       add(object);
-      talker.warning("Saved using the Put, I fill like I am flying :) ");
+      talker.warning(
+          "Saved using standart non async on realm extension :) ${object.toEJson()}");
       EBMHandler(object: object).handleReceipt();
     });
-    onAdd?.call(addedObject);
-    return addedObject;
+  }
+
+  Future<void> putAsync<T extends RealmObject>(T object) async {
+    await writeAsync(() async {
+      final talker = TalkerFlutter.init();
+      add(object);
+      talker.warning(
+          "Saved using async on realm Extension:) ${object.toEJson()}");
+      EBMHandler(object: object).handleReceipt();
+    });
   }
 }
