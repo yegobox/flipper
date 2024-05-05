@@ -1653,13 +1653,12 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    int id = randomNumber();
-    realm!.write(() {
-      realm!.put<Drawers>(drawer..id = id);
+    await realm!.writeAsync(() async {
+      realm!.putAsync<Drawers>(drawer);
     });
     return realm!.query<Drawers>(
       r'id == $0 AND deletedAt == nil',
-      [id],
+      [drawer.id],
     ).firstOrNull;
   }
 
@@ -2756,6 +2755,13 @@ class RealmAPI<M extends IJsonSerializable>
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
     final tenant =
         realm!.query<Tenant>(r'userId == $0', [ProxyService.box.getUserId()]);
+
+    final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
+
+    await drawers.subscribe(
+        name: "drawers-${businessId}",
+        waitForSyncMode: WaitForSyncMode.always,
+        update: true);
 
     await token.subscribe(
         name: "token-${businessId}",
