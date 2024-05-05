@@ -534,7 +534,7 @@ class CoreViewModel extends FlipperBaseModel
           modrId: randomNumber().toString().substring(0, 5),
           regrId: randomNumber().toString().substring(0, 5),
           ebmSynced: false,
-          tin: ProxyService.box.tin().toString(),
+          tin: ProxyService.box.tin(),
           modrNm: randomNumber().toString().substring(0, 5),
           bhfId: ProxyService.box.bhfId(),
           useYn: "N",

@@ -683,12 +683,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  String dbPath() {
-    // TODO: implement dbPath
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Branch?> defaultBranch() async {
     return realm!.query<Branch>(r'isDefault == $0 ', [true]).firstOrNull;
   }
@@ -2592,11 +2586,13 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Future<String> absolutePath(String fileName) async {
+  @override
+  Future<String> dbPath() async {
+    String fileName = "db_";
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId() ?? 0;
     final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v3-' +
+    final realmDirectory = '${appDocsDirectory.path}/flipper-v4-' +
         branchId.toString() +
         "_" +
         businessId.toString();
@@ -2638,7 +2634,7 @@ class RealmAPI<M extends IJsonSerializable>
       talker.info("opening the synced realm for the app to run on launch");
 
       // List<int> key = ProxyService.box.encryptionKey().toIntList();
-      String path = await absolutePath("db_");
+      String path = await dbPath();
       //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
       final app = App(AppConfiguration(AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));

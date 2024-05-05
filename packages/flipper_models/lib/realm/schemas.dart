@@ -206,7 +206,7 @@ class _Customer {
   DateTime? deletedAt;
 
   /// this is the tin of the business adding this customer
-  String? tin;
+  int? tin;
   String? bhfId;
   String? useYn;
   String? customerType;
@@ -420,6 +420,8 @@ class _Stock {
   @PrimaryKey()
   @MapTo('_id')
   ObjectId? realmId;
+  int? tin;
+  String? bhfId;
 
   int? branchId;
   int? variantId;
@@ -500,27 +502,6 @@ class _Variant {
   String? pkg;
   // item code
   String? itemCd;
-  // packacking unit these are mainly AM
-  ///Certainly! Here are the codes along with their explanations:
-
-// AM: Ampoule Ampoule
-// BA: Barrel Barrel
-// BC: Bottlecrate Bottlecrate
-// BE: Bundle Bundle
-// BF: Balloon, non-protected Balloon, non-protected
-// BG: Bag Bag
-// BJ: Bucket Bucket
-// BK: Basket Basket
-// BL: Bale Bale
-// BQ: Bottle, protected cylindrical Bottle, protected cylindrical
-// BR: Bar Bar
-// BV: Bottle, bulbous Bottle, bulbous
-// BZ: Bag Bag
-// CA: Can Can
-// CH: Chest Chest
-// CJ: Coffin Coffin
-// CL: Coil Coil
-// CR: Wooden Box, Wooden Case Wooden Box, Wooden Case
 
   String? pkgUnitCd;
 

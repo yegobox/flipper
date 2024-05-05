@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class CronService {
   final drive = GoogleDrive();
@@ -40,31 +42,32 @@ class CronService {
     sendPort.send('Done sending data to http server');
   }
 
-  List<Isolate> _isolates = [];
-
+  final talker = TalkerFlutter.init();
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     try {
       String encryptionKey = ProxyService.box.encryptionKey();
-
+      Business business = ProxyService.realm.realm!.query<Business>(
+          r'id == $0', [ProxyService.box.getBusinessId()!]).first;
+      talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
+      EBM? ebm = ProxyService.realm.realm!.query<EBM>(
+          r'businessId == $0', [ProxyService.box.getBusinessId()]).firstOrNull;
+      talker.info("EBM ${ebm}");
+      talker.info("EBM BusinessTine ${business.tinNumber}");
       ReceivePort receivePort = ReceivePort();
-      final isolate = await Isolate.spawn(
+      await Isolate.spawn(
         isolateHandler,
         [
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          "dbPath",
+          await ProxyService.realm.dbPath(),
           encryptionKey,
+          business.tinNumber,
+          ebm?.bhfId ?? "00"
         ],
       );
-      _isolates.add(isolate);
-      receivePort.listen(
-        (message) => {
-          // log('Isolate $name: $message');
-        },
-      );
-    } catch (error) {
-      log('Error managing isolates: $error');
+    } catch (error, s) {
+      log('Error managing isolates: $s');
     }
   }
 
@@ -82,7 +85,7 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
-    // TODO: re-work on this
+
     // await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     await _setupFirebase();
 

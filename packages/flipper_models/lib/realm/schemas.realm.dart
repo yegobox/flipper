@@ -1582,7 +1582,7 @@ class Customer extends _Customer
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
-    String? tin,
+    int? tin,
     String? bhfId,
     String? useYn,
     String? customerType,
@@ -1717,9 +1717,9 @@ class Customer extends _Customer
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
-  String? get tin => RealmObjectBase.get<String>(this, 'tin') as String?;
+  int? get tin => RealmObjectBase.get<int>(this, 'tin') as int?;
   @override
-  set tin(String? value) => RealmObjectBase.set(this, 'tin', value);
+  set tin(int? value) => RealmObjectBase.set(this, 'tin', value);
 
   @override
   String? get bhfId => RealmObjectBase.get<String>(this, 'bhfId') as String?;
@@ -1855,7 +1855,7 @@ class Customer extends _Customer
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
-      SchemaProperty('tin', RealmPropertyType.string, optional: true),
+      SchemaProperty('tin', RealmPropertyType.int, optional: true),
       SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
       SchemaProperty('useYn', RealmPropertyType.string, optional: true),
       SchemaProperty('customerType', RealmPropertyType.string, optional: true),
@@ -3695,6 +3695,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   Stock(
     ObjectId? realmId, {
     int? id,
+    int? tin,
+    String? bhfId,
     int? branchId,
     int? variantId,
     double lowStock = 0,
@@ -3727,6 +3729,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'tin', tin);
+    RealmObjectBase.set(this, 'bhfId', bhfId);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'variantId', variantId);
     RealmObjectBase.set(this, 'lowStock', lowStock);
@@ -3757,6 +3761,16 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId?;
   @override
   set realmId(ObjectId? value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get tin => RealmObjectBase.get<int>(this, 'tin') as int?;
+  @override
+  set tin(int? value) => RealmObjectBase.set(this, 'tin', value);
+
+  @override
+  String? get bhfId => RealmObjectBase.get<String>(this, 'bhfId') as String?;
+  @override
+  set bhfId(String? value) => RealmObjectBase.set(this, 'bhfId', value);
 
   @override
   int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
@@ -3868,6 +3882,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
     return <String, dynamic>{
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
+      'tin': tin.toEJson(),
+      'bhfId': bhfId.toEJson(),
       'branchId': branchId.toEJson(),
       'variantId': variantId.toEJson(),
       'lowStock': lowStock.toEJson(),
@@ -3893,6 +3909,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       {
         'id': EJsonValue id,
         '_id': EJsonValue realmId,
+        'tin': EJsonValue tin,
+        'bhfId': EJsonValue bhfId,
         'branchId': EJsonValue branchId,
         'variantId': EJsonValue variantId,
         'lowStock': EJsonValue lowStock,
@@ -3913,6 +3931,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
         Stock(
           fromEJson(realmId),
           id: fromEJson(id),
+          tin: fromEJson(tin),
+          bhfId: fromEJson(bhfId),
           branchId: fromEJson(branchId),
           variantId: fromEJson(variantId),
           lowStock: fromEJson(lowStock),
@@ -3941,6 +3961,8 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', optional: true, primaryKey: true),
+      SchemaProperty('tin', RealmPropertyType.int, optional: true),
+      SchemaProperty('bhfId', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
       SchemaProperty('lowStock', RealmPropertyType.double),

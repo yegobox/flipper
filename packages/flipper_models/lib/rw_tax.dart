@@ -53,15 +53,11 @@ class RWTax implements TaxApi {
   /// we ended up mixing data for stock and variant but data stay in related model
   /// we just borrow properties to simplify the accesibility
   @override
-  Future<bool> saveStock({required Stock stock}) async {
+  Future<bool> saveStock(
+      {required Stock stock, required Variant variant}) async {
     try {
-      /// because updating stock in in rra work is just passing item with updated qty
-      /// we first get the item from db update the query from our stock model and pass it
-      Variant? variant =
-          await ProxyService.realm.getVariantById(id: stock.variantId!);
-
       /// update the remaining stock of this item in rra
-      variant!.rsdQty = stock.currentStock;
+      variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
           ebmUrl + "/stockMaster/saveStockMaster",
           variant.toEJson() as Map<String, dynamic>);
@@ -156,8 +152,7 @@ class RWTax implements TaxApi {
       }
     } catch (e) {
       // Handle the exception
-      print(e);
-      return false;
+      rethrow;
     }
   }
 
