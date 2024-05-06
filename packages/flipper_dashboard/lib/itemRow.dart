@@ -172,31 +172,22 @@ class _RowItemState extends ConsumerState<RowItem> {
       width: 80,
       child: StreamBuilder<List<Variant>>(
         stream: ProxyService.realm.getVariantByProductIdStream(
-          productId: widget.product?.id,
+          productId: widget.product?.id ?? widget.variant?.productId ?? 0,
         ),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return SizedBox.shrink();
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const SizedBox.shrink();
           }
 
           final variants = snapshot.data ?? [];
+          final nonZeroPrice = variants
+              .firstWhere(
+                (variant) => variant.retailPrice != 0,
+              )
+              .retailPrice;
 
-          double firstNonZeroRetailPrice = 0;
-
-          for (var variant in variants) {
-            if (variant.retailPrice != 0) {
-              firstNonZeroRetailPrice = variant.retailPrice ?? 0;
-              break;
-            }
-          }
-          if (firstNonZeroRetailPrice == 0) {
-            return Text(
-              'RWF -',
-              style: const TextStyle(color: Colors.black),
-            );
-          }
           return Text(
-            'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
+            'RWF ${NumberFormat('#,###').format(nonZeroPrice)}',
             style: const TextStyle(color: Colors.black),
           );
         },

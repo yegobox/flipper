@@ -1446,7 +1446,7 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<Variant>>.broadcast();
 
     final query = realm!.query<Variant>(
-      r'productId == $0 AND deletedAt == nil',
+      r'productId == $0',
       [productId],
     );
 
