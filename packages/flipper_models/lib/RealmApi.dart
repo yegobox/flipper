@@ -405,6 +405,8 @@ class RealmAPI<M extends IJsonSerializable>
           // stock value after item deduct
           stock.value = stock.currentStock * (stock.retailPrice);
           stock.action = AppActions.updated;
+        });
+        realm!.write(() {
           item.doneWithTransaction = true;
           item.updatedAt = DateTime.now().toIso8601String();
         });
@@ -1643,9 +1645,7 @@ class RealmAPI<M extends IJsonSerializable>
       );
 
       // save transaction to isar
-      realm!.write(() {
-        realm!.put<ITransaction>(transaction);
-      });
+      await realm!.putAsync<ITransaction>(transaction);
 
       ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
       return transaction;
@@ -1704,8 +1704,8 @@ class RealmAPI<M extends IJsonSerializable>
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType}) async {
     return realm!.query<ITransaction>(
-      r'branchId == $0 AND transactionType == $1 AND deletedAt == nil',
-      [branchId, transactionType],
+      r'branchId == $0 AND transactionType == $1 AND status == $2',
+      [branchId, transactionType, PENDING],
     ).firstOrNull;
   }
 

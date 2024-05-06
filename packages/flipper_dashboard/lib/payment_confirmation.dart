@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:developer';
 
 import 'package:flipper_models/mixins/EBMHandler.dart';
@@ -65,6 +67,11 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
       },
       onViewModelReady: (model) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          /// reload the  pending transaction
+          ref.refresh(pendingTransactionProvider(TransactionType.cashOut));
+          ref.refresh(pendingTransactionProvider(TransactionType.custom));
+
+          /// end refreshing.
           if (widget.transaction.customerId != null) {
             showDialog(
               context: context,
