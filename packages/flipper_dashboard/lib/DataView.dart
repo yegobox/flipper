@@ -6,6 +6,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
+import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
@@ -81,6 +82,9 @@ class _DataViewState extends State<DataView> {
 
   @override
   Widget build(BuildContext context) {
+    const EdgeInsets headerPadding =
+        EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
     return ViewModelBuilder.reactive(
         viewModelBuilder: () => HomeViewModel(),
         onViewModelReady: (model) {},
@@ -107,47 +111,80 @@ class _DataViewState extends State<DataView> {
                   ),
                 ),
                 Expanded(
-                  child: SfDataGrid(
-                    key: _key,
-                    source: transactionDataSource,
-                    columnWidthMode: ColumnWidthMode.fill,
-                    columns: <GridColumn>[
-                      GridColumn(
-                        columnName: 'id',
-                        label: Container(
-                          padding: const EdgeInsets.all(16.0),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'ID',
+                  child: SfDataGridTheme(
+                    data: SfDataGridThemeData(
+                      headerHoverColor: Colors.yellow,
+                      gridLineColor: Colors.amber,
+                      gridLineStrokeWidth: 1.0,
+                      rowHoverColor: Colors.yellow,
+                      selectionColor: Colors.yellow,
+                      rowHoverTextStyle: TextStyle(
+                        color: Colors.red,
+                        fontSize: 14,
+                      ),
+                    ),
+                    child: SfDataGrid(
+                      highlightRowOnHover: true,
+                      gridLinesVisibility: GridLinesVisibility.both,
+                      headerGridLinesVisibility: GridLinesVisibility.both,
+                      key: _key,
+                      source: transactionDataSource,
+                      columnWidthMode: ColumnWidthMode.fill,
+                      columns: <GridColumn>[
+                        GridColumn(
+                          columnName: 'id',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            padding: headerPadding,
+                            alignment: Alignment.center,
+                            child: const Text('ID',
+                                overflow: TextOverflow.ellipsis),
                           ),
                         ),
-                      ),
-                      GridColumn(
+                        GridColumn(
                           columnName: 'Type',
                           label: Container(
-                              padding: const EdgeInsets.all(8.0),
-                              alignment: Alignment.center,
-                              child: const Text('Type'))),
-                      GridColumn(
-                        columnName: 'Amount',
-                        label: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          alignment: Alignment.center,
-                          child: const Text(
-                            'Amount',
-                            overflow: TextOverflow.ellipsis,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            padding: headerPadding,
+                            alignment: Alignment.center,
+                            child: const Text('Type',
+                                overflow: TextOverflow.ellipsis),
                           ),
                         ),
-                      ),
-                      GridColumn(
-                        columnName: 'CashReceived',
-                        label: Container(
-                          padding: const EdgeInsets.all(8.0),
-                          alignment: Alignment.center,
-                          child: const Text('Cash Received'),
+                        GridColumn(
+                          columnName: 'Amount',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            padding: headerPadding,
+                            alignment: Alignment.center,
+                            child: const Text('Amount',
+                                overflow: TextOverflow.ellipsis),
+                          ),
                         ),
-                      ),
-                    ],
+                        GridColumn(
+                          columnName: 'CashReceived',
+                          label: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(4.0),
+                            ),
+                            padding: headerPadding,
+                            alignment: Alignment.center,
+                            child: const Text('Cash Received',
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Container(

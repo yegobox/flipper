@@ -216,8 +216,8 @@ class RWTax implements TaxApi {
         items.map((item) => item.toEJson() as Map<String, dynamic>).toList();
 
     double totalMinusExemptedProducts = items
-        .where((item) => !item.isTaxExempted!)
-        .fold(0, (sum, item) => sum + (item.prc! * item.qty!));
+        .where((item) => !item.isTaxExempted)
+        .fold(0, (sum, item) => sum + (item.prc * item.qty));
 
     String salesTyCd;
     String rcptTyCd;
@@ -245,8 +245,8 @@ class RWTax implements TaxApi {
         break;
     }
     Map<String, dynamic> data = {
-      "tin": business?.tinNumber ?? 999909695,
-      "bhfId": business?.bhfId ?? "00",
+      "tin": business.tinNumber ?? 999909695,
+      "bhfId": business.bhfId ?? "00",
       "invcNo": counter.curRcptNo,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
@@ -275,7 +275,7 @@ class RWTax implements TaxApi {
             transaction.id.toString() +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
         "rcptSign": transaction.id,
-        "trdeNm": business?.name ?? "YB",
+        "trdeNm": business.name ?? "YB",
         "topMsg": "Shop with us",
         "btmMsg": "Welcome",
         "prchrAcptcYn": "Y"

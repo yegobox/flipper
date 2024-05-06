@@ -53,19 +53,27 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   }
 
   Widget buildRow(bool isScanningMode) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        const SizedBox(width: 20),
-        Expanded(
-          flex: 2,
-          child: ProductView.normalMode(),
-        ),
-        Expanded(
-          child:
-              isScanningMode ? buildReceiptUI() : CheckOut(isBigScreen: true),
-        ),
-      ],
+    int buttonIndex = ref.watch(buttonIndexProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(width: 20),
+          Expanded(
+            flex: 2,
+            child: ProductView.normalMode(),
+          ),
+          buttonIndex != 1
+              ? Expanded(
+                  child: isScanningMode
+                      ? buildReceiptUI()
+                      : CheckOut(isBigScreen: true),
+                )
+              : SizedBox.shrink(),
+        ],
+      ),
     );
   }
 

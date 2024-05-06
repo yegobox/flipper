@@ -111,6 +111,7 @@ dependencies:
   syncfusion_flutter_datagrid: ^25.1.41
   syncfusion_flutter_xlsio: ^25.1.41
   syncfusion_flutter_datagrid_export: ^25.1.41
+  syncfusion_flutter_core: ^25.1.42
   # https://github.com/yegobox/flutter_datetime_picker
   flutter_datetime_picker:
     git:

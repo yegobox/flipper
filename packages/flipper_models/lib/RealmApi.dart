@@ -2386,8 +2386,8 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-      r'lastTouched BETWEEN {$0,$1}',
-      [startDate, endDate],
+      r'lastTouched BETWEEN {$0,$1} && status == $2',
+      [startDate, endDate, COMPLETE],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;

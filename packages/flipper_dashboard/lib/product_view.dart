@@ -113,7 +113,11 @@ class ProductViewState extends ConsumerState<ProductView> {
     int buttonIndex = ref.watch(buttonIndexProvider);
 
     if (buttonIndex == 1) {
-      return SliverToBoxAdapter(child: TransactionList());
+      return SliverToBoxAdapter(
+          child: Padding(
+        padding: const EdgeInsets.all(28.0),
+        child: TransactionList(),
+      ));
     }
 
     return scanMode

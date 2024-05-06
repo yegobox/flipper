@@ -12,14 +12,18 @@ class TransactionList extends ConsumerWidget {
     final data = ref.watch(transactionListProvider);
 
     return data.when(
-      data: (value) => Container(
+      data: (transactionData) => Container(
         width: 150,
         height: 800,
         child: DataView(
-          transactions: value,
+          transactions: transactionData,
         ),
       ),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => Padding(
+        padding: const EdgeInsets.only(top: 28.0),
+        child:
+            const Center(child: Text("Please select a date to query report")),
+      ),
       error: (error, stackTrace) => Column(
         children: [
           SizedBox(
