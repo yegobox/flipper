@@ -1,9 +1,12 @@
+import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/IStock.dart';
+import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 
 abstract class TaxApi {
-  Future<bool> saveStock({required Stock stock, required Variant variant});
-  Future saveCustomer({required Customer customer});
+  Future<bool> saveStock({required IStock stock, required IVariant variant});
+  Future saveCustomer({required ICustomer customer});
   Future<bool> initApi({
     required String tinNumber,
     required String bhfId,
@@ -22,5 +25,5 @@ abstract class TaxApi {
     required Counter counter,
     String? purchaseCode,
   });
-  Future<bool> saveItem({required Variant variation});
+  Future<bool> saveItem({required IVariant variation});
 }

@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
+import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/IStock.dart';
+import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
@@ -54,15 +57,13 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock(
-      {required Stock stock, required Variant variant}) async {
+      {required IStock stock, required IVariant variant}) async {
     try {
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
-          ebmUrl + "/stockMaster/saveStockMaster",
-          variant.toEJson() as Map<String, dynamic>);
+          ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
       final stringResponse = response.data.toString();
-      //handleResponseLogging(stringResponse, variant, stock);
       sendEmailLogging(
           requestBody: response.requestOptions.data,
           subject: "Worked",
@@ -70,7 +71,7 @@ class RWTax implements TaxApi {
       final data = EBMApiResponse.fromJson(
         json.decode(stringResponse),
       );
-      if (data.resultCd != 000) {
+      if (data.resultCd != "000") {
         throw Exception(data.resultMsg);
       }
       return response.statusCode == 200;
@@ -131,18 +132,17 @@ class RWTax implements TaxApi {
   /// the server. For more information, refer to ‘3.2.4.1 ItemSaveReq/Res’
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
-  Future<bool> saveItem({required Variant variation}) async {
+  Future<bool> saveItem({required IVariant variation}) async {
     final url = '$ebmUrl/items/saveItems';
     try {
-      final response = await sendPostRequest(
-          url, variation.toEJson() as Map<String, dynamic>);
+      final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
         final data = EBMApiResponse.fromJson(response.data);
-        if (data.resultCd != 000) {
+        if (data.resultCd != "000") {
           throw Exception(data.resultMsg);
         }
         sendEmailLogging(
-          requestBody: variation.toEJson().toString(),
+          requestBody: variation.toJson().toString(),
           subject: "Worked",
           body: response.data.toString(),
         );
@@ -356,16 +356,15 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<EBMApiResponse> saveCustomer({required Customer customer}) async {
+  Future<EBMApiResponse> saveCustomer({required ICustomer customer}) async {
     final url = '$ebmUrl/branches/saveBrancheCustomers';
 
     try {
-      final response = await sendPostRequest(
-          url, customer.toEJson() as Map<String, dynamic>);
+      final response = await sendPostRequest(url, customer.toJson());
 
       if (response.statusCode == 200) {
         sendEmailLogging(
-          requestBody: customer.toEJson().toString(),
+          requestBody: customer.toJson().toString(),
           subject: "Worked",
           body: response.data.toString(),
         );

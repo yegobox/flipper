@@ -420,3 +420,22 @@ class App {}
 
 /// NOTE: in prodduct_view
 /// We also show buildProductList inside
+/// 
+/// 
+/// [POST] https://turbo.yegobox.com/stockMaster/saveStockMaster
+/// I/flutter (23533): │ Status: 200
+/// I/flutter (23533): │ Message: 
+/// I/flutter (23533): │ Data: {
+/// I/flutter (23533): │   "resultCd": "910",
+/// I/flutter (23533): │   "resultMsg": "Request parameter error[<modrId> : may not be empty][<regrId> : may not be empty][<modrNm> : may not be empty][<regrNm> : may not be empty][<itemCd> : may not be empty]",
+/// I/flutter (23533): │   "resultDt": "20240506230455",
+/// I/flutter (23533): │   "data": null
+/// I/flutter (23533): │ }
+/// [http-response] [POST] https://turbo.yegobox.com/items/saveItems
+/// I/flutter (23533): │ Status: 200
+/// I/flutter (23533): │ Message: 
+/// I/flutter (23533): │ Data: {
+/// I/flutter (23533): │   "resultCd": "910",
+/// I/flutter (23533): │   "resultMsg": "Request parameter error[<regrId> : may not be empty][<isrcAplcbYn> : may not be empty][<regrNm> : may not be empty][<qtyUnitCd> : may not be empty][<itemTyCd> : may not be empty][<orgnNatCd> : may not be empty][<modrId> : may not be empty][<pkgUnitCd> : may not be empty][<modrNm> : may not be empty][<taxTyCd> : may not be empty][<itemCd> : may not be empty][<itemClsCd> : may not be empty][<useYn> : may not be empty][<dftPrc> : must not be null][<itemNm> : may not be empty]",
+/// I/flutter (23533): │   "resultDt": "20240506230452",
+/// I/flutter (23533): │   "da

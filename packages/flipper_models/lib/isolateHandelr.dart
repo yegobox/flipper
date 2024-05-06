@@ -1,4 +1,8 @@
-import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'dart:isolate';
+
+import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/IStock.dart';
+import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
@@ -27,7 +31,7 @@ mixin IsolateHandler {
 
   static Future<void> handleEBMTrigger(List<dynamic> args) async {
     final rootIsolateToken = args[0] as RootIsolateToken;
-
+    final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
     String key = args[4] as String;
     int tinNumber = args[5] as int;
@@ -47,70 +51,190 @@ mixin IsolateHandler {
     // load all variants
     List<Variant> variants = realm.all<Variant>().toList();
     final talker = TalkerFlutter.init();
-    await realm.writeAsync(() async {
-      for (Variant variant in variants) {
-        if (!variant.ebmSynced) {
-          try {
-            variant.tin = tinNumber;
-            variant.bhfId = bhfId;
-            talker.info("saving Variant on EBM server ${variant.tin}");
-            await RWTax().saveItem(variation: variant);
-            variant.ebmSynced = true;
-            realm.add<Variant>(variant, update: true);
-          } catch (e, s) {
-            talker.info("failed to save Variant on EBM server");
-            talker.error(s);
-            EBMHandler().handleNotificationMessaging(e);
-            variant.ebmSynced = false;
 
-            realm.add<Variant>(variant, update: true);
-          }
+    for (Variant variant in variants) {
+      if (!variant.ebmSynced) {
+        try {
+          IVariant iVariant = IVariant(
+            id: variant.id,
+            deletedAt: variant.deletedAt,
+            name: variant.name,
+            color: variant.color,
+            sku: variant.sku,
+            productId: variant.productId,
+            unit: variant.unit,
+            productName: variant.productName,
+            branchId: variant.branchId,
+            taxName: variant.taxName,
+            taxPercentage: variant.taxPercentage,
+            isTaxExempted: variant.isTaxExempted,
+            itemSeq: variant.itemSeq,
+            isrccCd: variant.isrccCd,
+            isrccNm: variant.isrccNm,
+            isrcRt: variant.isrcRt,
+            isrcAmt: variant.isrcAmt,
+            taxTyCd: variant.taxTyCd,
+            bcd: variant.bcd,
+            itemClsCd: variant.itemClsCd,
+            itemTyCd: variant.itemTyCd,
+            itemStdNm: variant.itemStdNm,
+            orgnNatCd: variant.orgnNatCd,
+            pkg: variant.pkg,
+            itemCd: variant.itemCd,
+            pkgUnitCd: variant.pkgUnitCd,
+            qtyUnitCd: variant.qtyUnitCd,
+            itemNm: variant.itemNm,
+            qty: variant.qty,
+            prc: variant.prc,
+            splyAmt: variant.splyAmt,
+            tin: tinNumber,
+            bhfId: bhfId,
+            dftPrc: variant.dftPrc,
+            addInfo: variant.addInfo,
+            isrcAplcbYn: variant.isrcAplcbYn,
+            useYn: variant.useYn,
+            regrId: variant.regrId,
+            regrNm: variant.regrNm,
+            modrId: variant.modrId,
+            modrNm: variant.modrNm,
+            rsdQty: variant.rsdQty,
+            lastTouched: variant.lastTouched,
+            supplyPrice: variant.supplyPrice,
+            retailPrice: variant.retailPrice,
+            action: variant.action,
+            spplrItemClsCd: variant.spplrItemClsCd,
+            spplrItemCd: variant.spplrItemCd,
+            spplrItemNm: variant.spplrItemNm,
+            ebmSynced: variant.ebmSynced,
+          );
+          // Convert EJsonValue to JSON string
+          Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
+          talker.warning("Reached here ${variant.toEJson()}");
+
+          await RWTax().saveItem(variation: iVariant);
+          talker.info("Successfully saved Item. ${variant.toEJson()}");
+          sendPort.send('variant:${variant.id}');
+        } catch (e, s) {
+          talker.error(s);
         }
       }
-    });
-    // load all stock
+    }
+
     List<Stock> stocks = realm.all<Stock>().toList();
-    realm.writeAsync(() async {
-      for (Stock stock in stocks) {
-        if (!stock.ebmSynced) {
-          try {
-            Variant variant = realm.query<Variant>(
-              r'id == $0 AND deletedAt == nil',
-              [stock.variantId],
-            ).first;
-            stock.tin = tinNumber;
-            stock.bhfId = bhfId;
-            await RWTax().saveStock(stock: stock, variant: variant);
-            stock.ebmSynced = true;
-            realm.add<Stock>(stock, update: true);
-          } catch (e, s) {
-            talker.error(s);
-            EBMHandler().handleNotificationMessaging(e);
-            stock.ebmSynced = false;
-            realm.add<Stock>(stock, update: true);
-          }
+
+    for (Stock stock in stocks) {
+      if (!stock.ebmSynced) {
+        try {
+          Variant variant = realm.query<Variant>(
+            r'id == $0 AND deletedAt == nil',
+            [stock.variantId],
+          ).first;
+
+          IStock iStock = IStock(
+            id: stock.id,
+            currentStock: stock.currentStock,
+          );
+          IVariant iVariant = IVariant(
+            id: variant.id,
+            deletedAt: variant.deletedAt,
+            name: variant.name,
+            color: variant.color,
+            sku: variant.sku,
+            productId: variant.productId,
+            unit: variant.unit,
+            productName: variant.productName,
+            branchId: variant.branchId,
+            taxName: variant.taxName,
+            taxPercentage: variant.taxPercentage,
+            isTaxExempted: variant.isTaxExempted,
+            itemSeq: variant.itemSeq,
+            isrccCd: variant.isrccCd,
+            isrccNm: variant.isrccNm,
+            isrcRt: variant.isrcRt,
+            isrcAmt: variant.isrcAmt,
+            taxTyCd: variant.taxTyCd,
+            bcd: variant.bcd,
+            itemClsCd: variant.itemClsCd,
+            itemTyCd: variant.itemTyCd,
+            itemStdNm: variant.itemStdNm,
+            orgnNatCd: variant.orgnNatCd,
+            pkg: variant.pkg,
+            itemCd: variant.itemCd,
+            pkgUnitCd: variant.pkgUnitCd,
+            qtyUnitCd: variant.qtyUnitCd,
+            itemNm: variant.itemNm,
+            qty: variant.qty,
+            prc: variant.prc,
+            splyAmt: variant.splyAmt,
+            tin: tinNumber,
+            bhfId: bhfId,
+            dftPrc: variant.dftPrc,
+            addInfo: variant.addInfo,
+            isrcAplcbYn: variant.isrcAplcbYn,
+            useYn: variant.useYn,
+            regrId: variant.regrId,
+            regrNm: variant.regrNm,
+            modrId: variant.modrId,
+            modrNm: variant.modrNm,
+            rsdQty: variant.rsdQty,
+            lastTouched: variant.lastTouched,
+            supplyPrice: variant.supplyPrice,
+            retailPrice: variant.retailPrice,
+            action: variant.action,
+            spplrItemClsCd: variant.spplrItemClsCd,
+            spplrItemCd: variant.spplrItemCd,
+            spplrItemNm: variant.spplrItemNm,
+            ebmSynced: variant.ebmSynced,
+          );
+
+          await RWTax().saveStock(stock: iStock, variant: iVariant);
+          sendPort.send('stock:${stock.id}');
+          talker.info("Successfully saved Stock. ${variant.toEJson()}");
+        } catch (e, s) {
+          talker.error(s);
         }
       }
-    });
+    }
+
     // load all customer
     List<Customer> customers = realm.all<Customer>().toList();
-    realm.writeAsync(() async {
-      for (Customer customer in customers) {
-        if (!customer.ebmSynced) {
-          try {
-            customer.tin = tinNumber;
-            customer.bhfId = bhfId;
-            await RWTax().saveCustomer(customer: customer);
-            customer.ebmSynced = true;
-            realm.add<Customer>(customer, update: true);
-          } catch (e) {
-            EBMHandler().handleNotificationMessaging(e);
-            customer.ebmSynced = false;
-            realm.add<Customer>(customer, update: true);
-          }
-        }
+
+    for (Customer customer in customers) {
+      if (!customer.ebmSynced) {
+        try {
+          customer.tin = tinNumber;
+          customer.bhfId = bhfId;
+          talker.info("saving Customer on EBM server ${customer.toEJson()}");
+
+          ICustomer iCustomer = ICustomer(
+            id: customer.id,
+            custNm: customer.custNm,
+            email: customer.email,
+            telNo: customer.telNo,
+            adrs: customer.adrs,
+            branchId: customer.branchId,
+            updatedAt: customer.updatedAt,
+            custNo: customer.custNo,
+            custTin: customer.custTin,
+            regrNm: customer.regrNm,
+            regrId: customer.regrId,
+            modrNm: customer.modrNm,
+            modrId: customer.modrId,
+            ebmSynced: customer.ebmSynced,
+            lastTouched: customer.lastTouched,
+            action: customer.action,
+            deletedAt: customer.deletedAt,
+            tin: customer.tin,
+            bhfId: customer.bhfId,
+            useYn: customer.useYn,
+            customerType: customer.customerType,
+          );
+
+          await RWTax().saveCustomer(customer: iCustomer);
+          sendPort.send('customer:${customer.id}');
+        } catch (e) {}
       }
-    });
+    }
   }
 
   static FlexibleSyncConfiguration realmConfig(

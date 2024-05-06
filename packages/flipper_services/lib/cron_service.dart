@@ -66,8 +66,13 @@ class CronService {
           ebm?.bhfId ?? "00"
         ],
       );
+      receivePort.listen(
+        (message) {
+          talker.warning(message);
+        },
+      );
     } catch (error, s) {
-      log('Error managing isolates: $s');
+      talker.warning('Error managing isolates: $s');
     }
   }
 
@@ -86,16 +91,16 @@ class CronService {
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
 
-    // await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+    // Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+    await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+    // });
     await _setupFirebase();
 
     /// pull does not have to wait as soon as we connect start pulling from realm.
     if (!isWeb) {
       // ProxyService.realm.pull();
     }
-    Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      // ProxyService.realm.pull();
-    });
+
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
     });
@@ -132,10 +137,9 @@ class CronService {
 
     if (!Platform.isWindows && !isMacOs && !isIos) {
       token = await FirebaseMessaging.instance.getToken();
-      if (business != null) {
-        Map updatedBusiness = business.toEJson() as Map<String, dynamic>;
-        updatedBusiness['deviceToken'] = token.toString();
-      }
+
+      Map updatedBusiness = business.toEJson() as Map<String, dynamic>;
+      updatedBusiness['deviceToken'] = token.toString();
     }
   }
 
@@ -192,7 +196,7 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 3000 : 60);
+    return Duration(seconds: kDebugMode ? 60000 : 60);
   }
 
   _heartBeatPull() async {
