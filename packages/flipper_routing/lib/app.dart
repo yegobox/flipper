@@ -402,3 +402,15 @@ class App {}
 
 // Now need to heavily use sizer: ^2.0.15 for managing the scalability
 
+// # Create a new virtual environment
+// python3 -m venv myenv
+
+// # Activate the virtual environment
+// source myenv/bin/activate  # For Unix/Linux
+// # or
+// myenv\Scripts\activate     # For Windows
+
+// # Now you can install Pandas using pip
+// python -m pip install pandas
+
+

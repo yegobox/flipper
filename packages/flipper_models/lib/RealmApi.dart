@@ -3408,4 +3408,60 @@ class RealmAPI<M extends IJsonSerializable>
 
     yield* controller.stream;
   }
+
+  @override
+  Stream<double> soldStockValue({required branchId}) async* {
+    final controller = StreamController<double>.broadcast();
+
+    final query = realm!.all<TransactionItem>();
+
+    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedTransactions =
+            event.results.whereType<TransactionItem>().toList();
+        double totalSoldValue = 0;
+        for (var transaction in changedTransactions) {
+          // Assuming each TransactionItem has a property representing sold value
+          totalSoldValue += transaction.price;
+        }
+        controller.add(totalSoldValue);
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    yield* controller.stream;
+  }
+
+  @override
+  Stream<double> stockValue({required branchId}) async* {
+    final controller = StreamController<double>.broadcast();
+
+    final query = realm!.query<Stock>('currentStock > 0');
+
+    StreamSubscription<RealmResultsChanges<Stock>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        double totalStockValue = 0;
+        for (var stock in event.results) {
+          // Calculate the total value of each stock item and sum them up
+          totalStockValue += stock.currentStock * stock.retailPrice;
+        }
+        controller.add(totalStockValue);
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    yield* controller.stream;
+  }
 }

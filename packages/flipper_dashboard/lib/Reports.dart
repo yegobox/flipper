@@ -1,16 +1,20 @@
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class Reports extends StatefulWidget {
+class Reports extends StatefulHookConsumerWidget {
   const Reports({super.key});
 
   @override
-  State<Reports> createState() => _ReportsState();
+  ReportsState createState() => ReportsState();
 }
 
-class _ReportsState extends State<Reports> with SingleTickerProviderStateMixin {
+class ReportsState extends ConsumerState<Reports>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -27,6 +31,11 @@ class _ReportsState extends State<Reports> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final stockValue =
+        ref.watch(stocValueProvider(ProxyService.box.getBranchId()!));
+    final soldStock =
+        ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
+
     return Scaffold(
       appBar: CustomAppBar(
         closeButton: CLOSEBUTTON.WIDGET,
@@ -54,23 +63,13 @@ class _ReportsState extends State<Reports> with SingleTickerProviderStateMixin {
                     cardName: "Stock Value",
                     wordingA: "Current Stock",
                     wordingB: "Sold",
-                    valueA: 500000,
-                    valueB: 1500,
+                    valueA: stockValue.asData?.value ?? 0,
+                    valueB: soldStock.asData?.value ?? 0,
                     description: "Stock Performance",
                   ),
                 ),
-                // Flexible(
-                //   child: ReportCard(
-                //     cardName: "Stock Value",
-                //     wordingA: "Current Stock",
-                //     wordingB: "Sold",
-                //     valueA: 1200,
-                //     valueB: 1800,
-                //   ),
-                // ),
               ],
             ),
-            // Add more widgets here for additional dashboard components
           ],
         ),
       ),

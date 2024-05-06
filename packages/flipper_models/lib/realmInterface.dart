@@ -342,4 +342,13 @@ abstract class RealmApiInterface {
       required bool active});
 
   Realm? realm;
+
+  /// we sum all non negative and non 0 stock value with the
+  /// retailing price
+  Stream<double> stockValue({required branchId});
+
+  /// we sum up all soldItem that we get by querying the non negative stock
+  /// and non zero then what we get we query related sold item
+
+  Stream<double> soldStockValue({required branchId});
 }

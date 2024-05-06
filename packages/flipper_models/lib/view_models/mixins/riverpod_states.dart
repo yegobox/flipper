@@ -79,6 +79,16 @@ class SellingModeNotifier extends StateNotifier<SellingMode> {
   }
 }
 
+final stocValueProvider =
+    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+  return ProxyService.realm.stockValue(branchId: branchId);
+});
+
+final soldStockValueProvider =
+    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+  return ProxyService.realm.soldStockValue(branchId: branchId);
+});
+
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
   return ProxyService.realm.getStockStream(variantId: variantId);
