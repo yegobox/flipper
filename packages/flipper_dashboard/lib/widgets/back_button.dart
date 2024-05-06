@@ -23,11 +23,12 @@ class BackButton extends StatelessWidget {
           ],
         ),
         style: primaryButtonStyle.copyWith(
-          shape: MaterialStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(0.0),
+          shape: MaterialStateProperty.all(RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+              topRight: Radius.circular(0.0),
+              bottomRight: Radius.circular(2.0),
             ),
-          ),
+          )),
         ),
         onPressed: () {
           _routerService.pop();

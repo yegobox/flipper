@@ -415,3 +415,4 @@ class App {}
 
 
 // https://www.mongodb.com/docs/atlas/app-services/data-api/
+// https://www.mongodb.com/blog/post/atlas-edge-server-now-in-public-preview?utm_source=beamer&utm_medium=sidebar&utm_campaign=Atlas-Edge-Server-is-Now-in-Public-Preview&utm_content=ctalink

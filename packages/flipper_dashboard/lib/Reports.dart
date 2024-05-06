@@ -36,41 +36,45 @@ class ReportsState extends ConsumerState<Reports>
     final soldStock =
         ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        closeButton: CLOSEBUTTON.WIDGET,
-        isDividerVisible: false,
-        customLeadingWidget: back.BackButton(),
-        onPop: () async {},
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Sales Overview',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Flexible(
-                  child: ReportCard(
-                    cardName: "Stock Value",
-                    wordingA: "Current Stock",
-                    wordingB: "Sold",
-                    valueA: stockValue.asData?.value ?? 0,
-                    valueB: soldStock.asData?.value ?? 0,
-                    description: "Stock Performance",
+    return SafeArea(
+      child: Scaffold(
+        appBar: CustomAppBar(
+          closeButton: CLOSEBUTTON.WIDGET,
+          isDividerVisible: false,
+          customLeadingWidget: back.BackButton(),
+          onPop: () async {},
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Sales Overview',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(width: 16.0),
+              Flexible(
+                child: ReportCard(
+                  cardName: "Stock Value",
+                  wordingA: "Current Stock",
+                  wordingB: "Sold",
+                  valueA: stockValue.asData?.value ?? 0,
+                  valueB: soldStock.asData?.value ?? 0,
+                  description: "Stock Performance",
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -195,38 +195,6 @@ class _RowItemState extends ConsumerState<RowItem> {
     );
   }
 
-  // Widget _buildPrices() {
-  //   return Container(
-  //     width: 80,
-  //     child: FutureBuilder<List<Variant>>(
-  //       future: ProxyService.isar.getVariantByProductId(
-  //         productId: widget.product?.id,
-  //       ),
-  //       builder: (context, snapshot) {
-  //         if (snapshot.hasError) {
-  //           return SizedBox.shrink();
-  //         }
-
-  //         final variants = snapshot.data ?? [];
-
-  //         double firstNonZeroRetailPrice = 0;
-
-  //         for (var variant in variants) {
-  //           if (variant.retailPrice != 0) {
-  //             firstNonZeroRetailPrice = variant.retailPrice;
-  //             break;
-  //           }
-  //         }
-
-  //         return Text(
-  //           'RWF ${NumberFormat('#,###').format(firstNonZeroRetailPrice)}',
-  //           style: const TextStyle(color: Colors.black),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
-
   ActionPane _buildStartActionPane() {
     return ActionPane(
       motion: ScrollMotion(

@@ -24,7 +24,6 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flutter/foundation.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -292,6 +291,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                 buildProductRows(context, model, value),
               ],
             ),
+          // ignore: unused_local_variable
           AsyncError(:final error) => SizedBox.shrink(),
           _ => const CircularProgressIndicator(),
         },
