@@ -362,13 +362,12 @@ class RealmAPI<M extends IJsonSerializable>
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType}) async {
-    ProxyService.realm.realm!.writeAsync(() async {
+    List<TransactionItem> items = await transactionItems(
+        transactionId: transaction.id!,
+        doneWithTransaction: false,
+        active: true);
+    realm!.writeAsync(() async {
       transaction.status = COMPLETE;
-
-      List<TransactionItem> items = await transactionItems(
-          transactionId: transaction.id!,
-          doneWithTransaction: false,
-          active: true);
       double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
       transaction.customerChangeDue = (cashReceived - subTotal);
       transaction.paymentType = paymentType;
@@ -396,23 +395,33 @@ class RealmAPI<M extends IJsonSerializable>
       );
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
+    });
+
+    try {
       for (TransactionItem item in items) {
         Stock? stock = await stockByVariantId(variantId: item.variantId!);
-        stock!.currentStock = stock.currentStock - item.qty;
-        // stock value after item deduct
-        stock.value = stock.currentStock * (stock.retailPrice);
-        stock.action = AppActions.updated;
-        item.doneWithTransaction = true;
-        item.updatedAt = DateTime.now().toIso8601String();
+        realm!.write(() {
+          stock!.currentStock = stock.currentStock - item.qty;
+          // stock value after item deduct
+          stock.value = stock.currentStock * (stock.retailPrice);
+          stock.action = AppActions.updated;
+          item.doneWithTransaction = true;
+          item.updatedAt = DateTime.now().toIso8601String();
+        });
         // search the related product and touch them to make them as most used
         Variant? variant = await getVariantById(id: item.variantId!);
-        Product? product = await getProduct(id: variant?.productId ?? 0);
+        Product? product = await getProduct(id: variant!.productId!);
         if (product != null) {
-          product.lastTouched =
-              DateTime.now().toLocal().add(Duration(hours: 2));
+          realm!.write(() {
+            product.lastTouched =
+                DateTime.now().toLocal().add(Duration(hours: 2));
+          });
         }
       }
-    });
+    } catch (e, s) {
+      talker.error(s);
+    }
+
     // remove currentTransactionId from local storage to leave a room
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
@@ -2120,15 +2129,17 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Stock?> stockByVariantId(
       {required int variantId, bool nonZeroValue = false}) async {
     int branchId = ProxyService.box.getBranchId()!;
+    Stock? stock;
     if (nonZeroValue) {
-      return realm!.query<Stock>(
+      stock = realm!.query<Stock>(
           r'variantId ==$0 && branchId == $1 && retailPrice > 0 && deletedAt ==nil',
           [variantId, branchId]).firstOrNull;
     } else {
-      return realm!.query<Stock>(
+      stock = realm!.query<Stock>(
           r'variantId ==$0 && branchId == $1  && deletedAt ==nil',
           [variantId, branchId]).firstOrNull;
     }
+    return stock;
   }
 
   @override
@@ -2617,93 +2628,90 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     Configuration config;
+    try {
+      if (inTesting) {
+        if (realm != null) {
+          realm!.close();
+        }
+        config = Configuration.inMemory(realmModels);
+        realm = Realm(config);
+      } else if (ProxyService.box.getBranchId() != null ||
+          ProxyService.box.getBusinessId() != null) {
+        /// because most likely we will open the realm with sync after we opened in memory database
+        /// then we need to close the one recently opened
+        if (realm != null) {
+          realm!.close();
+        }
+        talker.info("opening the synced realm for the app to run on launch");
 
-    if (inTesting) {
-      if (realm != null) {
-        realm!.close();
+        // List<int> key = ProxyService.box.encryptionKey().toIntList();
+        String path = await dbPath();
+        //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
+        final app = App(AppConfiguration(AppSecrets.appId,
+            baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+        final user = app.currentUser ??
+            await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
+        int? branchId = ProxyService.box.getBranchId() ?? 0;
+        int? businessId = ProxyService.box.getBusinessId() ?? 0;
+        config = Configuration.flexibleSync(
+          user,
+          realmModels,
+          encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+          path: path,
+          clientResetHandler: RecoverUnsyncedChangesHandler(
+            onBeforeReset: (beforeResetRealm) {
+              log("reset requested here..");
+
+              ///which the SDK invokes prior to the client reset.
+              ///You can use this callback to notify the user before the reset begins.
+            },
+          ),
+          shouldCompactCallback: ((totalSize, usedSize) {
+            // Compact if the file is over 10MB in size and less than 50% 'used'
+            const tenMB = 10 * 1048576;
+            return (totalSize > tenMB) &&
+                (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+          }),
+        );
+        CancellationToken token = CancellationToken();
+
+        // Cancel the open operation after 10 seconds.
+        // Alternatively, you could display a loading dialog and bind the cancellation
+        // to a button the user can click to stop the wait.
+        Future<void>.delayed(
+          const Duration(seconds: 30),
+          () => token.cancel(
+            CancelledException(
+              cancellationReason: "Realm took too long to open",
+            ),
+          ),
+        );
+
+        if (await ProxyService.status.isInternetAvailable()) {
+          talker.info("Opened realm[1] with  internet access!");
+          realm = await Realm.open(config, cancellationToken: token,
+              onProgressCallback: (syncProgress) {
+            if (syncProgress.progressEstimate == 1.0) {
+              talker.info('All bytes transferred!');
+            }
+          });
+        } else {
+          talker.info("Opened realm[1] with no internet access!");
+          realm = Realm(config);
+        }
+
+        await realm!.subscriptions.waitForSynchronization();
+        await updateSubscription(branchId, businessId);
+      } else {
+        //  open local database not synced one!
+        talker.info(
+            "opening the inMemory realm for the app to run on launch this is case where we don't have configuration necessary from the authenticated user!");
+        final config = Configuration.inMemory(realmModels);
+        realm = Realm(config);
       }
-      config = Configuration.inMemory(realmModels);
-      realm = Realm(config);
-    } else if (ProxyService.box.getBranchId() != null ||
-        ProxyService.box.getBusinessId() != null) {
-      /// because most likely we will open the realm with sync after we opened in memory database
-      /// then we need to close the one recently opened
-      if (realm != null) {
-        realm!.close();
-      }
-      talker.info("opening the synced realm for the app to run on launch");
-
-      // List<int> key = ProxyService.box.encryptionKey().toIntList();
-      String path = await dbPath();
-      //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
-      final app = App(AppConfiguration(AppSecrets.appId,
-          baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-      final user = app.currentUser ??
-          await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
-
-      int? branchId = ProxyService.box.getBranchId() ?? 0;
-      int? businessId = ProxyService.box.getBusinessId() ?? 0;
-      config = Configuration.flexibleSync(
-        user,
-        realmModels,
-        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-        path: path,
-        clientResetHandler: RecoverUnsyncedChangesHandler(
-          onBeforeReset: (beforeResetRealm) {
-            log("reset requested here..");
-
-            ///which the SDK invokes prior to the client reset.
-            ///You can use this callback to notify the user before the reset begins.
-          },
-        ),
-        shouldCompactCallback: ((totalSize, usedSize) {
-          // Compact if the file is over 10MB in size and less than 50% 'used'
-          const tenMB = 10 * 1048576;
-          return (totalSize > tenMB) &&
-              (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-        }),
-      );
-      // realm = await Realm.open(config);
-      // CancellationToken token = CancellationToken();
-
-      // Cancel the open operation after 30 seconds.
-      // Alternatively, you could display a loading dialog and bind the cancellation
-      // to a button the user can click to stop the wait.
-      // Future<void>.delayed(
-      //   const Duration(seconds: 30),
-      //   () => token.cancel(
-      //     CancelledException(
-      //       cancellationReason: "Realm took too long to open",
-      //     ),
-      //   ),
-      // );
-      // try {
-      //   if (await ProxyService.status.isInternetAvailable()) {
-      //     talker.info("Opened realm[1] with  internet access!");
-      //     realm = await Realm.open(config, cancellationToken: token,
-      //         onProgressCallback: (syncProgress) {
-      //       if (syncProgress.progressEstimate == 1.0) {
-      //         talker.info('All bytes transferred!');
-      //       }
-      //     });
-      //   } else {
-      //     talker.info("Opened realm[1] with no internet access!");
-      //     realm = Realm(config);
-      //   }
-      // } catch (e) {
-      //   talker.info("Opened realm in catch ");
-      //   realm = Realm(config);
-      // }
-      // talker.info("Opened realm in catch ");
-      realm = Realm(config);
-      // Realm.logger.level = RealmLogLevel.trace;
-      await updateSubscription(branchId, businessId);
-    } else {
-      //  open local database not synced one!
-      talker.info(
-          "opening the inMemory realm for the app to run on launch this is case where we don't have configuration necessary from the authenticated user!");
-      final config = Configuration.inMemory(realmModels);
-      realm = Realm(config);
+    } catch (e, s) {
+      talker.info(s);
     }
     return this;
   }

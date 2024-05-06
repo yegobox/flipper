@@ -334,14 +334,15 @@ abstract class RealmApiInterface {
 
   Future<List<BusinessType>> businessTypes();
   Future<IPin?> getPin({required String pin});
-  bool isRealmClosed();
-  Future<RealmApiInterface> configure({required bool inTesting});
+
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active});
 
+  Future<RealmApiInterface> configure({required bool inTesting});
   Realm? realm;
+  bool isRealmClosed();
 
   /// we sum all non negative and non 0 stock value with the
   /// retailing price
