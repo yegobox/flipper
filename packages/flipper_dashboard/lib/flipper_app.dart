@@ -203,6 +203,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
           _handleKeyEvent(model, event);
         },
         child: Scaffold(
+          extendBody: true,
           appBar: _buildAppBar(),
           body: StreamBuilder<Tenant?>(
             stream: ProxyService.realm

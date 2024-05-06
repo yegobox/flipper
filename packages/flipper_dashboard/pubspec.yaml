@@ -119,6 +119,7 @@ dependencies:
   realm: ^2.2.1
   device_type: ^0.0.6
   sizer: ^2.0.15
+  # floating_bottom_bar: ^0.0.3
 
 dependency_overrides:
   http: ^1.2.1

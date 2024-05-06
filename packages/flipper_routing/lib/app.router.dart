@@ -557,6 +557,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    ReportsRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.Reports(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -756,6 +764,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           ComfirmRoute.name,
           path: '/Comfirm',
+        ),
+        _i3.RouteConfig(
+          ReportsRoute.name,
+          path: '/Reports',
         ),
       ];
 }
@@ -2095,6 +2107,18 @@ class ComfirmRoute extends _i3.PageRouteInfo<void> {
   static const String name = 'Comfirm';
 }
 
+/// generated route for
+/// [_i1.Reports]
+class ReportsRoute extends _i3.PageRouteInfo<void> {
+  const ReportsRoute()
+      : super(
+          ReportsRoute.name,
+          path: '/Reports',
+        );
+
+  static const String name = 'Reports';
+}
+
 extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i4.Key? key,
@@ -2713,6 +2737,14 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
+  Future<dynamic> navigateToReports(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const ReportsRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
     _i4.Key? key,
     bool? invokeLogin,
@@ -3326,6 +3358,14 @@ extension RouterStateExtension on _i2.RouterService {
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const ComfirmRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithReports(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const ReportsRoute(),
       onFailure: onFailure,
     );
   }

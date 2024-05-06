@@ -68,7 +68,7 @@ class IconRow extends StatefulHookConsumerWidget {
 }
 
 class IconRowState extends ConsumerState<IconRow> {
-  List<bool> _isSelected = [true, false, false];
+  List<bool> _isSelected = [true, false, false, false];
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +114,14 @@ class IconRowState extends ConsumerState<IconRow> {
               text: 'EOD',
               isSelected: _isSelected[2],
             ),
+            GestureDetector(
+              onDoubleTap: () {},
+              child: IconText(
+                icon: Icons.dashboard,
+                text: 'Reports',
+                isSelected: _isSelected[3],
+              ),
+            ),
           ],
           onPressed: (int index) async {
             ref.read(buttonIndexProvider.notifier).setIndex(index);
@@ -149,6 +157,10 @@ class IconRowState extends ConsumerState<IconRow> {
 
   void buttonNav(int index) async {
     // Handle button press
+    if (index == 3) {
+      final _routerService = locator<RouterService>();
+      _routerService.navigateTo(ReportsRoute());
+    }
     if (index == 2) {
       final _routerService = locator<RouterService>();
       // Perform some action when the button is pressed

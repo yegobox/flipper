@@ -24,6 +24,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sizer/sizer.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'firebase_options.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -132,40 +133,42 @@ Future<void> main() async {
       ProviderScope(
         observers: [StateObserver()],
         child: OverlaySupport.global(
-          child: MaterialApp.router(
-            debugShowCheckedModeBanner: true,
-            title: 'flipper',
-            // Define the light theme for the app, based on defined colors and
-            // properties above.
-            //TODOimplement my own as this is killing design
-            // theme: GThemeGenerator.generate(),
-            // darkTheme: GThemeGenerator.generateDark(),
-            theme: ThemeData(
-              textTheme: GoogleFonts.poppinsTextTheme(),
-              colorScheme:
-                  ColorScheme.light().copyWith(background: Colors.white),
-            ),
-            localizationsDelegates: [
-              FirebaseUILocalizations.withDefaultOverrides(
-                const LabelOverrides(),
+          child: Sizer(builder: (context, orientation, deviceType) {
+            return MaterialApp.router(
+              debugShowCheckedModeBanner: true,
+              title: 'flipper',
+              // Define the light theme for the app, based on defined colors and
+              // properties above.
+              //TODOimplement my own as this is killing design
+              // theme: GThemeGenerator.generate(),
+              // darkTheme: GThemeGenerator.generateDark(),
+              theme: ThemeData(
+                textTheme: GoogleFonts.poppinsTextTheme(),
+                colorScheme:
+                    ColorScheme.light().copyWith(background: Colors.white),
               ),
-              const FlipperLocalizationsDelegate(),
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              CountryLocalizations.delegate
-            ],
-            supportedLocales: const [
-              Locale('en'), // English
-              Locale('es'), // Spanish
-            ],
-            locale: const Locale('en'),
-            // locale: model
-            //     .languageService.locale,
-            // themeMode: model.settingService.themeMode.value,
-            themeMode: ThemeMode.system,
-            routerDelegate: stackedRouter.delegate(),
-            routeInformationParser: stackedRouter.defaultRouteParser(),
-          ),
+              localizationsDelegates: [
+                FirebaseUILocalizations.withDefaultOverrides(
+                  const LabelOverrides(),
+                ),
+                const FlipperLocalizationsDelegate(),
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                CountryLocalizations.delegate
+              ],
+              supportedLocales: const [
+                Locale('en'), // English
+                Locale('es'), // Spanish
+              ],
+              locale: const Locale('en'),
+              // locale: model
+              //     .languageService.locale,
+              // themeMode: model.settingService.themeMode.value,
+              themeMode: ThemeMode.system,
+              routerDelegate: stackedRouter.delegate(),
+              routeInformationParser: stackedRouter.defaultRouteParser(),
+            );
+          }),
         ),
       ),
     ),

@@ -61,6 +61,7 @@ import 'all_routes.dart';
     CustomRoute(page: Transactions),
     CustomRoute(page: Security),
     CustomRoute(page: Comfirm),
+    CustomRoute(page: Reports),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

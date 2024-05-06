@@ -79,6 +79,7 @@ dependencies:
   patrol: ^3.6.1
   firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
+  sizer: ^2.0.15
 
 dev_dependencies:
   stacked_generator:
