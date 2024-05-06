@@ -2587,14 +2587,16 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Variant>> variants(
       {required int branchId, int? productId}) async {
+    List<Variant> variants = [];
     if (productId != null) {
-      return realm!.query<Variant>(
+      variants = realm!.query<Variant>(
           r'productId == $0 && branchId == $1 && retailPrice >0',
           [productId, branchId]).toList();
     } else {
-      return realm!.query<Variant>(
-          r'branchId == $1 && retailPrice >0', [branchId]).toList();
+      variants = realm!.query<Variant>(
+          r'branchId == $0 && retailPrice >0', [branchId]).toList();
     }
+    return variants;
   }
 
   @override

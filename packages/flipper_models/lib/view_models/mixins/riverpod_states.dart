@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -177,7 +175,7 @@ class TransactionItemsNotifier
   double get totalPayable {
     return state.maybeWhen(
       data: (items) {
-        return items.fold(0, (a, b) => a + (b.price! * b.qty!));
+        return items.fold(0, (a, b) => a + (b.price * b.qty));
       },
       orElse: () => 0.0,
     );
@@ -274,7 +272,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
       data: (currentData) {
         final updatedProducts = currentData.map((p) {
           // Update the searchMatch property to true for the expanded product
-          if (p.id == product.id && !p.searchMatch!) {
+          if (p.id == product.id && !p.searchMatch) {
             p.searchMatch = true;
           } else {
             // Set searchMatch to false for other products

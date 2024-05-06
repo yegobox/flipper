@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/states/productListProvider.dart';
