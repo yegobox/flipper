@@ -17,7 +17,7 @@ extension StringToIntList on String {
 class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
   @override
-  Realm? realm;
+  Realm? rea;
 
   @override
   Future<LocalRealmInterface> configureLocal({required bool inTesting}) async {
@@ -28,13 +28,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     final config = Configuration.local([UserActivity.schema],
         path: path,
         encryptionKey: ProxyService.box.encryptionKey().toIntList());
-    realm = Realm(config);
+    rea = Realm(config);
     return this;
   }
 
   @override
   bool isRealmClosed() {
-    return realm?.isClosed ?? true;
+    return rea?.isClosed ?? true;
   }
 
   @override
@@ -46,7 +46,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     DateTime startOfDay = DateTime(now.year, now.month, now.day);
     DateTime endOfDay = startOfDay.add(Duration(days: 1));
 
-    return realm!.query<UserActivity>(
+    return rea!.query<UserActivity>(
         r'lastTouched BETWEEN {$0,$1} ', [startOfDay, endOfDay]).toList();
   }
 

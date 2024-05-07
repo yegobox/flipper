@@ -1,4 +1,3 @@
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:realm/realm.dart';
 part 'schemas.realm.dart';
 

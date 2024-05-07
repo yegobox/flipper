@@ -159,8 +159,9 @@ abstract class ServicesModule {
     return dynamicLink;
   }
 
+  // @preResolve
   @LazySingleton()
-  Remote get remote {
+  Remote remote() {
     late Remote remote;
     if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
       remote = RemoteConfigService();

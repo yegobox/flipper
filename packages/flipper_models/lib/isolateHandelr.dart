@@ -33,16 +33,15 @@ mixin IsolateHandler {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
-    String key = args[4] as String;
+    String encryptionKey = args[4] as String;
     int tinNumber = args[5] as int;
     String bhfId = args[6] as String;
-    List<int> encryptionKey = key.toIntList();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
-        realmConfig(user, encryptionKey, dbPatch);
+        realmConfig(user, encryptionKey.toIntList(), dbPatch);
 
     final realm = Realm(config);
 
@@ -109,10 +108,9 @@ mixin IsolateHandler {
           );
           // Convert EJsonValue to JSON string
           Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
-          talker.warning("Reached here ${variant.toEJson()}");
 
           await RWTax().saveItem(variation: iVariant);
-          talker.info("Successfully saved Item. ${variant.toEJson()}");
+          talker.warning("Successfully saved Item.");
           sendPort.send('variant:${variant.id}');
         } catch (e, s) {
           talker.error(s);
@@ -122,20 +120,24 @@ mixin IsolateHandler {
 
     List<Stock> stocks = realm.all<Stock>().toList();
 
+    // Fetching all variant ids from stocks
+    List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
+    Map<int, Variant?> variantMap = {};
+    realm.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
+      variantMap[variant.id!] = variant;
+    });
     for (Stock stock in stocks) {
       if (!stock.ebmSynced) {
-        try {
-          Variant variant = realm.query<Variant>(
-            r'id == $0 AND deletedAt == nil',
-            [stock.variantId],
-          ).first;
+        // Accessing variant from the pre-fetched map
+        Variant? variant = variantMap[stock.variantId];
 
+        try {
           IStock iStock = IStock(
             id: stock.id,
             currentStock: stock.currentStock,
           );
           IVariant iVariant = IVariant(
-            id: variant.id,
+            id: variant!.id,
             deletedAt: variant.deletedAt,
             name: variant.name,
             color: variant.color,
@@ -189,7 +191,7 @@ mixin IsolateHandler {
 
           await RWTax().saveStock(stock: iStock, variant: iVariant);
           sendPort.send('stock:${stock.id}');
-          talker.info("Successfully saved Stock. ${variant.toEJson()}");
+          talker.warning("Successfully saved Stock.");
         } catch (e, s) {
           talker.error(s);
         }

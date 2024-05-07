@@ -45,7 +45,6 @@ class CronService {
   final talker = TalkerFlutter.init();
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     try {
-      String encryptionKey = ProxyService.box.encryptionKey();
       Business business = ProxyService.realm.realm!.query<Business>(
           r'id == $0', [ProxyService.box.getBusinessId()!]).first;
       talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
@@ -61,7 +60,7 @@ class CronService {
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
           await ProxyService.realm.dbPath(),
-          encryptionKey,
+          ProxyService.box.encryptionKey(),
           business.tinNumber,
           ebm?.bhfId ?? "00"
         ],
