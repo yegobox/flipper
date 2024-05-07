@@ -47,7 +47,7 @@ dependencies:
   talker_dio_logger: ^4.1.5
   talker: ^4.1.5
   talker_flutter: ^4.1.5
-  ejson: ^0.3.0
+  rxdart: ^0.27.7
 
 dependency_overrides:
   http: ^1.2.1

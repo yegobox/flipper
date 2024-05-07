@@ -60,11 +60,8 @@ package_config.json
 .yaml
 pubspec_overrides.yaml
 .packages
-.flutter-plugins
 .env
 
-.gradle
 android/.gradle
 pubspec.lock
-pubspec_overrides.yaml
 android/.gradle/7.4/executionHistory/executionHistory.bin

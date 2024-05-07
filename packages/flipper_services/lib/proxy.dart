@@ -1,4 +1,5 @@
 import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -71,6 +72,7 @@ final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 // final RemoteInterface _remote = getIt<RemoteInterface>();
 final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
 final Device _device = getIt<Device>();
+final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
 
 abstract class ProxyService {
   // static RemoteInterface get remote => _remote;
@@ -112,4 +114,5 @@ abstract class ProxyService {
   static SentryServiceInterface get sentry => _sentry;
   static Device get device => _device;
   static NotificationStream get notie => NotificationStream();
+  static LocalRealmInterface get local => _localRealm;
 }

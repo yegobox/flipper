@@ -8,10 +8,11 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:flipper_models/FirestoreSync.dart' as _i32;
+import 'package:flipper_models/FirestoreSync.dart' as _i33;
 import 'package:flipper_models/http_client_interface.dart' as _i4;
+import 'package:flipper_models/LocalRealm.dart' as _i29;
 import 'package:flipper_models/realmInterface.dart' as _i28;
-import 'package:flipper_models/sync_service.dart' as _i33;
+import 'package:flipper_models/sync_service.dart' as _i34;
 import 'package:flipper_models/tax_api.dart' as _i23;
 import 'package:flipper_models/view_models/NotificationStream.dart' as _i6;
 import 'package:flipper_models/whatsapp.dart' as _i18;
@@ -27,22 +28,22 @@ import 'abstractions/shareable.dart' as _i8;
 import 'abstractions/storage.dart' as _i27;
 import 'abstractions/system_time.dart' as _i17;
 import 'abstractions/upload.dart' as _i7;
-import 'app_service.dart' as _i29;
-import 'billing_service.dart' as _i35;
+import 'app_service.dart' as _i30;
+import 'billing_service.dart' as _i36;
 import 'country_service.dart' as _i16;
-import 'cron_service.dart' as _i31;
+import 'cron_service.dart' as _i32;
 import 'DeviceIdService.dart' as _i5;
 import 'event_interface.dart' as _i21;
 import 'firebase_messaging.dart' as _i10;
 import 'FirebaseCrashlyticService.dart' as _i11;
-import 'force_data_service.dart' as _i34;
+import 'force_data_service.dart' as _i35;
 import 'in_app_review.dart' as _i9;
 import 'keypad_service.dart' as _i19;
 import 'language_service.dart' as _i22;
 import 'local_notification_service.dart' as _i24;
-import 'product_service.dart' as _i30;
+import 'product_service.dart' as _i31;
 import 'sentry_service.dart' as _i26;
-import 'services_module.dart' as _i36;
+import 'services_module.dart' as _i37;
 import 'setting_service.dart' as _i3;
 import 'status.dart' as _i20;
 
@@ -94,22 +95,26 @@ extension GetItInjectableX on _i1.GetIt {
       () => servicesModule.realmApi(),
       preResolve: true,
     );
-    gh.lazySingleton<_i29.AppService>(() => servicesModule.appService());
-    gh.lazySingleton<_i30.ProductService>(
+    await gh.lazySingletonAsync<_i29.LocalRealmInterface>(
+      () => servicesModule.localRealm(),
+      preResolve: true,
+    );
+    gh.lazySingleton<_i30.AppService>(() => servicesModule.appService());
+    gh.lazySingleton<_i31.ProductService>(
         () => servicesModule.productService());
-    gh.lazySingleton<_i31.CronService>(() => servicesModule.cron());
-    gh.lazySingleton<_i32.SyncFirestore<_i33.IJsonSerializable>>(
+    gh.lazySingleton<_i32.CronService>(() => servicesModule.cron());
+    gh.lazySingleton<_i33.SyncFirestore<_i34.IJsonSerializable>>(
         () => servicesModule.syncFirestore());
-    gh.lazySingleton<_i28.SyncReaml<_i33.IJsonSerializable>>(
+    gh.lazySingleton<_i28.SyncReaml<_i34.IJsonSerializable>>(
         () => servicesModule.syncRealm());
-    gh.lazySingleton<_i34.ForceDataEntryService>(
+    gh.lazySingleton<_i35.ForceDataEntryService>(
         () => servicesModule.forcedataEntry());
-    gh.lazySingleton<_i35.BillingService>(() => servicesModule.billing());
+    gh.lazySingleton<_i36.BillingService>(() => servicesModule.billing());
     return this;
   }
 }
 
-class _$ServicesModule extends _i36.ServicesModule {
+class _$ServicesModule extends _i37.ServicesModule {
   @override
   _i3.SettingsService get settingsService => _i3.SettingsService();
 

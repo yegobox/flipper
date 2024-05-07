@@ -146,7 +146,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
     initializeApplicationIfRequired();
     model.defaultBranch();
-    ProxyService.realm.refreshSession(
+    ProxyService.local.refreshSession(
       branchId: ProxyService.box.getBranchId()!,
       refreshRate:
           kDebugMode ? 10 : ProxyService.remoteConfig.sessionTimeOutMinutes(),
@@ -161,31 +161,33 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     model.loadReport();
   }
 
-  void _startNFCForModel(CoreViewModel model) {
-    AppService().nfc.startNFC(
-          callback: (nfcData) {
-            AppService.cleanedDataController
-                .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
-          },
-          textData: "",
-          write: false,
+  Future<void> _startNFCForModel(CoreViewModel model) async {
+    if (await NfcManager.instance.isAvailable()) {
+      AppService().nfc.startNFC(
+            callback: (nfcData) {
+              AppService.cleanedDataController
+                  .add(nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last);
+            },
+            textData: "",
+            write: false,
+          );
+
+      AppService.cleanedData.listen((data) async {
+        log("listened to data");
+        final pendingTransaction =
+            ref.watch(pendingTransactionProvider(TransactionType.custom));
+        log(data);
+        List<String> parts = data.split(':');
+        String firstPart = parts[0];
+
+        await model.sellWithCard(
+          tenantId: int.parse(firstPart),
+          pendingTransaction: pendingTransaction.value!.value!,
         );
 
-    AppService.cleanedData.listen((data) async {
-      log("listened to data");
-      final pendingTransaction =
-          ref.watch(pendingTransactionProvider(TransactionType.custom));
-      log(data);
-      List<String> parts = data.split(':');
-      String firstPart = parts[0];
-
-      await model.sellWithCard(
-        tenantId: int.parse(firstPart),
-        pendingTransaction: pendingTransaction.value!.value!,
-      );
-
-      showToast(context, 'Sale recorded successfully.');
-    });
+        showToast(context, 'Sale recorded successfully.');
+      });
+    }
   }
 
   Widget _buildScaffold(BuildContext context, CoreViewModel model) {

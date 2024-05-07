@@ -26,6 +26,7 @@ import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'helperModels/branch.dart';
 import 'helperModels/business.dart';
@@ -487,22 +488,20 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     if (data is PColor) {
+      final colorsToAdd = <PColor>[];
       PColor color = data;
-      realm!.write(() {
-        for (String colorName in data.colors) {
-          realm!.put<PColor>(
-            PColor(
-              ObjectId(),
-              id: randomNumber(),
-              lastTouched: DateTime.now(),
-              action: AppActions.created,
-              name: colorName,
-              active: color.active,
-              branchId: color.branchId,
-            ),
-          );
-        }
-      });
+      for (String colorName in data.colors) {
+        colorsToAdd.add(PColor(
+          ObjectId(),
+          id: randomNumber(),
+          lastTouched: DateTime.now(),
+          action: AppActions.created,
+          name: colorName,
+          active: color.active,
+          branchId: color.branchId,
+        ));
+      }
+      realm!.writeAsync(() => realm!.addAll(colorsToAdd));
     }
     if (data is Device) {
       Device device = data;
@@ -1792,13 +1791,8 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<void> recordUserActivity(
       {required int userId, required String activity}) {
+    // realm!.syncSession.pause();
     // TODO: implement recordUserActivity
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
-    // TODO: implement refreshSession
     throw UnimplementedError();
   }
 
@@ -2185,7 +2179,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Tenant>> tenants({int? businessId}) async {
     if (businessId != null) {
-      return realm!.query<Tenant>(r'businessId == $0').toList();
+      return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
     } else {
       return realm!.query<Tenant>(r'deletedAt == nil').toList();
     }
@@ -2335,6 +2329,8 @@ class RealmAPI<M extends IJsonSerializable>
         )
     ''';
 
+    final subject = ReplaySubject<List<ITransaction>>();
+
     final query = realm!.query<ITransaction>(
       queryString,
       [
@@ -2342,23 +2338,12 @@ class RealmAPI<M extends IJsonSerializable>
         branchId,
       ],
     );
-    StreamController<List<ITransaction>>? controller;
-    controller = StreamController<List<ITransaction>>.broadcast(
-      onListen: () {
-        final initialResults = query.toList();
-        controller!.sink.add(initialResults.toList());
 
-        query.changes.listen((results) {
-          controller!.sink.add(results.results.toList());
-        });
-      },
-      onCancel: () {
-        query.unsubscribe();
-        controller!.close();
-      },
-    );
+    query.changes.listen((results) {
+      subject.add(results.results.toList());
+    });
 
-    return controller.stream;
+    return subject.stream;
   }
 
   @override
@@ -2629,7 +2614,37 @@ class RealmAPI<M extends IJsonSerializable>
       commApi = AppSecrets.commApi;
     }
 
+    String path = await dbPath();
+    //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
+    final app = App(AppConfiguration(AppSecrets.appId,
+        baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+    final user = app.currentUser ??
+        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
     Configuration config;
+    config = Configuration.flexibleSync(
+      // https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/update-realm-object-schema/
+      // schemaVersion: 2,
+      // maxNumberOfActiveVersions: 2,
+      user,
+      realmModels,
+      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+      path: path,
+      clientResetHandler: RecoverUnsyncedChangesHandler(
+        onBeforeReset: (beforeResetRealm) {
+          log("reset requested here..");
+
+          ///which the SDK invokes prior to the client reset.
+          ///You can use this callback to notify the user before the reset begins.
+        },
+      ),
+      shouldCompactCallback: ((totalSize, usedSize) {
+        // Compact if the file is over 10MB in size and less than 50% 'used'
+        const tenMB = 10 * 1048576;
+        return (totalSize > tenMB) &&
+            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+      }),
+    );
     try {
       if (inTesting) {
         if (realm != null) {
@@ -2647,35 +2662,10 @@ class RealmAPI<M extends IJsonSerializable>
         talker.info("opening the synced realm for the app to run on launch");
 
         // List<int> key = ProxyService.box.encryptionKey().toIntList();
-        String path = await dbPath();
-        //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
-        final app = App(AppConfiguration(AppSecrets.appId,
-            baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-        final user = app.currentUser ??
-            await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
 
         int? branchId = ProxyService.box.getBranchId() ?? 0;
         int? businessId = ProxyService.box.getBusinessId() ?? 0;
-        config = Configuration.flexibleSync(
-          user,
-          realmModels,
-          encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-          path: path,
-          clientResetHandler: RecoverUnsyncedChangesHandler(
-            onBeforeReset: (beforeResetRealm) {
-              log("reset requested here..");
 
-              ///which the SDK invokes prior to the client reset.
-              ///You can use this callback to notify the user before the reset begins.
-            },
-          ),
-          shouldCompactCallback: ((totalSize, usedSize) {
-            // Compact if the file is over 10MB in size and less than 50% 'used'
-            const tenMB = 10 * 1048576;
-            return (totalSize > tenMB) &&
-                (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-          }),
-        );
         CancellationToken token = CancellationToken();
 
         // Cancel the open operation after 10 seconds.
@@ -2714,6 +2704,10 @@ class RealmAPI<M extends IJsonSerializable>
       }
     } catch (e, s) {
       talker.info(s);
+      if (realm != null) {
+        realm!.close();
+      }
+      realm = Realm(config);
     }
     return this;
   }

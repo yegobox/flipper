@@ -1,3 +1,4 @@
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:realm/realm.dart';
 part 'schemas.realm.dart';
 
@@ -189,7 +190,7 @@ class _Customer {
   // Registrant ID
   String? regrId;
   //Modifier Name
-  String? modrNm;
+  String modrNm = "284746303937";
 
   //Modifier ID
   String? modrId;
@@ -806,4 +807,16 @@ class _Token {
 
   DateTime? lastTouched;
   DateTime? deletedAt;
+}
+
+@RealmModel()
+class _UserActivity {
+  @PrimaryKey()
+  late ObjectId id;
+
+  DateTime? timestamp;
+  DateTime? lastTouched;
+  int? userId;
+
+  late String action;
 }

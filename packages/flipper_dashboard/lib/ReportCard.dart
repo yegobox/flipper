@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 // import 'package:sizer/sizer.dart';
 
 class ReportCard extends StatelessWidget {
@@ -21,6 +22,9 @@ class ReportCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final talker = TalkerFlutter.init();
+
+    talker.warning("Incoming Value A ${valueA}: Incoming Value B ${valueB}");
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -61,7 +65,7 @@ class ReportCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             LinearProgressIndicator(
-              value: valueB / valueA,
+              value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
               backgroundColor: Colors.white,
               valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
             ),

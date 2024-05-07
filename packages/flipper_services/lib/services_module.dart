@@ -1,4 +1,6 @@
 import 'package:flipper_models/FirestoreSync.dart';
+import 'package:flipper_models/LocalRealm.dart';
+import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -274,6 +276,14 @@ abstract class ServicesModule {
   @LazySingleton()
   Future<RealmApiInterface> realmApi() async {
     return await RealmAPI().configure(
+      inTesting: bool.fromEnvironment('Test') == true,
+    );
+  }
+
+  @preResolve
+  @LazySingleton()
+  Future<LocalRealmInterface> localRealm() async {
+    return await LocalRealmApi().configureLocal(
       inTesting: bool.fromEnvironment('Test') == true,
     );
   }

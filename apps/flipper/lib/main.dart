@@ -49,6 +49,7 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final talker = TalkerFlutter.init();

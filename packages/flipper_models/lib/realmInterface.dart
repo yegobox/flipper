@@ -319,10 +319,8 @@ abstract class RealmApiInterface {
 
   // Future<ITenant> authState({required int branchId});
 
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5});
   Stream<Tenant?> authState({required int branchId});
 
-  // Future<List<UserActivity>> activities({required int userId});
   Future<void> recordUserActivity(
       {required int userId, required String activity});
 
@@ -352,4 +350,7 @@ abstract class RealmApiInterface {
   /// and non zero then what we get we query related sold item
 
   Stream<double> soldStockValue({required branchId});
+
+  // Future<void> refreshSession({required int branchId, int? refreshRate = 5});
+  // Future<List<UserActivity>> activities({required int userId});
 }
