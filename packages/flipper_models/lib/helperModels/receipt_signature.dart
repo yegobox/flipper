@@ -31,7 +31,9 @@ class EBMApiResponse {
       resultCd: json['resultCd'] as String,
       resultMsg: json['resultMsg'] as String,
       resultDt: json['resultDt'] as String?,
-      data: json['data'] != null ? Data.fromJson(json['data'] as Map<String, dynamic>) : null,
+      data: json['data'] == null
+          ? null
+          : Data.fromJson(json['data'] as Map<String, dynamic>),
     );
   }
 }

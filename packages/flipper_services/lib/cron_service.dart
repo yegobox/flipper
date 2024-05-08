@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:flipper_models/isolateHandelr.dart';
@@ -48,28 +47,48 @@ class CronService {
       Business business = ProxyService.realm.realm!.query<Business>(
           r'id == $0', [ProxyService.box.getBusinessId()!]).first;
       talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
-      EBM? ebm = ProxyService.realm.realm!.query<EBM>(
-          r'businessId == $0', [ProxyService.box.getBusinessId()]).firstOrNull;
-      talker.info("EBM ${ebm}");
-      talker.info("EBM BusinessTine ${business.tinNumber}");
-      ReceivePort receivePort = ReceivePort();
-      await Isolate.spawn(
-        isolateHandler,
-        [
-          RootIsolateToken.instance,
-          receivePort.sendPort,
-          ProxyService.box.getBranchId()!,
-          await ProxyService.realm.dbPath(),
-          ProxyService.box.encryptionKey(),
-          business.tinNumber,
-          ebm?.bhfId ?? "00"
-        ],
-      );
-      receivePort.listen(
-        (message) {
-          talker.warning(message);
-        },
-      );
+      if (ProxyService.realm.isTaxEnabled()) {
+        talker.info("EBM BusinessTine ${business.tinNumber}");
+        ReceivePort receivePort = ReceivePort();
+        await Isolate.spawn(
+          isolateHandler,
+          [
+            RootIsolateToken.instance,
+            receivePort.sendPort,
+            ProxyService.box.getBranchId()!,
+            await ProxyService.realm.dbPath(),
+            ProxyService.box.encryptionKey(),
+            business.tinNumber,
+            business.bhfId ?? "00"
+          ],
+        );
+        receivePort.listen(
+          (message) async {
+            /// receive computed value that is considered that we have successfully completed updating EBM server
+            /// then it is time to update the database and mark the model as updated this will help us to know
+            /// if we are in sync with EBM server for all models we have inside our app
+            String identifier = message as String;
+            List<String> separator = identifier.split(":");
+            talker.warning(
+                "About to update model ${separator.first} with ${separator.last}");
+            if (separator.first == "variant") {
+              // find this variant in db
+              Variant variant = ProxyService.realm.realm!
+                  .query<Variant>(r'id == $0', [separator.last]).first;
+              ProxyService.realm.markModelForEbmUpdate<Variant>(model: variant);
+            }
+            if (separator.first == "stock") {
+              // find this variant in db
+              Stock stock = ProxyService.realm.realm!
+                  .query<Stock>(r'id == $0', [separator.last]).first;
+
+              ProxyService.realm.markModelForEbmUpdate<Stock>(model: stock);
+            }
+            await ProxyService.realm.realm!.subscriptions
+                .waitForSynchronization();
+          },
+        );
+      }
     } catch (error, s) {
       talker.warning('Error managing isolates: $s');
     }
@@ -90,15 +109,11 @@ class CronService {
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
 
-    // Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-    await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
-    // });
-    await _setupFirebase();
+    Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+      await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+    });
 
-    /// pull does not have to wait as soon as we connect start pulling from realm.
-    if (!isWeb) {
-      // ProxyService.realm.pull();
-    }
+    await _setupFirebase();
 
     Timer.periodic(_getSyncPushDuration(), (Timer t) async {
       await _syncPushData();
@@ -195,7 +210,7 @@ class CronService {
   }
 
   Duration _getHeartBeatDuration() {
-    return Duration(seconds: kDebugMode ? 60000 : 60);
+    return Duration(seconds: kDebugMode ? 20 : 60);
   }
 
   _heartBeatPull() async {

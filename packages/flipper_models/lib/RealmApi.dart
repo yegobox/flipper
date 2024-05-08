@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:isolate';
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/counter.dart';
@@ -1485,6 +1486,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   bool isTaxEnabled() {
+    // TODO: work on this.
     return true;
   }
 
@@ -2623,28 +2625,29 @@ class RealmAPI<M extends IJsonSerializable>
 
     Configuration config;
     config = Configuration.flexibleSync(
-      // https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/update-realm-object-schema/
-      // schemaVersion: 2,
-      // maxNumberOfActiveVersions: 2,
-      user,
-      realmModels,
-      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-      path: path,
-      clientResetHandler: RecoverUnsyncedChangesHandler(
-        onBeforeReset: (beforeResetRealm) {
-          log("reset requested here..");
+        // https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/update-realm-object-schema/
+        // schemaVersion: 2,
+        // maxNumberOfActiveVersions: 2,
+        user,
+        realmModels,
+        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+        path: path, clientResetHandler: RecoverUnsyncedChangesHandler(
+      onBeforeReset: (beforeResetRealm) {
+        log("reset requested here..");
 
-          ///which the SDK invokes prior to the client reset.
-          ///You can use this callback to notify the user before the reset begins.
-        },
-      ),
-      shouldCompactCallback: ((totalSize, usedSize) {
-        // Compact if the file is over 10MB in size and less than 50% 'used'
-        const tenMB = 10 * 1048576;
-        return (totalSize > tenMB) &&
-            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-      }),
-    );
+        ///which the SDK invokes prior to the client reset.
+        ///You can use this callback to notify the user before the reset begins.
+      },
+    ), shouldCompactCallback: ((totalSize, usedSize) {
+      // Compact if the file is over 10MB in size and less than 50% 'used'
+      const tenMB = 10 * 1048576;
+      return (totalSize > tenMB) &&
+          (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+    }), syncErrorHandler: (syncError) {
+      if (syncError is CompensatingWriteError) {
+        handleCompensatingWrite(syncError);
+      }
+    });
     try {
       if (inTesting) {
         if (realm != null) {
@@ -2726,7 +2729,7 @@ class RealmAPI<M extends IJsonSerializable>
     final customer = realm!.query<Customer>(r'branchId == $0', [branchId]);
     final category = realm!.query<Customer>(r'branchId == $0', [branchId]);
     final branch = realm!.query<Branch>(r'businessId == $0', [businessId]);
-    final colors = realm!.query<PColor>(r'id == $0', [branchId]);
+    final colors = realm!.all<PColor>();
     final devices = realm!.query<Device>(r'branchId == $0', [branchId]);
 
     final business = realm!.query<Business>(r'id == $0', [businessId]);
@@ -2745,16 +2748,14 @@ class RealmAPI<M extends IJsonSerializable>
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
-    final permission = realm!
-        .query<LPermission>(r'userId == $0', [ProxyService.box.getUserId()!]);
+    final permission = realm!.all<LPermission>();
 
     final pin = realm!.query<Pin>(
         r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
 
     // fake subscription as I normally do not these model synced accros devices but I don't know how I can pause one model
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
-    final tenant =
-        realm!.query<Tenant>(r'userId == $0', [ProxyService.box.getUserId()]);
+    final tenant = realm!.all<Tenant>();
 
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
 
@@ -3467,5 +3468,29 @@ class RealmAPI<M extends IJsonSerializable>
     };
 
     yield* controller.stream;
+  }
+
+  void handleCompensatingWrite(CompensatingWriteError compensatingWriteError) {
+    final writeReason = compensatingWriteError.compensatingWrites!.first;
+    print("Error message: " + writeReason.reason);
+
+    // ... handle compensating write error as needed.
+  }
+
+  @override
+  Future<void> markModelForEbmUpdate<T>(
+      {required T model, bool updated = true}) async {
+    try {
+      if (model is Variant) {
+        realm!.write(() {
+          model.ebmSynced = updated;
+        });
+      }
+      if (model is Stock) {
+        realm!.write(() {
+          model.ebmSynced = updated;
+        });
+      }
+    } catch (e) {}
   }
 }

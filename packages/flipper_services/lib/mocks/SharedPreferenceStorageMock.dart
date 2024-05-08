@@ -197,4 +197,16 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement tin
     throw UnimplementedError();
   }
+
+  @override
+  String? stockUpdataBle() {
+    // TODO: implement stockUpdataBle
+    throw UnimplementedError();
+  }
+
+  @override
+  String? variantUpdataBle() {
+    // TODO: implement variantUpdataBle
+    throw UnimplementedError();
+  }
 }

@@ -350,7 +350,6 @@ abstract class RealmApiInterface {
   /// and non zero then what we get we query related sold item
 
   Stream<double> soldStockValue({required branchId});
-
-  // Future<void> refreshSession({required int branchId, int? refreshRate = 5});
-  // Future<List<UserActivity>> activities({required int userId});
+  Future<void> markModelForEbmUpdate<T>(
+      {required T model, bool updated = true});
 }

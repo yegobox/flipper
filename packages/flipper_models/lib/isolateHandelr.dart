@@ -50,7 +50,7 @@ mixin IsolateHandler {
     // load all variants
     List<Variant> variants = realm.all<Variant>().toList();
     final talker = TalkerFlutter.init();
-
+    List<Variant> gvariantIds = <Variant>[];
     for (Variant variant in variants) {
       if (!variant.ebmSynced) {
         try {
@@ -110,6 +110,7 @@ mixin IsolateHandler {
           Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
 
           await RWTax().saveItem(variation: iVariant);
+          gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");
           sendPort.send('variant:${variant.id}');
         } catch (e, s) {
@@ -117,7 +118,6 @@ mixin IsolateHandler {
         }
       }
     }
-
     List<Stock> stocks = realm.all<Stock>().toList();
 
     // Fetching all variant ids from stocks
@@ -130,14 +130,16 @@ mixin IsolateHandler {
       if (!stock.ebmSynced) {
         // Accessing variant from the pre-fetched map
         Variant? variant = variantMap[stock.variantId];
-
+        if (variant == null) {
+          continue;
+        }
         try {
           IStock iStock = IStock(
             id: stock.id,
             currentStock: stock.currentStock,
           );
           IVariant iVariant = IVariant(
-            id: variant!.id,
+            id: variant.id,
             deletedAt: variant.deletedAt,
             name: variant.name,
             color: variant.color,

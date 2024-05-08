@@ -63,20 +63,20 @@ class RWTax implements TaxApi {
       variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
           ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
-      final stringResponse = response.data.toString();
-      sendEmailLogging(
-          requestBody: response.requestOptions.data,
-          subject: "Worked",
-          body: stringResponse);
+      // sendEmailLogging(
+      //     requestBody: response.requestOptions.data,
+      //     subject: "Worked",
+      //     body: stringResponse);
+      talker.warning(response.data);
       final data = EBMApiResponse.fromJson(
-        json.decode(stringResponse),
+        response.data,
       );
       if (data.resultCd != "000") {
         throw Exception(data.resultMsg);
       }
       return response.statusCode == 200;
-    } catch (e, stackTrace) {
-      throw Exception(stackTrace);
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -141,11 +141,11 @@ class RWTax implements TaxApi {
         if (data.resultCd != "000") {
           throw Exception(data.resultMsg);
         }
-        sendEmailLogging(
-          requestBody: variation.toJson().toString(),
-          subject: "Worked",
-          body: response.data.toString(),
-        );
+        // sendEmailLogging(
+        //   requestBody: variation.toJson().toString(),
+        //   subject: "Worked",
+        //   body: response.data.toString(),
+        // );
         return true;
       } else {
         throw Exception("failed to save item");
@@ -181,20 +181,18 @@ class RWTax implements TaxApi {
     try {
       final response = await sendPostRequest(url, data);
       if (response.statusCode == 200) {
-        sendEmailLogging(
-          requestBody: data.toString(),
-          subject: "Worked",
-          body: response.data.toString(),
-        );
+        // sendEmailLogging(
+        //   requestBody: data.toString(),
+        //   subject: "Worked",
+        //   body: response.data.toString(),
+        // );
         return true;
       } else {
         // print(response.reasonPhrase);
         return false;
       }
     } catch (e) {
-      // Handle the exception
-      print(e);
-      return false;
+      rethrow;
     }
   }
 
