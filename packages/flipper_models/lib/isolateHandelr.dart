@@ -108,7 +108,7 @@ mixin IsolateHandler {
             ebmSynced: variant.ebmSynced,
           );
           // Convert EJsonValue to JSON string
-          //Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
+          Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
 
           await RWTax().saveItem(variation: iVariant);
           gvariantIds.add(variant);

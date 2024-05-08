@@ -201,6 +201,7 @@ final outerVariantsProvider = StateNotifierProvider.autoDispose
 class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
     with TransactionMixin {
   int branchId;
+
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
   Future<void> loadVariants(
@@ -262,7 +263,9 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
   final int branchId;
   final StateNotifierProviderRef<ProductsNotifier, AsyncValue<List<Product>>>
       ref;
+
   ProductsNotifier(this.branchId, this.ref) : super(AsyncLoading());
+
   void expanded(Product? product) {
     if (product == null) {
       return;
@@ -461,7 +464,7 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.realm.transactionsStream();
+  final transactionsStream = ProxyService.realm.transactionsStream(branchId: ProxyService.box.getBranchId());
 
   // Return the stream
   return transactionsStream;
@@ -532,11 +535,15 @@ final transactionListProvider =
   });
 });
 
-// final transactionItemsStreamPtovider =
-//     StreamProvider.autoDispose<List<ITransaction>>((ref) {
-//   int branchId = ProxyService.box.getBranchId() ?? 0;
-//   return ProxyService.isar.orders(branchId: branchId);
-// });
+final variantStreamProvider =
+    StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
+  return ProxyService.realm
+      .getVariantByProductIdStream(productId: id)
+      .distinct((prev, next) =>
+          prev.map((e) => e.retailPrice).join() ==
+          next.map((e) => e.retailPrice).join())
+      .handleError((error) => []);
+});
 
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {

@@ -1,21 +1,23 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
+import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flipper_models/realm_model_export.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class HexColor extends Color {
   HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
+
   static int _getColorFromHex(String hexColor) {
     hexColor = hexColor.toUpperCase().replaceAll('#', '');
     if (hexColor.length == 6) {
@@ -43,6 +45,7 @@ Map<int, String> positionString = {
   14: 'fifteenth',
   15: 'sixteenth'
 };
+
 typedef void DeleteProductFunction(int? id, String type);
 typedef void DeleteVariantFunction(int? id, String type);
 
@@ -61,6 +64,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool? addFavoriteMode;
   final int? favIndex;
   final Function? addToMenu;
+
   RowItem({
     Key? key,
     required this.color,
@@ -92,13 +96,16 @@ class _RowItemState extends ConsumerState<RowItem> {
 
   @override
   Widget build(BuildContext context) {
+    final variantStream = ref.watch(variantStreamProvider(
+        widget.product?.id ?? widget.variant?.productId ?? 0));
+
     return Column(
       children: [
         SizedBox(
           height: 0.5,
         ),
         Slidable(
-          key: Key('slidable-${widget.product?.id ?? widget.variant?.id}'),
+          key: Key('slide-${widget.product?.id ?? widget.variant?.id}'),
           child: InkWell(
             onTap: () {
               onRowClick(context);
@@ -124,7 +131,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                   ),
                 ),
                 SizedBox(width: 10),
-                _buildPrices(),
+                _buildPrices(variantStream),
               ],
             ),
           ),
@@ -167,30 +174,21 @@ class _RowItemState extends ConsumerState<RowItem> {
     );
   }
 
-  Widget _buildPrices() {
+  Widget _buildPrices(AsyncValue<List<Variant>> variantStream) {
     return Container(
       width: 80,
-      child: StreamBuilder<List<Variant>>(
-        stream: ProxyService.realm.getVariantByProductIdStream(
-          productId: widget.product?.id ?? widget.variant?.productId ?? 0,
-        ),
-        builder: (context, snapshot) {
-          if (snapshot.hasError || !snapshot.hasData) {
-            return const SizedBox.shrink();
-          }
-
-          final variants = snapshot.data ?? [];
-          final nonZeroPrice = variants
-              .firstWhere(
-                (variant) => variant.retailPrice != 0,
-              )
-              .retailPrice;
+      child: variantStream.when(
+        data: (variants) {
+          final nonZeroPrice =
+              variants.firstWhereOrNull((variant) => variant.retailPrice != 0);
 
           return Text(
-            'RWF ${NumberFormat('#,###').format(nonZeroPrice)}',
+            'RWF ${NumberFormat('#,###').format(nonZeroPrice?.retailPrice ?? 0)}',
             style: const TextStyle(color: Colors.black),
           );
         },
+        error: (error, stackTrace) => const SizedBox.shrink(),
+        loading: () => const CircularProgressIndicator(),
       ),
     );
   }

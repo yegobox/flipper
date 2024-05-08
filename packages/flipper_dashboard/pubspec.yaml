@@ -121,6 +121,7 @@ dependencies:
   device_type: ^0.0.6
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
+  collection: ^1.18.0
 
 dependency_overrides:
   http: ^1.2.1

@@ -3,37 +3,38 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-import 'dart:isolate';
+
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/counter.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/pin.dart';
-import 'package:flipper_models/helperModels/social_token.dart';
-import 'package:flipper_models/mocks.dart';
-import 'package:flipper_models/realmExtension.dart';
-import 'package:flipper_models/sync_service.dart';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
-import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/social_token.dart';
+import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+
 import 'helperModels/branch.dart';
 import 'helperModels/business.dart';
 import 'helperModels/tenant.dart';
-import 'package:realm/realm.dart';
-import 'package:flutter/foundation.dart' as foundation;
 
 // This issue describe how I can mark something for completion later
 // https://github.com/realm/realm-dart/issues/1203
@@ -651,7 +652,8 @@ class RealmAPI<M extends IJsonSerializable>
 
     Receipt receipt = Receipt(
       ObjectId(),
-      id: randomNumber(), // Consider using a more robust ID generation
+      id: randomNumber(),
+      // Consider using a more robust ID generation
       branchId: branchId,
       resultCd: signature.resultCd,
       resultMsg: signature.resultMsg,
@@ -2457,7 +2459,7 @@ class RealmAPI<M extends IJsonSerializable>
     final query = realm!.query<ITransaction>(
       queryString,
       [
-        status ?? 'COMPLETE',
+        status ?? COMPLETE,
         branchId,
       ],
     );
@@ -3015,67 +3017,98 @@ class RealmAPI<M extends IJsonSerializable>
   Future<Variant?> _addMissingVariant(
       Variant? variant, Product? product, int branchId) async {
     Business? business = await getBusiness();
+    final number = randomNumber().toString().substring(0, 5);
 
     try {
       if (variant == null) {
         int variantId = randomNumber();
         String clip = 'flipper' +
             DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
+        variant = Variant(ObjectId(),
+            id: variantId,
+            lastTouched: DateTime.now(),
+            name: 'Custom Amount',
+            color: product!.color,
+            sku: 'sku',
+            action: 'create',
+            productId: product.id!,
+            unit: 'Per Item',
+            productName: product.name,
+            branchId: branchId,
+            supplyPrice: 0.0,
+            retailPrice: 0.0,
+            bhfId: business.bhfId ?? '00',
+            isTaxExempted: false)
+          ..branchId = branchId
+          ..taxName = 'N/A'
+          ..isTaxExempted = false
+          ..taxPercentage = 0
+          ..retailPrice = 0;
+
+        variant.itemClsCd =
+            "5020230602"; // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+        variant.itemCd = randomNumber().toString().substring(0, 5);
+        variant.modrNm = number;
+        variant.modrId = number;
+        variant.pkgUnitCd = "BJ";
+        variant.regrId = randomNumber().toString().substring(0, 5);
+        variant.rsdQty = variant.qty;
+        variant.itemTyCd = "2"; // this is a finished product
+        /// available type for itemTyCd are 1 for raw material and 3 for service
+        /// is insurance applicable default is not applicable
+        variant.isrcAplcbYn = "N";
+        variant.useYn = "N";
+        variant.itemSeq = randomNumber().toString();
+        variant.itemStdNm = variant.name;
+        variant.taxPercentage = 18.0;
+        variant.tin = business.tinNumber;
+        variant.bcd = variant.name;
+
+        /// country of origin for this item we default until we support something different
+        /// and this will happen when we do import.
+        variant.orgnNatCd = "RW";
+
+        /// registration name
+        variant.regrNm = variant.name;
+
+        /// taxation type code
+        variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
+        // default unit price
+        variant.dftPrc = variant.retailPrice;
+
+        // NOTE: I believe bellow item are required when saving purchase
+        ///but I wonder how to get them when saving an item.
+        variant.spplrItemCd = randomNumber().toString().substring(0, 5);
+        variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
+        variant.spplrItemNm = variant.name;
+
+        Stock stock = Stock(ObjectId(),
+            lastTouched: DateTime.now(),
+            id: randomNumber(),
+            action: 'create',
+            branchId: branchId,
+            variantId: variantId,
+            currentStock: 0.0,
+            productId: product.id!)
+          ..canTrackingStock = false
+          ..showLowStockAlert = false
+          ..currentStock = 0.0
+          ..branchId = branchId
+          ..variantId = variantId
+          ..supplyPrice = 0.0
+          ..retailPrice = 0.0
+          ..lowStock = 10.0 // default static
+          ..canTrackingStock = true
+          ..showLowStockAlert = true
+          ..active = false
+          ..productId = product.id!
+          ..rsdQty = 0.0;
 
         realm!.write(() {
-          realm!.put<Variant>(
-            Variant(ObjectId(),
-                id: variantId,
-                lastTouched: DateTime.now(),
-                name: 'Custom Amount',
-                color: product!.color,
-                sku: 'sku',
-                action: 'create',
-                productId: product.id!,
-                unit: 'Per Item',
-                productName: product.name,
-                branchId: ProxyService.box.getBranchId()!,
-                supplyPrice: 0.0,
-                retailPrice: 0.0,
-                itemCd: clip,
-                bhfId: business.bhfId ?? '',
-                isTaxExempted: false)
-              ..name = 'Regular'
-              ..productId = product.id!
-              ..unit = 'Per Item'
-              ..productName = product.name
-              ..branchId = branchId
-              ..taxName = 'N/A'
-              ..isTaxExempted = false
-              ..taxPercentage = 0
-              ..retailPrice = 0
-              // RRA fields
-              // ... (populate RRA fields using a separate function)
-              ..supplyPrice = 0.0,
-          );
-          Stock stock = Stock(ObjectId(),
-              lastTouched: DateTime.now(),
-              id: randomNumber(),
-              action: 'create',
-              branchId: branchId,
-              variantId: variantId,
-              currentStock: 0.0,
-              productId: product.id!)
-            ..canTrackingStock = false
-            ..showLowStockAlert = false
-            ..currentStock = 0.0
-            ..branchId = branchId
-            ..variantId = variantId
-            ..supplyPrice = 0.0
-            ..retailPrice = 0.0
-            ..lowStock = 10.0 // default static
-            ..canTrackingStock = true
-            ..showLowStockAlert = true
-            ..active = false
-            ..productId = product.id!
-            ..rsdQty = 0.0;
-          realm!.put<Stock>(stock);
+          realm!.put<Variant>(variant!);
         });
+        realm!.put<Stock>(stock);
+
         return realm!.query<Variant>(
           r'id == $0 ',
           [variantId],
