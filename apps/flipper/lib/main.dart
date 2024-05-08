@@ -49,7 +49,6 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final talker = TalkerFlutter.init();
@@ -145,8 +144,8 @@ Future<void> main() async {
               // darkTheme: GThemeGenerator.generateDark(),
               theme: ThemeData(
                 textTheme: GoogleFonts.poppinsTextTheme(),
-                colorScheme:
-                    ColorScheme.light().copyWith(background: Colors.white),
+                colorScheme: const ColorScheme.light()
+                    .copyWith(background: Colors.white),
               ),
               localizationsDelegates: [
                 FirebaseUILocalizations.withDefaultOverrides(

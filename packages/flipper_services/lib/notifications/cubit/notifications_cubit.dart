@@ -147,32 +147,29 @@ class NotificationsCubit {
   /// permission has been granted.
   bool permissionGranted = false;
   Future<void> scheduleNotification(Conversation conversation) async {
-    // if (!state.enabled) {
-    //   // log('Notifications are disabled. Not scheduling notification.');
-    //   return;
-    // }
-
-    if (!permissionGranted) {
-      await _requestPermission();
-      if (!permissionGranted) {
-        print(
-          'Notifications permission not granted. Not scheduling notification.',
-        );
-        return;
-      }
+    if (!(await _requestPermission())!) {
+      return;
     }
 
     // The due date in local time and user-friendly format: 'March 1, 2021 12:00 AM'
-    final createdAt = DateTime.parse(conversation.createdAt!).toLocal();
+    final createdAt = DateTime.parse(
+            conversation.createdAt ?? DateTime.now().toIso8601String())
+        .toLocal();
     final String? dueDateFormatted;
+
+    final iConversation = IConversation(
+        id: conversation.id,
+        body: conversation.body ?? "",
+        createdAt: conversation.createdAt,
+        userName: conversation.userName ?? "");
 
     dueDateFormatted = DateFormat.yMMMMd().add_jm().format(createdAt);
 
     final notification = Notification(
       id: conversation.id.toString().codeUnitAt(0),
-      title: conversation.body!,
+      title: iConversation.body,
       body: dueDateFormatted,
-      payload: jsonEncode(conversation.toEJson() as Map<String, dynamic>),
+      payload: jsonEncode(iConversation),
     );
 
     if (isLinux || isWindows) {
@@ -254,26 +251,19 @@ class NotificationsCubit {
   }
 
   /// Request permission to show notifications.
-  Future<void> _requestPermission() async {
+  Future<bool?> _requestPermission() async {
     // Currently only Android requires permission.
     if (defaultTargetPlatform != TargetPlatform.android) {
-      return;
+      return true;
     }
 
     final androidPlugin = _notificationsPlugin //
         .resolvePlatformSpecificImplementation //
         <AndroidFlutterLocalNotificationsPlugin>();
 
-    if (androidPlugin == null) return;
+    if (androidPlugin == null) return false;
 
-    final bool? permissionGranted = await androidPlugin.requestPermission();
-    if (permissionGranted == null) return;
-
-    if (permissionGranted) {
-      // log.i('Notifications permission granted');
-    } else {
-      // log.i('Notifications permission denied');
-    }
+    return await androidPlugin.requestPermission();
   }
 
   /// Schedule a notification on desktop.
@@ -332,22 +322,13 @@ class NotificationsCubit {
     final conversation =
         IConversation.fromJson(jsonDecode(notification.payload!));
 
-    // // log.v('Scheduling notification for task: ${task.id}');
-
-    // if (!state.enabled) {
-    //   // log.v('Notifications are disabled. Not scheduling notification.');
-    //   return;
-    // }
-
     final createdAt = conversation.createdAt;
     if (createdAt == null) {
       // log.v('Task has no due date. Not scheduling notification.');
       return;
     }
 
-    // If the task is already overdue, show the notification immediately.
     if (DateTime.parse(createdAt).isBefore(DateTime.now())) {
-      // log.v('Task is already overdue. Showing notification immediately.');
       await showNotification(
         id: notification.id,
         title: notification.title,

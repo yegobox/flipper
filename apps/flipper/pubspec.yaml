@@ -33,7 +33,7 @@ dependencies:
   firebase_auth: ^4.16.0
   google_fonts: ^6.1.0
   stacked: ^3.4.1+1
-  firebase_messaging: ^14.9.1
+  firebase_messaging: ^14.9.2
   overlay_support: ^2.1.0
   flex_color_scheme: ^4.2.0
   path_provider: ^2.1.3

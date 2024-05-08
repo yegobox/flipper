@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class CronService {
@@ -46,7 +49,7 @@ class CronService {
     try {
       Business business = ProxyService.realm.realm!.query<Business>(
           r'id == $0', [ProxyService.box.getBusinessId()!]).first;
-      talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
+      // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
       if (ProxyService.realm.isTaxEnabled()) {
         talker.info("EBM BusinessTine ${business.tinNumber}");
         ReceivePort receivePort = ReceivePort();
@@ -83,6 +86,10 @@ class CronService {
                   .query<Stock>(r'id == $0', [separator.last]).first;
 
               ProxyService.realm.markModelForEbmUpdate<Stock>(model: stock);
+            }
+            if (separator.first == "notification") {
+              ProxyService.notification
+                  .sendLocalNotification(body: "System is up to date with EBM");
             }
             await ProxyService.realm.realm!.subscriptions
                 .waitForSynchronization();

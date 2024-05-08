@@ -44,6 +44,7 @@ mixin IsolateHandler {
         realmConfig(user, encryptionKey.toIntList(), dbPatch);
 
     final realm = Realm(config);
+    bool anythingUpdated = false;
 
     await syncUnsynced(args);
 
@@ -113,6 +114,7 @@ mixin IsolateHandler {
           gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");
           sendPort.send('variant:${variant.id}');
+          anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
         }
@@ -194,6 +196,7 @@ mixin IsolateHandler {
           await RWTax().saveStock(stock: iStock, variant: iVariant);
           sendPort.send('stock:${stock.id}');
           talker.warning("Successfully saved Stock.");
+          anythingUpdated = true;
         } catch (e, s) {
           talker.error(s);
         }
@@ -236,8 +239,14 @@ mixin IsolateHandler {
 
           await RWTax().saveCustomer(customer: iCustomer);
           sendPort.send('customer:${customer.id}');
+          anythingUpdated = true;
         } catch (e) {}
       }
+    }
+
+    if (anythingUpdated) {
+      /// send Trigger to send notification
+      sendPort.send('notification:${1}');
     }
   }
 

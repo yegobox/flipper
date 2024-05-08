@@ -1,34 +1,44 @@
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:realm/realm.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 abstract class LNotification {
-  Future<void> sendLocalNotification({Conversation? payload});
+  Future<void> sendLocalNotification(
+      {required String body, String? userName = "Flipper"});
 }
 
 class UnSupportedLocalNotification implements LNotification {
   @override
-  Future<void> sendLocalNotification({Conversation? payload}) {
+  Future<void> sendLocalNotification(
+      {required String body, String? userName = "System"}) {
+    // TODO: implement sendLocalNotification
     throw UnimplementedError();
   }
 }
 
 class LocalNotificationService implements LNotification {
   @override
-  Future<void> sendLocalNotification({Conversation? payload}) async {
-    if (payload != null) {
-      await ProxyService.realm.create(data: payload);
-      print('Received a new message in payload: ${payload.body}');
-      Conversation? localConversation = await ProxyService.realm
-          .getConversation(messageId: payload.messageId!);
-      if (localConversation == null) {
-        await ProxyService.realm.create(data: payload);
-      }
-      await NotificationsCubit.instance.scheduleNotification(payload);
+  Future<void> sendLocalNotification(
+      {required String body, String? userName = "Flipper"}) async {
+    try {
+      Conversation? conversation = Conversation(
+        ObjectId(),
+        body: body,
+        phoneNumberId: randomNumber().toString().substring(0, 5),
+        createdAt: DateTime.now().toIso8601String(),
+        userName: userName,
+        id: randomNumber(),
+        businessId: ProxyService.box.getBusinessId(),
+      );
+      await NotificationsCubit.instance.scheduleNotification(conversation);
+    } catch (e) {
+      rethrow;
     }
   }
 }

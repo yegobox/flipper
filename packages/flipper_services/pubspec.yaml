@@ -15,7 +15,7 @@ dependencies:
   firebase_remote_config: ^4.4.4
   share_plus: ^9.0.0
   # in_app_review: ^2.0.6
-  firebase_messaging: ^14.9.1
+  firebase_messaging: ^14.9.2
   image: ^4.0.17
   firebase_auth: ^4.16.0
   # the bellow package has outdated image package, but I do not It is needed now
