@@ -166,7 +166,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item}) async {
-    talker.info(item.toEJson());
+    // talker.info(item.toEJson());
     realm!.write(() => realm!.add<TransactionItem>(item));
   }
 

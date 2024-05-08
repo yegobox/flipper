@@ -139,8 +139,8 @@ class CronService {
     });
 
     Timer.periodic(_getpublushingDeviceDuration(), (Timer t) async {
-      ProxyService.realm.sendScheduleMessages();
-      await _keepTryingPublishDevice(); // Add this line
+      // ProxyService.realm.sendScheduleMessages();
+      // await _keepTryingPublishDevice(); // Add this line
     });
 
     // Other scheduled tasks...

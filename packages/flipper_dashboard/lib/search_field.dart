@@ -59,7 +59,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
 
     ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
   }
-
+// 002
   void _handleScanningMode(String value, CoreViewModel model) async {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
@@ -71,7 +71,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
             .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
         ITransaction currentTransaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.custom);
-
+        // 002
         await model.saveTransaction(
           variation: variant,
           amountTotal: variant.retailPrice,
@@ -108,13 +108,12 @@ class SearchFieldState extends ConsumerState<SearchField> {
           maxLines: null,
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
-          // onFieldSubmitted: (value) => _textSubject.add(value),
           onFieldSubmitted: isScanningMode
               ? (value) => _processDebouncedValue(value, model)
               : null,
           onChanged: isScanningMode
-              ? null
-              : (value) => _processDebouncedValue(value, model),
+              ? (value) => _processDebouncedValue(value, model)
+              : null,
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
