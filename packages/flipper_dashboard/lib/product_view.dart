@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'dart:io';
+import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
@@ -19,11 +19,12 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'ribbon.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+
+import 'ribbon.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -63,13 +64,13 @@ class ProductViewState extends ConsumerState<ProductView> {
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
-    final scannMode = ref.watch(scanningModeProvider);
+    final scanMode = ref.watch(scanningModeProvider);
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts(searchString: searchKeyword, scannMode: scannMode);
+            .loadProducts(searchString: searchKeyword, scannMode: scanMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
@@ -188,7 +189,8 @@ class ProductViewState extends ConsumerState<ProductView> {
     double stock,
   ) {
     return RowItem(
-      color: "#d63031", // Replace with actual color
+      color: "#d63031",
+      // Replace with actual color
       stock: stock,
       model: model,
       variant: variant,
@@ -324,7 +326,12 @@ class ProductViewState extends ConsumerState<ProductView> {
     }
   }
 
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
+  }
+
   int? productId;
+
   Widget buildProductRows(
     BuildContext context,
     ProductViewModel model,
@@ -368,7 +375,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                             (widget.favIndex != null) ? true : false,
                         favIndex: widget.favIndex,
                         edit: (productId) {
-                          if (Platform.isWindows || isDesktopOrWeb) {
+                          if (_getDeviceType(context) != "Phone") {
                             showDialog(
                               barrierDismissible: false,
                               context: context,

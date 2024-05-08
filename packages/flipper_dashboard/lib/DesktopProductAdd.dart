@@ -1,6 +1,8 @@
 import 'dart:async';
-import 'package:dropdown_search/dropdown_search.dart';
 
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_models/helperModels/hexColor.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -9,7 +11,6 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart';
 
 class QuantityCell extends StatelessWidget {
   final double? quantity;
@@ -34,6 +35,7 @@ class QuantityCell extends StatelessWidget {
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
+
   final int? productId;
 
   @override
@@ -224,20 +226,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   // Helper function to get a valid color or a default color
-  Color _getColorOrDefault(String colorCode) {
-    if (_isValidHexColor(colorCode)) {
-      return Color(int.parse(colorCode, radix: 16));
-    } else {
-      // Return a default color if the color code is invalid
-      return DEFAULT_COLOR;
-    }
-  }
 
 // Helper function to check if a string is a valid hexadecimal color code
-  bool _isValidHexColor(String colorCode) {
-    final RegExp hexColorRegex = RegExp(r'^#?([0-9a-fA-F]{6}|[0-9a-fA-F]{8})$');
-    return hexColorRegex.hasMatch(colorCode);
-  }
 
   void _showSaveInProgressToast() {
     toast('Saving item in progress, please be patient!');
@@ -340,6 +330,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
 // Define your default color
   Color DEFAULT_COLOR = Colors.grey;
+
   @override
   Widget build(BuildContext context) {
     final productRef = ref.watch(productProvider);
@@ -372,7 +363,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // If there are variants, set the color to the color of the first variant
           if (variants.isNotEmpty) {
-            pickerColor = _getColorOrDefault(variants.first.color!);
+            pickerColor = getColorOrDefault(variants.first.color!);
           }
         } else {
           // If productId is not given, create a new product

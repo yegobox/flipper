@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/create/retail_price.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/product_form.dart';
@@ -73,11 +74,13 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               .getVariantByProductId(productId: widget.productId!);
 
           // Filter variants to get the regular variant.
-          Variant regularVariant =
-              variants.firstWhere((variant) => variant.name == 'Regular');
+          Variant? regularVariant =
+              variants.firstWhereOrNull((variant) => variant.name == 'Regular');
 
           productForm.productNameController.text = model.kProductName;
-
+          if(regularVariant==null){
+            return;
+          }
           if (regularVariant.retailPrice.toString() != '0.0') {
             productForm.retailPriceController.text =
                 regularVariant.retailPrice.toString();

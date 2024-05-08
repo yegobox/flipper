@@ -19,8 +19,7 @@ class AppService with ListenableServiceMixin {
   int? get businessId => ProxyService.box.getBusinessId();
   int? get branchId => ProxyService.box.getBranchId();
 
-  final _categories = ReactiveValue<List<Category>>([]);
-  List<Category> get categories => _categories.value;
+
   // TODO: make _business nullable when starting
 
   final _business = ReactiveValue<Business>(Business(
@@ -42,15 +41,19 @@ class AppService with ListenableServiceMixin {
     _branch.value = branch;
   }
 
+  final _categories = ReactiveValue<List<Category>>(List<Category>.empty(growable: true));
+  List<Category> get categories => _categories.value;
+
   void loadCategories() async {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.realm.categories(branchId: branchId ?? 0);
+    await ProxyService.realm.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
   }
+
 
   /// we fist log in to the business portal
   /// before we log to other apps as the business portal
