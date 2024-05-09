@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/keypad_view.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -53,12 +54,18 @@ class CashbookState extends ConsumerState<Cashbook> {
   }
 
   Widget buildBody(BuildContext context, CoreViewModel model) {
+    final transactionData = ref.watch(transactionsStreamProvider);
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Column(
         children: [
           buildDropdowns(model),
-          buildGaugeOrList(context, model),
+          // buildGaugeOrList(context, transactionData),
+          BuildGaugeOrList(
+              context: context,
+              data: transactionData,
+              widgetType: 'gauge',
+              model: model),
           buildTransactionSection(context, model),
           SizedBox(height: 31),
         ],
@@ -87,17 +94,6 @@ class CashbookState extends ConsumerState<Cashbook> {
     );
   }
 
-  Widget buildGaugeOrList(BuildContext context, CoreViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 70.0),
-      child: BuildGaugeOrList(
-        context: context,
-        model: model,
-        widgetType: 'gauge',
-      ),
-    );
-  }
-
   Widget buildTransactionSection(BuildContext context, CoreViewModel model) {
     return Expanded(
       child: model.newTransactionPressed
@@ -107,6 +103,7 @@ class CashbookState extends ConsumerState<Cashbook> {
   }
 
   Widget buildTransactionListContent(CoreViewModel model) {
+    final transactionData = ref.watch(transactionsStreamProvider);
     return Column(
       children: [
         Text(
@@ -120,10 +117,10 @@ class CashbookState extends ConsumerState<Cashbook> {
         SizedBox(height: 5),
         Expanded(
           child: BuildGaugeOrList(
-            context: context,
-            model: model,
-            widgetType: 'list',
-          ),
+              context: context,
+              model: model,
+              widgetType: 'list',
+              data: transactionData),
         ),
         buildTransactionButtons(model),
       ],
@@ -144,7 +141,7 @@ class CashbookState extends ConsumerState<Cashbook> {
           },
         ),
         buildTransactionButton(
-          label: 'Cash Out',
+          label: TransactionType.cashOut,
           color: Color(0xFFFF0331),
           onPressed: () {
             model.newTransactionPressed = true;
@@ -223,7 +220,7 @@ class CashbookState extends ConsumerState<Cashbook> {
     if (transactionType == TransactionType.cashIn) {
       label = ' Cash In';
     } else if (transactionType == TransactionType.cashOut) {
-      label = ' Cash Out';
+      label = TransactionType.cashOut;
     }
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,

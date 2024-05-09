@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/services.dart';
@@ -289,7 +290,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashIn = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.transactionType != 'Cash Out') {
+      if (transaction.transactionType != TransactionType.cashOut) {
         sumCashIn += transaction.subTotal;
       }
     }
@@ -321,7 +322,7 @@ class _AppsState extends ConsumerState<Apps> {
         .toList();
     double sumCashOut = 0;
     for (final transaction in filteredTransactions) {
-      if (transaction.transactionType == 'Cash Out') {
+      if (transaction.transactionType == TransactionType.cashOut) {
         sumCashOut += transaction.subTotal;
       }
     }
@@ -367,65 +368,6 @@ class _AppsState extends ConsumerState<Apps> {
           startPadding: 0,
           profitType: profitType,
         );
-      },
-    );
-  }
-
-  Widget _buildGaugeOldImpl(BuildContext context, CoreViewModel model) {
-    return StreamBuilder<List<ITransaction>>(
-      initialData: null,
-      stream: model.getTransactions(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return SemiCircleGauge(
-            dataOnGreenSide: 0,
-            dataOnRedSide: 0,
-            startPadding: 0,
-            profitType: profitType,
-          );
-        } else {
-          final transactions = snapshot.data!;
-          DateTime oldDate;
-          DateTime temporaryDate;
-
-          if (transactionPeriod == 'Today') {
-            oldDate = DateTime.now();
-            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-          } else if (transactionPeriod == 'This Week') {
-            oldDate = DateTime.now().subtract(Duration(days: 7));
-            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-          } else if (transactionPeriod == 'This Month') {
-            oldDate = DateTime.now().subtract(Duration(days: 30));
-            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-          } else {
-            oldDate = DateTime.now().subtract(Duration(days: 365));
-            oldDate = DateTime(oldDate.year, oldDate.month, oldDate.day);
-          }
-
-          List<ITransaction> filteredTransactions = [];
-          for (final transaction in transactions) {
-            temporaryDate = DateTime.parse(transaction.createdAt!);
-            if (temporaryDate.isAfter(oldDate)) {
-              filteredTransactions.add(transaction);
-            }
-          }
-
-          double sum_cash_in = 0;
-          double sum_cash_out = 0;
-          for (final transaction in filteredTransactions) {
-            if (transaction.transactionType == 'Cash Out') {
-              sum_cash_out = transaction.subTotal + sum_cash_out;
-            } else {
-              sum_cash_in = transaction.subTotal + sum_cash_in;
-            }
-          }
-          return SemiCircleGauge(
-            dataOnGreenSide: sum_cash_in,
-            dataOnRedSide: sum_cash_out,
-            startPadding: 0,
-            profitType: profitType,
-          );
-        }
       },
     );
   }

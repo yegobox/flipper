@@ -60,14 +60,14 @@ mixin SharebleMethods {
   }
 
   //Transaction functions
-  Stream<List<ITransaction>> getTransactions({String? transactionStatus}) {
-    return Stream.fromFuture(
-            ProxyService.realm.transactionsFuture(status: transactionStatus))
-        .asyncExpand((items) async* {
-      // log(items.toString());
-      yield items;
-    });
-  }
+  // Stream<List<ITransaction>> getTransactions({String? transactionStatus}) {
+  //   return Stream.fromFuture(
+  //           ProxyService.realm.transactionsFuture(status: transactionStatus))
+  //       .asyncExpand((items) async* {
+  //     // log(items.toString());
+  //     yield items;
+  //   });
+  // }
 
   Stream<List<ITransaction>> getCashInTransactions() {
     return Stream.fromFuture(

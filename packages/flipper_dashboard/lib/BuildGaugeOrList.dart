@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'widgets/mini_app_icon.dart';
 import 'package:flutter/material.dart';
@@ -12,14 +14,13 @@ import 'package:flipper_models/realm_model_export.dart';
 
 Widget BuildGaugeOrList(
     {required BuildContext context,
+    required AsyncValue<List<ITransaction>> data,
     required CoreViewModel model,
     required String widgetType}) {
   final _routerService = locator<RouterService>();
-  return StreamBuilder<List<ITransaction>>(
-    initialData: null,
-    stream: model.getTransactions(),
-    builder: (context, snapshot) {
-      if (model.transactions.isEmpty) {
+  return data.when(
+    data: (value) {
+      if (value.isEmpty) {
         if (widgetType == 'gauge') {
           log("waiting with no data");
           return SemiCircleGauge(
@@ -51,7 +52,7 @@ Widget BuildGaugeOrList(
         }
 
         List<ITransaction> filteredTransactions = [];
-        for (final transaction in model.transactions) {
+        for (final transaction in value) {
           temporaryDate = DateTime.parse(transaction.createdAt!);
           if (temporaryDate.isAfter(oldDate)) {
             filteredTransactions.add(transaction);
@@ -63,7 +64,7 @@ Widget BuildGaugeOrList(
             double sum_cash_in = 0;
             double sum_cash_out = 0;
             for (final transaction in filteredTransactions) {
-              if (transaction.transactionType == 'Cash Out') {
+              if (transaction.transactionType == TransactionType.cashOut) {
                 sum_cash_out = transaction.subTotal + sum_cash_out;
               } else {
                 sum_cash_in = transaction.subTotal + sum_cash_in;
@@ -102,10 +103,12 @@ Widget BuildGaugeOrList(
                       child: Center(
                         child: MiniAppIcon(
                           icon: 'assets/flipper_transaction_icon.svg',
-                          color: transaction.transactionType != 'Cash Out'
+                          color: transaction.transactionType !=
+                                  TransactionType.cashOut
                               ? Color(0xFF4CAF50)
                               : Color(0xFFFF0331),
-                          page: transaction.transactionType != 'Cash Out'
+                          page: transaction.transactionType !=
+                                  TransactionType.cashOut
                               ? "Income"
                               : "Expense",
                           showPageName: false,
@@ -150,6 +153,12 @@ Widget BuildGaugeOrList(
             );
         }
       }
+    },
+    error: (error, stackTrace) {
+      return Text(error.toString());
+    },
+    loading: () {
+      return Text("Loading transactions");
     },
   );
 }

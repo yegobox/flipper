@@ -1,6 +1,8 @@
 import 'dart:developer';
 
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -172,23 +174,25 @@ class TransactionsState extends ConsumerState<Transactions> {
       {required List<ITransaction> completedTransaction}) {
     for (ITransaction transaction in completedTransaction) {
       if (displayedTransactionType == 1 &&
-          transaction.transactionType == 'Cash Out') {
+          transaction.transactionType == TransactionType.cashOut) {
         continue;
       }
       if (displayedTransactionType == 2 &&
-          transaction.transactionType != 'Cash Out') {
+          transaction.transactionType != TransactionType.cashOut) {
         continue;
       }
-      Color gradientColorOne = (transaction.transactionType == 'Cash Out')
-          ? Colors.red
-          : (transaction.transactionType == 'Cash In')
-              ? Colors.blueAccent
-              : Colors.greenAccent;
-      String typeOfTransaction = transaction.transactionType == 'Cash Out'
-          ? 'Cash Out'
-          : (transaction.transactionType == 'Cash In')
-              ? 'Cash In'
-              : 'Sales';
+      Color gradientColorOne =
+          (transaction.transactionType == TransactionType.cashOut)
+              ? Colors.red
+              : (transaction.transactionType == TransactionType.cashIn)
+                  ? Colors.blueAccent
+                  : Colors.greenAccent;
+      String typeOfTransaction =
+          transaction.transactionType == TransactionType.cashOut
+              ? TransactionType.cashOut
+              : (transaction.transactionType == TransactionType.cashIn)
+                  ? TransactionType.cashIn
+                  : TransactionType.sale;
       if (lastSeen != transaction.createdAt!.substring(0, 10)) {
         lastSeen = transaction.createdAt!.substring(0, 10);
 
@@ -332,31 +336,22 @@ class TransactionsState extends ConsumerState<Transactions> {
   }
 
   Widget buildList(BuildContext context, CoreViewModel model) {
-    return StreamBuilder<List<ITransaction>>(
-      initialData: null,
-      stream: model.getTransactions(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          log(snapshot.error.toString());
-          return Text('Error: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          log('No transactions');
-          return Center(
-              child: Text(
-            "No Transactions",
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w400, fontSize: 15, color: Colors.black),
-          ));
-        } else {
-          list = _normalTransactions(completedTransaction: snapshot.data!);
-          return Expanded(
-            child: ListView(
-              children: list,
-            ),
-          );
-        }
+    final transactionsData = ref.watch(transactionsStreamProvider);
+    return transactionsData.when(
+      data: (value) {
+        list = _normalTransactions(completedTransaction: value);
+
+        return Expanded(
+          child: ListView(
+            children: list,
+          ),
+        );
+      },
+      error: (error, stackTrace) {
+        return Text(error.toString());
+      },
+      loading: () {
+        return Text("Loading transactions");
       },
     );
   }

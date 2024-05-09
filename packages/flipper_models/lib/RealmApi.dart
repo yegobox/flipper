@@ -2443,14 +2443,14 @@ class RealmAPI<M extends IJsonSerializable>
       queryString = r'''deletedAt = nil
         && status == $0
         && (
-          transactionType IN ANY {'cashOut'} && branchId == $1
+          transactionType IN ANY {'Cash Out'} && branchId == $1
         )
     ''';
     } else {
       queryString = r'''deletedAt = nil
         && status == $0
         && (
-          transactionType IN ANY {'cashIn', 'sale', 'custom', 'onlineSale'} && branchId == $1
+          transactionType IN ANY {'Cash In', 'sale', 'custom', 'Online Sale','Cash Out'} && branchId == $1
         )
     ''';
     }

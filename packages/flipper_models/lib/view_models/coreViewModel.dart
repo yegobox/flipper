@@ -4,6 +4,7 @@ library flipper_models;
 
 import 'dart:async';
 import 'dart:developer';
+
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -20,6 +21,7 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
+
   CoreViewModel() {}
 
   List<String> transactionPeriodOptions = [
@@ -29,6 +31,7 @@ class CoreViewModel extends FlipperBaseModel
     "This Year",
   ];
   List<String> profitTypeOptions = ["Net Profit", "Gross Profit"];
+
   String? getSetting() {
     klocale =
         Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
@@ -64,15 +67,20 @@ class CoreViewModel extends FlipperBaseModel
   get quantity => keypad.quantity;
 
   Stock? _currentItemStock;
+
   get currentItemStock => _currentItemStock;
 
   List<Variant> _variants = [];
+
   get variants => _variants;
 
   int _tab = 0;
+
   int get tab => _tab;
   String searchKey = '';
+
   String get searchCustomerkey => searchKey;
+
   void setSearch(String key) {
     searchKey = key;
     notifyListeners();
@@ -103,6 +111,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   final talker = TalkerFlutter.init();
+
   Future<void> keyboardKeyPressed(
       {required String key, String? transactionType = 'custom'}) async {
     talker.info({'feature_name': 'keypad_tab'});
@@ -354,6 +363,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Business get businesses => app.business;
+
   Branch? get branch => app.branch;
 
   void pop() {
@@ -430,37 +440,35 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    final transaction = await ProxyService.realm
+    ITransaction transaction = await ProxyService.realm
         .manageTransaction(transactionType: TransactionType.custom);
-    ITransaction cbTransaction = transaction;
-    cbTransaction.cashReceived = cbTransaction.subTotal;
-    cbTransaction.customerChangeDue = 0;
-    cbTransaction.transactionType = cbTransactionType;
-    cbTransaction.paymentType = "Cash";
-    cbTransaction.status = 'completed';
 
     Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
     String? activeCatName = activeCat?.name;
-    ProxyService.realm.realm!.writeAsync(() async {
-      cbTransaction.categoryId = activeCatName;
 
+    ProxyService.realm.realm!.write(() {
+      transaction.cashReceived = transaction.subTotal;
+      transaction.customerChangeDue = 0;
+      transaction.transactionType = cbTransactionType;
+      transaction.paymentType = "Cash";
+      transaction.status = 'completed';
+      transaction.categoryId = activeCatName;
       activeCat?.active = false;
       activeCat?.focused = false;
     });
 
-    List<TransactionItem> cbTransactionItems = await ProxyService.realm
-        .transactionItems(
-            transactionId: cbTransaction.id!,
-            doneWithTransaction: false,
-            active: true);
-    ProxyService.realm.realm!.writeAsync(() async {
-      for (var item in cbTransactionItems) {
+    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+      transactionId: transaction.id!,
+      doneWithTransaction: false,
+      active: true,
+    );
+
+    ProxyService.realm.realm!.write(()  {
+      for (var item in items) {
         item.doneWithTransaction = true;
       }
-      List<ITransaction> tr = [];
-      tr.add(cbTransaction);
     });
     notifyListeners();
     return Future<bool>.value(true);
@@ -698,22 +706,28 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   var _receiptReady = false;
+
   bool get receiptReady => _receiptReady;
+
   set receiptReady(bool value) {
     _receiptReady = value;
     notifyListeners();
   }
 
   List<ITransaction> _completedTransactions = [];
+
   List<ITransaction> get completedTransactionsList => _completedTransactions;
+
   set completedTransactionsList(List<ITransaction> value) {
     _completedTransactions = value;
     notifyListeners();
   }
 
   List<TransactionItem> _completedTransactionItems = [];
+
   List<TransactionItem> get completedTransactionItemsList =>
       _completedTransactionItems;
+
   set completedTransactionItemsList(List<TransactionItem> value) {
     _completedTransactionItems = value;
     notifyListeners();
@@ -802,6 +816,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   List<Branch> branches = [];
+
   void branchesList(List<Branch> value) {
     branches = value;
     notifyListeners();
