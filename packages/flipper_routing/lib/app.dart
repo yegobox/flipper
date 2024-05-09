@@ -425,8 +425,3 @@ class App {}
 /// 
 /// 
 /// 
-/// Process of adding a custom product and variant
-/// 1. User type on keyboard
-/// 2. if a custom product exist it is returned
-/// 3. if not then it is created in RealmApi createProduct then within _createRegularVariant is called
-/// 4. _createRegularVariant should create an new object of variant to be used.

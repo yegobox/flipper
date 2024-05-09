@@ -39,6 +39,7 @@ class TransactionType {
   static String salary = 'Salary';
   static String transport = 'Transport';
   static String airtime = 'Airtime';
+  static List<String> acceptedCashOuts = [salary, transport, airtime];
 }
 
 class TransactionPeriod {

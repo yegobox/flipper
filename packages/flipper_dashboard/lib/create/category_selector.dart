@@ -53,7 +53,7 @@ class CategorySelectorState extends ConsumerState<CategorySelector> {
       },
       loading: () => const Padding(
         padding: EdgeInsets.only(top: 28.0),
-        child: Center(child: Text("Please select a date to query report")),
+        child: Center(child: Text("Loading...")),
       ),
       error: (error, stackTrace) => Column(
         children: [

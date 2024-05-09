@@ -87,7 +87,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Category?> activeCategory({required int branchId}) async {
     return realm!.query<Category>(
-        r'focused == $0 && active == $1 && branchId == $2 && deletedAt == nil',
+        r'focused == $0 && active == $1 && branchId == $2',
         [true, true, branchId]).firstOrNull;
   }
 
@@ -370,6 +370,7 @@ class RealmAPI<M extends IJsonSerializable>
         active: true);
     realm!.writeAsync(() async {
       transaction.status = COMPLETE;
+      transaction.isIncome = true;
       double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
       transaction.customerChangeDue = (cashReceived - subTotal);
       transaction.paymentType = paymentType;
@@ -2449,7 +2450,7 @@ class RealmAPI<M extends IJsonSerializable>
       queryString = r'''deletedAt = nil
         && status == $0
         && (
-          transactionType IN ANY {'Cash In', 'sale', 'custom', 'Online Sale','Cash Out'} && branchId == $1
+          transactionType IN ANY {'Cash In', 'sale', 'custom', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
         )
     ''';
     }

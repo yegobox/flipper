@@ -5,6 +5,7 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -14,7 +15,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 
 import 'mixins/all.dart';
 
@@ -110,11 +110,8 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  final talker = TalkerFlutter.init();
-
   Future<void> keyboardKeyPressed(
       {required String key, String? transactionType = 'custom'}) async {
-    talker.info({'feature_name': 'keypad_tab'});
     if (double.tryParse(key) != null) {
       ProxyService.keypad.addKey(key);
     }
@@ -238,7 +235,6 @@ class CoreViewModel extends FlipperBaseModel
 
   void handleMultipleDigitKey(
       List<TransactionItem> items, ITransaction pendingTransaction) async {
-    talker.info(ProxyService.keypad.key);
     double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.realm.getCustomVariant();
     if (variation == null) return;
@@ -446,17 +442,19 @@ class CoreViewModel extends FlipperBaseModel
     Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
-    String? activeCatName = activeCat?.name;
-
     ProxyService.realm.realm!.write(() {
       transaction.cashReceived = transaction.subTotal;
       transaction.customerChangeDue = 0;
-      transaction.transactionType = cbTransactionType;
+
+      /// If there is category that is active then we use that category as
+      /// the transaction type but first we check to see if this category is in predefined
+
+      transaction.transactionType = activeCat?.name ?? cbTransactionType;
       transaction.paymentType = "Cash";
-      transaction.status = 'completed';
-      transaction.categoryId = activeCatName;
-      activeCat?.active = false;
-      activeCat?.focused = false;
+      transaction.isExpense = true;
+      transaction.status = COMPLETE;
+      transaction.categoryId =
+          (activeCat == null) ? "0" : activeCat.id.toString();
     });
 
     List<TransactionItem> items = await ProxyService.realm.transactionItems(
@@ -465,7 +463,7 @@ class CoreViewModel extends FlipperBaseModel
       active: true,
     );
 
-    ProxyService.realm.realm!.write(()  {
+    ProxyService.realm.realm!.write(() {
       for (var item in items) {
         item.doneWithTransaction = true;
       }

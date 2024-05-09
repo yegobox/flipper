@@ -48,6 +48,7 @@ dependencies:
   talker: ^4.1.5
   talker_flutter: ^4.1.5
   rxdart: ^0.27.7
+  collection: ^1.18.0
 
 dependency_overrides:
   http: ^1.2.1

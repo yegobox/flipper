@@ -694,15 +694,6 @@ class _ITransaction {
   bool isIncome = false;
 
   bool isExpense = false;
-  // bool isIncome() {
-  //   return this.transactionType == "cashIn" ||
-  //       this == "sale" ||
-  //       this == "onlineSale";
-  // }
-
-  // bool isExpense() {
-  //   return this.transactionType == "cashOut";
-  // }
 }
 
 @RealmModel()
