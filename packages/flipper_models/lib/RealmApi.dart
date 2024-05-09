@@ -98,18 +98,18 @@ class RealmAPI<M extends IJsonSerializable>
   }) async {
     try {
       // Open a write transaction
+
+      // Add the customer to the Realm
+      realm!.put(customer);
+
+      // Get the transaction from Realm
+      final transaction =
+          realm!.all<ITransaction>().firstWhere((t) => t.id == transactionId);
+
       realm!.write(() {
-        // Add the customer to the Realm
-        realm!.put(customer);
-
-        // Get the transaction from Realm
-        final transaction =
-            realm!.all<ITransaction>().firstWhere((t) => t.id == transactionId);
-
         // Update the transaction with the customer ID
         transaction.customerId = customer.id;
       });
-
       return realm!.query<Customer>(r'id == $0', [customer.id]).first;
     } catch (e) {
       print('Failed to add customer: $e');
@@ -125,9 +125,9 @@ class RealmAPI<M extends IJsonSerializable>
 
       if (fav == null) {
         data.id = randomNumber();
-        await realm!.write(() {
-          realm!.put<Favorite>(data);
-        });
+
+        realm!.put<Favorite>(data);
+
         return 200;
       } else {
         await realm!.write(() {
@@ -153,9 +153,8 @@ class RealmAPI<M extends IJsonSerializable>
       branchId: variant.branchId,
     );
     try {
-      realm!.write(() {
-        realm!.put<Stock>(stock);
-      });
+      realm!.put<Stock>(stock);
+
       return stock;
     } catch (e) {
       print('Error adding stock to variant: $e');
@@ -472,20 +471,20 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (data is Counter) {
       Counter counter = data;
-      realm!.write(() {
-        realm!.put<Counter>(counter);
-        // Return the created conversation
-      }); // Cast the result to type T
+
+      realm!.put<Counter>(counter);
+      // Return the created conversation
+      // Cast the result to type T
       return data;
     }
 
     /// end with updating user activity
     if (data is Conversation) {
       Conversation conversation = data;
-      realm!.write(() {
-        realm!.put<Conversation>(conversation);
-        // Return the created conversation
-      }); // Cast the result to type T
+
+      realm!.put<Conversation>(conversation);
+      // Return the created conversation
+      // Cast the result to type T
       return data;
     }
 
@@ -611,7 +610,7 @@ class RealmAPI<M extends IJsonSerializable>
     await realm!.putAsync<Product>(product);
 
     if (!skipRegularVariant) {
-      final Product kProduct = realm!.query<Product>(
+      Product kProduct = realm!.query<Product>(
         r'id == $0 ',
         [product.id],
       ).first;
@@ -947,7 +946,7 @@ class RealmAPI<M extends IJsonSerializable>
     final branchId = ProxyService.box.getBranchId()!;
     final businessId = ProxyService.box.getBusinessId()!;
 
-    // Find product with name CUSTOM_PRODUCT
+    /// Find product with name CUSTOM_PRODUCT
     Product? product = realm!.query<Product>(
         r'name == $0 AND branchId== $1 AND deletedAt == nil',
         [CUSTOM_PRODUCT, branchId]).firstOrNull;
@@ -964,17 +963,17 @@ class RealmAPI<M extends IJsonSerializable>
           businessId: businessId,
           color: "#e74c3c",
           createdAt: DateTime.now().toIso8601String(),
-          branchId: businessId,
+          branchId: branchId,
         ),
       );
     }
 
-    // Find variant associated with the custom product
+    /// for whatever reason if a product exist and there is no related variant please add it before we proceed.
     Variant? variant =
         realm!.query<Variant>(r'productId == $0 ', [product!.id]).firstOrNull;
 
     if (variant == null) {
-      // If the variant doesn't exist, add it
+      /// If the variant doesn't exist, add it
       variant = await _addMissingVariant(
         variant,
         product,
@@ -2098,15 +2097,15 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.write(() {
           realm!.addAll<Branch>(branchToAdd);
         });
-        realm!.write(() {
-          for (IPermission permission in jTenant.permissions) {
-            realm!.put<LPermission>(LPermission(
-              ObjectId(),
-              id: permission.id,
-              name: permission.name,
-            ));
-          }
-        });
+
+        for (IPermission permission in jTenant.permissions) {
+          realm!.put<LPermission>(LPermission(
+            ObjectId(),
+            id: permission.id,
+            name: permission.name,
+          ));
+        }
+
         tenantToAdd.add(iTenant);
       }
       realm!.write(() {
@@ -2208,85 +2207,83 @@ class RealmAPI<M extends IJsonSerializable>
             email: jTenant.email,
             phoneNumber: jTenant.phoneNumber);
 
-        realm!.write(() {
-          for (IBusiness business in jTenant.businesses) {
-            Business biz = Business(
-              ObjectId(),
-              id: business.id,
-              userId: business.userId,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey,
-            );
-            Business? exist =
-                realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
-            if (exist == null) {
-              realm!.put<Business>(biz);
-            }
+        for (IBusiness business in jTenant.businesses) {
+          Business biz = Business(
+            ObjectId(),
+            id: business.id,
+            userId: business.userId,
+            name: business.name,
+            currency: business.currency,
+            categoryId: business.categoryId,
+            latitude: business.latitude,
+            longitude: business.longitude,
+            timeZone: business.timeZone,
+            country: business.country,
+            businessUrl: business.businessUrl,
+            hexColor: business.hexColor,
+            imageUrl: business.imageUrl,
+            type: business.type,
+            active: business.active,
+            chatUid: business.chatUid,
+            metadata: business.metadata,
+            role: business.role,
+            lastSeen: business.lastSeen,
+            firstName: business.firstName,
+            lastName: business.lastName,
+            createdAt: business.createdAt,
+            deviceToken: business.deviceToken,
+            backUpEnabled: business.backUpEnabled,
+            subscriptionPlan: business.subscriptionPlan,
+            nextBillingDate: business.nextBillingDate,
+            previousBillingDate: business.previousBillingDate,
+            isLastSubscriptionPaymentSucceeded:
+                business.isLastSubscriptionPaymentSucceeded,
+            backupFileId: business.backupFileId,
+            email: business.email,
+            lastDbBackup: business.lastDbBackup,
+            fullName: business.fullName,
+            tinNumber: business.tinNumber,
+            bhfId: business.bhfId,
+            dvcSrlNo: business.dvcSrlNo,
+            adrs: business.adrs,
+            taxEnabled: business.taxEnabled,
+            taxServerUrl: business.taxServerUrl,
+            isDefault: business.isDefault,
+            businessTypeId: business.businessTypeId,
+            lastTouched: business.lastTouched,
+            action: business.action,
+            deletedAt: business.deletedAt,
+            encryptionKey: business.encryptionKey,
+          );
+          Business? exist =
+              realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
+          if (exist == null) {
+            realm!.put<Business>(biz);
           }
-        });
-        realm!.write(() {
-          for (IBranch brannch in jTenant.branches) {
-            Branch branch = Branch(
-              ObjectId(),
-              id: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt,
-            );
-            Branch? exist =
-                realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
-            if (exist == null) {
-              realm!.put<Branch>(branch);
-            }
+        }
+
+        for (IBranch brannch in jTenant.branches) {
+          Branch branch = Branch(
+            ObjectId(),
+            id: brannch.id,
+            active: brannch.active,
+            description: brannch.description,
+            name: brannch.name,
+            businessId: brannch.businessId,
+            longitude: brannch.longitude,
+            latitude: brannch.latitude,
+            isDefault: brannch.isDefault,
+            lastTouched: brannch.lastTouched,
+            action: brannch.action,
+            deletedAt: brannch.deletedAt,
+          );
+          Branch? exist =
+              realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
+          if (exist == null) {
+            realm!.put<Branch>(branch);
           }
-        });
+        }
+
         final permissionToAdd = <LPermission>[];
         for (IPermission permission in jTenant.permissions) {
           LPermission? exist = realm!
@@ -2984,10 +2981,11 @@ class RealmAPI<M extends IJsonSerializable>
   Variant _createRegularVariant(
       Product product, int branchId, Business? business) {
     final int variantId = randomNumber();
+    final number = randomNumber().toString().substring(0, 5);
     return Variant(
       ObjectId(),
       lastTouched: DateTime.now(),
-      name: 'Regular',
+      name: product.name,
       sku: 'sku',
       action: 'create',
       productId: product.id!,
@@ -3003,8 +3001,48 @@ class RealmAPI<M extends IJsonSerializable>
       itemStdNm: "Regular",
       addInfo: "A",
       pkg: "1",
-      itemSeq: "1",
       splyAmt: 0.0,
+
+      itemClsCd:
+          "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+      itemCd: randomNumber().toString().substring(0, 5),
+      modrNm: number,
+      modrId: number,
+      pkgUnitCd: "BJ",
+      regrId: randomNumber().toString().substring(0, 5),
+      rsdQty: 1,
+      itemTyCd: "2", // this is a finished product
+      /// available type for itemTyCd are 1 for raw material and 3 for service
+      /// is insurance applicable default is not applicable
+      isrcAplcbYn: "N",
+      useYn: "N",
+      itemSeq: randomNumber().toString(),
+      itemNm: product.name,
+      taxPercentage: 18.0,
+      tin: business!.tinNumber,
+
+      bcd: product.name,
+
+      /// country of origin for this item we default until we support something different
+      /// and this will happen when we do import.
+      orgnNatCd: "RW",
+
+      /// registration name
+      regrNm: product.name,
+
+      /// taxation type code
+      taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+      // default unit price
+      dftPrc: 0,
+
+      // NOTE: I believe bellow item are required when saving purchase
+      ///but I wonder how to get them when saving an item.
+      spplrItemCd: randomNumber().toString().substring(0, 5),
+      spplrItemClsCd: randomNumber().toString().substring(0, 5),
+      spplrItemNm: product.name,
+
+      /// Packaging Unit
+      qtyUnitCd: "U", // see 4.6 in doc
     );
   }
 
@@ -3023,65 +3061,61 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (variant == null) {
         int variantId = randomNumber();
-        String clip = 'flipper' +
-            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
-        variant = Variant(ObjectId(),
-            id: variantId,
-            lastTouched: DateTime.now(),
-            name: 'Custom Amount',
-            color: product!.color,
-            sku: 'sku',
-            action: 'create',
-            productId: product.id!,
-            unit: 'Per Item',
-            productName: product.name,
-            branchId: branchId,
-            supplyPrice: 0.0,
-            retailPrice: 0.0,
-            bhfId: business.bhfId ?? '00',
-            isTaxExempted: false)
-          ..branchId = branchId
-          ..taxName = 'N/A'
-          ..isTaxExempted = false
-          ..taxPercentage = 0
-          ..retailPrice = 0;
 
-        variant.itemClsCd =
-            "5020230602"; // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-        variant.itemCd = randomNumber().toString().substring(0, 5);
-        variant.modrNm = number;
-        variant.modrId = number;
-        variant.pkgUnitCd = "BJ";
-        variant.regrId = randomNumber().toString().substring(0, 5);
-        variant.rsdQty = variant.qty;
-        variant.itemTyCd = "2"; // this is a finished product
-        /// available type for itemTyCd are 1 for raw material and 3 for service
-        /// is insurance applicable default is not applicable
-        variant.isrcAplcbYn = "N";
-        variant.useYn = "N";
-        variant.itemSeq = randomNumber().toString();
-        variant.itemStdNm = variant.name;
-        variant.taxPercentage = 18.0;
-        variant.tin = business.tinNumber;
-        variant.bcd = variant.name;
+        variant = Variant(
+          ObjectId(),
+          id: variantId,
+          lastTouched: DateTime.now(),
+          name: product!.name,
+          color: product.color,
+          sku: 'sku',
+          action: 'create',
+          productId: product.id!,
+          unit: 'Per Item',
+          productName: product.name,
+          branchId: branchId,
+          supplyPrice: 0.0,
+          retailPrice: 0.0,
+          itemNm: product.name,
+          bhfId: business.bhfId ?? '00',
+          isTaxExempted: false,
+          itemClsCd:
+              "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+          itemCd: randomNumber().toString().substring(0, 5),
+          modrNm: number,
+          modrId: number,
+          pkgUnitCd: "BJ",
+          regrId: randomNumber().toString().substring(0, 5),
+          rsdQty: 1,
+          itemTyCd: "2", // this is a finished product
+          /// available type for itemTyCd are 1 for raw material and 3 for service
+          /// is insurance applicable default is not applicable
+          isrcAplcbYn: "N",
+          useYn: "N",
+          itemSeq: randomNumber().toString(),
+          itemStdNm: product.name,
+          taxPercentage: 18.0,
+          tin: business.tinNumber,
+          bcd: variant!.name,
 
-        /// country of origin for this item we default until we support something different
-        /// and this will happen when we do import.
-        variant.orgnNatCd = "RW";
+          /// country of origin for this item we default until we support something different
+          /// and this will happen when we do import.
+          orgnNatCd: "RW",
 
-        /// registration name
-        variant.regrNm = variant.name;
+          /// registration name
+          regrNm: variant.name,
 
-        /// taxation type code
-        variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
-        // default unit price
-        variant.dftPrc = variant.retailPrice;
+          /// taxation type code
+          taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
+          // default unit price
+          dftPrc: variant.retailPrice,
 
-        // NOTE: I believe bellow item are required when saving purchase
-        ///but I wonder how to get them when saving an item.
-        variant.spplrItemCd = randomNumber().toString().substring(0, 5);
-        variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
-        variant.spplrItemNm = variant.name;
+          // NOTE: I believe bellow item are required when saving purchase
+          ///but I wonder how to get them when saving an item.
+          spplrItemCd: randomNumber().toString().substring(0, 5),
+          spplrItemClsCd: randomNumber().toString().substring(0, 5),
+          spplrItemNm: variant.name,
+        );
 
         Stock stock = Stock(ObjectId(),
             lastTouched: DateTime.now(),
@@ -3105,9 +3139,8 @@ class RealmAPI<M extends IJsonSerializable>
           ..productId = product.id!
           ..rsdQty = 0.0;
 
-        realm!.write(() {
-          realm!.put<Variant>(variant!);
-        });
+        realm!.put<Variant>(variant);
+
         realm!.put<Stock>(stock);
 
         return realm!.query<Variant>(
@@ -3115,9 +3148,9 @@ class RealmAPI<M extends IJsonSerializable>
           [variantId],
         ).firstOrNull;
       }
-    } catch (error) {
+    } catch (e) {
       // Handle error during write operation
-      throw Exception("unknown");
+      throw Exception(e);
     }
     return variant;
   }
@@ -3308,14 +3341,12 @@ class RealmAPI<M extends IJsonSerializable>
         Tenant? exist =
             realm!.query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
         if (exist == null) {
-          realm!.write(() {
-            if (user.id == iTenant.userId) {
-              iTenant.sessionActive = true;
-              realm!.put<Tenant>(iTenant);
-            } else {
-              realm!.put<Tenant>(iTenant);
-            }
-          });
+          if (user.id == iTenant.userId) {
+            iTenant.sessionActive = true;
+            realm!.put<Tenant>(iTenant);
+          } else {
+            realm!.put<Tenant>(iTenant);
+          }
         }
       }
 

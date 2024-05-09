@@ -21,43 +21,44 @@ class PayableView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(19.0, 0, 19.0, 30.5),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Expanded(
-              child: SizedBox(
-            height: 64,
-            child: TextButton(
-              style: secondaryButtonStyle,
-              onPressed: () {
-                ticketHandler();
-              },
-              child: StreamBuilder<List<ITransaction>>(
-                stream: ProxyService.realm.ticketsStreams(),
-                builder: (context, snapshot) {
-                  final List<ITransaction> transactions = snapshot.data ?? [];
-                  final int tickets = transactions.length;
-
-                  return StreamBuilder<List<ITransaction>>(
-                    stream: model.getTransactions(transactionStatus: PENDING),
-                    builder: (context, snapshot) {
-                      final List<ITransaction> pendingTransactions =
-                          snapshot.data ?? [];
-                      final int transactionsCount = pendingTransactions.length;
-
-                      return Ticket(
-                        tickets: tickets,
-                        transactions: transactionsCount,
-                        context: context,
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          )),
-          const SizedBox(
-            width: 10,
-          ),
+          //TODO: resume working on ticket, I think they are not necessary in v1 public product
+          // Expanded(
+          //     child: SizedBox(
+          //   height: 64,
+          //   child: TextButton(
+          //     style: secondaryButtonStyle,
+          //     onPressed: () {
+          //       ticketHandler();
+          //     },
+          //     child: StreamBuilder<List<ITransaction>>(
+          //       stream: ProxyService.realm.ticketsStreams(),
+          //       builder: (context, snapshot) {
+          //         final List<ITransaction> transactions = snapshot.data ?? [];
+          //         final int tickets = transactions.length;
+          //
+          //         return StreamBuilder<List<ITransaction>>(
+          //           stream: model.getTransactions(transactionStatus: PENDING),
+          //           builder: (context, snapshot) {
+          //             final List<ITransaction> pendingTransactions =
+          //                 snapshot.data ?? [];
+          //             final int transactionsCount = pendingTransactions.length;
+          //
+          //             return Ticket(
+          //               tickets: tickets,
+          //               transactions: transactionsCount,
+          //               context: context,
+          //             );
+          //           },
+          //         );
+          //       },
+          //     ),
+          //   ),
+          // )),
+          // const SizedBox(
+          //   width: 10,
+          // ),
           PreviewSaleButton()
         ],
       ),
