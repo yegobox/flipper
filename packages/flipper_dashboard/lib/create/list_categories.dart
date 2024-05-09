@@ -15,10 +15,7 @@ import 'package:stacked/stacked.dart';
 import 'divider.dart';
 
 class ListCategories extends StatefulHookConsumerWidget {
-  ListCategories(
-      {Key? key, required this.categories, required this.modeOfOperation})
-      : super(key: key);
-  final List<Category>? categories;
+  ListCategories({Key? key, required this.modeOfOperation}) : super(key: key);
   final String? modeOfOperation;
 
   @override

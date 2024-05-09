@@ -352,4 +352,5 @@ abstract class RealmApiInterface {
   Stream<double> soldStockValue({required branchId});
   Future<void> markModelForEbmUpdate<T>(
       {required T model, bool updated = true});
+  Stream<List<Category>> categoryStream();
 }

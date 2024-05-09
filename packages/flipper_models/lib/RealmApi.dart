@@ -3557,4 +3557,34 @@ class RealmAPI<M extends IJsonSerializable>
       }
     } catch (e) {}
   }
+
+  @override
+  Stream<List<Category>> categoryStream() async* {
+    final controller = StreamController<List<Category>>.broadcast();
+    final branchId = ProxyService.box.getBranchId()!;
+
+    final query = realm!.query<Category>(
+      r'branchId == $0 ',
+      [branchId],
+    );
+
+    StreamSubscription<RealmResultsChanges<Category>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedTransactions =
+            event.results.whereType<Category>().toList();
+        if (changedTransactions.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    yield* controller.stream;
+  }
 }

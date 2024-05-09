@@ -78,7 +78,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               variants.firstWhereOrNull((variant) => variant.name == 'Regular');
 
           productForm.productNameController.text = model.kProductName;
-          if(regularVariant==null){
+          if (regularVariant == null) {
             return;
           }
           if (regularVariant.retailPrice.toString() != '0.0') {
@@ -194,7 +194,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                           ),
                         ),
                       ),
-                      CategorySelector(categories: model.categories),
+                      CategorySelector(),
                       verticalSpaceSmall,
                       Padding(
                         padding: EdgeInsets.only(left: 18, right: 18),

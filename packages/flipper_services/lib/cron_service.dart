@@ -51,7 +51,6 @@ class CronService {
           r'id == $0', [ProxyService.box.getBusinessId()!]).first;
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
       if (ProxyService.realm.isTaxEnabled()) {
-        talker.info("EBM BusinessTine ${business.tinNumber}");
         ReceivePort receivePort = ReceivePort();
         await Isolate.spawn(
           isolateHandler,

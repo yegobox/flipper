@@ -7,6 +7,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -214,7 +215,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(width: 10),
-                            widget.transactionType == 'Cash In'
+                            widget.transactionType == TransactionType.cashIn
                                 ? Text('Cash in for',
                                     style: GoogleFonts.poppins(
                                         fontSize: 15,
@@ -224,8 +225,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold)),
                             Spacer(),
-                            CategorySelector.transactionMode(
-                                categories: widget.model.categories),
+                            CategorySelector.transactionMode(),
                           ],
                         )
                       ],

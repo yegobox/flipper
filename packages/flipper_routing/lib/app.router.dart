@@ -162,7 +162,6 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         routeData: routeData,
         child: _i1.ListCategories(
           key: args.key,
-          categories: args.categories,
           modeOfOperation: args.modeOfOperation,
         ),
         opaque: true,
@@ -1132,14 +1131,12 @@ class AddDiscountArgs {
 class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
     _i4.Key? key,
-    required List<_i8.Category>? categories,
     required String? modeOfOperation,
   }) : super(
           ListCategoriesRoute.name,
           path: '/list-categories',
           args: ListCategoriesArgs(
             key: key,
-            categories: categories,
             modeOfOperation: modeOfOperation,
           ),
         );
@@ -1150,19 +1147,16 @@ class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
 class ListCategoriesArgs {
   const ListCategoriesArgs({
     this.key,
-    required this.categories,
     required this.modeOfOperation,
   });
 
   final _i4.Key? key;
 
-  final List<_i8.Category>? categories;
-
   final String? modeOfOperation;
 
   @override
   String toString() {
-    return 'ListCategoriesArgs{key: $key, categories: $categories, modeOfOperation: $modeOfOperation}';
+    return 'ListCategoriesArgs{key: $key, modeOfOperation: $modeOfOperation}';
   }
 }
 
@@ -2283,14 +2277,12 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToListCategories({
     _i4.Key? key,
-    required List<_i8.Category>? categories,
     required String? modeOfOperation,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ListCategoriesRoute(
         key: key,
-        categories: categories,
         modeOfOperation: modeOfOperation,
       ),
       onFailure: onFailure,
@@ -2908,14 +2900,12 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithListCategories({
     _i4.Key? key,
-    required List<_i8.Category>? categories,
     required String? modeOfOperation,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ListCategoriesRoute(
         key: key,
-        categories: categories,
         modeOfOperation: modeOfOperation,
       ),
       onFailure: onFailure,

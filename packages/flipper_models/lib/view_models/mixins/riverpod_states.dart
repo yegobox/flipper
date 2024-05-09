@@ -1,4 +1,5 @@
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realm_model_export.dart' as cat;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
@@ -448,6 +449,14 @@ final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   int branchId = ProxyService.box.getBranchId() ?? 0;
   return ProxyService.realm.orders(branchId: branchId);
+});
+
+final categoryStreamProvider =
+    StreamProvider.autoDispose<List<cat.Category>>((ref) {
+  final category = ProxyService.realm.categoryStream();
+
+  // Return the stream
+  return category;
 });
 
 final transactionsStreamProvider =
