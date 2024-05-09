@@ -45,7 +45,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
       _hasText = widget.controller.text.isNotEmpty;
     });
   }
-
+  //// this wait for few seconds for a user or scanner to type into the keyboard
+  /// once that is done then we emit the value being scanned or typed
   void _processDebouncedValue(String value, CoreViewModel model) {
     log('Processing value: $value', name: 'logic');
     ref.read(searchStringProvider.notifier).emitString(value: value);
@@ -98,7 +99,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
-    final isScanningMode = ref.watch(scanningModeProvider);
     final currentLocation = ref.watch(buttonIndexProvider);
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -108,12 +108,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
           maxLines: null,
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
-          onFieldSubmitted: isScanningMode
-              ? (value) => _processDebouncedValue(value, model)
-              : null,
-          onChanged: isScanningMode
-              ? (value) => _processDebouncedValue(value, model)
-              : null,
+          onFieldSubmitted: (value)=>_processDebouncedValue(value, model),
+          onChanged: (value) => _processDebouncedValue(value, model),
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),

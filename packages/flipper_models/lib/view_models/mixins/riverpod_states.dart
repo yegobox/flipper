@@ -1,19 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import '_transaction.dart';
-// import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// typedef ChatRef = void Function();
-// // Define a StreamProvider that takes a ChatRef as a parameter
-// final productsProvider =
-//     StreamProvider.family<List<Product>, String?>((ref, prodIndex) {
-//   return ProxyService.isar.productStreams(prodIndex: prodIndex);
-// });
 final productProvider = StateNotifierProvider<ProductNotifier, Product?>((ref) {
   return ProductNotifier();
 });
@@ -186,14 +179,12 @@ final outerVariantsProvider = StateNotifierProvider.autoDispose
     .family<OuterVariantsNotifier, AsyncValue<List<Variant>>, int>(
         (ref, branchId) {
   final productsNotifier = OuterVariantsNotifier(branchId);
-  final scannMode = ref.watch(scanningModeProvider);
+  final scanMode = ref.watch(scanningModeProvider);
   final searchString = ref.watch(searchStringProvider);
-  if (scannMode) {
-    productsNotifier.loadVariants(
-      scannMode: scannMode,
-      searchString: searchString,
-    );
-  }
+  productsNotifier.loadVariants(
+    scanMode: scanMode,
+    searchString: searchString,
+  );
 
   return productsNotifier;
 });
@@ -205,7 +196,7 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
   Future<void> loadVariants(
-      {required bool scannMode, required String searchString}) async {
+      {required bool scanMode, required String searchString}) async {
     try {
       final allVariants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!,
@@ -250,10 +241,10 @@ final productsProvider = StateNotifierProvider.autoDispose
     .family<ProductsNotifier, AsyncValue<List<Product>>, int>((ref, branchId) {
   final productsNotifier = ProductsNotifier(branchId, ref);
   final searchString = ref.watch(searchStringProvider);
-  final scannMode = ref.watch(scanningModeProvider);
-  if (!scannMode) {
+  final scanMode = ref.watch(scanningModeProvider);
+  if (!scanMode) {
     productsNotifier.loadProducts(
-        searchString: searchString, scannMode: scannMode);
+        searchString: searchString, scanMode: scanMode);
   }
   return productsNotifier;
 });
@@ -295,7 +286,7 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
 
   Future<void> loadProducts({
     required String searchString,
-    required bool scannMode,
+    required bool scanMode,
   }) async {
     try {
       List<Product> products =
@@ -464,7 +455,8 @@ final transactionsStreamProvider =
   // Retrieve the transaction status from the provider container, if needed
 
   // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.realm.transactionsStream(branchId: ProxyService.box.getBranchId());
+  final transactionsStream = ProxyService.realm
+      .transactionsStream(branchId: ProxyService.box.getBranchId());
 
   // Return the stream
   return transactionsStream;

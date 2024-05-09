@@ -267,7 +267,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         .addProducts(products: [
       if (product != null) ...[product]
     ]);
+    // Future.delayed(Duration(seconds: 3));
+    /// reload saved product
+    final searchKeyword = ref.watch(searchStringProvider);
+    final scanMode = ref.watch(scanningModeProvider);
+    ref
+        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+        .loadProducts(searchString: searchKeyword, scanMode: scanMode);
 
+    /// end of reloading
     toast("Product Saved");
     Navigator.maybePop(context);
   }

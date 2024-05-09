@@ -70,7 +70,7 @@ class ProductViewState extends ConsumerState<ProductView> {
         await model.loadTenants();
         ref
             .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-            .loadProducts(searchString: searchKeyword, scannMode: scanMode);
+            .loadProducts(searchString: searchKeyword, scanMode: scanMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {

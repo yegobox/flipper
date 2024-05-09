@@ -1237,11 +1237,12 @@ class RealmAPI<M extends IJsonSerializable>
     ).firstOrNull;
   }
 
+  /// This is dealing with search when searching the product!.
   @override
   Future<List<Product?>> getProductByName({required String name}) async {
     int branchId = ProxyService.box.getBranchId()!;
     return realm!.query<Product>(
-      r'name STARTSWITH[c] $0 OR name CONTAINS[c] $0 OR name ENDSWITH[c] $0 AND deletedAt == null AND branchId == $1',
+      r'name BEGINSWITH[c] $0 OR name CONTAINS[c] $0 OR name ENDSWITH[c] $0  AND branchId == $1',
       [name, branchId],
     ).toList();
   }
@@ -1775,9 +1776,9 @@ class RealmAPI<M extends IJsonSerializable>
     // Limit to the last 7 items
     List<Product> filteredProducts;
 
-    if (allProducts.length >= 7) {
+    if (allProducts.length >= 20) {
       filteredProducts = allProducts
-          .sublist(allProducts.length - 7)
+          .sublist(allProducts.length - 20)
           .where((product) =>
               product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
           .toList();

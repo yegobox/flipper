@@ -38,21 +38,9 @@ void main() {
       expect(hexColor.value, equals(Color(0x80FF00FF).value));
     });
 
-    // test('should create a Color from a valid 3-digit hex color code', () {
-    //   final hexColor = HexColor('#F0F');
-    //   expect(hexColor.value, equals(Color(0xFFFF00FF).value));
-    // });
-
-    // test('should create a Color from a valid 4-digit hex color code with alpha',
-    //     () {
-    //   final hexColor = HexColor('#8F0F');
-    //   expect(hexColor.value, equals(Color(0x88FF00FF).value));
-    // });
-
-    test('should create a Color from a valid hex color code without leading #',
-        () {
-      final hexColor = HexColor('FF00FF');
-      expect(hexColor.value, equals(Color(0xFFFF00FF).value));
+    test('should create a Color from the provided hex color code #0984e3', () {
+      final hexColor = HexColor('#0984e3');
+      expect(hexColor.value, equals(Color(0xFF0984E3).value));
     });
 
     test('should create a Color from a valid hex color code with mixed case',
