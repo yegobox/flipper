@@ -54,43 +54,46 @@ class CashbookState extends ConsumerState<Cashbook> {
   }
 
   Widget buildBody(BuildContext context, CoreViewModel model) {
-    final transactionData = ref.watch(transactionsStreamProvider);
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Column(
-        children: [
-          buildDropdowns(model),
-          // buildGaugeOrList(context, transactionData),
-          BuildGaugeOrList(
-              context: context,
-              data: transactionData,
-              widgetType: 'gauge',
-              model: model),
-          buildTransactionSection(context, model),
-          SizedBox(height: 31),
-        ],
-      ),
+    // final transactionData = ref.watch(transactionsStreamProvider);
+    return Column(
+      children: [
+        // buildDropdowns(model),
+        // SizedBox(
+        //   height: 20,
+        // ),
+        // BuildGaugeOrList(
+        //   context: context,
+        //   data: transactionData,
+        //   widgetType: 'gauge',
+        //   model: model,
+        // ),
+        buildTransactionSection(context, model),
+        SizedBox(height: 31),
+      ],
     );
   }
 
   Widget buildDropdowns(CoreViewModel model) {
-    return ListTile(
-      contentPadding: EdgeInsets.only(left: 30, right: 0),
-      leading: ReusableDropdown(
-        options: model.transactionPeriodOptions,
-        selectedOption: model.transactionPeriod,
-        onChanged: (String? newPeriod) {
-          model.transactionPeriod = newPeriod!;
-        },
-      ),
-      trailing: ReusableDropdown(
-        options: model.profitTypeOptions,
-        selectedOption: model.profitType,
-        onChanged: (String? newProfitType) {
-          model.profitType = newProfitType!;
-          model.notifyListeners();
-        },
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ReusableDropdown(
+          options: model.transactionPeriodOptions,
+          selectedOption: model.transactionPeriod,
+          onChanged: (String? newPeriod) {
+            model.transactionPeriod = newPeriod!;
+          },
+        ),
+        ReusableDropdown(
+          options: model.profitTypeOptions,
+          selectedOption: model.profitType,
+          onChanged: (String? newProfitType) {
+            model.profitType = newProfitType!;
+            model.notifyListeners();
+          },
+        ),
+      ],
     );
   }
 
