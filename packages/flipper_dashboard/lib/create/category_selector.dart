@@ -25,42 +25,30 @@ class CategorySelector extends StatefulHookConsumerWidget {
 class CategorySelectorState extends ConsumerState<CategorySelector> {
   final _routerService = locator<RouterService>();
 
-  Widget text(
-      {required BuildContext context,
-      required AsyncValue<List<Category>> categories}) {
+  Widget text({
+    required BuildContext context,
+    required AsyncValue<List<Category>> categories,
+  }) {
     return categories.when(
       data: (categories) {
         final focused =
             categories.firstWhereOrNull((category) => category.focused);
-        if (focused == null) {
-          return Text(
-            'Select Category',
-            style: GoogleFonts.poppins(
-              color: Colors.black,
-              fontSize: 17,
-              fontWeight: FontWeight.w400,
-            ),
-          );
-        } else {
-          return Text(
-            focused.name!,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: Colors.black),
-          );
-        }
+        return Text(
+          focused?.name ?? 'Select Category',
+          style: focused != null
+              ? Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(color: Colors.black)
+              : GoogleFonts.poppins(
+                  color: Colors.black,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w400,
+                ),
+        );
       },
-      loading: () => const Padding(
-        padding: EdgeInsets.only(top: 28.0),
-        child: Center(child: Text("Loading...")),
-      ),
-      error: (error, stackTrace) => Column(
-        children: [
-          const SizedBox(height: 20),
-          Center(child: Text('Errors: $error')),
-        ],
-      ),
+      loading: () => const Text('Loading...'),
+      error: (error, stackTrace) => Text('Error: $error'),
     );
   }
 
