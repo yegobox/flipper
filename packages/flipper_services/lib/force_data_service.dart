@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mocks.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -7,17 +8,15 @@ import 'package:flipper_services/proxy.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:realm/realm.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 /// there is a case we need to force some data to be added for a given user
 /// this is the class to help with that.
 
 class ForceDataEntryService {
   final appService = getIt<AppService>();
-  void dataBootstrapper() {
-    addData();
-  }
 
-  Future<void> addData() async {
+  Future<void> dataBootstrapper() async {
     int? branchId = ProxyService.box.getBranchId();
     int? businessId = ProxyService.box.getBusinessId();
 
@@ -25,23 +24,6 @@ class ForceDataEntryService {
       return;
     }
 
-    List<Product> products =
-        await ProxyService.realm.products(branchId: branchId);
-    if (products.isEmpty) {
-      await ProxyService.realm.createProduct(
-          product: Product(ObjectId(),
-              id: randomNumber(),
-              name: "Custom Amount",
-              action: 'create',
-              lastTouched: DateTime.now(),
-              businessId: businessId,
-              color: "#e74c3c",
-              branchId: branchId)
-            ..name = "Custom Amount"
-            ..color = "#e74c3c"
-            ..branchId = branchId
-            ..businessId = businessId);
-    }
     final List<String> colors = [
       '#d63031',
       '#0984e3',
@@ -66,10 +48,52 @@ class ForceDataEntryService {
           active: false);
       await ProxyService.realm.create<PColor>(data: color);
     }
+
+    /// Add default categories to be used, these category can't be deleted as they are helper to identify
+    /// type of transaction and categorization of transaction
+    /// e.g salaries, airtime and we shall add more as we learn what users needs
+    /// airtime,salary,transport,
+    for (String name in [
+      TransactionType.airtime,
+      TransactionType.transport,
+      TransactionType.salary
+    ]) {
+      createCategory(name: name, branchId: branchid);
+    }
+
     List<IUnit> kUnits = await ProxyService.realm.units(branchId: branchid);
 
     if (kUnits.isEmpty) {
-      await ProxyService.realm.addUnits(units: mockUnits);
+      try {
+        await ProxyService.realm.addUnits(units: mockUnits);
+      } catch (e) {
+        talker.critical(e);
+      }
+    }
+  }
+
+  final talker = TalkerFlutter.init();
+
+  createCategory({required String name, required int branchId}) {
+    talker.info('App is started');
+    Category? category;
+    category = ProxyService.realm.realm!
+        .query<Category>(r'name ==$0', [name]).firstOrNull;
+    if (category == null) {
+      try {
+        ProxyService.realm.realm!.put<Category>(Category(
+          ObjectId(),
+          id: randomNumber(),
+          focused: false,
+          name: name,
+          active: false,
+          branchId: branchId,
+          lastTouched: DateTime.now(),
+          action: AppActions.created,
+        ));
+      } catch (e) {
+        talker.critical(e);
+      }
     }
   }
 }

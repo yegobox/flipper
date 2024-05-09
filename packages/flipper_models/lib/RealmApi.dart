@@ -2430,7 +2430,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  @override
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
@@ -2727,7 +2726,7 @@ class RealmAPI<M extends IJsonSerializable>
     final counter = realm!.query<Counter>(r'branchId == $0', [branchId]);
     final receipt = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final customer = realm!.query<Customer>(r'branchId == $0', [branchId]);
-    final category = realm!.query<Customer>(r'branchId == $0', [branchId]);
+    final category = realm!.query<Category>(r'branchId == $0', [branchId]);
     final branch = realm!.query<Branch>(r'businessId == $0', [businessId]);
     final colors = realm!.all<PColor>();
     final devices = realm!.query<Device>(r'branchId == $0', [branchId]);

@@ -38,6 +38,12 @@ class StartupViewModel extends FlipperBaseModel {
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.realm
           .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
+        /// if there is missing initial data, this is the right time to add them
+        /// this is the case when a user login to a different device and the data does not exist there
+        /// or has not been synced! though we don't expect this scenario to happen mostly because
+        /// we are now using realm, but for the essence that we migrated from non sync db
+        /// then this method is required!
+        ProxyService.forceDateEntry.dataBootstrapper();
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
@@ -45,6 +51,12 @@ class StartupViewModel extends FlipperBaseModel {
         }
         return;
       } else {
+        /// if there is missing initial data, this is the right time to add them
+        /// this is the case when a user login to a different device and the data does not exist there
+        /// or has not been synced! though we don't expect this scenario to happen mostly because
+        /// we are now using realm, but for the essence that we migrated from non sync db
+        /// then this method is required!
+        ProxyService.forceDateEntry.dataBootstrapper();
         if (ProxyService.box.getDefaultApp() == 2) {
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {

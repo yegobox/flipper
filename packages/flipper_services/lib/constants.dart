@@ -36,6 +36,9 @@ class TransactionType {
   static String sale = 'Sale';
   static String custom = 'custom';
   static String onlineSale = 'Online Sale';
+  static String salary = 'Salary';
+  static String transport = 'Transport';
+  static String airtime = 'Airtime';
 }
 
 class TransactionPeriod {

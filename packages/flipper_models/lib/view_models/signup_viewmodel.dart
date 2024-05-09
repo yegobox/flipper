@@ -146,8 +146,8 @@ class SignupViewModel extends ReactiveViewModel {
     appService.appInit();
     await createDefaultCategory(branches);
     await createDefaultColor(branches);
-    await addDefaultUnits();
-    bootstrapData();
+    // await addDefaultUnits();
+    ProxyService.forceDateEntry.dataBootstrapper();
 
     LoginInfo().isLoggedIn = true;
     LoginInfo().redirecting = false;
@@ -215,14 +215,6 @@ class SignupViewModel extends ReactiveViewModel {
       name: 'color',
     );
     ProxyService.realm.create<PColor>(data: color);
-  }
-
-  Future<void> addDefaultUnits() {
-    return ProxyService.realm.addUnits(units: mockUnits);
-  }
-
-  void bootstrapData() {
-    ProxyService.forceDateEntry.dataBootstrapper();
   }
 
   Future<void> pocketDbRegistration() async {
