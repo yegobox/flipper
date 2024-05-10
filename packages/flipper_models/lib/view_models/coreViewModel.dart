@@ -251,16 +251,17 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItemByVariantId(
               variantId: variation.id!, transactionId: pendingTransaction.id);
 
+      List<TransactionItem> items = await ProxyService.realm
+          .transactionItems(
+          transactionId: pendingTransaction.id!,
+          doneWithTransaction: false,
+          active: true);
+
       if (existTransactionItem != null) {
-        ProxyService.realm.realm!.writeAsync(() async {
+        await ProxyService.realm.realm!.writeAsync(()  {
           existTransactionItem.qty = existTransactionItem.qty + 1;
           existTransactionItem.price = amount / 1; // price of one unit
 
-          List<TransactionItem> items = await ProxyService.realm
-              .transactionItems(
-                  transactionId: pendingTransaction.id!,
-                  doneWithTransaction: false,
-                  active: true);
           pendingTransaction.subTotal =
               items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
           pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -290,17 +291,18 @@ class CoreViewModel extends FlipperBaseModel
             transactionId: pendingTransaction.id!,
             doneWithTransaction: false,
             active: true);
-        ProxyService.realm.realm!.writeAsync(() async {
+        await ProxyService.realm.addTransactionItem(
+            transaction: pendingTransaction, item: newItem);
+
+        await ProxyService.realm.realm!.writeAsync(()  {
           pendingTransaction.subTotal =
               items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
           pendingTransaction.updatedAt = DateTime.now().toIso8601String();
           newItem.action = AppActions.created;
-          await ProxyService.realm.addTransactionItem(
-              transaction: pendingTransaction, item: newItem);
         });
       }
     } else {
-      ProxyService.realm.realm!.writeAsync(() async {
+      await ProxyService.realm.realm!.writeAsync(()  {
         TransactionItem item = items.last;
         item.price = amount;
         item.taxAmt = double.parse((amount * 18 / 118).toStringAsFixed(2));
@@ -309,10 +311,10 @@ class CoreViewModel extends FlipperBaseModel
             items.fold(0, (a, b) => a + (b.price * b.qty));
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
 
-        ITransaction? updatedTransaction = await ProxyService.realm
-            .getTransactionById(id: pendingTransaction.id!);
-        keypad.setTransaction(updatedTransaction);
       });
+      ITransaction? updatedTransaction = await ProxyService.realm
+          .getTransactionById(id: pendingTransaction.id!);
+      keypad.setTransaction(updatedTransaction);
     }
   }
 

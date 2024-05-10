@@ -1,18 +1,21 @@
 import 'dart:convert';
 import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
+import 'package:flipper_models/helperModels/ITransactionItem.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/mail_log.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
+import 'package:flutter/services.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
@@ -97,7 +100,9 @@ class RWTax implements TaxApi {
         printResponseMessage: true,
       ),
     ));
+    final jsonData = json.encode(data);
 
+    Clipboard.setData(ClipboardData(text: jsonData.toString()));
     try {
       final response = await dio.post(
         baseUrl,
@@ -105,9 +110,13 @@ class RWTax implements TaxApi {
         options: Options(headers: headers),
       );
       return response;
-    } on DioException catch (e) {
+    } on DioException catch (e, m) {
       // Handle the error
-      throw Exception('Error sending POST request: ${e.message}');
+      final errorMessage = e.response?.data;
+
+      // Throw an exception with the error message or a default message
+      throw Exception(
+          'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
     }
   }
 
@@ -210,8 +219,15 @@ class RWTax implements TaxApi {
         .replaceAll(RegExp(r'[:-\s]'), '')
         .substring(0, 14);
 
-    List<Map<String, dynamic>> itemsList =
-        items.map((item) => item.toEJson() as Map<String, dynamic>).toList();
+    List<Map<String, dynamic>> itemsList = items
+        .map((item) => ITransactionItem(
+                id: item.id,
+                qty: item.qty,
+                discount: item.discount,
+                remainingStock: item.remainingStock,
+                name: item.name)
+            .toJson())
+        .toList();
 
     double totalMinusExemptedProducts = items
         .where((item) => !item.isTaxExempted)
@@ -266,7 +282,7 @@ class RWTax implements TaxApi {
       "modrNm": transaction.id,
       "receipt": {
         "curRcptNo": counter.curRcptNo,
-        "totRcptNo": counter.curRcptNo,
+        "totRcptNo": counter.totRcptNo,
         "rptNo": date,
         "rcptPbctDt": date,
         "intrlData": itemPrefix +
@@ -294,17 +310,17 @@ class RWTax implements TaxApi {
     } else {
       finalData = data;
     }
-
+    talker.warning(finalData);
     try {
       final url = '$ebmUrl/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
 
       if (response.statusCode == 200) {
-        sendEmailLogging(
-          requestBody: finalData.toString(),
-          subject: "Worked",
-          body: response.data.toString(),
-        );
+        // sendEmailLogging(
+        //   requestBody: finalData.toString(),
+        //   subject: "Worked",
+        //   body: response.data.toString(),
+        // );
 
         final data = EBMApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
@@ -318,12 +334,8 @@ class RWTax implements TaxApi {
           "Failed to send request. Status Code: ${response.statusCode}",
         );
       }
-    } catch (e, st) {
-      print("Exception: $e");
-      print("Exception: $st");
-      throw Exception(
-        "Failed to send request with invoice number ${counter.curRcptNo}: $e",
-      );
+    } catch (e) {
+      rethrow;
     }
   }
 
@@ -339,11 +351,6 @@ class RWTax implements TaxApi {
     required Customer customer,
     String? purchaseCode,
   }) {
-    //TODO: remember we only force purchase code for business entity
-    /// I have a dilema, for example a business should know that a purchase code is mandatory
-    /// if a customer is a business, given to ease of use  I think if purchase code is not provided
-    /// it is safe to assume that this is not a business, but of cause I can change this
-    /// after I learn more on how business use software.
     if (transaction.customerId != null && purchaseCode != null) {
       json[custTinKey] = customer.custTin;
       json[custNmKey] = customer.custNm;

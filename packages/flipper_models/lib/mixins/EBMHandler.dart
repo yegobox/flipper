@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -61,7 +62,8 @@ class EBMHandler<OBJ> {
           transaction: transaction,
           receiptType: transaction.receiptType!,
         );
-      } catch (e) {
+      } catch (e, s) {
+        talker.critical(s);
         rethrow;
       }
     }
@@ -95,7 +97,6 @@ class EBMHandler<OBJ> {
         await ProxyService.realm.getReceipt(transactionId: transaction.id!);
 
     Print print = Print();
-    log(items.toString(), name: "Items");
     print.print(
       grandTotal: transaction.subTotal,
       currencySymbol: "RW",
@@ -164,7 +165,8 @@ class EBMHandler<OBJ> {
         ),
       );
     }
-
+    // increment the counter before we pass it in
+    // this is because if we don't then the EBM counter will give us the
     try {
       EBMApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
@@ -185,14 +187,18 @@ class EBMHandler<OBJ> {
 
       log("afterGenerating Qr", name: "generateQRCode");
 
-      await createReceiptInIsar(
+      await saveReceipt(
           receiptSignature, transaction, qrCode, counter, receiptNumber);
+
+      /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
+      /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       ProxyService.realm.realm!.write(() {
         counter
-          ..totRcptNo = receiptSignature.data?.totRcptNo ?? 0 + 1
-          ..curRcptNo = receiptSignature.data?.rcptNo ?? 0 + 1;
+          ..totRcptNo = (receiptSignature.data?.totRcptNo ?? 0) + 1
+          ..curRcptNo = (receiptSignature.data?.rcptNo ?? 0) + 1;
       });
-    } catch (e) {
+    } catch (e, s) {
+      talker.critical(s);
       rethrow;
     }
   }
@@ -232,20 +238,24 @@ class EBMHandler<OBJ> {
     });
   }
 
-  Future<void> createReceiptInIsar(
+  Future<void> saveReceipt(
     EBMApiResponse receiptSignature,
     ITransaction transaction,
     String qrCode,
     Counter counter,
     String receiptNumber,
   ) async {
-    await ProxyService.realm.createReceipt(
-      signature: receiptSignature,
-      transaction: transaction,
-      qrCode: qrCode,
-      counter: counter,
-      receiptType: receiptNumber,
-    );
+    try {
+      await ProxyService.realm.createReceipt(
+        signature: receiptSignature,
+        transaction: transaction,
+        qrCode: qrCode,
+        counter: counter,
+        receiptType: receiptNumber,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   String generateQRCode(String formattedDate, EBMApiResponse receiptSignature) {

@@ -9,7 +9,7 @@
 # Managing transactiona and hanle finance aspect of it
 - 1. in nutshell we save all transaction in one table with transaction type
 - 2. Because we need to distinguish expense from e.g income
-- 3. we rely on this transaction type for that
+- 3. we rely on transaction property isIncome or iExpense
 - 4. and because the user might need to add more... this is not accepted at the moment
 - 5. but we keep adding accepted or predefined categories see
 - 5. CoreViewModel at saveCashBookTransaction method see how that is done for example

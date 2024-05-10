@@ -15,6 +15,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
+import 'package:flipper_models/mixins/EBMHandler.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -398,6 +399,9 @@ class RealmAPI<M extends IJsonSerializable>
       );
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
+
+      //NOTE: trigger EBM, now
+      EBMHandler(object: transaction).handleReceipt();
     });
 
     try {
@@ -671,9 +675,8 @@ class RealmAPI<M extends IJsonSerializable>
     );
 
     try {
-      realm!.write(() {
-        realm!.put<Receipt>(receipt);
-      });
+      realm!.put<Receipt>(receipt);
+
       return receipt;
     } catch (error) {
       // Handle error during write operation
@@ -937,9 +940,8 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType}) async {
-    return realm!.query<Counter>(
-        r'branchId == $0 AND receiptType == $1 AND deletedAt == nil',
-        [branchId, receiptType]).firstOrNull;
+    return realm!.query<Counter>(r'branchId == $0 AND receiptType == $1',
+        [branchId, receiptType.toUpperCase()]).firstOrNull;
   }
 
   @override
@@ -1263,7 +1265,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Receipt?> getReceipt({required int transactionId}) async {
     return realm!.query<Receipt>(
-      r'transactionId == $0 AND deletedAt == nil',
+      r'transactionId == $0',
       [transactionId],
     ).firstOrNull;
   }
@@ -2841,7 +2843,7 @@ class RealmAPI<M extends IJsonSerializable>
         update: true);
 
     await receipt.subscribe(
-        name: "iReceipt-${branchId}",
+        name: "receipt-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true);
 
