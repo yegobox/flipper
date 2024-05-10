@@ -15,3 +15,15 @@
 - 5. CoreViewModel at saveCashBookTransaction method see how that is done for example
 - 6. When adding new type remember to update queries in place RealmAPI transactionsStream to support new
 - 7. In place such as payments.dart and RealmAPI@collectPayment we set transaction as income 
+
+# Setting up edge server
+- curl https://services.cloud.mongodb.com/edge/install.sh | bash -s - --app-id=devicesync-ifwtd --platform=compose
+```dart
+    >>> Update your path with:
+
+    export PATH="$PATH:/Users/richard/.mongodb-edge/bin"
+    
+    >>> To initialize your edge server, run:
+    
+    edgectl init --app-id=devicesync-ifwtd --platform=compose
+```

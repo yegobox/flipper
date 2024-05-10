@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -13,6 +15,7 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:share_plus/share_plus.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 /// The application that contains datagrid on it.
 
@@ -80,6 +83,28 @@ class _DataViewState extends State<DataView> {
         subject: "Report Download - $formattedDate");
   }
 
+  final talker = TalkerFlutter.init();
+  void handleCellTap(DataGridCellTapDetails details) {
+    final rowData = details.rowColumnIndex;
+    final rowIndex = rowData.rowIndex;
+    final transaction = widget.transactions[rowIndex];
+
+    // Do something with the row data
+    talker.warning(
+        'Tapped row: ID = ${transaction.id}, Name = ${transaction.subTotal}');
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => OptionModal(
+        child: Refund(
+          refundAmount: transaction.subTotal,
+          transactionId: transaction.id.toString(),
+          currency: "RWF",
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const EdgeInsets headerPadding =
@@ -130,6 +155,7 @@ class _DataViewState extends State<DataView> {
                       key: _key,
                       source: transactionDataSource,
                       columnWidthMode: ColumnWidthMode.fill,
+                      onCellTap: handleCellTap,
                       columns: <GridColumn>[
                         GridColumn(
                           columnName: 'id',

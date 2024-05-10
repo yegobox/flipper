@@ -110,7 +110,7 @@ class RWTax implements TaxApi {
         options: Options(headers: headers),
       );
       return response;
-    } on DioException catch (e, m) {
+    } on DioException catch (e) {
       // Handle the error
       final errorMessage = e.response?.data;
 
