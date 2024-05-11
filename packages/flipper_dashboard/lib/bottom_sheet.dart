@@ -108,7 +108,7 @@ void preferences(
                 return Column(
                   children: [
                     SettingsTile(
-                      title: "English",
+                      title: Text("English"),
                       trailing: trailingWidget(model.defaultLanguage == 'en'),
                       onPressed: (BuildContext context) {
                         model.setLanguage('en');
@@ -116,7 +116,7 @@ void preferences(
                       },
                     ),
                     SettingsTile(
-                      title: "Ikinyarwanda",
+                      title: Text("Ikinyarwanda"),
                       trailing: trailingWidget(model.defaultLanguage == 'fr'),
                       onPressed: (BuildContext context) {
                         model.setLanguage('fr');
@@ -124,7 +124,7 @@ void preferences(
                       },
                     ),
                     SettingsTile(
-                      title: "Swahili",
+                      title: Text("Swahili"),
                       trailing: trailingWidget(model.defaultLanguage == 'sw'),
                       onPressed: (BuildContext context) {
                         model.setLanguage('sw');
@@ -157,8 +157,8 @@ void preferences(
                 return Column(
                   children: [
                     SettingsTile.switchTile(
-                      title: 'Enable Report',
-                      switchValue: model.kSetting.sendDailReport,
+                      title: Text('Enable Report'),
+                      initialValue: model.kSetting.sendDailReport,
                       onToggle: (bool value) {
                         model.enableDailyReport((message) {
                           if (message == 1) {
@@ -267,8 +267,8 @@ void preferences(
                   return Column(
                     children: [
                       SettingsTile.switchTile(
-                        title: 'Enable Sync',
-                        switchValue: model.getIsSyncSubscribed,
+                        title: Text('Enable Sync'),
+                        initialValue: model.getIsSyncSubscribed,
                         onToggle: (bool value) {},
                       ),
                     ],
@@ -298,8 +298,8 @@ void preferences(
                 return Column(
                   children: [
                     SettingsTile.switchTile(
-                      title: 'Enable Qr Mode',
-                      switchValue: model.kSetting.isAttendanceEnabled,
+                      title: Text('Enable Qr Mode'),
+                      initialValue: model.kSetting.isAttendanceEnabled,
                       onToggle: (bool value) {
                         model.enableAttendance((message) {
                           if (message == 1) {

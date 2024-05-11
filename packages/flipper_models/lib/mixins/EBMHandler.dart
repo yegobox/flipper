@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -36,7 +37,9 @@ class EBMHandler<OBJ> {
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
         await handleReceiptGeneration(transaction: transaction);
-      } else if (transaction.receiptType == TransactionReceptType.NR) {
+      } else if (transaction.receiptType == TransactionReceptType.NR ||
+          transaction.receiptType == TransactionReceptType.TS ||
+          transaction.receiptType == TransactionReceptType.PS) {
         await handleReceiptGeneration(transaction: transaction);
       }
     }
@@ -159,18 +162,25 @@ class EBMHandler<OBJ> {
         .getCounter(branchId: branchId, receiptType: receiptType);
 
     if (counter == null) {
-      ProxyService.realm.create<Counter>(
-        data: Counter(
-          ObjectId(),
-          id: randomNumber(),
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!,
-          curRcptNo: 0,
-          lastTouched: DateTime.now(),
-          receiptType: receiptType,
-          totRcptNo: 0,
-        ),
+      counter = Counter(
+        ObjectId(),
+        id: randomNumber(),
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+        curRcptNo: 1,
+        lastTouched: DateTime.now(),
+        receiptType: receiptType,
+        totRcptNo: 1,
       );
+      await ProxyService.realm.realm!.putAsync(counter);
+    }
+
+    /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
+    if (counter.totRcptNo == 0 || counter.curRcptNo == 0) {
+      ProxyService.realm.realm!.writeAsync(() {
+        counter!.totRcptNo = 1;
+        counter.curRcptNo = 1;
+      });
     }
     // increment the counter before we pass it in
     // this is because if we don't then the EBM counter will give us the
@@ -180,7 +190,7 @@ class EBMHandler<OBJ> {
         transaction: transaction,
         items: items,
         receiptType: receiptType,
-        counter: counter!,
+        counter: counter,
         purchaseCode: purchaseCode,
       );
       //updateTransactionAndDrawer(receiptType, transaction);
@@ -200,9 +210,9 @@ class EBMHandler<OBJ> {
       /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       ProxyService.realm.realm!.write(() {
-        counter
+        counter!
           ..totRcptNo = (receiptSignature.data?.totRcptNo ?? 0) + 1
-          ..curRcptNo = (receiptSignature.data?.rcptNo ?? 0) + 1;
+          ..curRcptNo = counter.curRcptNo! + 1;
       });
     } catch (e, s) {
       talker.critical(s);

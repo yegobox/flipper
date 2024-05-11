@@ -27,3 +27,6 @@
     
     edgectl init --app-id=devicesync-ifwtd --platform=compose
 ```
+# Configure receipt to print 
+- Doubele tap on home Icon on desltop or tablet
+- A model will open to enable configuration.

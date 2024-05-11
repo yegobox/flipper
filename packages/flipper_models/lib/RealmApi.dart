@@ -385,7 +385,7 @@ class RealmAPI<M extends IJsonSerializable>
         receiptType = TransactionReceptType.PS;
       }
       if (ProxyService.box.isTrainingMode()) {
-        receiptType = TransactionReceptType.PS;
+        receiptType = TransactionReceptType.TS;
       }
       transaction.receiptType = receiptType;
 

@@ -57,23 +57,23 @@ class _RefundState extends State<Refund> {
                       ? "Refunded"
                       : "Refund",
                   onTap: () async {
-                    if (_formKey.currentState!.validate()) {
+                    setState(() {
+                      isProcessing = true;
+                    });
+                    await ProxyService.realm.realm!.writeAsync(() {
+                      widget.transaction.receiptType = TransactionReceptType.NR;
+                    });
+                    try {
+                      await EBMHandler(object: widget.transaction)
+                          .handleReceipt();
                       setState(() {
-                        isProcessing = true;
+                        isProcessing = false;
                       });
-                      ProxyService.realm.realm!.write(() {
-                        widget.transaction.transactionType =
-                            TransactionReceptType.NR;
+                    } catch (e) {
+                      talker.critical(e);
+                      setState(() {
+                        isProcessing = false;
                       });
-                      try {
-                        await EBMHandler(object: widget.transaction)
-                            .handleReceipt();
-                      } catch (e) {
-                        talker.critical(e);
-                        setState(() {
-                          isProcessing = true;
-                        });
-                      }
                     }
                   },
                   busy: isProcessing,

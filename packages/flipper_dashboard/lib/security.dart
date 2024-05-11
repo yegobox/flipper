@@ -56,8 +56,6 @@ class SecurityState extends ConsumerState<Security> {
                                       ProxyService.box.getBusinessId()!),
                               builder: (context, snapshot) {
                                 return SettingsList(
-                                  backgroundColor:
-                                      Theme.of(context).canvasColor,
                                   sections: [
                                     SettingsSection(
                                       tiles: [
@@ -65,11 +63,12 @@ class SecurityState extends ConsumerState<Security> {
                                           enabled: (snapshot.data != null &&
                                               snapshot.data!.pin != null &&
                                               snapshot.data!.pin != 0),
-                                          title: 'Enable Passcode',
+                                          title: Text('Enable Passcode'),
                                           leading: Icon(Icons.pin),
-                                          switchValue: (snapshot.data != null &&
-                                              snapshot.data!.pin != null &&
-                                              snapshot.data!.pin != 0),
+                                          initialValue:
+                                              (snapshot.data != null &&
+                                                  snapshot.data!.pin != null &&
+                                                  snapshot.data!.pin != 0),
                                           onToggle: (bool value) {
                                             ///check to see if on the existing
                                             if (value) {

@@ -51,11 +51,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return SettingsList(
       sections: [
         SettingsSection(
-          title: 'Common',
+          title: Text('Common'),
           tiles: [
             SettingsTile(
-              title: 'Language',
-              subtitle: 'English',
+              title: Text('Language'),
+              description: Text('English'),
               leading: const Icon(Icons.language),
               onPressed: (context) {
                 Navigator.of(context).push(MaterialPageRoute(
@@ -64,17 +64,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             SettingsTile(
-              title: 'Environment',
-              subtitle: 'Local',
+              title: Text('Environment'),
+              description: Text('Local'),
               leading: const Icon(Icons.cloud_queue),
             ),
           ],
         ),
         SettingsSection(
-          title: 'Account',
+          title: Text('Account'),
           tiles: [
             SettingsTile(
-              title: 'Email',
+              title: Text('Email'),
               leading: const Icon(Icons.email),
               onPressed: (context) {
                 showEmailModal();
@@ -83,12 +83,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         SettingsSection(
-          title: 'Security',
+          title: Text('Security'),
           tiles: [
             SettingsTile.switchTile(
-              title: 'Send daily report',
+              title: Text('Send daily report'),
               leading: const Icon(Icons.analytics),
-              switchValue: model.kSetting.sendDailReport,
+              initialValue: model.kSetting.sendDailReport,
               onToggle: (bool value) {
                 model.enableDailyReport((message) {
                   showSimpleNotification(

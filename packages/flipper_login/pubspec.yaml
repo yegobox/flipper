@@ -29,7 +29,7 @@ dependencies:
   flutter_carousel_slider: ^1.0.9
   country_code_picker: ^3.0.0
   overlay_support: ^2.1.0
-  flutter_settings_ui: ^2.0.1
+  flutter_settings_ui: ^3.0.1
   stacked: ^3.4.2
   google_fonts: ^6.1.0
   # Do not update firebase_auth https://github.com/firebase/flutterfire/issues/5964

@@ -7,6 +7,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
 class TaxConfiguration extends StatefulWidget {
   const TaxConfiguration({
@@ -53,12 +54,9 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
             onPop: () async {
               _routerService.pop();
             },
-            disableButton: false,
-            showActionButton: false,
-            icon: Icons.close,
-            multi: 3,
-            bottomSpacer: 48.99,
+            closeButton: CLOSEBUTTON.WIDGET,
             isDividerVisible: false,
+            customLeadingWidget: back.BackButton(),
           ),
           body: Column(
             children: [

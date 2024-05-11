@@ -42,7 +42,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               sections: [
                 SettingsSection(tiles: [
                   SettingsTile(
-                    title: "English",
+                    title: Text("English"),
                     trailing: trailingWidget(model.defaultLanguage == 'en'),
                     onPressed: (BuildContext context) {
                       model.setLanguage('en');
@@ -50,7 +50,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                     },
                   ),
                   SettingsTile(
-                    title: "Ikinyarwanda",
+                    title: Text("Ikinyarwanda"),
                     trailing: trailingWidget(model.defaultLanguage == 'fr'),
                     onPressed: (BuildContext context) {
                       model.setLanguage('fr');
@@ -58,7 +58,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                     },
                   ),
                   SettingsTile(
-                    title: "Swahili",
+                    title: Text("Swahili"),
                     trailing: trailingWidget(model.defaultLanguage == 'sw'),
                     onPressed: (BuildContext context) {
                       model.setLanguage('sw');

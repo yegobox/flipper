@@ -42,9 +42,9 @@ class _UpdatePrinterSettingState extends State<UpdatePrinterSetting> {
             SettingsSection(
               tiles: [
                 SettingsTile.switchTile(
-                  title: 'Auto print',
+                  title: Text('Auto print'),
                   leading: Icon(Icons.lock),
-                  switchValue: model.setting == null
+                  initialValue: model.setting == null
                       ? false
                       : model.setting!.autoPrint == null
                           ? false
@@ -62,10 +62,10 @@ class _UpdatePrinterSettingState extends State<UpdatePrinterSetting> {
                   },
                 ),
                 SettingsTile.switchTile(
-                  title: 'Open Receipt File instead of printing',
+                  title: Text('Open Receipt File instead of printing'),
                   enabled: notificationsEnabled,
                   leading: Icon(Icons.notifications_active),
-                  switchValue: model.setting == null
+                  initialValue: model.setting == null
                       ? false
                       : model.setting!.openReceiptFileOSaleComplete == null
                           ? false
