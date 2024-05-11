@@ -20,9 +20,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 /// The application that contains datagrid on it.
 
-List<ITransaction> _paginatedTransactions = [];
-final int _rowsPerPage = 4;
-
 /// The home page of the application which hosts the datagrid.
 class DataView extends StatefulWidget {
   /// Creates the home page.
@@ -32,14 +29,25 @@ class DataView extends StatefulWidget {
   _DataViewState createState() => _DataViewState();
 }
 
+final int rowsPerPage = 4;
+List<ITransaction> paginatedDataSource = [];
+
 class _DataViewState extends State<DataView> {
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
   bool isProcessing = false;
-  static const double dataPagerHeight = 10;
+  static const double dataPagerHeight = 60;
+  late TransactionDataSource _transactionDataSource;
 
   @override
   void initState() {
     super.initState();
+    _transactionDataSource =
+        TransactionDataSource(transactions: widget.transactions);
+    _transactionDataSource..addListener(updateWidget);
+  }
+
+  updateWidget() {
+    setState(() {});
   }
 
   Future<void> requestPermissions() async {
@@ -87,7 +95,7 @@ class _DataViewState extends State<DataView> {
   void handleCellTap(DataGridCellTapDetails details) {
     final rowData = details.rowColumnIndex;
     final rowIndex = rowData.rowIndex;
-    final transaction = widget.transactions[rowIndex];
+    final transaction = widget.transactions[rowIndex - 1];
 
     // Do something with the row data
     talker.warning(
@@ -116,139 +124,144 @@ class _DataViewState extends State<DataView> {
         onViewModelReady: (model) {},
         builder: (a, b, c) {
           return Scaffold(
-            body: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
-                  child: Row(
-                    children: <Widget>[
-                      SizedBox(
-                        height: 40.0,
-                        width: 150.0,
-                        child: BoxButton(
-                          onTap: exportDataGridToExcel,
-                          borderRadius: 1,
-                          title: 'Export to Excel',
-                          busy: isProcessing,
-                        ),
-                      ),
-                      const Padding(padding: EdgeInsets.all(20)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: SfDataGridTheme(
-                    data: SfDataGridThemeData(
-                      headerHoverColor: Colors.yellow,
-                      gridLineColor: Colors.amber,
-                      gridLineStrokeWidth: 1.0,
-                      rowHoverColor: Colors.yellow,
-                      selectionColor: Colors.yellow,
-                      rowHoverTextStyle: TextStyle(
-                        color: Colors.red,
-                        fontSize: 14,
-                      ),
-                    ),
-                    child: SfDataGrid(
-                      allowFiltering: true,
-                      highlightRowOnHover: true,
-                      gridLinesVisibility: GridLinesVisibility.both,
-                      headerGridLinesVisibility: GridLinesVisibility.both,
-                      key: _key,
-                      source: TransactionDataSource(
-                          transactions: widget.transactions),
-                      columnWidthMode: ColumnWidthMode.fill,
-                      onCellTap: handleCellTap,
-                      columns: <GridColumn>[
-                        GridColumn(
-                          columnName: 'id',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            padding: headerPadding,
-                            alignment: Alignment.center,
-                            child: const Text('ID',
-                                overflow: TextOverflow.ellipsis),
+            body: LayoutBuilder(builder: (context, constraint) {
+              return Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
+                    child: Row(
+                      children: <Widget>[
+                        SizedBox(
+                          height: 40.0,
+                          width: 150.0,
+                          child: BoxButton(
+                            onTap: exportDataGridToExcel,
+                            borderRadius: 1,
+                            title: 'Export to Excel',
+                            busy: isProcessing,
                           ),
                         ),
-                        GridColumn(
-                          columnName: 'Type',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            padding: headerPadding,
-                            alignment: Alignment.center,
-                            child: const Text('Type',
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                        ),
-                        GridColumn(
-                          columnName: 'Amount',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            padding: headerPadding,
-                            alignment: Alignment.center,
-                            child: const Text('Amount',
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                        ),
-                        GridColumn(
-                          columnName: 'CashReceived',
-                          label: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(4.0),
-                            ),
-                            padding: headerPadding,
-                            alignment: Alignment.center,
-                            child: const Text('Cash Received',
-                                overflow: TextOverflow.ellipsis),
-                          ),
-                        ),
+                        const Padding(padding: EdgeInsets.all(20)),
                       ],
                     ),
                   ),
-                ),
-                Container(
-                  height: dataPagerHeight,
-                  color: Colors.black,
-                  child: SfDataPager(
-                    delegate: TransactionDataSource(
-                        transactions: widget.transactions),
-                    pageCount: widget.transactions.length / _rowsPerPage,
-                    direction: Axis.horizontal,
+                  Expanded(
+                    child: SfDataGridTheme(
+                      data: SfDataGridThemeData(
+                        headerHoverColor: Colors.yellow,
+                        gridLineColor: Colors.amber,
+                        gridLineStrokeWidth: 1.0,
+                        rowHoverColor: Colors.yellow,
+                        selectionColor: Colors.yellow,
+                        rowHoverTextStyle: TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                        ),
+                      ),
+                      child: SizedBox(
+                        height: constraint.maxHeight - dataPagerHeight,
+                        width: constraint.maxWidth,
+                        child: SfDataGrid(
+                          rowsPerPage: 5,
+                          allowFiltering: true,
+                          highlightRowOnHover: true,
+                          gridLinesVisibility: GridLinesVisibility.both,
+                          headerGridLinesVisibility: GridLinesVisibility.both,
+                          key: _key,
+                          source: _transactionDataSource,
+                          columnWidthMode: ColumnWidthMode.fill,
+                          onCellTap: handleCellTap,
+                          columns: <GridColumn>[
+                            GridColumn(
+                              columnName: 'id',
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                padding: headerPadding,
+                                alignment: Alignment.center,
+                                child: const Text('ID',
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ),
+                            GridColumn(
+                              columnName: 'Type',
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                padding: headerPadding,
+                                alignment: Alignment.center,
+                                child: const Text('Type',
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ),
+                            GridColumn(
+                              columnName: 'Amount',
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                padding: headerPadding,
+                                alignment: Alignment.center,
+                                child: const Text('Amount',
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ),
+                            GridColumn(
+                              columnName: 'CashReceived',
+                              label: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                padding: headerPadding,
+                                alignment: Alignment.center,
+                                child: const Text('Cash Received',
+                                    overflow: TextOverflow.ellipsis),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                )
-              ],
-            ),
+                  Container(
+                    height: dataPagerHeight,
+                    color: Colors.black,
+                    child: SfDataPager(
+                      delegate: _transactionDataSource,
+                      pageCount: (widget.transactions.length / rowsPerPage)
+                          .ceilToDouble(),
+                      direction: Axis.horizontal,
+                    ),
+                  )
+                ],
+              );
+            }),
           );
         });
   }
 }
 
-/// Custom business object class which contains properties to hold the detailed
-/// information about the employee which will be rendered in datagrid.
-
-/// An object to set the employee collection data source to the datagrid. This
-/// is used to map the employee data to the datagrid widget.
 class TransactionDataSource extends DataGridSource {
   final talker = TalkerFlutter.init();
   TransactionDataSource({required this.transactions}) {
-    talker.warning(transactions.toEJson());
-    _paginatedTransactions =
-        transactions.getRange(0, transactions.length).toList(growable: false);
+    // talker.warning(transactions.toEJson());
+    paginatedDataSource = transactions
+        .getRange(
+            0,
+            (rowsPerPage > transactions.length)
+                ? transactions.length
+                : rowsPerPage)
+        .toList();
     buildPaginatedDataGridRows();
   }
 
   final List<ITransaction> transactions;
-  List<ITransaction> paginatedDataSource = [];
 
   List<DataGridRow> dataGridRows = [];
 
@@ -268,27 +281,25 @@ class TransactionDataSource extends DataGridSource {
   }
 
   @override
-  @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    int startIndex = newPageIndex * _rowsPerPage;
-    int endIndex = startIndex + _rowsPerPage;
-    if (startIndex < transactions.length && endIndex <= transactions.length) {
-      await Future.delayed(Duration(milliseconds: 2000));
-      _paginatedTransactions =
-          transactions.getRange(startIndex, endIndex).toList(growable: false);
-      buildPaginatedDataGridRows();
-      notifyListeners();
-    } else {
-      _paginatedTransactions = [];
+    int startRowIndex = newPageIndex * rowsPerPage;
+    int endIndex = startRowIndex + rowsPerPage;
+
+    if (endIndex > transactions.length) {
+      endIndex = transactions.length - 1;
     }
 
+    paginatedDataSource = List.from(
+        transactions.getRange(startRowIndex, endIndex).toList(growable: false));
+    buildPaginatedDataGridRows();
+    notifyListeners();
     return true;
   }
 
   void buildPaginatedDataGridRows() {
     dataGridRows.clear(); // Clear the existing rows
 
-    final data = _paginatedTransactions.map<DataGridRow>((transaction) {
+    dataGridRows = transactions.map<DataGridRow>((transaction) {
       return DataGridRow(cells: [
         DataGridCell<String>(
             columnName: 'id', value: transaction.id!.toString()),
@@ -299,15 +310,5 @@ class TransactionDataSource extends DataGridSource {
             columnName: 'CashReceived', value: transaction.cashReceived),
       ]);
     }).toList(growable: false);
-
-    dataGridRows.addAll(data);
   }
 }
-
-/// the query work r'lastTouched >= $0 && lastTouched < $1 && status == $2', with data
-///endDate:DateTime (2024-05-14 00:00:00.000)
-///startDate:DateTime (2024-05-14 00:00:00.000)
-/// but not with
-///endDate: DateTime (2024-05-11 00:00:00.000)
-///startDate: DateTime (2024-05-10 00:00:00.000)
-///"2024-05-11T08:32:12.964788"
