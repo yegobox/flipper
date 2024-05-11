@@ -108,7 +108,7 @@ dependencies:
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
   syncfusion_flutter_datepicker:
-  syncfusion_flutter_datagrid: ^25.1.41
+  syncfusion_flutter_datagrid: ^25.2.3
   syncfusion_flutter_xlsio: ^25.1.41
   syncfusion_flutter_datagrid_export: ^25.1.41
   syncfusion_flutter_core: ^25.1.42

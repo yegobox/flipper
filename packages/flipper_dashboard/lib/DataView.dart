@@ -7,7 +7,6 @@ import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -18,9 +17,6 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:share_plus/share_plus.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-/// The application that contains datagrid on it.
-
-/// The home page of the application which hosts the datagrid.
 class DataView extends StatefulWidget {
   /// Creates the home page.
   const DataView({super.key, required this.transactions});
@@ -29,8 +25,9 @@ class DataView extends StatefulWidget {
   _DataViewState createState() => _DataViewState();
 }
 
-final int rowsPerPage = 4;
+final int rowsPerPage = 10;
 List<ITransaction> paginatedDataSource = [];
+List<ITransaction> transactions = [];
 
 class _DataViewState extends State<DataView> {
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
@@ -41,8 +38,8 @@ class _DataViewState extends State<DataView> {
   @override
   void initState() {
     super.initState();
-    _transactionDataSource =
-        TransactionDataSource(transactions: widget.transactions);
+    transactions = widget.transactions;
+    _transactionDataSource = TransactionDataSource();
     _transactionDataSource..addListener(updateWidget);
   }
 
@@ -162,7 +159,7 @@ class _DataViewState extends State<DataView> {
                         height: constraint.maxHeight - dataPagerHeight,
                         width: constraint.maxWidth,
                         child: SfDataGrid(
-                          rowsPerPage: 5,
+                          rowsPerPage: rowsPerPage,
                           allowFiltering: true,
                           highlightRowOnHover: true,
                           gridLinesVisibility: GridLinesVisibility.both,
@@ -231,12 +228,12 @@ class _DataViewState extends State<DataView> {
                   ),
                   Container(
                     height: dataPagerHeight,
-                    color: Colors.black,
                     child: SfDataPager(
                       delegate: _transactionDataSource,
                       pageCount: (widget.transactions.length / rowsPerPage)
                           .ceilToDouble(),
                       direction: Axis.horizontal,
+                      // visibleItemsCount: rowsPerPage,
                     ),
                   )
                 ],
@@ -248,9 +245,9 @@ class _DataViewState extends State<DataView> {
 }
 
 class TransactionDataSource extends DataGridSource {
-  final talker = TalkerFlutter.init();
-  TransactionDataSource({required this.transactions}) {
-    // talker.warning(transactions.toEJson());
+  final talker = TalkerFlutter.init(); // Uncomment this line
+
+  TransactionDataSource() {
     paginatedDataSource = transactions
         .getRange(
             0,
@@ -260,8 +257,6 @@ class TransactionDataSource extends DataGridSource {
         .toList();
     buildPaginatedDataGridRows();
   }
-
-  final List<ITransaction> transactions;
 
   List<DataGridRow> dataGridRows = [];
 
@@ -289,17 +284,15 @@ class TransactionDataSource extends DataGridSource {
       endIndex = transactions.length - 1;
     }
 
-    paginatedDataSource = List.from(
-        transactions.getRange(startRowIndex, endIndex).toList(growable: false));
+    paginatedDataSource =
+        transactions.getRange(startRowIndex, endIndex).toList();
     buildPaginatedDataGridRows();
     notifyListeners();
     return true;
   }
 
   void buildPaginatedDataGridRows() {
-    dataGridRows.clear(); // Clear the existing rows
-
-    dataGridRows = transactions.map<DataGridRow>((transaction) {
+    dataGridRows = paginatedDataSource.map<DataGridRow>((transaction) {
       return DataGridRow(cells: [
         DataGridCell<String>(
             columnName: 'id', value: transaction.id!.toString()),
