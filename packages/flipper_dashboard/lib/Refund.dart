@@ -1,14 +1,22 @@
+import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class Refund extends StatefulWidget {
   const Refund(
       {super.key,
       required this.refundAmount,
       required this.transactionId,
-      this.currency = "RWF"});
+      this.currency = "RWF",
+      required this.transaction});
   final double refundAmount;
   final String transactionId;
   final String? currency;
+  final ITransaction transaction;
 
   @override
   _RefundState createState() => _RefundState();
@@ -17,6 +25,8 @@ class Refund extends StatefulWidget {
 class _RefundState extends State<Refund> {
   final _formKey = GlobalKey<FormState>();
 
+  bool isProcessing = false;
+  final talker = TalkerFlutter.init();
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -42,35 +52,32 @@ class _RefundState extends State<Refund> {
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
                 const SizedBox(height: 32),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Perform refund operation
+                BoxButton(
+                  title: widget.transaction.isRefunded == true
+                      ? "Refunded"
+                      : "Refund",
+                  onTap: () async {
+                    if (_formKey.currentState!.validate()) {
+                      setState(() {
+                        isProcessing = true;
+                      });
+                      ProxyService.realm.realm!.write(() {
+                        widget.transaction.transactionType =
+                            TransactionReceptType.NR;
+                      });
+                      try {
+                        await EBMHandler(object: widget.transaction)
+                            .handleReceipt();
+                      } catch (e) {
+                        talker.critical(e);
+                        setState(() {
+                          isProcessing = true;
+                        });
                       }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[800],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 4,
-                      shadowColor: Colors.blue[900],
-                    ),
-                    child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                      child: Text(
-                        'Refund',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ),
+                    }
+                  },
+                  busy: isProcessing,
+                )
               ],
             ),
           ),

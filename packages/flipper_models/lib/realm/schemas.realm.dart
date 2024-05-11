@@ -4708,6 +4708,7 @@ class TransactionItem extends _TransactionItem
     DateTime? deletedAt,
     String? action,
     int? branchId,
+    bool ebmSynced = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<TransactionItem>({
@@ -4724,6 +4725,7 @@ class TransactionItem extends _TransactionItem
         'totAmt': 0.0,
         'prc': 0.0,
         'splyAmt': 0.0,
+        'ebmSynced': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -4779,6 +4781,7 @@ class TransactionItem extends _TransactionItem
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
   }
 
   TransactionItem._();
@@ -5080,6 +5083,11 @@ class TransactionItem extends _TransactionItem
   set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
 
   @override
+  bool get ebmSynced => RealmObjectBase.get<bool>(this, 'ebmSynced') as bool;
+  @override
+  set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
+
+  @override
   Stream<RealmObjectChanges<TransactionItem>> get changes =>
       RealmObjectBase.getChanges<TransactionItem>(this);
 
@@ -5147,6 +5155,7 @@ class TransactionItem extends _TransactionItem
       'deletedAt': deletedAt.toEJson(),
       'action': action.toEJson(),
       'branchId': branchId.toEJson(),
+      'ebmSynced': ebmSynced.toEJson(),
     };
   }
 
@@ -5207,6 +5216,7 @@ class TransactionItem extends _TransactionItem
         'deletedAt': EJsonValue deletedAt,
         'action': EJsonValue action,
         'branchId': EJsonValue branchId,
+        'ebmSynced': EJsonValue ebmSynced,
       } =>
         TransactionItem(
           fromEJson(realmId),
@@ -5262,6 +5272,7 @@ class TransactionItem extends _TransactionItem
           deletedAt: fromEJson(deletedAt),
           action: fromEJson(action),
           branchId: fromEJson(branchId),
+          ebmSynced: fromEJson(ebmSynced),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5328,6 +5339,7 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('ebmSynced', RealmPropertyType.bool),
     ]);
   }();
 
@@ -5366,6 +5378,7 @@ class ITransaction extends _ITransaction
     bool ebmSynced = false,
     bool isIncome = false,
     bool isExpense = false,
+    bool isRefunded = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<ITransaction>({
@@ -5375,6 +5388,7 @@ class ITransaction extends _ITransaction
         'ebmSynced': false,
         'isIncome': false,
         'isExpense': false,
+        'isRefunded': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -5403,6 +5417,7 @@ class ITransaction extends _ITransaction
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'isIncome', isIncome);
     RealmObjectBase.set(this, 'isExpense', isExpense);
+    RealmObjectBase.set(this, 'isRefunded', isRefunded);
   }
 
   ITransaction._();
@@ -5565,6 +5580,11 @@ class ITransaction extends _ITransaction
   set isExpense(bool value) => RealmObjectBase.set(this, 'isExpense', value);
 
   @override
+  bool get isRefunded => RealmObjectBase.get<bool>(this, 'isRefunded') as bool;
+  @override
+  set isRefunded(bool value) => RealmObjectBase.set(this, 'isRefunded', value);
+
+  @override
   Stream<RealmObjectChanges<ITransaction>> get changes =>
       RealmObjectBase.getChanges<ITransaction>(this);
 
@@ -5604,6 +5624,7 @@ class ITransaction extends _ITransaction
       'ebmSynced': ebmSynced.toEJson(),
       'isIncome': isIncome.toEJson(),
       'isExpense': isExpense.toEJson(),
+      'isRefunded': isRefunded.toEJson(),
     };
   }
 
@@ -5637,6 +5658,7 @@ class ITransaction extends _ITransaction
         'ebmSynced': EJsonValue ebmSynced,
         'isIncome': EJsonValue isIncome,
         'isExpense': EJsonValue isExpense,
+        'isRefunded': EJsonValue isRefunded,
       } =>
         ITransaction(
           fromEJson(realmId),
@@ -5665,6 +5687,7 @@ class ITransaction extends _ITransaction
           ebmSynced: fromEJson(ebmSynced),
           isIncome: fromEJson(isIncome),
           isExpense: fromEJson(isExpense),
+          isRefunded: fromEJson(isRefunded),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5704,6 +5727,7 @@ class ITransaction extends _ITransaction
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('isIncome', RealmPropertyType.bool),
       SchemaProperty('isExpense', RealmPropertyType.bool),
+      SchemaProperty('isRefunded', RealmPropertyType.bool),
     ]);
   }();
 

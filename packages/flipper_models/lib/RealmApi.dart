@@ -23,7 +23,6 @@ import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync_service.dart';
-import 'package:flipper_routing/receipt_types.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -381,12 +380,12 @@ class RealmAPI<M extends IJsonSerializable>
       /// for now receipt type to be printed is in box shared preference
       /// this ofcause has limitation that if more than two users are using device
       /// one user will use configuration set by probably a different user, this need to change soon.
-      String receiptType = "ns";
+      String receiptType = TransactionReceptType.NS;
       if (ProxyService.box.isPoroformaMode()) {
-        receiptType = ReceiptType.ps;
+        receiptType = TransactionReceptType.PS;
       }
       if (ProxyService.box.isTrainingMode()) {
-        receiptType = ReceiptType.ts;
+        receiptType = TransactionReceptType.PS;
       }
       transaction.receiptType = receiptType;
 
@@ -1529,17 +1528,15 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.query<Counter>(r'businessId == $0', [businessId]).toList();
       if (localCounters.isNotEmpty) return;
       for (ICounter counter in counters) {
-        realm!.write(() {
-          realm!.put<Counter>(Counter(
-            ObjectId(),
-            id: counter.id,
-            branchId: counter.branchId,
-            businessId: counter.businessId,
-            totRcptNo: counter.totRcptNo,
-            curRcptNo: counter.curRcptNo,
-            receiptType: counter.receiptType,
-          ));
-        });
+        realm!.put<Counter>(Counter(
+          ObjectId(),
+          id: counter.id,
+          branchId: counter.branchId,
+          businessId: counter.businessId,
+          totRcptNo: counter.totRcptNo,
+          curRcptNo: counter.curRcptNo,
+          receiptType: counter.receiptType,
+        ));
       }
     } else {
       throw InternalServerError(term: "Error loading the counters");
@@ -2376,7 +2373,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-      r'lastTouched BETWEEN {$0,$1} && status == $2',
+      r'lastTouched >= $0 && lastTouched < $1 && status == $2',
       [startDate, endDate, COMPLETE],
     );
 

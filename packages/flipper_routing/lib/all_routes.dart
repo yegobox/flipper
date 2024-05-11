@@ -1,5 +1,3 @@
-export 'receipt_types.dart';
-
 export 'package:flipper_dashboard/login_choices.dart';
 export 'package:flipper_dashboard/printing.dart';
 export 'package:flipper_dashboard/backup.dart';

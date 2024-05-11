@@ -30,6 +30,14 @@ class AppActions {
   static const String remote = "remote";
 }
 
+class TransactionReceptType {
+  static const NS = "NS";
+  static const NR = "NR";
+  static const CS = "CS";
+  static const TS = "TS";
+  static const PS = "PS";
+}
+
 class TransactionType {
   static String cashIn = 'Cash In';
   static String cashOut = 'Cash Out';

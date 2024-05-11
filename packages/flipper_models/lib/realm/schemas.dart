@@ -643,6 +643,7 @@ class _TransactionItem {
   String? action;
 
   int? branchId;
+  bool ebmSynced = false;
 }
 
 @RealmModel()
@@ -694,6 +695,7 @@ class _ITransaction {
   bool isIncome = false;
 
   bool isExpense = false;
+  bool isRefunded = false;
 }
 
 @RealmModel()

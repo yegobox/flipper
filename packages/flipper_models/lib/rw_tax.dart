@@ -316,18 +316,31 @@ class RWTax implements TaxApi {
       final response = await sendPostRequest(url, finalData);
 
       if (response.statusCode == 200) {
-        // sendEmailLogging(
-        //   requestBody: finalData.toString(),
-        //   subject: "Worked",
-        //   body: response.data.toString(),
-        // );
-
         final data = EBMApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(
             "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}",
           );
         }
+
+        /// update transaction.ebmSynced to true;
+        /// update transaction.refunded to false < get this flag given to the type of sale type being used.
+        for (TransactionItem item in items) {
+          ProxyService.realm.realm!.write(() {
+            item.ebmSynced = true;
+            if (rcptTyCd == "R") {
+              item.isRefunded = true;
+            }
+          });
+        }
+        ProxyService.realm.realm!.write(() {
+          if (rcptTyCd == "R") {
+            transaction.ebmSynced = true;
+            transaction.isRefunded = true;
+          } else {
+            transaction.isRefunded = false;
+          }
+        });
         return data;
       } else {
         throw Exception(

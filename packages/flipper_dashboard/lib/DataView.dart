@@ -7,6 +7,7 @@ import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -29,7 +30,6 @@ class DataView extends StatefulWidget {
 }
 
 class _DataViewState extends State<DataView> {
-  late TransactionDataSource transactionDataSource;
   final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
   bool isProcessing = false;
   static const double dataPagerHeight = 10;
@@ -37,9 +37,6 @@ class _DataViewState extends State<DataView> {
   @override
   void initState() {
     super.initState();
-
-    transactionDataSource =
-        TransactionDataSource(transactions: widget.transactions);
   }
 
   Future<void> requestPermissions() async {
@@ -93,13 +90,14 @@ class _DataViewState extends State<DataView> {
     talker.warning(
         'Tapped row: ID = ${transaction.id}, Name = ${transaction.subTotal}');
     showDialog(
-      barrierDismissible: false,
+      barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
         child: Refund(
           refundAmount: transaction.subTotal,
           transactionId: transaction.id.toString(),
           currency: "RWF",
+          transaction: transaction,
         ),
       ),
     );
@@ -149,11 +147,13 @@ class _DataViewState extends State<DataView> {
                       ),
                     ),
                     child: SfDataGrid(
+                      allowFiltering: true,
                       highlightRowOnHover: true,
                       gridLinesVisibility: GridLinesVisibility.both,
                       headerGridLinesVisibility: GridLinesVisibility.both,
                       key: _key,
-                      source: transactionDataSource,
+                      source: TransactionDataSource(
+                          transactions: widget.transactions),
                       columnWidthMode: ColumnWidthMode.fill,
                       onCellTap: handleCellTap,
                       columns: <GridColumn>[
@@ -217,8 +217,10 @@ class _DataViewState extends State<DataView> {
                   height: dataPagerHeight,
                   color: Colors.black,
                   child: SfDataPager(
-                    delegate: transactionDataSource,
-                    pageCount: 10,
+                    delegate: TransactionDataSource(
+                        transactions: widget.transactions),
+                    pageCount:
+                        widget.transactions.length / 4, // 4 is row per page
                     direction: Axis.horizontal,
                   ),
                 )
@@ -229,16 +231,22 @@ class _DataViewState extends State<DataView> {
   }
 }
 
+List<ITransaction> _paginatedTransactions = [];
+
 /// Custom business object class which contains properties to hold the detailed
 /// information about the employee which will be rendered in datagrid.
 
 /// An object to set the employee collection data source to the datagrid. This
 /// is used to map the employee data to the datagrid widget.
 class TransactionDataSource extends DataGridSource {
+  final talker = TalkerFlutter.init();
   TransactionDataSource({required this.transactions}) {
-    buildPaginatedDataGridRows(transactions);
+    talker.warning(transactions.toEJson());
+    _paginatedTransactions =
+        transactions.getRange(0, transactions.length).toList(growable: false);
+    buildPaginatedDataGridRows();
   }
-  final int rowsPerPage = 4;
+  final int _rowsPerPage = 4;
 
   final List<ITransaction> transactions;
   List<ITransaction> paginatedDataSource = [];
@@ -261,23 +269,27 @@ class TransactionDataSource extends DataGridSource {
   }
 
   @override
+  @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    int startRowIndex = newPageIndex * rowsPerPage;
-    int endIndex = startRowIndex + rowsPerPage;
-
-    if (endIndex > transactions.length) {
-      endIndex = transactions.length - 1;
+    int startIndex = newPageIndex * _rowsPerPage;
+    int endIndex = startIndex + _rowsPerPage;
+    if (startIndex < transactions.length && endIndex <= transactions.length) {
+      await Future.delayed(Duration(milliseconds: 2000));
+      _paginatedTransactions =
+          transactions.getRange(startIndex, endIndex).toList(growable: false);
+      buildPaginatedDataGridRows();
+      notifyListeners();
+    } else {
+      _paginatedTransactions = [];
     }
 
-    paginatedDataSource = List.from(
-        transactions.getRange(startRowIndex, endIndex).toList(growable: false));
-    buildPaginatedDataGridRows(paginatedDataSource);
-    notifyListeners();
     return true;
   }
 
-  void buildPaginatedDataGridRows(List<ITransaction> paginatedTransactions) {
-    dataGridRows = paginatedTransactions.map<DataGridRow>((transaction) {
+  void buildPaginatedDataGridRows() {
+    dataGridRows.clear(); // Clear the existing rows
+
+    final data = _paginatedTransactions.map<DataGridRow>((transaction) {
       return DataGridRow(cells: [
         DataGridCell<String>(
             columnName: 'id', value: transaction.id!.toString()),
@@ -288,5 +300,7 @@ class TransactionDataSource extends DataGridSource {
             columnName: 'CashReceived', value: transaction.cashReceived),
       ]);
     }).toList(growable: false);
+
+    dataGridRows.addAll(data);
   }
 }

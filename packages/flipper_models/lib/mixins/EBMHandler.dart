@@ -23,13 +23,20 @@ class EBMHandler<OBJ> {
       /// when the customer is not added to the sale then we shall print the rra receipt
       /// automatically if the customer is added though we shall wait for the purchase code from
       /// user for us to proceed
-      if (transaction.status == COMPLETE && transaction.customerId == null) {
+      /// for NS or normal sale we ask for purchase code! therefore the first condition should check if it is  NS
+      /// as it require the purchase code and
+
+      if (transaction.status == COMPLETE &&
+          transaction.customerId == null &&
+          transaction.receiptType == TransactionReceptType.NS) {
         //// generate a receipt for this completed transaction
         /// if a customer is attached and the customer is of type business
         /// we stop and wait for a business to give us purchase code!
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
+        await handleReceiptGeneration(transaction: transaction);
+      } else if (transaction.receiptType == TransactionReceptType.NR) {
         await handleReceiptGeneration(transaction: transaction);
       }
     }
