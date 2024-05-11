@@ -20,6 +20,9 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 /// The application that contains datagrid on it.
 
+List<ITransaction> _paginatedTransactions = [];
+final int _rowsPerPage = 4;
+
 /// The home page of the application which hosts the datagrid.
 class DataView extends StatefulWidget {
   /// Creates the home page.
@@ -219,8 +222,7 @@ class _DataViewState extends State<DataView> {
                   child: SfDataPager(
                     delegate: TransactionDataSource(
                         transactions: widget.transactions),
-                    pageCount:
-                        widget.transactions.length / 4, // 4 is row per page
+                    pageCount: widget.transactions.length / _rowsPerPage,
                     direction: Axis.horizontal,
                   ),
                 )
@@ -230,8 +232,6 @@ class _DataViewState extends State<DataView> {
         });
   }
 }
-
-List<ITransaction> _paginatedTransactions = [];
 
 /// Custom business object class which contains properties to hold the detailed
 /// information about the employee which will be rendered in datagrid.
@@ -246,7 +246,6 @@ class TransactionDataSource extends DataGridSource {
         transactions.getRange(0, transactions.length).toList(growable: false);
     buildPaginatedDataGridRows();
   }
-  final int _rowsPerPage = 4;
 
   final List<ITransaction> transactions;
   List<ITransaction> paginatedDataSource = [];
@@ -304,3 +303,11 @@ class TransactionDataSource extends DataGridSource {
     dataGridRows.addAll(data);
   }
 }
+
+/// the query work r'lastTouched >= $0 && lastTouched < $1 && status == $2', with data
+///endDate:DateTime (2024-05-14 00:00:00.000)
+///startDate:DateTime (2024-05-14 00:00:00.000)
+/// but not with
+///endDate: DateTime (2024-05-11 00:00:00.000)
+///startDate: DateTime (2024-05-10 00:00:00.000)
+///"2024-05-11T08:32:12.964788"

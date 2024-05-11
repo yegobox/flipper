@@ -416,7 +416,9 @@ class RealmAPI<M extends IJsonSerializable>
           item.doneWithTransaction = true;
           item.updatedAt = DateTime.now().toIso8601String();
         });
-        // search the related product and touch them to make them as most used
+
+        /// search the related product and touch them to make them as most used
+        /// hence why we are adding time to it
         Variant? variant = await getVariantById(id: item.variantId!);
         Product? product = await getProduct(id: variant!.productId!);
         if (product != null) {
@@ -2371,10 +2373,13 @@ class RealmAPI<M extends IJsonSerializable>
     if (startDate == null || endDate == null) return Stream.empty();
     final controller = StreamController<List<ITransaction>>.broadcast();
 
+    /// This is a hack as the query is failing to include data that is on same endDate
+    /// so to include it I have to add 1 day to a provided endDate
+
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-      r'lastTouched >= $0 && lastTouched < $1 && status == $2',
-      [startDate, endDate, COMPLETE],
+      r'lastTouched >= $0 && lastTouched <= $1 && status == $2',
+      [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
