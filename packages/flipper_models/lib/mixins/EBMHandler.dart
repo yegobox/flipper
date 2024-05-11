@@ -209,11 +209,20 @@ class EBMHandler<OBJ> {
 
       /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
-      ProxyService.realm.realm!.write(() {
-        counter!
-          ..totRcptNo = (receiptSignature.data?.totRcptNo ?? 0) + 1
-          ..curRcptNo = counter.curRcptNo! + 1;
-      });
+      /// since curRcptNo need to be update when one change to keep track on current then we find all
+      List<Counter> counters = ProxyService.realm.realm!
+          .query<Counter>(r'branchId == $0', [branchId]).toList();
+
+      for (Counter count in counters) {
+        await ProxyService.realm.realm!.writeAsync(() {
+          /// here we take the current counter being in current transaction
+          /// use its curRcptNo to update other counter's curRcptNo
+          /// this is to make sure all they have current curRcptNo
+          count
+            ..totRcptNo = receiptSignature.data?.totRcptNo
+            ..curRcptNo = count.curRcptNo! + 1;
+        });
+      }
     } catch (e, s) {
       talker.critical(s);
       rethrow;

@@ -334,8 +334,8 @@ class RWTax implements TaxApi {
           });
         }
         ProxyService.realm.realm!.write(() {
+          transaction.ebmSynced = true;
           if (rcptTyCd == "R") {
-            transaction.ebmSynced = true;
             transaction.isRefunded = true;
           } else {
             transaction.isRefunded = false;
