@@ -393,9 +393,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       transaction.updatedAt = DateTime.now().toIso8601String();
       transaction.createdAt = DateTime.now().toIso8601String();
-      talker.info(
-        DateTime.now().toLocal().add(Duration(hours: 2)).toString(),
-      );
+
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
 
@@ -1402,13 +1400,20 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<List<ITransaction>> getTransactionsByCustomerId(
-      {required int customerId}) async* {
+  Stream<List<ITransaction>> transactionStreamById(
+      {required int id, required FilterType filterType}) async* {
     final controller = StreamController<List<ITransaction>>.broadcast();
 
+    String queryString = "";
+    if (filterType == FilterType.CUSTOMER) {
+      queryString = r'customerId == $0';
+    } else if (filterType == FilterType.TRANSACTION) {
+      queryString = r'id == $0';
+    }
+
     final query = realm!.query<ITransaction>(
-      r'customerId == $0 AND deletedAt == nil',
-      [customerId],
+      queryString,
+      [id],
     );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;

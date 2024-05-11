@@ -554,3 +554,15 @@ final transactionItemsStreamProvider = StreamProvider.autoDispose
     active: true,
   );
 });
+
+final currentTransactionsByIdStream =
+    StreamProvider.autoDispose.family<List<ITransaction>, int>((ref, id) {
+  // Retrieve the transaction status from the provider container, if needed
+
+  // Use ProxyService to get the IsarStream of transactions
+  final transactionsStream = ProxyService.realm
+      .transactionStreamById(id: id, filterType: FilterType.TRANSACTION);
+
+  // Return the stream
+  return transactionsStream;
+});

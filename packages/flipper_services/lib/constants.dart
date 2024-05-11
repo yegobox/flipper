@@ -21,6 +21,8 @@ void showSnackBar(BuildContext context, String message,
   );
 }
 
+enum FilterType { CUSTOMER, TRANSACTION }
+
 class AppActions {
   static const String updated = "updated";
   static const String synchronized = "synchronized";

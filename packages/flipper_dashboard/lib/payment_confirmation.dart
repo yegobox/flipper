@@ -7,10 +7,10 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'customappbar.dart';
@@ -46,6 +46,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTransaction =
+        ref.watch(currentTransactionsByIdStream(widget.transaction.id!));
     return ViewModelBuilder<CoreViewModel>.reactive(
       builder: (context, model, child) {
         return SafeArea(
@@ -56,12 +58,12 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
               title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
-                // ignore: unused_result
                 ref.refresh(pendingTransactionProvider('custom'));
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
-            body: buildBody(context, model, widget.transaction),
+            body: buildBody(
+                context, model, widget.transaction, currentTransaction),
           ),
         );
       },
@@ -170,8 +172,11 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     );
   }
 
-  Widget buildBody(BuildContext context, CoreViewModel model,
-      ITransaction currentTransaction) {
+  Widget buildBody(
+      BuildContext context,
+      CoreViewModel model,
+      ITransaction currentTransaction,
+      AsyncValue<List<ITransaction>> currentTransactionWatched) {
     return SizedBox(
       width: double.infinity,
       child: Stack(
@@ -215,16 +220,10 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             bottom: 20,
             right: 0,
             left: 0,
-            child: StreamBuilder<Customer?>(
-              stream: model.getCustomer(
-                id: currentTransaction.customerId,
-              ),
-              builder: (context, snapshot) {
-                /// TODO: the stream is not used. change the stream to be of transaction
-                /// so that we keep listening to see if the ebmSync property of transaction is updated
-                /// then we know we can generate the receipt
-                return buildBottomButtons(context, model);
-              },
+            child: buildBottomButtons(
+              context,
+              model,
+              currentTransactionWatched,
             ),
           ),
         ],
@@ -232,7 +231,8 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     );
   }
 
-  Widget buildBottomButtons(BuildContext context, CoreViewModel model) {
+  Widget buildBottomButtons(BuildContext context, CoreViewModel model,
+      AsyncValue<List<ITransaction>> currentTransactionWatched) {
     return Column(
       children: [
         Row(
@@ -241,18 +241,12 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             buildOutlinedButton(
               onPressed: () async {
                 model.keyboardKeyPressed(key: 'C');
-                if (await ProxyService.realm.isTaxEnabled()) {
-                  if (model.receiptReady) {
-                    await ProxyService.realm.transactionItems(
-                      doneWithTransaction: false,
-                      active: true,
-                      transactionId: widget.transaction.id!,
-                    );
-                  } else {
-                    showSnackBar(context,
-                        "We are generating receipt. Please wait and try again.",
-                        textColor: Colors.white, backgroundColor: Colors.green);
-                  }
+                if (currentTransactionWatched.asData?.value.first.ebmSynced??false) {
+                  await EBMHandler(
+                          object: currentTransactionWatched.asData!.value.first)
+                      .handleReceipt(skiGenerateRRAReceiptSignature: true);
+                } else {
+                  toast("Please wait we are generating the receipt");
                 }
               },
               label: 'Receipt',
@@ -270,7 +264,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         SizedBox(height: 13),
         buildPoweredByRow(),
         SizedBox(height: 10),
-        buildReturnToHomeButton(model),
+        buildReturnToHomeButton(model, currentTransactionWatched),
       ],
     );
   }
@@ -340,18 +334,20 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
     );
   }
 
-  Widget buildReturnToHomeButton(CoreViewModel model) {
+  Widget buildReturnToHomeButton(CoreViewModel model,
+      AsyncValue<List<ITransaction>> currentTransactionWatched) {
     return Padding(
       padding: EdgeInsets.only(left: 19.0, right: 19),
       child: SizedBox(
         height: 60,
         width: double.infinity,
         child: BoxButton(
+          disabled: currentTransactionWatched.value?.first.ebmSynced == true
+              ? false
+              : true,
           busy: model.handlingConfirm,
           onTap: () {
-            // if (canVigateBackHome) {
             model.handlingConfirm = true;
-            // ignore: unused_result
             ref.refresh(pendingTransactionProvider('custom'));
             _routerService.clearStackAndShow(FlipperAppRoute());
           },

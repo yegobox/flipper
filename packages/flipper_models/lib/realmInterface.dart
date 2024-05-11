@@ -146,8 +146,8 @@ abstract class RealmApiInterface {
   Future<ITransaction?> getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
-  Stream<List<ITransaction>> getTransactionsByCustomerId(
-      {required int customerId});
+  Stream<List<ITransaction>> transactionStreamById(
+      {required int id, required FilterType filterType});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
   Future<List<Variant>> getVariantByProductId({int? productId});

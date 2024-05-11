@@ -17,7 +17,8 @@ class EBMHandler<OBJ> {
 
   OBJ? object;
 
-  Future<void> handleReceipt() async {
+  Future<void> handleReceipt(
+      {bool skiGenerateRRAReceiptSignature = false}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
@@ -36,11 +37,19 @@ class EBMHandler<OBJ> {
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        await handleReceiptGeneration(transaction: transaction);
-      } else if (transaction.receiptType == TransactionReceptType.NR ||
-          transaction.receiptType == TransactionReceptType.TS ||
-          transaction.receiptType == TransactionReceptType.PS) {
-        await handleReceiptGeneration(transaction: transaction);
+        await handleReceiptGeneration(
+          transaction: transaction,
+          skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+        );
+      } else if ((transaction.receiptType == TransactionReceptType.NR ||
+              transaction.receiptType == TransactionReceptType.TS ||
+              transaction.receiptType == TransactionReceptType.PS ||
+              transaction.receiptType == TransactionReceptType.CS) &&
+          transaction.status == COMPLETE) {
+        await handleReceiptGeneration(
+          transaction: transaction,
+          skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+        );
       }
     }
   }
@@ -49,7 +58,9 @@ class EBMHandler<OBJ> {
   /// business and transaction items from the database, generates a signature, prints the
   /// receipt, and handles any errors.
   Future<void> handleReceiptGeneration(
-      {required ITransaction transaction, String? purchaseCode}) async {
+      {required ITransaction transaction,
+      String? purchaseCode,
+      bool skiGenerateRRAReceiptSignature = false}) async {
     if (await ProxyService.realm.isTaxEnabled()) {
       Business? business = await ProxyService.realm.getBusiness();
       List<TransactionItem> items =
@@ -58,13 +69,15 @@ class EBMHandler<OBJ> {
       );
 
       try {
-        await generateRRAReceiptSignature(
-          items: items,
-          business: business,
-          transaction: transaction,
-          receiptType: transaction.receiptType!,
-          purchaseCode: purchaseCode,
-        );
+        if (!skiGenerateRRAReceiptSignature) {
+          await generateRRAReceiptSignature(
+            items: items,
+            business: business,
+            transaction: transaction,
+            receiptType: transaction.receiptType!,
+            purchaseCode: purchaseCode,
+          );
+        }
 
         await printReceipt(
           items: items,
