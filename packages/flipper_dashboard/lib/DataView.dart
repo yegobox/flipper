@@ -7,20 +7,22 @@ import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart' as permission;
+import 'package:share_plus/share_plus.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:share_plus/share_plus.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DataView extends StatefulWidget {
   /// Creates the home page.
   const DataView({super.key, required this.transactions});
+
   final List<ITransaction> transactions;
+
   @override
   _DataViewState createState() => _DataViewState();
 }
@@ -89,6 +91,7 @@ class _DataViewState extends State<DataView> {
   }
 
   final talker = TalkerFlutter.init();
+
   void handleCellTap(DataGridCellTapDetails details) {
     final rowData = details.rowColumnIndex;
     final rowIndex = rowData.rowIndex;
@@ -233,7 +236,6 @@ class _DataViewState extends State<DataView> {
                       pageCount: (widget.transactions.length / rowsPerPage)
                           .ceilToDouble(),
                       direction: Axis.horizontal,
-                      // visibleItemsCount: rowsPerPage,
                     ),
                   )
                 ],
@@ -245,8 +247,6 @@ class _DataViewState extends State<DataView> {
 }
 
 class TransactionDataSource extends DataGridSource {
-  final talker = TalkerFlutter.init(); // Uncomment this line
-
   TransactionDataSource() {
     paginatedDataSource = transactions
         .getRange(
