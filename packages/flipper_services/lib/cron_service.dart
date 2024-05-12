@@ -1,18 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class CronService {
@@ -52,7 +49,7 @@ class CronService {
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
       if (ProxyService.realm.isTaxEnabled()) {
         ReceivePort receivePort = ReceivePort();
-        await Isolate.spawn(
+        final isolate = await Isolate.spawn(
           isolateHandler,
           [
             RootIsolateToken.instance,
@@ -64,6 +61,7 @@ class CronService {
             business.bhfId ?? "00"
           ],
         );
+
         receivePort.listen(
           (message) async {
             /// receive computed value that is considered that we have successfully completed updating EBM server
@@ -87,13 +85,24 @@ class CronService {
               ProxyService.realm.markModelForEbmUpdate<Stock>(model: stock);
             }
             if (separator.first == "notification") {
+              /// in event when we are done with work in isolate
+              /// then we kill current isolate, but it is very important to know
+              /// that we receive this notification from isolate only when some work was done inside isolate
+              /// this means if there is no work done, the isolate will fail to trigger the kill event to use to be able
+              /// to kill the current isolate, this is why we have at the bottom of the code to forcefully kill whatever isolate
+              /// that is hanging somewhere around
+              isolate.kill();
               ProxyService.notification
                   .sendLocalNotification(body: "System is up to date with EBM");
             }
+
             await ProxyService.realm.realm!.subscriptions
                 .waitForSynchronization();
           },
         );
+        // Isolate.current.addOnExitListener(await receivePort.last);
+        await Future.delayed(const Duration(seconds: 20));
+        isolate.kill();
       }
     } catch (error, s) {
       talker.warning('Error managing isolates: $s');

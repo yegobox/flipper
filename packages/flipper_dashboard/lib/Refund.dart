@@ -1,4 +1,4 @@
-import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -23,9 +23,8 @@ class Refund extends StatefulWidget {
 }
 
 class _RefundState extends State<Refund> {
-  final _formKey = GlobalKey<FormState>();
-
-  bool isProcessing = false;
+  bool isRefundProcessing = false;
+  bool isPrintingCopy = false;
   final talker = TalkerFlutter.init();
   @override
   Widget build(BuildContext context) {
@@ -53,36 +52,66 @@ class _RefundState extends State<Refund> {
                 ),
                 const SizedBox(height: 32),
                 BoxButton(
+                  borderRadius: 1,
                   title: widget.transaction.isRefunded == true
                       ? "Refunded"
                       : "Refund",
                   onTap: () async {
-                    setState(() {
-                      isProcessing = true;
-                    });
-                    await ProxyService.realm.realm!.writeAsync(() {
-                      widget.transaction.receiptType = TransactionReceptType.NR;
-                    });
-                    try {
-                      await EBMHandler(object: widget.transaction)
-                          .handleReceipt();
-                      setState(() {
-                        isProcessing = false;
-                      });
-                    } catch (e) {
-                      talker.critical(e);
-                      setState(() {
-                        isProcessing = false;
-                      });
-                    }
+                    await handleReceipt(filterType: FilterType.NR);
                   },
-                  busy: isProcessing,
-                )
+                  busy: isRefundProcessing,
+                ),
+                const SizedBox(height: 16),
+                BoxButton(
+                  borderRadius: 1,
+                  busy: isPrintingCopy,
+                  title: "Print Copy Receipt",
+                  onTap: () async {
+                    await handleReceipt(filterType: FilterType.CS);
+                  },
+                ),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> handleReceipt({required FilterType filterType}) async {
+    try {
+      setState(() {
+        if (filterType == FilterType.CS) {
+          isPrintingCopy = true;
+        } else {
+          isRefundProcessing = true;
+        }
+      });
+
+      await ProxyService.realm.realm!.writeAsync(() {
+        widget.transaction.receiptType = filterType == FilterType.NR
+            ? TransactionReceptType.NR
+            : TransactionReceptType.CS;
+      });
+
+      await TaxController(object: widget.transaction).handleReceipt();
+
+      setState(() {
+        if (filterType == FilterType.CS) {
+          isPrintingCopy = false;
+        } else {
+          isRefundProcessing = false;
+        }
+      });
+    } catch (e) {
+      talker.critical(e);
+      setState(() {
+        if (filterType == FilterType.CS) {
+          isPrintingCopy = false;
+        } else {
+          isRefundProcessing = false;
+        }
+      });
+    }
   }
 }

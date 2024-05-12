@@ -2,7 +2,7 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flipper_models/isolateHandelr.dart';
-import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
@@ -18,7 +18,7 @@ extension RealmExtension on Realm {
       add(object);
       talker.warning(
           "Saved using standart non async on realm extension :) ${object.toEJson()}");
-      EBMHandler(object: object).handleReceipt();
+      TaxController(object: object).handleReceipt();
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
@@ -29,7 +29,7 @@ extension RealmExtension on Realm {
       add(object);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
-      EBMHandler(object: object).handleReceipt();
+      TaxController(object: object).handleReceipt();
       await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }

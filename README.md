@@ -30,3 +30,11 @@
 # Configure receipt to print 
 - Doubele tap on home Icon on desltop or tablet
 - A model will open to enable configuration.
+# DataView flipper's way to view data in table and manipulate them
+- Use DataView.dart and this should be foundational of all data manipulation 
+- and all work related to data view should use or consider this as foundational
+
+# Tax Management
+- Use TaxController.dart, this is the core of interacting with TAX external systems
+- It handle the printing of receipt, signature generation and any other work that is asked
+- by any provider or government agency we work with.

@@ -12,8 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:realm/realm.dart';
 import 'package:receipt/print.dart';
 
-class EBMHandler<OBJ> {
-  EBMHandler({this.object}); // Use a constructor for clarity
+class TaxController<OBJ> {
+  TaxController({this.object}); // Use a constructor for clarity
 
   OBJ? object;
 

@@ -15,7 +15,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/receipt_signature.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
-import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/mocks.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -398,7 +398,7 @@ class RealmAPI<M extends IJsonSerializable>
           DateTime.now().toLocal().add(Duration(hours: 2));
 
       //NOTE: trigger EBM, now
-      EBMHandler(object: transaction).handleReceipt();
+      TaxController(object: transaction).handleReceipt();
     });
 
     try {

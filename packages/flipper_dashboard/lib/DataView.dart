@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_dashboard/Refund.dart';
@@ -36,7 +37,7 @@ class _DataViewState extends State<DataView> {
   bool isProcessing = false;
   static const double dataPagerHeight = 60;
   late TransactionDataSource _transactionDataSource;
-
+  int pageIndex = 0;
   @override
   void initState() {
     super.initState();
@@ -95,7 +96,9 @@ class _DataViewState extends State<DataView> {
   void handleCellTap(DataGridCellTapDetails details) {
     final rowData = details.rowColumnIndex;
     final rowIndex = rowData.rowIndex;
-    final transaction = widget.transactions[rowIndex - 1];
+    log("PageIndex we are using now ${pageIndex}");
+    final transaction =
+        widget.transactions[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
 
     // Do something with the row data
     talker.warning(
@@ -232,10 +235,18 @@ class _DataViewState extends State<DataView> {
                   Container(
                     height: dataPagerHeight,
                     child: SfDataPager(
+                      lastPageItemVisible: false,
+                      nextPageItemVisible: false,
                       delegate: _transactionDataSource,
                       pageCount: (widget.transactions.length / rowsPerPage)
                           .ceilToDouble(),
                       direction: Axis.horizontal,
+                      onPageNavigationEnd: (index) {
+                        log("Page Index ${index}");
+                        setState(() {
+                          pageIndex = index;
+                        });
+                      },
                     ),
                   )
                 ],

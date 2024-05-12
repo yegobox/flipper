@@ -21,7 +21,7 @@ void showSnackBar(BuildContext context, String message,
   );
 }
 
-enum FilterType { CUSTOMER, TRANSACTION }
+enum FilterType { CUSTOMER, TRANSACTION, NS, CS, NR, TS, PS }
 
 class AppActions {
   static const String updated = "updated";

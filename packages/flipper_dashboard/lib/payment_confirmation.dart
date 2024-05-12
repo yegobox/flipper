@@ -2,7 +2,7 @@
 
 import 'dart:developer';
 
-import 'package:flipper_models/mixins/EBMHandler.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -122,7 +122,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                           String purchaseCode = _controller.text;
                           log("received purchase code: ${purchaseCode}");
                           try {
-                            await EBMHandler(object: widget.transaction)
+                            await TaxController(object: widget.transaction)
                                 .handleReceiptGeneration(
                               transaction: widget.transaction,
                               purchaseCode: purchaseCode,
@@ -153,7 +153,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                       onPressed: () async {
                         /// still print the purchase code without the customer information!
                         /// this is standard for non customer attached receipt
-                        await EBMHandler(object: widget.transaction)
+                        await TaxController(object: widget.transaction)
                             .handleReceiptGeneration(
                           transaction: widget.transaction,
                         );
@@ -241,8 +241,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             buildOutlinedButton(
               onPressed: () async {
                 model.keyboardKeyPressed(key: 'C');
-                if (currentTransactionWatched.asData?.value.first.ebmSynced??false) {
-                  await EBMHandler(
+                if (currentTransactionWatched.asData?.value.first.ebmSynced ??
+                    false) {
+                  await TaxController(
                           object: currentTransactionWatched.asData!.value.first)
                       .handleReceipt(skiGenerateRRAReceiptSignature: true);
                 } else {
