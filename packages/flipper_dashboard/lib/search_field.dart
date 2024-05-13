@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'dart:developer';
 import 'package:device_type/device_type.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';

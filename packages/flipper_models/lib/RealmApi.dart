@@ -13,7 +13,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/mocks.dart';
@@ -646,7 +646,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<Receipt?> createReceipt(
-      {required EBMApiResponse signature,
+      {required RwApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
@@ -3043,6 +3043,7 @@ class RealmAPI<M extends IJsonSerializable>
       taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
       // default unit price
       dftPrc: 0,
+      prc: 1,
 
       // NOTE: I believe bellow item are required when saving purchase
       ///but I wonder how to get them when saving an item.

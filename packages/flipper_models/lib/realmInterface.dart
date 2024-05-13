@@ -2,7 +2,7 @@ import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
-import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/sync.dart';
@@ -237,7 +237,7 @@ abstract class RealmApiInterface {
   Future<Variant?> getVariantById({required int id});
   bool isTaxEnabled();
   Future<Receipt?> createReceipt(
-      {required EBMApiResponse signature,
+      {required RwApiResponse signature,
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,

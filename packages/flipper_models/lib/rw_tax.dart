@@ -6,7 +6,7 @@ import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/ITransactionItem.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
-import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -71,7 +71,7 @@ class RWTax implements TaxApi {
       //     subject: "Worked",
       //     body: stringResponse);
       talker.warning(response.data);
-      final data = EBMApiResponse.fromJson(
+      final data = RwApiResponse.fromJson(
         response.data,
       );
       if (data.resultCd != "000") {
@@ -146,7 +146,7 @@ class RWTax implements TaxApi {
     try {
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
-        final data = EBMApiResponse.fromJson(response.data);
+        final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(data.resultMsg);
         }
@@ -206,7 +206,7 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<EBMApiResponse?> generateReceiptSignature({
+  Future<RwApiResponse?> generateReceiptSignature({
     required ITransaction transaction,
     required List<TransactionItem> items,
     required String receiptType,
@@ -316,7 +316,7 @@ class RWTax implements TaxApi {
       final response = await sendPostRequest(url, finalData);
 
       if (response.statusCode == 200) {
-        final data = EBMApiResponse.fromJson(response.data);
+        final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(
             "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}",
@@ -374,7 +374,7 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<EBMApiResponse> saveCustomer({required ICustomer customer}) async {
+  Future<RwApiResponse> saveCustomer({required ICustomer customer}) async {
     final url = '$ebmUrl/branches/saveBrancheCustomers';
 
     try {
@@ -387,7 +387,7 @@ class RWTax implements TaxApi {
           body: response.data.toString(),
         );
 
-        final data = EBMApiResponse.fromJson(response.data);
+        final data = RwApiResponse.fromJson(response.data);
         return data;
       } else {
         throw Exception(
@@ -399,5 +399,11 @@ class RWTax implements TaxApi {
       print(e);
       rethrow;
     }
+  }
+
+  @override
+  Future<RwApiResponse> savePurchases(List<Variant> variants) {
+    // TODO: implement savePurchases
+    throw UnimplementedError();
   }
 }

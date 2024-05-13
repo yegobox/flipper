@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-class EBMApiResponse {
-  EBMApiResponse({
+class RwApiResponse {
+  RwApiResponse({
     required this.resultCd,
     required this.resultMsg,
     this.resultDt,
@@ -26,8 +26,8 @@ class EBMApiResponse {
   String toRawJson() => json.encode(toJson());
 
   // from json
-  factory EBMApiResponse.fromJson(Map<String, dynamic> json) {
-    return EBMApiResponse(
+  factory RwApiResponse.fromJson(Map<String, dynamic> json) {
+    return RwApiResponse(
       resultCd: json['resultCd'] as String,
       resultMsg: json['resultMsg'] as String,
       resultDt: json['resultDt'] as String?,

@@ -67,6 +67,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         name: variantName,
         retailPrice: retailPrice,
         supplyPrice: supplyPrice,
+        prc: retailPrice,
         id: randomNumber(),
         sku: variantName,
         productId: product.id,

@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -198,7 +198,7 @@ class TaxController<OBJ> {
     // increment the counter before we pass it in
     // this is because if we don't then the EBM counter will give us the
     try {
-      EBMApiResponse? receiptSignature =
+      RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
         items: items,
@@ -278,7 +278,7 @@ class TaxController<OBJ> {
   }
 
   Future<void> saveReceipt(
-    EBMApiResponse receiptSignature,
+    RwApiResponse receiptSignature,
     ITransaction transaction,
     String qrCode,
     Counter counter,
@@ -297,7 +297,7 @@ class TaxController<OBJ> {
     }
   }
 
-  String generateQRCode(String formattedDate, EBMApiResponse receiptSignature) {
+  String generateQRCode(String formattedDate, RwApiResponse receiptSignature) {
     return '$formattedDate#${DateTime.now().toString().substring(11, 19)}#${receiptSignature.data?.sdcId}#${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}#${receiptSignature.data?.intrlData}#${receiptSignature.data?.rcptSign}';
   }
 }

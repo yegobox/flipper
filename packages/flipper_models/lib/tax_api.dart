@@ -2,7 +2,7 @@ import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/helperModels/receipt_signature.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 
 abstract class TaxApi {
   Future<bool> saveStock({required IStock stock, required IVariant variant});
@@ -18,7 +18,7 @@ abstract class TaxApi {
     String lastReqDt,
   });
 
-  Future<EBMApiResponse?> generateReceiptSignature({
+  Future<RwApiResponse?> generateReceiptSignature({
     required ITransaction transaction,
     required List<TransactionItem> items,
     required String receiptType,
@@ -26,4 +26,6 @@ abstract class TaxApi {
     String? purchaseCode,
   });
   Future<bool> saveItem({required IVariant variation});
+
+  Future<RwApiResponse> savePurchases(List<Variant> variants);
 }
