@@ -31,7 +31,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
+// import 'package:firebase_app_check/firebase_app_check.dart';
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
@@ -63,16 +63,16 @@ Future<void> main() async {
   );
   if (!isWindows) {
     ///https://firebase.google.com/docs/app-check/flutter/debug-provider?hl=en&authuser=1
-    await FirebaseAppCheck.instance.activate(
-      // Android:
-      androidProvider:
-          kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
+    // await FirebaseAppCheck.instance.activate(
+    //   // Android:
+    //   androidProvider:
+    //       kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
 
-      ///TODO: enable appCheck on ios and web when I support them
-      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
-      // Web:
-      webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
-    );
+    //   ///TODO: enable appCheck on ios and web when I support them
+    //   appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+    //   // Web:
+    //   webProvider: ReCaptchaV3Provider(kWebRecaptchaSiteKey),
+    // );
   }
   // TODO: to support Ios following these instruction https://developers.google.com/admob/flutter/quick-start#ios
   if (!isWindows && !isWeb && !isMacOs) {

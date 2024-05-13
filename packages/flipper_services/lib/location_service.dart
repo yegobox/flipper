@@ -5,21 +5,33 @@ import 'abstractions/location.dart';
 import 'package:location/location.dart';
 
 class LocationService implements FlipperLocation {
+  @override
   Future<Map<String, String>> getLocations() async {
+    Location location = new Location();
     try {
-      final location = await getLocation();
+      final loc = await location.getLocation();
       return {
-        'longitude': location.longitude.toString(),
-        'latitude': location.latitude.toString()
+        'longitude': loc.longitude.toString(),
+        'latitude': loc.latitude.toString()
       };
     } catch (e) {
       return {'longitude': "1.1", 'latitude': "1.1"};
     }
   }
 
+  bool _serviceEnabled = false;
+  @override
   Future<bool> hasLocationPermission() async {
-    final permissionStatus = await requestPermission();
-    return permissionStatus == PermissionStatus.authorizedAlways ||
-        permissionStatus == PermissionStatus.authorizedWhenInUse;
+    Location location = new Location();
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 }

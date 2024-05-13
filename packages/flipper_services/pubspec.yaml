@@ -23,9 +23,9 @@ dependencies:
   # nfc_manager: ^3.2.0
   geolocator: ^9.0.2
   geocode: ^1.0.3
-  firebase_analytics: ^10.4.2
+  firebase_analytics: ^10.10.5
   firebase_crashlytics: ^3.3.2
-  location: 5.0.0-dev.8
+  location: ^6.0.2
   flutter_luban: ^0.1.13
   flutter_uploader: ^3.0.0-beta.4
   google_sign_in: ^6.1.3

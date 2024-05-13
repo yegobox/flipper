@@ -13,6 +13,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -31,7 +32,7 @@ class SearchField extends StatefulHookConsumerWidget {
 class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
-
+  final _textSubject = BehaviorSubject<String>();
   @override
   void initState() {
     super.initState();
@@ -45,10 +46,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
       _hasText = widget.controller.text.isNotEmpty;
     });
   }
+
   //// this wait for few seconds for a user or scanner to type into the keyboard
   /// once that is done then we emit the value being scanned or typed
   void _processDebouncedValue(String value, CoreViewModel model) {
-    log('Processing value: $value', name: 'logic');
     ref.read(searchStringProvider.notifier).emitString(value: value);
     // search product by name an if found add it to the current list
 
@@ -60,7 +61,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
 
     ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
   }
-// 002
+
   void _handleScanningMode(String value, CoreViewModel model) async {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
@@ -72,7 +73,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
             .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
         ITransaction currentTransaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.custom);
-        // 002
+
         await model.saveTransaction(
           variation: variant,
           amountTotal: variant.retailPrice,
@@ -102,14 +103,22 @@ class SearchFieldState extends ConsumerState<SearchField> {
     final currentLocation = ref.watch(buttonIndexProvider);
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) {
+        _textSubject.debounceTime(Duration(seconds: 1)).listen((value) {
+          _processDebouncedValue(value, model);
+        });
+      },
       builder: (a, model, b) {
         return TextFormField(
           controller: widget.controller,
           maxLines: null,
           focusNode: _focusNode,
           textInputAction: TextInputAction.done,
-          onFieldSubmitted: (value)=>_processDebouncedValue(value, model),
-          onChanged: (value) => _processDebouncedValue(value, model),
+          keyboardType: TextInputType.text,
+          onFieldSubmitted: (value) => _textSubject,
+          onChanged: (value) {
+            _textSubject.add(value);
+          },
           decoration: InputDecoration(
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
