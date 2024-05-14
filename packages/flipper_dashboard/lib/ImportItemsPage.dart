@@ -21,6 +21,8 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
 
   bool isLoading = false;
 
+  bool isImport = true;
+
   @override
   void initState() {
     super.initState();
@@ -134,8 +136,23 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                      Expanded(
+                        child: Text(
+                          'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      Switch(
+                        value: isImport,
+                        onChanged: (value) {
+                          setState(() {
+                            isImport = value;
+                          });
+                        },
+                      ),
+                      Text(isImport ? "Import" : "Purchase"),
+                      SizedBox(
+                        width: 10,
                       ),
                       ElevatedButton(
                         onPressed: _pickDate,
