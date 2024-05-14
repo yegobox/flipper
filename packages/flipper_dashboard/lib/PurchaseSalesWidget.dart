@@ -9,9 +9,9 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
-  final void Function() acceptAllImport;
+  final void Function() acceptPurchases;
   final void Function(ItemList? selectedItem) selectSale;
-  final ItemList? selectedItemList;
+
   final List<ItemList> finalSalesList;
   final List<SaleList> finalSaleList;
 
@@ -22,9 +22,8 @@ class PurchaseSaleWidget extends StatefulWidget {
     required this.supplyPriceController,
     required this.retailPriceController,
     required this.saveItemName,
-    required this.acceptAllImport,
+    required this.acceptPurchases,
     required this.selectSale,
-    required this.selectedItemList,
     required this.finalSalesList,
     required this.finalSaleList,
   });
@@ -34,6 +33,14 @@ class PurchaseSaleWidget extends StatefulWidget {
 }
 
 class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
+  ItemList? selectedItemList;
+
+  @override
+  void initState() {
+    selectedItemList = null;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -55,6 +62,34 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
               key: widget.formKey,
               child: Column(
                 children: [
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton(
+                          onPressed: widget.acceptPurchases,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 12.0),
+                            child: Text(
+                              'Accept All Purchases',
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(0.0),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: ListView(
@@ -299,14 +334,28 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                                                   widget.finalSalesList
                                                       .add(item);
                                                   return DataRow(
-                                                    selected: item ==
-                                                        widget.selectedItemList,
+                                                    selected:
+                                                        selectedItemList !=
+                                                            null,
                                                     onSelectChanged:
                                                         (bool? selected) {
-                                                      widget.selectSale(
-                                                          selected == true
-                                                              ? item
-                                                              : null);
+                                                      if (selected == true) {
+                                                        setState(() {
+                                                          selectedItemList =
+                                                              item;
+                                                        });
+
+                                                        /// pass down the selected item
+                                                        widget.selectSale(
+                                                            selected == true
+                                                                ? item
+                                                                : null);
+                                                      } else {
+                                                        setState(() {
+                                                          selectedItemList =
+                                                              null;
+                                                        });
+                                                      }
                                                     },
                                                     cells: [
                                                       DataCell(

@@ -16,7 +16,6 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   Future<RwApiResponse>? _futureImportResponse;
   Future<RwApiResponse>? _futurePurchaseResponse;
   Item? _selectedItem;
-  ItemList? _selectedItemPurchase;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
@@ -81,7 +80,8 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (pickedDate != null && pickedDate != _selectedDate) {
+    // if (pickedDate != null && pickedDate != _selectedDate) {
+    if (pickedDate != null) {
       if (isImport) {
         setState(() {
           _selectedDate = pickedDate;
@@ -94,7 +94,6 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
           _selectedDate = pickedDate;
           _futurePurchaseResponse = _fetchData(selectedDate: _selectedDate);
           finalSaleList = (await _futurePurchaseResponse)?.data?.saleList ?? [];
-          _selectedItemPurchase = null;
           _nameController.clear();
         });
       }
@@ -114,7 +113,6 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
 
   void _selectItemPurchase(ItemList? item) {
     setState(() {
-      _selectedItemPurchase = item;
       if (item != null) {
         _nameController.text = item.itemNm;
       } else {
@@ -156,11 +154,6 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
         // call the api
         await ProxyService.tax.savePurchases(item: item);
       }
-
-      /// This is for testing purpose to see if I can update, for now we limit it to just update one item.
-      // for (var i = 0; i < 1; i++) {
-      //   await ProxyService.tax.updateImportItems(item: _finalItemList[i]);
-      // }
     } catch (e) {
       toast("Internal error, could not save");
       setState(() {
@@ -261,11 +254,10 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                         supplyPriceController: _supplyPrice,
                         retailPriceController: _retailPrice,
                         saveItemName: _saveItemName,
-                        acceptAllImport: _acceptPurchase,
+                        acceptPurchases: _acceptPurchase,
                         selectSale: (ItemList? selectedItem) {
                           _selectItemPurchase(selectedItem);
                         },
-                        selectedItemList: _selectedItemPurchase,
                         finalSalesList: finalItemListPurchase,
                         finalSaleList: finalSaleList ?? [],
                       )
