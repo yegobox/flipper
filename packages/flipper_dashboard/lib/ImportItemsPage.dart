@@ -79,11 +79,16 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Selected Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
+                    'Import From Date: ${DateFormat('yyyy-MM-dd').format(_selectedDate)}',
                   ),
                   ElevatedButton(
                     onPressed: _pickDate,
                     child: Text('Pick Date'),
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4.0),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -105,22 +110,70 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                       children: [
                         const SizedBox(height: 16),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 0),
                           child: Row(
                             children: [
                               Expanded(
-                                child: TextField(
+                                child: TextFormField(
                                   controller: _nameController,
-                                  decoration: const InputDecoration(
+                                  decoration: InputDecoration(
                                     hintText: 'Enter a name',
-                                    border: OutlineInputBorder(),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(0.0),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey.shade200,
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16.0, vertical: 12.0),
+                                  ),
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16.0),
                               ElevatedButton(
                                 onPressed: _saveItemName,
-                                child: Text('Save Name'),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 12.0),
+                                  child: Text(
+                                    'Save Name',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0.0),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 4,
+                              ),
+                              ElevatedButton(
+                                onPressed: _saveItemName,
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 16.0, vertical: 12.0),
+                                  child: Text(
+                                    'Accept All import',
+                                    style: TextStyle(
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0.0),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -130,6 +183,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                           child: ListView(
                             children: [
                               DataTable(
+                                border: TableBorder.all(color: Colors.black),
                                 columnSpacing: 24.0,
                                 headingRowHeight: 48.0,
                                 dataRowMinHeight: 48.0,
