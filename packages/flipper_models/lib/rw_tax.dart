@@ -465,8 +465,6 @@ class RWTax implements TaxApi {
     data['regTyCd'] = 'A';
     data['modrId'] = randomNumber();
     data['rcptTyCd'] = "P";
-    // data.remove('rcptTyCd');
-
     try {
       final response = await sendPostRequest(baseUrl, data);
       if (response.statusCode == 200) {
