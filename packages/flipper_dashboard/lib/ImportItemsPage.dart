@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/ImportWidget.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +17,8 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
-  List<Item> _finalItemList = []; // List to store the final items
-  final _formKey = GlobalKey<FormState>();
+  List<Item> finalItemList = []; // List to store the final items
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   bool isLoading = false;
 
@@ -75,17 +76,17 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   }
 
   void _saveItemName() {
-    if (_formKey.currentState?.validate() ?? false) {
+    if (formKey.currentState?.validate() ?? false) {
       if (_selectedItem != null) {
         setState(() {
           _selectedItem!.itemNm = _nameController.text;
           _selectedItem!.supplyPrice = double.tryParse(_supplyPrice.text);
           _selectedItem!.retailPrice = double.tryParse(_retailPrice.text);
         });
-        int index = _finalItemList
+        int index = finalItemList
             .indexWhere((item) => item.hsCd == _selectedItem!.hsCd);
         if (index != -1) {
-          _finalItemList[index].itemNm = _nameController.text;
+          finalItemList[index].itemNm = _nameController.text;
         }
       }
 
@@ -103,7 +104,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
       });
 
       /// take finalItemList and submit for approval
-      for (Item item in _finalItemList) {
+      for (Item item in finalItemList) {
         // call the api
         await ProxyService.tax.updateImportItems(item: item);
       }
@@ -166,240 +167,19 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                     ],
                   ),
                 ),
-                Container(
-                  height: 400,
-                  child: FutureBuilder<RwApiResponse>(
-                    future: _futureResponse,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData ||
-                          snapshot.data!.data == null) {
-                        return const Center(child: Text('No Data Found'));
-                      } else {
-                        final itemList = snapshot.data!.data!.itemList;
-                        _finalItemList =
-                            itemList!; // Update the final item list
-
-                        return Form(
-                          key: _formKey,
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 0),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _nameController,
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter a name',
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(0.0),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey.shade200,
-                                          contentPadding: EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 12.0),
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _supplyPrice,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Supply price is required';
-                                          }
-                                          return null;
-                                        },
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter supply price',
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(0.0),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey.shade200,
-                                          contentPadding: EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 12.0),
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: TextFormField(
-                                        controller: _retailPrice,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Retail price is required';
-                                          }
-                                          return null;
-                                        },
-                                        decoration: InputDecoration(
-                                          hintText: 'Enter retail Price',
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(0.0),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey.shade200,
-                                          contentPadding: EdgeInsets.symmetric(
-                                              horizontal: 16.0, vertical: 12.0),
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 16.0),
-                                    ElevatedButton(
-                                      onPressed: _saveItemName,
-                                      child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16.0, vertical: 12.0),
-                                        child: Text(
-                                          'Save Name',
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(0.0),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: _acceptAllImport,
-                                      child: Padding(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16.0, vertical: 12.0),
-                                        child: Text(
-                                          'Accept All import',
-                                          style: TextStyle(
-                                            fontSize: 16.0,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(0.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Expanded(
-                                child: ListView(
-                                  children: [
-                                    DataTable(
-                                      border:
-                                          TableBorder.all(color: Colors.black),
-                                      columnSpacing: 24.0,
-                                      headingRowHeight: 48.0,
-                                      dataRowMinHeight: 48.0,
-                                      columns: const [
-                                        DataColumn(
-                                          label: Text(
-                                            'Item Name',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16.0,
-                                            ),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          label: Text(
-                                            'HS Code',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16.0,
-                                            ),
-                                          ),
-                                        ),
-                                        DataColumn(
-                                          label: Text(
-                                            'Quantity',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 16.0,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                      rows: itemList
-                                          .map(
-                                            (item) => DataRow(
-                                              selected: item == _selectedItem,
-                                              onSelectChanged:
-                                                  (bool? selected) {
-                                                _selectItem(selected == true
-                                                    ? item
-                                                    : null);
-                                              },
-                                              cells: [
-                                                DataCell(
-                                                  Text(
-                                                    item.itemNm,
-                                                    style: const TextStyle(
-                                                        fontSize: 14.0),
-                                                  ),
-                                                ),
-                                                DataCell(
-                                                  Text(
-                                                    item.hsCd,
-                                                    style: const TextStyle(
-                                                        fontSize: 14.0),
-                                                  ),
-                                                ),
-                                                DataCell(
-                                                  Text(
-                                                    '${item.qty} ${item.qtyUnitCd}',
-                                                    style: const TextStyle(
-                                                        fontSize: 14.0),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                          .toList(),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                ImportSalesWidget(
+                  futureResponse: _futureResponse,
+                  formKey: formKey,
+                  nameController: _nameController,
+                  supplyPriceController: _supplyPrice,
+                  retailPriceController: _retailPrice,
+                  saveItemName: _saveItemName,
+                  acceptAllImport: _acceptAllImport,
+                  selectItem: (Item? selectedItem) {
+                    _selectItem(selectedItem);
+                  },
+                  selectedItem: _selectedItem,
+                  finalItemList: finalItemList,
                 ),
               ],
             ),

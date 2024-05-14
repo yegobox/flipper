@@ -475,9 +475,91 @@ class RWTax implements TaxApi {
 
   @override
   Future<RwApiResponse> selectTrnsPurchaseSales(
-      {required int tin, required String bhfId, required String lastReqDt}) {
-    // TODO: implement selectTrnsPurchaseSales
-    throw UnimplementedError();
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt}) async {
+    return RwApiResponse(
+      resultCd: "000",
+      resultMsg: "It is succeeded",
+      resultDt: "20240514084928",
+      data: Data(
+        saleList: [
+          SaleList(
+            spplrTin: "999980160",
+            spplrNm: "TESTING COMPANY 35 LTD",
+            spplrBhfId: "00",
+            spplrInvcNo: 537,
+            rcptTyCd: "S",
+            pmtTyCd: "01",
+            cfmDt: "2023-09-05 18:09:24",
+            salesDt: "20230905",
+            stockRlsDt: null,
+            totItemCnt: 1,
+            taxblAmtA: 0,
+            taxblAmtB: 100000,
+            taxblAmtC: 0,
+            taxblAmtD: 0,
+            taxRtA: 0,
+            taxRtB: 18,
+            taxRtC: 0,
+            taxRtD: 0,
+            taxAmtA: 0,
+            taxAmtB: 15254.24,
+            taxAmtC: 0,
+            taxAmtD: 0,
+            totTaxblAmt: 100000,
+            totTaxAmt: 15254.24,
+            totAmt: 100000,
+            remark: null,
+            itemList: [
+              ItemList(
+                itemSeq: 1,
+                itemCd: "RW3NTNO0000101",
+                itemClsCd: "4220400800",
+                itemNm: "Room 2\n09/05/2023 18:04:54 to 09/22/2023 18:00:00",
+                bcd: null,
+                pkgUnitCd: "NT",
+                pkg: 1,
+                qtyUnitCd: "NO",
+                qty: 1,
+                prc: 100000,
+                splyAmt: 100000,
+                dcRt: 0,
+                dcAmt: 0,
+                taxTyCd: "B",
+                taxblAmt: 100000,
+                taxAmt: 15254.24,
+                totAmt: 100000,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    // final baseUrl = ebmUrl + '/trnsPurchase/selectTrnsPurchaseSales';
+    // final data = {
+    //   'tin': tin,
+    //   'bhfId': bhfId,
+    //   'lastReqDt': lastReqDt,
+    // };
+
+    // try {
+    //   final response = await sendPostRequest(baseUrl, data);
+    //   if (response.statusCode == 200) {
+    //     final jsonResponse = response.data;
+    //     final respond = RwApiResponse.fromJson(jsonResponse);
+    //     if (respond.resultCd == "894") {
+    //       throw Exception(respond.resultMsg);
+    //     }
+    //     return respond;
+    //   } else {
+    //     throw Exception(
+    //         'Failed to fetch import items. Status code: ${response.statusCode}');
+    //   }
+    // } catch (e, s) {
+    //   talker.warning(s);
+    //   rethrow;
+    // }
   }
 
   @override

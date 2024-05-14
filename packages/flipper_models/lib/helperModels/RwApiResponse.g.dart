@@ -35,6 +35,9 @@ Data _$DataFromJson(Map<String, dynamic> json) => Data(
       itemList: (json['itemList'] as List<dynamic>?)
           ?.map((e) => Item.fromJson(e as Map<String, dynamic>))
           .toList(),
+      saleList: (json['saleList'] as List<dynamic>?)
+          ?.map((e) => SaleList.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
@@ -46,6 +49,7 @@ Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
       'sdcId': instance.sdcId,
       'mrcNo': instance.mrcNo,
       'itemList': instance.itemList,
+      'saleList': instance.saleList,
     };
 
 Item _$ItemFromJson(Map<String, dynamic> json) => Item(
@@ -96,4 +100,106 @@ Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
       'invcFcurExcrt': instance.invcFcurExcrt,
       'supplyPrice': instance.supplyPrice,
       'retailPrice': instance.retailPrice,
+    };
+
+SaleList _$SaleListFromJson(Map<String, dynamic> json) => SaleList(
+      spplrTin: json['spplrTin'] as String,
+      spplrNm: json['spplrNm'] as String,
+      spplrBhfId: json['spplrBhfId'] as String,
+      spplrInvcNo: (json['spplrInvcNo'] as num).toInt(),
+      rcptTyCd: json['rcptTyCd'] as String,
+      pmtTyCd: json['pmtTyCd'] as String,
+      cfmDt: json['cfmDt'] as String,
+      salesDt: json['salesDt'] as String,
+      stockRlsDt: json['stockRlsDt'] as String?,
+      totItemCnt: (json['totItemCnt'] as num).toInt(),
+      taxblAmtA: (json['taxblAmtA'] as num).toDouble(),
+      taxblAmtB: (json['taxblAmtB'] as num).toDouble(),
+      taxblAmtC: (json['taxblAmtC'] as num).toDouble(),
+      taxblAmtD: (json['taxblAmtD'] as num).toDouble(),
+      taxRtA: (json['taxRtA'] as num).toDouble(),
+      taxRtB: (json['taxRtB'] as num).toDouble(),
+      taxRtC: (json['taxRtC'] as num).toDouble(),
+      taxRtD: (json['taxRtD'] as num).toDouble(),
+      taxAmtA: (json['taxAmtA'] as num).toDouble(),
+      taxAmtB: (json['taxAmtB'] as num).toDouble(),
+      taxAmtC: (json['taxAmtC'] as num).toDouble(),
+      taxAmtD: (json['taxAmtD'] as num).toDouble(),
+      totTaxblAmt: (json['totTaxblAmt'] as num).toDouble(),
+      totTaxAmt: (json['totTaxAmt'] as num).toDouble(),
+      totAmt: (json['totAmt'] as num).toDouble(),
+      remark: json['remark'] as String?,
+      itemList: (json['itemList'] as List<dynamic>?)
+          ?.map((e) => ItemList.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$SaleListToJson(SaleList instance) => <String, dynamic>{
+      'spplrTin': instance.spplrTin,
+      'spplrNm': instance.spplrNm,
+      'spplrBhfId': instance.spplrBhfId,
+      'spplrInvcNo': instance.spplrInvcNo,
+      'rcptTyCd': instance.rcptTyCd,
+      'pmtTyCd': instance.pmtTyCd,
+      'cfmDt': instance.cfmDt,
+      'salesDt': instance.salesDt,
+      'stockRlsDt': instance.stockRlsDt,
+      'totItemCnt': instance.totItemCnt,
+      'taxblAmtA': instance.taxblAmtA,
+      'taxblAmtB': instance.taxblAmtB,
+      'taxblAmtC': instance.taxblAmtC,
+      'taxblAmtD': instance.taxblAmtD,
+      'taxRtA': instance.taxRtA,
+      'taxRtB': instance.taxRtB,
+      'taxRtC': instance.taxRtC,
+      'taxRtD': instance.taxRtD,
+      'taxAmtA': instance.taxAmtA,
+      'taxAmtB': instance.taxAmtB,
+      'taxAmtC': instance.taxAmtC,
+      'taxAmtD': instance.taxAmtD,
+      'totTaxblAmt': instance.totTaxblAmt,
+      'totTaxAmt': instance.totTaxAmt,
+      'totAmt': instance.totAmt,
+      'remark': instance.remark,
+      'itemList': instance.itemList,
+    };
+
+ItemList _$ItemListFromJson(Map<String, dynamic> json) => ItemList(
+      itemSeq: (json['itemSeq'] as num).toInt(),
+      itemCd: json['itemCd'] as String,
+      itemClsCd: json['itemClsCd'] as String,
+      itemNm: json['itemNm'] as String,
+      bcd: json['bcd'] as String?,
+      pkgUnitCd: json['pkgUnitCd'] as String,
+      pkg: (json['pkg'] as num).toInt(),
+      qtyUnitCd: json['qtyUnitCd'] as String,
+      qty: (json['qty'] as num).toInt(),
+      prc: (json['prc'] as num).toDouble(),
+      splyAmt: (json['splyAmt'] as num).toDouble(),
+      dcRt: (json['dcRt'] as num).toDouble(),
+      dcAmt: (json['dcAmt'] as num).toDouble(),
+      taxTyCd: json['taxTyCd'] as String,
+      taxblAmt: (json['taxblAmt'] as num).toDouble(),
+      taxAmt: (json['taxAmt'] as num).toDouble(),
+      totAmt: (json['totAmt'] as num).toDouble(),
+    );
+
+Map<String, dynamic> _$ItemListToJson(ItemList instance) => <String, dynamic>{
+      'itemSeq': instance.itemSeq,
+      'itemCd': instance.itemCd,
+      'itemClsCd': instance.itemClsCd,
+      'itemNm': instance.itemNm,
+      'bcd': instance.bcd,
+      'pkgUnitCd': instance.pkgUnitCd,
+      'pkg': instance.pkg,
+      'qtyUnitCd': instance.qtyUnitCd,
+      'qty': instance.qty,
+      'prc': instance.prc,
+      'splyAmt': instance.splyAmt,
+      'dcRt': instance.dcRt,
+      'dcAmt': instance.dcAmt,
+      'taxTyCd': instance.taxTyCd,
+      'taxblAmt': instance.taxblAmt,
+      'taxAmt': instance.taxAmt,
+      'totAmt': instance.totAmt,
     };

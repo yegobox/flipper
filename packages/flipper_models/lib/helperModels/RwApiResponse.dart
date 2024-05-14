@@ -32,6 +32,7 @@ class Data {
   final String? sdcId;
   final String? mrcNo;
   final List<Item>? itemList;
+  final List<SaleList>? saleList; // Added saleList here
 
   Data({
     this.rcptNo,
@@ -42,6 +43,7 @@ class Data {
     this.sdcId,
     this.mrcNo,
     this.itemList,
+    this.saleList, // Added saleList here
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
@@ -102,4 +104,116 @@ class Item {
   factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);
 
   Map<String, dynamic> toJson() => _$ItemToJson(this);
+}
+
+@JsonSerializable()
+class SaleList {
+  final String spplrTin;
+  final String spplrNm;
+  final String spplrBhfId;
+  final int spplrInvcNo;
+  final String rcptTyCd;
+  final String pmtTyCd;
+  final String cfmDt;
+  final String salesDt;
+  final String? stockRlsDt;
+  final int totItemCnt;
+  final double taxblAmtA;
+  final double taxblAmtB;
+  final double taxblAmtC;
+  final double taxblAmtD;
+  final double taxRtA;
+  final double taxRtB;
+  final double taxRtC;
+  final double taxRtD;
+  final double taxAmtA;
+  final double taxAmtB;
+  final double taxAmtC;
+  final double taxAmtD;
+  final double totTaxblAmt;
+  final double totTaxAmt;
+  final double totAmt;
+  final String? remark;
+  final List<ItemList>? itemList;
+
+  SaleList({
+    required this.spplrTin,
+    required this.spplrNm,
+    required this.spplrBhfId,
+    required this.spplrInvcNo,
+    required this.rcptTyCd,
+    required this.pmtTyCd,
+    required this.cfmDt,
+    required this.salesDt,
+    this.stockRlsDt,
+    required this.totItemCnt,
+    required this.taxblAmtA,
+    required this.taxblAmtB,
+    required this.taxblAmtC,
+    required this.taxblAmtD,
+    required this.taxRtA,
+    required this.taxRtB,
+    required this.taxRtC,
+    required this.taxRtD,
+    required this.taxAmtA,
+    required this.taxAmtB,
+    required this.taxAmtC,
+    required this.taxAmtD,
+    required this.totTaxblAmt,
+    required this.totTaxAmt,
+    required this.totAmt,
+    this.remark,
+    this.itemList,
+  });
+
+  factory SaleList.fromJson(Map<String, dynamic> json) =>
+      _$SaleListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SaleListToJson(this);
+}
+
+@JsonSerializable()
+class ItemList {
+  final int itemSeq;
+  final String itemCd;
+  final String itemClsCd;
+  final String itemNm;
+  final String? bcd;
+  final String pkgUnitCd;
+  final int pkg;
+  final String qtyUnitCd;
+  final int qty;
+  final double prc;
+  final double splyAmt;
+  final double dcRt;
+  final double dcAmt;
+  final String taxTyCd;
+  final double taxblAmt;
+  final double taxAmt;
+  final double totAmt;
+
+  ItemList({
+    required this.itemSeq,
+    required this.itemCd,
+    required this.itemClsCd,
+    required this.itemNm,
+    this.bcd,
+    required this.pkgUnitCd,
+    required this.pkg,
+    required this.qtyUnitCd,
+    required this.qty,
+    required this.prc,
+    required this.splyAmt,
+    required this.dcRt,
+    required this.dcAmt,
+    required this.taxTyCd,
+    required this.taxblAmt,
+    required this.taxAmt,
+    required this.totAmt,
+  });
+
+  factory ItemList.fromJson(Map<String, dynamic> json) =>
+      _$ItemListFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ItemListToJson(this);
 }
