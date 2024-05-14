@@ -7,11 +7,13 @@ import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/ITransactionItem.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:realm/realm.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
@@ -435,6 +437,14 @@ class RWTax implements TaxApi {
     }
   }
 
+  String convertDateToString(DateTime date) {
+    // Define the desired output format
+    final outputFormat = DateFormat('yyyyMMddHHmmss');
+
+    // Format the date as desired
+    return outputFormat.format(date);
+  }
+
   @override
   Future<RwApiResponse> savePurchases({required SaleList item}) async {
     final baseUrl = ebmUrl + '/trnsPurchase/savePurchases';
@@ -443,6 +453,20 @@ class RWTax implements TaxApi {
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
     data['bhfId'] = "00";
+    data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
+    data['invcNo'] = item.spplrInvcNo;
+    data['regrId'] = randomNumber().toString();
+    data['pchsSttsCd'] = '02';
+    data['modrNm'] = randomNumber().toString();
+    data['orgInvcNo'] = item.spplrInvcNo;
+    data['regrNm'] = randomNumber();
+    data['pchsTyCd'] = 'N';
+    data['cfmDt'] = convertDateToString(DateTime.now());
+    data['regTyCd'] = 'A';
+    data['modrId'] = randomNumber();
+    data['rcptTyCd'] = "P";
+    // data.remove('rcptTyCd');
+
     try {
       final response = await sendPostRequest(baseUrl, data);
       if (response.statusCode == 200) {
