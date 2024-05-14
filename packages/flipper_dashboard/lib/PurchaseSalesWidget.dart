@@ -10,8 +10,8 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final void Function() acceptAllImport;
-  final void Function(ItemList? selectedItem) selectSale;
-  final ItemList? selectedSale;
+  final void Function(ItemList? selectedItem) selectItemList;
+  final ItemList? selectedItemList;
   final List<SaleList> finalSalesList;
 
   PurchaseSaleWidget({
@@ -22,8 +22,8 @@ class PurchaseSaleWidget extends StatefulWidget {
     required this.retailPriceController,
     required this.saveItemName,
     required this.acceptAllImport,
-    required this.selectSale,
-    required this.selectedSale,
+    required this.selectItemList,
+    required this.selectedItemList,
     required this.finalSalesList,
   });
 
@@ -291,18 +291,16 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                                                   ),
                                                 ),
                                               ],
-                                              rows: salesList
-                                                  .firstWhere((element) =>
-                                                      element.spplrInvcNo ==
-                                                      item.spplrInvcNo)
+                                              rows: salesList[index]
                                                   .itemList!
                                                   .map(
                                                     (item) => DataRow(
                                                       selected: item ==
-                                                          widget.selectedSale,
+                                                          widget
+                                                              .selectedItemList,
                                                       onSelectChanged:
                                                           (bool? selected) {
-                                                        widget.selectSale(
+                                                        widget.selectItemList(
                                                             selected == true
                                                                 ? item
                                                                 : null);

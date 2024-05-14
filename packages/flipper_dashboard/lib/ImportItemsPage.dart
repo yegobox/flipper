@@ -236,10 +236,10 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                         retailPriceController: _retailPrice,
                         saveItemName: _saveItemName,
                         acceptAllImport: _acceptAllImport,
-                        selectSale: (ItemList? selectedItem) {
+                        selectItemList: (ItemList? selectedItem) {
                           _selectItemPurchase(selectedItem);
                         },
-                        selectedSale: _selectedItemPurchase,
+                        selectedItemList: _selectedItemPurchase,
                         finalSalesList: finalItemListPurchase,
                       )
               ],
