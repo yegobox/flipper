@@ -7,8 +7,8 @@ part of 'unit.dart';
 // **************************************************************************
 
 IUnit _$IUnitFromJson(Map<String, dynamic> json) => IUnit(
-      id: json['id'] as int?,
-      branchId: json['branchId'] as int,
+      id: (json['id'] as num?)?.toInt(),
+      branchId: (json['branchId'] as num).toInt(),
       name: json['name'] as String,
       value: json['value'] as String,
       active: json['active'] as bool,

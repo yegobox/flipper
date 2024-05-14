@@ -3598,4 +3598,11 @@ class RealmAPI<M extends IJsonSerializable>
 
     yield* controller.stream;
   }
+
+  @override
+  Future<RwApiResponse> selectImportItems(
+      {required int tin, required String bhfId, required String lastReqDt}) {
+    return ProxyService.tax
+        .selectImportItems(tin: tin, bhfId: bhfId, lastReqDt: lastReqDt);
+  }
 }

@@ -9,11 +9,11 @@ part of 'branch.dart';
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       isDefault: json['isDefault'] as bool,
       action: json['action'] as String,
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,
       name: json['name'] as String?,
-      businessId: json['businessId'] as int?,
+      businessId: (json['businessId'] as num?)?.toInt(),
       longitude: json['longitude'] as String?,
       latitude: json['latitude'] as String?,
       deletedAt: json['deletedAt'] == null

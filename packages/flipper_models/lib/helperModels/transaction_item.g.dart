@@ -8,14 +8,14 @@ part of 'transaction_item.dart';
 
 TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
     TransactionItem(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       action: json['action'] as String,
       name: json['name'] as String,
-      transactionId: json['transactionId'] as int,
-      variantId: json['variantId'] as int,
+      transactionId: (json['transactionId'] as num).toInt(),
+      variantId: (json['variantId'] as num).toInt(),
       qty: (json['qty'] as num).toDouble(),
       price: (json['price'] as num).toDouble(),
-      branchId: json['branchId'] as int,
+      branchId: (json['branchId'] as num).toInt(),
       remainingStock: (json['remainingStock'] as num).toDouble(),
       createdAt: json['createdAt'] as String,
       updatedAt: json['updatedAt'] as String,
@@ -48,7 +48,7 @@ TransactionItem _$TransactionItemFromJson(Map<String, dynamic> json) =>
       qtyUnitCd: json['qtyUnitCd'] as String?,
       itemNm: json['itemNm'] as String?,
       splyAmt: (json['splyAmt'] as num?)?.toDouble(),
-      tin: json['tin'] as int?,
+      tin: (json['tin'] as num?)?.toInt(),
       bhfId: json['bhfId'] as String?,
       dftPrc: (json['dftPrc'] as num?)?.toDouble(),
       addInfo: json['addInfo'] as String?,

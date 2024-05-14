@@ -120,6 +120,39 @@ class RWTax implements TaxApi {
     }
   }
 
+  Future<Response> sendGetRequest(
+    String baseUrl,
+    Map<String, dynamic>? queryParameters,
+  ) async {
+    final headers = {'Content-Type': 'application/json'};
+
+    dio.interceptors.add(
+      TalkerDioLogger(
+        talker: talker,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printResponseMessage: true,
+        ),
+      ),
+    );
+
+    try {
+      final response = await dio.get(
+        baseUrl,
+        queryParameters: queryParameters,
+        options: Options(headers: headers),
+      );
+      return response;
+    } on DioException catch (e) {
+      // Handle the error
+      final errorMessage = e.response?.data;
+      throw Exception(
+        'Error sending GET request: ${errorMessage ?? 'Bad Request'}',
+      );
+    }
+  }
+
   void sendEmailLogging(
       {required dynamic requestBody,
       required String subject,
@@ -404,6 +437,51 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse> savePurchases(List<Variant> variants) {
     // TODO: implement savePurchases
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RwApiResponse> selectImportItems({
+    required int tin,
+    required String bhfId,
+    required String lastReqDt,
+  }) async {
+    final baseUrl = ebmUrl + '/imports/selectImportItems';
+    final data = {
+      'tin': tin,
+      'bhfId': bhfId,
+      'lastReqDt': lastReqDt,
+    };
+
+    try {
+      final response = await sendPostRequest(baseUrl, data);
+      if (response.statusCode == 200) {
+        final jsonResponse = response.data;
+        final respond = RwApiResponse.fromJson(jsonResponse);
+        if (respond.resultCd == "894") {
+          throw Exception(respond.resultMsg);
+        }
+        return respond;
+      } else {
+        throw Exception(
+            'Failed to fetch import items. Status code: ${response.statusCode}');
+      }
+    } catch (e, s) {
+      talker.warning(s);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<RwApiResponse> selectTrnsPurchaseSales(
+      {required int tin, required String bhfId, required String lastReqDt}) {
+    // TODO: implement selectTrnsPurchaseSales
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<RwApiResponse> updateImportItems({required Item item}) {
+    // TODO: implement updateImportItems
     throw UnimplementedError();
   }
 }

@@ -7,23 +7,23 @@ part of 'drawers.dart';
 // **************************************************************************
 
 Drawers _$DrawersFromJson(Map<String, dynamic> json) => Drawers(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       openingBalance: (json['openingBalance'] as num).toDouble(),
       closingBalance: (json['closingBalance'] as num).toDouble(),
       openingDateTime: json['openingDateTime'] as String?,
       closingDateTime: json['closingDateTime'] as String?,
-      csSaleCount: json['csSaleCount'] as int?,
+      csSaleCount: (json['csSaleCount'] as num?)?.toInt(),
       tradeName: json['tradeName'] as String?,
       totalNsSaleIncome: (json['totalNsSaleIncome'] as num?)?.toDouble(),
       totalCsSaleIncome: (json['totalCsSaleIncome'] as num?)?.toDouble(),
-      nrSaleCount: json['nrSaleCount'] as int?,
-      nsSaleCount: json['nsSaleCount'] as int?,
-      trSaleCount: json['trSaleCount'] as int?,
-      psSaleCount: json['psSaleCount'] as int?,
-      incompleteSale: json['incompleteSale'] as int?,
-      otherTransactions: json['otherTransactions'] as int?,
+      nrSaleCount: (json['nrSaleCount'] as num?)?.toInt(),
+      nsSaleCount: (json['nsSaleCount'] as num?)?.toInt(),
+      trSaleCount: (json['trSaleCount'] as num?)?.toInt(),
+      psSaleCount: (json['psSaleCount'] as num?)?.toInt(),
+      incompleteSale: (json['incompleteSale'] as num?)?.toInt(),
+      otherTransactions: (json['otherTransactions'] as num?)?.toInt(),
       paymentMode: json['paymentMode'] as String?,
-      cashierId: json['cashierId'] as int,
+      cashierId: (json['cashierId'] as num).toInt(),
       open: json['open'] as bool,
     )
       ..lastTouched = json['lastTouched'] == null

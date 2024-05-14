@@ -1,6 +1,14 @@
-import 'dart:convert';
+import 'package:json_annotation/json_annotation.dart';
 
+part 'RwApiResponse.g.dart';
+
+@JsonSerializable()
 class RwApiResponse {
+  final String resultCd;
+  final String resultMsg;
+  final String? resultDt;
+  final Data? data;
+
   RwApiResponse({
     required this.resultCd,
     required this.resultMsg,
@@ -8,78 +16,86 @@ class RwApiResponse {
     this.data,
   });
 
-  String resultCd;
-  String resultMsg;
-  String? resultDt;
-  Data? data;
+  factory RwApiResponse.fromJson(Map<String, dynamic> json) =>
+      _$RwApiResponseFromJson(json);
 
-  // to json
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> jsonData = <String, dynamic>{};
-    jsonData['resultCd'] = resultCd;
-    jsonData['resultMsg'] = resultMsg;
-    jsonData['resultDt'] = resultDt;
-    jsonData['data'] = data?.toJson();
-    return jsonData;
-  }
-
-  String toRawJson() => json.encode(toJson());
-
-  // from json
-  factory RwApiResponse.fromJson(Map<String, dynamic> json) {
-    return RwApiResponse(
-      resultCd: json['resultCd'] as String,
-      resultMsg: json['resultMsg'] as String,
-      resultDt: json['resultDt'] as String?,
-      data: json['data'] == null
-          ? null
-          : Data.fromJson(json['data'] as Map<String, dynamic>),
-    );
-  }
+  Map<String, dynamic> toJson() => _$RwApiResponseToJson(this);
 }
 
+@JsonSerializable()
 class Data {
+  final int? rcptNo;
+  final String? intrlData;
+  final String? rcptSign;
+  final int? totRcptNo;
+  final String? vsdcRcptPbctDate;
+  final String? sdcId;
+  final String? mrcNo;
+  final List<Item>? itemList;
+
   Data({
-    required this.rcptNo,
-    required this.intrlData,
-    required this.rcptSign,
-    required this.totRcptNo,
-    required this.vsdcRcptPbctDate,
-    required this.sdcId,
-    required this.mrcNo,
+    this.rcptNo,
+    this.intrlData,
+    this.rcptSign,
+    this.totRcptNo,
+    this.vsdcRcptPbctDate,
+    this.sdcId,
+    this.mrcNo,
+    this.itemList,
   });
 
-  int rcptNo;
-  String intrlData;
-  String rcptSign;
-  int totRcptNo;
-  String vsdcRcptPbctDate;
-  String sdcId;
-  String mrcNo;
+  factory Data.fromJson(Map<String, dynamic> json) => _$DataFromJson(json);
 
-  // to json
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> jsonData = <String, dynamic>{};
-    jsonData['rcptNo'] = rcptNo;
-    jsonData['intrlData'] = intrlData;
-    jsonData['rcptSign'] = rcptSign;
-    jsonData['totRcptNo'] = totRcptNo;
-    jsonData['vsdcRcptPbctDate'] = vsdcRcptPbctDate;
-    jsonData['sdcId'] = sdcId;
-    jsonData['mrcNo'] = mrcNo;
-    return jsonData;
-  }
+  Map<String, dynamic> toJson() => _$DataToJson(this);
+}
 
-  // from json
-  factory Data.fromJson(Map<String, dynamic> json) {
-    return Data(
-      rcptNo: json['rcptNo'] as int,
-      intrlData: json['intrlData'] as String,
-      rcptSign: json['rcptSign'] as String,
-      totRcptNo: json['totRcptNo'] as int,
-      vsdcRcptPbctDate: json['vsdcRcptPbctDate'] as String,
-      sdcId: json['sdcId'] as String,
-      mrcNo: json['mrcNo'] as String,
-    );
-  }
+@JsonSerializable()
+class Item {
+  final String taskCd;
+  final String dclDe;
+  final int itemSeq;
+  final String dclNo;
+  final String hsCd;
+  String itemNm;
+  final String imptItemsttsCd;
+  final String orgnNatCd;
+  final String exptNatCd;
+  final int pkg;
+  final dynamic pkgUnitCd;
+  final int qty;
+  final String qtyUnitCd;
+  final int totWt;
+  final int netWt;
+  final String spplrNm;
+  final String agntNm;
+  final int invcFcurAmt;
+  final String invcFcurCd;
+  final double invcFcurExcrt;
+
+  Item({
+    required this.taskCd,
+    required this.dclDe,
+    required this.itemSeq,
+    required this.dclNo,
+    required this.hsCd,
+    required this.itemNm,
+    required this.imptItemsttsCd,
+    required this.orgnNatCd,
+    required this.exptNatCd,
+    required this.pkg,
+    required this.pkgUnitCd,
+    required this.qty,
+    required this.qtyUnitCd,
+    required this.totWt,
+    required this.netWt,
+    required this.spplrNm,
+    required this.agntNm,
+    required this.invcFcurAmt,
+    required this.invcFcurCd,
+    required this.invcFcurExcrt,
+  });
+
+  factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ItemToJson(this);
 }

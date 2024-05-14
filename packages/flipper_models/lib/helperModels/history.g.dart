@@ -7,8 +7,8 @@ part of 'history.dart';
 // **************************************************************************
 
 History _$HistoryFromJson(Map<String, dynamic> json) => History(
-      id: json['id'] as int?,
-      modelId: json['modelId'] as int,
+      id: (json['id'] as num?)?.toInt(),
+      modelId: (json['modelId'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       action: json['action'] as String,
     )

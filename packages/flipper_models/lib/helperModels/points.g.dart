@@ -7,9 +7,9 @@ part of 'points.dart';
 // **************************************************************************
 
 Pointss _$PointssFromJson(Map<String, dynamic> json) => Pointss(
-      id: json['id'] as int?,
-      value: json['value'] as int,
-      userId: json['userId'] as int,
+      id: (json['id'] as num?)?.toInt(),
+      value: (json['value'] as num).toInt(),
+      userId: (json['userId'] as num).toInt(),
     );
 
 Map<String, dynamic> _$PointssToJson(Pointss instance) => <String, dynamic>{

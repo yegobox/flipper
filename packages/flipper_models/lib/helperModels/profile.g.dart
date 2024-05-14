@@ -7,7 +7,7 @@ part of 'profile.dart';
 // **************************************************************************
 
 Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       name: json['name'] as String?,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
@@ -23,7 +23,7 @@ Profile _$ProfileFromJson(Map<String, dynamic> json) => Profile(
       livingAt: json['livingAt'] as String,
       cell: json['cell'] as String,
       district: json['district'] as String,
-      businessId: json['businessId'] as int,
+      businessId: (json['businessId'] as num).toInt(),
       nationalId: json['nationalId'] as String?,
       deletedAt: json['deletedAt'] == null
           ? null

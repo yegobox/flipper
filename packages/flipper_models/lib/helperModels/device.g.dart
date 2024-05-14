@@ -7,16 +7,16 @@ part of 'device.dart';
 // **************************************************************************
 
 Device _$DeviceFromJson(Map<String, dynamic> json) => Device(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       action: json['action'] as String,
       linkingCode: json['linkingCode'] as String,
       deviceName: json['deviceName'] as String,
       deviceVersion: json['deviceVersion'] as String,
       pubNubPublished: json['pubNubPublished'] as bool,
       phone: json['phone'] as String,
-      branchId: json['branchId'] as int,
-      businessId: json['businessId'] as int,
-      userId: json['userId'] as int,
+      branchId: (json['branchId'] as num).toInt(),
+      businessId: (json['businessId'] as num).toInt(),
+      userId: (json['userId'] as num).toInt(),
       defaultApp: json['defaultApp'] as String,
       deletedAt: Device._dateTimeFromJson(json['deletedAt'] as String?),
     )..lastTouched = Device._dateTimeFromJson(json['lastTouched'] as String?);

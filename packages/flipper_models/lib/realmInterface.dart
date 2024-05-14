@@ -353,4 +353,9 @@ abstract class RealmApiInterface {
   Future<void> markModelForEbmUpdate<T>(
       {required T model, bool updated = true});
   Stream<List<Category>> categoryStream();
+  Future<RwApiResponse> selectImportItems({
+    required int tin,
+    required String bhfId,
+    required String lastReqDt,
+  });
 }

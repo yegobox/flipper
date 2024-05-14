@@ -104,7 +104,7 @@ class ProductViewModel extends FlipperBaseModel
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
       kProductName = product.name!;
-      setCurrentColor(color: product.color!);
+      setCurrentColor(color: product.color);
       notifyListeners();
       return product;
     }
@@ -125,7 +125,7 @@ class ProductViewModel extends FlipperBaseModel
 
     setCurrentProduct(currentProduct: product!);
     kProductName = product.name!;
-    setCurrentColor(color: product.color!);
+    setCurrentColor(color: product.color);
     rebuildUi();
     return product;
   }

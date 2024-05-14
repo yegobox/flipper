@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:device_type/device_type.dart';
+import 'package:flipper_dashboard/ImportItemsPage.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -137,6 +138,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                 if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
                     [0, 1, 2, 4].contains(currentLocation))
                   orderButton(orders),
+                if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
                 if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
                 if (currentLocation == 1) datePicker(),
               ],
@@ -151,6 +153,15 @@ class SearchFieldState extends ConsumerState<SearchField> {
     return IconButton(
       onPressed: _handleDateTimePicker,
       icon: Icon(Icons.date_range, color: Colors.blue),
+    );
+  }
+
+  /// the button to click when dealing with imports and purchases
+  /// when EBM RW RRA api is active
+  IconButton incomingButton() {
+    return IconButton(
+      onPressed: _handlePurchaseImport,
+      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.blue),
     );
   }
 
@@ -220,6 +231,18 @@ class SearchFieldState extends ConsumerState<SearchField> {
 
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
+  }
+
+  void _handlePurchaseImport() {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => OptionModal(
+        child: _getDeviceType(context) == "Phone"
+            ? SizedBox.shrink()
+            : ImportItemsPage(),
+      ),
+    );
   }
 
   void _handleAddProduct() {

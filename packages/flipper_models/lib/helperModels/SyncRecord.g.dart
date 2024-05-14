@@ -7,10 +7,10 @@ part of 'SyncRecord.dart';
 // **************************************************************************
 
 SyncRecord _$SyncRecordFromJson(Map<String, dynamic> json) => SyncRecord(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       modelId: json['modelId'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      branchId: json['branchId'] as int,
+      branchId: (json['branchId'] as num).toInt(),
     )
       ..lastTouched = json['lastTouched'] == null
           ? null

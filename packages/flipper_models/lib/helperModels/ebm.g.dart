@@ -9,14 +9,14 @@ part of 'ebm.dart';
 EBM _$EBMFromJson(Map<String, dynamic> json) => EBM(
       action: json['action'] as String,
       bhfId: json['bhfId'] as String,
-      tinNumber: json['tinNumber'] as int,
+      tinNumber: (json['tinNumber'] as num).toInt(),
       dvcSrlNo: json['dvcSrlNo'] as String,
-      userId: json['userId'] as int,
-      businessId: json['businessId'] as int,
-      branchId: json['branchId'] as int,
+      userId: (json['userId'] as num).toInt(),
+      businessId: (json['businessId'] as num).toInt(),
+      branchId: (json['branchId'] as num).toInt(),
       taxServerUrl: json['taxServerUrl'] as String?,
     )
-      ..id = json['id'] as int?
+      ..id = (json['id'] as num?)?.toInt()
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String)

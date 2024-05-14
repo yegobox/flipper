@@ -12,7 +12,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
           model.loadVariantStock(variantId: variant.id!);
           model.handleCustomQtySetBeforeSelectingVariation();
 
-          model.keypad.setAmount(amount: variant.retailPrice! * model.quantity);
+          model.keypad.setAmount(amount: variant.retailPrice * model.quantity);
           model.toggleCheckbox(variantId: variant.id!);
         },
         child: Padding(
@@ -49,7 +49,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                       }),
                   Row(children: [
                     Text(
-                      'Frw${variant.retailPrice!.toStringAsFixed(2)}',
+                      'Frw${variant.retailPrice.toStringAsFixed(2)}',
                       style: GoogleFonts.poppins(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
@@ -67,7 +67,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                         model.handleCustomQtySetBeforeSelectingVariation();
 
                         model.keypad.setAmount(
-                            amount: variant.retailPrice! * model.quantity);
+                            amount: variant.retailPrice * model.quantity);
                         model.toggleCheckbox(variantId: variant.id!);
                       },
                     ),

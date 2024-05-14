@@ -7,17 +7,17 @@ part of 'IVariant.dart';
 // **************************************************************************
 
 IVariant _$IVariantFromJson(Map<String, dynamic> json) => IVariant(
-      id: json['id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       name: json['name'] as String?,
       color: json['color'] as String?,
       sku: json['sku'] as String?,
-      productId: json['productId'] as int?,
+      productId: (json['productId'] as num?)?.toInt(),
       unit: json['unit'] as String?,
       productName: json['productName'] as String?,
-      branchId: json['branchId'] as int?,
+      branchId: (json['branchId'] as num?)?.toInt(),
       taxName: json['taxName'] as String?,
       taxPercentage: (json['taxPercentage'] as num?)?.toDouble() ?? 0.0,
       isTaxExempted: json['isTaxExempted'] as bool? ?? false,
@@ -40,7 +40,7 @@ IVariant _$IVariantFromJson(Map<String, dynamic> json) => IVariant(
       qty: (json['qty'] as num?)?.toDouble() ?? 0.0,
       prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
       splyAmt: (json['splyAmt'] as num?)?.toDouble() ?? 0.0,
-      tin: json['tin'] as int?,
+      tin: (json['tin'] as num?)?.toInt(),
       bhfId: json['bhfId'] as String?,
       dftPrc: (json['dftPrc'] as num?)?.toDouble(),
       addInfo: json['addInfo'] as String?,

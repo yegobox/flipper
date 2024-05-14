@@ -185,7 +185,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         // If found, update it
         scannedVariants[i].retailPrice = retailPrice;
         scannedVariants[i].supplyPrice = supplyPrice;
-        scannedVariants[i].qty = (scannedVariants[i].qty ?? 0);
+        scannedVariants[i].qty = (scannedVariants[i].qty);
         notifyListeners();
       }
     }
