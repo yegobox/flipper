@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/ImportWidget.dart';
+import 'package:flipper_dashboard/PurchaseSalesWidget.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -12,13 +13,16 @@ class ImportItemsPage extends StatefulWidget {
 
 class _ImportItemsPageState extends State<ImportItemsPage> {
   DateTime _selectedDate = DateTime.now();
-  Future<RwApiResponse>? _futureResponse;
+  Future<RwApiResponse>? _futureImportResponse;
+  Future<RwApiResponse>? _futurePurchaseResponse;
   Item? _selectedItem;
+  SaleList? _selectedItemPurchase;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
   List<Item> finalItemList = []; // List to store the final items
-  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  List<SaleList> finalItemListPurchase = []; // List to store the final items
+  GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
 
   bool isLoading = false;
 
@@ -31,11 +35,19 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
 
   Future<RwApiResponse> _fetchData({required DateTime selectedDate}) {
     String convertedDate = convertDateToString(selectedDate);
-    return ProxyService.realm.selectImportItems(
-      tin: ProxyService.box.tin(),
-      bhfId: ProxyService.box.bhfId(),
-      lastReqDt: convertedDate,
-    );
+    if (isImport) {
+      return ProxyService.realm.selectImportItems(
+        tin: ProxyService.box.tin(),
+        bhfId: ProxyService.box.bhfId(),
+        lastReqDt: convertedDate,
+      );
+    } else {
+      return ProxyService.tax.selectTrnsPurchaseSales(
+        tin: ProxyService.box.tin(),
+        bhfId: ProxyService.box.bhfId(),
+        lastReqDt: convertedDate,
+      );
+    }
   }
 
   String convertDateToString(DateTime date) {
@@ -55,12 +67,21 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
       lastDate: DateTime(2100),
     );
     if (pickedDate != null && pickedDate != _selectedDate) {
-      setState(() {
-        _selectedDate = pickedDate;
-        _futureResponse = _fetchData(selectedDate: _selectedDate);
-        _selectedItem = null;
-        _nameController.clear();
-      });
+      if (isImport) {
+        setState(() {
+          _selectedDate = pickedDate;
+          _futureImportResponse = _fetchData(selectedDate: _selectedDate);
+          _selectedItem = null;
+          _nameController.clear();
+        });
+      } else {
+        setState(() {
+          _selectedDate = pickedDate;
+          _futurePurchaseResponse = _fetchData(selectedDate: _selectedDate);
+          _selectedItemPurchase = null;
+          _nameController.clear();
+        });
+      }
     }
   }
 
@@ -75,8 +96,19 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
     });
   }
 
+  void _selectItemPurchase(SaleList? item) {
+    setState(() {
+      _selectedItemPurchase = item;
+      if (item != null) {
+        // _nameController.text = item;
+      } else {
+        _nameController.clear();
+      }
+    });
+  }
+
   void _saveItemName() {
-    if (formKey.currentState?.validate() ?? false) {
+    if (_importFormKey.currentState?.validate() ?? false) {
       if (_selectedItem != null) {
         setState(() {
           _selectedItem!.itemNm = _nameController.text;
@@ -167,20 +199,35 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                     ],
                   ),
                 ),
-                ImportSalesWidget(
-                  futureResponse: _futureResponse,
-                  formKey: formKey,
-                  nameController: _nameController,
-                  supplyPriceController: _supplyPrice,
-                  retailPriceController: _retailPrice,
-                  saveItemName: _saveItemName,
-                  acceptAllImport: _acceptAllImport,
-                  selectItem: (Item? selectedItem) {
-                    _selectItem(selectedItem);
-                  },
-                  selectedItem: _selectedItem,
-                  finalItemList: finalItemList,
-                ),
+                isImport
+                    ? ImportSalesWidget(
+                        futureResponse: _futureImportResponse,
+                        formKey: _importFormKey,
+                        nameController: _nameController,
+                        supplyPriceController: _supplyPrice,
+                        retailPriceController: _retailPrice,
+                        saveItemName: _saveItemName,
+                        acceptAllImport: _acceptAllImport,
+                        selectItem: (Item? selectedItem) {
+                          _selectItem(selectedItem);
+                        },
+                        selectedItem: _selectedItem,
+                        finalItemList: finalItemList,
+                      )
+                    : PurchaseSaleWidget(
+                        futureResponse: _futurePurchaseResponse,
+                        formKey: _importFormKey,
+                        nameController: _nameController,
+                        supplyPriceController: _supplyPrice,
+                        retailPriceController: _retailPrice,
+                        saveItemName: _saveItemName,
+                        acceptAllImport: _acceptAllImport,
+                        selectSale: (SaleList? selectedItem) {
+                          _selectItemPurchase(selectedItem);
+                        },
+                        selectedSale: _selectedItemPurchase,
+                        finalSalesList: finalItemListPurchase,
+                      )
               ],
             ),
           ),
