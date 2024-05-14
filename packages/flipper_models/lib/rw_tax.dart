@@ -516,7 +516,7 @@ class RWTax implements TaxApi {
                 itemSeq: 1,
                 itemCd: "RW3NTNO0000101",
                 itemClsCd: "4220400800",
-                itemNm: "Room 2\n09/05/2023 18:04:54 to 09/22/2023 18:00:00",
+                itemNm: "Soya souce",
                 bcd: null,
                 pkgUnitCd: "NT",
                 pkg: 1,

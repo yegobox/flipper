@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flutter/material.dart';
 
@@ -9,8 +10,8 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final void Function() acceptAllImport;
-  final void Function(SaleList? selectedItem) selectSale;
-  final SaleList? selectedSale;
+  final void Function(ItemList? selectedItem) selectSale;
+  final ItemList? selectedSale;
   final List<SaleList> finalSalesList;
 
   PurchaseSaleWidget({
@@ -54,128 +55,6 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
               child: Column(
                 children: [
                   const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextFormField(
-                            controller: widget.nameController,
-                            decoration: InputDecoration(
-                              hintText: 'Enter a name',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(0.0),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade200,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 12.0),
-                            ),
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextFormField(
-                            controller: widget.supplyPriceController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Supply price is required';
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Enter supply price',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(0.0),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade200,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 12.0),
-                            ),
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: TextFormField(
-                            controller: widget.retailPriceController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Retail price is required';
-                              }
-                              return null;
-                            },
-                            decoration: InputDecoration(
-                              hintText: 'Enter retail Price',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(0.0),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.grey.shade200,
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.0, vertical: 12.0),
-                            ),
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 16.0),
-                        ElevatedButton(
-                          onPressed: widget.saveItemName,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 12.0),
-                            child: Text(
-                              'Save Name',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0.0),
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 4,
-                        ),
-                        ElevatedButton(
-                          onPressed: widget.acceptAllImport,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 16.0, vertical: 12.0),
-                            child: Text(
-                              'Accept All import',
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(0.0),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Expanded(
                     child: ListView(
                       children: [
@@ -213,37 +92,268 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                               ),
                             ),
                           ],
-                          rows: salesList
-                              .map(
-                                (item) => DataRow(
-                                  selected: item == widget.selectedSale,
-                                  onSelectChanged: (bool? selected) {
-                                    widget.selectSale(
-                                        selected == true ? item : null);
-                                  },
-                                  cells: [
-                                    DataCell(
-                                      Text(
-                                        item.spplrNm,
-                                        style: const TextStyle(fontSize: 14.0),
+                          rows: List.generate(
+                            salesList.length,
+                            (index) {
+                              final item = salesList[index];
+                              return DataRow(
+                                onLongPress: () {
+                                  showDialog(
+                                    barrierDismissible: true,
+                                    context: context,
+                                    builder: (context) => OptionModal(
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.fromLTRB(
+                                                16, 16, 16, 16),
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller:
+                                                        widget.nameController,
+                                                    decoration: InputDecoration(
+                                                      hintText: 'Enter a name',
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(0.0),
+                                                        borderSide:
+                                                            BorderSide.none,
+                                                      ),
+                                                      filled: true,
+                                                      fillColor:
+                                                          Colors.grey.shade200,
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 16.0,
+                                                              vertical: 12.0),
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 16.0,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller: widget
+                                                        .supplyPriceController,
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'Supply price is required';
+                                                      }
+                                                      return null;
+                                                    },
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          'Enter supply price',
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(0.0),
+                                                        borderSide:
+                                                            BorderSide.none,
+                                                      ),
+                                                      filled: true,
+                                                      fillColor:
+                                                          Colors.grey.shade200,
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 16.0,
+                                                              vertical: 12.0),
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 16.0,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: TextFormField(
+                                                    controller: widget
+                                                        .retailPriceController,
+                                                    validator: (value) {
+                                                      if (value == null ||
+                                                          value.isEmpty) {
+                                                        return 'Retail price is required';
+                                                      }
+                                                      return null;
+                                                    },
+                                                    decoration: InputDecoration(
+                                                      hintText:
+                                                          'Enter retail Price',
+                                                      border:
+                                                          OutlineInputBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(0.0),
+                                                        borderSide:
+                                                            BorderSide.none,
+                                                      ),
+                                                      filled: true,
+                                                      fillColor:
+                                                          Colors.grey.shade200,
+                                                      contentPadding:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 16.0,
+                                                              vertical: 12.0),
+                                                    ),
+                                                    style: TextStyle(
+                                                      fontSize: 16.0,
+                                                      fontWeight:
+                                                          FontWeight.w400,
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(width: 16.0),
+                                                ElevatedButton(
+                                                  onPressed:
+                                                      widget.saveItemName,
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 16.0,
+                                                            vertical: 12.0),
+                                                    child: Text(
+                                                      'Confirm Edit(s)',
+                                                      style: TextStyle(
+                                                        fontSize: 16.0,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              0.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: EdgeInsets.all(16),
+                                            child: DataTable(
+                                              border: TableBorder.all(
+                                                  color: Colors.black),
+                                              columns: [
+                                                DataColumn(
+                                                  label: Text(
+                                                    'Item name',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataColumn(
+                                                  label: Text(
+                                                    'Qty',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataColumn(
+                                                  label: Text(
+                                                    'Price',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataColumn(
+                                                  label: Text(
+                                                    'Total tax',
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                              rows: salesList
+                                                  .firstWhere((element) =>
+                                                      element.spplrInvcNo ==
+                                                      item.spplrInvcNo)
+                                                  .itemList!
+                                                  .map(
+                                                    (item) => DataRow(
+                                                      selected: item ==
+                                                          widget.selectedSale,
+                                                      onSelectChanged:
+                                                          (bool? selected) {
+                                                        widget.selectSale(
+                                                            selected == true
+                                                                ? item
+                                                                : null);
+                                                      },
+                                                      cells: [
+                                                        DataCell(
+                                                            Text(item.itemNm)),
+                                                        DataCell(Text(item.qty
+                                                            .toString())),
+                                                        DataCell(Text(item.prc
+                                                            .toString())),
+                                                        DataCell(
+                                                          Text(
+                                                            item.totAmt
+                                                                .toString(),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                  .toList(),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    DataCell(
-                                      Text(
-                                        item.spplrTin,
-                                        style: const TextStyle(fontSize: 14.0),
-                                      ),
+                                  );
+                                },
+                                cells: [
+                                  DataCell(
+                                    Text(
+                                      item.spplrNm,
+                                      style: const TextStyle(fontSize: 14.0),
                                     ),
-                                    DataCell(
-                                      Text(
-                                        '${item.totTaxAmt}',
-                                        style: const TextStyle(fontSize: 14.0),
-                                      ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      item.spplrTin,
+                                      style: const TextStyle(fontSize: 14.0),
                                     ),
-                                  ],
-                                ),
-                              )
-                              .toList(),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      '${item.totTaxAmt}',
+                                      style: const TextStyle(fontSize: 14.0),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
                         )
                       ],
                     ),

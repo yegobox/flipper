@@ -16,7 +16,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   Future<RwApiResponse>? _futureImportResponse;
   Future<RwApiResponse>? _futurePurchaseResponse;
   Item? _selectedItem;
-  SaleList? _selectedItemPurchase;
+  ItemList? _selectedItemPurchase;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
@@ -36,17 +36,31 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   Future<RwApiResponse> _fetchData({required DateTime selectedDate}) {
     String convertedDate = convertDateToString(selectedDate);
     if (isImport) {
-      return ProxyService.realm.selectImportItems(
+      setState(() {
+        isLoading = true;
+      });
+      final data = ProxyService.realm.selectImportItems(
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId(),
         lastReqDt: convertedDate,
       );
+      setState(() {
+        isLoading = false;
+      });
+      return data;
     } else {
-      return ProxyService.tax.selectTrnsPurchaseSales(
+      setState(() {
+        isLoading = true;
+      });
+      final data = ProxyService.tax.selectTrnsPurchaseSales(
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId(),
         lastReqDt: convertedDate,
       );
+      setState(() {
+        isLoading = false;
+      });
+      return data;
     }
   }
 
@@ -96,11 +110,11 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
     });
   }
 
-  void _selectItemPurchase(SaleList? item) {
+  void _selectItemPurchase(ItemList? item) {
     setState(() {
       _selectedItemPurchase = item;
       if (item != null) {
-        // _nameController.text = item;
+        _nameController.text = item.itemNm;
       } else {
         _nameController.clear();
       }
@@ -222,7 +236,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                         retailPriceController: _retailPrice,
                         saveItemName: _saveItemName,
                         acceptAllImport: _acceptAllImport,
-                        selectSale: (SaleList? selectedItem) {
+                        selectSale: (ItemList? selectedItem) {
                           _selectItemPurchase(selectedItem);
                         },
                         selectedSale: _selectedItemPurchase,
