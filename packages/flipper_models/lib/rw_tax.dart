@@ -448,8 +448,7 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse> savePurchases({required SaleList item}) async {
     final baseUrl = ebmUrl + '/trnsPurchase/savePurchases';
-
-    /// add to the map tin =999909695, bhfId="00"
+    //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
     data['bhfId'] = "00";

@@ -154,6 +154,9 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
         // call the api
         await ProxyService.tax.savePurchases(item: item);
       }
+      setState(() {
+        isLoading = false;
+      });
     } catch (e) {
       toast("Internal error, could not save");
       setState(() {
