@@ -436,9 +436,55 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> savePurchases(List<Variant> variants) {
-    // TODO: implement savePurchases
-    throw UnimplementedError();
+  Future<RwApiResponse> savePurchases({required SaleList item}) async {
+    final baseUrl = ebmUrl + '/trnsPurchase/savePurchases';
+
+    /// add to the map tin =999909695, bhfId="00"
+    Map<String, dynamic> data = item.toJson();
+    data['tin'] = 999909695;
+    data['bhfId'] = "00";
+    try {
+      final response = await sendPostRequest(baseUrl, data);
+      if (response.statusCode == 200) {
+        final jsonResponse = response.data;
+        final respond = RwApiResponse.fromJson(jsonResponse);
+        if (respond.resultCd == "894" || respond.resultCd != "000") {
+          throw Exception(respond.resultMsg);
+        }
+
+        /// save the item in our system, rely on the name as when user
+        /// typed to edit a name we helped a user to search through
+        /// existing product and use the name that exist,
+        /// that way we will be updating the product's variant with no question
+        /// otherwise then create a complete new product.
+        /// TODO: uncomment the bellow to save product tuvuye kurangura or update them!
+        // ProxyService.realm.createProduct(
+        //   product: Product(
+        //     ObjectId(),
+        //     name: item.itemNm,
+        //     lastTouched: DateTime.now(),
+        //     branchId: ProxyService.box.getBranchId(),
+        //     businessId: ProxyService.box.getBusinessId(),
+        //     createdAt: DateTime.now().toIso8601String(),
+        //     spplrNm: item.spplrNm,
+        //   ),
+        //   supplyPrice: item.supplyPrice!,
+        //   retailPrice: item.retailPrice!,
+        //   itemSeq: item.itemSeq,
+        //   // since this is import we do not need to sync back the same item back to RRA
+        //   ebmSynced: true,
+        // );
+
+        /// I need to also receive both retail and supply price from user
+        return respond;
+      } else {
+        throw Exception(
+            'Failed to fetch import items. Status code: ${response.statusCode}');
+      }
+    } catch (e, s) {
+      talker.warning(s);
+      rethrow;
+    }
   }
 
   @override
@@ -478,88 +524,30 @@ class RWTax implements TaxApi {
       {required int tin,
       required String bhfId,
       required String lastReqDt}) async {
-    return RwApiResponse(
-      resultCd: "000",
-      resultMsg: "It is succeeded",
-      resultDt: "20240514084928",
-      data: Data(
-        saleList: [
-          SaleList(
-            spplrTin: "999980160",
-            spplrNm: "TESTING COMPANY 35 LTD",
-            spplrBhfId: "00",
-            spplrInvcNo: 537,
-            rcptTyCd: "S",
-            pmtTyCd: "01",
-            cfmDt: "2023-09-05 18:09:24",
-            salesDt: "20230905",
-            stockRlsDt: null,
-            totItemCnt: 1,
-            taxblAmtA: 0,
-            taxblAmtB: 100000,
-            taxblAmtC: 0,
-            taxblAmtD: 0,
-            taxRtA: 0,
-            taxRtB: 18,
-            taxRtC: 0,
-            taxRtD: 0,
-            taxAmtA: 0,
-            taxAmtB: 15254.24,
-            taxAmtC: 0,
-            taxAmtD: 0,
-            totTaxblAmt: 100000,
-            totTaxAmt: 15254.24,
-            totAmt: 100000,
-            remark: null,
-            itemList: [
-              ItemList(
-                itemSeq: 1,
-                itemCd: "RW3NTNO0000101",
-                itemClsCd: "4220400800",
-                itemNm: "Soya souce",
-                bcd: null,
-                pkgUnitCd: "NT",
-                pkg: 1,
-                qtyUnitCd: "NO",
-                qty: 1,
-                prc: 100000,
-                splyAmt: 100000,
-                dcRt: 0,
-                dcAmt: 0,
-                taxTyCd: "B",
-                taxblAmt: 100000,
-                taxAmt: 15254.24,
-                totAmt: 100000,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-    // final baseUrl = ebmUrl + '/trnsPurchase/selectTrnsPurchaseSales';
-    // final data = {
-    //   'tin': tin,
-    //   'bhfId': bhfId,
-    //   'lastReqDt': lastReqDt,
-    // };
+    final baseUrl = ebmUrl + '/trnsPurchase/selectTrnsPurchaseSales';
+    final data = {
+      'tin': tin,
+      'bhfId': bhfId,
+      'lastReqDt': lastReqDt,
+    };
 
-    // try {
-    //   final response = await sendPostRequest(baseUrl, data);
-    //   if (response.statusCode == 200) {
-    //     final jsonResponse = response.data;
-    //     final respond = RwApiResponse.fromJson(jsonResponse);
-    //     if (respond.resultCd == "894") {
-    //       throw Exception(respond.resultMsg);
-    //     }
-    //     return respond;
-    //   } else {
-    //     throw Exception(
-    //         'Failed to fetch import items. Status code: ${response.statusCode}');
-    //   }
-    // } catch (e, s) {
-    //   talker.warning(s);
-    //   rethrow;
-    // }
+    try {
+      final response = await sendPostRequest(baseUrl, data);
+      if (response.statusCode == 200) {
+        final jsonResponse = response.data;
+        final respond = RwApiResponse.fromJson(jsonResponse);
+        if (respond.resultCd == "894") {
+          throw Exception(respond.resultMsg);
+        }
+        return respond;
+      } else {
+        throw Exception(
+            'Failed to fetch import items. Status code: ${response.statusCode}');
+      }
+    } catch (e, s) {
+      talker.warning(s);
+      rethrow;
+    }
   }
 
   @override

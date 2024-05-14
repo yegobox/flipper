@@ -10,9 +10,10 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final void Function() acceptAllImport;
-  final void Function(ItemList? selectedItem) selectItemList;
+  final void Function(ItemList? selectedItem) selectSale;
   final ItemList? selectedItemList;
-  final List<SaleList> finalSalesList;
+  final List<ItemList> finalSalesList;
+  final List<SaleList> finalSaleList;
 
   PurchaseSaleWidget({
     required this.futureResponse,
@@ -22,9 +23,10 @@ class PurchaseSaleWidget extends StatefulWidget {
     required this.retailPriceController,
     required this.saveItemName,
     required this.acceptAllImport,
-    required this.selectItemList,
+    required this.selectSale,
     required this.selectedItemList,
     required this.finalSalesList,
+    required this.finalSaleList,
   });
 
   @override
@@ -48,7 +50,6 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
           } else {
             final salesList = snapshot.data!.data!.saleList ?? [];
             widget.finalSalesList.clear();
-            widget.finalSalesList.addAll(salesList);
 
             return Form(
               key: widget.formKey,
@@ -294,34 +295,36 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                                               rows: salesList[index]
                                                   .itemList!
                                                   .map(
-                                                    (item) => DataRow(
-                                                      selected: item ==
-                                                          widget
-                                                              .selectedItemList,
-                                                      onSelectChanged:
-                                                          (bool? selected) {
-                                                        widget.selectItemList(
-                                                            selected == true
-                                                                ? item
-                                                                : null);
-                                                      },
-                                                      cells: [
-                                                        DataCell(
-                                                            Text(item.itemNm)),
-                                                        DataCell(Text(item.qty
-                                                            .toString())),
-                                                        DataCell(Text(item.prc
-                                                            .toString())),
-                                                        DataCell(
-                                                          Text(
-                                                            item.totAmt
-                                                                .toString(),
-                                                          ),
+                                                (item) {
+                                                  widget.finalSalesList
+                                                      .add(item);
+                                                  return DataRow(
+                                                    selected: item ==
+                                                        widget.selectedItemList,
+                                                    onSelectChanged:
+                                                        (bool? selected) {
+                                                      widget.selectSale(
+                                                          selected == true
+                                                              ? item
+                                                              : null);
+                                                    },
+                                                    cells: [
+                                                      DataCell(
+                                                          Text(item.itemNm)),
+                                                      DataCell(Text(
+                                                          item.qty.toString())),
+                                                      DataCell(Text(
+                                                          item.prc.toString())),
+                                                      DataCell(
+                                                        Text(
+                                                          item.totAmt
+                                                              .toString(),
                                                         ),
-                                                      ],
-                                                    ),
-                                                  )
-                                                  .toList(),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ).toList(),
                                             ),
                                           ),
                                         ],

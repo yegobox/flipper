@@ -21,7 +21,8 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
   List<Item> finalItemList = []; // List to store the final items
-  List<SaleList> finalItemListPurchase = []; // List to store the final items
+  List<ItemList> finalItemListPurchase = [];
+  List<SaleList>? finalSaleList = [];
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
 
   bool isLoading = false;
@@ -89,9 +90,10 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
           _nameController.clear();
         });
       } else {
-        setState(() {
+        setState(() async {
           _selectedDate = pickedDate;
           _futurePurchaseResponse = _fetchData(selectedDate: _selectedDate);
+          finalSaleList = (await _futurePurchaseResponse)?.data?.saleList ?? [];
           _selectedItemPurchase = null;
           _nameController.clear();
         });
@@ -140,6 +142,30 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
       _nameController.clear();
       _supplyPrice.clear();
       _retailPrice.clear();
+    }
+  }
+
+  Future<void> _acceptPurchase() async {
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      /// take finalItemList and submit for approval
+      for (SaleList item in finalSaleList ?? []) {
+        // call the api
+        await ProxyService.tax.savePurchases(item: item);
+      }
+
+      /// This is for testing purpose to see if I can update, for now we limit it to just update one item.
+      // for (var i = 0; i < 1; i++) {
+      //   await ProxyService.tax.updateImportItems(item: _finalItemList[i]);
+      // }
+    } catch (e) {
+      toast("Internal error, could not save");
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
@@ -235,12 +261,13 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
                         supplyPriceController: _supplyPrice,
                         retailPriceController: _retailPrice,
                         saveItemName: _saveItemName,
-                        acceptAllImport: _acceptAllImport,
-                        selectItemList: (ItemList? selectedItem) {
+                        acceptAllImport: _acceptPurchase,
+                        selectSale: (ItemList? selectedItem) {
                           _selectItemPurchase(selectedItem);
                         },
                         selectedItemList: _selectedItemPurchase,
                         finalSalesList: finalItemListPurchase,
+                        finalSaleList: finalSaleList ?? [],
                       )
               ],
             ),

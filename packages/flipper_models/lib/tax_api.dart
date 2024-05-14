@@ -27,7 +27,7 @@ abstract class TaxApi {
   });
   Future<bool> saveItem({required IVariant variation});
 
-  Future<RwApiResponse> savePurchases(List<Variant> variants);
+  Future<RwApiResponse> savePurchases({required SaleList item});
   Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin, required String bhfId, required String lastReqDt});
 
