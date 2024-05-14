@@ -11,7 +11,7 @@ class ImportItemsPage extends StatefulWidget {
 
 class _ImportItemsPageState extends State<ImportItemsPage> {
   DateTime _selectedDate = DateTime.now();
-  late Future<RwApiResponse> _futureResponse;
+  Future<RwApiResponse>? _futureResponse;
   Item? _selectedItem;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
@@ -24,18 +24,27 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   @override
   void initState() {
     super.initState();
-    _futureResponse = _fetchData();
   }
 
-  Future<RwApiResponse> _fetchData() {
+  Future<RwApiResponse> _fetchData({required DateTime selectedDate}) {
+    String convertedDate = convertDateToString(selectedDate);
     return ProxyService.realm.selectImportItems(
-      tin: 999909695,
-      bhfId: '00',
-      lastReqDt: "20210331000000",
+      tin: ProxyService.box.tin(),
+      bhfId: ProxyService.box.bhfId(),
+      lastReqDt: convertedDate,
     );
   }
 
+  String convertDateToString(DateTime date) {
+    // Define the desired output format
+    final outputFormat = DateFormat('yyyyMMddHHmmss');
+
+    // Format the date as desired
+    return outputFormat.format(date);
+  }
+
   void _pickDate() async {
+    // working 03/31/2021 to get data from import API
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
@@ -45,7 +54,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
     if (pickedDate != null && pickedDate != _selectedDate) {
       setState(() {
         _selectedDate = pickedDate;
-        _futureResponse = _fetchData();
+        _futureResponse = _fetchData(selectedDate: _selectedDate);
         _selectedItem = null;
         _nameController.clear();
       });
