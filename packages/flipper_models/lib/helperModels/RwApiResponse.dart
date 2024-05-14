@@ -177,7 +177,7 @@ class ItemList {
   final int itemSeq;
   final String itemCd;
   final String itemClsCd;
-  final String itemNm;
+  String itemNm;
   final String? bcd;
   final String pkgUnitCd;
   final int pkg;

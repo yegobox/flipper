@@ -10,8 +10,7 @@ class PurchaseSaleWidget extends StatefulWidget {
   final TextEditingController retailPriceController;
   final void Function() saveItemName;
   final void Function() acceptPurchases;
-  final void Function(ItemList? selectedItem) selectSale;
-
+  final void Function(ItemList? selectedItem, SaleList saleList) selectSale;
   final List<ItemList> finalSalesList;
   final List<SaleList> finalSaleList;
 
@@ -56,8 +55,7 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
             return const Center(child: Text('No Data Found'));
           } else {
             final salesList = snapshot.data!.data!.saleList ?? [];
-            widget.finalSalesList.clear();
-
+            widget.finalSalesList.clear(); // Clear the list before populating
             return Form(
               key: widget.formKey,
               child: Column(
@@ -331,12 +329,13 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                                                   .itemList!
                                                   .map(
                                                 (item) {
+                                                  // Add item to finalSalesList
                                                   widget.finalSalesList
                                                       .add(item);
                                                   return DataRow(
                                                     selected:
-                                                        selectedItemList !=
-                                                            null,
+                                                        selectedItemList ==
+                                                            item,
                                                     onSelectChanged:
                                                         (bool? selected) {
                                                       if (selected == true) {
@@ -349,7 +348,8 @@ class _PurchaseSaleWidgetState extends State<PurchaseSaleWidget> {
                                                         widget.selectSale(
                                                             selected == true
                                                                 ? item
-                                                                : null);
+                                                                : null,
+                                                            salesList[index]);
                                                       } else {
                                                         setState(() {
                                                           selectedItemList =

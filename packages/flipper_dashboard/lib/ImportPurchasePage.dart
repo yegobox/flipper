@@ -16,30 +16,30 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
   Future<RwApiResponse>? _futureImportResponse;
   Future<RwApiResponse>? _futurePurchaseResponse;
   Item? _selectedItem;
+  ItemList? _selectedPurchaseItem; // Track selected purchase item
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _supplyPrice = TextEditingController();
-  final TextEditingController _retailPrice = TextEditingController();
+  final TextEditingController _supplyPriceController = TextEditingController();
+  final TextEditingController _retailPriceController = TextEditingController();
   List<Item> finalItemList = [];
   List<ItemList> finalItemListPurchase = [];
   List<SaleList>? finalSaleList = [];
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
-
   bool isLoading = false;
-
   bool isImport = true;
 
   @override
   void initState() {
     super.initState();
+    _futureImportResponse = _fetchData(selectedDate: _selectedDate);
   }
 
-  Future<RwApiResponse> _fetchData({required DateTime selectedDate}) {
+  Future<RwApiResponse> _fetchData({required DateTime selectedDate}) async {
     String convertedDate = convertDateToString(selectedDate);
     if (isImport) {
       setState(() {
         isLoading = true;
       });
-      final data = ProxyService.realm.selectImportItems(
+      final data = await ProxyService.realm.selectImportItems(
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId(),
         lastReqDt: convertedDate,
@@ -52,7 +52,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       setState(() {
         isLoading = true;
       });
-      final data = ProxyService.tax.selectTrnsPurchaseSales(
+      final data = await ProxyService.tax.selectTrnsPurchaseSales(
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId(),
         lastReqDt: convertedDate,
@@ -65,38 +65,33 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
   }
 
   String convertDateToString(DateTime date) {
-    // Define the desired output format
     final outputFormat = DateFormat('yyyyMMddHHmmss');
-
-    // Format the date as desired
     return outputFormat.format(date);
   }
 
   void _pickDate() async {
-    // working 03/31/2021 to get data from import API
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    // if (pickedDate != null && pickedDate != _selectedDate) {
+
     if (pickedDate != null) {
-      if (isImport) {
-        setState(() {
-          _selectedDate = pickedDate;
+      setState(() {
+        _selectedDate = pickedDate;
+        if (isImport) {
           _futureImportResponse = _fetchData(selectedDate: _selectedDate);
           _selectedItem = null;
-          _nameController.clear();
-        });
-      } else {
-        setState(() async {
-          _selectedDate = pickedDate;
+        } else {
           _futurePurchaseResponse = _fetchData(selectedDate: _selectedDate);
-          finalSaleList = (await _futurePurchaseResponse)?.data?.saleList ?? [];
-          _nameController.clear();
-        });
-      }
+          // Clear selection and reset text fields when switching modes
+          _selectedPurchaseItem = null;
+        }
+        _nameController.clear();
+        _supplyPriceController.clear();
+        _retailPriceController.clear();
+      });
     }
   }
 
@@ -105,41 +100,71 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       _selectedItem = item;
       if (item != null) {
         _nameController.text = item.itemNm;
+        _supplyPriceController.text = item.supplyPrice?.toString() ?? "";
+        _retailPriceController.text = item.retailPrice?.toString() ?? "";
       } else {
         _nameController.clear();
+        _supplyPriceController.clear();
+        _retailPriceController.clear();
       }
     });
   }
 
-  void _selectItemPurchase(ItemList? item) {
+  void _selectItemPurchase(ItemList? item, {required SaleList saleList}) {
     setState(() {
+      _selectedPurchaseItem = item;
       if (item != null) {
         _nameController.text = item.itemNm;
+
+        // Find the index of the SaleList in finalSaleList
+        int saleListIndex = finalSaleList!.indexWhere((s) =>
+            s.spplrTin == saleList.spplrTin &&
+            s.spplrInvcNo == saleList.spplrInvcNo);
+
+        if (saleListIndex != -1) {
+          // Find the index of the ItemList within the found SaleList
+          int itemListIndex = finalSaleList![saleListIndex]
+              .itemList!
+              .indexWhere((i) => i.itemCd == item.itemCd);
+
+          if (itemListIndex != -1) {
+            // Update the ItemList in finalSaleList
+            finalSaleList![saleListIndex].itemList![itemListIndex] = item;
+          }
+        }
       } else {
         _nameController.clear();
+        _supplyPriceController.clear();
+        _retailPriceController.clear();
       }
     });
   }
 
   void _saveItemName() {
     if (_importFormKey.currentState?.validate() ?? false) {
-      if (_selectedItem != null) {
+      if (isImport && _selectedItem != null) {
         setState(() {
           _selectedItem!.itemNm = _nameController.text;
-          _selectedItem!.supplyPrice = double.tryParse(_supplyPrice.text);
-          _selectedItem!.retailPrice = double.tryParse(_retailPrice.text);
+          _selectedItem!.supplyPrice =
+              double.tryParse(_supplyPriceController.text);
+          _selectedItem!.retailPrice =
+              double.tryParse(_retailPriceController.text);
         });
         int index = finalItemList
             .indexWhere((item) => item.hsCd == _selectedItem!.hsCd);
         if (index != -1) {
-          finalItemList[index].itemNm = _nameController.text;
+          finalItemList[index] = _selectedItem!; // Update the item in the list
         }
+      } else if (!isImport && _selectedPurchaseItem != null) {
+        setState(() {
+          _selectedPurchaseItem!.itemNm = _nameController.text;
+          // Update supply and retail prices in  _selectedPurchaseItem if needed
+        });
+        // Update finalItemListPurchase or finalSaleList as necessary
       }
-
-      /// clear the field for next manipulation if there will be any!
       _nameController.clear();
-      _supplyPrice.clear();
-      _retailPrice.clear();
+      _supplyPriceController.clear();
+      _retailPriceController.clear();
     }
   }
 
@@ -148,17 +173,15 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       setState(() {
         isLoading = true;
       });
-
-      /// take finalItemList and submit for approval
       for (SaleList item in finalSaleList ?? []) {
-        // call the api
         await ProxyService.tax.savePurchases(item: item);
       }
       setState(() {
         isLoading = false;
       });
+      toast("Purchases saved successfully!");
     } catch (e) {
-      toast("Internal error, could not save");
+      toast("Internal error, could not save purchases");
       setState(() {
         isLoading = false;
       });
@@ -173,8 +196,12 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       for (Item item in finalItemList) {
         await ProxyService.tax.updateImportItems(item: item);
       }
+      setState(() {
+        isLoading = false;
+      });
+      toast("Import items saved successfully!");
     } catch (e) {
-      toast("Internal error, could not save");
+      toast("Internal error, could not save import items");
       setState(() {
         isLoading = false;
       });
@@ -208,6 +235,14 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
                         onChanged: (value) {
                           setState(() {
                             isImport = value;
+                            // Fetch data for the selected mode
+                            if (isImport) {
+                              _futureImportResponse =
+                                  _fetchData(selectedDate: _selectedDate);
+                            } else {
+                              _futurePurchaseResponse =
+                                  _fetchData(selectedDate: _selectedDate);
+                            }
                           });
                         },
                       ),
@@ -232,8 +267,8 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
                         futureResponse: _futureImportResponse,
                         formKey: _importFormKey,
                         nameController: _nameController,
-                        supplyPriceController: _supplyPrice,
-                        retailPriceController: _retailPrice,
+                        supplyPriceController: _supplyPriceController,
+                        retailPriceController: _retailPriceController,
                         saveItemName: _saveItemName,
                         acceptAllImport: _acceptAllImport,
                         selectItem: (Item? selectedItem) {
@@ -246,12 +281,13 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
                         futureResponse: _futurePurchaseResponse,
                         formKey: _importFormKey,
                         nameController: _nameController,
-                        supplyPriceController: _supplyPrice,
-                        retailPriceController: _retailPrice,
+                        supplyPriceController: _supplyPriceController,
+                        retailPriceController: _retailPriceController,
                         saveItemName: _saveItemName,
                         acceptPurchases: _acceptPurchase,
-                        selectSale: (ItemList? selectedItem) {
-                          _selectItemPurchase(selectedItem);
+                        selectSale:
+                            (ItemList? selectedItem, SaleList saleList) {
+                          _selectItemPurchase(selectedItem, saleList: saleList);
                         },
                         finalSalesList: finalItemListPurchase,
                         finalSaleList: finalSaleList ?? [],
@@ -262,7 +298,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
         ),
         isLoading
             ? Center(
-                child: CircularProgressIndicator(), // Or any other spinner
+                child: CircularProgressIndicator(),
               )
             : Container(),
       ],
@@ -272,6 +308,8 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _supplyPriceController.dispose();
+    _retailPriceController.dispose();
     super.dispose();
   }
 }
