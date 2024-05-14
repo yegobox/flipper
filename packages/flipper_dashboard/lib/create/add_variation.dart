@@ -99,7 +99,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..addInfo = "A"
                     ..modrId = clip
                     ..pkg = "1"
-                    ..itemSeq = "1"
+                    ..itemSeq = 1
                     ..splyAmt = 0.0
                     // RRA fields ends
                     //TODOreplace with branch/business config

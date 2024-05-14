@@ -21,15 +21,15 @@ class IVariant {
   bool isTaxExempted = false;
 
   // add RRA fields
-  String? itemSeq;
+  int? itemSeq;
   // insurance code
   String? isrccCd;
   // insurance name
   String? isrccNm;
   // premium rate
-  String? isrcRt;
+  int? isrcRt;
   // insurance amount
-  String? isrcAmt;
+  int? isrcAmt;
   // taxation type code.
   String? taxTyCd;
   // bar code

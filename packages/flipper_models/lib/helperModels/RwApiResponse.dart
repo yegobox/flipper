@@ -71,6 +71,8 @@ class Item {
   final int invcFcurAmt;
   final String invcFcurCd;
   final double invcFcurExcrt;
+  double? supplyPrice;
+  double? retailPrice;
 
   Item({
     required this.taskCd,
@@ -93,6 +95,8 @@ class Item {
     required this.invcFcurAmt,
     required this.invcFcurCd,
     required this.invcFcurExcrt,
+    this.supplyPrice,
+    this.retailPrice,
   });
 
   factory Item.fromJson(Map<String, dynamic> json) => _$ItemFromJson(json);

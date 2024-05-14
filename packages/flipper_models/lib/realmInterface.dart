@@ -90,7 +90,13 @@ abstract class RealmApiInterface {
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product?> createProduct(
-      {required Product product, bool skipRegularVariant = false});
+      {required Product product,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false});
   Future<void> logOut();
   Future<void> logOutLight();
 

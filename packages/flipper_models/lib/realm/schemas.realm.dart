@@ -2826,6 +2826,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     DateTime? lastTouched,
     String? action,
     DateTime? deletedAt,
+    String? spplrNm,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Product>({
@@ -2855,6 +2856,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'spplrNm', spplrNm);
   }
 
   Product._();
@@ -2981,6 +2983,12 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
+  String? get spplrNm =>
+      RealmObjectBase.get<String>(this, 'spplrNm') as String?;
+  @override
+  set spplrNm(String? value) => RealmObjectBase.set(this, 'spplrNm', value);
+
+  @override
   Stream<RealmObjectChanges<Product>> get changes =>
       RealmObjectBase.getChanges<Product>(this);
 
@@ -3014,6 +3022,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
+      'spplrNm': spplrNm.toEJson(),
     };
   }
 
@@ -3042,6 +3051,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
         'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
         'deletedAt': EJsonValue deletedAt,
+        'spplrNm': EJsonValue spplrNm,
       } =>
         Product(
           fromEJson(realmId),
@@ -3065,6 +3075,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
           lastTouched: fromEJson(lastTouched),
           action: fromEJson(action),
           deletedAt: fromEJson(deletedAt),
+          spplrNm: fromEJson(spplrNm),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3097,6 +3108,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('spplrNm', RealmPropertyType.string, optional: true),
     ]);
   }();
 
@@ -4007,11 +4019,11 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String? taxName,
     double taxPercentage = 0.0,
     bool isTaxExempted = false,
-    String? itemSeq,
+    int? itemSeq,
     String? isrccCd,
     String? isrccNm,
-    String? isrcRt,
-    String? isrcAmt,
+    int? isrcRt,
+    int? isrcAmt,
     String? taxTyCd,
     String? bcd,
     String? itemClsCd,
@@ -4190,10 +4202,9 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'isTaxExempted', value);
 
   @override
-  String? get itemSeq =>
-      RealmObjectBase.get<String>(this, 'itemSeq') as String?;
+  int? get itemSeq => RealmObjectBase.get<int>(this, 'itemSeq') as int?;
   @override
-  set itemSeq(String? value) => RealmObjectBase.set(this, 'itemSeq', value);
+  set itemSeq(int? value) => RealmObjectBase.set(this, 'itemSeq', value);
 
   @override
   String? get isrccCd =>
@@ -4208,15 +4219,14 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   set isrccNm(String? value) => RealmObjectBase.set(this, 'isrccNm', value);
 
   @override
-  String? get isrcRt => RealmObjectBase.get<String>(this, 'isrcRt') as String?;
+  int? get isrcRt => RealmObjectBase.get<int>(this, 'isrcRt') as int?;
   @override
-  set isrcRt(String? value) => RealmObjectBase.set(this, 'isrcRt', value);
+  set isrcRt(int? value) => RealmObjectBase.set(this, 'isrcRt', value);
 
   @override
-  String? get isrcAmt =>
-      RealmObjectBase.get<String>(this, 'isrcAmt') as String?;
+  int? get isrcAmt => RealmObjectBase.get<int>(this, 'isrcAmt') as int?;
   @override
-  set isrcAmt(String? value) => RealmObjectBase.set(this, 'isrcAmt', value);
+  set isrcAmt(int? value) => RealmObjectBase.set(this, 'isrcAmt', value);
 
   @override
   String? get taxTyCd =>
@@ -4603,11 +4613,11 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('taxName', RealmPropertyType.string, optional: true),
       SchemaProperty('taxPercentage', RealmPropertyType.double),
       SchemaProperty('isTaxExempted', RealmPropertyType.bool),
-      SchemaProperty('itemSeq', RealmPropertyType.string, optional: true),
+      SchemaProperty('itemSeq', RealmPropertyType.int, optional: true),
       SchemaProperty('isrccCd', RealmPropertyType.string, optional: true),
       SchemaProperty('isrccNm', RealmPropertyType.string, optional: true),
-      SchemaProperty('isrcRt', RealmPropertyType.string, optional: true),
-      SchemaProperty('isrcAmt', RealmPropertyType.string, optional: true),
+      SchemaProperty('isrcRt', RealmPropertyType.int, optional: true),
+      SchemaProperty('isrcAmt', RealmPropertyType.int, optional: true),
       SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
       SchemaProperty('bcd', RealmPropertyType.string, optional: true),
       SchemaProperty('itemClsCd', RealmPropertyType.string, optional: true),
@@ -4676,11 +4686,11 @@ class TransactionItem extends _TransactionItem
     double taxblAmt = 0.0,
     double taxAmt = 0.0,
     double totAmt = 0.0,
-    String? itemSeq,
+    int? itemSeq,
     String? isrccCd,
     String? isrccNm,
-    String? isrcRt,
-    String? isrcAmt,
+    int? isrcRt,
+    int? isrcAmt,
     String? taxTyCd,
     String? bcd,
     String? itemClsCd,
@@ -4923,15 +4933,14 @@ class TransactionItem extends _TransactionItem
   set isrccNm(String? value) => RealmObjectBase.set(this, 'isrccNm', value);
 
   @override
-  String? get isrcRt => RealmObjectBase.get<String>(this, 'isrcRt') as String?;
+  int? get isrcRt => RealmObjectBase.get<int>(this, 'isrcRt') as int?;
   @override
-  set isrcRt(String? value) => RealmObjectBase.set(this, 'isrcRt', value);
+  set isrcRt(int? value) => RealmObjectBase.set(this, 'isrcRt', value);
 
   @override
-  String? get isrcAmt =>
-      RealmObjectBase.get<String>(this, 'isrcAmt') as String?;
+  int? get isrcAmt => RealmObjectBase.get<int>(this, 'isrcAmt') as int?;
   @override
-  set isrcAmt(String? value) => RealmObjectBase.set(this, 'isrcAmt', value);
+  set isrcAmt(int? value) => RealmObjectBase.set(this, 'isrcAmt', value);
 
   @override
   String? get taxTyCd =>
@@ -5309,8 +5318,8 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('itemSeq', RealmPropertyType.string, optional: true),
       SchemaProperty('isrccCd', RealmPropertyType.string, optional: true),
       SchemaProperty('isrccNm', RealmPropertyType.string, optional: true),
-      SchemaProperty('isrcRt', RealmPropertyType.string, optional: true),
-      SchemaProperty('isrcAmt', RealmPropertyType.string, optional: true),
+      SchemaProperty('isrcRt', RealmPropertyType.int, optional: true),
+      SchemaProperty('isrcAmt', RealmPropertyType.int, optional: true),
       SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
       SchemaProperty('bcd', RealmPropertyType.string, optional: true),
       SchemaProperty('itemClsCd', RealmPropertyType.string, optional: true),

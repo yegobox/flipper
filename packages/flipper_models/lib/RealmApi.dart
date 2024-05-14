@@ -594,7 +594,13 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<Product?> createProduct(
-      {required Product product, bool skipRegularVariant = false}) async {
+      {required Product product,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false}) async {
     final Business? business = await getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
     final int businessId = ProxyService.box.getBusinessId()!;
@@ -620,8 +626,13 @@ class RealmAPI<M extends IJsonSerializable>
       ).first;
 
       // Create a Regular Variant
-      final Variant newVariant =
-          _createRegularVariant(product, branchId, business);
+      final Variant newVariant = _createRegularVariant(
+          product, branchId, business,
+          qty: qty,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          itemSeq: itemSeq,
+          ebmSynced: ebmSynced);
       await realm!.putAsync<Variant>(newVariant);
 
       // Create a Stock for the Regular Variant
@@ -632,7 +643,7 @@ class RealmAPI<M extends IJsonSerializable>
         action: 'create',
         branchId: branchId,
         variantId: newVariant.id!,
-        currentStock: 0.0,
+        currentStock: qty,
         productId: kProduct.id!,
       );
       await realm!.putAsync<Stock>(stock);
@@ -2601,7 +2612,7 @@ class RealmAPI<M extends IJsonSerializable>
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId() ?? 0;
     final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v4-' +
+    final realmDirectory = '${appDocsDirectory.path}/flipper-v5-' +
         branchId.toString() +
         "_" +
         businessId.toString();
@@ -2988,7 +2999,12 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Variant _createRegularVariant(
-      Product product, int branchId, Business? business) {
+      Product product, int branchId, Business? business,
+      {required double qty,
+      required double supplierPrice,
+      required double retailPrice,
+      required int itemSeq,
+      required bool ebmSynced}) {
     final int variantId = randomNumber();
     final number = randomNumber().toString().substring(0, 5);
     return Variant(
@@ -3002,16 +3018,15 @@ class RealmAPI<M extends IJsonSerializable>
       unit: 'Per Item',
       productName: product.name,
       branchId: branchId,
-      supplyPrice: 0.0,
-      retailPrice: 0.0,
+      supplyPrice: supplierPrice,
+      retailPrice: retailPrice,
       id: variantId,
       isTaxExempted: false,
       bhfId: business?.bhfId ?? '00',
       itemStdNm: "Regular",
       addInfo: "A",
       pkg: "1",
-      splyAmt: 0.0,
-
+      splyAmt: supplierPrice,
       itemClsCd:
           "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
       itemCd: randomNumber().toString().substring(0, 5),
@@ -3025,11 +3040,10 @@ class RealmAPI<M extends IJsonSerializable>
       /// is insurance applicable default is not applicable
       isrcAplcbYn: "N",
       useYn: "N",
-      itemSeq: randomNumber().toString(),
+      itemSeq: itemSeq,
       itemNm: product.name,
       taxPercentage: 18.0,
       tin: business!.tinNumber,
-
       bcd: product.name,
 
       /// country of origin for this item we default until we support something different
@@ -3053,6 +3067,7 @@ class RealmAPI<M extends IJsonSerializable>
 
       /// Packaging Unit
       qtyUnitCd: "U", // see 4.6 in doc
+      ebmSynced: ebmSynced,
     );
   }
 
@@ -3102,7 +3117,7 @@ class RealmAPI<M extends IJsonSerializable>
           /// is insurance applicable default is not applicable
           isrcAplcbYn: "N",
           useYn: "N",
-          itemSeq: randomNumber().toString(),
+          itemSeq: 1,
           itemStdNm: product.name,
           taxPercentage: 18.0,
           tin: business.tinNumber,

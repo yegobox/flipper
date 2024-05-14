@@ -12,6 +12,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:realm/realm.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
@@ -480,8 +481,50 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> updateImportItems({required Item item}) {
-    // TODO: implement updateImportItems
-    throw UnimplementedError();
+  Future<RwApiResponse> updateImportItems({required Item item}) async {
+    final baseUrl = ebmUrl + '/imports/updateImportItems';
+    final data = item.toJson();
+
+    try {
+      final response = await sendPostRequest(baseUrl, data);
+      if (response.statusCode == 200) {
+        final jsonResponse = response.data;
+        final respond = RwApiResponse.fromJson(jsonResponse);
+        if (respond.resultCd == "894" || respond.resultCd != "000") {
+          throw Exception(respond.resultMsg);
+        }
+
+        /// save the item in our system, rely on the name as when user
+        /// typed to edit a name we helped a user to search through
+        /// existing product and use the name that exist,
+        /// that way we will be updating the product's variant with no question
+        /// otherwise then create a complete new product.
+        ProxyService.realm.createProduct(
+          product: Product(
+            ObjectId(),
+            name: item.itemNm,
+            lastTouched: DateTime.now(),
+            branchId: ProxyService.box.getBranchId(),
+            businessId: ProxyService.box.getBusinessId(),
+            createdAt: DateTime.now().toIso8601String(),
+            spplrNm: item.spplrNm,
+          ),
+          supplyPrice: item.supplyPrice!,
+          retailPrice: item.retailPrice!,
+          itemSeq: item.itemSeq,
+          // since this is import we do not need to sync back the same item back to RRA
+          ebmSynced: true,
+        );
+
+        /// I need to also receive both retail and supply price from user
+        return respond;
+      } else {
+        throw Exception(
+            'Failed to fetch import items. Status code: ${response.statusCode}');
+      }
+    } catch (e, s) {
+      talker.warning(s);
+      rethrow;
+    }
   }
 }

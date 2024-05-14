@@ -69,6 +69,8 @@ Item _$ItemFromJson(Map<String, dynamic> json) => Item(
       invcFcurAmt: (json['invcFcurAmt'] as num).toInt(),
       invcFcurCd: json['invcFcurCd'] as String,
       invcFcurExcrt: (json['invcFcurExcrt'] as num).toDouble(),
+      supplyPrice: (json['supplyPrice'] as num?)?.toDouble(),
+      retailPrice: (json['retailPrice'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
@@ -92,4 +94,6 @@ Map<String, dynamic> _$ItemToJson(Item instance) => <String, dynamic>{
       'invcFcurAmt': instance.invcFcurAmt,
       'invcFcurCd': instance.invcFcurCd,
       'invcFcurExcrt': instance.invcFcurExcrt,
+      'supplyPrice': instance.supplyPrice,
+      'retailPrice': instance.retailPrice,
     };

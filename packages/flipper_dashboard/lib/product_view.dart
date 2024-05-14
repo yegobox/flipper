@@ -156,7 +156,10 @@ class ProductViewState extends ConsumerState<ProductView> {
                 );
               },
               error: (error, e) => SizedBox.shrink(),
-              loading: () => const CircularProgressIndicator(),
+              loading: () => SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: const CircularProgressIndicator()),
             ),
       ),
     );
@@ -178,7 +181,8 @@ class ProductViewState extends ConsumerState<ProductView> {
         }
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () => CircularProgressIndicator(),
+      loading: () => SizedBox(
+          width: 20, height: 20, child: const CircularProgressIndicator()),
     );
   }
 
@@ -299,7 +303,8 @@ class ProductViewState extends ConsumerState<ProductView> {
             ),
           // ignore: unused_local_variable
           AsyncError(:final error) => SizedBox.shrink(),
-          _ => const CircularProgressIndicator(),
+          _ => SizedBox(
+              width: 20, height: 20, child: const CircularProgressIndicator()),
         },
       ),
     );

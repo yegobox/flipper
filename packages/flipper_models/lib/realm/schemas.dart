@@ -352,6 +352,7 @@ class _Product {
   /// this is helper to highlight a product when is found in search
   @Ignored()
   bool searchMatch = false;
+  String? spplrNm;
 }
 
 @RealmModel()
@@ -477,15 +478,15 @@ class _Variant {
   bool isTaxExempted = false;
 
   // add RRA fields
-  String? itemSeq;
+  int? itemSeq;
   // insurance code
   String? isrccCd;
   // insurance name
   String? isrccNm;
   // premium rate
-  String? isrcRt;
+  int? isrcRt;
   // insurance amount
-  String? isrcAmt;
+  int? isrcAmt;
   // taxation type code.
   String? taxTyCd;
   // bar code
@@ -597,9 +598,9 @@ class _TransactionItem {
   // insurance name
   String? isrccNm;
   // premium rate
-  String? isrcRt;
+  int? isrcRt;
   // insurance amount
-  String? isrcAmt;
+  int? isrcAmt;
   // taxation type code.
   String? taxTyCd;
   // bar code

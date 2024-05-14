@@ -38,7 +38,7 @@ mixin ProductMixin {
         /// is insurance applicable default is not applicable
         variant.isrcAplcbYn = "N";
         variant.useYn = "N";
-        variant.itemSeq = randomNumber().toString();
+        variant.itemSeq = 1;
         variant.itemStdNm = variant.name;
         variant.taxPercentage = 18.0;
         variant.tin = business.tinNumber;

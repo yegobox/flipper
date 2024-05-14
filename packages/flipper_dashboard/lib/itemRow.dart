@@ -157,7 +157,10 @@ class _RowItemState extends ConsumerState<RowItem> {
                   ),
                 ),
               ),
-              placeholder: (context, url) => const CircularProgressIndicator(),
+              placeholder: (context, url) => SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: const CircularProgressIndicator()),
               errorWidget: (context, url, error) => const Icon(Icons.error),
             ),
     );
@@ -177,7 +180,7 @@ class _RowItemState extends ConsumerState<RowItem> {
           );
         },
         error: (error, stackTrace) => const SizedBox.shrink(),
-        loading: () => const CircularProgressIndicator(),
+        loading: () => Text("loading.."),
       ),
     );
   }
