@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:overlay_support/overlay_support.dart';
 
-class ImportItemsPage extends StatefulWidget {
+class ImportPurchasePage extends StatefulWidget {
   @override
-  _ImportItemsPageState createState() => _ImportItemsPageState();
+  _ImportPurchasePageState createState() => _ImportPurchasePageState();
 }
 
-class _ImportItemsPageState extends State<ImportItemsPage> {
+class _ImportPurchasePageState extends State<ImportPurchasePage> {
   DateTime _selectedDate = DateTime.now();
   Future<RwApiResponse>? _futureImportResponse;
   Future<RwApiResponse>? _futurePurchaseResponse;
@@ -19,7 +19,7 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _supplyPrice = TextEditingController();
   final TextEditingController _retailPrice = TextEditingController();
-  List<Item> finalItemList = []; // List to store the final items
+  List<Item> finalItemList = [];
   List<ItemList> finalItemListPurchase = [];
   List<SaleList>? finalSaleList = [];
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
@@ -170,17 +170,9 @@ class _ImportItemsPageState extends State<ImportItemsPage> {
       setState(() {
         isLoading = true;
       });
-
-      /// take finalItemList and submit for approval
       for (Item item in finalItemList) {
-        // call the api
         await ProxyService.tax.updateImportItems(item: item);
       }
-
-      /// This is for testing purpose to see if I can update, for now we limit it to just update one item.
-      // for (var i = 0; i < 1; i++) {
-      //   await ProxyService.tax.updateImportItems(item: _finalItemList[i]);
-      // }
     } catch (e) {
       toast("Internal error, could not save");
       setState(() {

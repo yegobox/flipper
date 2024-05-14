@@ -1,7 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:device_type/device_type.dart';
-import 'package:flipper_dashboard/ImportItemsPage.dart';
+import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -240,7 +240,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
       builder: (context) => OptionModal(
         child: _getDeviceType(context) == "Phone"
             ? SizedBox.shrink()
-            : ImportItemsPage(),
+            : ImportPurchasePage(),
       ),
     );
   }

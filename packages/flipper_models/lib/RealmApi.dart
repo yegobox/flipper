@@ -2612,7 +2612,7 @@ class RealmAPI<M extends IJsonSerializable>
     final appDocsDirectory = await getApplicationDocumentsDirectory();
     final int businessId = ProxyService.box.getBusinessId() ?? 0;
     final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v5-' +
+    final realmDirectory = '${appDocsDirectory.path}/flipper-v6-' +
         branchId.toString() +
         "_" +
         businessId.toString();
