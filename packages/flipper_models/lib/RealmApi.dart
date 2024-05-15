@@ -49,9 +49,42 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<({double expense, double income})> getTransactionsAmountsSum(
-      {required String period}) {
-    // TODO: implement getTransactionsAmountsSum
-    throw UnimplementedError();
+      {required String period}) async {
+    DateTime oldDate;
+    DateTime temporaryDate;
+
+    if (period == 'Today') {
+      DateTime tempToday = DateTime.now();
+      oldDate = DateTime(tempToday.year, tempToday.month, tempToday.day);
+    } else if (period == 'This Week') {
+      oldDate = DateTime.now().subtract(Duration(days: 7));
+    } else if (period == 'This Month') {
+      oldDate = DateTime.now().subtract(Duration(days: 30));
+    } else {
+      oldDate = DateTime.now().subtract(Duration(days: 365));
+    }
+
+    List<ITransaction> transactions = await transactionsFuture();
+
+    List<ITransaction> filteredTransactions = [];
+    for (final transaction in transactions) {
+      temporaryDate = DateTime.parse(transaction.createdAt!);
+      if (temporaryDate.isAfter(oldDate)) {
+        filteredTransactions.add(transaction);
+      }
+    }
+
+    double sum_cash_in = 0;
+    double sum_cash_out = 0;
+    for (final transaction in filteredTransactions) {
+      if (transaction.transactionType == 'Cash Out') {
+        sum_cash_out = transaction.subTotal + sum_cash_out;
+      } else {
+        sum_cash_in = transaction.subTotal + sum_cash_in;
+      }
+    }
+
+    return (income: sum_cash_in, expense: sum_cash_out);
   }
 
   @override
@@ -166,8 +199,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item}) async {
-    // talker.info(item.toEJson());
-    realm!.write(() => realm!.add<TransactionItem>(item));
+    await realm!.putAsync<TransactionItem>(item);
   }
 
   @override
@@ -2430,14 +2462,14 @@ class RealmAPI<M extends IJsonSerializable>
       queryString = r'''deletedAt = nil
         && status == $0
         && (
-          transactionType IN ANY {'cashOut'} && branchId == $1
+          isExpense ==true && branchId == $1
         )
     ''';
     } else {
       queryString = r'''deletedAt = nil
         && status == $0
         && (
-          transactionType IN ANY {'cashIn', 'sale', 'custom', 'onlineSale'} && branchId == $1
+          isIncome==true && branchId == $1
         )
     ''';
     }
