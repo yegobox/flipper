@@ -115,23 +115,6 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       _selectedPurchaseItem = item;
       if (item != null) {
         _nameController.text = item.itemNm;
-
-        // Find the index of the SaleList in finalSaleList
-        int saleListIndex = finalSaleList!.indexWhere((s) =>
-            s.spplrTin == saleList.spplrTin &&
-            s.spplrInvcNo == saleList.spplrInvcNo);
-
-        if (saleListIndex != -1) {
-          // Find the index of the ItemList within the found SaleList
-          int itemListIndex = finalSaleList![saleListIndex]
-              .itemList!
-              .indexWhere((i) => i.itemCd == item.itemCd);
-
-          if (itemListIndex != -1) {
-            // Update the ItemList in finalSaleList
-            finalSaleList![saleListIndex].itemList![itemListIndex] = item;
-          }
-        }
       } else {
         _nameController.clear();
         _supplyPriceController.clear();
@@ -158,9 +141,26 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       } else if (!isImport && _selectedPurchaseItem != null) {
         setState(() {
           _selectedPurchaseItem!.itemNm = _nameController.text;
-          // Update supply and retail prices in  _selectedPurchaseItem if needed
+
+          // Find the SaleList containing the selected ItemList
+          int saleListIndex = finalSaleList!.indexWhere((saleList) =>
+              saleList.itemList!.any((itemList) =>
+                  itemList.itemCd == _selectedPurchaseItem!.itemCd));
+
+          if (saleListIndex != -1) {
+            // Find the ItemList within the SaleList
+            int itemListIndex = finalSaleList![saleListIndex]
+                .itemList!
+                .indexWhere((itemList) =>
+                    itemList.itemCd == _selectedPurchaseItem!.itemCd);
+
+            if (itemListIndex != -1) {
+              // Update the ItemList within the SaleList
+              finalSaleList![saleListIndex].itemList![itemListIndex] =
+                  _selectedPurchaseItem!;
+            }
+          }
         });
-        // Update finalItemListPurchase or finalSaleList as necessary
       }
       _nameController.clear();
       _supplyPriceController.clear();
