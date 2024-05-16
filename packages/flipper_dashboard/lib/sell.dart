@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -68,9 +70,10 @@ class SellState extends ConsumerState<Sell> {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-              // // ignore: unused_result
-              // ref.refresh(transactionItemsProvider(
-              //     pendingTransaction.value?.value?.id));
+
+              /// when we are ordering transaction type is cashOut
+              ref.refresh(pendingTransactionProvider(TransactionType.cashOut));
+              ref.refresh(pendingTransactionProvider(TransactionType.custom));
               _routerService.pop();
             },
             icon: Icons.close,

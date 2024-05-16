@@ -92,7 +92,10 @@ mixin TransactionMixin {
         discount: 0.0,
         prc: variation.retailPrice,
         doneWithTransaction: false,
-        active: false,
+
+        /// if we want to see the item to the preview, it should be made active as soon as we
+        /// set active to true
+        active: true,
         transactionId: pendingTransaction.id!,
         createdAt: DateTime.now().toString(),
         updatedAt: DateTime.now().toString(),
