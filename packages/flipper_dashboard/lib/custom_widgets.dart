@@ -28,7 +28,7 @@ Widget heading(String heading,
       style: Theme.of(context)
           .typography
           .dense
-          .bodyText1!
+          .bodyMedium!
           .copyWith(fontSize: fontSize),
     ),
   );
@@ -63,7 +63,7 @@ Widget customIcon(
   String text = '',
   Function? onPressed,
 }) {
-  iconColor = iconColor ?? Theme.of(context).textTheme.caption!.color;
+  iconColor = iconColor ?? Theme.of(context).textTheme.bodyMedium!.color;
 
   return GestureDetector(
     onTap: () {
@@ -115,7 +115,7 @@ Widget customBottomIcon(BuildContext context,
     Color? iconColor,
     double paddingIcon = 0,
     String text = ''}) {
-  iconColor = iconColor ?? Theme.of(context).textTheme.caption!.color;
+  iconColor = iconColor ?? Theme.of(context).textTheme.bodyMedium!.color;
   return Padding(
     padding: EdgeInsets.only(bottom: istwitterIcon ? paddingIcon : 0),
     child: Column(
@@ -166,11 +166,7 @@ Widget customTappbleIcon(BuildContext context, int icon,
     color: Colors.transparent,
     elevation: 0,
     onPressed: () {
-      if (onPressed1 != null) {
-        onPressed1(isBoolValue!, id!);
-      } else if (onPressed2 != null) {
-        onPressed2();
-      }
+      onPressed1(isBoolValue!, id!);
     },
     child: customIcon(context,
         icon: icon,
@@ -196,7 +192,7 @@ Widget customText(String? msg,
     );
   } else {
     final double? fontSize =
-        style.fontSize ?? Theme.of(context).textTheme.bodyText2!.fontSize;
+        style.fontSize ?? Theme.of(context).textTheme.bodySmall!.fontSize;
     style = style.copyWith(
       fontSize: fontSize! - (fullWidth(context) <= 375 ? 2 : 0),
     );
@@ -409,7 +405,7 @@ Widget emptyListWidget(BuildContext context, String title,
                 style: Theme.of(context)
                     .typography
                     .dense
-                    .bodyText1!
+                    .bodyMedium!
                     .copyWith(color: const Color(0xff9da9c7)),
               ),
               customText(
@@ -418,7 +414,7 @@ Widget emptyListWidget(BuildContext context, String title,
                 style: Theme.of(context)
                     .typography
                     .dense
-                    .bodyText2!
+                    .bodyMedium!
                     .copyWith(color: const Color(0xffabb8d6)),
               ),
             ],
@@ -491,8 +487,7 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                     ),
                     child: Text(
                       'Use Camera',
-                      style:
-                          TextStyle(color: Theme.of(context).backgroundColor),
+                      style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                     onPressed: () {},
                   ),
@@ -513,8 +508,7 @@ openImagePicker(BuildContext context, Function onImageSelected) {
                     ),
                     child: Text(
                       'Use Gallery',
-                      style:
-                          TextStyle(color: Theme.of(context).backgroundColor),
+                      style: TextStyle(color: Theme.of(context).primaryColor),
                     ),
                     onPressed: () {},
                   ),

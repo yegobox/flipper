@@ -421,7 +421,5 @@ class App {}
 /// NOTE: in prodduct_view
 /// We also show buildProductList inside
 /// Edge server token: 
-/// 
-/// 
-/// 
-/// 
+/// TODO: deal with flavor https://docs.flutter.dev/deployment/flavors#conditionally-bundling-assets-based-on-flavor
+///
