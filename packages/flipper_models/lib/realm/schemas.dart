@@ -592,7 +592,7 @@ class _TransactionItem {
   /// I believe there can be a smart way to clean this duplicate code
   /// but I want things to work in first place then I can refactor later.
   /// add RRA fields
-  String? itemSeq;
+  int? itemSeq;
   // insurance code
   String? isrccCd;
   // insurance name

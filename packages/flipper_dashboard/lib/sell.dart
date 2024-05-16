@@ -68,9 +68,9 @@ class SellState extends ConsumerState<Sell> {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
               }
-              // ignore: unused_result
-              ref.refresh(transactionItemsProvider(
-                  pendingTransaction.value?.value?.id));
+              // // ignore: unused_result
+              // ref.refresh(transactionItemsProvider(
+              //     pendingTransaction.value?.value?.id));
               _routerService.pop();
             },
             icon: Icons.close,

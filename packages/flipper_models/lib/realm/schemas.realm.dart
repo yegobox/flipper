@@ -4915,10 +4915,9 @@ class TransactionItem extends _TransactionItem
   set totAmt(double value) => RealmObjectBase.set(this, 'totAmt', value);
 
   @override
-  String? get itemSeq =>
-      RealmObjectBase.get<String>(this, 'itemSeq') as String?;
+  int? get itemSeq => RealmObjectBase.get<int>(this, 'itemSeq') as int?;
   @override
-  set itemSeq(String? value) => RealmObjectBase.set(this, 'itemSeq', value);
+  set itemSeq(int? value) => RealmObjectBase.set(this, 'itemSeq', value);
 
   @override
   String? get isrccCd =>
@@ -5315,7 +5314,7 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('taxblAmt', RealmPropertyType.double),
       SchemaProperty('taxAmt', RealmPropertyType.double),
       SchemaProperty('totAmt', RealmPropertyType.double),
-      SchemaProperty('itemSeq', RealmPropertyType.string, optional: true),
+      SchemaProperty('itemSeq', RealmPropertyType.int, optional: true),
       SchemaProperty('isrccCd', RealmPropertyType.string, optional: true),
       SchemaProperty('isrccNm', RealmPropertyType.string, optional: true),
       SchemaProperty('isrcRt', RealmPropertyType.int, optional: true),
