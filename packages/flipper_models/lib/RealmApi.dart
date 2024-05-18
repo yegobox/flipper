@@ -2742,7 +2742,7 @@ class RealmAPI<M extends IJsonSerializable>
             if (syncProgress.progressEstimate == 1.0) {
               talker.info('All bytes transferred!');
             }
-          });
+          }, );
         } else {
           talker.info("Opened realm[1] with no internet access!");
           realm = Realm(config);

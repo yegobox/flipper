@@ -144,8 +144,8 @@ Future<void> main() async {
               // darkTheme: GThemeGenerator.generateDark(),
               theme: ThemeData(
                 textTheme: GoogleFonts.poppinsTextTheme(),
-                colorScheme: const ColorScheme.light()
-                    .copyWith(background: Colors.white),
+                colorScheme:
+                    const ColorScheme.light().copyWith(surface: Colors.white),
               ),
               localizationsDelegates: [
                 FirebaseUILocalizations.withDefaultOverrides(

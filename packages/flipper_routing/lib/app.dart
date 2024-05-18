@@ -142,8 +142,8 @@ class App {}
 ///rm -rf path/to/submodule
 ///git submodule add https://github.com/yegobox/form_bloc.git open-sources/form_bloc
 
-/// find ./ -name pubspec.lock -type f -delete
-/// find ./ -name pubspec_overrides.yaml -type f -delete
+// / find ./ -name pubspec.lock -type f -delete
+// / find ./ -name pubspec_overrides.yaml -type f -delete
 /// https://developer.apple.com/in-app-purchase/
 /// https://github.com/flutter/packages/tree/main/packages/in_app_purchase/in_app_purchase
 /// C:\Users\Richie\Downloads\vcpkg\vcpkg.exe install cppwinrt
