@@ -48,7 +48,7 @@ OverlayEntry insertOverlay(
                             child: ProfileWidget(
                               branch: branch,
                               size: 25,
-                              sessionActive: branch.isDefault!,
+                              sessionActive: branch.isDefault,
                               showIcon: false,
                             ),
                           );

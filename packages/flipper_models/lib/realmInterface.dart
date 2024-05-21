@@ -140,7 +140,7 @@ abstract class RealmApiInterface {
 
   Future<List<Business>> getContacts();
 
-  Future<Business> getBusiness({int? businessId});
+  Business getBusiness({int? businessId});
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(

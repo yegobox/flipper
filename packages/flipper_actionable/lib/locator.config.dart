@@ -15,7 +15,6 @@ import 'package:injectable/injectable.dart' as _i2;
 import 'api.dart' as _i3;
 import 'module.dart' as _i6;
 import 'service.dart' as _i4;
-import 'storage.dart' as _i5;
 
 extension GetItInjectableX on _i1.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt

@@ -1,11 +1,6 @@
-import 'dart:convert';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' as found;
-import 'package:flipper_models/secrets.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:http/http.dart' as http;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final productColorsProvider =
