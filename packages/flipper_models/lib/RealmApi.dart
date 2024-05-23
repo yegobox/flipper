@@ -1143,6 +1143,21 @@ implements SyncReaml<M>, RealmApiInterface
             return realm!.query<Business>(r'userId == $0', [userId]).first;
         }
     }
+    @override
+    Future<Business> getBusinessFuture({int? businessId})async
+    {
+        if (businessId != null)
+        {
+            return realm!.query<Business>(r'id == $0', [businessId]).first;
+        }
+        else
+        {
+            ///FIXME: what will happen if a user has multiple business associated to him
+            ///the code bellow suggest that the first in row will be returned which can be wrong.
+            int? userId = ProxyService.box.getUserId();
+            return realm!.query<Business>(r'userId == $0', [userId]).first;
+        }
+    }
 
     @override
     Future<Business?> getBusinessFromOnlineGivenId({required int id}) async

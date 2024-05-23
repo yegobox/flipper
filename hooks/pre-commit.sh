@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# get current version
-cd apps/main_app
+# get current versions
+cd apps/flipper
 
 version=$(grep "version: " pubspec.yaml | cut -d' ' -f2)
 

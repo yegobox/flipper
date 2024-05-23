@@ -171,7 +171,7 @@ class SignupViewModel extends ReactiveViewModel {
 
   Future<Business> getBusiness(List<ITenant> tenants) {
     return ProxyService.realm
-        .getBusiness(businessId: tenants.first.businesses.first.id);
+        .getBusinessFuture(businessId: tenants.first.businesses.first.id);
   }
 
   Future<List<Branch>> getBranches(Business business) {

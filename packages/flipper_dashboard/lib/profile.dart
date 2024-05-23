@@ -129,8 +129,8 @@ class PDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future:
-          ProxyService.realm.getBusiness(businessId: widget.branch.businessId),
+      future: ProxyService.realm
+          .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         // final data = snapshot.data;
         // final hasImage = data?.imageUrl != null;
@@ -233,8 +233,8 @@ class PMobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future:
-          ProxyService.realm.getBusiness(businessId: widget.branch.businessId),
+      future: ProxyService.realm
+          .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
         // ignore: unused_local_variable
