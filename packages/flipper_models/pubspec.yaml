@@ -39,7 +39,7 @@ dependencies:
   # cloud_firestore: ^4.14.0
   isolated_worker: ^0.1.1
   # adding realm to replace firestore on desktop in transporting data to cloud
-  realm: ^2.2.1
+  realm: ^2.3.0
   #realm_dart: ^2.1.0
   uuid: ^4.3.3
   dart_mappable: ^4.2.1
@@ -49,7 +49,7 @@ dependencies:
   talker_flutter: ^4.1.5
   rxdart: ^0.27.7
   collection: ^1.18.0
-  intl: ^0.18.1
+  intl: ^0.19.0
 
 dependency_overrides:
   http: ^1.2.1
