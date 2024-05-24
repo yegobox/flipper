@@ -21,7 +21,7 @@ dependencies:
   built_collection: ^5.1.1
   flipper_services: ^1.0.0-dev
   flipper_routing: ^0.0.1-dev.3
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^6.0.4
 
   pocketbase: ^0.17.0
   stock: ^1.0.1

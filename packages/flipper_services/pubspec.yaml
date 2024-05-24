@@ -43,7 +43,7 @@ dependencies:
   googleapis_auth: ^1.4.1
   flipper_nfc: ^1.2.0
   timezone: ^0.9.2
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^6.0.4
   flutter_statusbarcolor_ns: ^0.5.0
   #TODO: real-time support on web https://github.com/pocketbase/dart-sdk/issues/11
   # TODO: find out how to take advantage this

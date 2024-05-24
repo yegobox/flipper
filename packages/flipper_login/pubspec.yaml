@@ -35,7 +35,7 @@ dependencies:
   # Do not update firebase_auth https://github.com/firebase/flutterfire/issues/5964
   firebase_auth: ^4.16.0
   flipper_routing: ^0.0.1-dev.3
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^6.0.4
   firebase_ui_localizations: ^1.9.0
   firebase_ui_oauth: ^1.4.13
   firebase_ui_oauth_google: ^1.2.13
