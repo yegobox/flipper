@@ -1,11 +1,11 @@
 name: flipper
 repository: https://github.com/yegobox/flipper
 packages:
-  - packages/**
   - open-sources/**
+  - open-sources/**/**
+  - packages/**
   - apps/**
   - apps/**/*
- 
 
 ignore:
   - "*web*"
