@@ -65,3 +65,4 @@ pubspec_overrides.yaml
 android/.gradle
 pubspec.lock
 android/.gradle/7.4/executionHistory/executionHistory.bin
+build
