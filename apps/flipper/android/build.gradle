@@ -3,6 +3,7 @@ allprojects {
         google()
         mavenCentral()
     }
+    // https://github.com/incrediblezayed/file_saver/issues/86
 }
 
 rootProject.buildDir = '../build'

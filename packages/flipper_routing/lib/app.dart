@@ -140,7 +140,7 @@ class App {}
 ///rm -rf open-sources/flutter_datetime_picker
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 ///rm -rf path/to/submodule
-///git submodule add https://github.com/yegobox/form_bloc.git open-sources/form_bloc
+///git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins
 
 // / find ./ -name pubspec.lock -type f -delete
 // / find ./ -name pubspec_overrides.yaml -type f -delete
@@ -423,3 +423,6 @@ class App {}
 /// Edge server token: 
 /// TODO: deal with flavor https://docs.flutter.dev/deployment/flavors#conditionally-bundling-assets-based-on-flavor
 ///
+///
+///WHY!
+///I am using git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins because orgional is wasting my time with java sdk 17 request

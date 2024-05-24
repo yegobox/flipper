@@ -51,3 +51,6 @@
 [submodule "open-sources/form_bloc"]
 	path = open-sources/form_bloc
 	url = https://github.com/yegobox/form_bloc.git
+[submodule "open-sources/plus_plugins"]
+	path = open-sources/plus_plugins
+	url = https://github.com/yegobox/plus_plugins.git
