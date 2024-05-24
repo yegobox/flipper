@@ -50,14 +50,15 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  if (kReleaseMode) {
+    WidgetsFlutterBinding.ensureInitialized();
+  }
   final talker = TalkerFlutter.init();
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString('google_fonts/OFL.txt');
     yield foundation.LicenseEntryWithLineBreaks(['google_fonts'], license);
   });
-  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -95,7 +96,6 @@ Future<void> main() async {
       badge: true,
     );
   }
-  // WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   //FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 

@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at,
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.4252223231740+1716472173
+version: 1.170.4252223231741+1716548753
 #
 #.....
 # The packages below are just refrences for what packages being used
@@ -76,12 +76,12 @@ dependencies:
   responsive_builder: ^0.7.0
   realm: ^2.3.0
   #realm_dart: ^2.1.0
-  patrol: ^3.6.1
   # firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
   sizer: ^2.0.15
 
 dev_dependencies:
+  patrol: ^3.7.2
   stacked_generator:
   flutter_launcher_icons: ^0.13.1
   # objectbox_generator: ^1.4.0
@@ -101,13 +101,13 @@ dev_dependencies:
   # riverpod_generator: ^2.3.5
   riverpod_lint: ^2.3.7
   mockito: ^5.4.2
-  test:
+  # test:
   flutter_test:
     sdk: flutter
-  integration_test:
-    sdk: flutter
-  flutter_driver:
-    sdk: flutter
+  # integration_test:
+  #   sdk: flutter
+  # flutter_driver:
+  #   sdk: flutter
 
 dependency_overrides:
   http: ^1.2.1
@@ -152,7 +152,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.1884.0
+  msix_version: 1.170.1885.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
