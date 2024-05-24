@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: "11"
 
       - uses: subosito/flutter-action@v2
         with:
@@ -96,7 +96,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: "11"
 
       - name: submodule init
         run: git submodule update --init
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/setup-java@v2
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: "11"
 
       - name: submodule init
         run: git submodule update --init
@@ -221,7 +221,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           distribution: "zulu"
-          java-version: "17"
+          java-version: "11"
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
@@ -303,7 +303,7 @@ jobs:
       - uses: actions/setup-java@v2 #plugin for setting up the java
         with:
           distribution: "zulu"
-          java-version: "17" #defines the java version
+          java-version: "11" #defines the java version
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
