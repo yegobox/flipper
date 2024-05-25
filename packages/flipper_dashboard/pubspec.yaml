@@ -101,11 +101,12 @@ dependencies:
   # Meaning I am using this package for now to speed up the process of development
   # if we hit that limit, we will have to switch to paid package or implement some functionality
   # by ourself. but for esence of time I do not want to wast time
-  syncfusion_flutter_datepicker: 25.1.35
-  syncfusion_flutter_datagrid: ^25.2.3
-  syncfusion_flutter_xlsio: ^25.1.41
-  syncfusion_flutter_datagrid_export: ^25.1.41
-  syncfusion_flutter_core: ^25.1.42
+  # Synfusion package compatibility https://help.syncfusion.com/flutter/system-requirements#sdk-version-compatibility
+  syncfusion_flutter_datepicker: ^24.2.7
+  syncfusion_flutter_datagrid: ^224.2.7
+  syncfusion_flutter_xlsio: ^24.2.7
+  syncfusion_flutter_datagrid_export: ^24.2.7
+  syncfusion_flutter_core: ^24.2.7
   # https://github.com/yegobox/flutter_datetime_picker
   flutter_datetime_picker:
     git:
