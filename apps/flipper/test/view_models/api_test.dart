@@ -8,7 +8,7 @@ void main() {
     RealmAPI realm = RealmAPI();
     setUpAll(() async {
       await realm.configure(
-        inTesting: true,
+        useInMemoryDb: true,
       );
     });
 

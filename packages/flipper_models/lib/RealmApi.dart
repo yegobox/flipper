@@ -2460,7 +2460,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<RealmApiInterface> configure({required bool inTesting}) async {
+  Future<RealmApiInterface> configure({required bool useInMemoryDb}) async {
     if (foundation.kDebugMode && !isAndroid) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -2476,13 +2476,11 @@ class RealmAPI<M extends IJsonSerializable>
     //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    final user = app.currentUser ??
-        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
 
     Configuration config;
 
     try {
-      if (inTesting) {
+      if (useInMemoryDb) {
         if (realm != null) {
           realm!.close();
         }
@@ -2490,6 +2488,9 @@ class RealmAPI<M extends IJsonSerializable>
         realm = Realm(config);
       } else if (ProxyService.box.getBranchId() != null ||
           ProxyService.box.getBusinessId() != null) {
+        final user = app.currentUser ??
+            await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
         config = Configuration.flexibleSync(
             // https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/update-realm-object-schema/
             // schemaVersion: 2,
@@ -2566,8 +2567,9 @@ class RealmAPI<M extends IJsonSerializable>
       //// if for some reason we can't open the app normmay allow the user to use inMemory
       /// but this has a Risk that next time when we open app it might switch to the cloud
       /// and user might not see data saved on local
+      /// https://github.com/realm/realm-dart/issues/1028
       config = Configuration.inMemory(
-        realmModels,
+        [UserActivity.schema],
         path: path,
         // encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
@@ -3054,7 +3056,8 @@ class RealmAPI<M extends IJsonSerializable>
       await _configureTheBox(userPhone, user);
 
       /// after we login this is the best time to open the synced database to start persisting the data
-      await configure(inTesting: false);
+      /// this will close whatever inMemory db we opened temporarly to have the app running
+      await configure(useInMemoryDb: false);
       if (stopAfterConfigure) return user;
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.writeString(

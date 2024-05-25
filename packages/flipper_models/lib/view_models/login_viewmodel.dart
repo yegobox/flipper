@@ -52,7 +52,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
     try {
       if (ProxyService.realm.realm == null) {
         // Wait for realm to be initialized (replace with your actual initialization logic)
-        await ProxyService.realm.configure(inTesting: false);
+        await ProxyService.realm.configure(useInMemoryDb: false);
       }
       setIsprocessing(value: true);
       IPin? pin = await ProxyService.realm.getPin(pin: pinCode);

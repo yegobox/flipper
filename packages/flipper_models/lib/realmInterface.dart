@@ -345,7 +345,7 @@ abstract class RealmApiInterface {
       required bool doneWithTransaction,
       required bool active});
 
-  Future<RealmApiInterface> configure({required bool inTesting});
+  Future<RealmApiInterface> configure({required bool useInMemoryDb});
   Realm? realm;
   bool isRealmClosed();
 

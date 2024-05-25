@@ -25,7 +25,7 @@ class StartupViewModel extends FlipperBaseModel {
       /// there is cases where when app re-start and then for some reason the realm is closed
       /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
       if (ProxyService.realm.isRealmClosed()) {
-        await ProxyService.realm.configure(inTesting: false);
+        await ProxyService.realm.configure(useInMemoryDb: false);
       }
 
       /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.

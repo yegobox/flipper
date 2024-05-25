@@ -276,8 +276,10 @@ abstract class ServicesModule {
   @preResolve
   @LazySingleton()
   Future<RealmApiInterface> realmApi() async {
+    /// to speed-up the application starting time, when we init realm, we just pass in memory db
+    /// then when user login we will close it and switch to flexible sync
     return await RealmAPI().configure(
-      inTesting: bool.fromEnvironment('Test') == true,
+      useInMemoryDb: true,
     );
   }
 

@@ -23,12 +23,21 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   Future<LocalRealmInterface> configureLocal({required bool inTesting}) async {
     talker.warning("Opening local realm alongside the synced one!");
     String path = await dbPath();
+    Configuration config;
 
     /// While experimenting the local db alongside synced one, I realized that there is some unknown issues.
-    final config = Configuration.local([UserActivity.schema],
+    try {
+      config = Configuration.local([UserActivity.schema],
+          path: path,
+          encryptionKey: ProxyService.box.encryptionKey().toIntList());
+      rea = Realm(config);
+    } catch (e) {
+      config = Configuration.inMemory(
+        [UserActivity.schema],
         path: path,
-        encryptionKey: ProxyService.box.encryptionKey().toIntList());
-    rea = Realm(config);
+        // encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+      );
+    }
     return this;
   }
 
