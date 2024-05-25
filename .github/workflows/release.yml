@@ -119,7 +119,7 @@ jobs:
   build-and-release-windows:
     name: "Build windows app"
     # needs: [unit-testing, integration-testing-windows, android-integration-test]
-    runs-on: windows-2022
+    runs-on: windows-latest
     #     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
@@ -163,11 +163,12 @@ jobs:
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          # --store
       - run: |
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart run msix:create --store
+          dart run msix:create
       - name: Configure Release (optional)
         env:
           VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
