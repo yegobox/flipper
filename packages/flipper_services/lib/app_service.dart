@@ -109,7 +109,7 @@ class AppService with ListenableServiceMixin {
 
   /// contact are business in other words
   Future<void> loadContacts() async {
-    List<Business> contacts = await ProxyService.realm.getContacts();
+    List<Business> contacts = await ProxyService.local.getContacts();
     _contacts.value = contacts;
   }
 
@@ -165,7 +165,7 @@ class AppService with ListenableServiceMixin {
 
     // Iterate over businesses and perform the operations
     for (Business business in businesses) {
-      await ProxyService.realm
+      await ProxyService.local
           .tenantsFromOnline(businessId: business.serverId!);
     }
 

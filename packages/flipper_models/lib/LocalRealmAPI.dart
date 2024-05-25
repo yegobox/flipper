@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
@@ -250,6 +251,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         for (IBusiness business in tenant.businesses) {
           Business biz = Business(ObjectId(),
               userId: business.userId,
+              serverId: business.id,
               name: business.name,
               currency: business.currency,
               categoryId: business.categoryId,
@@ -304,9 +306,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         for (IBranch brannch in tenant.branches) {
           Branch branch = Branch(ObjectId(),
               active: brannch.active,
+              serverId: brannch.id,
               description: brannch.description,
               name: brannch.name,
-              serverId: brannch.id,
               businessId: brannch.businessId,
               longitude: brannch.longitude,
               latitude: brannch.latitude,
@@ -403,6 +405,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     if (business == null) {
       localRealm!.write(() {
         localRealm!.add<Business>(Business(ObjectId(),
+            serverId: IBusiness.fromJson(json.decode(response.body)).id,
             userId: IBusiness.fromJson(json.decode(response.body)).userId,
             name: IBusiness.fromJson(json.decode(response.body)).name,
             currency: IBusiness.fromJson(json.decode(response.body)).currency,
@@ -462,14 +465,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             encryptionKey:
                 IBusiness.fromJson(json.decode(response.body)).encryptionKey));
       });
-      business =
-          localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
     }
-    ProxyService.box.writeInt(
-        key: 'businessId',
-        value: IBusiness.fromJson(json.decode(response.body)).id!);
+    business =
+        localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
+    ProxyService.box.writeInt(key: 'businessId', value: business!.serverId!);
 
-    return business!;
+    return business;
   }
 
   @override
@@ -629,5 +630,299 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     return localRealm!.query<Business>(
         r'userId == $0 AND (active == $1 OR active == $2)',
         [userId, null, true]).firstOrNull;
+  }
+
+  @override
+  Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+    final http.Response response = await flipperHttpClient
+        .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
+    if (response.statusCode == 200) {
+      final tenantToAdd = <Tenant>[];
+      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
+        ITenant jTenant = tenant;
+        Tenant iTenant = Tenant(ObjectId(),
+            isDefault: jTenant.isDefault,
+            id: jTenant.id,
+            name: jTenant.name,
+            userId: jTenant.userId,
+            businessId: jTenant.businessId,
+            nfcEnabled: jTenant.nfcEnabled,
+            email: jTenant.email,
+            phoneNumber: jTenant.phoneNumber);
+
+        for (IBusiness business in jTenant.businesses) {
+          Business biz = Business(ObjectId(),
+              serverId: business.id,
+              userId: business.userId,
+              name: business.name,
+              currency: business.currency,
+              categoryId: business.categoryId,
+              latitude: business.latitude,
+              longitude: business.longitude,
+              timeZone: business.timeZone,
+              country: business.country,
+              businessUrl: business.businessUrl,
+              hexColor: business.hexColor,
+              imageUrl: business.imageUrl,
+              type: business.type,
+              active: business.active,
+              chatUid: business.chatUid,
+              metadata: business.metadata,
+              role: business.role,
+              lastSeen: business.lastSeen,
+              firstName: business.firstName,
+              lastName: business.lastName,
+              createdAt: business.createdAt,
+              deviceToken: business.deviceToken,
+              backUpEnabled: business.backUpEnabled,
+              subscriptionPlan: business.subscriptionPlan,
+              nextBillingDate: business.nextBillingDate,
+              previousBillingDate: business.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  business.isLastSubscriptionPaymentSucceeded,
+              backupFileId: business.backupFileId,
+              email: business.email,
+              lastDbBackup: business.lastDbBackup,
+              fullName: business.fullName,
+              tinNumber: business.tinNumber,
+              bhfId: business.bhfId,
+              dvcSrlNo: business.dvcSrlNo,
+              adrs: business.adrs,
+              taxEnabled: business.taxEnabled,
+              taxServerUrl: business.taxServerUrl,
+              isDefault: business.isDefault,
+              businessTypeId: business.businessTypeId,
+              lastTouched: business.lastTouched,
+              action: business.action,
+              deletedAt: business.deletedAt,
+              encryptionKey: business.encryptionKey);
+          Business? exist = localRealm!
+              .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
+          if (exist == null) {
+            localRealm!.add<Business>(biz);
+          }
+        }
+
+        for (IBranch brannch in jTenant.branches) {
+          Branch branch = Branch(ObjectId(),
+              serverId: brannch.id,
+              active: brannch.active,
+              description: brannch.description,
+              name: brannch.name,
+              businessId: brannch.businessId,
+              longitude: brannch.longitude,
+              latitude: brannch.latitude,
+              isDefault: brannch.isDefault,
+              lastTouched: brannch.lastTouched,
+              action: brannch.action,
+              deletedAt: brannch.deletedAt);
+          Branch? exist = localRealm!
+              .query<Branch>(r'serverId == $0', [branch.id]).firstOrNull;
+          if (exist == null) {
+            localRealm!.add<Branch>(branch);
+          }
+        }
+
+        final permissionToAdd = <LPermission>[];
+        for (IPermission permission in jTenant.permissions) {
+          LPermission? exist = realm!
+              .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+          if (exist == null) {
+            final perm = LPermission(ObjectId(),
+                id: permission.id, name: permission.name);
+            permissionToAdd.add(perm);
+          }
+        }
+
+        ProxyService.realm.realm!.write(() {
+          ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
+        });
+
+        tenantToAdd.add(iTenant);
+      }
+      ProxyService.realm.realm!.write(() {
+        ProxyService.realm.realm!.addAll<Tenant>(tenantToAdd);
+      });
+      return ITenant.fromJsonList(response.body);
+    }
+    throw InternalServerException(term: "we got unexpected response");
+  }
+
+  @override
+  Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
+    Business? business = realm!.query<Business>(r'id == $0', [id]).firstOrNull;
+
+    if (business != null) return business;
+    final http.Response response =
+        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
+    if (response.statusCode == 200) {
+      int id = randomNumber();
+      IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
+      Business business = Business(ObjectId(),
+          serverId: iBusiness.id,
+          name: iBusiness.name,
+          userId: iBusiness.userId,
+          createdAt: DateTime.now().toIso8601String());
+
+      business.serverId = id;
+      localRealm!.write(() {
+        localRealm!.add<Business>(business);
+      });
+      return business;
+    }
+    return null;
+  }
+
+  @override
+  Future<List<Business>> getContacts() async {
+    return localRealm!.query<Business>(
+        r'userId == $0', [ProxyService.box.getUserId()]).toList();
+  }
+
+  @override
+  Future<Tenant> saveTenant(String phoneNumber, String name,
+      {required Business business,
+      required Branch branch,
+      required String userType}) async {
+    final http.Response response =
+        await flipperHttpClient.post(Uri.parse("$apihub/v2/api/tenant"),
+            body: jsonEncode({
+              "phoneNumber": phoneNumber,
+              "name": name,
+              "businessId": business.id,
+              "permissions": [
+                {"name": userType.toLowerCase()}
+              ],
+              "businesses": [business.toEJson()],
+              "branches": [branch.toEJson()]
+            }));
+    if (response.statusCode == 200) {
+      ITenant jTenant = ITenant.fromRawJson(response.body);
+      ITenant iTenant = ITenant(
+          businesses: jTenant.businesses,
+          branches: jTenant.branches,
+          isDefault: jTenant.isDefault,
+          id: randomNumber(),
+          permissions: jTenant.permissions,
+          name: jTenant.name,
+          businessId: jTenant.businessId,
+          email: jTenant.email,
+          userId: jTenant.userId,
+          nfcEnabled: jTenant.nfcEnabled,
+          phoneNumber: jTenant.phoneNumber);
+      final branchToAdd = <Branch>[];
+      final permissionToAdd = <LPermission>[];
+      final businessToAdd = <Business>[];
+
+      for (var business in jTenant.businesses) {
+        Business? existingBusiness = localRealm!
+            .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
+        if (existingBusiness == null) {
+          businessToAdd.add(Business(ObjectId(),
+              serverId: business.id,
+              userId: business.userId,
+              name: business.name,
+              currency: business.currency,
+              categoryId: business.categoryId,
+              latitude: business.latitude,
+              longitude: business.longitude,
+              timeZone: business.timeZone,
+              country: business.country,
+              businessUrl: business.businessUrl,
+              hexColor: business.hexColor,
+              imageUrl: business.imageUrl,
+              type: business.type,
+              active: business.active,
+              chatUid: business.chatUid,
+              metadata: business.metadata,
+              role: business.role,
+              lastSeen: business.lastSeen,
+              firstName: business.firstName,
+              lastName: business.lastName,
+              createdAt: business.createdAt,
+              deviceToken: business.deviceToken,
+              backUpEnabled: business.backUpEnabled,
+              subscriptionPlan: business.subscriptionPlan,
+              nextBillingDate: business.nextBillingDate,
+              previousBillingDate: business.previousBillingDate,
+              isLastSubscriptionPaymentSucceeded:
+                  business.isLastSubscriptionPaymentSucceeded,
+              backupFileId: business.backupFileId,
+              email: business.email,
+              lastDbBackup: business.lastDbBackup,
+              fullName: business.fullName,
+              tinNumber: business.tinNumber,
+              bhfId: business.bhfId,
+              dvcSrlNo: business.dvcSrlNo,
+              adrs: business.adrs,
+              taxEnabled: business.taxEnabled,
+              taxServerUrl: business.taxServerUrl,
+              isDefault: business.isDefault,
+              businessTypeId: business.businessTypeId,
+              lastTouched: business.lastTouched,
+              action: business.action,
+              deletedAt: business.deletedAt,
+              encryptionKey: business.encryptionKey));
+        }
+      }
+
+      for (var branch in jTenant.branches) {
+        // Check if the branch with the same ID already exists
+        // var existingBranch =
+        //     await isar.iBranchs.filter().idEqualTo(branch.id).findFirst();
+        final existingBranch =
+            realm!.query<Branch>(r'serverId==$0', [branch.id]).firstOrNull;
+        if (existingBranch == null) {
+          Branch br = Branch(ObjectId(),
+              serverId: branch.id,
+              name: branch.name,
+              businessId: branch.businessId,
+              action: branch.action,
+              active: branch.active,
+              lastTouched: branch.lastTouched,
+              latitude: branch.latitude,
+              longitude: branch.longitude);
+          branchToAdd.add(br);
+        }
+      }
+
+      for (var permission in jTenant.permissions) {
+        LPermission? existingPermission = ProxyService.realm.realm!
+            .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+        if (existingPermission == null) {
+          // Permission doesn't exist, add it
+          permissionToAdd.add(LPermission(ObjectId(),
+              name: permission.name,
+              id: permission.id,
+              userId: permission.userId));
+        }
+      }
+
+      Tenant? tenantToAdd;
+      Tenant? tenant = ProxyService.realm.realm!
+          .query<Tenant>(r'id==$0', [iTenant.id]).firstOrNull;
+      if (tenant == null) {
+        tenantToAdd = Tenant(ObjectId(),
+            name: jTenant.name,
+            phoneNumber: jTenant.phoneNumber,
+            email: jTenant.email,
+            nfcEnabled: jTenant.nfcEnabled,
+            businessId: jTenant.businessId,
+            userId: jTenant.userId,
+            isDefault: jTenant.isDefault,
+            pin: jTenant.pin);
+        ProxyService.realm.realm!.add<Tenant>(tenantToAdd);
+      }
+
+      localRealm!.write(() {
+        localRealm!.addAll<Business>(businessToAdd);
+        localRealm!.addAll<Branch>(branchToAdd);
+        ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
+      });
+
+      return tenantToAdd!;
+    } else {
+      throw InternalServerError(term: "internal server error");
+    }
   }
 }

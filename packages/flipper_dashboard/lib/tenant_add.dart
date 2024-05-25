@@ -254,7 +254,7 @@ class _TenantAddState extends State<TenantAdd> {
     /// either this user or tenant being added will be prompted to choose default business
     /// and default branch, also it is important to know that this tenant added
     /// will be working in scope defined by permission given at time of adding him
-    await ProxyService.realm.saveTenant(
+    await ProxyService.local.saveTenant(
       _phoneController.text,
       _nameController.text,
       branch: branch!,

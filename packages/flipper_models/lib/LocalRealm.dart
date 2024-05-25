@@ -24,4 +24,12 @@ abstract class LocalRealmInterface {
   Future<Business?> defaultBusiness();
   Future<Branch?> defaultBranch();
   Future<Branch> activeBranch();
+
+  Future<List<ITenant>> tenantsFromOnline({required int businessId});
+  Future<Business?> getBusinessFromOnlineGivenId({required int id});
+  Future<List<Business>> getContacts();
+  Future<Tenant> saveTenant(String phoneNumber, String name,
+      {required Business business,
+      required Branch branch,
+      required String userType});
 }

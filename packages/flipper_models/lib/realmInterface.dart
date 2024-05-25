@@ -146,8 +146,6 @@ abstract class RealmApiInterface {
   //the method is not different from users, but users is for streaming users being added
   //to connected devices, while this method is for getting all users using List<Business>
 
-  Future<List<Business>> getContacts();
-
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
@@ -197,8 +195,6 @@ abstract class RealmApiInterface {
   Future<Tenant?> getTenantBYUserId({required int userId});
 
   Future<Tenant?> getTenantBYPin({required int pin});
-  Future<List<ITenant>> tenantsFromOnline({required int businessId});
-  Future<Business?> getBusinessFromOnlineGivenId({required int id});
 
   Future<void> syncProduct(
       {required Product product,
@@ -216,10 +212,7 @@ abstract class RealmApiInterface {
 
   // Future<Profile?> profile({required int businessId});
   // Future<Profile?> updateProfile({required Profile profile});
-  Future<Tenant> saveTenant(String phoneNumber, String name,
-      {required Business business,
-      required Branch branch,
-      required String userType});
+
   // Future<Pointss> addPoint({required int userId, required int point});
 
   // Future<Pointss?> getPoints({required int userId});
