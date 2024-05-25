@@ -1,4 +1,5 @@
 import 'package:flipper_login/loginCode.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -140,25 +140,26 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                               style: TextStyle(color: Color(0xff006AFE)),
                             ),
                             style: ButtonStyle(
-                              shape: WidgetStateProperty.resolveWith<
+                              shape: MaterialStateProperty.resolveWith<
                                       OutlinedBorder>(
                                   (states) => RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(0))),
-                              side: WidgetStateProperty.resolveWith<BorderSide>(
-                                  (states) => BorderSide(
-                                        color: const Color(0xff006AFE)
-                                            .withOpacity(0.1),
-                                      )),
-                              backgroundColor: WidgetStateProperty.all<Color>(
+                              side:
+                                  MaterialStateProperty.resolveWith<BorderSide>(
+                                      (states) => BorderSide(
+                                            color: const Color(0xff006AFE)
+                                                .withOpacity(0.1),
+                                          )),
+                              backgroundColor: MaterialStateProperty.all<Color>(
                                   const Color(0xff006AFE).withOpacity(0.1)),
                               overlayColor:
-                                  WidgetStateProperty.resolveWith<Color?>(
-                                (Set<WidgetState> states) {
-                                  if (states.contains(WidgetState.hovered)) {
+                                  MaterialStateProperty.resolveWith<Color?>(
+                                (Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.hovered)) {
                                     return Color(0xff006AFE).withOpacity(0.5);
                                   }
-                                  if (states.contains(WidgetState.focused) ||
-                                      states.contains(WidgetState.pressed)) {
+                                  if (states.contains(MaterialState.focused) ||
+                                      states.contains(MaterialState.pressed)) {
                                     return Color(0xff006AFE).withOpacity(0.5);
                                   }
                                   return Color(0xff006AFE).withOpacity(0.5);
@@ -173,7 +174,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         ),
                         // show a text to show if device is offline
                         StreamBuilder<List<ConnectivityResult>>(
-                          stream: Connectivity().onConnectivityChanged!,
+                          stream: Connectivity().onConnectivityChanged,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data == ConnectivityResult.none) {
