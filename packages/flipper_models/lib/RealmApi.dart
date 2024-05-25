@@ -2218,6 +2218,9 @@ class RealmAPI<M extends IJsonSerializable>
     realm?.close();
 
     try {
+      if (ProxyService.box.encryptionKey().isEmpty) {
+        throw Exception("null encryption");
+      }
       if (useInMemoryDb) {
         config = Configuration.inMemory(realmModels);
         realm = Realm(config);

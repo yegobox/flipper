@@ -44,8 +44,8 @@ class CronService {
   final talker = TalkerFlutter.init();
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     try {
-      Business business = ProxyService.realm.realm!.query<Business>(
-          r'id == $0', [ProxyService.box.getBusinessId()!]).first;
+      Business business = ProxyService.local.localRealm!.query<Business>(
+          r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
       if (ProxyService.realm.isTaxEnabled()) {
         ReceivePort receivePort = ReceivePort();

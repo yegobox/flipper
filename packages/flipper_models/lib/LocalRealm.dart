@@ -15,6 +15,7 @@ abstract class LocalRealmInterface {
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false});
   Future<List<Business>> businesses({required int userId});
+  Future<Business?> activeBusinesses({required int userId});
   Future<Business> getOnlineBusiness({required int userId});
   Future<List<Branch>> branches({int? businessId});
   Future<List<ITenant>> signup({required Map business});

@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,12 +20,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
-
-extension StringToIntList on String {
-  List<int> toIntList() {
-    return this.split(',').map((e) => int.parse(e.trim())).toList();
-  }
-}
 
 class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
@@ -52,6 +47,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     localRealm?.close();
 
     try {
+      if (ProxyService.box.encryptionKey().isEmpty) {
+        throw Exception("null encryption");
+      }
       config = Configuration.local(
         [UserActivity.schema, Business.schema, Branch.schema],
         path: path,
@@ -295,7 +293,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               deletedAt: business.deletedAt,
               encryptionKey: business.encryptionKey);
           Business? exist = localRealm!
-              .query<Business>(r'id == $0', [business.id]).firstOrNull;
+              .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
           if (exist == null) {
             businessesToAdd.add(biz);
           }
@@ -308,6 +306,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               active: brannch.active,
               description: brannch.description,
               name: brannch.name,
+              serverId: brannch.id,
               businessId: brannch.businessId,
               longitude: brannch.longitude,
               latitude: brannch.latitude,
@@ -315,8 +314,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               lastTouched: brannch.lastTouched,
               action: brannch.action,
               deletedAt: brannch.deletedAt);
-          Branch? exist =
-              localRealm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
+          Branch? exist = localRealm!
+              .query<Branch>(r'serverId == $0', [branch.serverId]).firstOrNull;
           if (exist == null) {
             branchToAdd.add(branch);
           }
@@ -327,7 +326,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         });
         final permissionToAdd = <LPermission>[];
         for (IPermission permission in tenant.permissions) {
-          LPermission? exist = realm!
+          LPermission? exist = ProxyService.realm.realm!
               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
           if (exist == null) {
             final perm = LPermission(ObjectId(),
@@ -339,8 +338,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           localRealm!.addAll<LPermission>(permissionToAdd);
         });
 
-        Tenant? exist =
-            localRealm!.query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
+        Tenant? exist = ProxyService.realm.realm!
+            .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
         if (exist == null) {
           if (user.id == iTenant.userId) {
             iTenant.sessionActive = true;
@@ -350,6 +349,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           }
         }
       }
+      // ProxyService.box.writeInt(key: 'businessId', value: user.tenants.first.businessId);
 
       return user;
     } else if (response.statusCode == 401) {
@@ -397,7 +397,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       throw BusinessNotFoundException(term: "IBusiness not found");
     }
 
-    Business? business = localRealm!.query<Business>(r'id == $0',
+    Business? business = localRealm!.query<Business>(r'serverId == $0',
         [IBusiness.fromJson(json.decode(response.body)).id!]).firstOrNull;
 
     if (business == null) {
@@ -462,14 +462,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             encryptionKey:
                 IBusiness.fromJson(json.decode(response.body)).encryptionKey));
       });
-      // business =
-      //     await realm.iBusiness.filter().userIdEqualTo(userId).findFirst();
       business =
           localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
     }
-    ProxyService.box.writeInt(key: 'businessId', value: business!.serverId!);
+    ProxyService.box.writeInt(
+        key: 'businessId',
+        value: IBusiness.fromJson(json.decode(response.body)).id!);
 
-    return business;
+    return business!;
   }
 
   @override
@@ -570,14 +570,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         });
 
         for (IPermission permission in jTenant.permissions) {
-          localRealm!.add<LPermission>(LPermission(ObjectId(),
+          ProxyService.realm.realm!.add<LPermission>(LPermission(ObjectId(),
               id: permission.id, name: permission.name));
         }
 
-        tenantToAdd.add(iTenant);
+        ProxyService.realm.realm!.add(iTenant);
       }
-      localRealm!.write(() {
-        localRealm!.addAll<Tenant>(tenantToAdd);
+      ProxyService.realm.realm!.write(() {
+        ProxyService.realm.realm!.addAll<Tenant>(tenantToAdd);
       });
       return ITenant.fromJsonList(response.body);
     } else {
@@ -622,5 +622,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   @override
   Future<Branch> activeBranch() async {
     return localRealm!.query<Branch>(r'isDefault == $0', [true]).first;
+  }
+
+  @override
+  Future<Business?> activeBusinesses({required int userId}) async {
+    return localRealm!.query<Business>(
+        r'userId == $0 AND (active == $1 OR active == $2)',
+        [userId, null, true]).firstOrNull;
   }
 }

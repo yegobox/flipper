@@ -140,26 +140,25 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                               style: TextStyle(color: Color(0xff006AFE)),
                             ),
                             style: ButtonStyle(
-                              shape: MaterialStateProperty.resolveWith<
+                              shape: WidgetStateProperty.resolveWith<
                                       OutlinedBorder>(
                                   (states) => RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(0))),
-                              side:
-                                  MaterialStateProperty.resolveWith<BorderSide>(
-                                      (states) => BorderSide(
-                                            color: const Color(0xff006AFE)
-                                                .withOpacity(0.1),
-                                          )),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              side: WidgetStateProperty.resolveWith<BorderSide>(
+                                  (states) => BorderSide(
+                                        color: const Color(0xff006AFE)
+                                            .withOpacity(0.1),
+                                      )),
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   const Color(0xff006AFE).withOpacity(0.1)),
                               overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
+                                  WidgetStateProperty.resolveWith<Color?>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.hovered)) {
                                     return Color(0xff006AFE).withOpacity(0.5);
                                   }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
+                                  if (states.contains(WidgetState.focused) ||
+                                      states.contains(WidgetState.pressed)) {
                                     return Color(0xff006AFE).withOpacity(0.5);
                                   }
                                   return Color(0xff006AFE).withOpacity(0.5);

@@ -1,6 +1,5 @@
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
@@ -12,9 +11,19 @@ import 'package:realm/realm.dart';
 
 import 'helperModels/tenant.dart';
 
-extension StringToIntList on String {
+extension StringToIntList on String? {
   List<int> toIntList() {
-    return this.split(',').map((e) => int.parse(e.trim())).toList();
+    if (this == null) {
+      print('Input string is null');
+      return []; // Return an empty list if the input is null
+    }
+
+    return this!
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => int.tryParse(e) != null) // Filter out invalid elements
+        .map(int.parse)
+        .toList();
   }
 }
 
