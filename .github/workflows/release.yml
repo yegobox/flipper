@@ -163,7 +163,7 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart run msix:create
+          dart run msix:create --store false
       - name: Configure Release (optional)
         env:
           VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
