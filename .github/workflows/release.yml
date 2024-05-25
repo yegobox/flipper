@@ -14,11 +14,8 @@ on:
           - promote_to_production
           - production
 
-  # Refs/tags push events to matching v*, i.e. v1.0, v20.15.10
   push:
     branches: [main, dev]
-    # tags:
-    # - 'v*'
 
 env:
   URL: ${{ secrets.DB_URL }}
@@ -181,9 +178,7 @@ jobs:
 
       - name: Extract msix_version
         id: get_version
-        shell:
-          powershell
-          #TODO: https://github.blog/changelog/2022-10-11-github-actions-deprecating-save-state-and-set-output-commands/ the code bellow use the latest recommendation
+        shell: powershell
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
@@ -357,7 +352,7 @@ jobs:
         working-directory: apps/flipper/android
 
       # Build and deploy with Fastlane (by default, to beta track) 🚀.
-      # Naturally, promote_to_production only deploys.
+      # Naturally, promote_to_production only deploys
       # https://stackoverflow.com/questions/22301956/error-with-gradlew-usr-bin-env-bash-no-such-file-or-directory
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
