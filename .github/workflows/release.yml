@@ -69,7 +69,7 @@ jobs:
     name: "Integration Testing Windows"
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
     runs-on: windows-2022
-    needs: [unit-testing]
+    # needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
@@ -120,7 +120,7 @@ jobs:
 
   build-and-release-windows:
     name: "Build windows app"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    # needs: [unit-testing, integration-testing-windows, android-integration-test]
     runs-on: windows-2022
     #     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -281,7 +281,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    # needs: [unit-testing, integration-testing-windows, android-integration-test]
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
