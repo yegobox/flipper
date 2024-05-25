@@ -53,7 +53,6 @@
         android:allowBackup="false"
         android:label="flipper"
         android:fullBackupContent="false"
-        android:requestLegacyExternalStorage="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Configure admob-->

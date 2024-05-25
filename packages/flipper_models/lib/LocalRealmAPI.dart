@@ -627,9 +627,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
   @override
   Future<Business?> activeBusinesses({required int userId}) async {
-    return localRealm!.query<Business>(
-        r'userId == $0 AND (active == $1 OR active == $2)',
-        [userId, null, true]).firstOrNull;
+    // AND (active == $1 OR active == $2)
+    return localRealm!.query<Business>(r'userId == $0 ', [userId]).firstOrNull;
   }
 
   @override
@@ -717,7 +716,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               action: brannch.action,
               deletedAt: brannch.deletedAt);
           Branch? exist = localRealm!
-              .query<Branch>(r'serverId == $0', [branch.id]).firstOrNull;
+              .query<Branch>(r'serverId == $0', [brannch.id]).firstOrNull;
           if (exist == null) {
             localRealm!.add<Branch>(branch);
           }
@@ -725,7 +724,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
         final permissionToAdd = <LPermission>[];
         for (IPermission permission in jTenant.permissions) {
-          LPermission? exist = realm!
+          LPermission? exist = ProxyService.realm.realm!
               .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
           if (exist == null) {
             final perm = LPermission(ObjectId(),
@@ -750,7 +749,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
   @override
   Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
-    Business? business = realm!.query<Business>(r'id == $0', [id]).firstOrNull;
+    Business? business =
+        localRealm!.query<Business>(r'serverId == $0', [id]).firstOrNull;
 
     if (business != null) return business;
     final http.Response response =
