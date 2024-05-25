@@ -24,6 +24,7 @@ env:
 jobs:
   unit-testing:
     runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -66,6 +67,7 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
     runs-on: windows-2022
     #     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -159,11 +161,13 @@ jobs:
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
           # --store
+          # --install-certificate false
+          # https://github.com/YehudaKremer/msix/issues/126
       - run: |
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart run msix:create --store false
+          dart run msix:create --install-certificate false
       - name: Configure Release (optional)
         env:
           VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
@@ -200,6 +204,7 @@ jobs:
 
   android-integration-test:
     name: integration on Android
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
     runs-on: macOS-12
     strategy:
       matrix:
