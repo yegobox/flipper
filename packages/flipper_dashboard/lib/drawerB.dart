@@ -55,7 +55,7 @@ class MyDrawer extends StatelessWidget {
                 );
               }),
           FutureBuilder<List<Business>>(
-            future: ProxyService.realm
+            future: ProxyService.local
                 .businesses(userId: ProxyService.box.getUserId()!),
             builder: (context, businessSnapshot) {
               if (businessSnapshot.connectionState == ConnectionState.waiting) {
@@ -70,9 +70,8 @@ class MyDrawer extends StatelessWidget {
               final List<Business> businesses = businessSnapshot.data ?? [];
 
               return FutureBuilder<List<Branch>>(
-                future: ProxyService.realm.branches(
-                    businessId: businesses
-                        .first.id), // Replace with your logic to fetch branches
+                future: ProxyService.local
+                    .branches(businessId: businesses.first.serverId),
                 builder: (context, branchSnapshot) {
                   if (branchSnapshot.connectionState ==
                       ConnectionState.waiting) {

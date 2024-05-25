@@ -60,7 +60,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
       talker.info("${pin?.toJson().toString()}");
       // Perform user login
-      await ProxyService.realm.login(
+      await ProxyService.local.login(
         skipDefaultAppSetup: false,
         userPhone: pin!.phoneNumber,
       );

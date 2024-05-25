@@ -117,7 +117,7 @@ class _AppsState extends ConsumerState<Apps> {
         closeButton: CLOSEBUTTON.WIDGET,
         customTrailingWidget: Container(
           child: FutureBuilder<Branch>(
-            future: ProxyService.realm.activeBranch(),
+            future: ProxyService.local.activeBranch(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData) {

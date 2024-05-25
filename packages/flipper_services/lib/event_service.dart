@@ -113,7 +113,7 @@ class EventService with TokenLogin implements EventInterface {
         Device? device = await ProxyService.realm.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
-          await ProxyService.realm
+          await ProxyService.local
               .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
           if (device == null) {
             await ProxyService.realm.create(

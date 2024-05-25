@@ -9,7 +9,6 @@ import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/counter.dart';
-import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -110,11 +109,6 @@ class RealmAPI<M extends IJsonSerializable>
       return results.first;
     }
     return null;
-  }
-
-  @override
-  Future<Branch> activeBranch() async {
-    return realm!.query<Branch>(r'isDefault == $0', [true]).first;
   }
 
   @override
@@ -319,27 +313,6 @@ class RealmAPI<M extends IJsonSerializable>
       // Handle error during binding process
       return false;
     }
-  }
-
-  @override
-  Future<List<Branch>> branches({int? businessId}) async {
-    if (businessId != null) {
-      return realm!.query<Branch>(r'businessId == $0 ', [businessId]).toList();
-    } else {
-      throw Exception("BusinessId is required");
-    }
-  }
-
-  @override
-  Future<List<Business>> businesses({int? userId}) async {
-    List<Business> businesses = [];
-    if (userId != null) {
-      businesses = realm!.query<Business>(r'userId == $0 ', [userId]).toList();
-    } else {
-      throw Exception("userId is required");
-    }
-
-    return businesses;
   }
 
   @override
@@ -604,7 +577,7 @@ class RealmAPI<M extends IJsonSerializable>
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false}) async {
-    final Business? business = await getBusiness();
+    final Business? business = await ProxyService.local.getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
     final int businessId = ProxyService.box.getBusinessId()!;
 
@@ -695,16 +668,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Customer>> customers({required int branchId}) async {
     return realm!.query<Customer>(r'branchId == $0 ', [branchId]).toList();
-  }
-
-  @override
-  Future<Branch?> defaultBranch() async {
-    return realm!.query<Branch>(r'isDefault == $0 ', [true]).firstOrNull;
-  }
-
-  @override
-  Future<Business?> defaultBusiness() async {
-    return realm!.query<Business>(r'isDefault == $0 ', [true]).firstOrNull;
   }
 
   FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
@@ -874,30 +837,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Business getBusiness({int? businessId}) {
-    if (businessId != null) {
-      return realm!.query<Business>(r'id == $0', [businessId]).first;
-    } else {
-      ///FIXME: what will happen if a user has multiple business associated to him
-      ///the code bellow suggest that the first in row will be returned which can be wrong.
-      int? userId = ProxyService.box.getUserId();
-      return realm!.query<Business>(r'userId == $0', [userId]).first;
-    }
-  }
-
-  @override
-  Future<Business> getBusinessFuture({int? businessId}) async {
-    if (businessId != null) {
-      return realm!.query<Business>(r'id == $0', [businessId]).first;
-    } else {
-      ///FIXME: what will happen if a user has multiple business associated to him
-      ///the code bellow suggest that the first in row will be returned which can be wrong.
-      int? userId = ProxyService.box.getUserId();
-      return realm!.query<Business>(r'userId == $0', [userId]).first;
-    }
-  }
-
-  @override
   Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
     Business? business = realm!.query<Business>(r'id == $0', [id]).firstOrNull;
 
@@ -908,12 +847,12 @@ class RealmAPI<M extends IJsonSerializable>
       int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(ObjectId(),
-          id: iBusiness.id,
+          serverId: iBusiness.id,
           name: iBusiness.name,
           userId: iBusiness.userId,
           createdAt: DateTime.now().toIso8601String());
 
-      business.id = id;
+      business.serverId = id;
       realm!.write(() {
         realm!.put<Business>(business);
       });
@@ -1088,93 +1027,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Favorite>> getFavorites() async {
     return realm!.query<Favorite>(r'deletedAt == nil').toList();
-  }
-
-  @override
-  Future<Business> getOnlineBusiness({required int userId}) async {
-    final response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
-
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    }
-    if (response.statusCode == 404) {
-      throw BusinessNotFoundException(term: "IBusiness not found");
-    }
-
-    Business? business = realm!.query<Business>(r'id == $0',
-        [IBusiness.fromJson(json.decode(response.body)).id!]).firstOrNull;
-
-    if (business == null) {
-      realm!.write(() {
-        realm!.put<Business>(Business(ObjectId(),
-            id: IBusiness.fromJson(json.decode(response.body)).id,
-            userId: IBusiness.fromJson(json.decode(response.body)).userId,
-            name: IBusiness.fromJson(json.decode(response.body)).name,
-            currency: IBusiness.fromJson(json.decode(response.body)).currency,
-            categoryId:
-                IBusiness.fromJson(json.decode(response.body)).categoryId,
-            latitude: IBusiness.fromJson(json.decode(response.body)).latitude,
-            longitude: IBusiness.fromJson(json.decode(response.body)).longitude,
-            timeZone: IBusiness.fromJson(json.decode(response.body)).timeZone,
-            country: IBusiness.fromJson(json.decode(response.body)).country,
-            businessUrl:
-                IBusiness.fromJson(json.decode(response.body)).businessUrl,
-            hexColor: IBusiness.fromJson(json.decode(response.body)).hexColor,
-            imageUrl: IBusiness.fromJson(json.decode(response.body)).imageUrl,
-            type: IBusiness.fromJson(json.decode(response.body)).type,
-            active: IBusiness.fromJson(json.decode(response.body)).active,
-            chatUid: IBusiness.fromJson(json.decode(response.body)).chatUid,
-            metadata: IBusiness.fromJson(json.decode(response.body)).metadata,
-            role: IBusiness.fromJson(json.decode(response.body)).role,
-            lastSeen: IBusiness.fromJson(json.decode(response.body)).lastSeen,
-            firstName: IBusiness.fromJson(json.decode(response.body)).firstName,
-            lastName: IBusiness.fromJson(json.decode(response.body)).lastName,
-            createdAt: IBusiness.fromJson(json.decode(response.body)).createdAt,
-            deviceToken:
-                IBusiness.fromJson(json.decode(response.body)).deviceToken,
-            backUpEnabled:
-                IBusiness.fromJson(json.decode(response.body)).backUpEnabled,
-            subscriptionPlan:
-                IBusiness.fromJson(json.decode(response.body)).subscriptionPlan,
-            nextBillingDate:
-                IBusiness.fromJson(json.decode(response.body)).nextBillingDate,
-            previousBillingDate: IBusiness.fromJson(json.decode(response.body))
-                .previousBillingDate,
-            isLastSubscriptionPaymentSucceeded:
-                IBusiness.fromJson(json.decode(response.body))
-                    .isLastSubscriptionPaymentSucceeded,
-            backupFileId:
-                IBusiness.fromJson(json.decode(response.body)).backupFileId,
-            email: IBusiness.fromJson(json.decode(response.body)).email,
-            lastDbBackup:
-                IBusiness.fromJson(json.decode(response.body)).lastDbBackup,
-            fullName: IBusiness.fromJson(json.decode(response.body)).fullName,
-            tinNumber: IBusiness.fromJson(json.decode(response.body)).tinNumber,
-            bhfId: IBusiness.fromJson(json.decode(response.body)).bhfId,
-            dvcSrlNo: IBusiness.fromJson(json.decode(response.body)).dvcSrlNo,
-            adrs: IBusiness.fromJson(json.decode(response.body)).adrs,
-            taxEnabled:
-                IBusiness.fromJson(json.decode(response.body)).taxEnabled,
-            taxServerUrl:
-                IBusiness.fromJson(json.decode(response.body)).taxServerUrl,
-            isDefault: IBusiness.fromJson(json.decode(response.body)).isDefault,
-            businessTypeId:
-                IBusiness.fromJson(json.decode(response.body)).businessTypeId,
-            lastTouched:
-                IBusiness.fromJson(json.decode(response.body)).lastTouched,
-            action: IBusiness.fromJson(json.decode(response.body)).action,
-            deletedAt: IBusiness.fromJson(json.decode(response.body)).deletedAt,
-            encryptionKey:
-                IBusiness.fromJson(json.decode(response.body)).encryptionKey));
-      });
-      // business =
-      //     await realm.iBusiness.filter().userIdEqualTo(userId).findFirst();
-      business = realm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
-    }
-    ProxyService.box.writeInt(key: 'businessId', value: business!.id!);
-
-    return business;
   }
 
   @override
@@ -1408,7 +1260,8 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   bool isTaxEnabled() {
     final businessId = ProxyService.box.getBusinessId();
-    final Business? business = getBusiness(businessId: businessId);
+    final Business? business =
+        ProxyService.local.getBusiness(businessId: businessId);
     return business?.tinNumber != null && business?.bhfId != null;
   }
 
@@ -1766,7 +1619,7 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
         if (existingBusiness == null) {
           businessToAdd.add(Business(ObjectId(),
-              id: business.id,
+              serverId: business.id,
               userId: business.userId,
               name: business.name,
               currency: business.currency,
@@ -1821,7 +1674,7 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.query<Branch>(r'id==$0', [branch.id]).firstOrNull;
         if (existingBranch == null) {
           Branch br = Branch(ObjectId(),
-              id: branch.id,
+              serverId: branch.id,
               name: branch.name,
               businessId: branch.businessId,
               action: branch.action,
@@ -1890,119 +1743,6 @@ class RealmAPI<M extends IJsonSerializable>
   Future<void> sendScheduleMessages() {
     // TODO: implement sendScheduleMessages
     throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ITenant>> signup({required Map business}) async {
-    talker.info(business.toString());
-    final http.Response response = await flipperHttpClient
-        .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
-    if (response.statusCode == 200) {
-      /// because we want to close the inMemory realm db
-      /// as soon as possible so I can be able to save real data into realm
-      /// then I call login in here after signup as login handle configuring
-      await login(
-          userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
-      final tenantToAdd = <Tenant>[];
-      for (ITenant tenant in ITenant.fromJsonList(response.body)) {
-        ITenant jTenant = tenant;
-
-        Tenant iTenant = Tenant(ObjectId(),
-            isDefault: jTenant.isDefault,
-            id: jTenant.id,
-            name: jTenant.name,
-            userId: jTenant.userId,
-            businessId: jTenant.businessId,
-            nfcEnabled: jTenant.nfcEnabled,
-            email: jTenant.email,
-            phoneNumber: jTenant.phoneNumber);
-
-        final businessToAdd = <Business>[];
-        for (IBusiness business in jTenant.businesses) {
-          Business biz = Business(ObjectId(),
-              id: business.id,
-              userId: business.userId,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey);
-          businessToAdd.add(biz);
-        }
-        realm!.write(() {
-          realm!.addAll<Business>(businessToAdd);
-        });
-        final branchToAdd = <Branch>[];
-        for (IBranch brannch in jTenant.branches) {
-          Branch branch = Branch(ObjectId(),
-              id: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt);
-          branchToAdd.add(branch);
-        }
-        realm!.write(() {
-          realm!.addAll<Branch>(branchToAdd);
-        });
-
-        for (IPermission permission in jTenant.permissions) {
-          realm!.put<LPermission>(LPermission(ObjectId(),
-              id: permission.id, name: permission.name));
-        }
-
-        tenantToAdd.add(iTenant);
-      }
-      realm!.write(() {
-        realm!.addAll<Tenant>(tenantToAdd);
-      });
-      return ITenant.fromJsonList(response.body);
-    } else {
-      throw InternalServerError(term: response.body.toString());
-    }
   }
 
   @override
@@ -2097,7 +1837,7 @@ class RealmAPI<M extends IJsonSerializable>
 
         for (IBusiness business in jTenant.businesses) {
           Business biz = Business(ObjectId(),
-              id: business.id,
+              serverId: business.id,
               userId: business.userId,
               name: business.name,
               currency: business.currency,
@@ -2150,7 +1890,7 @@ class RealmAPI<M extends IJsonSerializable>
 
         for (IBranch brannch in jTenant.branches) {
           Branch branch = Branch(ObjectId(),
-              id: brannch.id,
+              serverId: brannch.id,
               active: brannch.active,
               description: brannch.description,
               name: brannch.name,
@@ -2461,13 +2201,10 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<RealmApiInterface> configure({required bool useInMemoryDb}) async {
-    if (foundation.kDebugMode && !isAndroid) {
+    if (foundation.kDebugMode) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
-    } else if (foundation.kDebugMode && isAndroid) {
-      apihub = AppSecrets.apihubUat;
-      commApi = AppSecrets.commApi;
-    } else if (!foundation.kDebugMode) {
+    } else {
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
     }
@@ -2478,12 +2215,10 @@ class RealmAPI<M extends IJsonSerializable>
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
     Configuration config;
+    realm?.close();
 
     try {
       if (useInMemoryDb) {
-        if (realm != null) {
-          realm!.close();
-        }
         config = Configuration.inMemory(realmModels);
         realm = Realm(config);
       } else if (ProxyService.box.getBranchId() != null ||
@@ -2561,9 +2296,8 @@ class RealmAPI<M extends IJsonSerializable>
       }
     } catch (e, s) {
       talker.info(s);
-      if (realm != null) {
-        realm!.close();
-      }
+      realm?.close();
+
       //// if for some reason we can't open the app normmay allow the user to use inMemory
       /// but this has a Risk that next time when we open app it might switch to the cloud
       /// and user might not see data saved on local
@@ -2573,6 +2307,7 @@ class RealmAPI<M extends IJsonSerializable>
         path: path,
         // encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
+      realm = Realm(config);
     }
     return this;
   }
@@ -2590,11 +2325,9 @@ class RealmAPI<M extends IJsonSerializable>
     final receipt = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final customer = realm!.query<Customer>(r'branchId == $0', [branchId]);
     final category = realm!.query<Category>(r'branchId == $0', [branchId]);
-    final branch = realm!.query<Branch>(r'businessId == $0', [businessId]);
     final colors = realm!.all<PColor>();
     final devices = realm!.query<Device>(r'branchId == $0', [branchId]);
 
-    final business = realm!.query<Business>(r'id == $0', [businessId]);
     final transaction =
         realm!.query<ITransaction>(r'branchId == $0', [branchId]);
 
@@ -2688,15 +2421,6 @@ class RealmAPI<M extends IJsonSerializable>
         waitForSyncMode: WaitForSyncMode.always,
         update: true);
 
-    await business.subscribe(
-        name: "business-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true);
-
-    await branch.subscribe(
-        name: "branch-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true);
     await customer.subscribe(
         name: "iCustomer-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
@@ -2915,7 +2639,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   Future<Variant?> _addMissingVariant(
       Variant? variant, Product? product, int branchId) async {
-    Business? business = await getBusiness();
+    Business? business = await ProxyService.local.getBusiness();
     final number = randomNumber().toString().substring(0, 5);
 
     try {
@@ -3027,215 +2751,6 @@ class RealmAPI<M extends IJsonSerializable>
     // You can use regular expressions or any other email validation mechanism
     // For simplicity, this example checks if the input contains '@'
     return input.contains('@');
-  }
-
-  @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false}) async {
-    talker.info(userPhone);
-    String phoneNumber = userPhone;
-
-    if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
-      phoneNumber = '+' + phoneNumber;
-    }
-    http.Response response;
-    String? uid = firebase.FirebaseAuth.instance.currentUser?.uid ?? null;
-
-    response = await flipperHttpClient.post(Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(
-            <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}));
-
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      // Parse the JSON response
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-
-      // Create an IUser object using the fromJson constructor
-      IUser user = IUser.fromJson(jsonResponse);
-      await _configureTheBox(userPhone, user);
-
-      /// after we login this is the best time to open the synced database to start persisting the data
-      /// this will close whatever inMemory db we opened temporarly to have the app running
-      await configure(useInMemoryDb: false);
-      if (stopAfterConfigure) return user;
-      if (skipDefaultAppSetup == false) {
-        await ProxyService.box.writeString(
-            key: 'defaultApp',
-
-            /// because we don update default app from server
-            /// because we want the ability of switching apps to be entirely offline
-            /// then if we have a default app in the box we use it if it only different from "1"
-            value: user.tenants.isEmpty
-                ? 'null'
-                : ProxyService.box.getDefaultApp() != "1"
-                    ? ProxyService.box.getDefaultApp()
-                    : user.tenants.first.businesses.first.businessTypeId
-                        .toString());
-      }
-
-      for (ITenant tenant in user.tenants) {
-        Tenant iTenant = Tenant(ObjectId(),
-            isDefault: tenant.isDefault,
-            id: tenant.id,
-            name: tenant.name,
-            businessId: tenant.businessId,
-            nfcEnabled: tenant.nfcEnabled,
-            email: tenant.email,
-            userId: user.id!,
-            phoneNumber: tenant.phoneNumber,
-            pin: tenant.pin);
-        final businessesToAdd = <Business>[];
-        final branchToAdd = <Branch>[];
-
-        for (IBusiness business in tenant.businesses) {
-          Business biz = Business(ObjectId(),
-              id: business.id,
-              userId: business.userId,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey);
-          Business? exist =
-              realm!.query<Business>(r'id == $0', [business.id]).firstOrNull;
-          if (exist == null) {
-            businessesToAdd.add(biz);
-          }
-        }
-        realm!.writeAsync(() {
-          realm!.addAll<Business>(businessesToAdd);
-        });
-        for (IBranch brannch in tenant.branches) {
-          Branch branch = Branch(ObjectId(),
-              id: brannch.id,
-              active: brannch.active,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt);
-          Branch? exist =
-              realm!.query<Branch>(r'id == $0', [branch.id]).firstOrNull;
-          if (exist == null) {
-            branchToAdd.add(branch);
-          }
-        }
-
-        realm!.write(() {
-          realm!.addAll<Branch>(branchToAdd);
-        });
-        final permissionToAdd = <LPermission>[];
-        for (IPermission permission in tenant.permissions) {
-          LPermission? exist = realm!
-              .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
-          if (exist == null) {
-            final perm = LPermission(ObjectId(),
-                id: permission.id, name: permission.name);
-            permissionToAdd.add(perm);
-          }
-        }
-        realm!.write(() {
-          realm!.addAll<LPermission>(permissionToAdd);
-        });
-
-        Tenant? exist =
-            realm!.query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
-        if (exist == null) {
-          if (user.id == iTenant.userId) {
-            iTenant.sessionActive = true;
-            realm!.put<Tenant>(iTenant);
-          } else {
-            realm!.put<Tenant>(iTenant);
-          }
-        }
-      }
-
-      return user;
-    } else if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    } else if (response.statusCode == 500) {
-      throw ErrorReadingFromYBServer(term: "Not found");
-    } else {
-      log(response.body.toString(), name: "login error");
-      throw Exception(response.body.toString());
-    }
-  }
-
-  Future<void> _configureTheBox(String userPhone, IUser user) async {
-    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
-    await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
-
-    /// the token from firebase that link this user with firebase
-    /// so it can be used to login to other devices
-    await ProxyService.box.writeString(key: 'uid', value: user.uid);
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
-
-    if (user.tenants.isEmpty) {
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-    if (user.tenants.first.businesses.isEmpty ||
-        user.tenants.first.branches.isEmpty) {
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-    await ProxyService.box.writeInt(
-        key: 'branchId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!);
-
-    talker.info("UserId:" + user.id.toString());
-    await ProxyService.box.writeInt(
-        key: 'businessId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!);
-    await ProxyService.box.writeString(
-        key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey);
   }
 
   @override

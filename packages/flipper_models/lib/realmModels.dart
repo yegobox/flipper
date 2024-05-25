@@ -1,7 +1,6 @@
 import "realm_model_export.dart";
 
 final realmModels = [
-  Branch.schema,
   Variant.schema,
   Product.schema,
   Stock.schema,
@@ -9,7 +8,6 @@ final realmModels = [
   Receipt.schema,
   IUnit.schema,
   Pin.schema,
-  Business.schema,
   Category.schema,
   Tenant.schema,
   PColor.schema,
@@ -26,5 +24,4 @@ final realmModels = [
   Setting.schema,
   Voucher.schema,
   Token.schema,
-  // UserActivity.schema
 ];

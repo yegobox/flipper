@@ -287,7 +287,7 @@ abstract class ServicesModule {
   @LazySingleton()
   Future<LocalRealmInterface> localRealm() async {
     return await LocalRealmApi().configureLocal(
-      inTesting: bool.fromEnvironment('Test') == true,
+      useInMemory: bool.fromEnvironment('Test') == true,
     );
   }
 

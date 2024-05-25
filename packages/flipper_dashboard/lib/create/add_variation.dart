@@ -52,7 +52,7 @@ class _AddVariationState extends State<AddVariation> {
               disableButton: model.lock,
               rightActionButtonName: 'Save',
               onActionButtonClicked: () async {
-                Business business = await ProxyService.realm.getBusiness();
+                Business business = await ProxyService.local.getBusiness();
                 String itemPrefix = "flip-";
                 String clip = itemPrefix +
                     DateTime.now()

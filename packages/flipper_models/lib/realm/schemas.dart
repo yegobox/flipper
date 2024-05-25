@@ -3,10 +3,10 @@ part 'schemas.realm.dart';
 
 @RealmModel()
 class _Branch {
-  int? id;
   @PrimaryKey()
-  @MapTo('_id')
-  ObjectId? realmId;
+  late ObjectId id;
+  int? serverId;
+
   bool? active;
 
   String? description;
@@ -26,10 +26,10 @@ class _Branch {
 
 @RealmModel()
 class _Business {
-  int? id;
   @PrimaryKey()
-  @MapTo('_id')
-  late ObjectId realmId;
+  late ObjectId id;
+  int? serverId;
+
   String? name;
   String? currency;
   String? categoryId;

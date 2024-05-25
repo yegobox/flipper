@@ -17,7 +17,7 @@ class SettingViewModel extends CoreViewModel {
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
-    _business = await ProxyService.realm
+    _business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     notifyListeners();
   }
@@ -125,7 +125,7 @@ class SettingViewModel extends CoreViewModel {
       } else {
         await ProxyService.realm.createGoogleSheetDoc(email: setting.email!);
         ProxyService.realm.realm!.writeAsync(() async {
-          Business business = await ProxyService.realm.getBusiness();
+          Business business = await ProxyService.local.getBusiness();
           business.email = setting.email;
         });
       }
@@ -142,9 +142,9 @@ class SettingViewModel extends CoreViewModel {
         callback(1);
       } else {
         /// the
-        Business business = await ProxyService.realm.getBusiness();
-        ProxyService.realm
-            .enableAttendance(businessId: business.id!, email: setting.email!);
+        Business business = await ProxyService.local.getBusiness();
+        ProxyService.realm.enableAttendance(
+            businessId: business.serverId!, email: setting.email!);
       }
     } else {
       callback(2);

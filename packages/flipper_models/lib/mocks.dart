@@ -339,7 +339,7 @@ final productMock = Product(ObjectId(),
 final branchMock = Branch(
   ObjectId(),
   action: AppActions.created,
-  id: randomNumber(),
+  serverId: randomNumber(),
   active: false,
   description: 'desc',
   businessId: 10,

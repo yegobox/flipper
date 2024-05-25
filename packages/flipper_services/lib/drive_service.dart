@@ -141,7 +141,7 @@ class GoogleDrive {
 
     FileUploaded fileUploaded = FileUploaded.fromJson(response.toJson());
     ProxyService.realm.realm!.writeAsync(() async {
-      Business business = await ProxyService.realm.getBusiness();
+      Business business = await ProxyService.local.getBusiness();
       business.backupFileId = fileUploaded.id;
     });
     ProxyService.box.writeString(key: 'gdID', value: fileUploaded.id);

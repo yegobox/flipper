@@ -129,7 +129,7 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');
-      await ProxyService.realm
+      await ProxyService.local
           .login(userPhone: phone!, skipDefaultAppSetup: false);
     }
   }
@@ -164,7 +164,7 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');
-      await ProxyService.realm
+      await ProxyService.local
           .login(userPhone: phone!, skipDefaultAppSetup: false);
     }
   }

@@ -28,9 +28,9 @@ class _LoginChoicesState extends State<LoginChoices> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        List<Business> _b = await ProxyService.realm
+        List<Business> _b = await ProxyService.local
             .businesses(userId: ProxyService.box.getUserId()!);
-        List<Branch> branches = await ProxyService.realm.branches();
+        List<Branch> branches = await ProxyService.local.branches();
         ProxyService.realm.realm!.write(() {
           for (Branch branch in branches) {
             branch..active = false;
@@ -121,7 +121,7 @@ class _LoginChoicesState extends State<LoginChoices> {
     }
 
     await ProxyService.box
-        .writeInt(key: "businessId", value: selectedBusiness.id!);
+        .writeInt(key: "businessId", value: selectedBusiness.serverId!);
     await Future.delayed(Duration(seconds: 3));
     setState(() {
       _isNext = true;

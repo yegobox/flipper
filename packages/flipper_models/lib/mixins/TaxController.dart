@@ -62,7 +62,7 @@ class TaxController<OBJ> {
       String? purchaseCode,
       bool skiGenerateRRAReceiptSignature = false}) async {
     if (await ProxyService.realm.isTaxEnabled()) {
-      Business? business = await ProxyService.realm.getBusiness();
+      Business? business = await ProxyService.local.getBusiness();
       List<TransactionItem> items =
           await ProxyService.realm.getTransactionItemsByTransactionId(
         transactionId: transaction.id,

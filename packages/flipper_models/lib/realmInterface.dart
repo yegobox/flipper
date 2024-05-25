@@ -30,16 +30,15 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
-  Future<List<ITenant>> signup({required Map business});
+
   Future<ITransaction?> pendingTransaction(
       {required int branchId, required String transactionType});
   // Future<IUser> login(
   //     {required String userPhone, required bool skipDefaultAppSetup});
-  Future<List<Business>> businesses({required int userId});
+
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
-  Future<Business> getOnlineBusiness({required int userId});
-  Future<List<Branch>> branches({int? businessId});
+
   Future<double> stocks({int? productId, int? variantId});
   Stream<double> getStockStream({int? productId, int? variantId});
   Future<List<ITransaction>> transactionsFuture({
@@ -140,8 +139,6 @@ abstract class RealmApiInterface {
 
   Future<List<Business>> getContacts();
 
-  Business getBusiness({int? businessId});
-  Future<Business> getBusinessFuture({int? businessId});
   Future<Customer?> addCustomer(
       {required Customer customer, required int transactionId});
   Future assignCustomerToTransaction(
@@ -184,16 +181,12 @@ abstract class RealmApiInterface {
   bool suggestRestore();
 
   Future<int> userNameAvailable({required String name});
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false});
 
   Future<LPermission?> permission({required int userId});
 
   Future<List<Tenant>> tenants({int? businessId});
   Future<Tenant?> getTenantBYUserId({required int userId});
-  Future<Branch> activeBranch();
+
   Future<Tenant?> getTenantBYPin({required int pin});
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
@@ -254,8 +247,7 @@ abstract class RealmApiInterface {
   Future<void> refund({required int itemId});
   Future<bool> isDrawerOpen({required int cashierId});
   Future<Drawers?> getDrawer({required int cashierId});
-  Future<Branch?> defaultBranch();
-  Future<Business?> defaultBusiness();
+
   Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});

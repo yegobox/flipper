@@ -263,7 +263,7 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget buildProfileWidget() {
     return isDesktopOrWeb
         ? FutureBuilder<Branch?>(
-            future: ProxyService.realm.activeBranch(),
+            future: ProxyService.local.activeBranch(),
             builder: (a, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting ||
                   !snapshot.hasData) {

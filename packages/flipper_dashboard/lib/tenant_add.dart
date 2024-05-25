@@ -245,8 +245,8 @@ class _TenantAddState extends State<TenantAdd> {
   }
 
   Future<void> _addUser(FlipperBaseModel model) async {
-    Business? business = await ProxyService.realm.defaultBusiness();
-    Branch? branch = await ProxyService.realm.defaultBranch();
+    Business? business = await ProxyService.local.defaultBusiness();
+    Branch? branch = await ProxyService.local.defaultBranch();
 
     /// when a business add a tenant, this tenant might not have the account to flipper yet
     /// but the user will be created, it is important to know that this tenant added

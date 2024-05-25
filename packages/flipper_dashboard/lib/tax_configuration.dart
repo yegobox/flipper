@@ -41,7 +41,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
             isTaxEnabled = true;
           });
         }
-        Business? business = await ProxyService.realm.getBusiness();
+        Business? business = await ProxyService.local.getBusiness();
         model.isEbmActive = business.tinNumber != null &&
             business.bhfId != null &&
             business.dvcSrlNo != null &&

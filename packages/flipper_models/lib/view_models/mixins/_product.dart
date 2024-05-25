@@ -18,7 +18,7 @@ mixin ProductMixin {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
     ///and add some missing fields to simplify the UI
-    Business business = await ProxyService.realm
+    Business business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
       for (var variant in variations!) {

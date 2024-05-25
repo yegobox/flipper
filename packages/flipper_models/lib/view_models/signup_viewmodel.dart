@@ -7,7 +7,6 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/mocks.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
@@ -114,7 +113,7 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<List<ITenant>> registerTenant(String? referralCode) async {
-    return await ProxyService.realm.signup(business: {
+    return await ProxyService.local.signup(business: {
       'name': kName,
       'latitude': latitude,
       'longitude': longitude,
@@ -170,16 +169,17 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<Business> getBusiness(List<ITenant> tenants) {
-    return ProxyService.realm
+    return ProxyService.local
         .getBusinessFuture(businessId: tenants.first.businesses.first.id);
   }
 
   Future<List<Branch>> getBranches(Business business) {
-    return ProxyService.realm.branches(businessId: business.id);
+    return ProxyService.local.branches(businessId: business.serverId);
   }
 
   Future<void> saveBranchId(List<Branch> branches) {
-    return ProxyService.box.writeInt(key: 'branchId', value: branches[0].id!);
+    return ProxyService.box
+        .writeInt(key: 'branchId', value: branches[0].serverId!);
   }
 
   Future<void> createDefaultCategory(List<Branch> branches) async {
@@ -189,7 +189,7 @@ class SignupViewModel extends ReactiveViewModel {
       focused: true,
       name: "NONE",
       id: randomNumber(),
-      branchId: branches[0].id!,
+      branchId: branches[0].serverId!,
     );
     ProxyService.realm.create<Category>(data: category);
   }
@@ -211,7 +211,7 @@ class SignupViewModel extends ReactiveViewModel {
       active: false,
       lastTouched: DateTime.now(),
       action: AppActions.created,
-      branchId: branches[0].id,
+      branchId: branches[0].serverId,
       name: 'color',
     );
     ProxyService.realm.create<PColor>(data: color);

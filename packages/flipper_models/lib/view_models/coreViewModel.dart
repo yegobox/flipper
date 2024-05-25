@@ -5,7 +5,6 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -251,14 +250,13 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItemByVariantId(
               variantId: variation.id!, transactionId: pendingTransaction.id);
 
-      List<TransactionItem> items = await ProxyService.realm
-          .transactionItems(
+      List<TransactionItem> items = await ProxyService.realm.transactionItems(
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
 
       if (existTransactionItem != null) {
-        await ProxyService.realm.realm!.writeAsync(()  {
+        await ProxyService.realm.realm!.writeAsync(() {
           existTransactionItem.qty = existTransactionItem.qty + 1;
           existTransactionItem.price = amount / 1; // price of one unit
 
@@ -291,10 +289,10 @@ class CoreViewModel extends FlipperBaseModel
             transactionId: pendingTransaction.id!,
             doneWithTransaction: false,
             active: true);
-        await ProxyService.realm.addTransactionItem(
-            transaction: pendingTransaction, item: newItem);
+        await ProxyService.realm
+            .addTransactionItem(transaction: pendingTransaction, item: newItem);
 
-        await ProxyService.realm.realm!.writeAsync(()  {
+        await ProxyService.realm.realm!.writeAsync(() {
           pendingTransaction.subTotal =
               items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
           pendingTransaction.updatedAt = DateTime.now().toIso8601String();
@@ -302,7 +300,7 @@ class CoreViewModel extends FlipperBaseModel
         });
       }
     } else {
-      await ProxyService.realm.realm!.writeAsync(()  {
+      await ProxyService.realm.realm!.writeAsync(() {
         TransactionItem item = items.last;
         item.price = amount;
         item.taxAmt = double.parse((amount * 18 / 118).toStringAsFixed(2));
@@ -310,7 +308,6 @@ class CoreViewModel extends FlipperBaseModel
         pendingTransaction.subTotal =
             items.fold(0, (a, b) => a + (b.price * b.qty));
         pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-
       });
       ITransaction? updatedTransaction = await ProxyService.realm
           .getTransactionById(id: pendingTransaction.id!);
@@ -669,7 +666,7 @@ class CoreViewModel extends FlipperBaseModel
   /// the UI can notify the user based on the return value
   void restoreBackUp(Function callback) async {
     if (ProxyService.remoteConfig.isBackupAvailable()) {
-      Business? business = await ProxyService.realm.getBusiness();
+      Business? business = await ProxyService.local.getBusiness();
       final drive = GoogleDrive();
       if (business.backupFileId != null) {
         await drive.downloadGoogleDriveFile('data', business.backupFileId!);
@@ -755,34 +752,34 @@ class CoreViewModel extends FlipperBaseModel
   /// Finally, the function sets the tenant on the `app` object.
 
   void defaultBranch() async {
-    final branch = await ProxyService.realm.activeBranch();
+    final branch = await ProxyService.local.activeBranch();
 
     app.setActiveBranch(branch: branch);
   }
 
   Future<void> setDefaultBusiness({required Business business}) async {
     app.setBusiness(business: business);
-    List<Business> businesses = await ProxyService.realm
+    List<Business> businesses = await ProxyService.local
         .businesses(userId: ProxyService.box.getUserId()!);
     ProxyService.realm.realm!.writeAsync(() async {
       for (Business business in businesses) {
         business..isDefault = false;
       }
       business..isDefault = true;
-      ProxyService.box.writeInt(key: 'businessId', value: business.id!);
+      ProxyService.box.writeInt(key: 'businessId', value: business.serverId!);
     });
   }
 
   Future<void> setDefaultBranch({required Branch branch}) async {
     //first set other branch to not active
-    List<Branch> branches = await ProxyService.realm
+    List<Branch> branches = await ProxyService.local
         .branches(businessId: ProxyService.box.getBusinessId());
     ProxyService.realm.realm!.writeAsync(() async {
       for (Branch branch in branches) {
         branch..isDefault = false;
       }
       branch..isDefault = true;
-      ProxyService.box.writeInt(key: 'branchId', value: branch.id!);
+      ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
     });
   }
 
@@ -857,7 +854,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<int> updateUserWithPinCode({required String pin}) async {
-    Business? business = await ProxyService.realm
+    Business? business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId());
 
     /// set the pin for the current business default tenant

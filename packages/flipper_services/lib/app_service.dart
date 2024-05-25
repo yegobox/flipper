@@ -19,12 +19,11 @@ class AppService with ListenableServiceMixin {
   int? get businessId => ProxyService.box.getBusinessId();
   int? get branchId => ProxyService.box.getBranchId();
 
-
   // TODO: make _business nullable when starting
 
   final _business = ReactiveValue<Business>(Business(
     ObjectId(),
-    id: randomNumber(),
+    serverId: randomNumber(),
     isDefault: false,
     encryptionKey: "11",
     action: AppActions.created,
@@ -41,19 +40,19 @@ class AppService with ListenableServiceMixin {
     _branch.value = branch;
   }
 
-  final _categories = ReactiveValue<List<Category>>(List<Category>.empty(growable: true));
+  final _categories =
+      ReactiveValue<List<Category>>(List<Category>.empty(growable: true));
   List<Category> get categories => _categories.value;
 
   void loadCategories() async {
     int? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-    await ProxyService.realm.categories(branchId: branchId ?? 0);
+        await ProxyService.realm.categories(branchId: branchId ?? 0);
 
     _categories.value = result;
     notifyListeners();
   }
-
 
   /// we fist log in to the business portal
   /// before we log to other apps as the business portal
@@ -66,7 +65,7 @@ class AppService with ListenableServiceMixin {
     if (ProxyService.box.getUserId() == null &&
         user != null &&
         businessId == null) {
-      await ProxyService.realm.login(
+      await ProxyService.local.login(
           userPhone: user.phoneNumber ?? user.email!,
           skipDefaultAppSetup: false);
     }
@@ -121,13 +120,13 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<Business> businesses = await ProxyService.realm
+    List<Business> businesses = await ProxyService.local
         .businesses(userId: ProxyService.box.getUserId()!);
 
     if (businesses.isEmpty) {
       try {
         Business business =
-            await ProxyService.realm.getOnlineBusiness(userId: userId);
+            await ProxyService.local.getOnlineBusiness(userId: userId);
         businesses.add(business);
       } catch (e) {
         rethrow;
@@ -136,7 +135,7 @@ class AppService with ListenableServiceMixin {
 
     await loadTenants(businesses);
 
-    List<Branch> branches = await ProxyService.realm
+    List<Branch> branches = await ProxyService.local
         .branches(businessId: ProxyService.box.getBusinessId());
 
     bool authComplete = await ProxyService.box.authComplete();
@@ -166,11 +165,13 @@ class AppService with ListenableServiceMixin {
 
     // Iterate over businesses and perform the operations
     for (Business business in businesses) {
-      await ProxyService.realm.tenantsFromOnline(businessId: business.id!);
+      await ProxyService.realm
+          .tenantsFromOnline(businessId: business.serverId!);
     }
 
     for (Business business in businesses) {
-      await ProxyService.realm.loadCounterFromOnline(businessId: business.id!);
+      await ProxyService.realm
+          .loadCounterFromOnline(businessId: business.serverId!);
     }
   }
 

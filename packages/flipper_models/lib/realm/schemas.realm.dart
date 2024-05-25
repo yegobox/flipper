@@ -11,8 +11,8 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   static var _defaultsSet = false;
 
   Branch(
-    ObjectId? realmId, {
-    int? id,
+    ObjectId id, {
+    int? serverId,
     bool? active,
     String? description,
     String? name,
@@ -30,7 +30,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       });
     }
     RealmObjectBase.set(this, 'id', id);
-    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'serverId', serverId);
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'description', description);
     RealmObjectBase.set(this, 'name', name);
@@ -46,15 +46,14 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   Branch._();
 
   @override
-  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
   @override
-  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
 
   @override
-  ObjectId? get realmId =>
-      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId?;
+  int? get serverId => RealmObjectBase.get<int>(this, 'serverId') as int?;
   @override
-  set realmId(ObjectId? value) => RealmObjectBase.set(this, '_id', value);
+  set serverId(int? value) => RealmObjectBase.set(this, 'serverId', value);
 
   @override
   bool? get active => RealmObjectBase.get<bool>(this, 'active') as bool?;
@@ -128,7 +127,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
-      '_id': realmId.toEJson(),
+      'serverId': serverId.toEJson(),
       'active': active.toEJson(),
       'description': description.toEJson(),
       'name': name.toEJson(),
@@ -147,7 +146,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     return switch (ejson) {
       {
         'id': EJsonValue id,
-        '_id': EJsonValue realmId,
+        'serverId': EJsonValue serverId,
         'active': EJsonValue active,
         'description': EJsonValue description,
         'name': EJsonValue name,
@@ -160,8 +159,8 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
         'deletedAt': EJsonValue deletedAt,
       } =>
         Branch(
-          fromEJson(realmId),
-          id: fromEJson(id),
+          fromEJson(id),
+          serverId: fromEJson(serverId),
           active: fromEJson(active),
           description: fromEJson(description),
           name: fromEJson(name),
@@ -181,9 +180,8 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.registerFactory(Branch._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, Branch, 'Branch', [
-      SchemaProperty('id', RealmPropertyType.int, optional: true),
-      SchemaProperty('realmId', RealmPropertyType.objectid,
-          mapTo: '_id', optional: true, primaryKey: true),
+      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('serverId', RealmPropertyType.int, optional: true),
       SchemaProperty('active', RealmPropertyType.bool, optional: true),
       SchemaProperty('description', RealmPropertyType.string, optional: true),
       SchemaProperty('name', RealmPropertyType.string, optional: true),
@@ -205,8 +203,8 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
 class Business extends _Business
     with RealmEntity, RealmObjectBase, RealmObject {
   Business(
-    ObjectId realmId, {
-    int? id,
+    ObjectId id, {
+    int? serverId,
     String? name,
     String? currency,
     String? categoryId,
@@ -251,7 +249,7 @@ class Business extends _Business
     String? encryptionKey,
   }) {
     RealmObjectBase.set(this, 'id', id);
-    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'serverId', serverId);
     RealmObjectBase.set(this, 'name', name);
     RealmObjectBase.set(this, 'currency', currency);
     RealmObjectBase.set(this, 'categoryId', categoryId);
@@ -300,15 +298,14 @@ class Business extends _Business
   Business._();
 
   @override
-  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
   @override
-  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
 
   @override
-  ObjectId get realmId =>
-      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  int? get serverId => RealmObjectBase.get<int>(this, 'serverId') as int?;
   @override
-  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+  set serverId(int? value) => RealmObjectBase.set(this, 'serverId', value);
 
   @override
   String? get name => RealmObjectBase.get<String>(this, 'name') as String?;
@@ -580,7 +577,7 @@ class Business extends _Business
   EJsonValue toEJson() {
     return <String, dynamic>{
       'id': id.toEJson(),
-      '_id': realmId.toEJson(),
+      'serverId': serverId.toEJson(),
       'name': name.toEJson(),
       'currency': currency.toEJson(),
       'categoryId': categoryId.toEJson(),
@@ -632,7 +629,7 @@ class Business extends _Business
     return switch (ejson) {
       {
         'id': EJsonValue id,
-        '_id': EJsonValue realmId,
+        'serverId': EJsonValue serverId,
         'name': EJsonValue name,
         'currency': EJsonValue currency,
         'categoryId': EJsonValue categoryId,
@@ -678,8 +675,8 @@ class Business extends _Business
         'encryptionKey': EJsonValue encryptionKey,
       } =>
         Business(
-          fromEJson(realmId),
-          id: fromEJson(id),
+          fromEJson(id),
+          serverId: fromEJson(serverId),
           name: fromEJson(name),
           currency: fromEJson(currency),
           categoryId: fromEJson(categoryId),
@@ -732,9 +729,8 @@ class Business extends _Business
     RealmObjectBase.registerFactory(Business._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, Business, 'Business', [
-      SchemaProperty('id', RealmPropertyType.int, optional: true),
-      SchemaProperty('realmId', RealmPropertyType.objectid,
-          mapTo: '_id', primaryKey: true),
+      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('serverId', RealmPropertyType.int, optional: true),
       SchemaProperty('name', RealmPropertyType.string, optional: true),
       SchemaProperty('currency', RealmPropertyType.string, optional: true),
       SchemaProperty('categoryId', RealmPropertyType.string, optional: true),

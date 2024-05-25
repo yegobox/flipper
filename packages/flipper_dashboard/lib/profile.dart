@@ -1,10 +1,8 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/letter.dart';
-import 'package:flipper_dashboard/progress.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -129,7 +127,7 @@ class PDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: ProxyService.realm
+      future: ProxyService.local
           .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         // final data = snapshot.data;
@@ -233,7 +231,7 @@ class PMobile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: ProxyService.realm
+      future: ProxyService.local
           .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
         final data = snapshot.data;
