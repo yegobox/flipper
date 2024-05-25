@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ./open-sources && cd cli_dialog &&  git checkout main  && git add .   &&  git commit -am "clean-up" && git push origin main
+cd ./open-sources && cd cli_dialog &&  git checkout master  && git add .   &&  git commit -am "clean-up" && git push origin master
 cd .. && cd dart_console &&  git checkout main  && git add .   && git commit -am "clean-up" && git push origin main
 cd .. && cd flutter.widgets &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
 cd .. && cd qr.flutter &&  git checkout main  && git add . && git commit -am "clean-up" && git push origin main
