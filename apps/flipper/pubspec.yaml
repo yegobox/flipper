@@ -12,7 +12,7 @@ description: A super app for africans
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at,
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundatversion:
-version: 1.170.4252223231797+1716670740
+version: 1.170.4252223231797+1716670873
 #
 #.....
 # The packages below are just refrences for what packages being used
@@ -282,4 +282,4 @@ flutter_native_splash:
   #  - 'ios/Runner/Info-Release.plist'
 # https://flutter.dev/docs/perf/deferred-components (getting ready with way forward.)
 # dart run flutter_launcher_icons:main
-#
+
