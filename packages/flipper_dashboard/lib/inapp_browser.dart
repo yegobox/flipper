@@ -69,75 +69,75 @@ class _InAppBrowserState extends State<InAppBrowser> {
       ),
       body: Stack(
         children: [
-          InAppWebView(
-            key: webViewKey,
-            initialUrlRequest:
-                URLRequest(url: Uri.parse("https://blog.yegobox.com/")),
-            initialOptions: options,
-            pullToRefreshController: pullToRefreshController,
-            onWebViewCreated: (controller) {
-              webViewController = controller;
-            },
-            onLoadStart: (controller, url) {
-              setState(() {
-                this.url = url.toString();
-              });
-            },
-            androidOnPermissionRequest: (controller, origin, resources) async {
-              return PermissionRequestResponse(
-                  resources: resources,
-                  action: PermissionRequestResponseAction.GRANT);
-            },
-            shouldOverrideUrlLoading: (controller, navigationAction) async {
-              var uri = navigationAction.request.url!;
+          // InAppWebView(
+          //   key: webViewKey,
+          //   initialUrlRequest:
+          //       URLRequest(url: WebUri.parse("https://blog.yegobox.com/")),
+          //   initialOptions: options,
+          //   pullToRefreshController: pullToRefreshController,
+          //   onWebViewCreated: (controller) {
+          //     webViewController = controller;
+          //   },
+          //   onLoadStart: (controller, url) {
+          //     setState(() {
+          //       this.url = url.toString();
+          //     });
+          //   },
+          //   androidOnPermissionRequest: (controller, origin, resources) async {
+          //     return PermissionRequestResponse(
+          //         resources: resources,
+          //         action: PermissionRequestResponseAction.GRANT);
+          //   },
+          //   shouldOverrideUrlLoading: (controller, navigationAction) async {
+          //     var uri = navigationAction.request.url!;
 
-              if (![
-                "http",
-                "https",
-                "file",
-                "chrome",
-                "data",
-                "javascript",
-                "about"
-              ].contains(uri.scheme)) {
-                if (await canLaunch(url)) {
-                  // Launch the App
-                  await launch(
-                    url,
-                  );
-                  // and cancel the request
-                  return NavigationActionPolicy.CANCEL;
-                }
-              }
+          //     if (![
+          //       "http",
+          //       "https",
+          //       "file",
+          //       "chrome",
+          //       "data",
+          //       "javascript",
+          //       "about"
+          //     ].contains(uri.scheme)) {
+          //       if (await canLaunch(url)) {
+          //         // Launch the App
+          //         await launch(
+          //           url,
+          //         );
+          //         // and cancel the request
+          //         return NavigationActionPolicy.CANCEL;
+          //       }
+          //     }
 
-              return NavigationActionPolicy.ALLOW;
-            },
-            onLoadStop: (controller, url) async {
-              pullToRefreshController.endRefreshing();
-              setState(() {
-                this.url = url.toString();
-              });
-            },
-            onLoadError: (controller, url, code, message) {
-              pullToRefreshController.endRefreshing();
-            },
-            onProgressChanged: (controller, progress) {
-              if (progress == 100) {
-                pullToRefreshController.endRefreshing();
-              }
-              setState(() {
-                this.progress = progress / 100;
-              });
-            },
-            onUpdateVisitedHistory: (controller, url, androidIsReload) {
-              setState(() {
-                this.url = url.toString();
-              });
-            },
-            onConsoleMessage: (controller, consoleMessage) {
-              print(consoleMessage);
-            },
-          ),
+          //     return NavigationActionPolicy.ALLOW;
+          //   },
+          //   onLoadStop: (controller, url) async {
+          //     pullToRefreshController.endRefreshing();
+          //     setState(() {
+          //       this.url = url.toString();
+          //     });
+          //   },
+          //   onLoadError: (controller, url, code, message) {
+          //     pullToRefreshController.endRefreshing();
+          //   },
+          //   onProgressChanged: (controller, progress) {
+          //     if (progress == 100) {
+          //       pullToRefreshController.endRefreshing();
+          //     }
+          //     setState(() {
+          //       this.progress = progress / 100;
+          //     });
+          //   },
+          //   onUpdateVisitedHistory: (controller, url, androidIsReload) {
+          //     setState(() {
+          //       this.url = url.toString();
+          //     });
+          //   },
+          //   onConsoleMessage: (controller, consoleMessage) {
+          //     print(consoleMessage);
+          //   },
+          // ),
           progress < 1.0
               ? LinearProgressIndicator(value: progress)
               : Container(),

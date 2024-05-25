@@ -8,7 +8,7 @@ import 'abstractions/upload.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_uploader/flutter_uploader.dart';
+// import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
@@ -19,7 +19,7 @@ class HttpUpload implements UploadT {
   Future browsePictureFromGallery({
     required dynamic productId,
     required URLTYPE urlType,
-    required FlutterUploader uploader,
+    required dynamic uploader,
   }) async {
     UnimplementedError();
   }
@@ -34,7 +34,7 @@ class HttpUpload implements UploadT {
   Future takePicture({
     required dynamic id,
     required URLTYPE urlType,
-    required FlutterUploader uploader,
+    required dynamic uploader,
   }) async {
     print('no supported on this platform');
   }
@@ -43,7 +43,7 @@ class HttpUpload implements UploadT {
   Future upload({
     required List<String?> paths,
     required String id,
-    required FlutterUploader uploader,
+    required dynamic uploader,
     required URLTYPE urlType,
   }) {
     // TODO: implement upload
@@ -60,7 +60,7 @@ class MobileUpload implements UploadT {
     required List<String?> paths,
     required String id,
     required URLTYPE urlType,
-    required FlutterUploader uploader,
+    required dynamic uploader,
   }) async {
     final String? token = ProxyService.box.getBearerToken();
 
@@ -72,15 +72,15 @@ class MobileUpload implements UploadT {
     }
     log(paths.length.toString(), name: 'paths');
     uploader.clearUploads();
-    await uploader
-        .enqueue(MultipartFormDataUpload(
-          url: url,
-          files: [FileItem(path: paths.first!, field: 'file')],
-          method: UploadMethod.POST,
-          tag: 'file',
-          headers: {'Authorization': token!},
-        ))
-        .whenComplete(() => log('done uploading', name: 'upload'));
+    // await uploader
+    //     .enqueue(MultipartFormDataUpload(
+    //       url: url,
+    //       files: [FileItem(path: paths.first!, field: 'file')],
+    //       method: UploadMethod.POST,
+    //       tag: 'file',
+    //       headers: {'Authorization': token!},
+    //     ))
+    //     .whenComplete(() => log('done uploading', name: 'upload'));
   }
 
   @override
@@ -101,7 +101,7 @@ class MobileUpload implements UploadT {
   Future browsePictureFromGallery({
     required dynamic productId,
     required URLTYPE urlType,
-    required FlutterUploader uploader,
+    required dynamic uploader,
   }) async {
     try {
       XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -138,7 +138,7 @@ class MobileUpload implements UploadT {
   Future takePicture(
       {required dynamic id,
       required URLTYPE urlType,
-      required FlutterUploader uploader}) async {
+      required dynamic uploader}) async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.camera);
       if (image == null) return;

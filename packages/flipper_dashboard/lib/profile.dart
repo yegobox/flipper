@@ -77,32 +77,32 @@ class _ProfileWidgetState extends State<ProfileWidget>
                           color: Colors.white,
                           iconSize: 40,
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                backgroundColor: Colors.white,
-                                duration: Duration(hours: 1),
-                                content: Container(
-                                  color: Colors.white,
-                                  padding: EdgeInsets.all(8.0),
-                                  child: UploadProgressWidget(
-                                    progressStream: model.uploadProgress(),
-                                  ),
-                                ),
-                              ),
-                            );
-                            model.uploadProgress().listen((progress) {
-                              if (progress == 100) {
-                                ScaffoldMessenger.of(context)
-                                    .hideCurrentSnackBar();
-                              }
-                            });
-                            model.browsePictureFromGallery(
-                              urlType: URLTYPE.BUSINESS,
-                              callBack: (res) async {
-                                if (res == "500") return;
-                              },
-                              id: widget.branch.businessId,
-                            );
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            // SnackBar(
+                            //   backgroundColor: Colors.white,
+                            //   duration: Duration(hours: 1),
+                            //   content: Container(
+                            //     color: Colors.white,
+                            //     padding: EdgeInsets.all(8.0),
+                            //     child: UploadProgressWidget(
+                            //       progressStream: model.uploadProgress(),
+                            //     ),
+                            //   ),
+                            // ),
+                            // );
+                            // model.uploadProgress().listen((progress) {
+                            //   if (progress == 100) {
+                            //     ScaffoldMessenger.of(context)
+                            //         .hideCurrentSnackBar();
+                            //   }
+                            // });
+                            // model.browsePictureFromGallery(
+                            //   urlType: URLTYPE.BUSINESS,
+                            //   callBack: (res) async {
+                            //     if (res == "500") return;
+                            //   },
+                            //   id: widget.branch.businessId,
+                            // );
                           },
                         ),
                       ),

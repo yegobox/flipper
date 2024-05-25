@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-import 'package:flutter_windowmanager/flutter_windowmanager.dart';
+// import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -79,7 +79,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     if (!kDebugMode &&
         !isDesktopOrWeb &&
         ProxyService.remoteConfig.enableTakingScreenShoot()) {
-      await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
+      // await FlutterWindowManager.addFlags(FlutterWindowManager.FLAG_SECURE);
     }
   }
 

@@ -39,7 +39,7 @@ dependencies:
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1
-  flutter_inappwebview: ^5.4.3+7
+  flutter_inappwebview: ^6.0.0
   url_launcher: ^6.2.6
   google_fonts: ^6.1.0
   number_display: ^3.0.0
@@ -64,12 +64,10 @@ dependencies:
   receipt: ^1.0.0
   # Splash screen handle
   flutter_native_splash: ^2.3.2
-  lecle_downloads_path_provider: ^0.0.2+7
   permission_handler: ^11.3.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
-  flutter_windowmanager: ^0.2.0
   fluentui_system_icons: ^1.1.203
   battery_plus: ^4.1.0
   easy_sidemenu:
@@ -78,11 +76,8 @@ dependencies:
       ref: master
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev
-  tray_manager: ^0.2.0
-  move_to_background:
-    git:
-      url: https://github.com/ViliusP/move_to_background.git
-  pinput: ^3.0.0
+  tray_manager: ^0.2.3
+  pinput: ^4.0.0
   flutter_screen_lock: ^9.0.4
   local_auth: ^2.1.7
   #firebase_admob_config: ^1.3.1

@@ -174,7 +174,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         ),
                         // show a text to show if device is offline
                         StreamBuilder<List<ConnectivityResult>>(
-                          stream: Connectivity().onConnectivityChanged,
+                          stream: Connectivity().onConnectivityChanged!,
                           builder: (context, snapshot) {
                             if (snapshot.hasData) {
                               if (snapshot.data == ConnectivityResult.none) {
