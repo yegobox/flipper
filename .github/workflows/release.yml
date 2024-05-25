@@ -191,6 +191,9 @@ jobs:
           release_name: Windows Release ${{ steps.get_version.outputs.version }}
           draft: false
           prerelease: false
+          directory: build/windows/runner/Release
+          type: "zip"
+          filename: ${{ steps.get_version.outputs.version }}-windows.zip
           body: |
             Changes in this Release
             - First Change
@@ -200,7 +203,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-build
-          path: build\windows\x64\runner\Release\flipper_rw.msix
+          path: build/windows/x64/runner/Release/${{ steps.get_version.outputs.version }}-windows.zip
 
   android-integration-test:
     name: integration on Android
