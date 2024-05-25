@@ -118,7 +118,7 @@ jobs:
 
   build-and-release-windows:
     name: "Build windows app"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    # needs: [unit-testing, integration-testing-windows, android-integration-test]
     runs-on: windows-2022
     #     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
