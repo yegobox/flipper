@@ -182,25 +182,22 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Archive Release
-        # uses: actions/create-release@v1.0.0
-        uses: thedoctor0/zip-release@master
+      - name: Create Release
+        uses: actions/create-release@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
-          # tag_name: ${{ steps.get_version.outputs.version }}
-          # release_name: Windows Release ${{ steps.get_version.outputs.version }}
-          # draft: false
-          # prerelease: false
-          type: "zip"
-          filename: flipper-${{github.ref_name}}-windows.zip
-          directory: build/windows/runner/Release
-          # body: |
-          #   Changes in this Release
-          #   - First Change
-          #   - Second Change
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: Windows Release ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
       - name: Windows Release
         uses: softprops/action-gh-release@v2
+        # if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
