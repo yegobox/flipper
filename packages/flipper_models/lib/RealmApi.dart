@@ -28,6 +28,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 // This issue describe how I can mark something for completion later
@@ -1890,6 +1891,7 @@ class RealmAPI<M extends IJsonSerializable>
     User user = app.currentUser ??
         await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
 
+    /// do not provide fallback if the user is not authenticated.
     if (useFallBack) {
       String path = await dbPath();
       realm?.close();
@@ -1935,6 +1937,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> _configurePersistent(User user, String path) async {
+    talker.warning("opening persistent");
+    // Sentry.captureMessage("opening persistent");
     Configuration config = await _createPersistentConfig(user, path);
     realm = await _openRealm(config);
 
@@ -1990,25 +1994,28 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> _configureFallback(User user, String path) async {
+    talker.info("using allback on startup");
     Configuration config = Configuration.flexibleSync(
       user,
       realmModels,
       encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       path: path,
-      clientResetHandler:
-          RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
-        log("reset requested here..");
-      }),
-      shouldCompactCallback: (totalSize, usedSize) {
-        const tenMB = 10 * 1048576;
-        return (totalSize > tenMB) &&
-            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-      },
-      syncErrorHandler: (syncError) {
-        if (syncError is CompensatingWriteError) {
-          handleCompensatingWrite(syncError);
-        }
-      },
+
+      /// I am not sure if it  is okay to pass the bellow when we are not opening Realm.open()
+      // clientResetHandler:
+      //     RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
+      //   log("reset requested here..");
+      // }),
+      // shouldCompactCallback: (totalSize, usedSize) {
+      //   const tenMB = 10 * 1048576;
+      //   return (totalSize > tenMB) &&
+      //       (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+      // },
+      // syncErrorHandler: (syncError) {
+      //   if (syncError is CompensatingWriteError) {
+      //     handleCompensatingWrite(syncError);
+      //   }
+      // },
     );
     realm = Realm(config);
     talker.info("Fallback: Opened synced realm.");
