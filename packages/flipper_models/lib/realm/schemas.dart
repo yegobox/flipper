@@ -714,6 +714,9 @@ class _IUnit {
   DateTime? lastTouched;
 
   String? action;
+
+  String? createdAt;
+  DateTime? deletedAt;
 }
 
 @RealmModel()
