@@ -1853,28 +1853,35 @@ class RealmAPI<M extends IJsonSerializable>
     return variants;
   }
 
+  /// because both non-synced and synced should be in one dir
+  /// I avoided assigning businessId or branchId to the directory
+  /// because it assumed that realm will upload data if they exist and they are not synced
   @override
   Future<String> dbPath() async {
-    String fileName = "db_";
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final int businessId = ProxyService.box.getBusinessId() ?? 0;
-    final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v7-' +
-        branchId.toString() +
-        "_" +
-        businessId.toString();
+    final realmDirectory = '${appDocsDirectory.path}/v7';
 
-    // Create the new directory
-    await Directory(realmDirectory).create(recursive: true);
+    // Create the directory if it doesn't exist
+    final directory = Directory(realmDirectory);
+    if (!(await directory.exists())) {
+      await directory.create(recursive: true);
+    }
+
+    final String fileName = 'database.realm'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
 
+  /// when opening db we carefully fail gracefuly when especially on startup we use in memory db
+  /// then when user login the real db is used
+  /// it is very important to avoid issue where we are saving in memory thinking that we using synced db hence why we call init on startupview model
+  /// to re-configure the db now for this time not using the in-memory db.
+
   @override
-  Future<RealmApiInterface> configure({required bool useInMemoryDb}) async {
+  Future<RealmApiInterface> configure(
+      {required bool useInMemoryDb, bool useFallBack = false}) async {
     _setApiEndpoints();
 
-    String path = await dbPath();
     final app = App(AppConfiguration(AppSecrets.appId,
         baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
@@ -1882,6 +1889,13 @@ class RealmAPI<M extends IJsonSerializable>
 
     User user = app.currentUser ??
         await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
+    if (useFallBack) {
+      String path = await dbPath();
+      realm?.close();
+      await _configureFallback(user, path);
+      return this;
+    }
 
     try {
       if (ProxyService.box.encryptionKey().isEmpty) {
@@ -1891,9 +1905,12 @@ class RealmAPI<M extends IJsonSerializable>
       if (useInMemoryDb) {
         _configureInMemory();
       } else {
+        String path = await dbPath();
         await _configurePersistent(user, path);
       }
     } catch (e, s) {
+      /// for non directly synced but synced later!
+      String path = await dbPath();
       talker.info(s);
       realm?.close();
       await _configureFallback(user, path);
@@ -1921,8 +1938,8 @@ class RealmAPI<M extends IJsonSerializable>
     Configuration config = await _createPersistentConfig(user, path);
     realm = await _openRealm(config);
 
-    int? branchId = ProxyService.box.getBranchId() ?? 0;
-    int? businessId = ProxyService.box.getBusinessId() ?? 0;
+    int branchId = ProxyService.box.getBranchId()!;
+    int businessId = ProxyService.box.getBusinessId()!;
 
     await realm!.subscriptions.waitForSynchronization();
     await updateSubscription(branchId, businessId);
