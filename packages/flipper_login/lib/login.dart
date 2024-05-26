@@ -67,7 +67,7 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) async {
-        await ProxyService.realm.logOut();
+        // await ProxyService.realm.logOut();
         firebase.FirebaseAuth.instance
             .userChanges()
             .listen((firebase.User? user) {
