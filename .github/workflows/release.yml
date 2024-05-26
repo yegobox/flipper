@@ -202,7 +202,7 @@ jobs:
         with:
           name: windows-build
           path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          upload_release_asset: true
+          upload_release_asset: false
 
   android-integration-test:
     name: integration on Android
