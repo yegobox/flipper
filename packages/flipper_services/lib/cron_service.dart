@@ -55,7 +55,7 @@ class CronService {
             RootIsolateToken.instance,
             receivePort.sendPort,
             ProxyService.box.getBranchId()!,
-            await ProxyService.realm.dbPath(),
+            await ProxyService.realm.dbPath(path: 'synced'),
             ProxyService.box.encryptionKey(),
             business.tinNumber,
             business.bhfId ?? "00"

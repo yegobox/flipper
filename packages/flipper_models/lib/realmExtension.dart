@@ -50,7 +50,7 @@ extension RealmExtension on Realm {
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          await ProxyService.realm.dbPath(),
+          await ProxyService.realm.dbPath(path: 'fallback'),
           encryptionKey,
           business.tinNumber,
           ebm.bhfId

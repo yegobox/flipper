@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'dart:ui' as ui;
@@ -92,12 +90,18 @@ class _LoginViewState extends State<LoginView> {
       },
       viewModelBuilder: () => StartupViewModel(),
       builder: (context, model, child) {
-        // Get the physical size and device pixel ratio using PlatformDispatcher
-        final data = PlatformDispatcher.instance.views.first;
-        ui.Size size = data.physicalSize;
-        double width = size.width;
-        // I am using https://www.altamira.ai/blog/common-screen-sizes-for-responsive-web-design/ as my standard for screen sizes
-        return (deviceType != 'Phone')
+        final data = ui.PlatformDispatcher.instance.views.first;
+        final ui.Size size = data.physicalSize;
+        final double width = size.width / data.devicePixelRatio;
+
+        // Define the threshold for differentiating between phone and desktop
+        const double desktopWidthThreshold =
+            768.0; // Standard desktop screen size threshold
+
+        final bool isDesktop =
+            deviceType != 'Phone' && width >= desktopWidthThreshold;
+
+        return (isDesktop)
             ? Scaffold(
                 body: DesktopLoginView(),
                 backgroundColor: Colors.white,

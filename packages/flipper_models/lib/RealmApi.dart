@@ -28,7 +28,6 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 // This issue describe how I can mark something for completion later
@@ -1858,9 +1857,9 @@ class RealmAPI<M extends IJsonSerializable>
   /// I avoided assigning businessId or branchId to the directory
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
-  Future<String> dbPath() async {
+  Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v7';
+    final realmDirectory = '${appDocsDirectory.path}/v8';
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -1868,7 +1867,7 @@ class RealmAPI<M extends IJsonSerializable>
       await directory.create(recursive: true);
     }
 
-    final String fileName = 'synced.db'; // Fixed, user-friendly name
+    final String fileName = '${path}.db'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
@@ -1893,7 +1892,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// do not provide fallback if the user is not authenticated.
     if (useFallBack) {
-      String path = await dbPath();
+      String path = await dbPath(path: 'fallback');
       realm?.close();
       await _configureFallback(user, path);
       return this;
@@ -1907,12 +1906,17 @@ class RealmAPI<M extends IJsonSerializable>
       if (useInMemoryDb) {
         _configureInMemory();
       } else {
-        String path = await dbPath();
+        String path = await dbPath(path: 'synced');
         await _configurePersistent(user, path);
       }
     } catch (e, s) {
       /// for non directly synced but synced later!
-      String path = await dbPath();
+      /// we use static encryption key on fallback because e.g if  throw Exception("null encryption"); is thrown
+      /// then it means we don't have the consistent encryption we can rely on to use for this case then
+      /// all the time when we are reading data from fallback we are using a completely different db with different encryption
+      /// the data will be synced back to the synced db  when there is encryption and no error is thrown. and encryption for business
+      /// will be used then~
+      String path = await dbPath(path: 'fallback');
       talker.info(s);
       realm?.close();
       await _configureFallback(user, path);
@@ -1995,10 +1999,16 @@ class RealmAPI<M extends IJsonSerializable>
 
   Future<void> _configureFallback(User user, String path) async {
     talker.info("using allback on startup");
+
     Configuration config = Configuration.flexibleSync(
       user,
       realmModels,
-      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+
+      /// because the fallback might be in case where we are just opening the db
+      /// we use static encryption for that.
+      encryptionKey:
+          '233,208,132,117,255,201,221,131,14,40,56,240,47,226,73,76,138,217,55,54,149,10,109,4,86,51,62,18,149,133,100,197,144,162,43,7,178,52,81,111,72,172,32,67,62,21,26,45,204,243,133,215,255,247,212,54,189,118,16,161,48,80,144,135'
+              .toIntList(),
       path: path,
 
       /// I am not sure if it  is okay to pass the bellow when we are not opening Realm.open()

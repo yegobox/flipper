@@ -41,7 +41,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       commApi = AppSecrets.commApi;
     }
 
-    String path = await dbPath();
+    String path = await dbPath(path: 'local');
     Configuration config;
 
     // Close any existing local realm instance
@@ -140,9 +140,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   /// I avoided assigning businessId or branchId to the directory
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
-  Future<String> dbPath() async {
+  Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v7';
+    final realmDirectory = '${appDocsDirectory.path}/v8';
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -150,7 +150,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await directory.create(recursive: true);
     }
 
-    final String fileName = 'local.db'; // Fixed, user-friendly name
+    final String fileName = '${path}.db'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
