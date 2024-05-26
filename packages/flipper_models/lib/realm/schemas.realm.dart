@@ -5751,6 +5751,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
     bool active = false,
     DateTime? lastTouched,
     String? action,
+    String? createdAt,
+    DateTime? deletedAt,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<IUnit>({
@@ -5765,6 +5767,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'active', active);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'deletedAt', deletedAt);
   }
 
   IUnit._();
@@ -5813,6 +5817,19 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
   set action(String? value) => RealmObjectBase.set(this, 'action', value);
 
   @override
+  String? get createdAt =>
+      RealmObjectBase.get<String>(this, 'createdAt') as String?;
+  @override
+  set createdAt(String? value) => RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  DateTime? get deletedAt =>
+      RealmObjectBase.get<DateTime>(this, 'deletedAt') as DateTime?;
+  @override
+  set deletedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'deletedAt', value);
+
+  @override
   Stream<RealmObjectChanges<IUnit>> get changes =>
       RealmObjectBase.getChanges<IUnit>(this);
 
@@ -5833,6 +5850,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       'active': active.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'deletedAt': deletedAt.toEJson(),
     };
   }
 
@@ -5848,6 +5867,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
         'active': EJsonValue active,
         'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
+        'createdAt': EJsonValue createdAt,
+        'deletedAt': EJsonValue deletedAt,
       } =>
         IUnit(
           fromEJson(realmId),
@@ -5858,6 +5879,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
           active: fromEJson(active),
           lastTouched: fromEJson(lastTouched),
           action: fromEJson(action),
+          createdAt: fromEJson(createdAt),
+          deletedAt: fromEJson(deletedAt),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5877,6 +5900,8 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.string, optional: true),
+      SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
     ]);
   }();
 
