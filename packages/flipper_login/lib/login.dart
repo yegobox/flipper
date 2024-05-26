@@ -14,6 +14,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:device_type/device_type.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
@@ -63,8 +64,14 @@ class _LoginViewState extends State<LoginView> {
     super.didChangeDependencies();
   }
 
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final deviceType = _getDeviceType(context);
+
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) async {
         // await ProxyService.realm.logOut();
@@ -90,7 +97,7 @@ class _LoginViewState extends State<LoginView> {
         ui.Size size = data.physicalSize;
         double width = size.width;
         // I am using https://www.altamira.ai/blog/common-screen-sizes-for-responsive-web-design/ as my standard for screen sizes
-        return (width >= 1280)
+        return (deviceType != 'Phone')
             ? Scaffold(
                 body: DesktopLoginView(),
                 backgroundColor: Colors.white,
