@@ -136,19 +136,21 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
+  /// because both non-synced and synced should be in one dir
+  /// I avoided assigning businessId or branchId to the directory
+  /// because it assumed that realm will upload data if they exist and they are not synced
   @override
   Future<String> dbPath() async {
-    String fileName = "db_";
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final int businessId = ProxyService.box.getBusinessId() ?? 0;
-    final int branchId = ProxyService.box.getBranchId() ?? 0;
-    final realmDirectory = '${appDocsDirectory.path}/flipper-v4-local-' +
-        branchId.toString() +
-        "_" +
-        businessId.toString();
+    final realmDirectory = '${appDocsDirectory.path}/v7';
 
-    // Create the new directory
-    await Directory(realmDirectory).create(recursive: true);
+    // Create the directory if it doesn't exist
+    final directory = Directory(realmDirectory);
+    if (!(await directory.exists())) {
+      await directory.create(recursive: true);
+    }
+
+    final String fileName = 'local.db'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }

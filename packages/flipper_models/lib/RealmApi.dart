@@ -1867,7 +1867,7 @@ class RealmAPI<M extends IJsonSerializable>
       await directory.create(recursive: true);
     }
 
-    final String fileName = 'database.realm'; // Fixed, user-friendly name
+    final String fileName = 'synced.db'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
