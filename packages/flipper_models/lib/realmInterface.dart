@@ -33,8 +33,6 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
   T? findObject<T extends RealmObject>(String query, List<dynamic> arguments);
 
   void close();
-
-  Future<bool> logout();
 }
 
 abstract class RealmApiInterface {
@@ -105,7 +103,7 @@ abstract class RealmApiInterface {
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false});
-  Future<void> logOut();
+  Future<bool> logOut();
   Future<void> logOutLight();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});

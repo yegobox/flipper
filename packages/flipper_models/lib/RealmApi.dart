@@ -1277,49 +1277,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> logOut() async {
-     ///https://stackoverflow.com/questions/40587563/when-should-i-call-realm-close
-    ///until we have valid reason to close realm and logout
-    ///then we are commenting code bellow
-    ///this is because we are not interested in realm data once user logs out
-    ///because technicaly it is not a problem to have realm data after logout on google auth main auth
-    ///
-    // final app = App(AppConfiguration(AppSecrets.appId,
-    //     baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    // final user = app.currentUser ??
-    //     await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
-    // await user.logOut();
-    //    realm!.close();
-    if (ProxyService.box.getUserId() != null &&
-        ProxyService.box.getBusinessId() != null) {
-      ProxyService.event.publish(loginDetails: {
-        'channel': "${ProxyService.box.getUserId()!}-logout",
-        'userId': ProxyService.box.getUserId()!,
-        'businessId': ProxyService.box.getBusinessId()!,
-        'branchId': ProxyService.box.getBranchId()!,
-        'phone': ProxyService.box.getUserPhone(),
-        'defaultApp': ProxyService.box.getDefaultApp(),
-        'deviceName': Platform.operatingSystem,
-        'deviceVersion': Platform.operatingSystemVersion,
-        'linkingCode': randomNumber().toString()
-      });
-    }
-    ProxyService.box.remove(key: 'userId');
-    ProxyService.box.remove(key: 'getIsTokenRegistered');
-    ProxyService.box.remove(key: 'bearerToken');
-    ProxyService.box.remove(key: 'branchId');
-    ProxyService.box.remove(key: 'userPhone');
-    ProxyService.box.remove(key: 'UToken');
-    ProxyService.box.remove(key: 'businessId');
-    ProxyService.box.remove(key: 'defaultApp');
-    ProxyService.box.remove(key: 'authComplete');
-    // but for shared preference we can just clear them all
-    ProxyService.box.clear();
-    await firebase.FirebaseAuth.instance.signOut();
-    await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
-  }
-
-  @override
   Future<void> logOutLight() {
     // TODO: implement logOutLight
     throw UnimplementedError();
@@ -2183,7 +2140,6 @@ class RealmAPI<M extends IJsonSerializable>
         update: true);
   }
 
-
   @override
   Future<int> addVariant({required List<Variant> variations}) async {
     final branchId = ProxyService.box.getBranchId()!;
@@ -2636,5 +2592,37 @@ class RealmAPI<M extends IJsonSerializable>
       {required int tin, required String bhfId, required String lastReqDt}) {
     return ProxyService.tax
         .selectImportItems(tin: tin, bhfId: bhfId, lastReqDt: lastReqDt);
+  }
+
+  @override
+  Future<bool> logOut() async {
+    if (ProxyService.box.getUserId() != null &&
+        ProxyService.box.getBusinessId() != null) {
+      ProxyService.event.publish(loginDetails: {
+        'channel': "${ProxyService.box.getUserId()!}-logout",
+        'userId': ProxyService.box.getUserId()!,
+        'businessId': ProxyService.box.getBusinessId()!,
+        'branchId': ProxyService.box.getBranchId()!,
+        'phone': ProxyService.box.getUserPhone(),
+        'defaultApp': ProxyService.box.getDefaultApp(),
+        'deviceName': Platform.operatingSystem,
+        'deviceVersion': Platform.operatingSystemVersion,
+        'linkingCode': randomNumber().toString()
+      });
+    }
+    ProxyService.box.remove(key: 'userId');
+    ProxyService.box.remove(key: 'getIsTokenRegistered');
+    ProxyService.box.remove(key: 'bearerToken');
+    ProxyService.box.remove(key: 'branchId');
+    ProxyService.box.remove(key: 'userPhone');
+    ProxyService.box.remove(key: 'UToken');
+    ProxyService.box.remove(key: 'businessId');
+    ProxyService.box.remove(key: 'defaultApp');
+    ProxyService.box.remove(key: 'authComplete');
+    // but for shared preference we can just clear them all
+    ProxyService.box.clear();
+    await firebase.FirebaseAuth.instance.signOut();
+    // await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+    return Future.value(true);
   }
 }
