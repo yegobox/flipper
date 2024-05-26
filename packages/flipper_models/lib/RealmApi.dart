@@ -1278,6 +1278,18 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<void> logOut() async {
+     ///https://stackoverflow.com/questions/40587563/when-should-i-call-realm-close
+    ///until we have valid reason to close realm and logout
+    ///then we are commenting code bellow
+    ///this is because we are not interested in realm data once user logs out
+    ///because technicaly it is not a problem to have realm data after logout on google auth main auth
+    ///
+    // final app = App(AppConfiguration(AppSecrets.appId,
+    //     baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+    // final user = app.currentUser ??
+    //     await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+    // await user.logOut();
+    //    realm!.close();
     if (ProxyService.box.getUserId() != null &&
         ProxyService.box.getBusinessId() != null) {
       ProxyService.event.publish(loginDetails: {
@@ -1303,6 +1315,7 @@ class RealmAPI<M extends IJsonSerializable>
     ProxyService.box.remove(key: 'authComplete');
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
+    await firebase.FirebaseAuth.instance.signOut();
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
   }
 
@@ -2170,21 +2183,6 @@ class RealmAPI<M extends IJsonSerializable>
         update: true);
   }
 
-  Future<bool> logout() async {
-    ///https://stackoverflow.com/questions/40587563/when-should-i-call-realm-close
-    ///until we have valid reason to close realm and logout
-    ///then we are commenting code bellow
-    ///this is because we are not interested in realm data once user logs out
-    ///because technicaly it is not a problem to have realm data after logout on google auth main auth
-    ///
-    // final app = App(AppConfiguration(AppSecrets.appId,
-    //     baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-    // final user = app.currentUser ??
-    //     await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
-    // await user.logOut();
-    //    realm!.close();
-    return true;
-  }
 
   @override
   Future<int> addVariant({required List<Variant> variations}) async {

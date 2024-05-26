@@ -67,6 +67,7 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) {
+         await firebase.FirebaseAuth.instance.signOut();
         firebase.FirebaseAuth.instance
             .userChanges()
             .listen((firebase.User? user) {
@@ -75,6 +76,7 @@ class _LoginViewState extends State<LoginView> {
               setState(() {
                 _isLogin = true;
               });
+              
               _routerService
                   .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
             }
