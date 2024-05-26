@@ -246,7 +246,7 @@ class ProductViewState extends ConsumerState<ProductView> {
         // IconRow(),
         buildSearchField(searchFieldWidth),
         SizedBox(width: 5),
-        buildProfileWidget(),
+        // buildProfileWidget(),
       ],
     );
   }
