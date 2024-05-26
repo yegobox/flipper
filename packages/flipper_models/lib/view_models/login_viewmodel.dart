@@ -82,7 +82,9 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
           openDrawer();
         }
       }
-    } catch (error) {
+    } catch (error, s) {
+      talker.info(s);
+      log(s.toString());
       setIsprocessing(value: false);
       Sentry.captureException(error, stackTrace: StackTrace.current);
       throw error;
