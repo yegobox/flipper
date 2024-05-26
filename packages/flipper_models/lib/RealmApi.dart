@@ -1872,6 +1872,36 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<RealmApiInterface> configure({required bool useInMemoryDb}) async {
+    _setApiEndpoints();
+
+    String path = await dbPath();
+    final app = App(AppConfiguration(AppSecrets.appId,
+        baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+
+    realm?.close();
+
+    User user = app.currentUser ??
+        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+
+    try {
+      if (ProxyService.box.encryptionKey().isEmpty) {
+        throw Exception("null encryption");
+      }
+
+      if (useInMemoryDb) {
+        _configureInMemory();
+      } else {
+        await _configurePersistent(user, path);
+      }
+    } catch (e, s) {
+      talker.info(s);
+      realm?.close();
+      await _configureFallback(user, path);
+    }
+    return this;
+  }
+
+  void _setApiEndpoints() {
     if (foundation.kDebugMode) {
       apihub = AppSecrets.apihubUat;
       commApi = AppSecrets.commApi;
@@ -1879,111 +1909,92 @@ class RealmAPI<M extends IJsonSerializable>
       apihub = AppSecrets.apihubProd;
       commApi = AppSecrets.commApi;
     }
+  }
 
-    String path = await dbPath();
-    //NOTE: https://www.mongodb.com/docs/atlas/app-services/domain-migration/
-    final app = App(AppConfiguration(AppSecrets.appId,
-        baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+  void _configureInMemory() {
+    Configuration config = Configuration.inMemory(realmModels);
+    realm = Realm(config);
+    talker.info("Opened in-memory realm.");
+  }
 
-    Configuration config;
-    realm?.close();
+  Future<void> _configurePersistent(User user, String path) async {
+    Configuration config = await _createPersistentConfig(user, path);
+    realm = await _openRealm(config);
 
-    try {
-      if (ProxyService.box.encryptionKey().isEmpty) {
-        throw Exception("null encryption");
-      }
-      if (useInMemoryDb) {
-        config = Configuration.inMemory(realmModels);
-        realm = Realm(config);
-      } else if (ProxyService.box.getBranchId() != null ||
-          ProxyService.box.getBusinessId() != null) {
-        final user = app.currentUser ??
-            await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
+    int? branchId = ProxyService.box.getBranchId() ?? 0;
+    int? businessId = ProxyService.box.getBusinessId() ?? 0;
 
-        config = Configuration.flexibleSync(
-            // https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/update-realm-object-schema/
-            // schemaVersion: 2,
-            // maxNumberOfActiveVersions: 2,
-            user,
-            realmModels,
-            encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-            path: path, clientResetHandler: RecoverUnsyncedChangesHandler(
-                onBeforeReset: (beforeResetRealm) {
-          log("reset requested here..");
+    await realm!.subscriptions.waitForSynchronization();
+    await updateSubscription(branchId, businessId);
+  }
 
-          ///which the SDK invokes prior to the client reset.
-          ///You can use this callback to notify the user before the reset begins.
-        }), shouldCompactCallback: ((totalSize, usedSize) {
-          // Compact if the file is over 10MB in size and less than 50% 'used'
-          const tenMB = 10 * 1048576;
-          return (totalSize > tenMB) &&
-              (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-        }), syncErrorHandler: (syncError) {
-          if (syncError is CompensatingWriteError) {
-            handleCompensatingWrite(syncError);
-          }
-        });
-
-        /// because most likely we will open the realm with sync after we opened in memory database
-        /// then we need to close the one recently opened
-        if (realm != null) {
-          realm!.close();
+  Future<Configuration> _createPersistentConfig(User user, String path) async {
+    return Configuration.flexibleSync(
+      user,
+      realmModels,
+      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+      path: path,
+      clientResetHandler:
+          RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
+        log("reset requested here..");
+      }),
+      shouldCompactCallback: (totalSize, usedSize) {
+        const tenMB = 10 * 1048576;
+        return (totalSize > tenMB) &&
+            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+      },
+      syncErrorHandler: (syncError) {
+        if (syncError is CompensatingWriteError) {
+          handleCompensatingWrite(syncError);
         }
-        talker.info("opening the synced realm for the app to run on launch");
+      },
+    );
+  }
 
-        // List<int> key = ProxyService.box.encryptionKey().toIntList();
+  Future<Realm> _openRealm(Configuration config) async {
+    CancellationToken token = CancellationToken();
+    Future<void>.delayed(
+        const Duration(seconds: 30),
+        () => token.cancel(CancelledException(
+            cancellationReason: "Realm took too long to open")));
 
-        int? branchId = ProxyService.box.getBranchId() ?? 0;
-        int? businessId = ProxyService.box.getBusinessId() ?? 0;
-
-        CancellationToken token = CancellationToken();
-
-        // Cancel the open operation after 10 seconds.
-        // Alternatively, you could display a loading dialog and bind the cancellation
-        // to a button the user can click to stop the wait.
-        Future<void>.delayed(
-            const Duration(seconds: 30),
-            () => token.cancel(CancelledException(
-                cancellationReason: "Realm took too long to open")));
-
-        if (await ProxyService.status.isInternetAvailable()) {
-          talker.info("Opened realm[1] with  internet access!");
-          realm = await Realm.open(config, cancellationToken: token,
-              onProgressCallback: (syncProgress) {
-            if (syncProgress.progressEstimate == 1.0) {
-              talker.info('All bytes transferred!');
-            }
-          });
-        } else {
-          talker.info("Opened realm[1] with no internet access!");
-          realm = Realm(config);
+    if (await ProxyService.status.isInternetAvailable()) {
+      talker.info("Opened realm with internet access.");
+      return await Realm.open(config, cancellationToken: token,
+          onProgressCallback: (syncProgress) {
+        if (syncProgress.progressEstimate == 1.0) {
+          talker.info('All bytes transferred!');
         }
-
-        await realm!.subscriptions.waitForSynchronization();
-        await updateSubscription(branchId, businessId);
-      } else {
-        //  open local database not synced one!
-        talker.info(
-            "opening the inMemory realm for the app to run on launch this is case where we don't have configuration necessary from the authenticated user!");
-        final config = Configuration.inMemory(realmModels);
-        realm = Realm(config);
-      }
-    } catch (e, s) {
-      talker.info(s);
-      realm?.close();
-
-      //// if for some reason we can't open the app normmay allow the user to use inMemory
-      /// but this has a Risk that next time when we open app it might switch to the cloud
-      /// and user might not see data saved on local
-      /// https://github.com/realm/realm-dart/issues/1028
-      config = Configuration.inMemory(
-        [UserActivity.schema],
-        path: path,
-        // encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-      );
-      realm = Realm(config);
+      });
+    } else {
+      talker.info("Opened realm with no internet access.");
+      return Realm(config);
     }
-    return this;
+  }
+
+  Future<void> _configureFallback(User user, String path) async {
+    Configuration config = Configuration.flexibleSync(
+      user,
+      realmModels,
+      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+      path: path,
+      clientResetHandler:
+          RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
+        log("reset requested here..");
+      }),
+      shouldCompactCallback: (totalSize, usedSize) {
+        const tenMB = 10 * 1048576;
+        return (totalSize > tenMB) &&
+            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
+      },
+      syncErrorHandler: (syncError) {
+        if (syncError is CompensatingWriteError) {
+          handleCompensatingWrite(syncError);
+        }
+      },
+    );
+    realm = Realm(config);
+    talker.info("Fallback: Opened synced realm.");
   }
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
