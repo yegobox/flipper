@@ -195,14 +195,14 @@ jobs:
             Changes in this Release
             - First Change
             - Second Change
-      - name: Windows Release
-        uses: softprops/action-gh-release@v2
-        # if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload .msix to Release
+        uses: actions/upload-artifact@v3
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         with:
           name: windows-build
-          files: build\windows\x64\runner\Release\flipper_rw.msix
+          path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          upload_release_asset: true
 
   android-integration-test:
     name: integration on Android
