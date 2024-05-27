@@ -346,10 +346,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
         if (exist == null) {
           if (user.id == iTenant.userId) {
-            iTenant.sessionActive = true;
-            localRealm!.add<Tenant>(iTenant);
+            localRealm!.write(() {
+              iTenant.sessionActive = true;
+              localRealm!.add<Tenant>(iTenant);
+            });
           } else {
-            localRealm!.add<Tenant>(iTenant);
+            localRealm!.write(() {
+              localRealm!.add<Tenant>(iTenant);
+            });
           }
         }
       }
@@ -720,7 +724,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           Branch? exist = localRealm!
               .query<Branch>(r'serverId == $0', [brannch.id]).firstOrNull;
           if (exist == null) {
-            localRealm!.add<Branch>(branch);
+            localRealm!.write(() => localRealm!.add<Branch>(branch));
           }
         }
 
