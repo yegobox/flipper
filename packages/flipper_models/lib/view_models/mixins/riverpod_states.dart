@@ -317,6 +317,8 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
         // If there's at least one matching product, expand the first one
         Product matchingProduct = matchingProducts.first;
         expanded(matchingProduct);
+      } else {
+        state = AsyncData(products);
       }
     } catch (error) {
       state = AsyncError(error, StackTrace.current);

@@ -1226,7 +1226,8 @@ class RealmAPI<M extends IJsonSerializable>
     final businessId = ProxyService.box.getBusinessId();
     final Business? business =
         ProxyService.local.getBusiness(businessId: businessId);
-    return business?.tinNumber != null && business?.bhfId != null;
+    //&& business?.bhfId != null
+    return business?.tinNumber != null;
   }
 
   @override
@@ -1910,7 +1911,7 @@ class RealmAPI<M extends IJsonSerializable>
         String path = await dbPath(path: 'synced');
         await _configurePersistent(user, path);
       }
-    } catch (e, s) {
+    } catch (e) {
       /// for non directly synced but synced later!
       /// we use static encryption key on fallback because e.g if  throw Exception("null encryption"); is thrown
       /// then it means we don't have the consistent encryption we can rely on to use for this case then
@@ -1918,7 +1919,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// the data will be synced back to the synced db  when there is encryption and no error is thrown. and encryption for business
       /// will be used then~
       String path = await dbPath(path: 'fallback');
-      talker.info(s);
+      talker.info("using fallback");
       realm?.close();
       await _configureFallback(user, path);
     }
