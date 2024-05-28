@@ -427,4 +427,8 @@ class App {}
 ///WHY!
 ///I am using git submodule add https://github.com/yegobox/plus_plugins.git open-sources/plus_plugins because orgional is wasting my time with java sdk 17 request
 /// sudo killall coreaudiod
+/// 
+/// Things to remember
+/// 1. update branchId and businessId in counter in realm
+/// 2. test receipt see if I am not getting counter issue
 

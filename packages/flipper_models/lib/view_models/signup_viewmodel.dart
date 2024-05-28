@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
@@ -113,21 +114,30 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<List<ITenant>> registerTenant(String? referralCode) async {
-    return await ProxyService.local.signup(business: {
-      'name': kName,
-      'latitude': latitude,
-      'longitude': longitude,
-      'phoneNumber': ProxyService.box.getUserPhone(),
-      'currency': 'RWF',
-      'createdAt': DateTime.now().toIso8601String(),
-      'userId': ProxyService.box.getUserId(),
-      "tinNumber": tin != null ? int.parse(tin!) : 1111,
-      'businessTypeId': "1", //businessType.id, // default to 1 for now
-      'type': 'Business',
-      'referredBy': referralCode ?? 'Organic',
-      'fullName': kFullName,
-      'country': kCountry
-    });
+    try {
+      int userId = ProxyService.box.getUserId()!;
+      String phoneNumber = ProxyService.box.getUserPhone()!;
+      return await ProxyService.local.signup(business: {
+        'name': kName,
+        'latitude': latitude,
+        'longitude': longitude,
+        'phoneNumber': phoneNumber,
+        'currency': 'RWF',
+        'createdAt': DateTime.now().toIso8601String(),
+        'userId': userId,
+        "tinNumber": tin != null ? int.parse(tin!) : 1111,
+        'businessTypeId': "1", //businessType.id, // default to 1 for now
+        'type': 'Business',
+        'bhfid': '00',
+        'referredBy': referralCode ?? 'Organic',
+        'fullName': kFullName,
+        'country': kCountry
+      });
+    } catch (e, s) {
+      talker.error(s);
+      talker.error(e);
+      rethrow;
+    }
   }
 
   Future<void> postRegistrationTasks(List<ITenant> tenants) async {

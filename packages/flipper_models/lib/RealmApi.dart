@@ -1822,9 +1822,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> userNameAvailable({required String name}) {
-    // TODO: implement userNameAvailable
-    throw UnimplementedError();
+  Future<int> userNameAvailable({required String name}) async {
+    final response =
+        await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
+    return response.statusCode;
   }
 
   @override

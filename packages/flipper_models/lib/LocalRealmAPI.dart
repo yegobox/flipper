@@ -159,12 +159,15 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
     await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
 
+    talker.warning("Upon login: UserId ${user.id}: UserPhone: ${userPhone}");
+
     /// the token from firebase that link this user with firebase
     /// so it can be used to login to other devices
-    await ProxyService.box.writeString(key: 'uid', value: user.uid);
+    await ProxyService.box.writeString(key: 'uid', value: user.uid ?? "");
     await ProxyService.box.writeInt(key: 'userId', value: user.id!);
 
     if (user.tenants.isEmpty) {
+      talker.error("User created does not have tenants");
       throw BusinessNotFoundException(
           term:
               "No tenant added to the user, if a business is added it should have one tenant");
@@ -195,7 +198,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false}) async {
-    talker.info(userPhone);
     String phoneNumber = userPhone;
 
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
@@ -216,10 +218,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       IUser user = IUser.fromJson(jsonResponse);
       await _configureTheBox(userPhone, user);
 
-      /// after we login this is the best time to open the synced database to start persisting the data
-      /// this will close whatever inMemory db we opened temporarly to have the app running
       await configureLocal(useInMemory: false);
       await ProxyService.realm.configure(useInMemoryDb: false);
+
+      /// after we login this is the best time to open the synced database to start persisting the data
+      /// this will close whatever inMemory db we opened temporarly to have the app running
+
       if (stopAfterConfigure) return user;
       if (skipDefaultAppSetup == false) {
         await ProxyService.box.writeString(
@@ -338,21 +342,21 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             permissionToAdd.add(perm);
           }
         }
-        localRealm!.write(() {
-          localRealm!.addAll<LPermission>(permissionToAdd);
+        ProxyService.realm.realm!.write(() {
+          ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
         });
 
         Tenant? exist = ProxyService.realm.realm!
             .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
         if (exist == null) {
           if (user.id == iTenant.userId) {
-            localRealm!.write(() {
+            ProxyService.realm.realm!.write(() {
               iTenant.sessionActive = true;
-              localRealm!.add<Tenant>(iTenant);
+              ProxyService.realm.realm!.add<Tenant>(iTenant);
             });
           } else {
-            localRealm!.write(() {
-              localRealm!.add<Tenant>(iTenant);
+            ProxyService.realm.realm!.write(() {
+              ProxyService.realm.realm!.add<Tenant>(iTenant);
             });
           }
         }
@@ -490,6 +494,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       /// then I call login in here after signup as login handle configuring
       await login(
           userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
+
+      await configureLocal(useInMemory: false);
+      await ProxyService.realm.configure(useInMemoryDb: false);
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
@@ -588,6 +595,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       });
       return ITenant.fromJsonList(response.body);
     } else {
+      talker.error(response.body.toString());
       throw InternalServerError(term: response.body.toString());
     }
   }

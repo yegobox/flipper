@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +12,12 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 
+import 'package:flipper_routing/app.locator.dart';
+
+import 'package:stacked_services/stacked_services.dart';
+
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
+  final _routerService = locator<RouterService>();
   final username = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,
@@ -75,16 +81,20 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 
   Future<String?> _checkUsername(String? username) async {
-    if (username == null) {
-      return "Username/business name is required";
-    }
-    int status = await ProxyService.realm.userNameAvailable(name: username);
+    try {
+      if (username == null) {
+        return "Username/business name is required";
+      }
+      int status = await ProxyService.realm.userNameAvailable(name: username);
 
-    if (status == 200) {
-      return 'That username is already taken';
-    }
+      if (status == 200) {
+        return 'That username is already taken';
+      }
 
-    return null;
+      return null;
+    } catch (e) {
+      return 'Name Search not available';
+    }
   }
 
   @override
@@ -99,8 +109,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.setCountry(country: countryName.value);
       signupViewModel.tin = tinNumber.value.isEmpty ? "11111" : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
-      signupViewModel.signup();
-      emitSuccess();
+      await signupViewModel.signup();
+
+      // _routerService.navigateTo(StartUpViewRoute());
+      // emitSuccess();
     } catch (e) {
       showSimpleNotification(
           const Text("Error while signing up try again later"),

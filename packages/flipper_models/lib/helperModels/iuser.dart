@@ -17,7 +17,9 @@ class IUser {
   int? id;
   String phoneNumber;
   String token;
-  String uid;
+
+  /// enable user to be create from server and for this case uid will not exist.
+  String? uid;
   List<ITenant> tenants;
   List<String> channels;
   int? pin;
