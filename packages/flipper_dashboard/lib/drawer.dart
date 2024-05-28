@@ -32,26 +32,30 @@ class _DrawerScreenState extends State<DrawerScreen> {
   void dispose() {
     _controller.dispose();
     _sub.currentState?.dispose();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     bool isProcessing = false;
-    return Scaffold(
-      key: const Key("openDrawerPage"),
-      appBar: CustomAppBar(
-        closeButton: CLOSEBUTTON.WIDGET,
-        isDividerVisible: false,
-        customLeadingWidget: back.BackButton(),
-        onPop: () async {},
-      ),
-      body: Align(
-        alignment: Alignment.center,
-        child: SizedBox(
-          width: isDesktopOrWeb ? 380 : double.infinity,
-          child: buildForm(isProcessing),
+    return SafeArea(
+      child: Scaffold(
+        key: const Key("openDrawerPage"),
+        appBar: CustomAppBar(
+          closeButton: CLOSEBUTTON.WIDGET,
+          isDividerVisible: false,
+          customLeadingWidget: back.BackButton(),
+          onPop: () async {},
+        ),
+        body: Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 200.0),
+            child: SizedBox(
+              width: isDesktopOrWeb ? 380 : double.infinity,
+              child: buildForm(isProcessing),
+            ),
+          ),
         ),
       ),
     );
@@ -178,9 +182,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
     );
   }
 
-  void handleOpenDrawer() {
+  Future<void> handleOpenDrawer() async {
+    Business? activeBusinesses = await ProxyService.local
+        .activeBusinesses(userId: ProxyService.box.getUserId()!);
     ProxyService.realm.openDrawer(
       drawer: widget.drawer
+        ..cashierId = activeBusinesses!.serverId!
         ..openingBalance = double.tryParse(_controller.text) ?? 0,
     );
 
@@ -189,12 +196,18 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   void handleCloseDrawer() async {
-    ProxyService.realm.realm!.write(() {
-      widget.drawer
-        ..closingBalance = double.parse(_controller.text)
-        ..closingDateTime = DateTime.now().toIso8601String()
-        ..open = false;
-    });
+    Business? activeBusinesses = await ProxyService.local
+        .activeBusinesses(userId: ProxyService.box.getUserId()!);
+
+    Drawers? drawers = await ProxyService.realm
+        .getDrawer(cashierId: activeBusinesses!.serverId!);
+    if (drawers != null) {
+      ProxyService.realm.realm!.write(() {
+        drawers.open = false;
+        drawers.closingBalance = double.parse(_controller.text);
+        drawers.closingDateTime = DateTime.now().toIso8601String();
+      });
+    }
     await ProxyService.realm.logOut();
     _routerService.navigateTo(LoginViewRoute());
   }

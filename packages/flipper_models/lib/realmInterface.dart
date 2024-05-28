@@ -358,4 +358,5 @@ abstract class RealmApiInterface {
     required String bhfId,
     required String lastReqDt,
   });
+  // Future<Drawers> getDrawer({required int businessId});
 }

@@ -1448,35 +1448,33 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<List<Product>> productsFuture({required int branchId}) async {
-    // Fetch all products based on branch ID and additional criteria
+    // Define the date for recent products filtering
     final date = DateTime.now().subtract(const Duration(days: 7));
-    List<Product> allProducts = realm!.query<Product>(
+
+    // Fetch recent products based on branch ID and additional criteria
+    List<Product> recentProducts = realm!.query<Product>(
         r'branchId == $0 && deletedAt == nil && lastTouched > $1',
         [branchId, date]).toList();
 
-    // if we have no recent product please load without the condition
-    if (allProducts.isEmpty) {
-      allProducts = realm!.query<Product>(
+    // If no recent products are found, fetch all products for the branch
+    if (recentProducts.isEmpty) {
+      recentProducts = realm!.query<Product>(
           r'branchId == $0 && deletedAt == nil', [branchId]).toList();
     }
 
-    // Limit to the last 7 items
-    List<Product> filteredProducts;
+    // Filter out TEMP_PRODUCT and CUSTOM_PRODUCT and sort by lastTouched descending
+    List<Product> filteredProducts = recentProducts
+        .where((product) =>
+            product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
+        .toList()
+      ..sort((a, b) => b.lastTouched!.compareTo(a.lastTouched!));
 
-    if (allProducts.length >= 20) {
-      filteredProducts = allProducts
-          .sublist(allProducts.length - 20)
-          .where((product) =>
-              product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
-          .toList();
-    } else {
-      filteredProducts = allProducts
-          .where((product) =>
-              product.name != TEMP_PRODUCT && product.name != CUSTOM_PRODUCT)
-          .toList();
+    // Limit to the last 20 items, if available
+    if (filteredProducts.length > 20) {
+      filteredProducts = filteredProducts.take(20).toList();
     }
 
-    // Return the filtered list of products
+    // Return the filtered and sorted list of products
     return filteredProducts;
   }
 
