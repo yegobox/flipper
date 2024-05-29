@@ -124,7 +124,7 @@ jobs:
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, '[build release]')
     runs-on: windows-2022
     #     needs: [unit-testing]
-    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
       - name: Export pub environment variable on Windows
