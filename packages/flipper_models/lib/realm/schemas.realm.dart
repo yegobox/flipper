@@ -4053,6 +4053,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String? spplrItemCd,
     String? spplrItemNm,
     bool ebmSynced = false,
+    String taxType = "B",
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Variant>({
@@ -4065,6 +4066,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
         'supplyPrice': 0.0,
         'retailPrice': 0.0,
         'ebmSynced': false,
+        'taxType': "B",
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -4118,6 +4120,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'spplrItemCd', spplrItemCd);
     RealmObjectBase.set(this, 'spplrItemNm', spplrItemNm);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
+    RealmObjectBase.set(this, 'taxType', taxType);
   }
 
   Variant._();
@@ -4412,6 +4415,11 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
 
   @override
+  String get taxType => RealmObjectBase.get<String>(this, 'taxType') as String;
+  @override
+  set taxType(String value) => RealmObjectBase.set(this, 'taxType', value);
+
+  @override
   Stream<RealmObjectChanges<Variant>> get changes =>
       RealmObjectBase.getChanges<Variant>(this);
 
@@ -4475,6 +4483,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'spplrItemCd': spplrItemCd.toEJson(),
       'spplrItemNm': spplrItemNm.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
+      'taxType': taxType.toEJson(),
     };
   }
 
@@ -4533,6 +4542,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
         'spplrItemCd': EJsonValue spplrItemCd,
         'spplrItemNm': EJsonValue spplrItemNm,
         'ebmSynced': EJsonValue ebmSynced,
+        'taxType': EJsonValue taxType,
       } =>
         Variant(
           fromEJson(realmId),
@@ -4586,6 +4596,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           spplrItemCd: fromEJson(spplrItemCd),
           spplrItemNm: fromEJson(spplrItemNm),
           ebmSynced: fromEJson(ebmSynced),
+          taxType: fromEJson(taxType),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4649,6 +4660,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('spplrItemCd', RealmPropertyType.string, optional: true),
       SchemaProperty('spplrItemNm', RealmPropertyType.string, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
+      SchemaProperty('taxType', RealmPropertyType.string),
     ]);
   }();
 

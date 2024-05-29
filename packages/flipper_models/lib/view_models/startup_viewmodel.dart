@@ -42,7 +42,7 @@ class StartupViewModel extends FlipperBaseModel {
         ProxyService.realm.configure(useInMemoryDb: false, useFallBack: true);
       }
 
-      /// an event should be trigered from mobile not desktop as desktop is anonmous and login() func might have been called.
+      /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {
         log("refreshCredentials");
         await appService.isLoggedIn();
@@ -102,8 +102,8 @@ class StartupViewModel extends FlipperBaseModel {
           _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
         }
       } else {
-        log(e.toString(), name: 'runStartupLogic');
-        log(stackTrace.toString(), name: 'runStartupLogic');
+        // log(e.toString(), name: 'runStartupLogic');
+        // log(stackTrace.toString(), name: 'runStartupLogic');
         await ProxyService.realm.logOut();
         //remove startup view from the stack
         _routerService.clearStackAndShow(LoginViewRoute());

@@ -1250,32 +1250,32 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
-  @override
-  Future<void> loadCounterFromOnline({required int businessId}) async {
-    final http.Response response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
+  // @override
+  // Future<void> loadCounterFromOnline({required int businessId}) async {
+  //   final http.Response response = await flipperHttpClient
+  //       .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonResponse = json.decode(response.body);
-      List<ICounter> counters = ICounter.fromJsonList(jsonResponse);
+  //   if (response.statusCode == 200) {
+  //     final List<dynamic> jsonResponse = json.decode(response.body);
+  //     List<ICounter> counters = ICounter.fromJsonList(jsonResponse);
 
-      /// first check if we don't have local counter that we are overwriting
-      List<Counter> localCounters =
-          realm!.query<Counter>(r'businessId == $0', [businessId]).toList();
-      if (localCounters.isNotEmpty) return;
-      for (ICounter counter in counters) {
-        realm!.put<Counter>(Counter(ObjectId(),
-            id: counter.id,
-            branchId: counter.branchId,
-            businessId: counter.businessId,
-            totRcptNo: counter.totRcptNo,
-            curRcptNo: counter.curRcptNo,
-            receiptType: counter.receiptType));
-      }
-    } else {
-      throw InternalServerError(term: "Error loading the counters");
-    }
-  }
+  //     /// first check if we don't have local counter that we are overwriting
+  //     List<Counter> localCounters =
+  //         realm!.query<Counter>(r'businessId == $0', [businessId]).toList();
+  //     if (localCounters.isNotEmpty) return;
+  //     for (ICounter counter in counters) {
+  //       realm!.put<Counter>(Counter(ObjectId(),
+  //           id: counter.id,
+  //           branchId: counter.branchId,
+  //           businessId: counter.businessId,
+  //           totRcptNo: counter.totRcptNo,
+  //           curRcptNo: counter.curRcptNo,
+  //           receiptType: counter.receiptType));
+  //     }
+  //   } else {
+  //     throw InternalServerError(term: "Error loading the counters");
+  //   }
+  // }
 
   @override
   Future<void> logOutLight() {
@@ -1859,7 +1859,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v8';
+    final realmDirectory = '${appDocsDirectory.path}/v10';
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -1892,34 +1892,32 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// do not provide fallback if the user is not authenticated.
     if (useFallBack) {
-      String path = await dbPath(path: 'fallback');
       realm?.close();
-      await _configureFallback(user, path);
+      _configureInMemory();
       return this;
     }
 
     try {
-      if (ProxyService.box.encryptionKey().isEmpty) {
-        throw Exception("null encryption");
-      }
-
       if (useInMemoryDb) {
+        realm?.close();
         _configureInMemory();
       } else {
+        if (ProxyService.box.encryptionKey().isEmpty) {
+          throw Exception("null encryption");
+        }
+        realm?.close();
         String path = await dbPath(path: 'synced');
         await _configurePersistent(user, path);
       }
-    } catch (e) {
-      /// for non directly synced but synced later!
-      /// we use static encryption key on fallback because e.g if  throw Exception("null encryption"); is thrown
-      /// then it means we don't have the consistent encryption we can rely on to use for this case then
-      /// all the time when we are reading data from fallback we are using a completely different db with different encryption
-      /// the data will be synced back to the synced db  when there is encryption and no error is thrown. and encryption for business
-      /// will be used then~
-      String path = await dbPath(path: 'fallback');
+    } catch (e, s) {
+      /// after a lof of thinking a fallback should use in memory because
+      /// we can not think of Ream(config) will be totally different from Realm.open()
+      /// hence I can not provide different encryption key on either
+
+      talker.error(s);
       talker.info("using fallback");
       realm?.close();
-      await _configureFallback(user, path);
+      _configureInMemory();
     }
     return this;
   }
@@ -1941,6 +1939,11 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> _configurePersistent(User user, String path) async {
+    CancellationToken token = CancellationToken();
+    Future<void>.delayed(
+        const Duration(seconds: 30),
+        () => token.cancel(CancelledException(
+            cancellationReason: "Realm took too long to open")));
     talker.warning("opening persistent");
     // Sentry.captureMessage("opening persistent");
     Configuration config = await _createPersistentConfig(user, path);
@@ -1949,8 +1952,12 @@ class RealmAPI<M extends IJsonSerializable>
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
 
-    await realm!.subscriptions.waitForSynchronization();
     await updateSubscription(branchId, businessId);
+    try {
+      await realm!.subscriptions.waitForSynchronization(token);
+    } catch (e) {
+      /// silently fail
+    }
   }
 
   Future<Configuration> _createPersistentConfig(User user, String path) async {
@@ -1997,42 +2004,8 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Future<void> _configureFallback(User user, String path) async {
-    talker.info("using allback on startup");
-
-    Configuration config = Configuration.flexibleSync(
-      user,
-      realmModels,
-
-      /// because the fallback might be in case where we are just opening the db
-      /// we use static encryption for that.
-      encryptionKey:
-          '233,208,132,117,255,201,221,131,14,40,56,240,47,226,73,76,138,217,55,54,149,10,109,4,86,51,62,18,149,133,100,197,144,162,43,7,178,52,81,111,72,172,32,67,62,21,26,45,204,243,133,215,255,247,212,54,189,118,16,161,48,80,144,135'
-              .toIntList(),
-      path: path,
-
-      /// I am not sure if it  is okay to pass the bellow when we are not opening Realm.open()
-      // clientResetHandler:
-      //     RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
-      //   log("reset requested here..");
-      // }),
-      // shouldCompactCallback: (totalSize, usedSize) {
-      //   const tenMB = 10 * 1048576;
-      //   return (totalSize > tenMB) &&
-      //       (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-      // },
-      // syncErrorHandler: (syncError) {
-      //   if (syncError is CompensatingWriteError) {
-      //     handleCompensatingWrite(syncError);
-      //   }
-      // },
-    );
-    realm = Realm(config);
-    talker.info("Fallback: Opened synced realm.");
-  }
-
   Future<void> updateSubscription(int? branchId, int? businessId) async {
-    if (realm == null) return;
+    if (realm == null || businessId == null || branchId == null) return;
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
     final transactionItem =
         realm!.query<TransactionItem>(r'branchId == $0', [branchId]);
@@ -2041,7 +2014,7 @@ class RealmAPI<M extends IJsonSerializable>
     final stock = realm!.query<Stock>(r'branchId == $0', [branchId]);
     final unit = realm!.query<IUnit>(r'branchId == $0', [branchId]);
     final counter = realm!.query<Counter>(r'branchId == $0', [branchId]);
-    final receipt = realm!.query<Receipt>(r'branchId == $0', [branchId]);
+
     final customer = realm!.query<Customer>(r'branchId == $0', [branchId]);
     final category = realm!.query<Category>(r'branchId == $0', [branchId]);
     final colors = realm!.all<PColor>();
@@ -2052,9 +2025,6 @@ class RealmAPI<M extends IJsonSerializable>
 
     final conversations =
         realm!.query<Conversation>(r'businessId == $0', [businessId]);
-
-    //TODO need to add branchId to know the drawer so we can open drawer for whole branch not for user
-    // final drawers = realm!.query<Drawers>(r'cashierId == $0', [ProxyService.box.getUserId()]);
 
     final ebms = realm!.query<EBM>(r'businessId == $0', [businessId]);
 
@@ -2073,10 +2043,33 @@ class RealmAPI<M extends IJsonSerializable>
 
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
 
+    /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
+    /// First unsubscribe
+    drawers.unsubscribe();
+    token.unsubscribe();
+    tenant.unsubscribe();
+    permission.unsubscribe();
+    pin.unsubscribe();
+    units.unsubscribe();
+    receipts.unsubscribe();
+    favorites.unsubscribe();
+    ebms.unsubscribe();
+    devices.unsubscribe();
+    conversations.unsubscribe();
+    colors.unsubscribe();
+    category.unsubscribe();
+    customer.unsubscribe();
+    receipts.unsubscribe();
+    receipts.unsubscribe();
+    devices.unsubscribe();
+    transaction.unsubscribe();
+    // End of unsubscribing
+
     await drawers.subscribe(
-        name: "drawers-${businessId}",
+        name: "drawer-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await token.subscribe(
         name: "token-${businessId}",
@@ -2084,105 +2077,117 @@ class RealmAPI<M extends IJsonSerializable>
         update: true);
     // end of fake subs
 
-    // https://stackoverflow.com/questions/66565463/disable-realm-sync-only-for-non-premium-users
-
     await tenant.subscribe(
         name: "tenant-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await permission.subscribe(
         name: "permission-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await pin.subscribe(
         name: "pin-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await units.subscribe(
         name: "units-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await receipts.subscribe(
         name: "favorites-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await favorites.subscribe(
         name: "favorites-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await ebms.subscribe(
         name: "ebms-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
     await devices.subscribe(
         name: "devices-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await conversations.subscribe(
         name: "conversations-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await colors.subscribe(
         name: "colors-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await category.subscribe(
         name: "category-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await customer.subscribe(
         name: "iCustomer-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
-
-    await receipt.subscribe(
-        name: "receipt-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await product.subscribe(
         name: "iProduct-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await counter.subscribe(
         name: "iCounter-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await variant.subscribe(
         name: "iVariant-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await stock.subscribe(
         name: "iStock-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await unit.subscribe(
         name: "iUnit-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
 
     await transaction.subscribe(
         name: "transaction-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
     await transactionItem.subscribe(
         name: "transactionItem-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
-        update: true);
+        update: true,
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
   }
 
   @override

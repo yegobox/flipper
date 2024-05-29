@@ -168,11 +168,6 @@ class AppService with ListenableServiceMixin {
       await ProxyService.local
           .tenantsFromOnline(businessId: business.serverId!);
     }
-
-    for (Business business in businesses) {
-      await ProxyService.realm
-          .loadCounterFromOnline(businessId: business.serverId!);
-    }
   }
 
   NFCManager nfc = NFCManager();

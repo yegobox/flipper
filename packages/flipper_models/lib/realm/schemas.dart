@@ -1,6 +1,7 @@
 import 'package:realm/realm.dart';
 part 'schemas.realm.dart';
 
+// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 @RealmModel()
 class _Branch {
   @PrimaryKey()
@@ -548,6 +549,9 @@ class _Variant {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
+  String taxType = "B";
+
+  /// it can be A for exempted, B, C or D
 }
 
 @RealmModel()

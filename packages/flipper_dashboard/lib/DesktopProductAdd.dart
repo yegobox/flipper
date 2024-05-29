@@ -619,10 +619,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                           },
                                         ),
                                       ),
+                                      //TODO: add tax options here to be attached to a variant.
                                       DataCell(
                                         _buildUnitDropdown(
                                             context, variant, model),
                                       ),
+
                                       DataCell(
                                         ElevatedButton(
                                           onPressed: () {

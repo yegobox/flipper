@@ -142,7 +142,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   @override
   Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v8';
+    final realmDirectory = '${appDocsDirectory.path}/v10';
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -219,7 +219,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await _configureTheBox(userPhone, user);
 
       await configureLocal(useInMemory: false);
-      await ProxyService.realm.configure(useInMemoryDb: false);
+      await ProxyService.realm
+          .configure(useInMemoryDb: false, useFallBack: false);
 
       /// after we login this is the best time to open the synced database to start persisting the data
       /// this will close whatever inMemory db we opened temporarly to have the app running

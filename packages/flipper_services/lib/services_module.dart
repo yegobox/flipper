@@ -279,8 +279,10 @@ abstract class ServicesModule {
     /// to speed-up the application starting time, when we init realm, we just pass in memory db
     /// then when user login we will close it and switch to flexible sync
     return await RealmAPI().configure(
-      useInMemoryDb: true,
-    );
+        useInMemoryDb: false,
+
+        /// even on startup should not use fallback only fall to it when there is a need.
+        useFallBack: false);
   }
 
   @preResolve

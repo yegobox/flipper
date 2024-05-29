@@ -253,7 +253,7 @@ abstract class RealmApiInterface {
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType});
-  Future<void> loadCounterFromOnline({required int businessId});
+  // Future<void> loadCounterFromOnline({required int businessId});
 
   Future<String> dbPath({required String path});
   Future<bool> bindProduct({required int productId, required int tenantId});
