@@ -1913,11 +1913,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// after a lof of thinking a fallback should use in memory because
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
-
       talker.error(s);
-      talker.info("using fallback");
-      realm?.close();
-      _configureInMemory();
     }
     return this;
   }
@@ -1953,11 +1949,7 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
-    try {
-      await realm!.subscriptions.waitForSynchronization(token);
-    } catch (e) {
-      /// silently fail
-    }
+    await realm!.subscriptions.waitForSynchronization(token);
   }
 
   Future<Configuration> _createPersistentConfig(User user, String path) async {
@@ -1990,16 +1982,20 @@ class RealmAPI<M extends IJsonSerializable>
         () => token.cancel(CancelledException(
             cancellationReason: "Realm took too long to open")));
 
-    if (await ProxyService.status.isInternetAvailable()) {
-      talker.info("Opened realm with internet access.");
-      return await Realm.open(config, cancellationToken: token,
-          onProgressCallback: (syncProgress) {
-        if (syncProgress.progressEstimate == 1.0) {
-          talker.info('All bytes transferred!');
-        }
-      });
-    } else {
-      talker.info("Opened realm with no internet access.");
+    try {
+      if (await ProxyService.status.isInternetAvailable()) {
+        talker.info("Opened realm with internet access.");
+        return await Realm.open(config, cancellationToken: token,
+            onProgressCallback: (syncProgress) {
+          if (syncProgress.progressEstimate == 1.0) {
+            talker.info('All bytes transferred!');
+          }
+        });
+      } else {
+        talker.info("Opened realm with no internet access.");
+        return Realm(config);
+      }
+    } catch (e) {
       return Realm(config);
     }
   }
@@ -2069,7 +2065,7 @@ class RealmAPI<M extends IJsonSerializable>
         name: "drawer-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await token.subscribe(
         name: "token-${businessId}",
@@ -2081,113 +2077,113 @@ class RealmAPI<M extends IJsonSerializable>
         name: "tenant-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await permission.subscribe(
         name: "permission-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await pin.subscribe(
         name: "pin-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await units.subscribe(
         name: "units-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await receipts.subscribe(
         name: "favorites-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await favorites.subscribe(
         name: "favorites-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await ebms.subscribe(
         name: "ebms-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
     await devices.subscribe(
         name: "devices-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await conversations.subscribe(
         name: "conversations-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await colors.subscribe(
         name: "colors-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await category.subscribe(
         name: "category-${businessId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await customer.subscribe(
         name: "iCustomer-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await product.subscribe(
         name: "iProduct-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await counter.subscribe(
         name: "iCounter-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await variant.subscribe(
         name: "iVariant-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await stock.subscribe(
         name: "iStock-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await unit.subscribe(
         name: "iUnit-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
 
     await transaction.subscribe(
         name: "transaction-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
     await transactionItem.subscribe(
         name: "transactionItem-${branchId}",
         waitForSyncMode: WaitForSyncMode.always,
         update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 5)));
+        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
   }
 
   @override

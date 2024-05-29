@@ -39,7 +39,7 @@ class StartupViewModel extends FlipperBaseModel {
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
       /// which sync data later...i.e not wait for synchronization
       if (ProxyService.box.encryptionKey().isEmpty) {
-        ProxyService.realm.configure(useInMemoryDb: false, useFallBack: true);
+        ProxyService.realm.configure(useInMemoryDb: false, useFallBack: false);
       }
 
       /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
