@@ -2001,6 +2001,11 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
+
+    for(Subscription sub in realm!.subscriptions){
+      talker.warning(sub.name );
+    }
+
     if (realm == null || businessId == null || branchId == null) return;
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
     final transactionItem =
@@ -2041,149 +2046,50 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
-    drawers.unsubscribe();
-    token.unsubscribe();
-    tenant.unsubscribe();
-    permission.unsubscribe();
-    pin.unsubscribe();
-    units.unsubscribe();
-    receipts.unsubscribe();
-    favorites.unsubscribe();
-    ebms.unsubscribe();
-    devices.unsubscribe();
-    conversations.unsubscribe();
-    colors.unsubscribe();
-    category.unsubscribe();
-    customer.unsubscribe();
-    receipts.unsubscribe();
-    receipts.unsubscribe();
-    devices.unsubscribe();
-    transaction.unsubscribe();
+    // drawers.unsubscribe();
+    // token.unsubscribe();
+    // tenant.unsubscribe();
+    // permission.unsubscribe();
+    // pin.unsubscribe();
+    // units.unsubscribe();
+    // receipts.unsubscribe();
+    // favorites.unsubscribe();
+    // ebms.unsubscribe();
+    // devices.unsubscribe();
+    // conversations.unsubscribe();
+    // colors.unsubscribe();
+    // category.unsubscribe();
+    // customer.unsubscribe();
+    // receipts.unsubscribe();
+    // receipts.unsubscribe();
+    // devices.unsubscribe();
+    // transaction.unsubscribe();
     // End of unsubscribing
 
-    await drawers.subscribe(
-        name: "drawer-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
+    realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
+      mutableSubscriptions.add(drawers, name: "drawers");
+      mutableSubscriptions.add(token,name:"token");
 
-    await token.subscribe(
-        name: "token-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true);
-    // end of fake subs
-
-    await tenant.subscribe(
-        name: "tenant-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await permission.subscribe(
-        name: "permission-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await pin.subscribe(
-        name: "pin-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await units.subscribe(
-        name: "units-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await receipts.subscribe(
-        name: "favorites-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await favorites.subscribe(
-        name: "favorites-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await ebms.subscribe(
-        name: "ebms-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-    await devices.subscribe(
-        name: "devices-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await conversations.subscribe(
-        name: "conversations-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await colors.subscribe(
-        name: "colors-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await category.subscribe(
-        name: "category-${businessId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await customer.subscribe(
-        name: "iCustomer-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await product.subscribe(
-        name: "iProduct-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await counter.subscribe(
-        name: "iCounter-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await variant.subscribe(
-        name: "iVariant-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await stock.subscribe(
-        name: "iStock-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await unit.subscribe(
-        name: "iUnit-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-
-    await transaction.subscribe(
-        name: "transaction-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
-    await transactionItem.subscribe(
-        name: "transactionItem-${branchId}",
-        waitForSyncMode: WaitForSyncMode.always,
-        update: true,
-        cancellationToken: TimeoutCancellationToken(Duration(seconds: 30)));
+      mutableSubscriptions.add(tenant, name: "tenant-${businessId}");
+      mutableSubscriptions.add(permission, name: "permission-${businessId}");
+      mutableSubscriptions.add(pin, name: "pin-${businessId}");
+      mutableSubscriptions.add(units, name: "units-${businessId}");
+      mutableSubscriptions.add(receipts, name: "favorites-${businessId}");
+      mutableSubscriptions.add(favorites, name: "favorites-${businessId}");
+      mutableSubscriptions.add(ebms, name: "ebms-${businessId}");
+      mutableSubscriptions.add(devices, name: "devices-${businessId}");
+      mutableSubscriptions.add(conversations, name: "conversations-${businessId}");
+      mutableSubscriptions.add(colors, name: "colors-${businessId}");
+      mutableSubscriptions.add(category, name: "category-${businessId}");
+      mutableSubscriptions.add(customer, name: "iCustomer-${branchId}");
+      mutableSubscriptions.add(product, name: "iProduct-${branchId}");
+      mutableSubscriptions.add(counter, name: "iCounter-${branchId}");
+      mutableSubscriptions.add(variant, name: "iVariant-${branchId}");
+      mutableSubscriptions.add(stock, name: "iStock-${branchId}");
+      mutableSubscriptions.add(unit, name: "iUnit-${branchId}");
+      mutableSubscriptions.add(transaction, name: "transaction-${branchId}");
+      mutableSubscriptions.add(transactionItem, name: "transactionItem-${branchId}");
+    });
   }
 
   @override
