@@ -432,4 +432,7 @@ class App {}
 /// 1. update branchId and businessId in counter in realm
 /// 2. test receipt see if I am not getting counter issue
 // / 999959413
+/// enhance login and permission https://github.com/quarkusio/quarkus-quickstarts/tree/main/security-keycloak-authorization-quickstart
+/// https://quarkus.io/guides/security-keycloak-authorization
+/// https://www.keycloak.org/migration/migrating-to-quarkus
 
