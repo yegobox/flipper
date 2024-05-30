@@ -1882,13 +1882,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required bool useInMemoryDb, bool useFallBack = false}) async {
     _setApiEndpoints();
 
-    final app = App(AppConfiguration(AppSecrets.appId,
-        baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
-
     realm?.close();
-
-    User user = app.currentUser ??
-        await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
 
     /// do not provide fallback if the user is not authenticated.
     if (useFallBack) {
@@ -1898,6 +1892,17 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     try {
+
+      final app = App(AppConfiguration(AppSecrets.appId,
+          baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
+
+      /// When this login does not execute or take too long user will not be able
+      /// to proceed and use the app,!
+      /// https://github.com/realm/realm-dart/issues/1205 support using firebase credentials
+      /// this will help in avoiding sharing api key!
+      /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
+      User user = app.currentUser ??
+          await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
       if (useInMemoryDb) {
         realm?.close();
         _configureInMemory();
@@ -2038,7 +2043,7 @@ class RealmAPI<M extends IJsonSerializable>
     final pin = realm!.query<Pin>(
         r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
 
-    // fake subscription as I normally do not these model synced accros devices but I don't know how I can pause one model
+    // fake subscription as I normally do not these model synced across devices but I don't know how I can pause one model
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
     final tenant = realm!.all<Tenant>();
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
