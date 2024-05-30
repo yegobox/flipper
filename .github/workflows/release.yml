@@ -24,7 +24,7 @@ env:
 jobs:
   unit-testing:
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -67,7 +67,7 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
     runs-on: windows-2022
     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -205,7 +205,7 @@ jobs:
 
   android-integration-test:
     name: integration on Android
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[skip test]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
     needs: [unit-testing]
     runs-on: macOS-12
     strategy:
