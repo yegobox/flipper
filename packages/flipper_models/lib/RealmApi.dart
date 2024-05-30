@@ -2029,7 +2029,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     final ebms = realm!.query<EBM>(r'businessId == $0', [businessId]);
 
-    final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
+
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
@@ -2041,7 +2041,7 @@ class RealmAPI<M extends IJsonSerializable>
     // fake subscription as I normally do not these model synced accros devices but I don't know how I can pause one model
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
     final tenant = realm!.all<Tenant>();
-
+    final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
@@ -2067,28 +2067,28 @@ class RealmAPI<M extends IJsonSerializable>
     // End of unsubscribing
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
-      mutableSubscriptions.add(drawers, name: "drawers");
+      mutableSubscriptions.add(drawers, name: "drawers",update: true);
       mutableSubscriptions.add(token,name:"token");
 
-      mutableSubscriptions.add(tenant, name: "tenant-${businessId}");
-      mutableSubscriptions.add(permission, name: "permission-${businessId}");
-      mutableSubscriptions.add(pin, name: "pin-${businessId}");
-      mutableSubscriptions.add(units, name: "units-${businessId}");
-      mutableSubscriptions.add(receipts, name: "favorites-${businessId}");
-      mutableSubscriptions.add(favorites, name: "favorites-${businessId}");
-      mutableSubscriptions.add(ebms, name: "ebms-${businessId}");
-      mutableSubscriptions.add(devices, name: "devices-${businessId}");
-      mutableSubscriptions.add(conversations, name: "conversations-${businessId}");
-      mutableSubscriptions.add(colors, name: "colors-${businessId}");
-      mutableSubscriptions.add(category, name: "category-${businessId}");
-      mutableSubscriptions.add(customer, name: "iCustomer-${branchId}");
-      mutableSubscriptions.add(product, name: "iProduct-${branchId}");
-      mutableSubscriptions.add(counter, name: "iCounter-${branchId}");
-      mutableSubscriptions.add(variant, name: "iVariant-${branchId}");
-      mutableSubscriptions.add(stock, name: "iStock-${branchId}");
-      mutableSubscriptions.add(unit, name: "iUnit-${branchId}");
-      mutableSubscriptions.add(transaction, name: "transaction-${branchId}");
-      mutableSubscriptions.add(transactionItem, name: "transactionItem-${branchId}");
+      mutableSubscriptions.add(tenant, name: "tenant-${businessId}",update: true);
+      mutableSubscriptions.add(permission, name: "permission-${businessId}",update: true);
+      mutableSubscriptions.add(pin, name: "pin-${businessId}",update: true);
+      mutableSubscriptions.add(units, name: "units-${businessId}",update: true);
+      mutableSubscriptions.add(receipts, name: "favorites-${businessId}",update: true);
+      mutableSubscriptions.add(favorites, name: "favorites-${branchId}",update: true);
+      mutableSubscriptions.add(ebms, name: "ebms-${businessId}",update: true);
+      mutableSubscriptions.add(devices, name: "devices-${businessId}",update: true);
+      mutableSubscriptions.add(conversations, name: "conversations-${businessId}",update: true);
+      mutableSubscriptions.add(colors, name: "colors-${businessId}",update: true);
+      mutableSubscriptions.add(category, name: "category-${businessId}",update: true);
+      mutableSubscriptions.add(customer, name: "iCustomer-${branchId}",update: true);
+      mutableSubscriptions.add(product, name: "iProduct-${branchId}",update: true);
+      mutableSubscriptions.add(counter, name: "iCounter-${branchId}",update: true);
+      mutableSubscriptions.add(variant, name: "iVariant-${branchId}",update: true);
+      mutableSubscriptions.add(stock, name: "iStock-${branchId}",update: true);
+      mutableSubscriptions.add(unit, name: "iUnit-${branchId}",update: true);
+      mutableSubscriptions.add(transaction, name: "transaction-${branchId}",update: true);
+      mutableSubscriptions.add(transactionItem, name: "transactionItem-${branchId}",update: true);
     });
   }
 
