@@ -2205,8 +2205,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     bool? open,
     DateTime? deletedAt,
   }) {
-    RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, 'openingBalance', openingBalance);
     RealmObjectBase.set(this, 'closingBalance', closingBalance);
     RealmObjectBase.set(this, 'openingDateTime', openingDateTime);
@@ -2230,15 +2230,15 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
   Drawers._();
 
   @override
-  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
-  @override
-  set id(int? value) => RealmObjectBase.set(this, 'id', value);
-
-  @override
   ObjectId get realmId =>
       RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
   @override
   set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
 
   @override
   double? get openingBalance =>
@@ -2369,8 +2369,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
 
   EJsonValue toEJson() {
     return <String, dynamic>{
-      'id': id.toEJson(),
       '_id': realmId.toEJson(),
+      'id': id.toEJson(),
       'openingBalance': openingBalance.toEJson(),
       'closingBalance': closingBalance.toEJson(),
       'openingDateTime': openingDateTime.toEJson(),
@@ -2396,8 +2396,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
   static Drawers _fromEJson(EJsonValue ejson) {
     return switch (ejson) {
       {
-        'id': EJsonValue id,
         '_id': EJsonValue realmId,
+        'id': EJsonValue id,
         'openingBalance': EJsonValue openingBalance,
         'closingBalance': EJsonValue closingBalance,
         'openingDateTime': EJsonValue openingDateTime,
@@ -2447,9 +2447,9 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.registerFactory(Drawers._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, Drawers, 'Drawers', [
-      SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
       SchemaProperty('openingBalance', RealmPropertyType.double,
           optional: true),
       SchemaProperty('closingBalance', RealmPropertyType.double,

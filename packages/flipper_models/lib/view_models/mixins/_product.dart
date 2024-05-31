@@ -13,7 +13,7 @@ mixin ProductMixin {
   final ProductService productService = loc.getIt<ProductService>();
   String currentColor = '#0984e3';
 
-  Future<int> addVariant(
+  Future<void> addVariant(
       {List<Variant>? variations, required packagingUnit}) async {
     ///loop variations add pkgUnitCd this come from UI but a lot of
     ///EBM fields will be hard coded to simplify the UI, so we will loop the variation
@@ -21,56 +21,63 @@ mixin ProductMixin {
     Business business = await ProxyService.local
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     try {
-      for (var variant in variations!) {
-        variant.pkgUnitCd = packagingUnit;
-        final number = randomNumber().toString().substring(0, 5);
-        variant.itemClsCd =
-            "5020230602"; // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-        variant.itemCd = randomNumber().toString().substring(0, 5);
-        variant.modrNm = number;
-        variant.modrId = number;
-        variant.itemNm = variant.name;
-        variant.pkgUnitCd = "BJ";
-        variant.regrId = randomNumber().toString().substring(0, 5);
-        variant.rsdQty = variant.qty;
-        variant.itemTyCd = "2"; // this is a finished product
-        /// available type for itemTyCd are 1 for raw material and 3 for service
-        /// is insurance applicable default is not applicable
-        variant.isrcAplcbYn = "N";
-        variant.useYn = "N";
-        variant.itemSeq = 1;
-        variant.itemStdNm = variant.name;
-        variant.taxPercentage = 18.0;
-        variant.tin = business.tinNumber;
-        variant.bhfId =
-            "00"; //TODO: for now we are hardcoding this which can be wrong
-        variant.bcd = variant.name;
+      ProxyService.realm.realm!.write(() {
+        List<Variant> updatables = [];
+        for (var variant in variations!) {
+          /// TODO: fix this as all item will end-up
+          /// having the same pkgUnitCd and I think it is not the
+          /// intention here
+          variant.pkgUnitCd = packagingUnit;
+          final number = randomNumber().toString().substring(0, 5);
 
-        /// country of origin for this item we default until we support something different
-        /// and this will happen when we do import.
-        variant.orgnNatCd = "RW";
+          /// this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+          variant.itemClsCd = "5020230602";
+          variant.itemCd = randomNumber().toString().substring(0, 5);
+          variant.modrNm = number;
+          variant.modrId = number;
+          variant.itemNm = variant.name;
+          variant.regrId = randomNumber().toString().substring(0, 5);
+          variant.rsdQty = variant.qty;
+          variant.itemTyCd = "2"; // this is a finished product
+          /// available type for itemTyCd are 1 for raw material and 3 for service
+          /// is insurance applicable default is not applicable
+          variant.isrcAplcbYn = "N";
+          variant.useYn = "N";
+          variant.itemSeq = 1;
+          variant.itemStdNm = variant.name;
+          variant.taxPercentage = 18.0;
+          variant.tin = business.tinNumber;
 
-        /// registration name
-        variant.regrNm = variant.name;
+          ///TODO: for now we are hardcoding this which can be wrong
+          variant.bhfId = "00";
+          variant.bcd = variant.name;
 
-        /// taxation type code
-        variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
-        // default unit price
-        variant.dftPrc = variant.retailPrice;
+          /// country of origin for this item we default until we support something different
+          /// and this will happen when we do import.
+          variant.orgnNatCd = "RW";
 
-        // NOTE: I believe bellow item are required when saving purchase
-        ///but I wonder how to get them when saving an item.
-        variant.spplrItemCd = randomNumber().toString().substring(0, 5);
-        variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
-        variant.spplrItemNm = variant.name;
+          /// registration name
+          variant.regrNm = variant.name;
 
-        /// Packaging Unit
-        variant.qtyUnitCd = "U"; // see 4.6 in doc
-      }
-      int result = await ProxyService.realm.addVariant(
-        variations: variations,
-      );
-      return result;
+          /// taxation type code
+          variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
+          // default unit price
+          variant.dftPrc = variant.retailPrice;
+
+          // NOTE: I believe bellow item are required when saving purchase
+          ///but I wonder how to get them when saving an item.
+          variant.spplrItemCd = randomNumber().toString().substring(0, 5);
+          variant.spplrItemClsCd = randomNumber().toString().substring(0, 5);
+          variant.spplrItemNm = variant.name;
+
+          /// Packaging Unit
+          variant.qtyUnitCd = "U"; // see 4.6 in doc
+          updatables.add(variant);
+        }
+        ProxyService.realm.addVariant(
+          variations: updatables,
+        );
+      });
     } catch (e, s) {
       talker.error(e);
       talker.error(s);
@@ -83,54 +90,52 @@ mixin ProductMixin {
       {required Product mproduct, required bool inUpdateProcess}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
-    ProxyService.realm.realm!.writeAsync(() async {
-      Category? activeCat = await ProxyService.realm
-          .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
-      ProxyService.realm.realm!.writeAsync(() async {
-        mproduct.name = productName!;
-        mproduct.barCode = productService.barCode.toString();
-        mproduct.color = currentColor;
+    Category? activeCat = await ProxyService.realm
+        .activeCategory(branchId: ProxyService.box.getBranchId()!);
+    List<Variant> variants =
+        await ProxyService.realm.getVariantByProductId(productId: mproduct.id);
+    ProxyService.realm.realm!.write(() {
+      mproduct.name = productName!;
+      mproduct.barCode = productService.barCode.toString();
+      mproduct.color = currentColor;
 
-        // Update activeCat only if necessary
-        if (activeCat?.active != false) {
-          activeCat?.active = false;
+      // Update activeCat only if necessary
+      if (activeCat?.active != false) {
+        activeCat?.active = false;
+      }
+      if (activeCat?.focused != false) {
+        activeCat?.focused = false;
+      }
+
+      // Update mproduct.id only if it hasn't been set yet
+      if (mproduct.categoryId == null) {
+        mproduct.categoryId = activeCat?.id!;
+      }
+
+      mproduct.action =
+          inUpdateProcess ? AppActions.updated : AppActions.created;
+
+      // Fetch variants asynchronously outside the loop
+
+      // Update variants efficiently using a for loop with conditional updates
+      for (Variant variant in variants) {
+        if (variant.productName != productName) {
+          variant.productName = productName!;
         }
-        if (activeCat?.focused != false) {
-          activeCat?.focused = false;
+
+        if (variant.productId != mproduct.id) {
+          variant.productId = mproduct.id!;
         }
 
-        // Update mproduct.id only if it hasn't been set yet
-        if (mproduct.categoryId == null) {
-          mproduct.categoryId = activeCat?.id!;
+        // Update pkgUnitCd only if necessary (assuming it's not always changing)
+        if (variant.pkgUnitCd != "NT") {
+          variant.pkgUnitCd = "NT";
         }
 
-        mproduct.action =
+        variant.action =
             inUpdateProcess ? AppActions.updated : AppActions.created;
-
-        // Fetch variants asynchronously outside the loop
-        List<Variant> variants = await ProxyService.realm
-            .getVariantByProductId(productId: mproduct.id);
-
-        // Update variants efficiently using a for loop with conditional updates
-        for (Variant variant in variants) {
-          if (variant.productName != productName) {
-            variant.productName = productName!;
-          }
-
-          if (variant.productId != mproduct.id) {
-            variant.productId = mproduct.id!;
-          }
-
-          // Update pkgUnitCd only if necessary (assuming it's not always changing)
-          if (variant.pkgUnitCd != "NT") {
-            variant.pkgUnitCd = "NT";
-          }
-
-          variant.action =
-              inUpdateProcess ? AppActions.updated : AppActions.created;
-        }
-      });
+      }
     });
 
     return await ProxyService.realm.getProduct(id: mproduct.id!);

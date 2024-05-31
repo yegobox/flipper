@@ -185,7 +185,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Future<void> handleOpenDrawer() async {
     Business? activeBusinesses = await ProxyService.local
         .activeBusinesses(userId: ProxyService.box.getUserId()!);
-    ProxyService.realm.openDrawer(
+    ProxyService.local.openDrawer(
       drawer: widget.drawer
         ..cashierId = activeBusinesses!.serverId!
         ..openingBalance = double.tryParse(_controller.text) ?? 0,
@@ -199,7 +199,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
     Business? activeBusinesses = await ProxyService.local
         .activeBusinesses(userId: ProxyService.box.getUserId()!);
 
-    Drawers? drawers = await ProxyService.realm
+    Drawers? drawers = await ProxyService.local
         .getDrawer(cashierId: activeBusinesses!.serverId!);
     if (drawers != null) {
       ProxyService.realm.realm!.write(() {

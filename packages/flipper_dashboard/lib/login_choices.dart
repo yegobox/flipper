@@ -170,7 +170,7 @@ class _LoginChoicesState extends State<LoginChoices> {
 
     ProxyService.box.writeBool(key: "authComplete", value: true);
 
-    if (await ProxyService.realm
+    if (await ProxyService.local
         .isDrawerOpen(cashierId: ProxyService.box.getBusinessId()!)) {
       _routerService.navigateTo(FlipperAppRoute());
     } else {

@@ -245,10 +245,6 @@ abstract class RealmApiInterface {
   Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});
-  Future<bool> isDrawerOpen({required int cashierId});
-  Future<Drawers?> getDrawer({required int cashierId});
-
-  Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(

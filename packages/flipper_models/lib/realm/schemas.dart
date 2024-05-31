@@ -254,10 +254,11 @@ class _Discount {
 
 @RealmModel()
 class _Drawers {
-  int? id;
   @PrimaryKey()
-  @MapTo('_id')
+  @MapTo("_id")
   late ObjectId realmId;
+
+  int? id;
 
   double? openingBalance;
   double? closingBalance;
@@ -549,6 +550,9 @@ class _Variant {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
+
+  /// TODO: delete this as it is duplicate of taxTyCd use taxTyCd instead
+  @deprecated
   String taxType = "B";
 
   /// it can be A for exempted, B, C or D

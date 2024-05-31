@@ -104,7 +104,7 @@ Widget SettingLayout(
                       final data = await ProxyService.realm
                           .getTransactionsAmountsSum(
                               period: TransactionPeriod.today);
-                      Drawers? drawer = await ProxyService.realm.getDrawer(
+                      Drawers? drawer = await ProxyService.local.getDrawer(
                         cashierId: ProxyService.box.getBusinessId()!,
                       );
                       if (drawer != null) {

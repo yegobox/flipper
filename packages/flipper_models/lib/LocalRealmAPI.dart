@@ -52,7 +52,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         throw Exception("null encryption");
       }
       config = Configuration.local(
-        [UserActivity.schema, Business.schema, Branch.schema],
+        [UserActivity.schema, Business.schema, Branch.schema,Drawers.schema,],
         path: path,
         encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
@@ -939,5 +939,25 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else {
       throw InternalServerError(term: "internal server error");
     }
+  }
+   @override
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    return localRealm!.query<Drawers>(
+            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
+        null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    return localRealm!.query<Drawers>(
+        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
+  }
+    @override
+  Future<Drawers?> openDrawer({required Drawers drawer}) async {
+    await localRealm!.writeAsync(()  {
+      localRealm!.add<Drawers>(drawer);
+    });
+    return localRealm!.query<Drawers>(
+        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 }

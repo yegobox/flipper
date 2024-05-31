@@ -346,7 +346,7 @@ class RealmAPI<M extends IJsonSerializable>
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);
-    realm!.writeAsync(() async {
+    realm!.write(() {
       transaction.status = COMPLETE;
       transaction.isIncome = true;
       double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
@@ -477,7 +477,7 @@ class RealmAPI<M extends IJsonSerializable>
             active: color.active,
             branchId: color.branchId));
       }
-      realm!.writeAsync(() => realm!.addAll(colorsToAdd));
+      realm!.write(() => realm!.addAll(colorsToAdd));
     }
     if (data is Device) {
       Device device = data;
@@ -942,12 +942,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    return realm!.query<Drawers>(
-        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
-  }
-
-  @override
   Future<EBM?> getEbmByBranchId({required int branchId}) async {
     return realm!.query<EBM>(r'branchId == $0', [branchId]).firstOrNull;
   }
@@ -1209,13 +1203,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<bool> isDrawerOpen({required int cashierId}) async {
-    return realm!.query<Drawers>(
-            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
-        null;
-  }
-
-  @override
   bool isSubscribed({required String feature, required int businessId}) {
     // TODO: implement isSubscribed
     throw UnimplementedError();
@@ -1355,15 +1342,6 @@ class RealmAPI<M extends IJsonSerializable>
     } else {
       return existTransaction;
     }
-  }
-
-  @override
-  Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await realm!.writeAsync(() async {
-      realm!.putAsync<Drawers>(drawer);
-    });
-    return realm!.query<Drawers>(
-        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 
   @override
@@ -1892,7 +1870,6 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     try {
-
       final app = App(AppConfiguration(AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
@@ -2006,9 +1983,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
-
-    for(Subscription sub in realm!.subscriptions){
-      talker.warning(sub.name );
+    for (Subscription sub in realm!.subscriptions) {
+      talker.warning(sub.name);
     }
 
     if (realm == null || businessId == null || branchId == null) return;
@@ -2033,8 +2009,6 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.query<Conversation>(r'businessId == $0', [businessId]);
 
     final ebms = realm!.query<EBM>(r'businessId == $0', [businessId]);
-
-
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
@@ -2072,28 +2046,43 @@ class RealmAPI<M extends IJsonSerializable>
     // End of unsubscribing
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
-      mutableSubscriptions.add(drawers, name: "drawers",update: true);
-      mutableSubscriptions.add(token,name:"token");
+      mutableSubscriptions.add(drawers, name: "drawers", update: true);
+      mutableSubscriptions.add(token, name: "token", update: true);
 
-      mutableSubscriptions.add(tenant, name: "tenant-${businessId}",update: true);
-      mutableSubscriptions.add(permission, name: "permission-${businessId}",update: true);
-      mutableSubscriptions.add(pin, name: "pin-${businessId}",update: true);
-      mutableSubscriptions.add(units, name: "units-${businessId}",update: true);
-      mutableSubscriptions.add(receipts, name: "favorites-${businessId}",update: true);
-      mutableSubscriptions.add(favorites, name: "favorites-${branchId}",update: true);
-      mutableSubscriptions.add(ebms, name: "ebms-${businessId}",update: true);
-      mutableSubscriptions.add(devices, name: "devices-${businessId}",update: true);
-      mutableSubscriptions.add(conversations, name: "conversations-${businessId}",update: true);
-      mutableSubscriptions.add(colors, name: "colors-${businessId}",update: true);
-      mutableSubscriptions.add(category, name: "category-${businessId}",update: true);
-      mutableSubscriptions.add(customer, name: "iCustomer-${branchId}",update: true);
-      mutableSubscriptions.add(product, name: "iProduct-${branchId}",update: true);
-      mutableSubscriptions.add(counter, name: "iCounter-${branchId}",update: true);
-      mutableSubscriptions.add(variant, name: "iVariant-${branchId}",update: true);
-      mutableSubscriptions.add(stock, name: "iStock-${branchId}",update: true);
-      mutableSubscriptions.add(unit, name: "iUnit-${branchId}",update: true);
-      mutableSubscriptions.add(transaction, name: "transaction-${branchId}",update: true);
-      mutableSubscriptions.add(transactionItem, name: "transactionItem-${branchId}",update: true);
+      mutableSubscriptions.add(tenant,
+          name: "tenant-${businessId}", update: true);
+      mutableSubscriptions.add(permission,
+          name: "permission-${businessId}", update: true);
+      mutableSubscriptions.add(pin, name: "pin-${businessId}", update: true);
+      mutableSubscriptions.add(units,
+          name: "units-${businessId}", update: true);
+      mutableSubscriptions.add(receipts,
+          name: "favorites-${businessId}", update: true);
+      mutableSubscriptions.add(favorites,
+          name: "favorites-${branchId}", update: true);
+      mutableSubscriptions.add(ebms, name: "ebms-${businessId}", update: true);
+      mutableSubscriptions.add(devices,
+          name: "devices-${businessId}", update: true);
+      mutableSubscriptions.add(conversations,
+          name: "conversations-${businessId}", update: true);
+      mutableSubscriptions.add(colors,
+          name: "colors-${businessId}", update: true);
+      mutableSubscriptions.add(category,
+          name: "category-${businessId}", update: true);
+      mutableSubscriptions.add(customer,
+          name: "iCustomer-${branchId}", update: true);
+      mutableSubscriptions.add(product,
+          name: "iProduct-${branchId}", update: true);
+      mutableSubscriptions.add(counter,
+          name: "iCounter-${branchId}", update: true);
+      mutableSubscriptions.add(variant,
+          name: "iVariant-${branchId}", update: true);
+      mutableSubscriptions.add(stock, name: "iStock-${branchId}", update: true);
+      mutableSubscriptions.add(unit, name: "iUnit-${branchId}", update: true);
+      mutableSubscriptions.add(transaction,
+          name: "transaction-${branchId}", update: true);
+      mutableSubscriptions.add(transactionItem,
+          name: "transactionItem-${branchId}", update: true);
     });
   }
 
@@ -2112,67 +2101,71 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> _processVariant(int branchId, Variant variation) async {
-    int stockId = randomNumber();
-    Variant? variant = realm!.query<Variant>(
-        r'id == $0 && branchId == $1 && deletedAt == nil',
-        [variation.id, branchId]).firstOrNull;
-
-    if (variant != null) {
-      Stock? stock = realm!.query<Stock>(
+    try {
+      int stockId = randomNumber();
+      Variant? variant = realm!.query<Variant>(
           r'id == $0 && branchId == $1 && deletedAt == nil',
-          [stockId, branchId]).firstOrNull;
+          [variation.id, branchId]).firstOrNull;
 
-      if (stock == null) {
+      if (variant != null) {
+        Stock? stock = realm!.query<Stock>(
+            r'id == $0 && branchId == $1 && deletedAt == nil',
+            [stockId, branchId]).firstOrNull;
+
+        if (stock == null) {
+          final newStock = Stock(ObjectId(),
+              id: stockId,
+              lastTouched: DateTime.now(),
+              branchId: branchId,
+              variantId: variation.id!,
+              action: AppActions.created,
+              retailPrice: variation.retailPrice,
+              supplyPrice: variation.supplyPrice,
+              currentStock: variation.qty,
+              rsdQty: variation.qty,
+              value: (variation.qty * (variation.retailPrice)).toDouble(),
+              productId: variation.productId,
+              active: false);
+          await realm!.putAsync<Stock>(newStock);
+        }
+
+        stock!.currentStock = stock.currentStock + variation.qty;
+        stock.rsdQty = stock.currentStock + variation.qty;
+        stock.action = AppActions.updated;
+        stock.lastTouched = DateTime.now().toLocal();
+        stock.value = (variation.qty * (variation.retailPrice)).toDouble();
+        await realm!.putAsync<Stock>(stock);
+
+        variant.qty = variation.qty;
+        variant.retailPrice = variation.retailPrice;
+        variant.supplyPrice = variation.supplyPrice;
+        variant.action = AppActions.updated;
+        variant.lastTouched = DateTime.now().toLocal();
+        await realm!.putAsync<Variant>(variant);
+      } else {
+        int stockId = randomNumber();
+
+        talker.info("Saving variant when scanning..... [1]");
+
+        await realm!.putAsync<Variant>(variation);
+
         final newStock = Stock(ObjectId(),
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            variantId: variation.id!,
+            variantId: variation.id,
             action: AppActions.created,
             retailPrice: variation.retailPrice,
             supplyPrice: variation.supplyPrice,
             currentStock: variation.qty,
-            rsdQty: variation.qty,
             value: (variation.qty * (variation.retailPrice)).toDouble(),
-            productId: variation.productId,
-            active: false);
-        await realm!.putAsync<Stock>(newStock);
+            productId: variation.productId)
+          ..active = true;
+
+        realm!.putAsync<Stock>(newStock);
       }
-
-      stock!.currentStock = stock.currentStock + variation.qty;
-      stock.rsdQty = stock.currentStock + variation.qty;
-      stock.action = AppActions.updated;
-      stock.lastTouched = DateTime.now().toLocal();
-      stock.value = (variation.qty * (variation.retailPrice)).toDouble();
-      await realm!.putAsync<Stock>(stock);
-
-      variant.qty = variation.qty;
-      variant.retailPrice = variation.retailPrice;
-      variant.supplyPrice = variation.supplyPrice;
-      variant.action = AppActions.updated;
-      variant.lastTouched = DateTime.now().toLocal();
-      await realm!.putAsync<Variant>(variant);
-    } else {
-      int stockId = randomNumber();
-
-      talker.info("Saving variant when scanning..... [1]");
-
-      await realm!.putAsync<Variant>(variation);
-
-      final newStock = Stock(ObjectId(),
-          id: stockId,
-          lastTouched: DateTime.now(),
-          branchId: branchId,
-          variantId: variation.id,
-          action: AppActions.created,
-          retailPrice: variation.retailPrice,
-          supplyPrice: variation.supplyPrice,
-          currentStock: variation.qty,
-          value: (variation.qty * (variation.retailPrice)).toDouble(),
-          productId: variation.productId)
-        ..active = true;
-
-      realm!.putAsync<Stock>(newStock);
+    } catch (e, s) {
+      talker.error(s);
     }
   }
 
