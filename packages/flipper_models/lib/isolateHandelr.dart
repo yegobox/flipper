@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:flipper_models/helperModels/ICustomer.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 mixin IsolateHandler {
+  static Realm? realm;
   static Future<void> syncUnsynced(List<dynamic> args) async {
     final dbPatch = args[3] as String;
     String key = args[4] as String;
@@ -33,6 +35,7 @@ mixin IsolateHandler {
     final rootIsolateToken = args[0] as RootIsolateToken;
     final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
+    final branchId = args[2] as int;
     String encryptionKey = args[4] as String;
     int tinNumber = args[5] as int;
     String bhfId = args[6] as String;
@@ -43,13 +46,16 @@ mixin IsolateHandler {
     FlexibleSyncConfiguration config =
         realmConfig(user, encryptionKey.toIntList(), dbPatch);
 
-    final realm = Realm(config);
+    realm?.close();
+    realm = Realm(config);
     bool anythingUpdated = false;
 
     // await syncUnsynced(args);
-
+    log("how many often branchid ${branchId}");
     // load all variants
-    List<Variant> variants = realm.all<Variant>().toList();
+    List<Variant> variants = realm!.query<Variant>(
+        r'ebmSynced == $0 && branchId == $1 LIMIT(5)',
+        [false, branchId]).toList();
     final talker = TalkerFlutter.init();
     List<Variant> gvariantIds = <Variant>[];
     for (Variant variant in variants) {
@@ -120,12 +126,13 @@ mixin IsolateHandler {
         }
       }
     }
-    List<Stock> stocks = realm.all<Stock>().toList();
+    List<Stock> stocks =
+        realm!.query<Stock>(r'branchId ==$0 LIMIT(5)', [branchId]).toList();
 
     // Fetching all variant ids from stocks
     List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
     Map<int, Variant?> variantMap = {};
-    realm.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
+    realm!.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
       variantMap[variant.id!] = variant;
     });
     for (Stock stock in stocks) {
@@ -204,7 +211,8 @@ mixin IsolateHandler {
     }
 
     // load all customer
-    List<Customer> customers = realm.all<Customer>().toList();
+    List<Customer> customers =
+        realm!.query<Customer>(r'branchId ==$0', [branchId]).toList();
 
     for (Customer customer in customers) {
       if (!customer.ebmSynced) {
@@ -248,6 +256,9 @@ mixin IsolateHandler {
       /// send Trigger to send notification
       sendPort.send('notification:${1}');
     }
+
+    /// finaly close the opened db.
+    // realm?.close();
   }
 
   static FlexibleSyncConfiguration realmConfig(

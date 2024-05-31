@@ -1838,7 +1838,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}' + "/v21";
+    final realmDirectory = '${appDocsDirectory.path}' + "/v22";
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);

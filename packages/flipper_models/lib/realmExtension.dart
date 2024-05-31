@@ -18,7 +18,6 @@ extension RealmExtension on Realm {
       add(object);
       talker.warning(
           "Saved using standart non async on realm extension :) ${object.toEJson()}");
-      TaxController(object: object).handleReceipt();
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
@@ -29,7 +28,6 @@ extension RealmExtension on Realm {
       add(object);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
-      TaxController(object: object).handleReceipt();
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }

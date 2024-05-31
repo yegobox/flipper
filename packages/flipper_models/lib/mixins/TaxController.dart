@@ -228,16 +228,15 @@ class TaxController<OBJ> {
       List<Counter> counters = ProxyService.realm.realm!
           .query<Counter>(r'branchId == $0', [branchId]).toList();
 
-// Create a new list to hold the updated counters
-
-// Add all updated counters to the realm in a single transaction
+      /// I have a dought that maybe wrapping this into write does not make sense as this code is called before in realmExtension
+      /// and the wrapper is wrapped before.
       ProxyService.realm.realm!.write(() {
         counters.map((Counter count) {
-          return count
-            ..totRcptNo = receiptSignature.data?.totRcptNo
-            ..curRcptNo = count.curRcptNo! + 1;
+          count.totRcptNo = receiptSignature.data?.totRcptNo;
+
+          count.curRcptNo = count.curRcptNo! + 1;
+          return count;
         }).toList();
-        // ProxyService.realm.realm!.addAll(updatedCounters, update: true);
       });
     } catch (e, s) {
       talker.critical(s);
