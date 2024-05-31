@@ -24,13 +24,13 @@ extension RealmExtension on Realm {
   }
 
   Future<void> putAsync<T extends RealmObject>(T object) async {
-    await writeAsync(() async {
+    await writeAsync(() {
       final talker = TalkerFlutter.init();
       add(object);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
       TaxController(object: object).handleReceipt();
-      await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+      _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
 

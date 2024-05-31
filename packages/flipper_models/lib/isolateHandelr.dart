@@ -46,7 +46,7 @@ mixin IsolateHandler {
     final realm = Realm(config);
     bool anythingUpdated = false;
 
-    await syncUnsynced(args);
+    // await syncUnsynced(args);
 
     // load all variants
     List<Variant> variants = realm.all<Variant>().toList();

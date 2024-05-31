@@ -21,6 +21,7 @@ class StartupViewModel extends FlipperBaseModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
+    // await ProxyService.realm.logOut();
     try {
       /// there is cases where when app re-start and then for some reason the realm is closed
       /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues

@@ -52,7 +52,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         throw Exception("null encryption");
       }
       config = Configuration.local(
-        [UserActivity.schema, Business.schema, Branch.schema,Drawers.schema,],
+        [
+          UserActivity.schema,
+          Business.schema,
+          Branch.schema,
+          Drawers.schema,
+        ],
         path: path,
         encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
@@ -113,6 +118,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     return returnValue;
   }
 
+  ///TODO: work on this function to be efficient
   @override
   Future<void> refreshSession(
       {required int branchId, int? refreshRate = 5}) async {
@@ -130,7 +136,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               .writeAsync(() => tenant!.sessionActive = false);
         }
       } catch (error) {
-        print('Error fetching tenant: $error');
+        talker.error('Error fetching tenant: $error');
       }
       await Future.delayed(Duration(minutes: refreshRate!));
     }
@@ -142,7 +148,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   @override
   Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v10';
+    final realmDirectory = '${appDocsDirectory.path}';
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -150,7 +156,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await directory.create(recursive: true);
     }
 
-    final String fileName = '${path}.db'; // Fixed, user-friendly name
+    final String fileName = '${path}.realm'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
@@ -940,7 +946,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       throw InternalServerError(term: "internal server error");
     }
   }
-   @override
+
+  @override
   Future<bool> isDrawerOpen({required int cashierId}) async {
     return localRealm!.query<Drawers>(
             r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
@@ -952,9 +959,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     return localRealm!.query<Drawers>(
         r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
   }
-    @override
+
+  @override
   Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await localRealm!.writeAsync(()  {
+    await localRealm!.writeAsync(() {
       localRealm!.add<Drawers>(drawer);
     });
     return localRealm!.query<Drawers>(

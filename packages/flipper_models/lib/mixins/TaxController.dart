@@ -87,7 +87,7 @@ class TaxController<OBJ> {
         );
       } catch (e, s) {
         talker.critical(s);
-        rethrow;
+        //rethrow;
       }
     }
   }
@@ -169,35 +169,36 @@ class TaxController<OBJ> {
     String? purchaseCode,
   }) async {
     // Use local counter as long as it is marked as synced.
-    log(receiptType, name: "onBefore: current Counter");
-    int branchId = ProxyService.box.getBranchId()!;
-    Counter? counter = await ProxyService.realm
-        .getCounter(branchId: branchId, receiptType: receiptType);
 
-    if (counter == null) {
-      counter = Counter(
-        ObjectId(),
-        id: randomNumber(),
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-        curRcptNo: 1,
-        lastTouched: DateTime.now(),
-        receiptType: receiptType,
-        totRcptNo: 1,
-      );
-      await ProxyService.realm.realm!.putAsync(counter);
-    }
-
-    /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
-    if (counter.totRcptNo == 0 || counter.curRcptNo == 0) {
-      ProxyService.realm.realm!.writeAsync(() {
-        counter!.totRcptNo = 1;
-        counter.curRcptNo = 1;
-      });
-    }
-    // increment the counter before we pass it in
-    // this is because if we don't then the EBM counter will give us the
     try {
+      log(receiptType, name: "onBefore: current Counter");
+      int branchId = ProxyService.box.getBranchId()!;
+      Counter? counter = await ProxyService.realm
+          .getCounter(branchId: branchId, receiptType: receiptType);
+
+      if (counter == null) {
+        counter = Counter(
+          ObjectId(),
+          id: randomNumber(),
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+          curRcptNo: 1,
+          lastTouched: DateTime.now(),
+          receiptType: receiptType,
+          totRcptNo: 1,
+        );
+        await ProxyService.realm.realm!.putAsync(counter);
+      }
+
+      /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
+      if (counter.totRcptNo == 0 || counter.curRcptNo == 0) {
+        ProxyService.realm.realm!.writeAsync(() {
+          counter!.totRcptNo = 1;
+          counter.curRcptNo = 1;
+        });
+      }
+      // increment the counter before we pass it in
+      // this is because if we don't then the EBM counter will give us the
       RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
@@ -223,21 +224,24 @@ class TaxController<OBJ> {
       /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       /// since curRcptNo need to be update when one change to keep track on current then we find all
+      // Fetch the counters from the database
       List<Counter> counters = ProxyService.realm.realm!
           .query<Counter>(r'branchId == $0', [branchId]).toList();
 
-      for (Counter count in counters) {
-        await ProxyService.realm.realm!.writeAsync(() {
-          /// here we take the current counter being in current transaction
-          /// use its curRcptNo to update other counter's curRcptNo
-          /// this is to make sure all they have current curRcptNo
-          count
+// Create a new list to hold the updated counters
+
+// Add all updated counters to the realm in a single transaction
+      ProxyService.realm.realm!.write(() {
+        counters.map((Counter count) {
+          return count
             ..totRcptNo = receiptSignature.data?.totRcptNo
             ..curRcptNo = count.curRcptNo! + 1;
-        });
-      }
+        }).toList();
+        // ProxyService.realm.realm!.addAll(updatedCounters, update: true);
+      });
     } catch (e, s) {
       talker.critical(s);
+      talker.critical(e);
       rethrow;
     }
   }

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
-
+import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
@@ -645,12 +645,13 @@ class RealmAPI<M extends IJsonSerializable>
         resultDt: signature.resultDt ?? "");
 
     try {
-      realm!.put<Receipt>(receipt);
+      realm!.write(() => realm!.add<Receipt>(receipt));
 
       return receipt;
-    } catch (error) {
+    } catch (error, s) {
       // Handle error during write operation
-      throw error;
+      talker.error(s);
+      rethrow;
     }
   }
 
@@ -1837,7 +1838,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<String> dbPath({required String path}) async {
     final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v10';
+    final realmDirectory = '${appDocsDirectory.path}' + "/v21";
 
     // Create the directory if it doesn't exist
     final directory = Directory(realmDirectory);
@@ -1845,10 +1846,18 @@ class RealmAPI<M extends IJsonSerializable>
       await directory.create(recursive: true);
     }
 
-    final String fileName = '${path}.db'; // Fixed, user-friendly name
+    final String fileName = '${path}.realm'; // Fixed, user-friendly name
 
     return "$realmDirectory/$fileName";
   }
+  // Future<String> dbPath({required String path}) async {
+  //   final customDefaultRealmPath = p.join(
+  //       (await Directory.systemTemp.createTemp()).path,
+  //       Configuration.defaultRealmName);
+  //   Configuration.defaultRealmPath = customDefaultRealmPath;
+
+  //   return customDefaultRealmPath;
+  // }
 
   /// when opening db we carefully fail gracefuly when especially on startup we use in memory db
   /// then when user login the real db is used
@@ -1885,6 +1894,7 @@ class RealmAPI<M extends IJsonSerializable>
         _configureInMemory();
       } else {
         if (ProxyService.box.encryptionKey().isEmpty) {
+          talker.error("Empty ncryption key provided");
           throw Exception("null encryption");
         }
         realm?.close();
@@ -2057,7 +2067,7 @@ class RealmAPI<M extends IJsonSerializable>
       mutableSubscriptions.add(units,
           name: "units-${businessId}", update: true);
       mutableSubscriptions.add(receipts,
-          name: "favorites-${businessId}", update: true);
+          name: "receipts-${businessId}", update: true);
       mutableSubscriptions.add(favorites,
           name: "favorites-${branchId}", update: true);
       mutableSubscriptions.add(ebms, name: "ebms-${businessId}", update: true);
