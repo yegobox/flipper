@@ -247,7 +247,7 @@ class TaxController<OBJ> {
 
   Future<void> updateDrawer(
       String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.local
+    Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
     ProxyService.realm.realm!.write(() {

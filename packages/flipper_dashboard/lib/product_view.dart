@@ -397,13 +397,18 @@ class ProductViewState extends ConsumerState<ProductView> {
                         deleteProduct: (productId, type) async {
                           try {
                             await model.deleteProduct(productId: productId!);
-                            ref.refresh(
-                              productsProvider(
-                                ProxyService.box.getBranchId()!,
-                              ).notifier,
-                            );
-                          } catch (e) {}
-                          // .deleteProduct(productId: productId);
+                            ref
+                                .refresh(
+                                  productsProvider(
+                                    ProxyService.box.getBranchId()!,
+                                  ).notifier,
+                                )
+                                .loadProducts(
+                                    searchString: "", scanMode: false);
+                          } catch (e, s) {
+                            talker.error("ProductViewClass:" + s.toString());
+                            talker.error("ProductViewClass:" + e.toString());
+                          }
                         },
                         enableNfc: (product) {
                           showMaterialModalBottomSheet(

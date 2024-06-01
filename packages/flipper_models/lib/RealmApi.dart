@@ -674,14 +674,14 @@ class RealmAPI<M extends IJsonSerializable>
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<PColor>(color);
+          realm!.delete(color);
         });
         break;
       case 'device':
         realm!.write(() {
           Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
           realm!.write(() {
-            realm!.delete<Device>(device);
+            realm!.delete(device);
           });
           return false;
         });
@@ -689,57 +689,57 @@ class RealmAPI<M extends IJsonSerializable>
       case 'category':
         Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Category>(category);
+          realm!.delete(category);
         });
         break;
       case 'product':
         Product? product = realm!.query<Product>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Product>(product);
+          realm!.delete(product);
         });
         break;
       case 'variant':
         Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Variant>(variant);
+          realm!.delete(variant);
         });
         break;
       case 'stock':
         Stock? stock = realm!.query<Stock>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Stock>(stock);
+          realm!.delete(stock);
         });
         break;
       case 'setting':
         Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Setting>(setting);
+          realm!.delete(setting);
         });
         break;
       case 'pin':
         Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<Pin>(pin);
+          realm!.delete(pin);
         });
         break;
       case 'business':
         final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Business>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'branch':
         final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Branch>(business!);
+          realm!.delete(business!);
         });
         break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Voucher>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'transactionItem':
@@ -747,13 +747,13 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<TransactionItem>(transactionItem);
+          realm!.delete(transactionItem);
         });
         break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Customer>(customer);
+          realm!.delete(customer);
         });
         break;
       case 'tenant':
@@ -762,7 +762,7 @@ class RealmAPI<M extends IJsonSerializable>
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
-            realm!.delete<Tenant>(tenant!);
+            realm!.delete(tenant!);
             return true;
           });
         }
@@ -1947,6 +1947,7 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
+    await realm!.syncSession.waitForDownload();
     await realm!.subscriptions.waitForSynchronization(token);
   }
 
@@ -2590,5 +2591,28 @@ class RealmAPI<M extends IJsonSerializable>
     await firebase.FirebaseAuth.instance.signOut();
     // await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
     return Future.value(true);
+  }
+  //// drawers
+
+  @override
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    return realm!.query<Drawers>(
+            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
+        null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    return realm!.query<Drawers>(
+        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
+  }
+
+  @override
+  Future<Drawers?> openDrawer({required Drawers drawer}) async {
+    await realm!.writeAsync(() {
+      realm!.add<Drawers>(drawer);
+    });
+    return realm!.query<Drawers>(
+        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 }

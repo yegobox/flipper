@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/exceptions.dart';
@@ -15,7 +14,6 @@ import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -926,27 +924,5 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else {
       throw InternalServerError(term: "internal server error");
     }
-  }
-
-  @override
-  Future<bool> isDrawerOpen({required int cashierId}) async {
-    return localRealm!.query<Drawers>(
-            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
-        null;
-  }
-
-  @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    return localRealm!.query<Drawers>(
-        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
-  }
-
-  @override
-  Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await localRealm!.writeAsync(() {
-      localRealm!.add<Drawers>(drawer);
-    });
-    return localRealm!.query<Drawers>(
-        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 }

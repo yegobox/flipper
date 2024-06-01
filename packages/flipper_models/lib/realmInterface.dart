@@ -354,5 +354,10 @@ abstract class RealmApiInterface {
     required String bhfId,
     required String lastReqDt,
   });
-  // Future<Drawers> getDrawer({required int businessId});
+
+  /// drawers
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
+
+  Future<Drawers?> openDrawer({required Drawers drawer});
 }
