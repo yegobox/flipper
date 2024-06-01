@@ -129,7 +129,7 @@ mixin IsolateHandler {
     List<Stock> stocks =
         realm!.query<Stock>(r'branchId ==$0 LIMIT(5)', [branchId]).toList();
 
-    // Fetching all variant ids from stocks
+    // // Fetching all variant ids from stocks
     List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
     Map<int, Variant?> variantMap = {};
     realm!.query<Variant>(r'id IN $0', [variantIds]).forEach((variant) {
@@ -137,11 +137,12 @@ mixin IsolateHandler {
     });
     for (Stock stock in stocks) {
       if (!stock.ebmSynced) {
-        // Accessing variant from the pre-fetched map
+        //     // Accessing variant from the pre-fetched map
         Variant? variant = variantMap[stock.variantId];
         if (variant == null) {
           continue;
         }
+
         try {
           IStock iStock = IStock(
             id: stock.id,
@@ -217,10 +218,13 @@ mixin IsolateHandler {
     for (Customer customer in customers) {
       if (!customer.ebmSynced) {
         try {
-          customer.tin = tinNumber;
-          customer.bhfId = bhfId;
+          realm!.write(() {
+            // Update customer properties within the write transaction
+            customer.tin = tinNumber;
+            customer.bhfId = bhfId;
+          });
           talker.info("saving Customer on EBM server ${customer.toEJson()}");
-
+          if ((customer.custTin?.length ?? 0) < 9) return;
           ICustomer iCustomer = ICustomer(
             id: customer.id,
             custNm: customer.custNm,
@@ -239,8 +243,8 @@ mixin IsolateHandler {
             lastTouched: customer.lastTouched,
             action: customer.action,
             deletedAt: customer.deletedAt,
-            tin: customer.tin,
-            bhfId: customer.bhfId,
+            tin: tinNumber,
+            bhfId: bhfId,
             useYn: customer.useYn,
             customerType: customer.customerType,
           );
@@ -256,9 +260,6 @@ mixin IsolateHandler {
       /// send Trigger to send notification
       sendPort.send('notification:${1}');
     }
-
-    /// finaly close the opened db.
-    // realm?.close();
   }
 
   static FlexibleSyncConfiguration realmConfig(

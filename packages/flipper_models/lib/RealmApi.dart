@@ -1837,18 +1837,33 @@ class RealmAPI<M extends IJsonSerializable>
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
   Future<String> dbPath({required String path}) async {
-    final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}' + "/v22";
+    try {
+      Directory appSupportDirectory;
 
-    // Create the directory if it doesn't exist
-    final directory = Directory(realmDirectory);
-    if (!(await directory.exists())) {
-      await directory.create(recursive: true);
+      // Determine the appropriate directory based on the platform
+      if (Platform.isWindows) {
+        appSupportDirectory = await getApplicationSupportDirectory();
+      } else {
+        appSupportDirectory = await getApplicationDocumentsDirectory();
+      }
+
+      // Construct the specific directory path
+      final realmDirectory = p.join(appSupportDirectory.path, 'v23');
+
+      // Create the directory if it doesn't exist
+      final directory = Directory(realmDirectory);
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      // Construct the full path to the database file
+      final String fileName = '$path.realm';
+      return p.join(realmDirectory, fileName);
+    } catch (e) {
+      // Handle any exceptions that might occur
+      print('Error creating db path: $e');
+      rethrow;
     }
-
-    final String fileName = '${path}.realm'; // Fixed, user-friendly name
-
-    return "$realmDirectory/$fileName";
   }
   // Future<String> dbPath({required String path}) async {
   //   final customDefaultRealmPath = p.join(

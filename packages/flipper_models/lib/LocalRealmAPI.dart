@@ -142,25 +142,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  /// because both non-synced and synced should be in one dir
-  /// I avoided assigning businessId or branchId to the directory
-  /// because it assumed that realm will upload data if they exist and they are not synced
-  @override
-  Future<String> dbPath({required String path}) async {
-    final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}';
-
-    // Create the directory if it doesn't exist
-    final directory = Directory(realmDirectory);
-    if (!(await directory.exists())) {
-      await directory.create(recursive: true);
-    }
-
-    final String fileName = '${path}.realm'; // Fixed, user-friendly name
-
-    return "$realmDirectory/$fileName";
-  }
-
   Future<void> _configureTheBox(String userPhone, IUser user) async {
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
     await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
