@@ -119,7 +119,6 @@ class _DataViewState extends State<DataView> {
 
   @override
   Widget build(BuildContext context) {
-    print("data reaching here ${widget.transactions}");
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 

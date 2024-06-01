@@ -14,7 +14,6 @@ class TransactionList extends ConsumerWidget {
 
     return data.when(
       data: (transactionData) {
-        print('Fetched transactions: $transactionData');
         return Container(
           width: 150,
           height: 800,
