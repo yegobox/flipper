@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/counter.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -1865,14 +1864,6 @@ class RealmAPI<M extends IJsonSerializable>
       rethrow;
     }
   }
-  // Future<String> dbPath({required String path}) async {
-  //   final customDefaultRealmPath = p.join(
-  //       (await Directory.systemTemp.createTemp()).path,
-  //       Configuration.defaultRealmName);
-  //   Configuration.defaultRealmPath = customDefaultRealmPath;
-
-  //   return customDefaultRealmPath;
-  // }
 
   /// when opening db we carefully fail gracefuly when especially on startup we use in memory db
   /// then when user login the real db is used

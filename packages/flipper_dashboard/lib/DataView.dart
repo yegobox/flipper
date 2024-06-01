@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +19,6 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DataView extends StatefulWidget {
-  /// Creates the home page.
   const DataView({super.key, required this.transactions});
 
   final List<ITransaction> transactions;
@@ -38,12 +37,19 @@ class _DataViewState extends State<DataView> {
   static const double dataPagerHeight = 60;
   late TransactionDataSource _transactionDataSource;
   int pageIndex = 0;
+
   @override
   void initState() {
     super.initState();
     transactions = widget.transactions;
     _transactionDataSource = TransactionDataSource();
-    _transactionDataSource..addListener(updateWidget);
+    _transactionDataSource.addListener(updateWidget);
+  }
+
+  @override
+  void dispose() {
+    _transactionDataSource.removeListener(updateWidget);
+    super.dispose();
   }
 
   updateWidget() {
@@ -51,13 +57,11 @@ class _DataViewState extends State<DataView> {
   }
 
   Future<void> requestPermissions() async {
-    // Request storage permissions
     await [
       permission.Permission.storage,
       permission.Permission.manageExternalStorage,
     ].request();
 
-    // Request notification permission (if needed)
     if (await permission.Permission.notification.isDenied) {
       await permission.Permission.notification.request();
     }
@@ -71,11 +75,9 @@ class _DataViewState extends State<DataView> {
     final excel.Workbook workbook = _key.currentState!.exportToExcelWorkbook();
     final List<int> bytes = workbook.saveAsStream();
 
-    // Get the directory for temporary files
     final Directory tempDir = await getApplicationDocumentsDirectory();
     final File file = File('${tempDir.path}/Report.xlsx');
 
-    // Write the file
     await file.writeAsBytes(bytes);
 
     workbook.dispose();
@@ -86,7 +88,6 @@ class _DataViewState extends State<DataView> {
     var now = DateTime.now();
     var formattedDate = DateFormat('yyyy-MM-dd').format(now);
 
-    // When sharing report
     await Share.shareXFiles([XFile(file.path)],
         subject: "Report Download - $formattedDate");
   }
@@ -94,13 +95,12 @@ class _DataViewState extends State<DataView> {
   final talker = TalkerFlutter.init();
 
   void handleCellTap(DataGridCellTapDetails details) {
-    final rowData = details.rowColumnIndex;
-    final rowIndex = rowData.rowIndex;
-    log("PageIndex we are using now ${pageIndex}");
-    final transaction =
-        widget.transactions[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
+    final rowIndex = details.rowColumnIndex.rowIndex;
+    if (rowIndex < 1 || rowIndex > transactions.length) return;
 
-    // Do something with the row data
+    final transaction =
+        transactions[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
+
     talker.warning(
         'Tapped row: ID = ${transaction.id}, Name = ${transaction.subTotal}');
     showDialog(
@@ -119,15 +119,17 @@ class _DataViewState extends State<DataView> {
 
   @override
   Widget build(BuildContext context) {
+    print("data reaching here ${widget.transactions}");
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () => HomeViewModel(),
-        onViewModelReady: (model) {},
-        builder: (a, b, c) {
-          return Scaffold(
-            body: LayoutBuilder(builder: (context, constraint) {
+      viewModelBuilder: () => HomeViewModel(),
+      onViewModelReady: (model) {},
+      builder: (context, model, child) {
+        return Scaffold(
+          body: LayoutBuilder(
+            builder: (context, constraint) {
               return Column(
                 children: [
                   Container(
@@ -248,24 +250,19 @@ class _DataViewState extends State<DataView> {
                         });
                       },
                     ),
-                  )
+                  ),
                 ],
               );
-            }),
-          );
-        });
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
 class TransactionDataSource extends DataGridSource {
   TransactionDataSource() {
-    paginatedDataSource = transactions
-        .getRange(
-            0,
-            (rowsPerPage > transactions.length)
-                ? transactions.length
-                : rowsPerPage)
-        .toList();
     buildPaginatedDataGridRows();
   }
 
@@ -277,28 +274,29 @@ class TransactionDataSource extends DataGridSource {
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
-        cells: row.getCells().map<Widget>((e) {
-      return Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(8.0),
-        child: Text(e.value.toString()),
-      );
-    }).toList());
+      cells: row.getCells().map<Widget>((e) {
+        return Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(8.0),
+          child: Text(e.value.toString()),
+        );
+      }).toList(),
+    );
   }
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    int startRowIndex = newPageIndex * rowsPerPage;
-    int endIndex = startRowIndex + rowsPerPage;
+    final int startRowIndex = newPageIndex * rowsPerPage;
+    final int endIndex = startRowIndex + rowsPerPage;
 
-    if (endIndex > transactions.length) {
-      endIndex = transactions.length - 1;
+    if (startRowIndex < transactions.length) {
+      paginatedDataSource = transactions.sublist(
+        startRowIndex,
+        endIndex > transactions.length ? transactions.length : endIndex,
+      );
+      buildPaginatedDataGridRows();
+      notifyListeners();
     }
-
-    paginatedDataSource =
-        transactions.getRange(startRowIndex, endIndex).toList();
-    buildPaginatedDataGridRows();
-    notifyListeners();
     return true;
   }
 
@@ -313,6 +311,6 @@ class TransactionDataSource extends DataGridSource {
         DataGridCell<double>(
             columnName: 'CashReceived', value: transaction.cashReceived),
       ]);
-    }).toList(growable: false);
+    }).toList();
   }
 }

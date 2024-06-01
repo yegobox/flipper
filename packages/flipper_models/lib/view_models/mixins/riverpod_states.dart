@@ -5,6 +5,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import '_transaction.dart';
@@ -523,20 +524,26 @@ class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
 
 final transactionListProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  final startDate = ref.read(dateRangeProvider)['startDate'];
-  final endDate = ref.read(dateRangeProvider)['endDate'];
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange['startDate'];
+  final endDate = dateRange['endDate'];
 
   // Check if startDate or endDate is null, and return an empty stream if either is null
   if (startDate == null || endDate == null) {
-    return Stream.empty();
+    return Stream.value(
+        []); // Return an empty list stream instead of empty stream
   }
-  final transactions = ProxyService.realm
-      .transactionList(startDate: startDate, endDate: endDate);
 
-  return transactions.handleError((error) {
-    // If an error occurs in the stream, emit the error so that the UI can display it
-    return [];
-  });
+  try {
+    final stream = ProxyService.realm
+        .transactionList(startDate: startDate, endDate: endDate);
+
+    // Use `switchMap` to handle potential changes in dateRangeProvider
+    return stream.switchMap((transactions) => Stream.value(transactions));
+  } catch (e, stackTrace) {
+    // Return an error stream if something goes wrong
+    return Stream.error(e, stackTrace);
+  }
 });
 
 final variantStreamProvider =
