@@ -25,7 +25,7 @@ class TransactionList extends ConsumerWidget {
       loading: () => Padding(
         padding: const EdgeInsets.only(top: 28.0),
         child:
-            const Center(child: Text("Please select a date to query report")),
+            const Center(child: Text("Please select a date to query reports")),
       ),
       error: (error, stackTrace) => Column(
         children: [
