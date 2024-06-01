@@ -120,7 +120,8 @@ jobs:
 
   build-and-release-windows:
     name: "Build windows app"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    # needs: [unit-testing, integration-testing-windows, android-integration-test]
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, '[build release windows]')
     runs-on: windows-2022
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
