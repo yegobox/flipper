@@ -51,7 +51,7 @@ mixin IsolateHandler {
     bool anythingUpdated = false;
 
     // await syncUnsynced(args);
-    log("how many often branchid ${branchId}");
+    log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
     // load all variants
     List<Variant> variants = realm!.query<Variant>(
         r'ebmSynced == $0 && branchId == $1 LIMIT(5)',
