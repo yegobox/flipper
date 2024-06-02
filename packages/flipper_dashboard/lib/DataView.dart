@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +33,7 @@ List<ITransaction> paginatedDataSource = [];
 List<ITransaction> transactions = [];
 
 class _DataViewState extends State<DataView> {
-  final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
+  final GlobalKey<SfDataGridState> _workBookKey = GlobalKey<SfDataGridState>();
   bool isProcessing = false;
   static const double dataPagerHeight = 60;
   late TransactionDataSource _transactionDataSource;
@@ -72,22 +73,57 @@ class _DataViewState extends State<DataView> {
     setState(() {
       isProcessing = true;
     });
-    final excel.Workbook workbook = _key.currentState!.exportToExcelWorkbook();
+
+    /// get the drawer to get the opening balance
+    Drawers? drawer = await ProxyService.realm
+        .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+
+    // Generate the Excel workbook from the DataGrid
+    final excel.Workbook workbook =
+        _workBookKey.currentState!.exportToExcelWorkbook();
+    final excel.Worksheet sheet = workbook.worksheets[0];
+
+    // Define a style for the opening and closing balance rows
+    final excel.Style balanceStyle = workbook.styles.add('balanceStyle');
+    balanceStyle.fontName = 'Arial';
+    balanceStyle.bold = true;
+    balanceStyle.fontSize = 12;
+    balanceStyle.fontColor = '#FFFFFF'; // White font color
+    balanceStyle.backColor = '#008000'; // Dark green background color
+
+    // Add the opening balance row at the top
+    sheet.insertRow(1);
+    sheet.getRangeByName('A1').setText('Opening Balance');
+    sheet.getRangeByName('B1').setNumber(drawer?.openingBalance);
+    sheet.getRangeByName('A1').cellStyle = balanceStyle;
+    sheet.getRangeByName('B1').cellStyle = balanceStyle;
+
+    // Add the closing balance row at the bottom
+    final int lastRow = sheet.getLastRow() + 1;
+    sheet.insertRow(lastRow);
+    sheet.getRangeByName('A$lastRow').setText('Closing Balance');
+    sheet.getRangeByName('B$lastRow').setNumber(0);
+    sheet.getRangeByName('A$lastRow').cellStyle = balanceStyle;
+    sheet.getRangeByName('B$lastRow').cellStyle = balanceStyle;
+
+    // Save the workbook to a byte array
     final List<int> bytes = workbook.saveAsStream();
 
+    // Save the byte array to a file
     final Directory tempDir = await getApplicationDocumentsDirectory();
     final File file = File('${tempDir.path}/Report.xlsx');
-
     await file.writeAsBytes(bytes);
 
+    // Dispose the workbook to free up resources
     workbook.dispose();
+
     setState(() {
       isProcessing = false;
     });
 
+    // Share the file
     var now = DateTime.now();
     var formattedDate = DateFormat('yyyy-MM-dd').format(now);
-
     await Share.shareXFiles([XFile(file.path)],
         subject: "Report Download - $formattedDate");
   }
@@ -171,7 +207,7 @@ class _DataViewState extends State<DataView> {
                           highlightRowOnHover: true,
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
-                          key: _key,
+                          key: _workBookKey,
                           source: _transactionDataSource,
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
