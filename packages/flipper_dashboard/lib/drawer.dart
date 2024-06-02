@@ -103,7 +103,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 50.0),
             child: Text(
-              _formatClosingBalance(widget.drawer.closingBalance!),
+              _formatClosingBalance(double.tryParse(value ?? "0.0") ?? 0.0),
               style: GoogleFonts.poppins(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,
