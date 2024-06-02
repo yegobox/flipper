@@ -72,21 +72,20 @@ class _LoginViewState extends State<LoginView> {
 
     return ViewModelBuilder<StartupViewModel>.reactive(
       onViewModelReady: (model) async {
-        // await ProxyService.realm.logOut();
-        firebase.FirebaseAuth.instance
-            .userChanges()
-            .listen((firebase.User? user) {
-          if (user != null) {
-            if (_isLogin == false) {
-              setState(() {
-                _isLogin = true;
-              });
+        // firebase.FirebaseAuth.instance
+        //     .userChanges()
+        //     .listen((firebase.User? user) {
+        //   if (user != null) {
+        //     if (_isLogin == false) {
+        //       setState(() {
+        //         _isLogin = true;
+        //       });
 
-              _routerService
-                  .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
-            }
-          }
-        });
+        //       _routerService
+        //           .clearStackAndShow(StartUpViewRoute(invokeLogin: true));
+        //     }
+        //   }
+        // });
       },
       viewModelBuilder: () => StartupViewModel(),
       builder: (context, model, child) {

@@ -2589,6 +2589,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// refreshing the user token will invalidate any session
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+    close();
     return Future.value(true);
   }
   //// drawers
