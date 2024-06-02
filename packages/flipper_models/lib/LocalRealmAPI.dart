@@ -133,8 +133,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           ProxyService.realm.realm!
               .writeAsync(() => tenant!.sessionActive = false);
         }
-      } catch (error) {
-        talker.error('Error fetching tenant: $error');
+      } catch (error, s) {
+        talker.error('Error fetching tenant: $s');
       }
       await Future.delayed(Duration(minutes: refreshRate!));
     }

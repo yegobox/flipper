@@ -86,7 +86,7 @@ class PreviewSaleBottomSheetState
           leading: Container(
             width: 100,
             child: Text(
-              item.name!.substring(0, 10),
+              item.name!.length > 10 ? item.name!.substring(0, 10) : item.name!,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,
