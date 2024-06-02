@@ -74,7 +74,7 @@ class _DataViewState extends State<DataView> {
       isProcessing = true;
     });
 
-    /// get the drawer to get the opening balance
+    // Get the drawer to get the opening balance
     Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
@@ -93,18 +93,24 @@ class _DataViewState extends State<DataView> {
 
     // Add the opening balance row at the top
     sheet.insertRow(1);
-    sheet.getRangeByName('A1').setText('Opening Balance');
-    sheet.getRangeByName('B1').setNumber(drawer?.openingBalance);
-    sheet.getRangeByName('A1').cellStyle = balanceStyle;
-    sheet.getRangeByName('B1').cellStyle = balanceStyle;
 
-    // Add the closing balance row at the bottom
+    // Ensure the style covers all cells in the opening balance row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(1, col).cellStyle = balanceStyle;
+    }
+    sheet.getRangeByName('A1').setText('Opening Balance');
+    sheet.getRangeByName('E1').setNumber(drawer?.openingBalance ?? 0);
+
+    // Add the closing balance row at the bottom and apply the style to the entire row
     final int lastRow = sheet.getLastRow() + 1;
     sheet.insertRow(lastRow);
+
+    // Ensure the style covers all cells in the closing balance row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(lastRow, col).cellStyle = balanceStyle;
+    }
     sheet.getRangeByName('A$lastRow').setText('Closing Balance');
-    sheet.getRangeByName('B$lastRow').setNumber(0);
-    sheet.getRangeByName('A$lastRow').cellStyle = balanceStyle;
-    sheet.getRangeByName('B$lastRow').cellStyle = balanceStyle;
+    sheet.getRangeByName('E$lastRow').setFormula('=SUM(C2:C${lastRow - 1})');
 
     // Save the workbook to a byte array
     final List<int> bytes = workbook.saveAsStream();
