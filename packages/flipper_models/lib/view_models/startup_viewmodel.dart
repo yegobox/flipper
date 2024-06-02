@@ -38,7 +38,7 @@ class StartupViewModel extends FlipperBaseModel {
       /// then we are are forced here when app start to re-open the realm with useInMemoryDb false
       /// for performance this is supposed to take a time to configure the db and get data in sync
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
-      /// which sync data later...i.e not wait for synchronization
+      /// which sync data later...i.e not wait for synchronizations
       if (ProxyService.box.encryptionKey().isEmpty) {
         ProxyService.realm.configure(useInMemoryDb: false, useFallBack: false);
       }
