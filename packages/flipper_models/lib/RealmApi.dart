@@ -2567,6 +2567,9 @@ class RealmAPI<M extends IJsonSerializable>
         'phone': ProxyService.box.getUserPhone(),
         'defaultApp': ProxyService.box.getDefaultApp(),
         'deviceName': Platform.operatingSystem,
+        'uid':
+            (await firebase.FirebaseAuth.instance.currentUser?.getIdToken()) ??
+                "",
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': randomNumber().toString()
       });
@@ -2583,7 +2586,9 @@ class RealmAPI<M extends IJsonSerializable>
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
-    // await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+
+    /// refreshing the user token will invalidate any session
+    await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
     return Future.value(true);
   }
   //// drawers
