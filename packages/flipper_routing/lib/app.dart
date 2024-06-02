@@ -436,3 +436,4 @@ class App {}
 /// https://quarkus.io/guides/security-keycloak-authorization
 /// https://www.keycloak.org/migration/migrating-to-quarkus
 
+/// git commit -am "[build release windows] [build release android]"
