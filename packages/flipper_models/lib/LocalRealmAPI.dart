@@ -122,14 +122,15 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required int branchId, int? refreshRate = 5}) async {
     while (true) {
       try {
-        int userId = ProxyService.box.getUserId()!;
+        int? userId = ProxyService.box.getUserId();
+        if (userId == null) return;
         bool noActivity = await hasNoActivityInLast5Minutes(
             userId: userId, refreshRate: refreshRate);
         talker.warning(noActivity.toString());
 
         if (noActivity) {
           Tenant? tenant =
-              await getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+              await getTenantBYUserId(userId: userId);
           ProxyService.realm.realm!
               .writeAsync(() => tenant!.sessionActive = false);
         }
