@@ -444,8 +444,8 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
-  final data =
-      await ProxyService.realm.getVariantByProductId(productId: productId);
+  final data = await ProxyService.realm.variants(
+      productId: productId, branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
 });
 

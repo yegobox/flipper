@@ -97,7 +97,7 @@ class ProductViewModel extends FlipperBaseModel
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
-  String kProductName = 'null';
+  String? kProductName;
   Future<Product> getProduct({int? productId}) async {
     if (productId != null) {
       Product? product = await ProxyService.realm.getProduct(id: productId);
@@ -130,8 +130,13 @@ class ProductViewModel extends FlipperBaseModel
     return product;
   }
 
+  void setProductName({String? name}) {
+    kProductName = name;
+    notifyListeners();
+  }
+
   void setName({String? name}) {
-    productName = name;
+    kProductName = name;
     notifyListeners();
   }
 
@@ -149,9 +154,9 @@ class ProductViewModel extends FlipperBaseModel
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
-    if (productName == null) return;
+    if (kProductName == null) return;
     final Category category = Category(ObjectId(),
-        name: productName!,
+        name: kProductName!,
         active: true,
         focused: false,
         branchId: branchId!,

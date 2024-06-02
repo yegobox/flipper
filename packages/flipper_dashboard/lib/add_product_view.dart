@@ -70,14 +70,15 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
         // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
-          List<Variant> variants = await ProxyService.realm
-              .getVariantByProductId(productId: widget.productId!);
+          List<Variant> variants = await ProxyService.realm.variants(
+              productId: widget.productId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           // Filter variants to get the regular variant.
           Variant? regularVariant =
               variants.firstWhereOrNull((variant) => variant.name == 'Regular');
 
-          productForm.productNameController.text = model.kProductName;
+          productForm.productNameController.text = model.kProductName!;
           if (regularVariant == null) {
             return;
           }
@@ -118,7 +119,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               disableButton: model.lock,
               showActionButton: true,
               onActionButtonClicked: () async {
-                if (model.productName == " ") {
+                if (model.kProductName == " ") {
                   showToast(context, 'Provide name for the product');
                   return;
                 }
@@ -127,7 +128,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     await model.getProduct(productId: widget.productId);
                 await model.saveProduct(
                     mproduct: product,
-                    inUpdateProcess: widget.productId != null);
+                    inUpdateProcess: widget.productId != null,
+                    productName: model.kProductName!);
 
                 ref
                     .read(productsProvider(ProxyService.box.getBranchId()!)

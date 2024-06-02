@@ -19,7 +19,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   List<String> pkgUnits = [];
 
   void initialize() {
-    scannedVariants = [];
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
@@ -73,7 +72,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         productId: product.id,
         color: currentColor,
         unit: 'Per Item',
-        productName: productName ?? product.name,
+        productName: kProductName ?? product.name,
         branchId: branchId,
         isTaxExempted: isTaxExempted,
         action: AppActions.created,
@@ -101,11 +100,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       ),
       skipRegularVariant: true,
     );
-  }
-
-  void setProductName({String? name}) {
-    productName = name;
-    notifyListeners();
   }
 
   void removeVariant({required int id}) {

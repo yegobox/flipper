@@ -243,7 +243,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef) async {
-    if (model.productName == null) {
+    if (model.kProductName == null) {
       _showNoProductNameToast();
       return;
     }
@@ -258,9 +258,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     model.currentColor = pickerColor.toHex();
 
     Product? product = await model.saveProduct(
-      mproduct: productRef,
-      inUpdateProcess: widget.productId != null,
-    );
+        mproduct: productRef,
+        inUpdateProcess: widget.productId != null,
+        productName: model.kProductName!);
 
     ref
         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
@@ -288,7 +288,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         _savingInProgress = true;
       });
 
-      if (model.scannedVariants.isEmpty) {
+      /// if the there is no scanned variant and there is no productId it means we are creating new item
+      /// then we inforce having the variants saved, otherwise we can allow the user to edit the product name and or its
+      /// retail price, supply price.
+
+      if (model.scannedVariants.isEmpty && widget.productId == null) {
         _showNoProductSavedToast();
       } else {
         _saveProductAndVariants(model, context, product);
@@ -354,11 +358,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name!;
-          model.setProductName(name: product.name);
+          model.setProductName(name: product.name!);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.realm
-              .getVariantByProductId(productId: widget.productId!);
+          List<Variant> variants = await ProxyService.realm.variants(
+              productId: widget.productId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           /// populate the supplyPrice and retailPrice of the first item
           /// this in assumption that all variants added has same supply and retail price
@@ -547,7 +552,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     padding: const EdgeInsets.all(16.0),
                     alignment: Alignment.center,
                     child: Text(
-                      'Product Name: ${model.productName}',
+                      'Product Name: ${model.kProductName}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

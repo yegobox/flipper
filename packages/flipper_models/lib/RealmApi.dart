@@ -1172,12 +1172,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({int? productId}) async {
-    return realm!.query<Variant>(
-        r'productId == $0 AND deletedAt == nil', [productId]).toList();
-  }
-
-  @override
   Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
     final controller = StreamController<List<Variant>>.broadcast();
 
