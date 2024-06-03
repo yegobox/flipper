@@ -159,7 +159,6 @@ abstract class RealmApiInterface {
       {required int id, required FilterType filterType});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({int? productId});
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
@@ -354,5 +353,10 @@ abstract class RealmApiInterface {
     required String bhfId,
     required String lastReqDt,
   });
-  // Future<Drawers> getDrawer({required int businessId});
+
+  /// drawers
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
+
+  Future<Drawers?> openDrawer({required Drawers drawer});
 }

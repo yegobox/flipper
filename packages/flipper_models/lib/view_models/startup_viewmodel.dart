@@ -38,7 +38,7 @@ class StartupViewModel extends FlipperBaseModel {
       /// then we are are forced here when app start to re-open the realm with useInMemoryDb false
       /// for performance this is supposed to take a time to configure the db and get data in sync
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
-      /// which sync data later...i.e not wait for synchronization
+      /// which sync data later...i.e not wait for synchronizations
       if (ProxyService.box.encryptionKey().isEmpty) {
         ProxyService.realm.configure(useInMemoryDb: false, useFallBack: false);
       }
@@ -53,7 +53,7 @@ class StartupViewModel extends FlipperBaseModel {
       Business? activeBusinesses = await ProxyService.local
           .activeBusinesses(userId: ProxyService.box.getUserId()!);
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (await ProxyService.local
+      if (await ProxyService.realm
           .isDrawerOpen(cashierId: activeBusinesses!.serverId!)) {
         /// if there is missing initial data, this is the right time to add them
         /// this is the case when a user login to a different device and the data does not exist there

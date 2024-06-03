@@ -11,7 +11,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:overlay_support/overlay_support.dart';
 
 class DesktopLoginView extends StatefulHookConsumerWidget {
   const DesktopLoginView({Key? key}) : super(key: key);
@@ -46,152 +45,138 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
         });
       },
       builder: (context, model, child) {
-        return StreamBuilder<String>(
-            stream: ProxyService.notie.stream,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                // show this notification coming!
-                showSimpleNotification(
-                  Text(snapshot.data ?? ""),
-                  background: Colors.red,
-                  position: NotificationPosition.bottom,
-                );
-              }
-              return Center(
-                child: Container(
-                    color: Colors.white,
-                    child: Column(
-                      children: [
-                        Spacer(),
-                        SizedBox(
-                          height: 250.0,
-                          width: 250.0,
-                          child: QrImageView(
-                            data: loginCode,
-                            version: QrVersions.auto,
-                            // embeddedImage:
-                            //     AssetImage(logoAsset, package: "flipper_login"),
-                            embeddedImageStyle: QrEmbeddedImageStyle(
-                              size: Size(logoSize, logoSize),
-                            ),
-                            size: 200.0,
-                          ),
-                        ),
-                        StreamBuilder<bool>(
-                          stream: ProxyService.event.isLoadingStream(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData && snapshot.data!) {
-                              // Show loader widget
-                              return Text(
-                                'Logging in ...',
-                                style: TextStyle(color: Colors.green),
-                              );
-                            } else {
-                              // Show an empty container widget
-                              return SizedBox.shrink();
+        return Center(
+          child: Container(
+              color: Colors.white,
+              child: Column(
+                children: [
+                  Spacer(),
+                  SizedBox(
+                    height: 250.0,
+                    width: 250.0,
+                    child: QrImageView(
+                      data: loginCode,
+                      version: QrVersions.auto,
+                      // embeddedImage:
+                      //     AssetImage(logoAsset, package: "flipper_login"),
+                      embeddedImageStyle: QrEmbeddedImageStyle(
+                        size: Size(logoSize, logoSize),
+                      ),
+                      size: 200.0,
+                    ),
+                  ),
+                  StreamBuilder<bool>(
+                    stream: ProxyService.event.isLoadingStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data!) {
+                        // Show loader widget
+                        return Text(
+                          'Logging in ...',
+                          style: TextStyle(color: Colors.green),
+                        );
+                      } else {
+                        // Show an empty container widget
+                        return SizedBox.shrink();
+                      }
+                    },
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 120.0),
+                    child: SizedBox(
+                        width: 450,
+                        child: Text(
+                          'Log in to Flipper by QR Code',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 20,
+                              color: Colors.black),
+                        )),
+                  ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: 380,
+                    child: Text('1. Open Flipper on your phone',
+                        style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 15,
+                            color: Colors.black)),
+                  ),
+                  SizedBox(
+                      width: 380,
+                      child: Text(
+                          '2. Go to Settings > Devices > Link Desktop Device',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 15,
+                              color: Colors.black))),
+                  SizedBox(
+                      width: 380,
+                      child: Text(
+                          '3. Point your phone at this screen to confirm login',
+                          style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 15,
+                              color: Colors.black))),
+                  SizedBox(height: 30),
+                  SizedBox(
+                    height: 40,
+                    width: 350,
+                    child: OutlinedButton(
+                      key: Key('pinLogin'),
+                      child: Text(
+                        'Switch to PIN login',
+                        style: TextStyle(color: Color(0xff006AFE)),
+                      ),
+                      style: ButtonStyle(
+                        shape:
+                            MaterialStateProperty.resolveWith<OutlinedBorder>(
+                                (states) => RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(0))),
+                        side: MaterialStateProperty.resolveWith<BorderSide>(
+                            (states) => BorderSide(
+                                  color:
+                                      const Color(0xff006AFE).withOpacity(0.1),
+                                )),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            const Color(0xff006AFE).withOpacity(0.1)),
+                        overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.hovered)) {
+                              return Color(0xff006AFE).withOpacity(0.5);
                             }
+                            if (states.contains(MaterialState.focused) ||
+                                states.contains(MaterialState.pressed)) {
+                              return Color(0xff006AFE).withOpacity(0.5);
+                            }
+                            return Color(0xff006AFE).withOpacity(0.5);
                           },
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 120.0),
-                          child: SizedBox(
-                              width: 450,
-                              child: Text(
-                                'Log in to Flipper by QR Code',
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 20,
-                                    color: Colors.black),
-                              )),
-                        ),
-                        SizedBox(height: 10),
-                        SizedBox(
-                          width: 380,
-                          child: Text('1. Open Flipper on your phone',
-                              style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 15,
-                                  color: Colors.black)),
-                        ),
-                        SizedBox(
-                            width: 380,
-                            child: Text(
-                                '2. Go to Settings > Devices > Link Desktop Device',
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                    color: Colors.black))),
-                        SizedBox(
-                            width: 380,
-                            child: Text(
-                                '3. Point your phone at this screen to confirm login',
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 15,
-                                    color: Colors.black))),
-                        SizedBox(height: 30),
-                        SizedBox(
-                          height: 40,
-                          width: 350,
-                          child: OutlinedButton(
-                            key: Key('pinLogin'),
-                            child: Text(
-                              'Switch to PIN login',
-                              style: TextStyle(color: Color(0xff006AFE)),
-                            ),
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.resolveWith<
-                                      OutlinedBorder>(
-                                  (states) => RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(0))),
-                              side:
-                                  MaterialStateProperty.resolveWith<BorderSide>(
-                                      (states) => BorderSide(
-                                            color: const Color(0xff006AFE)
-                                                .withOpacity(0.1),
-                                          )),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  const Color(0xff006AFE).withOpacity(0.1)),
-                              overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
-                                    return Color(0xff006AFE).withOpacity(0.5);
-                                  }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
-                                    return Color(0xff006AFE).withOpacity(0.5);
-                                  }
-                                  return Color(0xff006AFE).withOpacity(0.5);
-                                },
-                              ),
-                            ),
-                            onPressed: () {
-                              LoginInfo().redirecting = true;
-                              _routerService.navigateTo(PinLoginRoute());
-                            },
-                          ),
-                        ),
-                        // show a text to show if device is offline
-                        StreamBuilder<List<ConnectivityResult>>(
-                          stream: Connectivity().onConnectivityChanged,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              if (snapshot.data == ConnectivityResult.none) {
-                                return const Text(
-                                  'Device is offline',
-                                  style: TextStyle(color: Colors.red),
-                                );
-                              }
-                            }
-                            return const SizedBox();
-                          },
-                        ),
-                        Spacer(),
-                      ],
-                    )),
-              );
-            });
+                      ),
+                      onPressed: () {
+                        LoginInfo().redirecting = true;
+                        _routerService.navigateTo(PinLoginRoute());
+                      },
+                    ),
+                  ),
+                  // show a text to show if device is offline
+                  StreamBuilder<List<ConnectivityResult>>(
+                    stream: Connectivity().onConnectivityChanged,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data == ConnectivityResult.none) {
+                          return const Text(
+                            'Device is offline',
+                            style: TextStyle(color: Colors.red),
+                          );
+                        }
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                  Spacer(),
+                ],
+              )),
+        );
       },
     );
   }

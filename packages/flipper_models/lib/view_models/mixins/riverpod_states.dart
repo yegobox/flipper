@@ -444,15 +444,9 @@ class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
 
 final variantsFutureProvider = FutureProvider.autoDispose
     .family<AsyncValue<List<Variant>>, int>((ref, productId) async {
-  final data =
-      await ProxyService.realm.getVariantByProductId(productId: productId);
+  final data = await ProxyService.realm.variants(
+      productId: productId, branchId: ProxyService.box.getBranchId()!);
   return AsyncData(data);
-});
-
-final ordersStreamProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  int branchId = ProxyService.box.getBranchId() ?? 0;
-  return ProxyService.realm.orders(branchId: branchId);
 });
 
 final categoryStreamProvider =
@@ -461,18 +455,6 @@ final categoryStreamProvider =
 
   // Return the stream
   return category;
-});
-
-final transactionsStreamProvider =
-    StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  // Retrieve the transaction status from the provider container, if needed
-
-  // Use ProxyService to get the IsarStream of transactions
-  final transactionsStream = ProxyService.realm
-      .transactionsStream(branchId: ProxyService.box.getBranchId());
-
-  // Return the stream
-  return transactionsStream;
 });
 
 final unitsProvider =
@@ -546,16 +528,6 @@ final transactionListProvider =
   }
 });
 
-final variantStreamProvider =
-    StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
-  return ProxyService.realm
-      .getVariantByProductIdStream(productId: id)
-      .distinct((prev, next) =>
-          prev.map((e) => e.retailPrice).join() ==
-          next.map((e) => e.retailPrice).join())
-      .handleError((error) => []);
-});
-
 final transactionItemsStreamProvider = StreamProvider.autoDispose
     .family<List<TransactionItem>, int?>((ref, transactionId) {
   return ProxyService.realm.transactionItemsStreams(
@@ -585,3 +557,48 @@ final selectImportItemsProvider = FutureProvider.autoDispose
 
   return response;
 });
+
+final transactionsStreamProvider =
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  // Retrieve the transaction status from the provider container, if needed
+
+  // Use ProxyService to get the IsarStream of transactions
+  final transactionsStream = ProxyService.realm
+      .transactionsStream(branchId: ProxyService.box.getBranchId());
+
+  // Return the stream
+  return transactionsStream;
+});
+
+final ordersStreamProvider =
+    StreamProvider.autoDispose<List<ITransaction>>((ref) {
+  int branchId = ProxyService.box.getBranchId() ?? 0;
+  return ProxyService.realm.orders(branchId: branchId);
+});
+final variantStreamProvider =
+    StreamProvider.autoDispose.family<List<Variant>, int>((ref, id) {
+  return ProxyService.realm
+      .getVariantByProductIdStream(productId: id)
+      .distinct((prev, next) =>
+          prev.map((e) => e.retailPrice).join() ==
+          next.map((e) => e.retailPrice).join())
+      .handleError((error) => []);
+});
+
+List<ProviderBase> allProviders = [
+  productProvider,
+  customerSearchStringProvider,
+  searchStringProvider,
+  sellingModeProvider,
+  matchedProductProvider,
+  scanningModeProvider,
+  receivingOrdersModeProvider,
+  customersProvider,
+  ordersStreamProvider,
+  categoryStreamProvider,
+  transactionsStreamProvider,
+  unitsProvider,
+  buttonIndexProvider,
+  dateRangeProvider,
+  transactionListProvider,
+];
