@@ -184,7 +184,7 @@ class RWTax implements TaxApi {
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
-          throw Exception(data.resultMsg);
+          // throw Exception(data.resultMsg);
         }
         // sendEmailLogging(
         //   requestBody: variation.toJson().toString(),
