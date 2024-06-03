@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_login/login.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -212,6 +213,11 @@ class _DrawerScreenState extends State<DrawerScreen> {
       });
     }
     await ProxyService.realm.logOut();
-    _routerService.navigateTo(LoginViewRoute());
+    // _routerService.replaceWithLoginView();
+    // _routerService.navigateTo(LoginViewRoute());
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginView()),
+      (Route<dynamic> route) => false,
+    );
   }
 }
