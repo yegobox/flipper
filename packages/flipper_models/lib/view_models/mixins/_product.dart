@@ -28,6 +28,7 @@ mixin ProductMixin {
           variant.pkgUnitCd = packagingUnit;
           final number = randomNumber().toString().substring(0, 5);
 
+          ///TODO:
           /// this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
           variant.itemClsCd = "5020230602";
           variant.itemCd = randomNumber().toString().substring(0, 5);
@@ -58,7 +59,8 @@ mixin ProductMixin {
           variant.regrNm = variant.name;
 
           /// taxation type code
-          variant.taxTyCd = variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
+          variant.taxTyCd =
+              variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
           // default unit price
           variant.dftPrc = variant.retailPrice;
 

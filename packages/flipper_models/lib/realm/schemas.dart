@@ -824,3 +824,21 @@ class _UserActivity {
 
   late String action;
 }
+
+@RealmModel()
+class _UnversalProduct {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  String? itemClsCd;
+  String? itemClsNm;
+  int? itemClsLvl;
+  String? taxTyCd;
+  String? mjrTgYn;
+  String? useYn;
+
+  int? businessId;
+  int? branchId;
+}
