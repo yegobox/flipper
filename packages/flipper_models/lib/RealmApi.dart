@@ -334,6 +334,7 @@ class RealmAPI<M extends IJsonSerializable>
   void close() {
     if (realm == null) return null;
     realm!.close();
+    realm = null;
   }
 
   @override
@@ -1307,6 +1308,10 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<ITransaction> manageTransaction(
       {required String transactionType}) async {
+    /// check if realm is not closed
+    if (realm == null) {
+      throw Exception("realm is empty");
+    }
     int branchId = ProxyService.box.getBranchId()!;
     ITransaction? existTransaction = await pendingTransaction(
         branchId: branchId, transactionType: transactionType);
@@ -2597,7 +2602,7 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<bool> isDrawerOpen({required int cashierId}) async {
     return realm!.query<Drawers>(
-            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
+            r'cashierId == $0 AND open==true', [cashierId]).firstOrNull !=
         null;
   }
 

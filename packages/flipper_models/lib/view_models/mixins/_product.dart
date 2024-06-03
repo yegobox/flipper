@@ -58,7 +58,7 @@ mixin ProductMixin {
           variant.regrNm = variant.name;
 
           /// taxation type code
-          variant.taxTyCd = "B"; // available types A(A-EX),B(B-18.00%),C,D
+          variant.taxTyCd = variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
           // default unit price
           variant.dftPrc = variant.retailPrice;
 

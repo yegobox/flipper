@@ -225,9 +225,36 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
+  Widget _buildTaxDropdown(
+      BuildContext context, Variant variant, ScannViewModel model) {
+    final List<String> options = ["Tax A", "Tax B", "Tax C", "Tax D"];
+
+    return DropdownButton<String>(
+      value: variant.taxTyCd ?? "Tax B",
+      hint: Text('Select an option'),
+      elevation: 16,
+      style: TextStyle(color: Colors.black, fontSize: 16),
+      underline: Container(
+        height: 2,
+        color: Colors.deepPurpleAccent,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          variant.taxTyCd = newValue!;
+        });
+      },
+      items: options.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
+  }
+
   // Helper function to get a valid color or a default color
 
-// Helper function to check if a string is a valid hexadecimal color code
+  // Helper function to check if a string is a valid hexadecimal color code
 
   void _showSaveInProgressToast() {
     toast('Saving item in progress, please be patient!');
@@ -282,6 +309,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product) {
+    print("product");
     // _saveProductAndVariants(model, context, product);
     if (!_savingInProgress) {
       setState(() {
@@ -577,6 +605,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                 DataColumn(label: Text('Price')),
                                 DataColumn(label: Text('Created At')),
                                 DataColumn(label: Text('Quantity')),
+                                DataColumn(label: Text('Tax')),
                                 DataColumn(label: Text('Unit of Measure')),
                                 DataColumn(label: Text('Action')),
                               ],
@@ -623,6 +652,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                             );
                                           },
                                         ),
+                                      ),
+
+                                      DataCell(
+                                        _buildTaxDropdown(
+                                            context, variant, model),
                                       ),
                                       //TODO: add tax options here to be attached to a variant.
                                       DataCell(
