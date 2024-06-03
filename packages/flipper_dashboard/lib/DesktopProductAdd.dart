@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class QuantityCell extends StatelessWidget {
@@ -52,7 +51,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Color pickerColor = Colors.amber;
 
   bool _savingInProgress = false;
-
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
 
@@ -232,7 +230,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     final List<String> options = ["Tax A", "Tax B", "Tax C", "Tax D"];
 
     return DropdownButton<String>(
-      value:  variant.taxTyCd ?? "Tax B",
+      value: variant.taxTyCd ?? "Tax B",
       hint: Text('Select an option'),
       elevation: 16,
       style: TextStyle(color: Colors.black, fontSize: 16),
@@ -254,10 +252,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
-
   // Helper function to get a valid color or a default color
 
-// Helper function to check if a string is a valid hexadecimal color code
+  // Helper function to check if a string is a valid hexadecimal color code
 
   void _showSaveInProgressToast() {
     toast('Saving item in progress, please be patient!');
