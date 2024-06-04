@@ -189,12 +189,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     return unitsAsyncValue.when(
       data: (items) {
-        final List<String> itemClsCdList =
-            items.asData?.value.map((unit) => unit.itemClsCd!).toList() ?? [];
+        final List<String> itemClsCdList = items.asData?.value
+                .map((unit) => (unit.itemClsNm ?? "" + unit.itemClsCd!))
+                .toList() ??
+            [];
 
         return Container(
           width: double.infinity,
           child: DropdownSearch<String>(
+            // popupProps: PopupProps.menu(
+            //   showSelectedItems: true,
+            //   disabledItemFn: (String s) => s.startsWith('I'),
+            // ),
+            // popupProps: PopupProps.bottomSheet(),
+
             items: itemClsCdList,
             selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
             dropdownDecoratorProps: DropDownDecoratorProps(

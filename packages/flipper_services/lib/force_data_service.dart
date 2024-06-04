@@ -70,6 +70,9 @@ class ForceDataEntryService {
         talker.critical(e);
       }
     }
+
+    /// bootstrap data for universal Product names;
+    ProxyService.local.universalProductNames(branchId: branchId);
   }
 
   final talker = TalkerFlutter.init();
@@ -96,6 +99,4 @@ class ForceDataEntryService {
       }
     }
   }
-
-  /// bootstrap data for taxes;
 }
