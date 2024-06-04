@@ -125,8 +125,8 @@ class TaxController<OBJ> {
     double totalDEx = 0.0;
 
     for (var item in items) {
-      double taxConfig = item.taxTyCd == "Tax B" ? 18.0:0.0 ;
-      double taxAmount = item.totAmt * (taxConfig / 100);
+      var taxConfig = await ProxyService.realm.getByTaxType(taxtype:item.taxTyCd!);
+      double taxAmount = item.totAmt * (taxConfig.taxPercentage / 100);
       switch (item.taxTyCd) {
         case 'Tax A':
           totalAEx += taxAmount;
@@ -155,10 +155,10 @@ class TaxController<OBJ> {
 
     print.print(
       grandTotal: transaction.subTotal,
-      totalAEx: totalAEx > 0 ? totalAEx : null,
-      totalBEx: totalBEx > 0 ? totalBEx : null,
-      totalCEx: totalCEx > 0 ? totalCEx : null,
-      totalDEx: totalDEx > 0 ? totalCEx : null,
+      totalAEx: totalAEx,
+      totalBEx: totalBEx,
+      totalCEx: totalCEx,
+      totalDEx: totalDEx,
       currencySymbol: "RW",
       transaction: transaction,
       totalB18: (transaction.subTotal * 18 / 118).toStringAsFixed(2),

@@ -76,6 +76,7 @@ abstract class RealmApiInterface {
     required int branchId,
     int? productId,
   });
+  TaxConfig getByTaxType({required String taxtype});
   Future<Variant?> variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 

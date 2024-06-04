@@ -2553,6 +2553,26 @@ class RealmAPI<M extends IJsonSerializable>
     yield* controller.stream;
   }
 
+
+  @override
+  TaxConfig getByTaxType({required String taxtype}) {
+    TaxConfig result;
+    double taxPercentage;
+
+    if(taxtype == "Tax B"){
+      taxPercentage = 18.0;
+    }else{
+      taxPercentage = 0.0;
+    }
+
+    result = TaxConfig( ObjectId(),
+      taxPercentage: taxPercentage,
+      taxType: taxtype,
+    );
+
+    return result;
+  }
+
   @override
   Future<RwApiResponse> selectImportItems(
       {required int tin, required String bhfId, required String lastReqDt}) {
