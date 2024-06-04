@@ -585,6 +585,22 @@ final variantStreamProvider =
       .handleError((error) => []);
 });
 
+final universalProductsNames =
+    FutureProvider.autoDispose<AsyncValue<List<UnversalProduct>>>((ref) async {
+  try {
+    final branchId = ProxyService.box.getBranchId()!;
+
+    // Check if units are already present in the database
+    final existingUnits =
+        await ProxyService.local.universalProductNames(branchId: branchId);
+
+    return AsyncData(existingUnits);
+  } catch (error) {
+    // Return AsyncError with error and stack trace
+    return AsyncError(error, StackTrace.current);
+  }
+});
+
 List<ProviderBase> allProviders = [
   productProvider,
   customerSearchStringProvider,

@@ -32,4 +32,5 @@ abstract class LocalRealmInterface {
       {required Business business,
       required Branch branch,
       required String userType});
+  Future<List<UnversalProduct>> universalProductNames({required int branchId});
 }

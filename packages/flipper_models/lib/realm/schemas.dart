@@ -842,3 +842,16 @@ class _UnversalProduct {
   int? businessId;
   int? branchId;
 }
+
+@RealmModel()
+class _TaxConfigurations {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  String? taxType = "B";
+  double? taxPercentage = 18.0;
+  int? businessId;
+  int? branchId;
+}

@@ -109,7 +109,9 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     if (index != -1) {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
-      ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      try {
+        ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      } catch (e) {}
       scannedVariants.removeAt(index);
       notifyListeners();
     }

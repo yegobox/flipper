@@ -6935,3 +6935,131 @@ class UnversalProduct extends _UnversalProduct
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class TaxConfigurations extends _TaxConfigurations
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  TaxConfigurations(
+    ObjectId realmId, {
+    int? id,
+    String? taxType = "B",
+    double? taxPercentage = 18.0,
+    int? businessId,
+    int? branchId,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<TaxConfigurations>({
+        'taxType': "B",
+        'taxPercentage': 18.0,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'taxType', taxType);
+    RealmObjectBase.set(this, 'taxPercentage', taxPercentage);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+  }
+
+  TaxConfigurations._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  String? get taxType =>
+      RealmObjectBase.get<String>(this, 'taxType') as String?;
+  @override
+  set taxType(String? value) => RealmObjectBase.set(this, 'taxType', value);
+
+  @override
+  double? get taxPercentage =>
+      RealmObjectBase.get<double>(this, 'taxPercentage') as double?;
+  @override
+  set taxPercentage(double? value) =>
+      RealmObjectBase.set(this, 'taxPercentage', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  Stream<RealmObjectChanges<TaxConfigurations>> get changes =>
+      RealmObjectBase.getChanges<TaxConfigurations>(this);
+
+  @override
+  Stream<RealmObjectChanges<TaxConfigurations>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<TaxConfigurations>(this, keyPaths);
+
+  @override
+  TaxConfigurations freeze() =>
+      RealmObjectBase.freezeObject<TaxConfigurations>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'taxType': taxType.toEJson(),
+      'taxPercentage': taxPercentage.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(TaxConfigurations value) => value.toEJson();
+  static TaxConfigurations _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'taxType': EJsonValue taxType,
+        'taxPercentage': EJsonValue taxPercentage,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
+      } =>
+        TaxConfigurations(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          taxType: fromEJson(taxType),
+          taxPercentage: fromEJson(taxPercentage),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(TaxConfigurations._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(
+        ObjectType.realmObject, TaxConfigurations, 'TaxConfigurations', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('taxType', RealmPropertyType.string, optional: true),
+      SchemaProperty('taxPercentage', RealmPropertyType.double, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
