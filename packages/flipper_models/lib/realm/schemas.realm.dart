@@ -6661,3 +6661,97 @@ class UserActivity extends _UserActivity
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class TaxConfig extends _TaxConfig with RealmEntity, RealmObjectBase, RealmObject {
+  TaxConfig(
+      ObjectId realmId, {
+        required String taxType,
+        required double taxPercentage,
+        int? businessId,
+        int? branchId,
+      }) {
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'taxType', taxType);
+    RealmObjectBase.set(this, 'taxPercentage', taxPercentage);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+  }
+
+  TaxConfig._();
+
+  @override
+  ObjectId get realmId => RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  String get taxType => RealmObjectBase.get<String>(this, 'taxType') as String;
+  @override
+  set taxType(String value) => RealmObjectBase.set(this, 'taxType', value);
+
+  @override
+  double get taxPercentage => RealmObjectBase.get<double>(this, 'taxPercentage') as double;
+  @override
+  set taxPercentage(double value) => RealmObjectBase.set(this, 'taxPercentage', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  Stream<RealmObjectChanges<TaxConfig>> get changes => RealmObjectBase.getChanges<TaxConfig>(this);
+
+  @override
+  TaxConfig freeze() => RealmObjectBase.freezeObject<TaxConfig>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      '_id': realmId.toEJson(),
+      'taxType': taxType.toEJson(),
+      'taxPercentage': taxPercentage.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(TaxConfig value) => value.toEJson();
+  static TaxConfig _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+      '_id': EJsonValue realmId,
+      'taxType': EJsonValue taxType,
+      'taxPercentage': EJsonValue taxPercentage,
+      'businessId': EJsonValue businessId,
+      'branchId': EJsonValue branchId,
+      } => TaxConfig(
+        fromEJson(realmId),
+        taxType: fromEJson(taxType),
+        taxPercentage: fromEJson(taxPercentage),
+        businessId: fromEJson(businessId),
+        branchId: fromEJson(branchId),
+      ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(TaxConfig._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, TaxConfig, 'TaxConfig', [
+      SchemaProperty('realmId', RealmPropertyType.objectid, mapTo: '_id', primaryKey: true),
+      SchemaProperty('taxType', RealmPropertyType.string),
+      SchemaProperty('taxPercentage', RealmPropertyType.double),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

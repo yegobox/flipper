@@ -111,24 +111,60 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<void> printReceipt(
-      {required List<TransactionItem> items,
-      required Business business,
-      required String receiptType,
-      required ITransaction transaction}) async {
-    Receipt? receipt =
-        await ProxyService.realm.getReceipt(transactionId: transaction.id!);
+  Future<void> printReceipt({
+    required List<TransactionItem> items,
+    required Business business,
+    required String receiptType,
+    required ITransaction transaction,
+  }) async {
+    Receipt? receipt = await ProxyService.realm.getReceipt(transactionId: transaction.id!);
+
+    double totalAEx = 0.0;
+    double totalBEx = 0.0;
+    double totalCEx = 0.0;
+    double totalDEx = 0.0;
+
+    for (var item in items) {
+      double taxConfig = item.taxTyCd == "Tax B" ? 18.0:0.0 ;
+      double taxAmount = item.totAmt * (taxConfig / 100);
+      switch (item.taxTyCd) {
+        case 'Tax A':
+          totalAEx += taxAmount;
+          break;
+        case 'Tax B':
+          totalBEx += taxAmount;
+          break;
+        case 'Tax C':
+          totalCEx += taxAmount;
+          break;
+        case 'Tax D':
+          totalCEx += taxAmount;
+          break;
+      }
+    }
 
     Print print = Print();
+
+    Map<String, dynamic> taxValues = {
+      'totalAEx': totalAEx,
+      'totalBEx': totalBEx,
+      'totalCEx': totalCEx,
+      'totalDEx': totalDEx,
+    };
+    taxValues.removeWhere((key, value) => value == 0);
+
     print.print(
       grandTotal: transaction.subTotal,
+      totalAEx: totalAEx > 0 ? totalAEx : null,
+      totalBEx: totalBEx > 0 ? totalBEx : null,
+      totalCEx: totalCEx > 0 ? totalCEx : null,
+      totalDEx: totalDEx > 0 ? totalCEx : null,
       currencySymbol: "RW",
       transaction: transaction,
-      totalAEx: 0,
-      items: items,
       totalB18: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
       totalB: transaction.subTotal,
       totalTax: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
+      items: items,
       cash: transaction.subTotal,
       received: transaction.cashReceived,
       payMode: "Cash",
@@ -151,6 +187,7 @@ class TaxController<OBJ> {
       receiptType: receiptType,
     );
   }
+
 
   /**
    * Generates a receipt signature by calling the EBM API, updates the receipt 

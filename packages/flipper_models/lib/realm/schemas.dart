@@ -824,3 +824,16 @@ class _UserActivity {
 
   late String action;
 }
+
+@RealmModel()
+class _TaxConfig {
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  late String taxType;
+  late double taxPercentage;
+  int? businessId;
+  int? branchId;
+}
+
+
