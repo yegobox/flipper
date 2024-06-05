@@ -117,53 +117,72 @@ class TaxController<OBJ> {
     required String receiptType,
     required ITransaction transaction,
   }) async {
-    Receipt? receipt = await ProxyService.realm.getReceipt(transactionId: transaction.id!);
+    Receipt? receipt =
+        await ProxyService.realm.getReceipt(transactionId: transaction.id!);
 
-    double totalAEx = 0.0;
-    double totalBEx = 0.0;
-    double totalCEx = 0.0;
-    double totalDEx = 0.0;
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
 
-    for (var item in items) {
-      var taxConfig = await ProxyService.realm.getByTaxType(taxtype:item.taxTyCd!);
-      double taxAmount = item.totAmt * (taxConfig.taxPercentage / 100);
-      switch (item.taxTyCd) {
-        case 'Tax A':
-          totalAEx += taxAmount;
-          break;
-        case 'Tax B':
-          totalBEx += taxAmount;
-          break;
-        case 'Tax C':
-          totalCEx += taxAmount;
-          break;
-        case 'Tax D':
-          totalCEx += taxAmount;
-          break;
+    try {
+      for (var item in items) {
+        // Log the item details
+        talker.warning(
+            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
+
+        // Fetch the tax configuration
+        var taxConfig =
+            await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
+        // Ensure taxPercentage is not null
+        if (taxConfig.taxPercentage == 0.0) {
+          talker.warning(
+              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
+          continue; // Skip this item if tax percentage is null
+        }
+
+        // Calculate the tax amount
+        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty) *
+                (taxConfig.taxPercentage!)) /
+            118;
+
+        // Accumulate tax amount instead of overwriting
+        String taxType = item.taxTyCd ?? "B";
+        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+
+        // Log the accumulated tax amount
+        talker.warning(
+            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
       }
+    } catch (s) {
+      talker.error(s);
     }
+
+    double totalTaxA = taxTotals['A'] ?? 0.0;
+    double totalTaxB = taxTotals['B'] ?? 0.0;
+    double totalTaxC = taxTotals['C'] ?? 0.0;
+    double totalTaxD = taxTotals['D'] ?? 0.0;
+
+    talker.warning("Final computed Tax for A: $totalTaxA");
+    talker.warning("Final computed Tax for B: $totalTaxB");
+    talker.warning("Final computed Tax for C: $totalTaxC");
+    talker.warning("Final computed Tax for D: $totalTaxD");
 
     Print print = Print();
 
-    Map<String, dynamic> taxValues = {
-      'totalAEx': totalAEx,
-      'totalBEx': totalBEx,
-      'totalCEx': totalCEx,
-      'totalDEx': totalDEx,
-    };
-    taxValues.removeWhere((key, value) => value == 0);
-
     print.print(
       grandTotal: transaction.subTotal,
-      totalAEx: totalAEx,
-      totalBEx: totalBEx,
-      totalCEx: totalCEx,
-      totalDEx: totalDEx,
+      totalTaxA: totalTaxA,
+      totalTaxB: totalTaxB,
+      totalTaxC: totalTaxC,
+      totalTaxD: totalTaxD,
       currencySymbol: "RW",
       transaction: transaction,
-      totalB18: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
-      totalB: transaction.subTotal,
-      totalTax: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
+      totalTax:
+          (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
       items: items,
       cash: transaction.subTotal,
       received: transaction.cashReceived,
@@ -187,7 +206,6 @@ class TaxController<OBJ> {
       receiptType: receiptType,
     );
   }
-
 
   /**
    * Generates a receipt signature by calling the EBM API, updates the receipt 
@@ -284,7 +302,7 @@ class TaxController<OBJ> {
 
   Future<void> updateDrawer(
       String receiptType, ITransaction transaction) async {
-    Drawers? drawer = await ProxyService.local
+    Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
     ProxyService.realm.realm!.write(() {

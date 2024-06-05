@@ -69,7 +69,8 @@ class ProductViewState extends ConsumerState<ProductView> {
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
-            .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+            .read(
+                productsProvider(ProxyService.box.getBranchId() ?? 0).notifier)
             .loadProducts(searchString: searchKeyword, scanMode: scanMode);
       },
       viewModelBuilder: () => ProductViewModel(),
@@ -291,7 +292,7 @@ class ProductViewState extends ConsumerState<ProductView> {
 
   Widget buildProductsSection(BuildContext context, ProductViewModel model) {
     final productsRef =
-        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+        ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
     return Center(
       child: Center(
         child: switch (productsRef) {
@@ -351,7 +352,7 @@ class ProductViewState extends ConsumerState<ProductView> {
             expandedHeaderPadding: EdgeInsets.zero,
             expansionCallback: (int panelIndex, bool isExpanded) {
               ref
-                  .read(productsProvider(ProxyService.box.getBranchId()!)
+                  .read(productsProvider(ProxyService.box.getBranchId() ?? 0)
                       .notifier)
                   .expanded(products[index]);
 
@@ -397,13 +398,18 @@ class ProductViewState extends ConsumerState<ProductView> {
                         deleteProduct: (productId, type) async {
                           try {
                             await model.deleteProduct(productId: productId!);
-                            ref.refresh(
-                              productsProvider(
-                                ProxyService.box.getBranchId()!,
-                              ).notifier,
-                            );
-                          } catch (e) {}
-                          // .deleteProduct(productId: productId);
+                            ref
+                                .refresh(
+                                  productsProvider(
+                                    ProxyService.box.getBranchId() ?? 0,
+                                  ).notifier,
+                                )
+                                .loadProducts(
+                                    searchString: "", scanMode: false);
+                          } catch (e, s) {
+                            talker.error("ProductViewClass:" + s.toString());
+                            talker.error("ProductViewClass:" + e.toString());
+                          }
                         },
                         enableNfc: (product) {
                           showMaterialModalBottomSheet(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -10,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class QuantityCell extends StatelessWidget {
@@ -52,7 +52,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   Color pickerColor = Colors.amber;
 
   bool _savingInProgress = false;
-
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
 
@@ -184,35 +183,90 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     });
   }
 
-  Widget _buildUnitDropdown(
+  Widget _buildUniversalProductDropDown(
+      BuildContext context, ScannViewModel model) {
+    final unitsAsyncValue = ref.watch(universalProductsNames);
+
+    return unitsAsyncValue.when(
+      data: (items) {
+        final List<String> itemClsCdList = items.asData?.value
+                .map((unit) => (unit.itemClsNm ?? "" + unit.itemClsCd!))
+                .toList() ??
+            [];
+
+        return Container(
+          width: double.infinity,
+          child: DropdownSearch<String>(
+            // popupProps: PopupProps.menu(
+            //   showSelectedItems: true,
+            //   disabledItemFn: (String s) => s.startsWith('I'),
+            // ),
+            // popupProps: PopupProps.bottomSheet(),
+
+            items: itemClsCdList,
+            selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+              ),
+            ),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                setState(() {
+                  // Update the model or state as needed
+                });
+              }
+            },
+          ),
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text('Error: $error'),
+    );
+  }
+
+  Widget _buildUnitOfMeasureDropDown(
       BuildContext context, Variant variant, ScannViewModel model) {
     final unitsAsyncValue = ref.watch(unitsProvider);
 
     return unitsAsyncValue.when(
       data: (units) {
         return Container(
-          width: double.infinity, // Adjust the width as needed
+          width: double.infinity,
           child: DropdownSearch<String>(
             items: units.asData?.value.map((unit) => unit.name!).toList() ?? [],
             selectedItem: variant.unit,
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border
+                  borderSide: BorderSide.none,
                 ),
                 disabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide.none, // Remove the border when disabled
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border when enabled
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border when focused
+                  borderSide: BorderSide.none,
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide.none, // Remove the border when in error state
+                  borderSide: BorderSide.none,
                 ),
                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
               ),
@@ -231,33 +285,40 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       BuildContext context, Variant variant, ScannViewModel model) {
     final List<String> options = ["Tax A", "Tax B", "Tax C", "Tax D"];
 
-    return DropdownButton<String>(
-      value:  variant.taxTyCd ?? "Tax B",
-      hint: Text('Select an option'),
-      elevation: 16,
-      style: TextStyle(color: Colors.black, fontSize: 16),
-      underline: Container(
-        height: 2,
-        color: Colors.deepPurpleAccent,
+    return DropdownSearch<String>(
+      items: options,
+      selectedItem: variant.taxTyCd ?? "Tax B",
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+        ),
       ),
       onChanged: (String? newValue) {
         setState(() {
           variant.taxTyCd = newValue!;
         });
       },
-      items: options.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
     );
   }
 
-
   // Helper function to get a valid color or a default color
 
-// Helper function to check if a string is a valid hexadecimal color code
+  // Helper function to check if a string is a valid hexadecimal color code
 
   void _showSaveInProgressToast() {
     toast('Saving item in progress, please be patient!');
@@ -273,7 +334,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef) async {
-    if (model.productName == null) {
+    if (model.kProductName == null) {
       _showNoProductNameToast();
       return;
     }
@@ -288,9 +349,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     model.currentColor = pickerColor.toHex();
 
     Product? product = await model.saveProduct(
-      mproduct: productRef,
-      inUpdateProcess: widget.productId != null,
-    );
+        mproduct: productRef,
+        inUpdateProcess: widget.productId != null,
+        productName: model.kProductName!);
 
     ref
         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
@@ -319,7 +380,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         _savingInProgress = true;
       });
 
-      if (model.scannedVariants.isEmpty) {
+      /// if the there is no scanned variant and there is no productId it means we are creating new item
+      /// then we inforce having the variants saved, otherwise we can allow the user to edit the product name and or its
+      /// retail price, supply price.
+
+      if (model.scannedVariants.isEmpty && widget.productId == null) {
         _showNoProductSavedToast();
       } else {
         _saveProductAndVariants(model, context, product);
@@ -385,11 +450,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name!;
-          model.setProductName(name: product.name);
+          model.setProductName(name: product.name!);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.realm
-              .getVariantByProductId(productId: widget.productId!);
+          List<Variant> variants = await ProxyService.realm.variants(
+              productId: widget.productId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           /// populate the supplyPrice and retailPrice of the first item
           /// this in assumption that all variants added has same supply and retail price
@@ -578,7 +644,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                     padding: const EdgeInsets.all(16.0),
                     alignment: Alignment.center,
                     child: Text(
-                      'Product Name: ${model.productName}',
+                      'Product Name: ${model.kProductName}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -594,17 +660,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             DataTable(
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                  color: Colors
-                                      .transparent, // Set the border color to transparent to remove the border
+                                  color: Colors.transparent,
                                 ),
                               ),
                               columns: const [
-                                DataColumn(label: Text('Variant Name')),
+                                DataColumn(label: Text('Name')),
                                 DataColumn(label: Text('Price')),
                                 DataColumn(label: Text('Created At')),
                                 DataColumn(label: Text('Quantity')),
                                 DataColumn(label: Text('Tax')),
-                                DataColumn(label: Text('Unit of Measure')),
+                                DataColumn(label: Text('Unit')),
+                                DataColumn(label: Text('ClsCd')),
                                 DataColumn(label: Text('Action')),
                               ],
                               rows:
@@ -651,17 +717,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                           },
                                         ),
                                       ),
-
                                       DataCell(
                                         _buildTaxDropdown(
                                             context, variant, model),
                                       ),
-                                      //TODO: add tax options here to be attached to a variant.
                                       DataCell(
-                                        _buildUnitDropdown(
+                                        _buildUnitOfMeasureDropDown(
                                             context, variant, model),
                                       ),
-
+                                      DataCell(
+                                        _buildUniversalProductDropDown(
+                                            context, model),
+                                      ),
                                       DataCell(
                                         ElevatedButton(
                                           onPressed: () {

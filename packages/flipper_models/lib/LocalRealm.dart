@@ -32,8 +32,5 @@ abstract class LocalRealmInterface {
       {required Business business,
       required Branch branch,
       required String userType});
-  Future<bool> isDrawerOpen({required int cashierId});
-  Future<Drawers?> getDrawer({required int cashierId});
-
-  Future<Drawers?> openDrawer({required Drawers drawer});
+  Future<List<UnversalProduct>> universalProductNames({required int branchId});
 }

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_login/login.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -49,12 +50,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
         ),
         body: Align(
           alignment: Alignment.center,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 200.0),
-            child: SizedBox(
-              width: isDesktopOrWeb ? 380 : double.infinity,
-              child: buildForm(isProcessing),
-            ),
+          child: SizedBox(
+            width: isDesktopOrWeb ? 380 : double.infinity,
+            child: buildForm(isProcessing),
           ),
         ),
       ),
@@ -64,18 +62,24 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Widget buildForm(bool isProcessing) {
     return Form(
       key: _sub,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isDesktopOrWeb ? 0 : 13),
-        child: Column(
-          children: [
-            const Spacer(),
-            buildHeader(),
-            buildTextFormField(),
-            buildSubmitButton(isProcessing),
-            const Spacer(),
-            const Spacer(),
-          ],
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: constraints.maxWidth < 600 ? 16 : 200,
+            ),
+            child: Column(
+              children: [
+                const Spacer(),
+                buildHeader(),
+                buildTextFormField(),
+                buildSubmitButton(isProcessing),
+                const Spacer(),
+                const Spacer(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -100,7 +104,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
           Padding(
             padding: const EdgeInsets.only(left: 50.0),
             child: Text(
-              _formatClosingBalance(widget.drawer.closingBalance!),
+              _formatClosingBalance(double.tryParse(value ?? "0.0") ?? 0.0),
               style: GoogleFonts.poppins(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,
@@ -185,7 +189,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
   Future<void> handleOpenDrawer() async {
     Business? activeBusinesses = await ProxyService.local
         .activeBusinesses(userId: ProxyService.box.getUserId()!);
-    ProxyService.local.openDrawer(
+    ProxyService.realm.openDrawer(
       drawer: widget.drawer
         ..cashierId = activeBusinesses!.serverId!
         ..openingBalance = double.tryParse(_controller.text) ?? 0,
@@ -199,7 +203,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
     Business? activeBusinesses = await ProxyService.local
         .activeBusinesses(userId: ProxyService.box.getUserId()!);
 
-    Drawers? drawers = await ProxyService.local
+    Drawers? drawers = await ProxyService.realm
         .getDrawer(cashierId: activeBusinesses!.serverId!);
     if (drawers != null) {
       ProxyService.realm.realm!.write(() {
@@ -209,6 +213,11 @@ class _DrawerScreenState extends State<DrawerScreen> {
       });
     }
     await ProxyService.realm.logOut();
-    _routerService.navigateTo(LoginViewRoute());
+    // _routerService.replaceWithLoginView();
+    // _routerService.navigateTo(LoginViewRoute());
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => LoginView()),
+      (Route<dynamic> route) => false,
+    );
   }
 }

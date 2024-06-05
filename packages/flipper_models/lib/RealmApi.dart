@@ -334,6 +334,7 @@ class RealmAPI<M extends IJsonSerializable>
   void close() {
     if (realm == null) return null;
     realm!.close();
+    realm = null;
   }
 
   @override
@@ -674,14 +675,14 @@ class RealmAPI<M extends IJsonSerializable>
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<PColor>(color);
+          realm!.delete(color);
         });
         break;
       case 'device':
         realm!.write(() {
           Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
           realm!.write(() {
-            realm!.delete<Device>(device);
+            realm!.delete(device);
           });
           return false;
         });
@@ -689,57 +690,57 @@ class RealmAPI<M extends IJsonSerializable>
       case 'category':
         Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Category>(category);
+          realm!.delete(category);
         });
         break;
       case 'product':
         Product? product = realm!.query<Product>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Product>(product);
+          realm!.delete(product);
         });
         break;
       case 'variant':
         Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Variant>(variant);
+          realm!.delete(variant);
         });
         break;
       case 'stock':
         Stock? stock = realm!.query<Stock>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Stock>(stock);
+          realm!.delete(stock);
         });
         break;
       case 'setting':
         Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Setting>(setting);
+          realm!.delete(setting);
         });
         break;
       case 'pin':
         Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<Pin>(pin);
+          realm!.delete(pin);
         });
         break;
       case 'business':
         final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Business>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'branch':
         final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Branch>(business!);
+          realm!.delete(business!);
         });
         break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Voucher>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'transactionItem':
@@ -747,13 +748,13 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<TransactionItem>(transactionItem);
+          realm!.delete(transactionItem);
         });
         break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Customer>(customer);
+          realm!.delete(customer);
         });
         break;
       case 'tenant':
@@ -762,7 +763,7 @@ class RealmAPI<M extends IJsonSerializable>
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
-            realm!.delete<Tenant>(tenant!);
+            realm!.delete(tenant!);
             return true;
           });
         }
@@ -1172,12 +1173,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Variant>> getVariantByProductId({int? productId}) async {
-    return realm!.query<Variant>(
-        r'productId == $0 AND deletedAt == nil', [productId]).toList();
-  }
-
-  @override
   Stream<List<Variant>> getVariantByProductIdStream({int? productId}) {
     final controller = StreamController<List<Variant>>.broadcast();
 
@@ -1313,6 +1308,10 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<ITransaction> manageTransaction(
       {required String transactionType}) async {
+    /// check if realm is not closed
+    if (realm == null) {
+      throw Exception("realm is empty");
+    }
     int branchId = ProxyService.box.getBranchId()!;
     ITransaction? existTransaction = await pendingTransaction(
         branchId: branchId, transactionType: transactionType);
@@ -1637,7 +1636,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-        r'lastTouched >= $0 && lastTouched <= $1 && status == $2',
+        r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal >0',
         [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE]);
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
@@ -1847,7 +1846,7 @@ class RealmAPI<M extends IJsonSerializable>
       }
 
       // Construct the specific directory path
-      final realmDirectory = p.join(appSupportDirectory.path, 'v23');
+      final realmDirectory = p.join(appSupportDirectory.path, 'v24');
 
       // Create the directory if it doesn't exist
       final directory = Directory(realmDirectory);
@@ -1947,6 +1946,7 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
+    await realm!.syncSession.waitForDownload();
     await realm!.subscriptions.waitForSynchronization(token);
   }
 
@@ -2038,6 +2038,7 @@ class RealmAPI<M extends IJsonSerializable>
     final tenant = realm!.all<Tenant>();
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
+    final configs = realm!.query<Configurations>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2099,6 +2100,8 @@ class RealmAPI<M extends IJsonSerializable>
           name: "transaction-${branchId}", update: true);
       mutableSubscriptions.add(transactionItem,
           name: "transactionItem-${branchId}", update: true);
+
+      mutableSubscriptions.add(configs, name: "configs", update: true);
     });
   }
 
@@ -2286,8 +2289,8 @@ class RealmAPI<M extends IJsonSerializable>
             itemNm: product.name,
             bhfId: business.bhfId ?? '00',
             isTaxExempted: false,
-            itemClsCd:
-                "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+            // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+            itemClsCd: "5020230602",
             itemCd: randomNumber().toString().substring(0, 5),
             modrNm: number,
             modrId: number,
@@ -2303,25 +2306,26 @@ class RealmAPI<M extends IJsonSerializable>
             itemStdNm: product.name,
             taxPercentage: 18.0,
             tin: business.tinNumber,
-            bcd: variant!.name,
+            bcd: CUSTOM_PRODUCT,
 
             /// country of origin for this item we default until we support something different
             /// and this will happen when we do import.
             orgnNatCd: "RW",
 
             /// registration name
-            regrNm: variant.name,
+            regrNm: CUSTOM_PRODUCT,
 
             /// taxation type code
             taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
             // default unit price
-            dftPrc: variant.retailPrice,
+            dftPrc: 0,
 
             // NOTE: I believe bellow item are required when saving purchase
             ///but I wonder how to get them when saving an item.
             spplrItemCd: randomNumber().toString().substring(0, 5),
             spplrItemClsCd: randomNumber().toString().substring(0, 5),
-            spplrItemNm: variant.name);
+            spplrItemNm: CUSTOM_PRODUCT,
+            qtyUnitCd: "U");
 
         Stock stock = Stock(ObjectId(),
             lastTouched: DateTime.now(),
@@ -2351,8 +2355,10 @@ class RealmAPI<M extends IJsonSerializable>
 
         return realm!.query<Variant>(r'id == $0 ', [variantId]).firstOrNull;
       }
-    } catch (e) {
+    } catch (e, s) {
       // Handle error during write operation
+      talker.error(e);
+      talker.error(s);
       throw Exception(e);
     }
     return variant;
@@ -2553,21 +2559,28 @@ class RealmAPI<M extends IJsonSerializable>
     yield* controller.stream;
   }
 
-
   @override
-  TaxConfig getByTaxType({required String taxtype}) {
-    TaxConfig result;
+  Configurations getByTaxType({required String taxtype}) {
+    Configurations result;
     double taxPercentage;
 
-    if(taxtype == "Tax B"){
+    Configurations? config =
+        realm!.query<Configurations>(r'taxType == $0', [taxtype]).firstOrNull;
+
+    if (config != null) return config;
+
+    if (taxtype == "B") {
       taxPercentage = 18.0;
-    }else{
+    } else {
       taxPercentage = 0.0;
     }
 
-    result = TaxConfig( ObjectId(),
+    result = Configurations(
+      ObjectId(),
       taxPercentage: taxPercentage,
       taxType: taxtype,
+      branchId: ProxyService.box.getBranchId(),
+      businessId: ProxyService.box.getBusinessId(),
     );
 
     return result;
@@ -2592,6 +2605,9 @@ class RealmAPI<M extends IJsonSerializable>
         'phone': ProxyService.box.getUserPhone(),
         'defaultApp': ProxyService.box.getDefaultApp(),
         'deviceName': Platform.operatingSystem,
+        'uid':
+            (await firebase.FirebaseAuth.instance.currentUser?.getIdToken()) ??
+                "",
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': randomNumber().toString()
       });
@@ -2608,7 +2624,33 @@ class RealmAPI<M extends IJsonSerializable>
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
-    // await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+
+    /// refreshing the user token will invalidate any session
+    await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+    close();
     return Future.value(true);
+  }
+  //// drawers
+
+  @override
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    return realm!.query<Drawers>(
+            r'cashierId == $0 AND open==true', [cashierId]).firstOrNull !=
+        null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    return realm!.query<Drawers>(
+        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
+  }
+
+  @override
+  Future<Drawers?> openDrawer({required Drawers drawer}) async {
+    await realm!.writeAsync(() {
+      realm!.add<Drawers>(drawer);
+    });
+    return realm!.query<Drawers>(
+        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 }

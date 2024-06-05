@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/exceptions.dart';
+import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -15,7 +15,6 @@ import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -26,6 +25,129 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
   @override
   Realm? localRealm;
+
+  void dataCb(Realm realm) {
+    List<Map<String, dynamic>> itemClsList = [
+      {
+        "itemClsCd": "5020230601",
+        "itemClsNm": "Fanta",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "5020230602",
+        "itemClsNm": "water",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "5020230102",
+        "itemClsNm": "Inyange",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "1112200101",
+        "itemClsNm": "Gypsum boad",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "3011170102",
+        "itemClsNm": "Gypsum board 1",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "10122101",
+        "itemClsNm": "Miscellaneous animal food",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "50202203",
+        "itemClsNm": "Wine",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "26111612",
+        "itemClsNm": "Solar equipment systems",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "31211905",
+        "itemClsNm": "Paint mixers",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "10171702",
+        "itemClsNm": "Fungicides",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "22101539",
+        "itemClsNm": "Earthmoving machinery parts and accessories",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "25132100",
+        "itemClsNm": "Unmanned aerial vehicle",
+        "itemClsLvl": 3,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+    ];
+
+    for (final item in itemClsList) {
+      // Check if an item with the same 'itemClsCd' already exists
+      final existingItem = realm.query<UnversalProduct>(
+        r'itemClsCd == $0',
+        [item['itemClsCd']],
+      ).firstOrNull;
+
+      // If it doesn't exist, add it
+      if (existingItem == null) {
+        realm.add(UnversalProduct(
+          ObjectId(),
+          id: 1,
+          itemClsCd: item['itemClsCd'],
+          itemClsNm: item['itemClsNm'],
+          itemClsLvl: item['itemClsLvl'],
+          taxTyCd: item['taxTyCd'],
+          mjrTgYn: item['mjrTgYn'],
+          useYn: item['useYn'],
+        ));
+      }
+    }
+  }
 
   @override
   Future<LocalRealmInterface> configureLocal(
@@ -57,7 +179,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           Business.schema,
           Branch.schema,
           Drawers.schema,
+          UnversalProduct.schema,
         ],
+        initialDataCallback: dataCb,
         path: path,
         encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
@@ -124,19 +248,19 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required int branchId, int? refreshRate = 5}) async {
     while (true) {
       try {
-        int userId = ProxyService.box.getUserId()!;
+        int? userId = ProxyService.box.getUserId();
+        if (userId == null) return;
         bool noActivity = await hasNoActivityInLast5Minutes(
             userId: userId, refreshRate: refreshRate);
         talker.warning(noActivity.toString());
 
         if (noActivity) {
-          Tenant? tenant =
-              await getTenantBYUserId(userId: ProxyService.box.getUserId()!);
+          Tenant? tenant = await getTenantBYUserId(userId: userId);
           ProxyService.realm.realm!
               .writeAsync(() => tenant!.sessionActive = false);
         }
-      } catch (error) {
-        talker.error('Error fetching tenant: $error');
+      } catch (error, s) {
+        talker.error('Error fetching tenant: $s');
       }
       await Future.delayed(Duration(minutes: refreshRate!));
     }
@@ -928,25 +1052,80 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  @override
-  Future<bool> isDrawerOpen({required int cashierId}) async {
-    return localRealm!.query<Drawers>(
-            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
-        null;
+// Function to fetch data from the URL endpoint
+  Future<void> fetchDataAndSaveUniversalProducts() async {
+    try {
+      Business business =
+          getBusiness(businessId: ProxyService.box.getBusinessId());
+
+      final url = "https://turbo.yegobox.com/itemClass/selectItemsClass";
+      final headers = {"Content-Type": "application/json"};
+      final body = jsonEncode({
+        "tin": business.tinNumber,
+        "bhfId": business.bhfId ?? "00",
+
+        ///TODO: change this date to a working date in production
+        "lastReqDt": "20190523000000",
+      });
+
+      final response =
+          await http.post(Uri.parse(url), headers: headers, body: body);
+      if (response.statusCode == 200) {
+        // Parse the JSON response
+        final jsonResponse = json.decode(response.body);
+
+        // Check if the response contains the data and itemClsList
+        if (jsonResponse['data'] != null &&
+            jsonResponse['data']['itemClsList'] != null) {
+          final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
+
+          // Loop through the itemClsList and print the itemClsNm (name)
+          for (var item in itemClsList) {
+            final UniversalProduct product = UniversalProduct.fromJson(item);
+            UnversalProduct? uni = localRealm!.query<UnversalProduct>(
+                r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
+            if (uni == null) {
+              talker.info("Now saving universal");
+              localRealm!.write(() {
+                localRealm!.add(
+                  UnversalProduct(
+                    ObjectId(),
+                    id: randomNumber(),
+                    itemClsCd: product.itemClsCd,
+                    itemClsLvl: product.itemClsLvl,
+                    itemClsNm: product.itemClsNm,
+                    branchId: ProxyService.box.getBranchId(),
+                    businessId: ProxyService.box.getBusinessId(),
+                    useYn: product.useYn,
+                    mjrTgYn: product.mjrTgYn,
+                    taxTyCd: product.taxTyCd,
+                  ),
+                );
+              });
+            }
+          }
+        } else {
+          talker.warning('No data found in the response.');
+        }
+      } else {
+        talker
+            .error('Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      talker.error('Error fetching data: $e');
+    }
   }
 
   @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    return localRealm!.query<Drawers>(
-        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
-  }
+  Future<List<UnversalProduct>> universalProductNames(
+      {required int branchId}) async {
+    /// attempt to re-add new universal item names but do not wait for the future
+    /// this means I can face side effect but that is okay
+    fetchDataAndSaveUniversalProducts();
+    print("this is invoked");
+    List<UnversalProduct> items = localRealm!
+        .query<UnversalProduct>(r'branchId == $0', [branchId]).toList();
 
-  @override
-  Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await localRealm!.writeAsync(() {
-      localRealm!.add<Drawers>(drawer);
-    });
-    return localRealm!.query<Drawers>(
-        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
+    return items;
   }
 }

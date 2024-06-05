@@ -8,8 +8,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart' as loc;
 
 mixin ProductMixin {
-  String? productName;
-
   final ProductService productService = loc.getIt<ProductService>();
   String currentColor = '#0984e3';
 
@@ -30,6 +28,7 @@ mixin ProductMixin {
           variant.pkgUnitCd = packagingUnit;
           final number = randomNumber().toString().substring(0, 5);
 
+          ///TODO:
           /// this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
           variant.itemClsCd = "5020230602";
           variant.itemCd = randomNumber().toString().substring(0, 5);
@@ -60,7 +59,8 @@ mixin ProductMixin {
           variant.regrNm = variant.name;
 
           /// taxation type code
-          variant.taxTyCd = variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
+          variant.taxTyCd =
+              variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
           // default unit price
           variant.dftPrc = variant.retailPrice;
 
@@ -87,16 +87,18 @@ mixin ProductMixin {
 
   /// Add a product into the system
   Future<Product?> saveProduct(
-      {required Product mproduct, required bool inUpdateProcess}) async {
+      {required Product mproduct,
+      required bool inUpdateProcess,
+      required String productName}) async {
     ProxyService.analytics
         .trackEvent("product_creation", {'feature_name': 'product_creation'});
 
     Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
-    List<Variant> variants =
-        await ProxyService.realm.getVariantByProductId(productId: mproduct.id);
+    List<Variant> variants = await ProxyService.realm.variants(
+        productId: mproduct.id, branchId: ProxyService.box.getBranchId()!);
     ProxyService.realm.realm!.write(() {
-      mproduct.name = productName!;
+      mproduct.name = productName;
       mproduct.barCode = productService.barCode.toString();
       mproduct.color = currentColor;
 

@@ -8,6 +8,7 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -156,28 +157,33 @@ class CoreViewModel extends FlipperBaseModel
 
   void handleClearKey(
       List<TransactionItem> items, ITransaction pendingTransaction) async {
-    if (items.isEmpty) {
+    try {
+      if (items.isEmpty) {
+        ProxyService.keypad.reset();
+        return;
+      }
       ProxyService.keypad.reset();
-      return;
-    }
-    ProxyService.keypad.reset();
-    TransactionItem itemToDelete = items.last;
-    await ProxyService.realm
-        .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
+      TransactionItem itemToDelete = items.last;
+      await ProxyService.realm
+          .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
 
-    ProxyService.realm.realm!.writeAsync(() async {
       List<TransactionItem> updatedItems = await ProxyService.realm
           .transactionItems(
               transactionId: pendingTransaction.id!,
               doneWithTransaction: false,
               active: true);
-      pendingTransaction.subTotal =
-          updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
-      pendingTransaction.updatedAt = DateTime.now().toIso8601String();
-    });
-    ITransaction? updatedTransaction =
-        await ProxyService.realm.getTransactionById(id: pendingTransaction.id!);
-    keypad.setTransaction(updatedTransaction);
+      ProxyService.realm.realm!.write(() {
+        pendingTransaction.subTotal =
+            updatedItems.fold(0, (a, b) => a + (b.price * b.qty));
+        pendingTransaction.updatedAt = DateTime.now().toIso8601String();
+      });
+      ITransaction? updatedTransaction = await ProxyService.realm
+          .getTransactionById(id: pendingTransaction.id!);
+      keypad.setTransaction(updatedTransaction);
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+    }
   }
 
   void handleSingleDigitKey(
@@ -202,12 +208,12 @@ class CoreViewModel extends FlipperBaseModel
         id: randomNumber(),
         qty: 1,
         action: AppActions.created,
-        price: amount / 1,
+        price: amount,
         variantId: variation.id!,
         name: name,
         branchId: ProxyService.box.getBranchId(),
         discount: 0.0,
-        prc: variation.retailPrice,
+        prc: amount,
         doneWithTransaction: false,
         active: false,
         transactionId: pendingTransaction.id!,
@@ -258,7 +264,8 @@ class CoreViewModel extends FlipperBaseModel
       if (existTransactionItem != null) {
         await ProxyService.realm.realm!.writeAsync(() {
           existTransactionItem.qty = existTransactionItem.qty + 1;
-          existTransactionItem.price = amount / 1; // price of one unit
+          existTransactionItem.price = amount;
+          existTransactionItem.prc = amount;
 
           pendingTransaction.subTotal =
               items.fold(0, (a, b) => a + (b.price * b.qty) + amount);
@@ -270,12 +277,12 @@ class CoreViewModel extends FlipperBaseModel
           id: randomNumber(),
           qty: 1,
           action: AppActions.created,
-          price: amount / 1,
+          price: amount,
           variantId: variation.id!,
           name: name,
           branchId: ProxyService.box.getBranchId(),
           discount: 0.0,
-          prc: variation.retailPrice,
+          prc: amount,
           doneWithTransaction: false,
           active: false,
           transactionId: pendingTransaction.id!,

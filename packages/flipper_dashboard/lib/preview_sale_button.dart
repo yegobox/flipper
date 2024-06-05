@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/states/productListProvider.dart';
@@ -45,7 +43,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   }
 
   void _handleOrderFlow(BuildContext context, CoreViewModel model) {
-    final cartItem = ref.read(productFromSupplier);
+    final cartItem = ref.watch(productFromSupplier); // Use watch here
 
     if (cartItem.value != null && cartItem.value!.isNotEmpty) {
       Navigator.of(context).push(
@@ -97,6 +95,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     final transaction = widget.mode == SellingMode.forOrdering
         ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
         : ref.watch(pendingTransactionProvider(TransactionType.custom));
+
     final itemCount = ref
             .watch(transactionItemsStreamProvider(transaction.value?.value?.id))
             .value

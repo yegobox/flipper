@@ -118,6 +118,10 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Branch>(this);
 
   @override
+  Stream<RealmObjectChanges<Branch>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Branch>(this, keyPaths);
+
+  @override
   Branch freeze() => RealmObjectBase.freezeObject<Branch>(this);
 
   EJsonValue toEJson() {
@@ -564,6 +568,10 @@ class Business extends _Business
       RealmObjectBase.getChanges<Business>(this);
 
   @override
+  Stream<RealmObjectChanges<Business>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Business>(this, keyPaths);
+
+  @override
   Business freeze() => RealmObjectBase.freezeObject<Business>(this);
 
   EJsonValue toEJson() {
@@ -866,6 +874,10 @@ class Category extends _Category
       RealmObjectBase.getChanges<Category>(this);
 
   @override
+  Stream<RealmObjectChanges<Category>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Category>(this, keyPaths);
+
+  @override
   Category freeze() => RealmObjectBase.freezeObject<Category>(this);
 
   EJsonValue toEJson() {
@@ -1021,6 +1033,10 @@ class PColor extends _PColor with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<PColor>> get changes =>
       RealmObjectBase.getChanges<PColor>(this);
+
+  @override
+  Stream<RealmObjectChanges<PColor>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<PColor>(this, keyPaths);
 
   @override
   PColor freeze() => RealmObjectBase.freezeObject<PColor>(this);
@@ -1269,6 +1285,11 @@ class Conversation extends _Conversation
       RealmObjectBase.getChanges<Conversation>(this);
 
   @override
+  Stream<RealmObjectChanges<Conversation>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Conversation>(this, keyPaths);
+
+  @override
   Conversation freeze() => RealmObjectBase.freezeObject<Conversation>(this);
 
   EJsonValue toEJson() {
@@ -1461,6 +1482,10 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Counter>> get changes =>
       RealmObjectBase.getChanges<Counter>(this);
+
+  @override
+  Stream<RealmObjectChanges<Counter>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Counter>(this, keyPaths);
 
   @override
   Counter freeze() => RealmObjectBase.freezeObject<Counter>(this);
@@ -1715,6 +1740,10 @@ class Customer extends _Customer
       RealmObjectBase.getChanges<Customer>(this);
 
   @override
+  Stream<RealmObjectChanges<Customer>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Customer>(this, keyPaths);
+
+  @override
   Customer freeze() => RealmObjectBase.freezeObject<Customer>(this);
 
   EJsonValue toEJson() {
@@ -1959,6 +1988,10 @@ class Device extends _Device with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Device>(this);
 
   @override
+  Stream<RealmObjectChanges<Device>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Device>(this, keyPaths);
+
+  @override
   Device freeze() => RealmObjectBase.freezeObject<Device>(this);
 
   EJsonValue toEJson() {
@@ -2093,6 +2126,10 @@ class Discount extends _Discount
   @override
   Stream<RealmObjectChanges<Discount>> get changes =>
       RealmObjectBase.getChanges<Discount>(this);
+
+  @override
+  Stream<RealmObjectChanges<Discount>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Discount>(this, keyPaths);
 
   @override
   Discount freeze() => RealmObjectBase.freezeObject<Discount>(this);
@@ -2324,6 +2361,10 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Drawers>(this);
 
   @override
+  Stream<RealmObjectChanges<Drawers>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Drawers>(this, keyPaths);
+
+  @override
   Drawers freeze() => RealmObjectBase.freezeObject<Drawers>(this);
 
   EJsonValue toEJson() {
@@ -2536,6 +2577,10 @@ class EBM extends _EBM with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<EBM>(this);
 
   @override
+  Stream<RealmObjectChanges<EBM>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<EBM>(this, keyPaths);
+
+  @override
   EBM freeze() => RealmObjectBase.freezeObject<EBM>(this);
 
   EJsonValue toEJson() {
@@ -2683,6 +2728,10 @@ class Favorite extends _Favorite
   @override
   Stream<RealmObjectChanges<Favorite>> get changes =>
       RealmObjectBase.getChanges<Favorite>(this);
+
+  @override
+  Stream<RealmObjectChanges<Favorite>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Favorite>(this, keyPaths);
 
   @override
   Favorite freeze() => RealmObjectBase.freezeObject<Favorite>(this);
@@ -2938,6 +2987,10 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Product>> get changes =>
       RealmObjectBase.getChanges<Product>(this);
+
+  @override
+  Stream<RealmObjectChanges<Product>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Product>(this, keyPaths);
 
   @override
   Product freeze() => RealmObjectBase.freezeObject<Product>(this);
@@ -3209,6 +3262,10 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Receipt>> get changes =>
       RealmObjectBase.getChanges<Receipt>(this);
+
+  @override
+  Stream<RealmObjectChanges<Receipt>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Receipt>(this, keyPaths);
 
   @override
   Receipt freeze() => RealmObjectBase.freezeObject<Receipt>(this);
@@ -3511,6 +3568,10 @@ class Setting extends _Setting with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Setting>> get changes =>
       RealmObjectBase.getChanges<Setting>(this);
+
+  @override
+  Stream<RealmObjectChanges<Setting>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Setting>(this, keyPaths);
 
   @override
   Setting freeze() => RealmObjectBase.freezeObject<Setting>(this);
@@ -3818,6 +3879,10 @@ class Stock extends _Stock with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Stock>> get changes =>
       RealmObjectBase.getChanges<Stock>(this);
+
+  @override
+  Stream<RealmObjectChanges<Stock>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Stock>(this, keyPaths);
 
   @override
   Stock freeze() => RealmObjectBase.freezeObject<Stock>(this);
@@ -4357,6 +4422,10 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Variant>> get changes =>
       RealmObjectBase.getChanges<Variant>(this);
+
+  @override
+  Stream<RealmObjectChanges<Variant>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Variant>(this, keyPaths);
 
   @override
   Variant freeze() => RealmObjectBase.freezeObject<Variant>(this);
@@ -5039,6 +5108,11 @@ class TransactionItem extends _TransactionItem
       RealmObjectBase.getChanges<TransactionItem>(this);
 
   @override
+  Stream<RealmObjectChanges<TransactionItem>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<TransactionItem>(this, keyPaths);
+
+  @override
   TransactionItem freeze() =>
       RealmObjectBase.freezeObject<TransactionItem>(this);
 
@@ -5531,6 +5605,11 @@ class ITransaction extends _ITransaction
       RealmObjectBase.getChanges<ITransaction>(this);
 
   @override
+  Stream<RealmObjectChanges<ITransaction>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<ITransaction>(this, keyPaths);
+
+  @override
   ITransaction freeze() => RealmObjectBase.freezeObject<ITransaction>(this);
 
   EJsonValue toEJson() {
@@ -5767,6 +5846,10 @@ class IUnit extends _IUnit with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<IUnit>(this);
 
   @override
+  Stream<RealmObjectChanges<IUnit>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<IUnit>(this, keyPaths);
+
+  @override
   IUnit freeze() => RealmObjectBase.freezeObject<IUnit>(this);
 
   EJsonValue toEJson() {
@@ -5907,6 +5990,10 @@ class Voucher extends _Voucher with RealmEntity, RealmObjectBase, RealmObject {
   @override
   Stream<RealmObjectChanges<Voucher>> get changes =>
       RealmObjectBase.getChanges<Voucher>(this);
+
+  @override
+  Stream<RealmObjectChanges<Voucher>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Voucher>(this, keyPaths);
 
   @override
   Voucher freeze() => RealmObjectBase.freezeObject<Voucher>(this);
@@ -6108,6 +6195,10 @@ class Tenant extends _Tenant with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Tenant>(this);
 
   @override
+  Stream<RealmObjectChanges<Tenant>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Tenant>(this, keyPaths);
+
+  @override
   Tenant freeze() => RealmObjectBase.freezeObject<Tenant>(this);
 
   EJsonValue toEJson() {
@@ -6263,6 +6354,10 @@ class Pin extends _Pin with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Pin>(this);
 
   @override
+  Stream<RealmObjectChanges<Pin>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Pin>(this, keyPaths);
+
+  @override
   Pin freeze() => RealmObjectBase.freezeObject<Pin>(this);
 
   EJsonValue toEJson() {
@@ -6361,6 +6456,11 @@ class LPermission extends _LPermission
   @override
   Stream<RealmObjectChanges<LPermission>> get changes =>
       RealmObjectBase.getChanges<LPermission>(this);
+
+  @override
+  Stream<RealmObjectChanges<LPermission>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<LPermission>(this, keyPaths);
 
   @override
   LPermission freeze() => RealmObjectBase.freezeObject<LPermission>(this);
@@ -6493,6 +6593,10 @@ class Token extends _Token with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.getChanges<Token>(this);
 
   @override
+  Stream<RealmObjectChanges<Token>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Token>(this, keyPaths);
+
+  @override
   Token freeze() => RealmObjectBase.freezeObject<Token>(this);
 
   EJsonValue toEJson() {
@@ -6612,6 +6716,11 @@ class UserActivity extends _UserActivity
       RealmObjectBase.getChanges<UserActivity>(this);
 
   @override
+  Stream<RealmObjectChanges<UserActivity>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<UserActivity>(this, keyPaths);
+
+  @override
   UserActivity freeze() => RealmObjectBase.freezeObject<UserActivity>(this);
 
   EJsonValue toEJson() {
@@ -6662,37 +6771,78 @@ class UserActivity extends _UserActivity
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
 
-class TaxConfig extends _TaxConfig with RealmEntity, RealmObjectBase, RealmObject {
-  TaxConfig(
-      ObjectId realmId, {
-        required String taxType,
-        required double taxPercentage,
-        int? businessId,
-        int? branchId,
-      }) {
+class UnversalProduct extends _UnversalProduct
+    with RealmEntity, RealmObjectBase, RealmObject {
+  UnversalProduct(
+    ObjectId realmId, {
+    int? id,
+    String? itemClsCd,
+    String? itemClsNm,
+    int? itemClsLvl,
+    String? taxTyCd,
+    String? mjrTgYn,
+    String? useYn,
+    int? businessId,
+    int? branchId,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
-    RealmObjectBase.set(this, 'taxType', taxType);
-    RealmObjectBase.set(this, 'taxPercentage', taxPercentage);
+    RealmObjectBase.set(this, 'itemClsCd', itemClsCd);
+    RealmObjectBase.set(this, 'itemClsNm', itemClsNm);
+    RealmObjectBase.set(this, 'itemClsLvl', itemClsLvl);
+    RealmObjectBase.set(this, 'taxTyCd', taxTyCd);
+    RealmObjectBase.set(this, 'mjrTgYn', mjrTgYn);
+    RealmObjectBase.set(this, 'useYn', useYn);
     RealmObjectBase.set(this, 'businessId', businessId);
     RealmObjectBase.set(this, 'branchId', branchId);
   }
 
-  TaxConfig._();
+  UnversalProduct._();
 
   @override
-  ObjectId get realmId => RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
   @override
   set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
-  String get taxType => RealmObjectBase.get<String>(this, 'taxType') as String;
+  String? get itemClsCd =>
+      RealmObjectBase.get<String>(this, 'itemClsCd') as String?;
   @override
-  set taxType(String value) => RealmObjectBase.set(this, 'taxType', value);
+  set itemClsCd(String? value) => RealmObjectBase.set(this, 'itemClsCd', value);
 
   @override
-  double get taxPercentage => RealmObjectBase.get<double>(this, 'taxPercentage') as double;
+  String? get itemClsNm =>
+      RealmObjectBase.get<String>(this, 'itemClsNm') as String?;
   @override
-  set taxPercentage(double value) => RealmObjectBase.set(this, 'taxPercentage', value);
+  set itemClsNm(String? value) => RealmObjectBase.set(this, 'itemClsNm', value);
+
+  @override
+  int? get itemClsLvl => RealmObjectBase.get<int>(this, 'itemClsLvl') as int?;
+  @override
+  set itemClsLvl(int? value) => RealmObjectBase.set(this, 'itemClsLvl', value);
+
+  @override
+  String? get taxTyCd =>
+      RealmObjectBase.get<String>(this, 'taxTyCd') as String?;
+  @override
+  set taxTyCd(String? value) => RealmObjectBase.set(this, 'taxTyCd', value);
+
+  @override
+  String? get mjrTgYn =>
+      RealmObjectBase.get<String>(this, 'mjrTgYn') as String?;
+  @override
+  set mjrTgYn(String? value) => RealmObjectBase.set(this, 'mjrTgYn', value);
+
+  @override
+  String? get useYn => RealmObjectBase.get<String>(this, 'useYn') as String?;
+  @override
+  set useYn(String? value) => RealmObjectBase.set(this, 'useYn', value);
 
   @override
   int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
@@ -6705,13 +6855,164 @@ class TaxConfig extends _TaxConfig with RealmEntity, RealmObjectBase, RealmObjec
   set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
 
   @override
-  Stream<RealmObjectChanges<TaxConfig>> get changes => RealmObjectBase.getChanges<TaxConfig>(this);
+  Stream<RealmObjectChanges<UnversalProduct>> get changes =>
+      RealmObjectBase.getChanges<UnversalProduct>(this);
 
   @override
-  TaxConfig freeze() => RealmObjectBase.freezeObject<TaxConfig>(this);
+  Stream<RealmObjectChanges<UnversalProduct>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<UnversalProduct>(this, keyPaths);
+
+  @override
+  UnversalProduct freeze() =>
+      RealmObjectBase.freezeObject<UnversalProduct>(this);
 
   EJsonValue toEJson() {
     return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'itemClsCd': itemClsCd.toEJson(),
+      'itemClsNm': itemClsNm.toEJson(),
+      'itemClsLvl': itemClsLvl.toEJson(),
+      'taxTyCd': taxTyCd.toEJson(),
+      'mjrTgYn': mjrTgYn.toEJson(),
+      'useYn': useYn.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(UnversalProduct value) => value.toEJson();
+  static UnversalProduct _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'itemClsCd': EJsonValue itemClsCd,
+        'itemClsNm': EJsonValue itemClsNm,
+        'itemClsLvl': EJsonValue itemClsLvl,
+        'taxTyCd': EJsonValue taxTyCd,
+        'mjrTgYn': EJsonValue mjrTgYn,
+        'useYn': EJsonValue useYn,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
+      } =>
+        UnversalProduct(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          itemClsCd: fromEJson(itemClsCd),
+          itemClsNm: fromEJson(itemClsNm),
+          itemClsLvl: fromEJson(itemClsLvl),
+          taxTyCd: fromEJson(taxTyCd),
+          mjrTgYn: fromEJson(mjrTgYn),
+          useYn: fromEJson(useYn),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(UnversalProduct._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(
+        ObjectType.realmObject, UnversalProduct, 'UnversalProduct', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('itemClsCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('itemClsNm', RealmPropertyType.string, optional: true),
+      SchemaProperty('itemClsLvl', RealmPropertyType.int, optional: true),
+      SchemaProperty('taxTyCd', RealmPropertyType.string, optional: true),
+      SchemaProperty('mjrTgYn', RealmPropertyType.string, optional: true),
+      SchemaProperty('useYn', RealmPropertyType.string, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class Configurations extends _Configurations
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Configurations(
+    ObjectId realmId, {
+    int? id,
+    String? taxType = "B",
+    double? taxPercentage = 18.0,
+    int? businessId,
+    int? branchId,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Configurations>({
+        'taxType': "B",
+        'taxPercentage': 18.0,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'taxType', taxType);
+    RealmObjectBase.set(this, 'taxPercentage', taxPercentage);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+  }
+
+  Configurations._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  String? get taxType =>
+      RealmObjectBase.get<String>(this, 'taxType') as String?;
+  @override
+  set taxType(String? value) => RealmObjectBase.set(this, 'taxType', value);
+
+  @override
+  double? get taxPercentage =>
+      RealmObjectBase.get<double>(this, 'taxPercentage') as double?;
+  @override
+  set taxPercentage(double? value) =>
+      RealmObjectBase.set(this, 'taxPercentage', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  Stream<RealmObjectChanges<Configurations>> get changes =>
+      RealmObjectBase.getChanges<Configurations>(this);
+
+  @override
+  Stream<RealmObjectChanges<Configurations>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Configurations>(this, keyPaths);
+
+  @override
+  Configurations freeze() => RealmObjectBase.freezeObject<Configurations>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
       '_id': realmId.toEJson(),
       'taxType': taxType.toEJson(),
       'taxPercentage': taxPercentage.toEJson(),
@@ -6720,33 +7021,39 @@ class TaxConfig extends _TaxConfig with RealmEntity, RealmObjectBase, RealmObjec
     };
   }
 
-  static EJsonValue _toEJson(TaxConfig value) => value.toEJson();
-  static TaxConfig _fromEJson(EJsonValue ejson) {
+  static EJsonValue _toEJson(Configurations value) => value.toEJson();
+  static Configurations _fromEJson(EJsonValue ejson) {
     return switch (ejson) {
       {
-      '_id': EJsonValue realmId,
-      'taxType': EJsonValue taxType,
-      'taxPercentage': EJsonValue taxPercentage,
-      'businessId': EJsonValue businessId,
-      'branchId': EJsonValue branchId,
-      } => TaxConfig(
-        fromEJson(realmId),
-        taxType: fromEJson(taxType),
-        taxPercentage: fromEJson(taxPercentage),
-        businessId: fromEJson(businessId),
-        branchId: fromEJson(branchId),
-      ),
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'taxType': EJsonValue taxType,
+        'taxPercentage': EJsonValue taxPercentage,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
+      } =>
+        Configurations(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          taxType: fromEJson(taxType),
+          taxPercentage: fromEJson(taxPercentage),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
+        ),
       _ => raiseInvalidEJson(ejson),
     };
   }
 
   static final schema = () {
-    RealmObjectBase.registerFactory(TaxConfig._);
+    RealmObjectBase.registerFactory(Configurations._);
     register(_toEJson, _fromEJson);
-    return SchemaObject(ObjectType.realmObject, TaxConfig, 'TaxConfig', [
-      SchemaProperty('realmId', RealmPropertyType.objectid, mapTo: '_id', primaryKey: true),
-      SchemaProperty('taxType', RealmPropertyType.string),
-      SchemaProperty('taxPercentage', RealmPropertyType.double),
+    return SchemaObject(
+        ObjectType.realmObject, Configurations, 'Configurations', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('taxType', RealmPropertyType.string, optional: true),
+      SchemaProperty('taxPercentage', RealmPropertyType.double, optional: true),
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
     ]);

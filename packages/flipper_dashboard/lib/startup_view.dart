@@ -1,7 +1,10 @@
 library flipper_dashboard;
 
+import 'package:flipper_dashboard/CustomProviderContainer.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -21,6 +24,10 @@ class _StartUpViewState extends State<StartUpView> {
     return ViewModelBuilder<StartupViewModel>.reactive(
       viewModelBuilder: () => StartupViewModel(),
       onViewModelReady: (viewModel) {
+        final container = ProviderContainer();
+
+        // Invalidate all providers before starting the app
+        invalidateAllProviders(container, allProviders);
         SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
           await viewModel.runStartupLogic(
               refreshCredentials: widget.invokeLogin ?? false);

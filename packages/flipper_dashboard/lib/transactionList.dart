@@ -17,9 +17,15 @@ class TransactionList extends ConsumerWidget {
         return Container(
           width: 150,
           height: 800,
-          child: DataView(
-            transactions: transactionData,
-          ),
+          child: transactionData.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 28.0),
+                  child: Center(
+                      child: Text("Please select a date to query reports")),
+                )
+              : DataView(
+                  transactions: transactionData,
+                ),
         );
       },
       loading: () => Padding(

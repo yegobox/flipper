@@ -125,6 +125,8 @@ class CronService {
     // create a compute function to keep track of unsaved data back to EBM do this in background
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
+      if (ProxyService.box.getUserId() == null ||
+          ProxyService.box.getBusinessId() == null) return;
       await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
 

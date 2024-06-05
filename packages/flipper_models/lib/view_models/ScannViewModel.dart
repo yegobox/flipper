@@ -19,7 +19,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   List<String> pkgUnits = [];
 
   void initialize() {
-    scannedVariants = [];
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
@@ -73,7 +72,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         productId: product.id,
         color: currentColor,
         unit: 'Per Item',
-        productName: productName ?? product.name,
+        productName: kProductName ?? product.name,
         branchId: branchId,
         isTaxExempted: isTaxExempted,
         action: AppActions.created,
@@ -103,11 +102,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     );
   }
 
-  void setProductName({String? name}) {
-    productName = name;
-    notifyListeners();
-  }
-
   void removeVariant({required int id}) {
     // Find the index of the variant with the specified id
     int index = scannedVariants.indexWhere((variant) => variant.id == id);
@@ -115,7 +109,9 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     if (index != -1) {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
-      ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      try {
+        ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      } catch (e) {}
       scannedVariants.removeAt(index);
       notifyListeners();
     }

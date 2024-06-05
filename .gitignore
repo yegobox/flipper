@@ -66,3 +66,7 @@ android/.gradle
 pubspec.lock
 android/.gradle/7.4/executionHistory/executionHistory.bin
 build
+
+upload-keystore.jks
+upload_certificate.pem
+keystoreBase64

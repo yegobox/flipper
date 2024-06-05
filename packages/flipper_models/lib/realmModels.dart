@@ -24,5 +24,5 @@ final realmModels = [
   Setting.schema,
   Voucher.schema,
   Token.schema,
-  TaxConfig.schema,
+  Configurations.schema,
 ];

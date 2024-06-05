@@ -9,8 +9,6 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 
-import 'helperModels/tenant.dart';
-
 extension StringToIntList on String? {
   List<int> toIntList() {
     if (this == null) {
@@ -76,7 +74,7 @@ abstract class RealmApiInterface {
     required int branchId,
     int? productId,
   });
-  TaxConfig getByTaxType({required String taxtype});
+  Configurations getByTaxType({required String taxtype});
   Future<Variant?> variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
@@ -160,7 +158,6 @@ abstract class RealmApiInterface {
       {required int id, required FilterType filterType});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({int? productId});
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
@@ -355,5 +352,10 @@ abstract class RealmApiInterface {
     required String bhfId,
     required String lastReqDt,
   });
-  // Future<Drawers> getDrawer({required int businessId});
+
+  /// drawers
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
+
+  Future<Drawers?> openDrawer({required Drawers drawer});
 }

@@ -2,7 +2,6 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flipper_models/isolateHandelr.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';

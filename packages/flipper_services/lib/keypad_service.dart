@@ -67,11 +67,13 @@ class KeyPadService with ListenableServiceMixin {
   }
 
   void setTransaction(ITransaction? transaction) async {
-    if (transaction != null) {
-      _transaction.value = transaction;
-    } else {
-      _transaction.value = null;
-    }
+    ProxyService.realm.realm!.write(() {
+      if (transaction != null) {
+        _transaction.value = transaction;
+      } else {
+        _transaction.value = null;
+      }
+    });
   }
 
   /// transaction can not be more than 1 lenght i.e at one instance

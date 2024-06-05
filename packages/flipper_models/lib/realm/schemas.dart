@@ -477,6 +477,10 @@ class _Variant {
   String? taxName;
   double taxPercentage = 0.0;
 
+  @deprecated
+
+  /// this field was indicating that the item is excempted but after learning that
+  /// if taxTyCd is A then we know it is Exempted
   bool isTaxExempted = false;
 
   // add RRA fields
@@ -826,14 +830,32 @@ class _UserActivity {
 }
 
 @RealmModel()
-class _TaxConfig {
+class _UnversalProduct {
+  int? id;
   @PrimaryKey()
   @MapTo('_id')
   late ObjectId realmId;
-  late String taxType;
-  late double taxPercentage;
+
+  String? itemClsCd;
+  String? itemClsNm;
+  int? itemClsLvl;
+  String? taxTyCd;
+  String? mjrTgYn;
+  String? useYn;
+
   int? businessId;
   int? branchId;
 }
 
+@RealmModel()
+class _Configurations {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
 
+  String? taxType = "B";
+  double? taxPercentage = 18.0;
+  int? businessId;
+  int? branchId;
+}
