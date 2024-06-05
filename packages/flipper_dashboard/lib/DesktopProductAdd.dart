@@ -184,25 +184,20 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   Widget _buildUniversalProductDropDown(
-      BuildContext context, ScannViewModel model) {
+      BuildContext context, ScannViewModel model, Variant variant) {
     final unitsAsyncValue = ref.watch(universalProductsNames);
 
     return unitsAsyncValue.when(
       data: (items) {
         final List<String> itemClsCdList = items.asData?.value
-                .map((unit) => (unit.itemClsNm ?? "" + unit.itemClsCd!))
+                .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))
                 .toList() ??
             [];
 
+        // talker.warning(itemClsCdList);
         return Container(
           width: double.infinity,
           child: DropdownSearch<String>(
-            // popupProps: PopupProps.menu(
-            //   showSelectedItems: true,
-            //   disabledItemFn: (String s) => s.startsWith('I'),
-            // ),
-            // popupProps: PopupProps.bottomSheet(),
-
             items: itemClsCdList,
             selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
             dropdownDecoratorProps: DropDownDecoratorProps(
@@ -227,9 +222,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
             ),
             onChanged: (String? newValue) {
               if (newValue != null) {
-                setState(() {
-                  // Update the model or state as needed
-                });
+                // Loop through model.scannedVariants
+                for (var scannedVariant in model.scannedVariants) {
+                  // Find the related variant based on some criteria
+                  // For example, matching variant.id
+                  if (scannedVariant.id == variant.id) {
+                    // Update the variant.itemClsCd with the value of newValue
+                    final value = newValue.split(' ').last;
+                    scannedVariant.itemClsCd = value;
+                    break; // Exit the loop since the variant is found and updated
+                  }
+                }
               }
             },
           ),
@@ -283,11 +286,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Widget _buildTaxDropdown(
       BuildContext context, Variant variant, ScannViewModel model) {
-    final List<String> options = ["Tax A", "Tax B", "Tax C", "Tax D"];
+    final List<String> options = ["A", "B", "C", "D"];
 
     return DropdownSearch<String>(
       items: options,
-      selectedItem: variant.taxTyCd ?? "Tax B",
+      selectedItem: variant.taxTyCd ?? "B",
       dropdownDecoratorProps: DropDownDecoratorProps(
         dropdownSearchDecoration: InputDecoration(
           border: OutlineInputBorder(
@@ -727,7 +730,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                       ),
                                       DataCell(
                                         _buildUniversalProductDropDown(
-                                            context, model),
+                                            context, model, variant),
                                       ),
                                       DataCell(
                                         ElevatedButton(

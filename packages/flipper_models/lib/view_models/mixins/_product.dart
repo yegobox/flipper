@@ -28,9 +28,7 @@ mixin ProductMixin {
           variant.pkgUnitCd = packagingUnit;
           final number = randomNumber().toString().substring(0, 5);
 
-          ///TODO:
-          /// this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-          variant.itemClsCd = "5020230602";
+          variant.itemClsCd = variant.itemCd ?? "5020230602";
           variant.itemCd = randomNumber().toString().substring(0, 5);
           variant.modrNm = number;
           variant.modrId = number;
@@ -47,8 +45,7 @@ mixin ProductMixin {
           variant.taxPercentage = 18.0;
           variant.tin = business.tinNumber;
 
-          ///TODO: for now we are hardcoding this which can be wrong
-          variant.bhfId = "00";
+          variant.bhfId = business.bhfId ?? "00";
           variant.bcd = variant.name;
 
           /// country of origin for this item we default until we support something different
@@ -123,7 +120,7 @@ mixin ProductMixin {
       // Update variants efficiently using a for loop with conditional updates
       for (Variant variant in variants) {
         if (variant.productName != productName) {
-          variant.productName = productName!;
+          variant.productName = productName;
         }
 
         if (variant.productId != mproduct.id) {
