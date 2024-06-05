@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -312,9 +311,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         ),
       ),
       onChanged: (String? newValue) {
-        setState(() {
-          variant.taxTyCd = newValue!;
-        });
+        try {
+          ProxyService.realm.realm!.write(() => variant.taxTyCd = newValue!);
+        } catch (e) {
+          talker.error(e);
+        }
       },
     );
   }

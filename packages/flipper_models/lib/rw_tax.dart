@@ -294,6 +294,52 @@ class RWTax implements TaxApi {
         rcptTyCd = "S";
         break;
     }
+
+    ///TODO: refactor required I have code like this in TaxController I will look for a way to put into one place
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
+
+    try {
+      for (var item in items) {
+        // Log the item details
+        talker.warning(
+            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
+
+        // Fetch the tax configuration
+        var taxConfig =
+            await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
+        talker.info("Tax To be applied on: ${item.taxTyCd}");
+        // Ensure taxPercentage is not null
+        if (taxConfig.taxPercentage == 0.0) {
+          talker.warning(
+              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
+          continue; // Skip this item if tax percentage is null
+        }
+
+        // Calculate the tax amount
+        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty));
+
+        // Accumulate tax amount instead of overwriting
+        String taxType = item.taxTyCd ?? "B";
+        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+
+        // Log the accumulated tax amount
+        talker.warning(
+            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
+      }
+    } catch (s) {
+      talker.error(s);
+    }
+
+    double totalTaxA = taxTotals['A'] ?? 0.0;
+    double totalTaxB = taxTotals['B'] ?? 0.0;
+    double totalTaxC = taxTotals['C'] ?? 0.0;
+    double totalTaxD = taxTotals['D'] ?? 0.0;
     Map<String, dynamic> data = {
       "tin": business.tinNumber ?? 999909695,
       "bhfId": business.bhfId ?? "00",
@@ -307,6 +353,11 @@ class RWTax implements TaxApi {
       "salesDt": date.substring(0, 8),
       "stockRlsDt": date,
       "totItemCnt": itemsList.length,
+      "taxblAmtB": totalTaxB,
+      "taxblAmtA": totalTaxA,
+      "taxblAmtC": totalTaxC,
+      "taxblAmtD": totalTaxD,
+      "taxAmtA": totalTaxA,
       "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),

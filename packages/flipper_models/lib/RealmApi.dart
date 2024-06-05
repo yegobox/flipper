@@ -2579,10 +2579,11 @@ class RealmAPI<M extends IJsonSerializable>
       ObjectId(),
       taxPercentage: taxPercentage,
       taxType: taxtype,
+      id: randomNumber(),
       branchId: ProxyService.box.getBranchId(),
       businessId: ProxyService.box.getBusinessId(),
     );
-
+    realm!.write(() => realm!.add(result));
     return result;
   }
 
