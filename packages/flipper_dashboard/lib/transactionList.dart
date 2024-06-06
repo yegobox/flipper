@@ -17,6 +17,8 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 
+final rowsPerPageProvider = StateProvider<int>((ref) => 10); // Default to 10
+
 final pluReportToggleProvider =
     StateNotifierProvider<PluReportToggleNotifier, bool>(
   (ref) => PluReportToggleNotifier(),
@@ -187,6 +189,9 @@ class TransactionList extends ConsumerWidget {
     bool showPluReport = false;
     final GlobalKey<SfDataGridState> _workBookKey =
         GlobalKey<SfDataGridState>();
+    final rowsPerPage = ref.watch(rowsPerPageProvider);
+    final rowsPerPageController =
+        TextEditingController(text: rowsPerPage.toString());
 
     return data.when(
       data: (transactionData) {
@@ -215,9 +220,46 @@ class TransactionList extends ConsumerWidget {
                                   .toggleReport();
                             },
                           ),
+
                           Text(ref.read(pluReportToggleProvider)
                               ? 'PLU Report'
                               : 'ZReport'),
+                          Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: SizedBox(
+                              width: 150,
+                              child: TextField(
+                                controller: rowsPerPageController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Rows Per Page',
+                                  labelStyle: TextStyle(
+                                    color: Colors.grey[700],
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey[400]!,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: BorderSide(
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                ),
+                                onChanged: (value) {
+                                  ref.read(rowsPerPageProvider.notifier).state =
+                                      int.tryParse(value) ?? 10;
+                                },
+                              ),
+                            ),
+                          ),
                           SizedBox(
                             height: 40.0,
                             width: 150.0,
@@ -243,6 +285,7 @@ class TransactionList extends ConsumerWidget {
                         startDate: startDate!,
                         endDate: endDate!,
                         workBookKey: _workBookKey,
+                        rowsPerPage: 10,
                         showPluReport: ref.watch(pluReportToggleProvider),
                       ),
                     ),

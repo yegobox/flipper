@@ -18,19 +18,19 @@ class DataView extends StatefulWidget {
       required this.startDate,
       required this.endDate,
       required this.workBookKey,
-      required this.showPluReport});
+      required this.showPluReport,
+      required this.rowsPerPage});
 
   final List<ITransaction> transactions;
   final DateTime startDate;
   final DateTime endDate;
   final GlobalKey<SfDataGridState> workBookKey;
   final bool showPluReport;
+  final int rowsPerPage;
 
   @override
   _DataViewState createState() => _DataViewState();
 }
-
-final int rowsPerPage = 5;
 
 class _DataViewState extends State<DataView> {
   static const double dataPagerHeight = 60;
@@ -110,7 +110,7 @@ class _DataViewState extends State<DataView> {
                         height: constraint.maxHeight - dataPagerHeight,
                         width: constraint.maxWidth,
                         child: SfDataGrid(
-                          rowsPerPage: rowsPerPage,
+                          rowsPerPage: widget.rowsPerPage,
                           allowFiltering: true,
                           highlightRowOnHover: true,
                           gridLinesVisibility: GridLinesVisibility.both,
@@ -132,8 +132,9 @@ class _DataViewState extends State<DataView> {
                       lastPageItemVisible: false,
                       nextPageItemVisible: false,
                       delegate: _dataGridSource,
-                      pageCount: (_dataGridSource.rows.length / rowsPerPage)
-                          .ceilToDouble(),
+                      pageCount:
+                          (_dataGridSource.rows.length / widget.rowsPerPage)
+                              .ceilToDouble(),
                       direction: Axis.horizontal,
                       onPageNavigationEnd: (index) {
                         log("Page Index ${index}");
@@ -273,9 +274,9 @@ class _DataViewState extends State<DataView> {
   DataGridSource _buildDataGridSource(
       bool showPluReport, List<ITransaction> transactions) {
     if (showPluReport) {
-      return TransactionItemDataSource(transactions);
+      return TransactionItemDataSource(transactions, widget.rowsPerPage);
     } else {
-      return TransactionDataSource(transactions);
+      return TransactionDataSource(transactions, widget.rowsPerPage);
     }
   }
 }
@@ -320,11 +321,12 @@ abstract class DynamicDataSource extends DataGridSource {
 }
 
 class TransactionDataSource extends DynamicDataSource {
-  TransactionDataSource(List<ITransaction> transactions) {
+  TransactionDataSource(List<ITransaction> transactions, this.rowsPerPage) {
     data = transactions;
     buildPaginatedDataGridRows();
   }
 
+  final int rowsPerPage;
   @override
   void buildPaginatedDataGridRows() {
     data = data.sublist(
@@ -335,7 +337,8 @@ class TransactionDataSource extends DynamicDataSource {
 }
 
 class TransactionItemDataSource extends DynamicDataSource {
-  TransactionItemDataSource(this.transactions) {
+  final int rowsPerPage;
+  TransactionItemDataSource(this.transactions, this.rowsPerPage) {
     // Initialize 'transactions'
     buildPaginatedDataGridRows();
   }
