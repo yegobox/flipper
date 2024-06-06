@@ -51,7 +51,7 @@ mixin IsolateHandler {
     bool anythingUpdated = false;
 
     // await syncUnsynced(args);
-    log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
+    //log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
     // load all variants
     List<Variant> variants = realm!.query<Variant>(
         r'ebmSynced == $0 && branchId == $1 LIMIT(5)',
@@ -114,7 +114,7 @@ mixin IsolateHandler {
             ebmSynced: variant.ebmSynced,
           );
           // Convert EJsonValue to JSON string
-          Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
+          // Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
 
           /// do not attempt saving a variant with missing fields
           if (variant.qtyUnitCd == null) return;

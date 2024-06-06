@@ -343,7 +343,7 @@ class RealmAPI<M extends IJsonSerializable>
       required ITransaction transaction,
       required String paymentType,
       required double discount}) async {
-    List<TransactionItem> items = await transactionItems(
+    List<TransactionItem> items = transactionItems(
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);
@@ -1518,7 +1518,23 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Stock?> stockByVariantId(
+  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    Stock? stock;
+    if (nonZeroValue) {
+      stock = realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1 && retailPrice > 0 && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    } else {
+      stock = realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1  && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    }
+    return stock;
+  }
+
+  @override
+  Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Stock? stock;
@@ -1614,7 +1630,22 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<TransactionItem>> transactionItems(
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    String queryString = "";
+
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3 && deletedAt = nil';
+
+    return realm!.query<TransactionItem>(queryString,
+        [transactionId, doneWithTransaction, branchId, active]).toList();
+  }
+
+  @override
+  Future<List<TransactionItem>> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active}) async {

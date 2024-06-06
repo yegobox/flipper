@@ -57,7 +57,8 @@ abstract class RealmApiInterface {
 
   Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex});
-  Future<Stock?> stockByVariantId(
+  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false});
+  Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
@@ -167,6 +168,7 @@ abstract class RealmApiInterface {
       {required int variantId, required int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});
+
   //abstract method to update business
 
   //analytics
@@ -228,7 +230,12 @@ abstract class RealmApiInterface {
   });
 
   /// get a list of transactionItems given transactionId
-  Future<List<TransactionItem>> transactionItems(
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active});
+
+  Future<List<TransactionItem>> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active});

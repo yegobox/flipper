@@ -35,7 +35,6 @@ class DataView extends StatefulWidget {
 }
 
 final int rowsPerPage = 10;
-List<ITransaction> paginatedDataSource = [];
 List<ITransaction> transactions = [];
 
 class _DataViewState extends State<DataView> {
@@ -44,12 +43,14 @@ class _DataViewState extends State<DataView> {
   static const double dataPagerHeight = 60;
   late TransactionDataSource _transactionDataSource;
   int pageIndex = 0;
+  bool showPluReport = false; // Toggle for PluReport/ZReport
 
   @override
   void initState() {
     super.initState();
     transactions = widget.transactions;
-    _transactionDataSource = TransactionDataSource();
+    _transactionDataSource =
+        TransactionDataSource(showPluReport: showPluReport);
     _transactionDataSource.addListener(updateWidget);
   }
 
@@ -235,7 +236,18 @@ class _DataViewState extends State<DataView> {
                   Container(
                     margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
+                        // Toggle Button for PluReport/ZReport
+                        Switch(
+                          value: showPluReport,
+                          onChanged: (value) {
+                            setState(() {
+                              showPluReport = value;
+                            });
+                          },
+                        ),
+                        Text(showPluReport ? 'PLU Report' : 'ZReport'),
                         SizedBox(
                           height: 40.0,
                           width: 150.0,
@@ -246,7 +258,6 @@ class _DataViewState extends State<DataView> {
                             busy: isProcessing,
                           ),
                         ),
-                        const Padding(padding: EdgeInsets.all(20)),
                       ],
                     ),
                   ),
@@ -276,60 +287,9 @@ class _DataViewState extends State<DataView> {
                           source: _transactionDataSource,
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
-                          columns: <GridColumn>[
-                            GridColumn(
-                              columnName: 'id',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('ID',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'Type',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Type',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'Amount',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Amount',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'CashReceived',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Cash Received',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                          ],
+                          columns: showPluReport
+                              ? pluReportTableHeader(headerPadding)
+                              : zReportTableHeader(headerPadding),
                         ),
                       ),
                     ),
@@ -359,12 +319,131 @@ class _DataViewState extends State<DataView> {
       },
     );
   }
+
+  List<GridColumn> pluReportTableHeader(EdgeInsets headerPadding) {
+    return <GridColumn>[
+      GridColumn(
+        columnName: 'Item Code',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Item Code', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Name',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Name', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Price',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Pricw', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Tax Rate',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('TaxRate', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Stock Remain',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Stock remain', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+  }
+
+  List<GridColumn> zReportTableHeader(EdgeInsets headerPadding) {
+    return <GridColumn>[
+      GridColumn(
+        columnName: 'id',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('ID', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Type',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Type', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Amount',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Amount', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'CashReceived',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Cash Received', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+  }
 }
 
 class TransactionDataSource extends DataGridSource {
-  TransactionDataSource() {
+  TransactionDataSource({required this.showPluReport}) {
     buildPaginatedDataGridRows();
   }
+  final bool showPluReport;
 
   List<DataGridRow> dataGridRows = [];
 
@@ -390,7 +469,7 @@ class TransactionDataSource extends DataGridSource {
     final int endIndex = startRowIndex + rowsPerPage;
 
     if (startRowIndex < transactions.length) {
-      paginatedDataSource = transactions.sublist(
+      transactions.sublist(
         startRowIndex,
         endIndex > transactions.length ? transactions.length : endIndex,
       );
@@ -401,16 +480,39 @@ class TransactionDataSource extends DataGridSource {
   }
 
   void buildPaginatedDataGridRows() {
-    dataGridRows = paginatedDataSource.map<DataGridRow>((transaction) {
-      return DataGridRow(cells: [
-        DataGridCell<String>(
-            columnName: 'id', value: transaction.id!.toString()),
-        DataGridCell<String>(
-            columnName: 'Type', value: transaction.receiptType ?? "-"),
-        DataGridCell<double>(columnName: 'Amount', value: transaction.subTotal),
-        DataGridCell<double>(
-            columnName: 'CashReceived', value: transaction.cashReceived),
-      ]);
-    }).toList();
+    if (showPluReport) {
+      List<TransactionItem> items = ProxyService.realm.transactionItems(
+          transactionId: transactions.first.id!,
+          doneWithTransaction: true,
+          active: false);
+
+      dataGridRows = items.map<DataGridRow>((item) {
+        Stock? stock =
+            ProxyService.realm.stockByVariantId(variantId: item.variantId!);
+
+        return DataGridRow(cells: [
+          DataGridCell<String>(
+              columnName: 'Item code', value: item.itemClsCd!.toString()),
+          DataGridCell<String>(columnName: 'Name', value: item.name ?? "-"),
+          DataGridCell<double>(columnName: 'Price', value: item.price),
+          DataGridCell<double>(columnName: 'Tax Rate', value: 18),
+          DataGridCell<double>(
+              columnName: 'Stock Remain', value: stock?.currentStock),
+        ]);
+      }).toList();
+    } else {
+      dataGridRows = transactions.map<DataGridRow>((transaction) {
+        return DataGridRow(cells: [
+          DataGridCell<String>(
+              columnName: 'id', value: transaction.id!.toString()),
+          DataGridCell<String>(
+              columnName: 'Type', value: transaction.receiptType ?? "-"),
+          DataGridCell<double>(
+              columnName: 'Amount', value: transaction.subTotal),
+          DataGridCell<double>(
+              columnName: 'CashReceived', value: transaction.cashReceived),
+        ]);
+      }).toList();
+    }
   }
 }

@@ -50,7 +50,7 @@ mixin SharebleMethods {
 
   Stream<List<TransactionItem>> transactionItemsStream(
       {required ITransaction transaction}) {
-    return Stream.fromFuture(ProxyService.realm.transactionItems(
+    return Stream.fromFuture(ProxyService.realm.transactionItemsFuture(
             transactionId: transaction.id!,
             doneWithTransaction: false,
             active: false))
