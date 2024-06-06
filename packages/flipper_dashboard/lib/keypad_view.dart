@@ -167,6 +167,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
               await widget.model.collectPayment(
                 paymentType: 'Cash',
+                discount: 0,
                 transaction: transaction.value!.value!,
                 amountReceived: double.parse(widget.model.key),
               );

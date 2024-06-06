@@ -26,10 +26,12 @@ class PaymentsState extends ConsumerState<Payments> {
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _cash = TextEditingController();
+  final TextEditingController _discount = TextEditingController();
 
   late Map<String, bool> isFocusedMap;
   late bool cashPayment;
   String? paymentType;
+  bool showDiscountField = false;
 
   @override
   void initState() {
@@ -53,7 +55,27 @@ class PaymentsState extends ConsumerState<Payments> {
           child: Scaffold(
             appBar: _buildCustomAppBar(),
             resizeToAvoidBottomInset: false,
-            body: _buildBody(model),
+            body: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 145),
+                  _buildAmountSection(widget.transaction.subTotal),
+                  const SizedBox(height: 20),
+                  Visibility(
+                    visible: showDiscountField,
+                    child: _buildDiscountField(),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildPaymentButtons(model),
+                  const SizedBox(height: 10),
+                  _buildConfirmButton(model),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
           ),
         );
       },
@@ -74,26 +96,9 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
-  Widget _buildBody(CoreViewModel model) {
-    final totalPayable = widget.transaction.subTotal;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: 145),
-        _buildAmountSection(totalPayable),
-        Spacer(),
-        _buildPaymentButtons(model),
-        const SizedBox(height: 10),
-        _buildConfirmButton(model),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
   Widget _buildAmountSection(double totalPayable) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
       children: [
         Text(
           'RWF ' + NumberFormat('#,###').format(totalPayable),
@@ -104,11 +109,39 @@ class PaymentsState extends ConsumerState<Payments> {
           ),
         ),
         const SizedBox(height: 40),
-        _buildSendInvoiceButton(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildSendInvoiceButton(),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showDiscountField = !showDiscountField;
+                });
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  showDiscountField ? "Hide Discount" : "Add Discount",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
         Visibility(
           visible: cashPayment,
-          child: _buildCashReceivedFormField(totalPayable),
+          child:
+              _buildCashReceivedFormField(totalTransactionAmount: totalPayable),
         ),
       ],
     );
@@ -142,7 +175,48 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
-  Widget _buildCashReceivedFormField(double totalTransactionAmount) {
+  Widget _buildDiscountField() {
+    return SizedBox(
+      width: 280,
+      child: Form(
+        child: TextFormField(
+          keyboardType: TextInputType.number,
+          controller: _discount,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter discount amount';
+            }
+            if (double.parse(value) > widget.transaction.subTotal) {
+              return "Discount cannot exceed the total amount";
+            }
+            return null;
+          },
+          onFieldSubmitted: (value) {
+            _discount.text = value;
+          },
+          onChanged: (value) {},
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.black.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+            hintText: 'Discount',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCashReceivedFormField({required double totalTransactionAmount}) {
     return SizedBox(
       width: 280,
       child: Form(
@@ -154,7 +228,10 @@ class PaymentsState extends ConsumerState<Payments> {
             if (value == null || value.isEmpty) {
               return 'Please enter Cash Received';
             }
-            if (double.parse(value) < totalTransactionAmount) {
+            final amountReceived = double.parse(value);
+            final discount =
+                _discount.text.isEmpty ? 0.0 : double.parse(_discount.text);
+            if (amountReceived < (totalTransactionAmount - discount)) {
               return "Amount is less than amount payable";
             }
             return null;
@@ -270,6 +347,7 @@ class PaymentsState extends ConsumerState<Payments> {
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
           children: [
             SizedBox(
               height: 52,
@@ -325,10 +403,13 @@ class PaymentsState extends ConsumerState<Payments> {
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal
         : double.parse(_cash.text);
+    final discount =
+        _discount.text.isEmpty ? 0.0 : double.parse(_discount.text);
     await model.collectPayment(
         paymentType: paymentType!,
         transaction: widget.transaction,
-        amountReceived: amount);
+        amountReceived: amount,
+        discount: discount);
     _routerService.navigateTo(
       PaymentConfirmationRoute(
         transaction: widget.transaction,

@@ -496,7 +496,8 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> collectPayment(
       {required String paymentType,
       required ITransaction transaction,
-      required double amountReceived}) async {
+      required double amountReceived,
+      required double discount}) async {
     await ProxyService.realm.collectPayment(
       cashReceived: amountReceived,
       transaction: transaction,
