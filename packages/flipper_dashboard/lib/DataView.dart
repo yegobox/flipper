@@ -30,27 +30,24 @@ class DataView extends StatefulWidget {
   _DataViewState createState() => _DataViewState();
 }
 
-final int rowsPerPage = 10;
-List<ITransaction> transactions = [];
+final int rowsPerPage = 5;
 
 class _DataViewState extends State<DataView> {
-  bool isProcessing = false;
   static const double dataPagerHeight = 60;
-  late TransactionDataSource _transactionDataSource;
+  late DataGridSource _dataGridSource;
   int pageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    transactions = widget.transactions;
-    _transactionDataSource =
-        TransactionDataSource(showPluReport: widget.showPluReport);
-    _transactionDataSource.addListener(updateWidget);
+    _dataGridSource =
+        _buildDataGridSource(widget.showPluReport, widget.transactions);
+    _dataGridSource.addListener(updateWidget);
   }
 
   @override
   void dispose() {
-    _transactionDataSource.removeListener(updateWidget);
+    _dataGridSource.removeListener(updateWidget);
     super.dispose();
   }
 
@@ -62,22 +59,21 @@ class _DataViewState extends State<DataView> {
 
   void handleCellTap(DataGridCellTapDetails details) {
     final rowIndex = details.rowColumnIndex.rowIndex;
-    if (rowIndex < 1 || rowIndex > transactions.length) return;
+    if (rowIndex < 1) return;
 
-    final transaction =
-        transactions[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
+    final dataSource = _dataGridSource as DynamicDataSource;
+    final data = dataSource.data[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
 
-    talker.warning(
-        'Tapped row: ID = ${transaction.id}, Name = ${transaction.subTotal}');
+    talker.warning('Tapped row: ID = ${data.id}, Name = ${data.subTotal}');
     showDialog(
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
         child: Refund(
-          refundAmount: transaction.subTotal,
-          transactionId: transaction.id.toString(),
+          refundAmount: data.subTotal,
+          transactionId: data.id.toString(),
           currency: "RWF",
-          transaction: transaction,
+          transaction: data is ITransaction ? data : null,
         ),
       ),
     );
@@ -120,7 +116,7 @@ class _DataViewState extends State<DataView> {
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
                           key: widget.workBookKey,
-                          source: _transactionDataSource,
+                          source: _dataGridSource,
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
                           columns: widget.showPluReport
@@ -135,8 +131,8 @@ class _DataViewState extends State<DataView> {
                     child: SfDataPager(
                       lastPageItemVisible: false,
                       nextPageItemVisible: false,
-                      delegate: _transactionDataSource,
-                      pageCount: (widget.transactions.length / rowsPerPage)
+                      delegate: _dataGridSource,
+                      pageCount: (_dataGridSource.rows.length / rowsPerPage)
                           .ceilToDouble(),
                       direction: Axis.horizontal,
                       onPageNavigationEnd: (index) {
@@ -191,7 +187,7 @@ class _DataViewState extends State<DataView> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Pricw', overflow: TextOverflow.ellipsis),
+          child: const Text('Price', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -203,7 +199,7 @@ class _DataViewState extends State<DataView> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('TaxRate', overflow: TextOverflow.ellipsis),
+          child: const Text('Tax Rate', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -215,7 +211,7 @@ class _DataViewState extends State<DataView> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Stock remain', overflow: TextOverflow.ellipsis),
+          child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];
@@ -273,18 +269,31 @@ class _DataViewState extends State<DataView> {
       ),
     ];
   }
+
+  DataGridSource _buildDataGridSource(
+      bool showPluReport, List<ITransaction> transactions) {
+    if (showPluReport) {
+      return TransactionItemDataSource(transactions);
+    } else {
+      return TransactionDataSource(transactions);
+    }
+  }
 }
 
-class TransactionDataSource extends DataGridSource {
-  TransactionDataSource({required this.showPluReport}) {
-    buildPaginatedDataGridRows();
-  }
-  final bool showPluReport;
-
-  List<DataGridRow> dataGridRows = [];
+abstract class DynamicDataSource extends DataGridSource {
+  List<dynamic> data = []; // Store the data
 
   @override
-  List<DataGridRow> get rows => dataGridRows;
+  List<DataGridRow> get rows => data.map((item) {
+        return DataGridRow(cells: [
+          DataGridCell<String>(columnName: 'id', value: item.id.toString()),
+          DataGridCell<String>(
+              columnName: 'Type', value: item.receiptType ?? "-"),
+          DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
+          DataGridCell<double>(
+              columnName: 'CashReceived', value: item.cashReceived),
+        ]);
+      }).toList();
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
@@ -301,54 +310,70 @@ class TransactionDataSource extends DataGridSource {
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    final int startRowIndex = newPageIndex * rowsPerPage;
-    final int endIndex = startRowIndex + rowsPerPage;
-
-    if (startRowIndex < transactions.length) {
-      transactions.sublist(
-        startRowIndex,
-        endIndex > transactions.length ? transactions.length : endIndex,
-      );
-      buildPaginatedDataGridRows();
-      notifyListeners();
-    }
+    // Handle page change logic here
     return true;
   }
 
   void buildPaginatedDataGridRows() {
-    if (showPluReport) {
-      List<TransactionItem> items = ProxyService.realm.transactionItems(
-          transactionId: transactions.first.id!,
-          doneWithTransaction: true,
-          active: false);
+    // Build data grid rows for the current page
+  }
+}
 
-      dataGridRows = items.map<DataGridRow>((item) {
-        Stock? stock =
-            ProxyService.realm.stockByVariantId(variantId: item.variantId!);
+class TransactionDataSource extends DynamicDataSource {
+  TransactionDataSource(List<ITransaction> transactions) {
+    data = transactions;
+    buildPaginatedDataGridRows();
+  }
 
-        return DataGridRow(cells: [
-          DataGridCell<String>(
-              columnName: 'Item code', value: item.itemClsCd!.toString()),
-          DataGridCell<String>(columnName: 'Name', value: item.name ?? "-"),
-          DataGridCell<double>(columnName: 'Price', value: item.price),
-          DataGridCell<double>(columnName: 'Tax Rate', value: 18),
-          DataGridCell<double>(
-              columnName: 'Stock Remain', value: stock?.currentStock),
-        ]);
-      }).toList();
-    } else {
-      dataGridRows = transactions.map<DataGridRow>((transaction) {
-        return DataGridRow(cells: [
-          DataGridCell<String>(
-              columnName: 'id', value: transaction.id!.toString()),
-          DataGridCell<String>(
-              columnName: 'Type', value: transaction.receiptType ?? "-"),
-          DataGridCell<double>(
-              columnName: 'Amount', value: transaction.subTotal),
-          DataGridCell<double>(
-              columnName: 'CashReceived', value: transaction.cashReceived),
-        ]);
-      }).toList();
+  @override
+  void buildPaginatedDataGridRows() {
+    data = data.sublist(
+      0,
+      data.length > rowsPerPage ? rowsPerPage : data.length,
+    );
+  }
+}
+
+class TransactionItemDataSource extends DynamicDataSource {
+  TransactionItemDataSource(this.transactions) {
+    // Initialize 'transactions'
+    buildPaginatedDataGridRows();
+  }
+
+  final List<ITransaction> transactions;
+
+  @override
+  void buildPaginatedDataGridRows() {
+    if (transactions.isNotEmpty) {
+      final currentTransaction = transactions[0];
+      data = ProxyService.realm.transactionItems(
+        transactionId: currentTransaction.id!,
+        doneWithTransaction: true,
+        active: false,
+      );
     }
+  }
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    final int startRowIndex = newPageIndex * rowsPerPage;
+    final int endIndex = startRowIndex + rowsPerPage;
+
+    if (startRowIndex < transactions.length) {
+      final currentTransaction = transactions[startRowIndex];
+      data = ProxyService.realm
+          .transactionItems(
+            transactionId: currentTransaction.id!,
+            doneWithTransaction: true,
+            active: false,
+          )
+          .sublist(
+            startRowIndex,
+            endIndex > data.length ? data.length : endIndex,
+          );
+
+      notifyListeners();
+    }
+    return true;
   }
 }

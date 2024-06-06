@@ -12,11 +12,11 @@ class Refund extends StatefulWidget {
       required this.refundAmount,
       required this.transactionId,
       this.currency = "RWF",
-      required this.transaction});
+      this.transaction});
   final double refundAmount;
   final String transactionId;
   final String? currency;
-  final ITransaction transaction;
+  final ITransaction? transaction;
 
   @override
   _RefundState createState() => _RefundState();
@@ -53,7 +53,7 @@ class _RefundState extends State<Refund> {
                 const SizedBox(height: 32),
                 BoxButton(
                   borderRadius: 1,
-                  title: widget.transaction.isRefunded == true
+                  title: widget.transaction?.isRefunded == true
                       ? "Refunded"
                       : "Refund",
                   onTap: () async {
@@ -89,7 +89,7 @@ class _RefundState extends State<Refund> {
       });
 
       await ProxyService.realm.realm!.writeAsync(() {
-        widget.transaction.receiptType = filterType == FilterType.NR
+        widget.transaction?.receiptType = filterType == FilterType.NR
             ? TransactionReceptType.NR
             : TransactionReceptType.CS;
       });

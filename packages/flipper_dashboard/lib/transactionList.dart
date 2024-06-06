@@ -187,7 +187,6 @@ class TransactionList extends ConsumerWidget {
     bool showPluReport = false;
     final GlobalKey<SfDataGridState> _workBookKey =
         GlobalKey<SfDataGridState>();
-    // ref.read(isProcessingProvider.notifier).stopProcessing();
 
     return data.when(
       data: (transactionData) {
