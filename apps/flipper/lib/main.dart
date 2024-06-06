@@ -50,9 +50,8 @@ class MyHttpOverrides extends HttpOverrides {
 }
 
 Future<void> main() async {
-  // if (kReleaseMode) {
   WidgetsFlutterBinding.ensureInitialized();
-  // }
+
   final talker = TalkerFlutter.init();
   GoogleFonts.config.allowRuntimeFetching = false;
   foundation.LicenseRegistry.addLicense(() async* {
