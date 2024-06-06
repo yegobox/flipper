@@ -481,7 +481,8 @@ class CoreViewModel extends FlipperBaseModel
   Future<String> collectSPENNPayment(
       {required String phoneNumber,
       required double cashReceived,
-      required String paymentType}) async {
+      required String paymentType,
+      required double discount}) async {
     final transaction = await ProxyService.realm
         .manageTransaction(transactionType: TransactionType.custom);
     // await ProxyService.isar
@@ -489,7 +490,8 @@ class CoreViewModel extends FlipperBaseModel
     await ProxyService.realm.collectPayment(
         cashReceived: cashReceived,
         transaction: transaction,
-        paymentType: paymentType);
+        paymentType: paymentType,
+        discount: discount);
     return "PaymentRecorded";
   }
 
@@ -502,6 +504,7 @@ class CoreViewModel extends FlipperBaseModel
       cashReceived: amountReceived,
       transaction: transaction,
       paymentType: paymentType,
+      discount: discount,
     );
   }
 

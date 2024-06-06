@@ -403,8 +403,9 @@ class PaymentsState extends ConsumerState<Payments> {
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal
         : double.parse(_cash.text);
-    final discount =
-        _discount.text.isEmpty ? 0.0 : double.parse(_discount.text);
+    // Parse discount ONLY if _discount.text is NOT empty
+    double discount =
+        _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
     await model.collectPayment(
         paymentType: paymentType!,
         transaction: widget.transaction,

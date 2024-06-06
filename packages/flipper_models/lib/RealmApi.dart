@@ -341,7 +341,8 @@ class RealmAPI<M extends IJsonSerializable>
   Future<void> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
-      required String paymentType}) async {
+      required String paymentType,
+      required double discount}) async {
     List<TransactionItem> items = await transactionItems(
         transactionId: transaction.id!,
         doneWithTransaction: false,
@@ -374,15 +375,15 @@ class RealmAPI<M extends IJsonSerializable>
 
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
-
-      //NOTE: trigger EBM, now
-      TaxController(object: transaction).handleReceipt();
     });
 
     try {
       for (TransactionItem item in items) {
         Stock? stock = await stockByVariantId(variantId: item.variantId!);
         realm!.write(() {
+          item.dcAmt = discount;
+          item.discount = discount;
+
           stock!.currentStock = stock.currentStock - item.qty;
           // stock value after item deduct
           stock.value = stock.currentStock * (stock.retailPrice);
@@ -400,7 +401,7 @@ class RealmAPI<M extends IJsonSerializable>
         if (product != null) {
           realm!.write(() {
             product.lastTouched =
-                DateTime.now().toLocal().add(Duration(hours: 2));
+                DateTime.now().toLocal().add(Duration(seconds: 2));
           });
         }
       }
@@ -411,6 +412,8 @@ class RealmAPI<M extends IJsonSerializable>
     // remove currentTransactionId from local storage to leave a room
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
+    //NOTE: trigger EBM, now
+    TaxController(object: transaction).handleReceipt();
   }
 
   @override

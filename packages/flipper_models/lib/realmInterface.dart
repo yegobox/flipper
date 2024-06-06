@@ -124,7 +124,8 @@ abstract class RealmApiInterface {
   Future<void> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
-      required String paymentType});
+      required String paymentType,
+      required double discount});
 
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});
