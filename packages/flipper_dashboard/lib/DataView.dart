@@ -12,14 +12,15 @@ import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DataView extends StatefulWidget {
-  const DataView(
-      {super.key,
-      required this.transactions,
-      required this.startDate,
-      required this.endDate,
-      required this.workBookKey,
-      required this.showPluReport,
-      required this.rowsPerPage});
+  const DataView({
+    super.key,
+    required this.transactions,
+    required this.startDate,
+    required this.endDate,
+    required this.workBookKey,
+    required this.showPluReport,
+    required this.rowsPerPage,
+  });
 
   final List<ITransaction> transactions;
   final DateTime startDate;
@@ -40,8 +41,8 @@ class _DataViewState extends State<DataView> {
   @override
   void initState() {
     super.initState();
-    _dataGridSource =
-        _buildDataGridSource(widget.showPluReport, widget.transactions);
+    _dataGridSource = _buildDataGridSource(
+        widget.showPluReport, widget.transactions, widget.rowsPerPage);
     _dataGridSource.addListener(updateWidget);
   }
 
@@ -156,7 +157,7 @@ class _DataViewState extends State<DataView> {
   List<GridColumn> pluReportTableHeader(EdgeInsets headerPadding) {
     return <GridColumn>[
       GridColumn(
-        columnName: 'Item Code',
+        columnName: 'ItemCode',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -192,7 +193,7 @@ class _DataViewState extends State<DataView> {
         ),
       ),
       GridColumn(
-        columnName: 'Tax Rate',
+        columnName: 'TaxRate',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -203,18 +204,18 @@ class _DataViewState extends State<DataView> {
           child: const Text('Tax Rate', overflow: TextOverflow.ellipsis),
         ),
       ),
-      GridColumn(
-        columnName: 'Stock Remain',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
-        ),
-      ),
+      // GridColumn(
+      //   columnName: 'StockRemain',
+      //   label: Container(
+      //     decoration: BoxDecoration(
+      //       color: Colors.grey.shade200,
+      //       borderRadius: BorderRadius.circular(4.0),
+      //     ),
+      //     padding: headerPadding,
+      //     alignment: Alignment.center,
+      //     child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
+      //   ),
+      // ),
     ];
   }
 
@@ -272,11 +273,11 @@ class _DataViewState extends State<DataView> {
   }
 
   DataGridSource _buildDataGridSource(
-      bool showPluReport, List<ITransaction> transactions) {
+      bool showPluReport, List<ITransaction> transactions, int rowsPerPage) {
     if (showPluReport) {
-      return TransactionItemDataSource(transactions, widget.rowsPerPage);
+      return TransactionItemDataSource(transactions, rowsPerPage);
     } else {
-      return TransactionDataSource(transactions, widget.rowsPerPage);
+      return TransactionDataSource(transactions, rowsPerPage);
     }
   }
 }
@@ -286,14 +287,28 @@ abstract class DynamicDataSource extends DataGridSource {
 
   @override
   List<DataGridRow> get rows => data.map((item) {
-        return DataGridRow(cells: [
-          DataGridCell<String>(columnName: 'id', value: item.id.toString()),
-          DataGridCell<String>(
-              columnName: 'Type', value: item.receiptType ?? "-"),
-          DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
-          DataGridCell<double>(
-              columnName: 'CashReceived', value: item.cashReceived),
-        ]);
+        if (item is ITransaction) {
+          return DataGridRow(cells: [
+            DataGridCell<String>(columnName: 'id', value: item.id.toString()),
+            DataGridCell<String>(
+                columnName: 'Type', value: item.receiptType ?? "-"),
+            DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
+            DataGridCell<double>(
+                columnName: 'CashReceived', value: item.cashReceived),
+          ]);
+        } else if (item is TransactionItem) {
+          return DataGridRow(cells: [
+            DataGridCell<String>(
+                columnName: 'ItemCode', value: item.itemClsCd.toString()),
+            DataGridCell<String>(columnName: 'Name', value: item.name),
+            DataGridCell<double>(columnName: 'Price', value: item.price),
+            DataGridCell<double>(columnName: 'TaxRate', value: 10),
+            // DataGridCell<double>(columnName: 'StockRemain', value: 10),
+          ]);
+        } else {
+          // Handle the case where item is neither ITransaction nor ITransactionItem
+          return DataGridRow(cells: []);
+        }
       }).toList();
 
   @override
