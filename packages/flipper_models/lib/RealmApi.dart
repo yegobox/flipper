@@ -1640,8 +1640,10 @@ class RealmAPI<M extends IJsonSerializable>
     queryString =
         r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3 && deletedAt = nil';
 
-    return realm!.query<TransactionItem>(queryString,
+    final items = realm!.query<TransactionItem>(queryString,
         [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    return items;
   }
 
   @override

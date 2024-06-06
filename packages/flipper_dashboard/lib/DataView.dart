@@ -35,25 +35,18 @@ class DataView extends StatefulWidget {
 
 class _DataViewState extends State<DataView> {
   static const double dataPagerHeight = 60;
-  late DataGridSource _dataGridSource;
+  DataGridSource? _dataGridSource; // Make it nullable
   int pageIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    _dataGridSource = _buildDataGridSource(
-        widget.showPluReport, widget.transactions, widget.rowsPerPage);
-    _dataGridSource.addListener(updateWidget);
   }
 
   @override
   void dispose() {
-    _dataGridSource.removeListener(updateWidget);
+    // _dataGridSource.removeListener(updateWidget); // Remove this line
     super.dispose();
-  }
-
-  updateWidget() {
-    setState(() {});
   }
 
   final talker = TalkerFlutter.init();
@@ -84,6 +77,10 @@ class _DataViewState extends State<DataView> {
   Widget build(BuildContext context) {
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
+    // Update _dataGridSource based on widget.showPluReport
+    _dataGridSource = _buildDataGridSource(
+        widget.showPluReport, widget.transactions, widget.rowsPerPage);
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -117,7 +114,8 @@ class _DataViewState extends State<DataView> {
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
                           key: widget.workBookKey,
-                          source: _dataGridSource,
+                          source:
+                              _dataGridSource!, // Make sure _dataGridSource is not null
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
                           columns: widget.showPluReport
@@ -132,9 +130,9 @@ class _DataViewState extends State<DataView> {
                     child: SfDataPager(
                       lastPageItemVisible: false,
                       nextPageItemVisible: false,
-                      delegate: _dataGridSource,
+                      delegate: _dataGridSource!,
                       pageCount:
-                          (_dataGridSource.rows.length / widget.rowsPerPage)
+                          (_dataGridSource!.rows.length / widget.rowsPerPage)
                               .ceilToDouble(),
                       direction: Axis.horizontal,
                       onPageNavigationEnd: (index) {
@@ -204,18 +202,18 @@ class _DataViewState extends State<DataView> {
           child: const Text('Tax Rate', overflow: TextOverflow.ellipsis),
         ),
       ),
-      // GridColumn(
-      //   columnName: 'StockRemain',
-      //   label: Container(
-      //     decoration: BoxDecoration(
-      //       color: Colors.grey.shade200,
-      //       borderRadius: BorderRadius.circular(4.0),
-      //     ),
-      //     padding: headerPadding,
-      //     alignment: Alignment.center,
-      //     child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
-      //   ),
-      // ),
+      GridColumn(
+        columnName: 'StockRemain',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
+        ),
+      ),
     ];
   }
 
@@ -275,18 +273,48 @@ class _DataViewState extends State<DataView> {
   DataGridSource _buildDataGridSource(
       bool showPluReport, List<ITransaction> transactions, int rowsPerPage) {
     if (showPluReport) {
-      return TransactionItemDataSource(transactions, rowsPerPage);
+      return TransactionItemDataSource(
+          transactions, rowsPerPage, showPluReport);
     } else {
-      return TransactionDataSource(transactions, rowsPerPage);
+      return TransactionDataSource(transactions, rowsPerPage, showPluReport);
     }
   }
 }
 
 abstract class DynamicDataSource extends DataGridSource {
   List<dynamic> data = []; // Store the data
+  bool showPluReport = false; // Add this property
 
+  // Update the rows getter to dynamically check showPluReport
   @override
-  List<DataGridRow> get rows => data.map((item) {
+  List<DataGridRow> get rows {
+    if (showPluReport) {
+      return data.map((item) {
+        String name = item.name.split('(')[0];
+
+        // Split the item.name by '(' and take the second part (the number within parentheses)
+        String number = item.name.split('(')[1].split(')')[0];
+        name = name.toUpperCase();
+
+        // Combine the name and number with a '-' separator
+        String formattedName = '$name-$number';
+        if (item is TransactionItem) {
+          return DataGridRow(cells: [
+            DataGridCell<String>(
+                columnName: 'ItemCode', value: item.itemClsCd.toString()),
+            DataGridCell<String>(columnName: 'Name', value: formattedName),
+            DataGridCell<double>(columnName: 'Price', value: item.price),
+            DataGridCell<double>(columnName: 'TaxRate', value: 10),
+            DataGridCell<double>(
+                columnName: 'StockRemain', value: item.remainingStock),
+          ]);
+        } else {
+          // Handle the case where item is not a TransactionItem
+          return DataGridRow(cells: []);
+        }
+      }).toList();
+    } else {
+      return data.map((item) {
         if (item is ITransaction) {
           return DataGridRow(cells: [
             DataGridCell<String>(columnName: 'id', value: item.id.toString()),
@@ -296,20 +324,13 @@ abstract class DynamicDataSource extends DataGridSource {
             DataGridCell<double>(
                 columnName: 'CashReceived', value: item.cashReceived),
           ]);
-        } else if (item is TransactionItem) {
-          return DataGridRow(cells: [
-            DataGridCell<String>(
-                columnName: 'ItemCode', value: item.itemClsCd.toString()),
-            DataGridCell<String>(columnName: 'Name', value: item.name),
-            DataGridCell<double>(columnName: 'Price', value: item.price),
-            DataGridCell<double>(columnName: 'TaxRate', value: 10),
-            // DataGridCell<double>(columnName: 'StockRemain', value: 10),
-          ]);
         } else {
-          // Handle the case where item is neither ITransaction nor ITransactionItem
+          // Handle the case where item is not an ITransaction
           return DataGridRow(cells: []);
         }
       }).toList();
+    }
+  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
@@ -336,12 +357,14 @@ abstract class DynamicDataSource extends DataGridSource {
 }
 
 class TransactionDataSource extends DynamicDataSource {
-  TransactionDataSource(List<ITransaction> transactions, this.rowsPerPage) {
+  TransactionDataSource(
+      List<ITransaction> transactions, this.rowsPerPage, this.showPluReport) {
     data = transactions;
     buildPaginatedDataGridRows();
   }
 
   final int rowsPerPage;
+  bool showPluReport;
   @override
   void buildPaginatedDataGridRows() {
     data = data.sublist(
@@ -353,12 +376,14 @@ class TransactionDataSource extends DynamicDataSource {
 
 class TransactionItemDataSource extends DynamicDataSource {
   final int rowsPerPage;
-  TransactionItemDataSource(this.transactions, this.rowsPerPage) {
+  TransactionItemDataSource(
+      this.transactions, this.rowsPerPage, this.showPluReport) {
     // Initialize 'transactions'
     buildPaginatedDataGridRows();
   }
 
   final List<ITransaction> transactions;
+  bool showPluReport;
 
   @override
   void buildPaginatedDataGridRows() {
@@ -367,7 +392,7 @@ class TransactionItemDataSource extends DynamicDataSource {
       data = ProxyService.realm.transactionItems(
         transactionId: currentTransaction.id!,
         doneWithTransaction: true,
-        active: false,
+        active: true,
       );
     }
   }
@@ -379,19 +404,24 @@ class TransactionItemDataSource extends DynamicDataSource {
 
     if (startRowIndex < transactions.length) {
       final currentTransaction = transactions[startRowIndex];
-      data = ProxyService.realm
-          .transactionItems(
-            transactionId: currentTransaction.id!,
-            doneWithTransaction: true,
-            active: false,
-          )
-          .sublist(
-            startRowIndex,
-            endIndex > data.length ? data.length : endIndex,
-          );
+      List<TransactionItem> items = ProxyService.realm.transactionItems(
+        transactionId: currentTransaction.id!,
+        doneWithTransaction: true,
+        active: false,
+      );
 
-      notifyListeners();
+      if (startRowIndex < items.length) {
+        data = items.sublist(
+          startRowIndex,
+          endIndex > items.length ? items.length : endIndex,
+        );
+        notifyListeners();
+        return true;
+      } else {
+        return false; // Prevent page change
+      }
+    } else {
+      return false; // Prevent page change
     }
-    return true;
   }
 }
