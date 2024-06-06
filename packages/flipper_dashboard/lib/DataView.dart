@@ -20,9 +20,15 @@ import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DataView extends StatefulWidget {
-  const DataView({super.key, required this.transactions});
+  const DataView(
+      {super.key,
+      required this.transactions,
+      required this.startDate,
+      required this.endDate});
 
   final List<ITransaction> transactions;
+  final DateTime startDate;
+  final DateTime endDate;
 
   @override
   _DataViewState createState() => _DataViewState();
@@ -74,9 +80,16 @@ class _DataViewState extends State<DataView> {
       isProcessing = true;
     });
 
+    Business business = await ProxyService.local.getBusiness();
     // Get the drawer to get the opening balance
+    int tinNumber = business.tinNumber!;
+    String bhfId = business.bhfId ?? "00";
     Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+
+    // Get the start and end dates from the drawer or any relevant source
+    DateTime? startDate = widget.startDate; // Assuming drawer has startDate
+    DateTime? endDate = widget.endDate; // Assuming drawer has endDate
 
     // Generate the Excel workbook from the DataGrid
     final excel.Workbook workbook =
@@ -91,15 +104,61 @@ class _DataViewState extends State<DataView> {
     balanceStyle.fontColor = '#FFFFFF'; // White font color
     balanceStyle.backColor = '#008000'; // Dark green background color
 
-    // Add the opening balance row at the top
-    sheet.insertRow(1);
+    // Define a style for the TIN and BHF ID rows
+    final excel.Style infoStyle = workbook.styles.add('infoStyle');
+    infoStyle.fontName = 'Arial';
+    infoStyle.bold = true;
+    infoStyle.fontSize = 12;
+    infoStyle.fontColor = '#000000'; // Black font color
+    infoStyle.backColor = '#FFFF00'; // Yellow background color
+
+    // Add the TIN and BHF ID rows at the top
+    sheet.insertRow(1); // For TIN
+    sheet.insertRow(2); // For BHF ID
+    sheet.insertRow(3); // For Start Date
+    sheet.insertRow(4); // For End Date
+
+    // Ensure the style covers all cells in the TIN row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(1, col).cellStyle = infoStyle;
+    }
+    sheet.getRangeByName('A1').setText('TIN Number');
+    sheet.getRangeByName('E1').setNumber(tinNumber.toDouble());
+
+    // Ensure the style covers all cells in the BHF ID row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(2, col).cellStyle = infoStyle;
+    }
+    sheet.getRangeByName('A2').setText('BHF ID');
+    sheet.getRangeByName('E2').setText(bhfId);
+
+    // Ensure the style covers all cells in the Start Date row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(3, col).cellStyle = infoStyle;
+    }
+    sheet.getRangeByName('A3').setText('Start Date');
+    sheet
+        .getRangeByName('E3')
+        .setText(startDate.toIso8601String()); // Format date as needed
+
+    // Ensure the style covers all cells in the End Date row, up to column E
+    for (int col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(4, col).cellStyle = infoStyle;
+    }
+    sheet.getRangeByName('A4').setText('End Date');
+    sheet
+        .getRangeByName('E4')
+        .setText(endDate.toIso8601String()); // Format date as needed
+
+    // Add the opening balance row below TIN and BHF ID
+    sheet.insertRow(5);
 
     // Ensure the style covers all cells in the opening balance row, up to column E
     for (int col = 1; col <= 5; col++) {
-      sheet.getRangeByIndex(1, col).cellStyle = balanceStyle;
+      sheet.getRangeByIndex(5, col).cellStyle = balanceStyle;
     }
-    sheet.getRangeByName('A1').setText('Opening Balance');
-    sheet.getRangeByName('E1').setNumber(drawer?.openingBalance ?? 0);
+    sheet.getRangeByName('A5').setText('Opening Balance');
+    sheet.getRangeByName('E5').setNumber(drawer?.openingBalance ?? 0);
 
     // Add the closing balance row at the bottom and apply the style to the entire row
     final int lastRow = sheet.getLastRow() + 1;
@@ -110,7 +169,7 @@ class _DataViewState extends State<DataView> {
       sheet.getRangeByIndex(lastRow, col).cellStyle = balanceStyle;
     }
     sheet.getRangeByName('A$lastRow').setText('Closing Balance');
-    sheet.getRangeByName('E$lastRow').setFormula('=SUM(C2:C${lastRow - 1})');
+    sheet.getRangeByName('E$lastRow').setFormula('=SUM(C6:C${lastRow - 1})');
 
     // Save the workbook to a byte array
     final List<int> bytes = workbook.saveAsStream();

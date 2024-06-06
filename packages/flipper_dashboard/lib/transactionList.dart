@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// TODO: https://pub.dev/packages/syncfusion_officechart in exported excel add complete functionality to have a financial document.
 class TransactionList extends ConsumerWidget {
   const TransactionList({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(transactionListProvider);
+    final dateRange = ref.watch(dateRangeProvider);
+    final startDate = dateRange['startDate'];
+    final endDate = dateRange['endDate'];
 
     return data.when(
       data: (transactionData) {
@@ -25,6 +27,8 @@ class TransactionList extends ConsumerWidget {
                 )
               : DataView(
                   transactions: transactionData,
+                  startDate: startDate!,
+                  endDate: endDate!,
                 ),
         );
       },
