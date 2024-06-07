@@ -214,10 +214,6 @@ class _DrawerScreenState extends State<DrawerScreen> {
     }
     await ProxyService.realm.logOut();
     // _routerService.replaceWithLoginView();
-    // _routerService.navigateTo(LoginViewRoute());
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => LoginView()),
-      (Route<dynamic> route) => false,
-    );
+    _routerService.navigateTo(LoginViewRoute());
   }
 }
