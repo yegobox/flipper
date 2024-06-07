@@ -440,3 +440,14 @@ class App {}
 /// git commit -am "[build release windows] [build release android]"
 /// https://medium.com/lodgify-technology-blog/deploy-your-flutter-app-to-google-play-with-github-actions-f13a11c4492e
 /// base64 -i upload-keystore.jks -o keystoreBase64
+/// ShoreBird skll down here!
+/// ✅ Published Release 1.170.4252223231897+1717794359!
+/// Your next step is to upload the app bundle to the Play Store:
+/// Users/richard/Documents/GitHub/flipper/apps/flipper/build/app/outputs/bundle/release/app-release.aab
+
+/// For information on uploading to the Play Store, see:
+/// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
+
+/// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223231897+1717794359
+
+/// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
