@@ -504,6 +504,30 @@ class DateRangeNotifier extends StateNotifier<Map<String, DateTime>> {
   }
 }
 
+final transactionItemListProvider =
+    StreamProvider.autoDispose<List<TransactionItem>>((ref) {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange['startDate'];
+  final endDate = dateRange['endDate'];
+
+  // Check if startDate or endDate is null, and return an empty stream if either is null
+  if (startDate == null || endDate == null) {
+    return Stream.value(
+        []); // Return an empty list stream instead of empty stream
+  }
+
+  try {
+    final stream = ProxyService.realm
+        .transactionItemList(startDate: startDate, endDate: endDate);
+
+    // Use `switchMap` to handle potential changes in dateRangeProvider
+    return stream.switchMap((transactions) => Stream.value(transactions));
+  } catch (e, stackTrace) {
+    // Return an error stream if something goes wrong
+    return Stream.error(e, stackTrace);
+  }
+});
+
 final transactionListProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
   final dateRange = ref.watch(dateRangeProvider);

@@ -182,18 +182,19 @@ class TransactionList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(transactionListProvider);
+    final transactions = ref.watch(transactionListProvider);
+    final transactionItems = ref.watch(transactionItemListProvider);
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange['startDate'];
     final endDate = dateRange['endDate'];
-    bool showPluReport = false;
+
     final GlobalKey<SfDataGridState> _workBookKey =
         GlobalKey<SfDataGridState>();
     final rowsPerPage = ref.watch(rowsPerPageProvider);
     final rowsPerPageController =
         TextEditingController(text: rowsPerPage.toString());
 
-    return data.when(
+    return transactions.when(
       data: (transactionData) {
         return Container(
           width: 150,
@@ -213,7 +214,7 @@ class TransactionList extends ConsumerWidget {
                         children: <Widget>[
                           // Toggle Button for PluReport/ZReport
                           Switch(
-                            value: showPluReport,
+                            value: ref.watch(pluReportToggleProvider),
                             onChanged: (value) {
                               ref
                                   .watch(pluReportToggleProvider.notifier)
@@ -281,11 +282,16 @@ class TransactionList extends ConsumerWidget {
                     ),
                     Expanded(
                       child: DataView(
+                        /// TODO: build similar query based on date but on transactionItem
+                        /// pass them to be shown based on flag we have isPluReport or not
+                        /// in DataView remove querying transactionItem based on first transaction because that is
+                        /// not intention and it is wrong
                         transactions: transactionData,
+                        transactionItems: transactionItems.asData?.value,
                         startDate: startDate!,
                         endDate: endDate!,
                         workBookKey: _workBookKey,
-                        rowsPerPage: 10,
+                        rowsPerPage: ref.read(rowsPerPageProvider),
                         showPluReport: ref.watch(pluReportToggleProvider),
                       ),
                     ),

@@ -383,6 +383,7 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.write(() {
           item.dcAmt = discount;
           item.discount = discount;
+          item.lastTouched = DateTime.now();
 
           stock!.currentStock = stock.currentStock - item.qty;
           // stock value after item deduct
@@ -2689,5 +2690,38 @@ class RealmAPI<M extends IJsonSerializable>
     });
     return realm!.query<Drawers>(
         r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate}) {
+    if (startDate == null || endDate == null) return Stream.empty();
+    final controller = StreamController<List<TransactionItem>>.broadcast();
+
+    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    final query = realm!
+        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
+      startDate.toUtc(),
+      endDate.add(Duration(days: 1)).toUtc(),
+    ]);
+
+    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedVariants =
+            event.results.whereType<TransactionItem>().toList();
+        if (changedVariants.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 }

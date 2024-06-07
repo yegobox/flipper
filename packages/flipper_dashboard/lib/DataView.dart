@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -20,6 +19,7 @@ class DataView extends StatefulWidget {
     required this.workBookKey,
     required this.showPluReport,
     required this.rowsPerPage,
+    required this.transactionItems,
   });
 
   final List<ITransaction> transactions;
@@ -28,6 +28,7 @@ class DataView extends StatefulWidget {
   final GlobalKey<SfDataGridState> workBookKey;
   final bool showPluReport;
   final int rowsPerPage;
+  final List<TransactionItem>? transactionItems;
 
   @override
   _DataViewState createState() => _DataViewState();
@@ -79,8 +80,8 @@ class _DataViewState extends State<DataView> {
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
     // Update _dataGridSource based on widget.showPluReport
-    _dataGridSource = _buildDataGridSource(
-        widget.showPluReport, widget.transactions, widget.rowsPerPage);
+    _dataGridSource = _buildDataGridSource(widget.showPluReport,
+        widget.transactionItems, widget.transactions, widget.rowsPerPage);
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -271,10 +272,13 @@ class _DataViewState extends State<DataView> {
   }
 
   DataGridSource _buildDataGridSource(
-      bool showPluReport, List<ITransaction> transactions, int rowsPerPage) {
+      bool showPluReport,
+      List<TransactionItem>? transactionItem,
+      List<ITransaction> transactions,
+      int rowsPerPage) {
     if (showPluReport) {
       return TransactionItemDataSource(
-          transactions, rowsPerPage, showPluReport);
+          transactionItem!, rowsPerPage, showPluReport);
     } else {
       return TransactionDataSource(transactions, rowsPerPage, showPluReport);
     }
@@ -377,23 +381,19 @@ class TransactionDataSource extends DynamicDataSource {
 class TransactionItemDataSource extends DynamicDataSource {
   final int rowsPerPage;
   TransactionItemDataSource(
-      this.transactions, this.rowsPerPage, this.showPluReport) {
+      this.transactionItems, this.rowsPerPage, this.showPluReport) {
     // Initialize 'transactions'
     buildPaginatedDataGridRows();
   }
 
-  final List<ITransaction> transactions;
+  final List<TransactionItem> transactionItems;
+
   bool showPluReport;
 
   @override
   void buildPaginatedDataGridRows() {
-    if (transactions.isNotEmpty) {
-      final currentTransaction = transactions[0];
-      data = ProxyService.realm.transactionItems(
-        transactionId: currentTransaction.id!,
-        doneWithTransaction: true,
-        active: true,
-      );
+    if (transactionItems.isNotEmpty) {
+      data = transactionItems;
     }
   }
 
@@ -402,13 +402,8 @@ class TransactionItemDataSource extends DynamicDataSource {
     final int startRowIndex = newPageIndex * rowsPerPage;
     final int endIndex = startRowIndex + rowsPerPage;
 
-    if (startRowIndex < transactions.length) {
-      final currentTransaction = transactions[startRowIndex];
-      List<TransactionItem> items = ProxyService.realm.transactionItems(
-        transactionId: currentTransaction.id!,
-        doneWithTransaction: true,
-        active: false,
-      );
+    if (startRowIndex < transactionItems.length) {
+      List<TransactionItem> items = transactionItems;
 
       if (startRowIndex < items.length) {
         data = items.sublist(

@@ -206,17 +206,23 @@ class ProductViewState extends ConsumerState<ProductView> {
         );
       },
       deleteProduct: (id, type) async {
-        if (type == 'product') {
-          ProxyService.realm.delete(id: id!, endPoint: 'product');
-        }
-        if (type == 'variant') {
-          ProxyService.realm.delete(id: id!, endPoint: 'variant');
-        }
+        try {
+          if (type == 'product') {
+            ProxyService.realm.delete(id: id!, endPoint: 'product');
+          }
+          if (type == 'variant') {
+            ProxyService.realm.delete(id: id!, endPoint: 'variant');
+          }
 
-        // ignore: unused_result
-        ref.refresh(
-          outerVariantsProvider(ProxyService.box.getBranchId()!),
-        );
+          // ignore: unused_result
+          ref
+              .refresh(
+                productsProvider(
+                  ProxyService.box.getBranchId() ?? 0,
+                ).notifier,
+              )
+              .loadProducts(searchString: "", scanMode: false);
+        } catch (e) {}
       },
       enableNfc: (product) {
         // Handle NFC functionality

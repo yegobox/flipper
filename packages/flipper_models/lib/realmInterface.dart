@@ -366,4 +366,6 @@ abstract class RealmApiInterface {
   Future<Drawers?> getDrawer({required int cashierId});
 
   Future<Drawers?> openDrawer({required Drawers drawer});
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate});
 }
