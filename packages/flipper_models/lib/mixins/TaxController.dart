@@ -87,7 +87,7 @@ class TaxController<OBJ> {
         );
       } catch (e, s) {
         talker.critical(s);
-        //rethrow;
+        rethrow;
       }
     }
   }
@@ -172,6 +172,9 @@ class TaxController<OBJ> {
     talker.warning("Final computed Tax for C: $totalTaxC");
     talker.warning("Final computed Tax for D: $totalTaxD");
 
+    Customer? customer =
+        await ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
+
     Print print = Print();
 
     print.print(
@@ -203,8 +206,9 @@ class TaxController<OBJ> {
       brandDescription: business.name!,
       brandFooter: business.name!,
       emails: ['info@yegobox.com'],
-      customerTin: "0000000000",
+      customerTin: customer?.custTin ?? "00000000",
       receiptType: receiptType,
+      customerName: customer?.custNm ?? "",
     );
   }
 

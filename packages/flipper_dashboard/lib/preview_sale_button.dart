@@ -94,7 +94,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   Widget build(BuildContext context) {
     final transaction = widget.mode == SellingMode.forOrdering
         ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
-        : ref.watch(pendingTransactionProvider(TransactionType.custom));
+        : ref.watch(pendingTransactionProvider(TransactionType.sale));
 
     final itemCount = ref
             .watch(transactionItemsStreamProvider(transaction.value?.value?.id))

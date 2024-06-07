@@ -277,6 +277,10 @@ class RWTax implements TaxApi {
         salesTyCd = "N";
         rcptTyCd = "R";
         break;
+      case "NS":
+        salesTyCd = "N";
+        rcptTyCd = "S";
+        break;
       case "CS":
         salesTyCd = "C";
         rcptTyCd = "S";
@@ -290,7 +294,7 @@ class RWTax implements TaxApi {
         rcptTyCd = "S";
         break;
       default:
-        salesTyCd = "T";
+        salesTyCd = "N";
         rcptTyCd = "S";
         break;
     }
@@ -401,7 +405,7 @@ class RWTax implements TaxApi {
     try {
       final url = '$ebmUrl/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
-
+      // Clipboard.setData(ClipboardData(text: finalData.toString()));
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {

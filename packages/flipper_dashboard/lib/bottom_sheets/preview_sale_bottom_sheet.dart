@@ -120,7 +120,7 @@ class PreviewSaleBottomSheetState
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
     final transactionItemsNotifier = ref.watch(
         transactionItemsProvider(transaction.value?.value?.id!).notifier);
 
@@ -204,7 +204,7 @@ class PreviewSaleBottomSheetState
           /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
           Navigator.of(context).pop();
           final transaction = await ProxyService.realm.manageTransaction(
-            transactionType: TransactionType.custom,
+            transactionType: TransactionType.sale,
           );
           _routerService.navigateTo(
             PaymentsRoute(

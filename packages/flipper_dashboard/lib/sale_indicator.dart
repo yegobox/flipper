@@ -30,7 +30,7 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {

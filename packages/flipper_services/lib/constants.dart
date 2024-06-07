@@ -44,8 +44,6 @@ class TransactionType {
   static String cashIn = 'Cash In';
   static String cashOut = 'Cash Out';
   static String sale = 'Sale';
-  static String custom = 'custom';
-  static String onlineSale = 'Online Sale';
   static String salary = 'Salary';
   static String transport = 'Transport';
   static String airtime = 'Airtime';

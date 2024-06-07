@@ -111,7 +111,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> keyboardKeyPressed(
-      {required String key, String? transactionType = 'custom'}) async {
+      {required String key, String? transactionType = "Sale"}) async {
     if (double.tryParse(key) != null) {
       ProxyService.keypad.addKey(key);
     }
@@ -443,7 +443,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
     ITransaction transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.custom);
+        .manageTransaction(transactionType: TransactionType.sale);
 
     Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
@@ -484,7 +484,7 @@ class CoreViewModel extends FlipperBaseModel
       required String paymentType,
       required double discount}) async {
     final transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.custom);
+        .manageTransaction(transactionType: TransactionType.sale);
     // await ProxyService.isar
     //     .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.realm.collectPayment(
@@ -583,7 +583,7 @@ class CoreViewModel extends FlipperBaseModel
 
   void addNoteToSale({required String note, required Function callback}) async {
     final currentTransaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.custom);
+        .manageTransaction(transactionType: TransactionType.sale);
     ITransaction? transaction =
         await ProxyService.realm.getTransactionById(id: currentTransaction.id!);
     // Map map = transaction!;
@@ -745,12 +745,17 @@ class CoreViewModel extends FlipperBaseModel
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(int id, Function callback) async {
     final transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.custom);
+        .manageTransaction(transactionType: TransactionType.sale);
     if (transaction.customerId == null) {
       await ProxyService.realm.delete(id: id, endPoint: 'customer');
       callback("customer deleted");
     } else {
-      callback("Customer is already attached to a transaction");
+      /// first detach the customer from trans
+      ProxyService.realm.realm!.write(() {
+        transaction.customerId = null;
+        ProxyService.realm.delete(id: id, endPoint: 'customer');
+      });
+      callback("customer deleted");
     }
   }
 

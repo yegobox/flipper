@@ -72,7 +72,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
         Stock? stock = await ProxyService.realm
             .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
         ITransaction currentTransaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
+            .manageTransaction(transactionType: TransactionType.sale);
 
         await model.saveTransaction(
           variation: variant,
@@ -82,7 +82,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
           currentStock: stock!.currentStock,
         );
         await model.keyboardKeyPressed(key: '+');
-        ref.refresh(pendingTransactionProvider(TransactionType.custom).future);
+        ref.refresh(pendingTransactionProvider(TransactionType.sale).future);
         ref.refresh(transactionItemsProvider(currentTransaction.id));
         ref.refresh(searchStringProvider);
       }

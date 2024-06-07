@@ -58,7 +58,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
               title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
-                ref.refresh(pendingTransactionProvider('custom'));
+                ref.refresh(pendingTransactionProvider(TransactionType.sale));
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
@@ -127,6 +127,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                               transaction: widget.transaction,
                               purchaseCode: purchaseCode,
                             );
+                            Navigator.of(context).pop();
                           } catch (e) {
                             setState(() {
                               _busy = false;
@@ -143,8 +144,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                                 backgroundColor: Colors.green);
                             return;
                           }
-
-                          Navigator.of(context).pop();
                         }
                       },
                     ),
@@ -349,7 +348,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           busy: model.handlingConfirm,
           onTap: () {
             model.handlingConfirm = true;
-            ref.refresh(pendingTransactionProvider('custom'));
+            ref.refresh(pendingTransactionProvider(TransactionType.sale));
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
           title: "Return to Home",

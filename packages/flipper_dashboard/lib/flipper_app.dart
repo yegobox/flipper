@@ -141,7 +141,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
     // ignore: unused_result
     ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
     initializeApplicationIfRequired();
@@ -175,7 +175,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
       AppService.cleanedData.listen((data) async {
         log("listened to data");
         final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.custom));
+            ref.watch(pendingTransactionProvider(TransactionType.sale));
         log(data);
         List<String> parts = data.split(':');
         String firstPart = parts[0];

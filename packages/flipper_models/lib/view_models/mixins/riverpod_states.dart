@@ -150,7 +150,7 @@ class TransactionItemsNotifier
     try {
       // Await the future and store the result in a local variable
       final transaction = await ProxyService.realm
-          .manageTransaction(transactionType: TransactionType.custom);
+          .manageTransaction(transactionType: TransactionType.sale);
       ProxyService.realm.realm!.write(() {
         transaction.subTotal = totalPayable;
       });

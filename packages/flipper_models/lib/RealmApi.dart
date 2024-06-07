@@ -1742,7 +1742,7 @@ class RealmAPI<M extends IJsonSerializable>
       queryString = r'''deletedAt = nil
             && status == $0
             && (
-            transactionType IN ANY {'Cash In', 'sale', 'custom', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
+            transactionType IN ANY {'Cash In', 'Sale', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
             )
             ''';
     }

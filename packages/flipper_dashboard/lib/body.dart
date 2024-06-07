@@ -31,7 +31,7 @@ Widget PaymentTicketManager(
       model: model,
       onClick: () async {
         final transaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
+            .manageTransaction(transactionType: TransactionType.sale);
         if (transaction.subTotal == 0) {
           _routerService.navigateTo(PaymentsRoute(transaction: transaction));
         } else {
@@ -44,7 +44,7 @@ Widget PaymentTicketManager(
       },
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
+            .manageTransaction(transactionType: TransactionType.sale);
         showModalBottomSheet(
           backgroundColor: Colors.red,
           context: context,
