@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_dashboard/sales_buttons_controller.dart';
@@ -46,7 +47,7 @@ Widget PaymentTicketManager(
         ITransaction transaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.sale);
 
-        _routerService.navigateTo(TicketsRoute(transaction: transaction));
+        _routerService.navigateTo(TicketsListRoute(transaction: transaction));
       },
     ),
     controller: controller,

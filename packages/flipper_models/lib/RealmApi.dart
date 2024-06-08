@@ -1610,18 +1610,11 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<List<ITransaction>> ticketsStreams() {
     int branchId = ProxyService.box.getBranchId()!;
-    String queryString = "";
-
-    queryString = r'''deletedAt = nil
-        && status == $0
-        && (
-        transactionType IN ANY {'PARKED'} && branchId == $1
-        )
-        ''';
 
     final subject = ReplaySubject<List<ITransaction>>();
 
-    final query = realm!.query<ITransaction>(queryString, [PARKED, branchId]);
+    final query = realm!.query<ITransaction>(
+        r'status == $0 AND branchId == $1', [PARKED, branchId]);
 
     query.changes.listen((results) {
       subject.add(results.results.toList());

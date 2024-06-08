@@ -51,7 +51,7 @@ import 'all_routes.dart';
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: ChatListView),
     CustomRoute(page: ConversationHistory),
-    CustomRoute(page: Tickets),
+    CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
     CustomRoute(page: Apps),
     CustomRoute(page: CheckOut),
