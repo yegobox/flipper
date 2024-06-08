@@ -164,8 +164,10 @@ class TransactionList extends ConsumerWidget {
     final List<int> bytes = workbook.saveAsStream();
 
     // Save the byte array to a file
+    final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
     final Directory tempDir = await getApplicationDocumentsDirectory();
-    final File file = File('${tempDir.path}/Report.xlsx');
+    final File file = File('${tempDir.path}/${formattedDate}-Report.xlsx');
     await file.writeAsBytes(bytes);
 
     // Dispose the workbook to free up resources
