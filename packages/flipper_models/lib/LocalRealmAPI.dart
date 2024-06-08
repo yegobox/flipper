@@ -261,6 +261,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         }
       } catch (error, s) {
         talker.error('Error fetching tenant: $s');
+        talker.error('Error fetching tenant: $error');
       }
       await Future.delayed(Duration(minutes: refreshRate!));
     }
