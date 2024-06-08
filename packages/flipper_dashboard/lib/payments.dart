@@ -58,13 +58,14 @@ class PaymentsState extends ConsumerState<Payments> {
           child: Scaffold(
             appBar: _buildCustomAppBar(),
             resizeToAvoidBottomInset: false,
-            body: SingleChildScrollView(
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 145),
+                  const SizedBox(height: 45),
                   _buildAmountSection(widget.transaction.subTotal),
                   const SizedBox(height: 20),
                   Visibility(
@@ -77,7 +78,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   ),
                   const SizedBox(height: 20),
                   _buildPaymentButtons(model),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   _buildConfirmButton(model),
                   const SizedBox(height: 20),
                 ],
@@ -123,7 +124,7 @@ class PaymentsState extends ConsumerState<Payments> {
           'RWF ' + NumberFormat('#,###').format(totalPayable),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w400,
-            fontSize: 20,
+            fontSize: 32,
             color: Colors.black,
           ),
         ),
@@ -329,7 +330,8 @@ class PaymentsState extends ConsumerState<Payments> {
   Widget _buildPaymentButtons(CoreViewModel model) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 0,
+      spacing: 10,
+      runSpacing: 10,
       children: [
         _buildPaymentButton(
           icon: FluentIcons.money_calculator_24_regular,
@@ -365,7 +367,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
     return SizedBox(
       height: 96,
-      width: 136,
+      width: 96,
       child: TextButton(
         onPressed: () {
           setState(() {
