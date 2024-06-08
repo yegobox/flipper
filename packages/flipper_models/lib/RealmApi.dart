@@ -276,7 +276,7 @@ class RealmAPI<M extends IJsonSerializable>
       yield tenant;
     }
 
-    // Close the StreamController after the stream is finished
+    // Close the StreamController after the stream is finishe
     controller.close();
   }
 
