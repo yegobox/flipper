@@ -295,7 +295,7 @@ abstract class DynamicDataSource extends DataGridSource {
     if (showPluReport) {
       return data.map((item) {
         String name = item.name.split('(')[0];
-        String number = ''; // Initialize number to an empty string
+        String number = ''; // Initialize number to an empty stringg
 
         // Only try to split and get the number if the name has a '('
         if (item.name.contains('(')) {
