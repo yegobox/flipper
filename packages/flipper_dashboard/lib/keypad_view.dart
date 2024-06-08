@@ -79,7 +79,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
       required this.model,
       this.isBigScreen = false,
       this.transactionMode = false,
-      this.transactionType = 'custom'})
+      this.transactionType = TransactionType.sale})
       : super(key: key);
   KeyPadView.cashBookMode(
       {Key? key,

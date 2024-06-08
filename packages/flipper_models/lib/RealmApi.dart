@@ -1318,7 +1318,9 @@ class RealmAPI<M extends IJsonSerializable>
     }
     int branchId = ProxyService.box.getBranchId()!;
     ITransaction? existTransaction = await pendingTransaction(
-        branchId: branchId, transactionType: transactionType);
+        branchId: branchId,
+        transactionType: transactionType,
+        includeSubTotalCheck: false);
     if (existTransaction == null) {
       final int id = randomNumber();
       final transaction = ITransaction(ObjectId(),
@@ -1383,10 +1385,17 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<ITransaction?> pendingTransaction(
-      {required int branchId, required String transactionType}) async {
-    return realm!.query<ITransaction>(
-        r'branchId == $0 AND transactionType == $1 AND status == $2',
-        [branchId, transactionType, PENDING]).firstOrNull;
+      {required int branchId,
+      required String transactionType,
+      bool includeSubTotalCheck = true}) async {
+    String query = r'branchId == $0 AND transactionType == $1 AND status == $2';
+    List<dynamic> parameters = [branchId, transactionType, PENDING];
+
+    if (includeSubTotalCheck) {
+      query += ' AND subTotal > 0';
+    }
+
+    return realm!.query<ITransaction>(query, parameters).firstOrNull;
   }
 
   @override

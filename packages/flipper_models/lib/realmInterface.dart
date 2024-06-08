@@ -37,9 +37,9 @@ abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
 
   Future<ITransaction?> pendingTransaction(
-      {required int branchId, required String transactionType});
-  // Future<IUser> login(
-  //     {required String userPhone, required bool skipDefaultAppSetup});
+      {required int branchId,
+      required String transactionType,
+      bool includeSubTotalCheck = true});
 
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});

@@ -130,10 +130,10 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                                   ITransaction? transaction = await ProxyService
                                       .realm
                                       .pendingTransaction(
-                                          branchId:
-                                              ProxyService.box.getBranchId()!,
-                                          transactionType:
-                                              TransactionType.sale);
+                                    branchId: ProxyService.box.getBranchId()!,
+                                    transactionType: TransactionType.sale,
+                                    includeSubTotalCheck: true,
+                                  );
                                   if (transaction == null) {
                                     await model.resumeTransaction(
                                         ticketId: ticket.id!);

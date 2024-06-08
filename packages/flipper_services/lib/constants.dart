@@ -41,13 +41,13 @@ class TransactionReceptType {
 }
 
 class TransactionType {
-  static String cashIn = 'Cash In';
-  static String cashOut = 'Cash Out';
-  static String sale = 'Sale';
-  static String salary = 'Salary';
-  static String transport = 'Transport';
-  static String airtime = 'Airtime';
-  static List<String> acceptedCashOuts = [salary, transport, airtime];
+  static const String cashIn = 'Cash In';
+  static const String cashOut = 'Cash Out';
+  static const String sale = 'Sale';
+  static const String salary = 'Salary';
+  static const String transport = 'Transport';
+  static const String airtime = 'Airtime';
+  static const List<String> acceptedCashOuts = [salary, transport, airtime];
 }
 
 class TransactionPeriod {
