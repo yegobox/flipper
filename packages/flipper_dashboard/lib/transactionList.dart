@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:mime/mime.dart';
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -16,6 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
+import 'package:path/path.dart' as p;
 
 final rowsPerPageProvider = StateProvider<int>((ref) => 10); // Default to 10
 
@@ -182,12 +182,15 @@ class TransactionList extends ConsumerWidget {
   Future<void> shareFileAsAttachment(String filePath) async {
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    final file = File(filePath);
+    final fileName = p.basename(file.path);
 
     if (Platform.isWindows) {
-      await Share.shareXFiles(
-        // [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
-        [XFile(filePath)],
+      final bytes = await file.readAsBytes();
+      final mimeType = _lookupMimeType(filePath); // MIME type for Excel files
 
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
         subject: 'Report Download - $formattedDate',
       );
     } else {
@@ -197,6 +200,16 @@ class TransactionList extends ConsumerWidget {
       );
     }
   }
+
+  String _lookupMimeType(String filePath) {
+    final mimeType = _mimeTypes[filePath.split('.').last];
+    return mimeType ?? 'application/octet-stream';
+  }
+
+  final _mimeTypes = {
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
