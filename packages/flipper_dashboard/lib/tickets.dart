@@ -125,12 +125,28 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                               return TicketTile(
                                 ticket: ticket,
                                 onTap: () async {
-                                  await model.resumeTransaction(
-                                      ticketId: ticket.id!);
-                                  ref.refresh(pendingTransactionProvider(
-                                      TransactionType.sale));
-                                  _routerService
-                                      .clearStackAndShow(FlipperAppRoute());
+                                  /// make sure there one pending transaction before resume otherwise throw error because
+                                  /// preview cart use FIFO in handling the transaction so one pending transaction will show at the time.
+                                  ITransaction? transaction = await ProxyService
+                                      .realm
+                                      .pendingTransaction(
+                                          branchId:
+                                              ProxyService.box.getBranchId()!,
+                                          transactionType:
+                                              TransactionType.sale);
+                                  if (transaction == null) {
+                                    await model.resumeTransaction(
+                                        ticketId: ticket.id!);
+                                    ref.refresh(pendingTransactionProvider(
+                                        TransactionType.sale));
+                                    _routerService
+                                        .clearStackAndShow(FlipperAppRoute());
+                                  } else {
+                                    showSnackBar(context,
+                                        "There is ongoing sale, first complete it or park it again!",
+                                        textColor: Colors.black,
+                                        backgroundColor: Colors.red);
+                                  }
                                 },
                               );
                             },
