@@ -180,15 +180,12 @@ class TransactionList extends ConsumerWidget {
   Future<void> shareFileAsAttachment(String filePath) async {
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
-    final file = File(filePath);
-    final fileName = file.path.split('/').last;
 
     if (Platform.isWindows) {
-      final bytes = await file.readAsBytes();
-      final mimeType = _lookupMimeType(filePath);
-
       await Share.shareXFiles(
-        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
+        // [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
+        [XFile(filePath)],
+
         subject: 'Report Download - $formattedDate',
       );
     } else {
@@ -198,30 +195,6 @@ class TransactionList extends ConsumerWidget {
       );
     }
   }
-
-  String _lookupMimeType(String filePath) {
-    final mimeType = _mimeTypes[filePath.split('.').last];
-    return mimeType ?? 'application/octet-stream';
-  }
-
-  final _mimeTypes = {
-    'jpg': 'image/jpeg',
-    'jpeg': 'image/jpeg',
-    'png': 'image/png',
-    'gif': 'image/gif',
-    'pdf': 'application/pdf',
-    'doc': 'application/msword',
-    'docx':
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'xls': 'application/vnd.ms-excel',
-    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'ppt': 'application/vnd.ms-powerpoint',
-    'pptx':
-        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    'txt': 'text/plain',
-    'zip': 'application/zip',
-    'rar': 'application/x-rar-compressed',
-  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
