@@ -20,7 +20,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
-  SearchField({Key? key, required this.controller}) : super(key: key);
+  const SearchField({Key? key, required this.controller}) : super(key: key);
   final TextEditingController controller;
 
   @override
@@ -97,7 +97,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     final orders = ref.watch(ordersStreamProvider);
     final currentLocation = ref.watch(buttonIndexProvider);
     final screenWidth = MediaQuery.of(context).size.width;
-    final padding = screenWidth * 0.05;
+    final padding = screenWidth * 0.001;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: padding),
@@ -109,51 +109,41 @@ class SearchFieldState extends ConsumerState<SearchField> {
           });
         },
         builder: (a, model, b) {
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: widget.controller,
-                  maxLines: null,
-                  focusNode: _focusNode,
-                  textInputAction: TextInputAction.done,
-                  keyboardType: TextInputType.text,
-                  onFieldSubmitted: (value) => _textSubject,
-                  onChanged: (value) {
-                    _textSubject.add(value);
-                  },
-                  decoration: InputDecoration(
-                    focusedBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.grey.shade400, width: 1.0),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: Colors.grey.shade400, width: 1.0),
-                    ),
-                    prefixIcon: IconButton(
-                      onPressed: () {
-                        // Handle search functionality here
-                      },
-                      icon: Icon(FluentIcons.search_24_regular),
-                    ),
-                    suffixIcon: Wrap(
-                      children: [
-                        if ([0, 1, 2, 4].contains(currentLocation))
-                          indicatorButton(),
-                        if (ProxyService.remoteConfig
-                                .isOrderFeatureOrderEnabled() &&
-                            [0, 1, 2, 4].contains(currentLocation))
-                          orderButton(orders),
-                        if ([0, 1, 2, 4].contains(currentLocation))
-                          incomingButton(),
-                        if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                        if (currentLocation == 1) datePicker(),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+          return TextFormField(
+            controller: widget.controller,
+            maxLines: null,
+            focusNode: _focusNode,
+            textInputAction: TextInputAction.done,
+            keyboardType: TextInputType.text,
+            onFieldSubmitted: (value) => _textSubject,
+            onChanged: (value) {
+              _textSubject.add(value);
+            },
+            decoration: InputDecoration(
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+              ),
+              prefixIcon: IconButton(
+                onPressed: () {
+                  // Handle search functionality here
+                },
+                icon: Icon(FluentIcons.search_24_regular),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
+                  if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
+                      [0, 1, 2, 4].contains(currentLocation))
+                    orderButton(orders),
+                  if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
+                  if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
+                  if (currentLocation == 1) datePicker(),
+                ],
+              ),
             ),
           );
         },
