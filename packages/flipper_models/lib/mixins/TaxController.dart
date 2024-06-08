@@ -135,7 +135,7 @@ class TaxController<OBJ> {
 
         // Fetch the tax configuration
         var taxConfig =
-            await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+            ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
         talker.info("Tax To be applied on: ${item.taxTyCd}");
         // Ensure taxPercentage is not null

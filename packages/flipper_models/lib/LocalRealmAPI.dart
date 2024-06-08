@@ -254,13 +254,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             userId: userId, refreshRate: refreshRate);
         talker.warning(noActivity.toString());
 
-        if (noActivity) {
-          Tenant? tenant = await getTenantBYUserId(userId: userId);
-          if (tenant != null) {
-            ProxyService.realm.realm!
-                .writeAsync(() => tenant.sessionActive = false);
-          }
-        }
+        // if (noActivity) {
+        //   Tenant? tenant = await getTenantBYUserId(userId: userId);
+        //   if (tenant != null) {
+        //     ProxyService.realm.realm!
+        //         .writeAsync(() => tenant.sessionActive = false);
+        //   }
+        // }
       } catch (error, s) {
         talker.error('Error fetching tenant: $s');
         talker.error('Error fetching tenant: $error');

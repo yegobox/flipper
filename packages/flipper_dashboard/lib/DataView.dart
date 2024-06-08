@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -303,6 +304,9 @@ abstract class DynamicDataSource extends DataGridSource {
         }
         name = name.toUpperCase();
 
+        Configurations configurations =
+            ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
         String formattedName = '$name-$number';
         if (item is TransactionItem) {
           return DataGridRow(cells: [
@@ -310,7 +314,8 @@ abstract class DynamicDataSource extends DataGridSource {
                 columnName: 'ItemCode', value: item.itemClsCd.toString()),
             DataGridCell<String>(columnName: 'Name', value: formattedName),
             DataGridCell<double>(columnName: 'Price', value: item.price),
-            DataGridCell<double>(columnName: 'TaxRate', value: 10),
+            DataGridCell<double>(
+                columnName: 'TaxRate', value: configurations.taxPercentage),
             DataGridCell<double>(
                 columnName: 'StockRemain', value: item.remainingStock),
           ]);
