@@ -1882,7 +1882,7 @@ class RealmAPI<M extends IJsonSerializable>
       }
 
       // Construct the specific directory path
-      final realmDirectory = p.join(appSupportDirectory.path, 'v24');
+      final realmDirectory = p.join(appSupportDirectory.path, 'v25');
 
       // Create the directory if it doesn't exist
       final directory = Directory(realmDirectory);
