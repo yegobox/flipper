@@ -14,7 +14,7 @@ dependencies:
   flipper_routing: ^0.0.1-dev.3
 
   timeago: ^3.4.0
-  mime: ^1.0.1
+  mime: ^1.0.5
   open_filex: ^4.1.1
   ant_icons: ^2.0.0-nullsafety.0
   pubnub: ^4.3.1

@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:mime/mime.dart';
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -53,7 +53,7 @@ class IsProcessingNotifier extends StateNotifier<bool> {
 }
 
 class TransactionList extends ConsumerWidget {
-  const TransactionList({Key? key}) : super(key: key);
+  TransactionList({Key? key}) : super(key: key);
   Future<void> requestPermissions() async {
     await [
       permission.Permission.storage,
@@ -173,12 +173,55 @@ class TransactionList extends ConsumerWidget {
 
     ref.read(isProcessingProvider.notifier).stopProcessing();
 
-    // Share the file
-    var now = DateTime.now();
-    var formattedDate = DateFormat('yyyy-MM-dd').format(now);
-    await Share.shareXFiles([XFile(file.path)],
-        subject: "Report Download - $formattedDate");
+    // Share the files
+    shareFileAsAttachment(file.path);
   }
+
+  Future<void> shareFileAsAttachment(String filePath) async {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    final file = File(filePath);
+    final fileName = file.path.split('/').last;
+
+    if (Platform.isWindows) {
+      final bytes = await file.readAsBytes();
+      final mimeType = _lookupMimeType(filePath);
+
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
+        subject: 'Report Download - $formattedDate',
+      );
+    } else {
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'Report Download - $formattedDate',
+      );
+    }
+  }
+
+  String _lookupMimeType(String filePath) {
+    final mimeType = _mimeTypes[filePath.split('.').last];
+    return mimeType ?? 'application/octet-stream';
+  }
+
+  final _mimeTypes = {
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'png': 'image/png',
+    'gif': 'image/gif',
+    'pdf': 'application/pdf',
+    'doc': 'application/msword',
+    'docx':
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xls': 'application/vnd.ms-excel',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt': 'application/vnd.ms-powerpoint',
+    'pptx':
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'txt': 'text/plain',
+    'zip': 'application/zip',
+    'rar': 'application/x-rar-compressed',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
