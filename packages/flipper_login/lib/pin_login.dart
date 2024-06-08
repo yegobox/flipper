@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_services/proxy.dart';
 
 class PinLogin extends StatefulWidget {
   PinLogin({Key? key}) : super(key: key);
@@ -82,6 +83,8 @@ class _PinLoginState extends State<PinLogin> {
                                           onTap: () async {
                                             if (_form.currentState!
                                                 .validate()) {
+                                              /// First clear out any residue of a user this help if a user was logged out
+                                              await ProxyService.realm.logOut();
                                               try {
                                                 log("initiating pin login flow");
                                                 await model.desktopLogin(
