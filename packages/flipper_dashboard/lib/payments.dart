@@ -2,6 +2,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -27,11 +28,13 @@ class PaymentsState extends ConsumerState<Payments> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _cash = TextEditingController();
   final TextEditingController _discount = TextEditingController();
+  final TextEditingController _customer = TextEditingController();
 
   late Map<String, bool> isFocusedMap;
   late bool cashPayment;
   String? paymentType;
   bool showDiscountField = false;
+  bool showCustomerField = false;
 
   @override
   void initState() {
@@ -68,6 +71,10 @@ class PaymentsState extends ConsumerState<Payments> {
                     visible: showDiscountField,
                     child: _buildDiscountField(),
                   ),
+                  Visibility(
+                    visible: showCustomerField,
+                    child: _builCustomerField(),
+                  ),
                   const SizedBox(height: 20),
                   _buildPaymentButtons(model),
                   const SizedBox(height: 10),
@@ -79,7 +86,19 @@ class PaymentsState extends ConsumerState<Payments> {
           ),
         );
       },
-      onViewModelReady: (model) => model.updatePayable(),
+      onViewModelReady: (model) async {
+        model.updatePayable();
+
+        /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
+        /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
+        /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
+        Customer? customer = await ProxyService.realm
+            .getCustomer(id: widget.transaction.customerId ?? 0);
+        if (customer == null) {
+          /// there is no customer attached to this transaction then enable extra field.
+          showCustomerField = true;
+        }
+      },
       viewModelBuilder: () => CoreViewModel(),
     );
   }
@@ -210,6 +229,52 @@ class PaymentsState extends ConsumerState<Payments> {
               ),
             ),
             hintText: 'Discount',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _builCustomerField() {
+    return SizedBox(
+      width: 280,
+      child: Form(
+        child: TextFormField(
+          keyboardType: TextInputType.number,
+          controller: _customer,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter Phone number withour 0 e.g 783054874';
+            }
+            if (value.length > 9) {
+              return 'Please enter Phone number withour 0 e.g 783054874';
+            }
+            return null;
+          },
+          onFieldSubmitted: (value) {
+            _customer.text = value;
+            ProxyService.box.writeString(
+                key: 'currentSaleCustomerPhoneNumber', value: value);
+          },
+          onChanged: (value) {
+            ProxyService.box.writeString(
+                key: 'currentSaleCustomerPhoneNumber', value: value);
+          },
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.black.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+            hintText: 'Customer Phone Number',
           ),
         ),
       ),

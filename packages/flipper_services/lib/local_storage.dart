@@ -186,4 +186,9 @@ class SharedPreferenceStorage implements LocalStorage {
   int tin() {
     return prefs.getInt('tin') ?? -1;
   }
+
+  @override
+  String? currentSaleCustomerPhoneNumber() {
+    return prefs.getString('currentSaleCustomerPhoneNumber');
+  }
 }

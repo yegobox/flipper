@@ -371,6 +371,7 @@ class RWTax implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
+      "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
       "receipt": {
         "curRcptNo": counter.curRcptNo,
         "totRcptNo": counter.totRcptNo,

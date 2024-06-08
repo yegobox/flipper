@@ -209,4 +209,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement variantUpdataBle
     throw UnimplementedError();
   }
+
+  @override
+  String? currentSaleCustomerPhoneNumber() {
+    // TODO: implement currentSaleCustomerPhoneNumber
+    throw UnimplementedError();
+  }
 }

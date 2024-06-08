@@ -36,4 +36,9 @@ abstract class LocalStorage {
   String uid();
   String bhfId();
   int tin();
+
+  /// the intention of this is to store a temporal phone number for the sale
+  /// this is useful when we did not save full customer will all details but we need a phone number
+  /// to show on receipt.
+  String? currentSaleCustomerPhoneNumber();
 }

@@ -206,9 +206,10 @@ class TaxController<OBJ> {
       brandDescription: business.name!,
       brandFooter: business.name!,
       emails: ['info@yegobox.com'],
-      customerTin: customer?.custTin ?? "00000000",
+      customerTin: customer?.custTin ??
+          ProxyService.box.currentSaleCustomerPhoneNumber(),
       receiptType: receiptType,
-      customerName: customer?.custNm ?? "",
+      customerName: customer?.custNm ?? "N/A",
     );
   }
 
