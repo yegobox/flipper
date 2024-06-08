@@ -26,6 +26,7 @@ class Payments extends StatefulHookConsumerWidget {
 class PaymentsState extends ConsumerState<Payments> {
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
+  final _customerKey = GlobalKey<FormState>();
   final TextEditingController _cash = TextEditingController();
   final TextEditingController _discount = TextEditingController();
   final TextEditingController _customer = TextEditingController();
@@ -240,15 +241,19 @@ class PaymentsState extends ConsumerState<Payments> {
     return SizedBox(
       width: 280,
       child: Form(
+        key: _customerKey,
         child: TextFormField(
           keyboardType: TextInputType.number,
           controller: _customer,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter Phone number withour 0 e.g 783054874';
+              return 'Please enter Phone number without 0 e.g 783054874';
             }
             if (value.length > 9) {
-              return 'Please enter Phone number withour 0 e.g 783054874';
+              return 'Please enter Phone number without 0 e.g 783054874';
+            }
+            if (value.length < 9) {
+              return 'Please enter Phone number without 0 e.g 783054874';
             }
             return null;
           },
@@ -443,20 +448,22 @@ class PaymentsState extends ConsumerState<Payments> {
           busy: model.handlingConfirm,
           borderRadius: 4,
           onTap: () async {
-            if (paymentType == "Cash") {
-              if (_formKey.currentState!.validate()) {
+            if (_customerKey.currentState!.validate()) {
+              if (paymentType == "Cash") {
+                if (_formKey.currentState!.validate()) {
+                  await confirmPayment(model);
+                }
+              } else {
+                if (paymentType == null) {
+                  showSimpleNotification(
+                    const Text("You need to choose a payment method"),
+                    background: Colors.red,
+                    position: NotificationPosition.bottom,
+                  );
+                  return;
+                }
                 await confirmPayment(model);
               }
-            } else {
-              if (paymentType == null) {
-                showSimpleNotification(
-                  const Text("You need to choose a payment method"),
-                  background: Colors.red,
-                  position: NotificationPosition.bottom,
-                );
-                return;
-              }
-              await confirmPayment(model);
             }
           },
           title: "Confirm Payment",
