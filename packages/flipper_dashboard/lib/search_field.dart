@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_services/proxy.dart';
@@ -33,6 +31,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
   final _textSubject = BehaviorSubject<String>();
+
   @override
   void initState() {
     super.initState();
@@ -109,41 +108,54 @@ class SearchFieldState extends ConsumerState<SearchField> {
         });
       },
       builder: (a, model, b) {
-        return TextFormField(
-          controller: widget.controller,
-          maxLines: null,
-          focusNode: _focusNode,
-          textInputAction: TextInputAction.done,
-          keyboardType: TextInputType.text,
-          onFieldSubmitted: (value) => _textSubject,
-          onChanged: (value) {
-            _textSubject.add(value);
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            return SizedBox(
+              height: constraints.maxHeight,
+              child: TextFormField(
+                controller: widget.controller,
+                maxLines: null,
+                focusNode: _focusNode,
+                textInputAction: TextInputAction.done,
+                keyboardType: TextInputType.text,
+                onFieldSubmitted: (value) => _textSubject,
+                onChanged: (value) {
+                  _textSubject.add(value);
+                },
+                decoration: InputDecoration(
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.grey.shade400, width: 1.0),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.grey.shade400, width: 1.0),
+                  ),
+                  prefixIcon: IconButton(
+                    onPressed: () {
+                      // Handle search functionality here
+                    },
+                    icon: Icon(FluentIcons.search_24_regular),
+                  ),
+                  suffixIcon: Wrap(
+                    spacing: 8.0, // Add spacing between buttons
+                    children: [
+                      if ([0, 1, 2, 4].contains(currentLocation))
+                        indicatorButton(),
+                      if (ProxyService.remoteConfig
+                              .isOrderFeatureOrderEnabled() &&
+                          [0, 1, 2, 4].contains(currentLocation))
+                        orderButton(orders),
+                      if ([0, 1, 2, 4].contains(currentLocation))
+                        incomingButton(),
+                      if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
+                      if (currentLocation == 1) datePicker(),
+                    ],
+                  ),
+                ),
+              ),
+            );
           },
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-            ),
-            prefixIcon: IconButton(
-              onPressed: () {
-                // Handle search functionality here
-              },
-              icon: Icon(FluentIcons.search_24_regular),
-            ),
-            suffixIcon: Wrap(
-              children: [
-                if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
-                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
-                    [0, 1, 2, 4].contains(currentLocation))
-                  orderButton(orders),
-                if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
-                if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                if (currentLocation == 1) datePicker(),
-              ],
-            ),
-          ),
         );
       },
     );
