@@ -267,10 +267,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     final controller = StreamController<Tenant?>();
 
-    realm!
-        .query<Tenant>(r'userId == $0 && deletedAt == nil', [userId])
-        .changes
-        .listen((tenants) {
+    realm!.query<Tenant>(r'userId == $0 ', [userId]).changes.listen((tenants) {
           controller
               .add(tenants.results.isEmpty ? null : tenants.results.first);
         });
