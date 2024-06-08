@@ -53,116 +53,125 @@ class TicketsState extends ConsumerState<Tickets>
                 multi: 3,
                 bottomSpacer: 52,
               ),
-              body: SizedBox(
-                width: double.infinity,
+              body: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(left: 18, right: 18, top: 20),
-                      child: SizedBox(
-                        height: 50,
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          style: ButtonStyle(
-                            side: MaterialStateProperty.resolveWith<BorderSide>(
-                              (states) => BorderSide(
-                                color: Color(0xff006AFE),
-                              ),
-                            ),
-                            shape: MaterialStateProperty.resolveWith<
-                                OutlinedBorder>(
-                              (states) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                            ),
+                    const SizedBox(height: 45),
+                    // New Ticket Button
+                    SizedBox(
+                      height: 50,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xff006AFE)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
                           ),
-                          child: Text('New Ticket',
-                              style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 20,
-                                  color: Color(0xff006AFE))),
-                          onPressed: () {
-                            if (widget.transaction != null) {
-                              showModalBottomSheet(
-                                backgroundColor: Colors.red,
-                                context: context,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(10.0)),
-                                ),
-                                useRootNavigator: true,
-                                builder: (BuildContext context) {
-                                  return Padding(
-                                    padding: EdgeInsets.only(top: 20.0),
-                                    child: NewTicket(
-                                        transaction: widget.transaction!),
-                                  );
-                                },
-                              );
-                            }
-                          },
+                        ),
+                        onPressed: () {
+                          if (widget.transaction != null) {
+                            showModalBottomSheet(
+                              context: context,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(10.0)),
+                              ),
+                              useRootNavigator: true,
+                              builder: (BuildContext context) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 20.0),
+                                  child: NewTicket(
+                                    transaction: widget.transaction!,
+                                  ),
+                                );
+                              },
+                            );
+                          }
+                        },
+                        child: Text(
+                          'New Ticket',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 20,
+                            color: Color(0xff006AFE),
+                          ),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 20),
+                    // Other Tickets Title
                     Padding(
-                      padding: const EdgeInsets.only(left: 24.0, top: 20.0),
-                      child: Text('Other Tickets',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Color(0xff006AFE))),
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Text(
+                        'Other Tickets',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          color: Color(0xff006AFE),
+                        ),
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 24.0, top: 20.0, right: 20.0),
+                    const SizedBox(height: 20),
+                    Expanded(
                       child: StreamBuilder<List<ITransaction>>(
-                          stream: ProxyService.realm.ticketsStreams(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              List<ITransaction> data = snapshot.data!;
-                              return Column(
-                                children: data.map((e) {
-                                  return GestureDetector(
-                                    onTap: () async {
-                                      await model.resumeTransaction(
-                                          ticketId: e.id!);
-                                      _routerService
-                                          .clearStackAndShow(FlipperAppRoute());
-                                    },
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          e.ticketName!,
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 17,
-                                            color: Colors.black,
+                        stream: ProxyService.realm.ticketsStreams(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            List<ITransaction> data = snapshot.data!;
+                            return ListView.builder(
+                              itemCount: data.length,
+                              itemBuilder: (context, index) {
+                                final ticket = data[index];
+                                return GestureDetector(
+                                  onTap: () async {
+                                    await model.resumeTransaction(
+                                        ticketId: ticket.id!);
+                                    _routerService
+                                        .clearStackAndShow(FlipperAppRoute());
+                                  },
+                                  child: Card(
+                                    elevation: 2,
+                                    margin: const EdgeInsets.only(bottom: 10),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0, vertical: 12.0),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            ticket.ticketName!,
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 17,
+                                              color: Colors.black,
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          timeago.format(
-                                              DateTime.parse(e.updatedAt!)),
-                                          style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 17,
-                                            color: Colors.black,
+                                          Text(
+                                            timeago.format(DateTime.parse(
+                                                ticket.updatedAt!)),
+                                            style: GoogleFonts.poppins(
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 17,
+                                              color: Colors.black,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                  );
-                                }).toList(),
-                              );
-                            } else {
-                              return SizedBox.shrink();
-                            }
-                          }),
-                    )
+                                  ),
+                                );
+                              },
+                            );
+                          } else {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),
