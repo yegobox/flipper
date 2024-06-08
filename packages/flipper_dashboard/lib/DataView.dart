@@ -295,12 +295,14 @@ abstract class DynamicDataSource extends DataGridSource {
     if (showPluReport) {
       return data.map((item) {
         String name = item.name.split('(')[0];
+        String number = ''; // Initialize number to an empty string
 
-        // Split the item.name by '(' and take the second part (the number within parentheses)
-        String number = item.name.split('(')[1].split(')')[0];
+        // Only try to split and get the number if the name has a '('
+        if (item.name.contains('(')) {
+          number = item.name.split('(')[1].split(')')[0];
+        }
         name = name.toUpperCase();
 
-        // Combine the name and number with a '-' separator
         String formattedName = '$name-$number';
         if (item is TransactionItem) {
           return DataGridRow(cells: [
