@@ -1,14 +1,19 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'new_ticket.dart';
 
-class TicketsList extends StatefulWidget {
+class TicketsList extends StatefulHookConsumerWidget {
   const TicketsList({Key? key, required this.transaction}) : super(key: key);
   final ITransaction? transaction;
 
@@ -16,10 +21,31 @@ class TicketsList extends StatefulWidget {
   _TicketsListState createState() => _TicketsListState();
 }
 
-class _TicketsListState extends State<TicketsList> {
+class _TicketsListState extends ConsumerState<TicketsList> {
+  final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () {
+            _routerService.back();
+            ref.refresh(pendingTransactionProvider(TransactionType.sale));
+          },
+          icon: const Icon(Icons.close, color: Colors.black),
+        ),
+        title: Text(
+          'Tickets',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w400,
+            fontSize: 20,
+            color: Colors.black,
+          ),
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
