@@ -32,8 +32,10 @@ class _TicketsListState extends ConsumerState<TicketsList> {
         elevation: 0,
         leading: IconButton(
           onPressed: () {
-            _routerService.back();
+            /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
+            /// cart preview
             ref.refresh(pendingTransactionProvider(TransactionType.sale));
+            _routerService.back();
           },
           icon: const Icon(Icons.close, color: Colors.black),
         ),

@@ -74,7 +74,7 @@ class NewTicketState extends State<NewTicket>
                             transaction: widget.transaction,
                             ticketNote: _noteController.text,
                           );
-                          _routerService.clearStackAndShow(FlipperAppRoute());
+                          _routerService.pop();
                         }
                       }
                     : null,
