@@ -8,6 +8,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -106,48 +107,54 @@ class _TicketsListState extends ConsumerState<TicketsList> {
               ),
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: StreamBuilder<List<ITransaction>>(
-                stream: ProxyService.realm.ticketsStreams(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    List<ITransaction> data = snapshot.data!;
-                    return ListView.separated(
-                      itemCount: data.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final ticket = data[index];
-                        return TicketTile(
-                          ticket: ticket,
-                          onTap: () async {
-                            await locator<CoreViewModel>()
-                                .resumeTransaction(ticketId: ticket.id!);
-                            locator<RouterService>()
-                                .clearStackAndShow(FlipperAppRoute());
-                          },
-                        );
+            ViewModelBuilder.nonReactive(
+                viewModelBuilder: () => CoreViewModel(),
+                builder: (context, model, child) {
+                  return Expanded(
+                    child: StreamBuilder<List<ITransaction>>(
+                      stream: ProxyService.realm.ticketsStreams(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          List<ITransaction> data = snapshot.data!;
+                          return ListView.separated(
+                            itemCount: data.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final ticket = data[index];
+                              return TicketTile(
+                                ticket: ticket,
+                                onTap: () async {
+                                  await model.resumeTransaction(
+                                      ticketId: ticket.id!);
+                                  ref.refresh(pendingTransactionProvider(
+                                      TransactionType.sale));
+                                  _routerService
+                                      .clearStackAndShow(FlipperAppRoute());
+                                },
+                              );
+                            },
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error: ${snapshot.error}',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w400,
+                                fontSize: 16,
+                                color: Colors.red,
+                              ),
+                            ),
+                          );
+                        } else {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
                       },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w400,
-                          fontSize: 16,
-                          color: Colors.red,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                },
-              ),
-            ),
+                    ),
+                  );
+                }),
           ],
         ),
       ),
