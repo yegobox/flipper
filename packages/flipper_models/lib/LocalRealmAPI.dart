@@ -256,8 +256,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
         if (noActivity) {
           Tenant? tenant = await getTenantBYUserId(userId: userId);
-          ProxyService.realm.realm!
-              .writeAsync(() => tenant!.sessionActive = false);
+          if(tenant!=null){
+            ProxyService.realm.realm!
+              .writeAsync(() => tenant.sessionActive = false);
+          }
         }
       } catch (error, s) {
         talker.error('Error fetching tenant: $s');
