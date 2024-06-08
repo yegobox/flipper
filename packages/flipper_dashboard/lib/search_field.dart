@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_services/proxy.dart';
@@ -33,6 +31,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
   final _textSubject = BehaviorSubject<String>();
+
   @override
   void initState() {
     super.initState();
@@ -47,12 +46,8 @@ class SearchFieldState extends ConsumerState<SearchField> {
     });
   }
 
-  //// this wait for few seconds for a user or scanner to type into the keyboard
-  /// once that is done then we emit the value being scanned or typed
   void _processDebouncedValue(String value, CoreViewModel model) {
     ref.read(searchStringProvider.notifier).emitString(value: value);
-    // search product by name an if found add it to the current list
-
     _focusNode.requestFocus();
 
     if (ref.read(scanningModeProvider)) {
@@ -101,51 +96,68 @@ class SearchFieldState extends ConsumerState<SearchField> {
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
     final currentLocation = ref.watch(buttonIndexProvider);
-    return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) {
-        _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
-          _processDebouncedValue(value, model);
-        });
-      },
-      builder: (a, model, b) {
-        return TextFormField(
-          controller: widget.controller,
-          maxLines: null,
-          focusNode: _focusNode,
-          textInputAction: TextInputAction.done,
-          keyboardType: TextInputType.text,
-          onFieldSubmitted: (value) => _textSubject,
-          onChanged: (value) {
-            _textSubject.add(value);
-          },
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-            ),
-            prefixIcon: IconButton(
-              onPressed: () {
-                // Handle search functionality here
-              },
-              icon: Icon(FluentIcons.search_24_regular),
-            ),
-            suffixIcon: Wrap(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final padding = screenWidth * 0.05;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      child: ViewModelBuilder<CoreViewModel>.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        onViewModelReady: (model) {
+          _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
+            _processDebouncedValue(value, model);
+          });
+        },
+        builder: (a, model, b) {
+          return SingleChildScrollView(
+            child: Column(
               children: [
-                if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
-                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
-                    [0, 1, 2, 4].contains(currentLocation))
-                  orderButton(orders),
-                if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
-                if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                if (currentLocation == 1) datePicker(),
+                TextFormField(
+                  controller: widget.controller,
+                  maxLines: null,
+                  focusNode: _focusNode,
+                  textInputAction: TextInputAction.done,
+                  keyboardType: TextInputType.text,
+                  onFieldSubmitted: (value) => _textSubject,
+                  onChanged: (value) {
+                    _textSubject.add(value);
+                  },
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.grey.shade400, width: 1.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: Colors.grey.shade400, width: 1.0),
+                    ),
+                    prefixIcon: IconButton(
+                      onPressed: () {
+                        // Handle search functionality here
+                      },
+                      icon: Icon(FluentIcons.search_24_regular),
+                    ),
+                    suffixIcon: Wrap(
+                      children: [
+                        if ([0, 1, 2, 4].contains(currentLocation))
+                          indicatorButton(),
+                        if (ProxyService.remoteConfig
+                                .isOrderFeatureOrderEnabled() &&
+                            [0, 1, 2, 4].contains(currentLocation))
+                          orderButton(orders),
+                        if ([0, 1, 2, 4].contains(currentLocation))
+                          incomingButton(),
+                        if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
+                        if (currentLocation == 1) datePicker(),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -156,8 +168,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     );
   }
 
-  /// the button to click when dealing with imports and purchases
-  /// when EBM RW RRA api is active
   IconButton incomingButton() {
     return IconButton(
       onPressed: _handlePurchaseImport,
@@ -226,7 +236,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
   void _clearSearchText() {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
-    _hasText = false;
+    setState(() {
+      _hasText = false;
+    });
   }
 
   String _getDeviceType(BuildContext context) {
@@ -260,12 +272,11 @@ class SearchFieldState extends ConsumerState<SearchField> {
   _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     if (args.value is PickerDateRange) {
       PickerDateRange date = args.value as PickerDateRange;
-      if (date.endDate != null && date.endDate != null) {
+      if (date.endDate != null) {
         showSnackBar(context, "Date range selected",
             textColor: Colors.white, backgroundColor: Colors.purple);
         ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
         ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
-
         ref.refresh(transactionListProvider);
       }
     }

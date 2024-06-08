@@ -117,7 +117,7 @@ mixin IsolateHandler {
           // Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
 
           /// do not attempt saving a variant with missing fields
-          if (variant.qtyUnitCd == null) return;
+          if (variant.qtyUnitCd == null || variant.taxTyCd == null) return;
           await RWTax().saveItem(variation: iVariant);
           gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");
