@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
@@ -131,6 +133,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {

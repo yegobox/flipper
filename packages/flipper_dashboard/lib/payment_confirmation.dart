@@ -58,7 +58,6 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
               title: 'Payment: ${widget.transaction.paymentType}',
               icon: Icons.close,
               onPop: () {
-                ref.refresh(pendingTransactionProvider(TransactionType.sale));
                 _routerService.clearStackAndShow(FlipperAppRoute());
               },
             ),
@@ -348,7 +347,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
           busy: model.handlingConfirm,
           onTap: () {
             model.handlingConfirm = true;
-            ref.refresh(pendingTransactionProvider(TransactionType.sale));
+
             _routerService.clearStackAndShow(FlipperAppRoute());
           },
           title: "Return to Home",
