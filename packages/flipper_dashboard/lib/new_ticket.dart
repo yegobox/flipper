@@ -1,30 +1,31 @@
-import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class NewTicket extends StatefulHookConsumerWidget {
-  const NewTicket({super.key, required this.transaction});
+class NewTicket extends StatefulWidget {
+  const NewTicket({Key? key, required this.transaction, required this.onClose})
+      : super(key: key);
   final ITransaction transaction;
+  final VoidCallback onClose;
+
   @override
   NewTicketState createState() => NewTicketState();
 }
 
-class NewTicketState extends ConsumerState<NewTicket>
+class NewTicketState extends State<NewTicket>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   final _routerService = locator<RouterService>();
-  final _sub = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _swipeController = TextEditingController();
   final _noteController = TextEditingController();
   late bool _noteValue;
   late bool _ticketNameValue;
+
   @override
   void initState() {
     super.initState();
@@ -43,75 +44,110 @@ class NewTicketState extends ConsumerState<NewTicket>
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: ViewModelBuilder<CoreViewModel>.reactive(
-            viewModelBuilder: () => CoreViewModel(),
-            onViewModelReady: (model) async {},
-            builder: (context, model, child) {
-              return Scaffold(
-                appBar: CustomAppBar(
-                  onPop: () {
-                    _routerService.pop();
-                  },
-                  onActionButtonClicked: () {
-                    if (_sub.currentState!.validate()) {
-                      model.saveTicket(
-                          ticketName: _swipeController.text,
-                          transaction: widget.transaction,
-                          ticketNote: _noteController.text);
-                      _routerService.clearStackAndShow(FlipperAppRoute());
-                    }
-                  },
-                  showActionButton: true,
-                  rightActionButtonName: "Save",
-                  disableButton: !_noteValue && !_ticketNameValue,
-                  icon: Icons.close,
-                  multi: 3,
-                  bottomSpacer: 48,
+    return ViewModelBuilder<CoreViewModel>.reactive(
+      viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) async {},
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              onPressed: widget.onClose,
+              icon: const Icon(Icons.close, color: Colors.black),
+            ),
+            title: Text(
+              'New Ticket',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w400,
+                fontSize: 20,
+                color: Colors.black,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    model.saveTicket(
+                      ticketName: _swipeController.text,
+                      transaction: widget.transaction,
+                      ticketNote: _noteController.text,
+                    );
+                    _routerService.clearStackAndShow(FlipperAppRoute());
+                  }
+                },
+                style: TextButton.styleFrom(
+                  textStyle: const TextStyle(color: Colors.blue),
                 ),
-                body: Padding(
-                  padding:
-                      const EdgeInsets.only(left: 20.0, top: 10, right: 20.0),
-                  child: Form(
-                      key: _sub,
-                      child: Column(
-                        children: [
-                          TextFormField(
-                              controller: _swipeController,
-                              onChanged: (value) {
-                                setState(() {
-                                  _ticketNameValue =
-                                      value.isNotEmpty ? true : false;
-                                });
-                              },
-                              validator: (value) {
-                                if (value == null) {
-                                  return "You need to enter ticket name or swipe";
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                  enabled: true,
-                                  hintText: "Ticket name (or Swipe)")),
-                          TextFormField(
-                              controller: _noteController,
-                              onChanged: (value) {
-                                setState(() {
-                                  _noteValue = value.isNotEmpty ? true : false;
-                                });
-                              },
-                              validator: (value) {
-                                if (value == null) {
-                                  return "You need to enter the note";
-                                }
-                                return null;
-                              },
-                              decoration: InputDecoration(
-                                  enabled: true, hintText: "Add note")),
-                        ],
-                      )),
+                child: Text(
+                  'Save',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w400,
+                    fontSize: 16,
+                    color: Color(0xFF01B8E4),
+                  ),
                 ),
-              );
-            }));
+              ),
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.only(left: 20.0, top: 10, right: 20.0),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _swipeController,
+                      onChanged: (value) {
+                        setState(() {
+                          _ticketNameValue = value.isNotEmpty ? true : false;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "You need to enter ticket name or swipe";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        enabled: true,
+                        hintText: "Ticket name (or Swipe)",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _noteController,
+                      onChanged: (value) {
+                        setState(() {
+                          _noteValue = value.isNotEmpty ? true : false;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "You need to enter the note";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        enabled: true,
+                        hintText: "Add note",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

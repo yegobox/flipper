@@ -458,8 +458,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TicketsRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<TicketsArgs>(orElse: () => const TicketsArgs());
+      final args = routeData.argsAs<TicketsArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Tickets(
@@ -477,6 +476,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i1.NewTicket(
           key: args.key,
           transaction: args.transaction,
+          onClose: args.onClose,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1854,7 +1854,7 @@ class ConversationHistoryArgs {
 class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
   TicketsRoute({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
   }) : super(
           TicketsRoute.name,
           path: '/Tickets',
@@ -1870,7 +1870,7 @@ class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
 class TicketsArgs {
   const TicketsArgs({
     this.key,
-    this.transaction,
+    required this.transaction,
   });
 
   final _i4.Key? key;
@@ -1889,12 +1889,14 @@ class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
           args: NewTicketArgs(
             key: key,
             transaction: transaction,
+            onClose: onClose,
           ),
         );
 
@@ -1905,15 +1907,18 @@ class NewTicketArgs {
   const NewTicketArgs({
     this.key,
     required this.transaction,
+    required this.onClose,
   });
 
   final _i4.Key? key;
 
   final _i8.ITransaction transaction;
 
+  final void Function() onClose;
+
   @override
   String toString() {
-    return 'NewTicketArgs{key: $key, transaction: $transaction}';
+    return 'NewTicketArgs{key: $key, transaction: $transaction, onClose: $onClose}';
   }
 }
 
@@ -2617,7 +2622,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> navigateToTickets({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2632,12 +2637,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToNewTicket({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       NewTicketRoute(
         key: key,
         transaction: transaction,
+        onClose: onClose,
       ),
       onFailure: onFailure,
     );
@@ -3240,7 +3247,7 @@ extension RouterStateExtension on _i2.RouterService {
 
   Future<dynamic> replaceWithTickets({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -3255,12 +3262,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> replaceWithNewTicket({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       NewTicketRoute(
         key: key,
         transaction: transaction,
+        onClose: onClose,
       ),
       onFailure: onFailure,
     );

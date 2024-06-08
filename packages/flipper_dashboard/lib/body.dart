@@ -45,20 +45,8 @@ Widget PaymentTicketManager(
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.sale);
-        showModalBottomSheet(
-          backgroundColor: Colors.red,
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-          ),
-          useRootNavigator: true,
-          builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Tickets(transaction: transaction),
-            );
-          },
-        );
+
+        _routerService.navigateTo(TicketsRoute(transaction: transaction));
       },
     ),
     controller: controller,
