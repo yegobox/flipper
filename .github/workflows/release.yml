@@ -167,7 +167,7 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          rd /s /q windows
+          Remove-Item -Path windows -Recurse -Force
           flutter create .
           dart run flutter_launcher_icons:main
           dart run msix:create -v --install-certificate false
