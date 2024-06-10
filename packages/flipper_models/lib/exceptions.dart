@@ -30,12 +30,12 @@ class SessionException implements Exception {
   SessionException({required this.term});
 }
 
-class ErrorReadingFromYBServer implements Exception {
+class RemoteError implements Exception {
   String term;
 
   String errMsg() => 'General error: $term';
 
-  ErrorReadingFromYBServer({required this.term});
+  RemoteError({required this.term});
 }
 
 class BranchLoadingException implements Exception {

@@ -234,7 +234,8 @@ class TransactionList extends ConsumerWidget {
               ? Padding(
                   padding: const EdgeInsets.only(top: 28.0),
                   child: Center(
-                      child: Text("Please select a date to query reports")),
+                      child:
+                          Text("No Data found, please select new date range")),
                 )
               : Column(
                   children: [
@@ -332,8 +333,7 @@ class TransactionList extends ConsumerWidget {
       },
       loading: () => Padding(
         padding: const EdgeInsets.only(top: 28.0),
-        child:
-            const Center(child: Text("Please select a date to query reports")),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       error: (error, stackTrace) => Column(
         children: [

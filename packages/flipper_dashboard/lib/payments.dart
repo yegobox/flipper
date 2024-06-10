@@ -1,4 +1,10 @@
+// ignore_for_file: unused_result
+
+import 'dart:developer';
+
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -30,6 +36,9 @@ class PaymentsState extends ConsumerState<Payments> {
   final TextEditingController _cash = TextEditingController();
   final TextEditingController _discount = TextEditingController();
   final TextEditingController _customer = TextEditingController();
+
+  bool _busy = false;
+  final TextEditingController _controller = TextEditingController();
 
   late Map<String, bool> isFocusedMap;
   late bool cashPayment;
@@ -107,8 +116,14 @@ class PaymentsState extends ConsumerState<Payments> {
 
   PreferredSizeWidget _buildCustomAppBar() {
     return CustomAppBar(
-      onPop: _routerService.pop,
-      onActionButtonClicked: _routerService.pop,
+      onPop: () {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        _routerService.back;
+      },
+      onActionButtonClicked: () {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        _routerService.back;
+      },
       rightActionButtonName: 'Split payment',
       icon: Icons.close,
       multi: 3,
@@ -472,6 +487,20 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
+  Future<void> handleReceiptGeneration([String? purchaseCode]) async {
+    try {
+      await TaxController(object: widget.transaction).handleReceiptGeneration(
+        transaction: widget.transaction,
+        purchaseCode: purchaseCode,
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      setState(() => _busy = false);
+      showSnackBar(context, e.toString().split(': ').last,
+          textColor: Colors.white, backgroundColor: Colors.green);
+    }
+  }
+
   Future<void> confirmPayment(CoreViewModel model) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
@@ -485,10 +514,104 @@ class PaymentsState extends ConsumerState<Payments> {
         transaction: widget.transaction,
         amountReceived: amount,
         discount: discount);
-    _routerService.navigateTo(
-      PaymentConfirmationRoute(
-        transaction: widget.transaction,
-      ),
-    );
+
+    await handleReceiptGeneration();
+
+    if (widget.transaction.customerId != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final double height = MediaQuery.of(context).size.height;
+          final double adjustedHeight =
+              height * 0.8; // Adjust the height to 80% of the screen height
+
+          return AlertDialog(
+            title: Text('Digital Receipt'),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: adjustedHeight,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text('Do you need a digital receipt?'),
+                    TextFormField(
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Purchase Code',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a purchase code';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) {},
+                      // Handle the purchase code input
+                      onSaved: (value) {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              BoxButton(
+                title: 'Submit',
+                busy: _busy,
+                onTap: () async {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    setState(() {
+                      _busy = true;
+                    });
+                    _formKey.currentState?.save();
+                    String purchaseCode = _controller.text;
+                    log("received purchase code: ${purchaseCode}");
+                    try {
+                      await handleReceiptGeneration(purchaseCode);
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      setState(() {
+                        _busy = false;
+                      });
+                      String errorMessage = e.toString();
+                      int startIndex = errorMessage.indexOf(': ');
+                      if (startIndex != -1) {
+                        errorMessage = errorMessage.substring(startIndex + 2);
+                      }
+                      // toast(errorMessage);
+                      showSnackBar(context, errorMessage,
+                          textColor: Colors.white,
+                          backgroundColor: Colors.green);
+                      return;
+                    }
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () async {
+                  /// still print the purchase code without the customer information!
+                  /// this is standard for non customer attached receipt
+                  await TaxController(object: widget.transaction)
+                      .handleReceiptGeneration(
+                    transaction: widget.transaction,
+                  );
+                  // Handle when the user doesn't need a digital receipt
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    /// refresh and go home
+    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+    _routerService.back;
+    model.handlingConfirm = false;
   }
 }

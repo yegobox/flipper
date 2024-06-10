@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_services/proxy.dart';
@@ -10,7 +12,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -20,8 +21,20 @@ import 'package:badges/badges.dart' as badges;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
-  const SearchField({Key? key, required this.controller}) : super(key: key);
+  const SearchField({
+    Key? key,
+    required this.controller,
+    required this.showOrderButton,
+    required this.showIncomingButton,
+    required this.showAddButton,
+    required this.showDatePicker,
+  }) : super(key: key);
+
   final TextEditingController controller;
+  final bool showOrderButton;
+  final bool showIncomingButton;
+  final bool showAddButton;
+  final bool showDatePicker;
 
   @override
   SearchFieldState createState() => SearchFieldState();
@@ -50,11 +63,12 @@ class SearchFieldState extends ConsumerState<SearchField> {
     ref.read(searchStringProvider.notifier).emitString(value: value);
     _focusNode.requestFocus();
 
-    if (ref.read(scanningModeProvider)) {
-      _handleScanningMode(value, model);
-    }
+    _handleScanningMode(value, model);
+    // if (ref.read(scanningModeProvider)) {
+    //   _handleScanningMode(value, model);
+    // }
 
-    ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    //ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
   }
 
   void _handleScanningMode(String value, CoreViewModel model) async {
@@ -95,7 +109,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
-    final currentLocation = ref.watch(buttonIndexProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
 
@@ -135,13 +148,10 @@ class SearchFieldState extends ConsumerState<SearchField> {
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
-                  if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
-                      [0, 1, 2, 4].contains(currentLocation))
-                    orderButton(orders),
-                  if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
-                  if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                  if (currentLocation == 1) datePicker(),
+                  if (widget.showOrderButton) orderButton(orders),
+                  if (widget.showIncomingButton) incomingButton(),
+                  if (widget.showAddButton) addButton(),
+                  if (widget.showDatePicker) datePicker(),
                 ],
               ),
             ),
@@ -181,24 +191,24 @@ class SearchFieldState extends ConsumerState<SearchField> {
     );
   }
 
-  IconButton indicatorButton() {
-    return IconButton(
-      onPressed: _handleScanningModeToggle,
-      icon: Icon(
-        ref.watch(scanningModeProvider)
-            ? FluentIcons.camera_switch_24_regular
-            : FluentIcons.camera_switch_24_regular,
-        color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
-      ),
-    );
-  }
+  // IconButton indicatorButton() {
+  //   return IconButton(
+  //     onPressed: _handleScanningModeToggle,
+  //     icon: Icon(
+  //       ref.watch(scanningModeProvider)
+  //           ? FluentIcons.camera_switch_24_regular
+  //           : FluentIcons.camera_switch_24_regular,
+  //       color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
+  //     ),
+  //   );
+  // }
 
-  void _handleScanningModeToggle() {
-    ref.read(scanningModeProvider.notifier).toggleScanningMode();
-    toast(ref.watch(scanningModeProvider)
-        ? "Scanning mode Activated"
-        : "Scanning mode DeActivated");
-  }
+  // void _handleScanningModeToggle() {
+  //   ref.read(scanningModeProvider.notifier).toggleScanningMode();
+  //   toast(ref.watch(scanningModeProvider)
+  //       ? "Scanning mode Activated"
+  //       : "Scanning mode DeActivated");
+  // }
 
   void _handleReceiveOrderToggle() {
     ref.read(receivingOrdersModeProvider.notifier).toggleReceiveOrder();

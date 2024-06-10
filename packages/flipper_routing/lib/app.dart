@@ -11,6 +11,7 @@ import 'all_routes.dart';
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
 
+    // CustomRoute(page: TransactionList),
     //Login Routes
     CustomRoute(page: LoginView),
     CustomRoute(page: Landing),
@@ -442,7 +443,7 @@ class App {}
 /// base64 -i upload-keystore.jks -o keystoreBase64
 /// ShoreBird skll down here!
 /// ✅ Published Release 1.170.4252223231897+1717794359!
-/// Your next step is to upload the app bundle to the Play Store
+/// Your next step is to upload the app bundle to the Play Store:
 /// Users/richard/Documents/GitHub/flipper/apps/flipper/build/app/outputs/bundle/release/app-release.aab
 
 /// For information on uploading to the Play Store, see:

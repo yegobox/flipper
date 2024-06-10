@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
@@ -7,13 +9,13 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 Map<int, String> positionString = {
@@ -28,7 +30,7 @@ Map<int, String> positionString = {
   8: 'ninth',
   9: 'tenth',
   10: 'eleventh',
-  11: 'twelvth',
+  11: 'twelfth',
   12: 'thirteenth',
   13: 'fourteenth',
   14: 'fifteenth',
@@ -40,7 +42,7 @@ typedef void DeleteVariantFunction(int? id, String type);
 
 class RowItem extends StatefulHookConsumerWidget {
   final String color;
-  final String name;
+  final String productName;
   final String? imageUrl;
   final DeleteProductFunction deleteProduct;
   final DeleteVariantFunction deleteVariant;
@@ -53,11 +55,13 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool? addFavoriteMode;
   final int? favIndex;
   final Function? addToMenu;
+  final String variantName;
 
   RowItem({
     Key? key,
     required this.color,
-    required this.name,
+    required this.productName,
+    required this.variantName,
     required this.stock,
     this.addToMenu = _defaultFunction,
     this.deleteProduct = _defaultFunction,
@@ -88,61 +92,76 @@ class _RowItemState extends ConsumerState<RowItem> {
     final variantStream = ref.watch(variantStreamProvider(
         widget.product?.id ?? widget.variant?.productId ?? 0));
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 0.5,
-        ),
-        Slidable(
-          key: Key('slide-${widget.product?.id ?? widget.variant?.id}'),
-          child: InkWell(
-            onTap: () {
-              onRowClick(context);
-            },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildImage(),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.name,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                      Text(
-                        "${widget.stock}",
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(width: 10),
-                _buildPrices(variantStream),
-              ],
-            ),
-          ),
-          startActionPane: _buildStartActionPane(),
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        builder: (context, model, c) {
+          return InkWell(
+            onTap: () async {
+              /// directly add this to cart
+              Stock? stock = await ProxyService.realm
+                  .stockByVariantId(variantId: widget.variant?.id ?? 0);
+              final pendingTransaction =
+                  ref.watch(pendingTransactionProvider(TransactionType.sale));
 
-          /// when add to menu is given then we have one swiping option therefore
-          /// disable the bellow swipe
-          endActionPane:
-              widget.addToMenu == null ? null : _buildEndActionPane(),
-        ),
-      ],
-    );
+              await model.saveTransaction(
+                variation: widget.variant!,
+                amountTotal: widget.variant?.retailPrice ?? 0,
+                customItem: false,
+                currentStock: stock!.currentStock,
+                pendingTransaction: pendingTransaction.value!.value!,
+              );
+              ref.refresh(transactionItemsProvider(
+                  pendingTransaction.value?.value?.id));
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4.0,
+                    spreadRadius: 1.0,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildImage(),
+                  Text(
+                    widget.variantName.length > 10
+                        ? widget.variantName.substring(0, 10)
+                        : widget.variantName,
+                    style: const TextStyle(color: Colors.black, fontSize: 16.0),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    widget.productName,
+                    style: const TextStyle(color: Colors.black, fontSize: 16.0),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    "Stock: ${widget.stock}",
+                    style: const TextStyle(color: Colors.black, fontSize: 14.0),
+                  ),
+                  _buildPrices(variantStream),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   Widget _buildImage() {
     return SizedBox(
-      width: 58,
+      width: 130,
       child: widget.imageUrl?.isEmpty ?? true
           ? TextDrawable(
               backgroundColor:
                   HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
-              text: widget.name,
+              text: widget.productName,
               isTappable: true,
               onTap: null,
               boxShape: BoxShape.rectangle,
@@ -176,81 +195,13 @@ class _RowItemState extends ConsumerState<RowItem> {
 
           return Text(
             'RWF ${NumberFormat('#,###').format(nonZeroPrice?.retailPrice ?? 0)}',
-            style: const TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black, fontSize: 14.0),
+            overflow: TextOverflow.ellipsis,
           );
         },
         error: (error, stackTrace) => const SizedBox.shrink(),
         loading: () => Text("loading.."),
       ),
-    );
-  }
-
-  ActionPane _buildStartActionPane() {
-    return ActionPane(
-      motion: ScrollMotion(
-        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
-      ),
-      children: [
-        SlidableAction(
-          onPressed: (_) {
-            if (widget.addToMenu == null) {
-              if (widget.product?.id == null) {
-                widget.deleteVariant(widget.variant?.id!, 'variant');
-              } else {
-                widget.deleteProduct(widget.product?.id!, 'product');
-              }
-            } else {
-              widget.addToMenu!(widget.product ?? widget.variant);
-            }
-          },
-          backgroundColor: const Color(0xFFFE4A49),
-          foregroundColor: Colors.white,
-          icon: widget.addToMenu == null
-              ? FluentIcons.delete_20_regular
-              : FluentIcons.cart_24_regular,
-          label: '',
-        ),
-        if (widget.variant == null)
-          SlidableAction(
-            onPressed: (_) {
-              widget.edit(widget.product?.id ?? widget.variant?.id);
-            },
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            icon: FluentIcons.edit_24_regular,
-            label: '',
-          ),
-        if (widget.variant == null)
-          SlidableAction(
-            onPressed: (_) {
-              widget.enableNfc(widget.product);
-            },
-            backgroundColor:
-                widget.product?.nfcEnabled == true ? Colors.blue : Colors.red,
-            foregroundColor: Colors.white,
-            icon: Icons.nfc,
-            label: '',
-          ),
-      ],
-    );
-  }
-
-  ActionPane _buildEndActionPane() {
-    return ActionPane(
-      motion: ScrollMotion(
-        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
-      ),
-      children: [
-        SlidableAction(
-          onPressed: (_) {
-            widget.edit(widget.product?.id ?? widget.variant?.id);
-          },
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          icon: FluentIcons.edit_24_regular,
-          label: '',
-        ),
-      ],
     );
   }
 
@@ -263,7 +214,7 @@ class _RowItemState extends ConsumerState<RowItem> {
           return AlertDialog(
             title: Text('Confirm Favorite'),
             content: Text(
-              'You are about to add ${widget.name} to your $position favorite position.\n\nDo you approve?',
+              'You are about to add ${widget.productName} to your $position favorite position.\n\nDo you approve?',
             ),
             actions: <Widget>[
               OutlinedButton(

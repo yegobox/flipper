@@ -1664,26 +1664,27 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
-    if (startDate == null || endDate == null) return Stream.empty();
+    if (startDate == null || endDate == null) return Stream.value([]);
+
     final controller = StreamController<List<ITransaction>>.broadcast();
 
-    /// This is a hack as the query is failing to include data that is on same endDate
-    /// so to include it I have to add 1 day to a provided endDate
-
-    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    // This is a hack as the query is failing to include data that is on the same endDate
+    // so to include it I have to add 1 day to a provided endDate
+    // Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-        r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal >0',
-        [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE]);
+      r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
+      [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE],
+    );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
 
     controller.onListen = () {
       subscription = query.changes.listen((event) {
-        final changedVariants =
+        final changedTransactions =
             event.results.whereType<ITransaction>().toList();
-        if (changedVariants.isNotEmpty) {
-          controller.add(query.toList());
-        }
+        // Emit the results or an empty list if no transactions found
+        controller
+            .add(changedTransactions.isNotEmpty ? changedTransactions : []);
       });
     };
 
@@ -1870,7 +1871,7 @@ class RealmAPI<M extends IJsonSerializable>
   /// I avoided assigning businessId or branchId to the directory
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
-  Future<String> dbPath({required String path}) async {
+  Future<String> dbPath({required String path, int? folder}) async {
     try {
       Directory appSupportDirectory;
 
@@ -1882,7 +1883,8 @@ class RealmAPI<M extends IJsonSerializable>
       }
 
       // Construct the specific directory path
-      final realmDirectory = p.join(appSupportDirectory.path, 'v26');
+      final realmDirectory =
+          p.join(appSupportDirectory.path, '${folder ?? "1"}');
 
       // Create the directory if it doesn't exist
       final directory = Directory(realmDirectory);
@@ -1938,8 +1940,13 @@ class RealmAPI<M extends IJsonSerializable>
           talker.error("Empty ncryption key provided");
           throw Exception("null encryption");
         }
+        if (ProxyService.box.getBusinessId() == null) {
+          talker.error("There is no business found");
+          throw Exception("here is no business found");
+        }
         realm?.close();
-        String path = await dbPath(path: 'synced');
+        String path = await dbPath(
+            path: 'synced', folder: ProxyService.box.getBusinessId());
         await _configurePersistent(user, path);
       }
     } catch (e, s) {
@@ -2019,12 +2026,13 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (await ProxyService.status.isInternetAvailable()) {
         talker.info("Opened realm with internet access.");
-        return await Realm.open(config, cancellationToken: token,
-            onProgressCallback: (syncProgress) {
-          if (syncProgress.progressEstimate == 1.0) {
-            talker.info('All bytes transferred!');
-          }
-        });
+        // return await Realm.open(config, cancellationToken: token,
+        //     onProgressCallback: (syncProgress) {
+        //   if (syncProgress.progressEstimate == 1.0) {
+        //     talker.info('All bytes transferred!');
+        //   }
+        // });
+        return Realm(config);
       } else {
         talker.info("Opened realm with no internet access.");
         return Realm(config);
@@ -2443,12 +2451,12 @@ class RealmAPI<M extends IJsonSerializable>
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
-        throw ErrorReadingFromYBServer(term: response.body);
+        throw RemoteError(term: response.body);
       } else {
-        throw ErrorReadingFromYBServer(term: response.body);
+        throw RemoteError(term: response.body);
       }
     } catch (error) {
-      throw ErrorReadingFromYBServer(term: error.toString());
+      throw RemoteError(term: error.toString());
     }
   }
 
@@ -2664,7 +2672,10 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// refreshing the user token will invalidate any session
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
-    close();
+
+    /// calling close on logout inroduced error where another attempt to login will fail since
+    /// the instance of realm is instantiated at app start level.
+    // close();
     return Future.value(true);
   }
   //// drawers

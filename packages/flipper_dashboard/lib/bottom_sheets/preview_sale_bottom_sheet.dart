@@ -42,7 +42,7 @@ class PreviewSaleBottomSheetState
   Widget buildItem({
     required Function(TransactionItem) delete,
     required BuildContext context,
-    required TransactionItem item,
+    required TransactionItem items,
   }) {
     return Card(
       elevation: 0.0,
@@ -50,12 +50,12 @@ class PreviewSaleBottomSheetState
         borderRadius: BorderRadius.circular(2.0),
       ),
       child: Slidable(
-        key: ValueKey(item.id),
+        key: ValueKey(items.id),
         endActionPane: ActionPane(
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              onPressed: (context) => delete(item),
+              onPressed: (context) => delete(items),
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
@@ -67,7 +67,7 @@ class PreviewSaleBottomSheetState
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              onPressed: (context) => delete(item),
+              onPressed: (context) => delete(items),
               backgroundColor: const Color(0xFFFE4A49),
               foregroundColor: Colors.white,
               icon: Icons.delete,
@@ -78,7 +78,7 @@ class PreviewSaleBottomSheetState
         child: ListTile(
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
-            'RWF ${NumberFormat('#,###').format(item.price * item.qty)}',
+            'RWF ${NumberFormat('#,###').format(items.price * items.qty)}',
             style: GoogleFonts.poppins(
               fontWeight: FontWeight.w400,
               fontSize: 15,
@@ -88,7 +88,9 @@ class PreviewSaleBottomSheetState
           leading: Container(
             width: 100,
             child: Text(
-              item.name!.length > 10 ? item.name!.substring(0, 10) : item.name!,
+              items.name!.length > 10
+                  ? items.name!.substring(0, 10)
+                  : items.name!,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w400,
@@ -108,7 +110,7 @@ class PreviewSaleBottomSheetState
                 ),
                 const Text(' '),
                 Text(
-                  item.qty.toInt().toString(),
+                  items.qty.toInt().toString(),
                 ),
               ],
             ),
@@ -161,7 +163,7 @@ class PreviewSaleBottomSheetState
             controller: ModalScrollController.of(context),
             physics: const ClampingScrollPhysics(),
             itemBuilder: (context, index) {
-              final item = (ref
+              final items = (ref
                       .watch(
                         transactionItemsProvider(transaction.value?.value?.id),
                       )
@@ -179,7 +181,7 @@ class PreviewSaleBottomSheetState
                     transactionItemsProvider(transaction.value?.value?.id),
                   );
                 },
-                item: item,
+                items: items,
               );
             },
           ),

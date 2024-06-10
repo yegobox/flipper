@@ -7062,3 +7062,129 @@ class Configurations extends _Configurations
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class AppNotification extends _AppNotification
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  AppNotification(
+    ObjectId realmId, {
+    int? id,
+    bool completed = false,
+    String? type = 'transaction',
+    String? message,
+    int? identifier,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<AppNotification>({
+        'completed': false,
+        'type': 'transaction',
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'completed', completed);
+    RealmObjectBase.set(this, 'type', type);
+    RealmObjectBase.set(this, 'message', message);
+    RealmObjectBase.set(this, 'identifier', identifier);
+  }
+
+  AppNotification._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  bool get completed => RealmObjectBase.get<bool>(this, 'completed') as bool;
+  @override
+  set completed(bool value) => RealmObjectBase.set(this, 'completed', value);
+
+  @override
+  String? get type => RealmObjectBase.get<String>(this, 'type') as String?;
+  @override
+  set type(String? value) => RealmObjectBase.set(this, 'type', value);
+
+  @override
+  String? get message =>
+      RealmObjectBase.get<String>(this, 'message') as String?;
+  @override
+  set message(String? value) => RealmObjectBase.set(this, 'message', value);
+
+  @override
+  int? get identifier => RealmObjectBase.get<int>(this, 'identifier') as int?;
+  @override
+  set identifier(int? value) => RealmObjectBase.set(this, 'identifier', value);
+
+  @override
+  Stream<RealmObjectChanges<AppNotification>> get changes =>
+      RealmObjectBase.getChanges<AppNotification>(this);
+
+  @override
+  Stream<RealmObjectChanges<AppNotification>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<AppNotification>(this, keyPaths);
+
+  @override
+  AppNotification freeze() =>
+      RealmObjectBase.freezeObject<AppNotification>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'completed': completed.toEJson(),
+      'type': type.toEJson(),
+      'message': message.toEJson(),
+      'identifier': identifier.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(AppNotification value) => value.toEJson();
+  static AppNotification _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'completed': EJsonValue completed,
+        'type': EJsonValue type,
+        'message': EJsonValue message,
+        'identifier': EJsonValue identifier,
+      } =>
+        AppNotification(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          completed: fromEJson(completed),
+          type: fromEJson(type),
+          message: fromEJson(message),
+          identifier: fromEJson(identifier),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(AppNotification._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(
+        ObjectType.realmObject, AppNotification, 'AppNotification', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('completed', RealmPropertyType.bool),
+      SchemaProperty('type', RealmPropertyType.string, optional: true),
+      SchemaProperty('message', RealmPropertyType.string, optional: true),
+      SchemaProperty('identifier', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

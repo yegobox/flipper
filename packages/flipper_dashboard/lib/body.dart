@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -14,8 +13,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'settings.dart';
-import 'tickets.dart';
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 // ignore: non_constant_identifier_names

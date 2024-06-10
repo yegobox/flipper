@@ -47,7 +47,8 @@ extension RealmExtension on Realm {
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          await ProxyService.realm.dbPath(path: 'fallback'),
+          await ProxyService.realm
+              .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
           encryptionKey,
           business.tinNumber,
           ebm.bhfId

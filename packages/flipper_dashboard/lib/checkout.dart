@@ -1,5 +1,8 @@
+import 'package:flipper_dashboard/QuickSellingView.dart';
+import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_dashboard/functions.dart';
+import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -30,13 +33,11 @@ class CheckOutState extends ConsumerState<CheckOut>
   late TabController tabController;
   final FocusNode keyPadFocusNode = FocusNode();
   final TextEditingController textEditController = TextEditingController();
+  final TextEditingController searchContrroller = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // ref
-    //     .read(sellingModeProvider.notifier)
-    //     .setSellingMode(SellingMode.forSelling);
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 1),
@@ -67,32 +68,61 @@ class CheckOutState extends ConsumerState<CheckOut>
   Widget build(BuildContext context) {
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
-          viewModelBuilder: () => CoreViewModel(),
-          builder: (context, model, child) {
-            return FadeTransition(
+        viewModelBuilder: () => CoreViewModel(),
+        builder: (context, model, child) {
+          return Card(
+            color: Colors.white,
+            surfaceTintColor: Colors.white,
+            child: FadeTransition(
               opacity: _animation,
-              child: Column(
-                children: [
-                  Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
                     child: Column(
                       children: [
-                        KeyPadView(
-                          model: model,
-                          isBigScreen: widget.isBigScreen,
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: LayoutBuilder(
+                            builder: (context, constraints) {
+                              bool isLargeScreen = constraints.maxWidth > 600;
+                              return isLargeScreen
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: IconRow(),
+                                    )
+                                  : Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: IconRow(),
+                                    );
+                            },
+                          ),
                         ),
-                        PaymentTicketManager(
-                          context: context,
-                          model: model,
-                          controller: textEditController,
-                          nodeDisabled: true,
+                        Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: SearchInputWithDropdown(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: QuickSellingView(),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: PaymentTicketManager(
+                            context: context,
+                            model: model,
+                            controller: textEditController,
+                            nodeDisabled: true,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            );
-          });
+            ),
+          );
+        },
+      );
     } else {
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),

@@ -534,10 +534,9 @@ final transactionListProvider =
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
 
-  // Check if startDate or endDate is null, and return an empty stream if either is null
+  // Check if startDate or endDate is null, and return an empty list stream if either is null
   if (startDate == null || endDate == null) {
-    return Stream.value(
-        []); // Return an empty list stream instead of empty stream
+    return Stream.value([]);
   }
 
   try {
@@ -545,7 +544,10 @@ final transactionListProvider =
         .transactionList(startDate: startDate, endDate: endDate);
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
-    return stream.switchMap((transactions) => Stream.value(transactions));
+    return stream.switchMap((transactions) {
+      // Handle null or empty transactions if needed
+      return Stream.value(transactions ?? []);
+    });
   } catch (e, stackTrace) {
     // Return an error stream if something goes wrong
     return Stream.error(e, stackTrace);

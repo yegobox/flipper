@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -73,7 +74,7 @@ class IconRowState extends ConsumerState<IconRow> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ToggleButtons(
@@ -139,7 +140,7 @@ class IconRowState extends ConsumerState<IconRow> {
               }
             });
 
-            buttonNav(index);
+            buttonNav(index, context);
           },
           isSelected: _isSelected,
           color: Colors.white,
@@ -149,14 +150,23 @@ class IconRowState extends ConsumerState<IconRow> {
     );
   }
 
-  void buttonNav(int index) async {
+  final _routerService = locator<RouterService>();
+
+  void buttonNav(int index, context) async {
     // Handle button press
+    // if (index == 1) {
+    //   //TransactionList();
+    //   // navigate to TransactionList
+    //   Navigator.of(context).push(
+    //     MaterialPageRoute(
+    //       builder: (context) => const TransactionList(),
+    //     ),
+    //   );
+    // }
     if (index == 3) {
-      final _routerService = locator<RouterService>();
       _routerService.navigateTo(ReportsRoute());
     }
     if (index == 2) {
-      final _routerService = locator<RouterService>();
       // Perform some action when the button is pressed
       final data = await ProxyService.realm
           .getTransactionsAmountsSum(period: TransactionPeriod.today);

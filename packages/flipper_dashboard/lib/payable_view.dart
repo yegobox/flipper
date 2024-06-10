@@ -3,10 +3,13 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 
-class PayableView extends StatelessWidget {
-  const PayableView(
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+
+class PayableView extends StatefulHookConsumerWidget {
+  PayableView(
       {Key? key,
       required this.onClick,
       required this.ticketHandler,
@@ -16,6 +19,11 @@ class PayableView extends StatelessWidget {
   final Function ticketHandler;
   final CoreViewModel model;
 
+  @override
+  _PayableViewState createState() => _PayableViewState();
+}
+
+class _PayableViewState extends ConsumerState<PayableView> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -29,7 +37,7 @@ class PayableView extends StatelessWidget {
             child: TextButton(
               style: secondaryButtonStyle,
               onPressed: () {
-                ticketHandler();
+                widget.ticketHandler();
               },
               child: StreamBuilder<List<ITransaction>>(
                 stream: ProxyService.realm.ticketsStreams(),

@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
 import 'package:flipper_dashboard/checkout.dart';
+import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,8 @@ class AppLayoutDrawer extends StatefulHookConsumerWidget {
 }
 
 class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
+  final TextEditingController searchContrroller = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     final isScanningMode = ref.watch(scanningModeProvider);
@@ -53,26 +56,42 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   }
 
   Widget buildRow(bool isScanningMode) {
-    int buttonIndex = ref.watch(buttonIndexProvider);
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const SizedBox(width: 20),
-          Expanded(
-            flex: 2,
-            child: ProductView.normalMode(),
-          ),
-          buttonIndex != 1
-              ? Expanded(
-                  child: isScanningMode
-                      ? buildReceiptUI()
-                      : CheckOut(isBigScreen: true),
-                )
-              : SizedBox.shrink(),
-        ],
+    return Scaffold(
+      // Wrap the Row in a Scaffold
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(width: 20),
+            Expanded(
+              child: isScanningMode
+                  ? buildReceiptUI()
+                  : CheckOut(isBigScreen: true),
+            ),
+            Flexible(
+              child: ListView(
+                // Use ListView instead of SingleChildScrollView
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: SearchField(
+                      controller: searchContrroller,
+                      showAddButton: true,
+                      showDatePicker: ref.watch(buttonIndexProvider) == 1,
+                      showIncomingButton: true,
+                      showOrderButton: true,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ProductView.normalMode(),
+                  ), // Your ProductView widget
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

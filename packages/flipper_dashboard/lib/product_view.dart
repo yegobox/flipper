@@ -1,13 +1,8 @@
-// ignore_for_file: unused_result
-
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
-import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/profile.dart';
-import 'package:flipper_dashboard/search_field.dart';
-import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -20,11 +15,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-
-import 'ribbon.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -51,11 +43,6 @@ class ProductViewState extends ConsumerState<ProductView> {
   final _routerService = locator<RouterService>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _searchFocusNode.dispose();
     super.dispose();
@@ -65,6 +52,11 @@ class ProductViewState extends ConsumerState<ProductView> {
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
+    int buttonIndex = ref.watch(buttonIndexProvider);
+
+    if (buttonIndex == 1) {
+      return TransactionList();
+    }
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
@@ -75,68 +67,18 @@ class ProductViewState extends ConsumerState<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildRowView(context, model, searchFieldWidth);
+        return true
+            ? buildVariantList(context, model)
+            : buildProductsSection(context, model);
       },
     );
   }
 
-  Widget buildRowView(
-    BuildContext context,
-    ProductViewModel model,
-    double searchFieldWidth,
-  ) {
-    final scanMode = ref.watch(scanningModeProvider);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Check if the width is greater than a certain threshold (e.g., for large screens)
-        bool isLargeScreen = constraints.maxWidth > 600;
-
-        return CustomScrollView(
-          slivers: [
-            buildIconRow(isLargeScreen),
-            buildStickyHeader(searchFieldWidth),
-            buildContent(context, model, scanMode),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget buildIconRow(bool isLargeScreen) {
-    return SliverToBoxAdapter(
-      child: isLargeScreen ? IconRow() : SizedBox(),
-    );
-  }
-
-  Widget buildContent(
-      BuildContext context, ProductViewModel model, bool scanMode) {
-    int buttonIndex = ref.watch(buttonIndexProvider);
-
-    if (buttonIndex == 1) {
-      return SliverToBoxAdapter(
-          child: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: TransactionList(),
-      ));
-    }
-
-    return scanMode
-        ? buildVariantList(context, model)
-        : buildProductList(context, model);
-  }
-
-  SliverList buildVariantList(
+  Widget buildVariantList(
     BuildContext context,
     ProductViewModel model,
   ) {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        SizedBox(height: 8),
-        buildVariantsSection(context, model),
-      ]),
-    );
+    return buildVariantsSection(context, model);
   }
 
   Widget buildVariantsSection(
@@ -144,25 +86,30 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
   ) {
     return Center(
-      child: Center(
-        child: ref
-            .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
-            .when(
-              data: (variants) {
-                return Column(
-                  children: [
-                    for (int index = 0; index < variants.length; index++)
-                      buildVariantRow(context, model, variants[index]),
-                  ],
-                );
-              },
-              error: (error, e) => SizedBox.shrink(),
-              loading: () => SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: const CircularProgressIndicator()),
-            ),
-      ),
+      child: ref
+          .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
+          .when(
+            data: (variants) {
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  mainAxisSpacing: 5.0,
+                  crossAxisSpacing: 2.0,
+                  crossAxisCount:
+                      MediaQuery.of(context).size.width > 600 ? 4 : 2,
+                ),
+                itemCount: variants.length,
+                itemBuilder: (context, index) {
+                  return buildVariantRow(context, model, variants[index]);
+                },
+                shrinkWrap: true,
+              );
+            },
+            error: (error, e) => SizedBox.shrink(),
+            loading: () => SizedBox(
+                width: 20,
+                height: 20,
+                child: const CircularProgressIndicator()),
+          ),
     );
   }
 
@@ -175,11 +122,7 @@ class ProductViewState extends ConsumerState<ProductView> {
 
     return stockStream.when(
       data: (double stock) {
-        if (stock == 0) {
-          return SizedBox.shrink();
-        } else {
-          return buildRowItem(context, model, variant, stock);
-        }
+        return buildRowItem(context, model, variant, stock);
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
       loading: () => SizedBox(
@@ -199,7 +142,8 @@ class ProductViewState extends ConsumerState<ProductView> {
       stock: stock,
       model: model,
       variant: variant,
-      name: variant.name ?? "",
+      productName: variant.productName ?? "",
+      variantName: variant.name ?? "",
       edit: (productId) {
         _routerService.navigateTo(
           AddProductViewRoute(productId: productId),
@@ -214,7 +158,6 @@ class ProductViewState extends ConsumerState<ProductView> {
             ProxyService.realm.delete(id: id!, endPoint: 'variant');
           }
 
-          // ignore: unused_result
           ref
               .refresh(
                 productsProvider(
@@ -227,43 +170,6 @@ class ProductViewState extends ConsumerState<ProductView> {
       enableNfc: (product) {
         // Handle NFC functionality
       },
-    );
-  }
-
-  Widget buildStickyHeader(double searchFieldWidth) {
-    return SliverPadding(
-      padding: EdgeInsets.only(top: 15),
-      sliver: SliverPersistentHeader(
-        pinned: true,
-        floating: false,
-        delegate: StickyHeader(
-          child: Container(
-            height: kToolbarHeight,
-            child: buildStickyHeaderContents(searchFieldWidth),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildStickyHeaderContents(double searchFieldWidth) {
-    return Wrap(
-      direction: Axis.horizontal,
-      children: <Widget>[
-        // IconRow(),
-        buildSearchField(searchFieldWidth),
-        SizedBox(width: 5),
-        // buildProfileWidget(),
-      ],
-    );
-  }
-
-  Widget buildSearchField(double width) {
-    return SizedBox(
-      width: isDesktopOrWeb ? width : double.infinity,
-      child: SearchField(
-        controller: searchController,
-      ),
     );
   }
 
@@ -287,33 +193,22 @@ class ProductViewState extends ConsumerState<ProductView> {
         : SizedBox.shrink();
   }
 
-  SliverList buildProductList(BuildContext context, ProductViewModel model) {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        SizedBox(height: 8),
-        buildProductsSection(context, model),
-      ]),
-    );
-  }
-
   Widget buildProductsSection(BuildContext context, ProductViewModel model) {
     final productsRef =
         ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
     return Center(
-      child: Center(
-        child: switch (productsRef) {
-          AsyncData(:final value) => Column(
-              children: [
-                buildProductsOrNoItemsFoundWidget(value),
-                buildProductRows(context, model, value),
-              ],
-            ),
-          // ignore: unused_local_variable
-          AsyncError(:final error) => SizedBox.shrink(),
-          _ => SizedBox(
-              width: 20, height: 20, child: const CircularProgressIndicator()),
-        },
-      ),
+      child: switch (productsRef) {
+        AsyncData(:final value) => Column(
+            children: [
+              buildProductsOrNoItemsFoundWidget(value),
+              buildProductRows(context, model, value),
+            ],
+          ),
+        // ignore: unused_local_variable
+        AsyncError(:final error) => SizedBox.shrink(),
+        _ => SizedBox(
+            width: 20, height: 20, child: const CircularProgressIndicator()),
+      },
     );
   }
 
@@ -380,7 +275,8 @@ class ProductViewState extends ConsumerState<ProductView> {
                         stock: stock.data ?? 0.0,
                         model: model,
                         product: product,
-                        name: product.name ?? "",
+                        productName: product.name ?? "",
+                        variantName: product.name ?? "",
                         addToMenu: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
@@ -449,84 +345,24 @@ class ProductViewState extends ConsumerState<ProductView> {
                         itemCount: variants.length,
                         itemBuilder: (context, index) {
                           final variant = variants[index];
-                          return ListTile(
-                            trailing: Text(variant.name ?? ""),
-                            leading:
-                                Text(variant.retailPrice.toString() + " RWF"),
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: Text(variant.name ?? ""),
+                              ),
+                              Expanded(
+                                child: Text(
+                                    variant.retailPrice.toString() + " RWF"),
+                              ),
+                            ],
                           );
                         },
                       ),
                     ),
-                isExpanded: products[index].searchMatch,
               ),
             ],
           ),
       ],
     );
-  }
-
-  SliverList buildDiscountsList(BuildContext context, ProductViewModel model) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (BuildContext context, int index) {
-          return FutureBuilder<List<Widget>>(
-            future: buildDiscountRows(context, model),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                final widgets = snapshot.data ?? [];
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: widgets,
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return SizedBox.shrink();
-              }
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Future<List<Widget>> buildDiscountRows(
-      BuildContext context, ProductViewModel model) async {
-    final discounts = model.productService.discountStream(
-      branchId: ProxyService.box.getBranchId() ?? 0,
-    );
-
-    if (!ProxyService.remoteConfig.isDiscountAvailable() ||
-        await discounts.isEmpty) {
-      return [];
-    }
-
-    return (await discounts).map((discount) {
-      return DiscountRow(
-        discount: discount.first,
-        name: discount.first.name,
-        model: model,
-        hasImage: false,
-        delete: (id) {
-          model.deleteDiscount(id: id);
-        },
-        edit: (discount) {
-          _routerService.navigateTo(AddDiscountRoute());
-        },
-        applyDiscount: (discount) async {
-          await model.applyDiscount(discount: discount);
-          showSimpleNotification(
-            const Text('Apply discount'),
-            background: Colors.green,
-            position: NotificationPosition.bottom,
-          );
-        },
-      );
-    }).toList();
   }
 }

@@ -859,3 +859,17 @@ class _Configurations {
   int? businessId;
   int? branchId;
 }
+
+@RealmModel()
+class _AppNotification {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  bool completed = false;
+  String? type = 'transaction';
+  String? message;
+
+  ///if it is a transaction being notified then the identifier will be transaction id;
+  int? identifier;
+}

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:flipper_models/helperModels/ICustomer.dart';

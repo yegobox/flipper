@@ -38,7 +38,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                         return RowItem(
                           variant: products[index],
                           color: products[index].color!,
-                          name: products[index].name!,
+                          productName: products[index].name!,
+                          variantName: products[index].name!,
                           stock: 1,
                           model: model,
                           addToMenu: (item) async {

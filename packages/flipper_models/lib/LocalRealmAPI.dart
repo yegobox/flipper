@@ -163,7 +163,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       commApi = AppSecrets.commApi;
     }
 
-    String path = await dbPath(path: 'local');
     Configuration config;
 
     // Close any existing local realm instance
@@ -173,6 +172,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       if (ProxyService.box.encryptionKey().isEmpty) {
         throw Exception("null encryption");
       }
+      String path =
+          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       config = Configuration.local(
         [
           UserActivity.schema,
@@ -187,6 +188,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       );
       localRealm = Realm(config);
     } catch (e) {
+      String path =
+          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       talker.warning(e);
       localRealm?.close();
       config = Configuration.inMemory(
@@ -332,9 +335,16 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       IUser user = IUser.fromJson(jsonResponse);
       await _configureTheBox(userPhone, user);
 
-      await configureLocal(useInMemory: false);
+      /// because we want to avoid memoery leak on app logout we want to close realm opened
+      /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
+      /// need the bellow line
+      if (ProxyService.realm.realm == null) {
+        //await initDependencies();
+      }
+
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
+      await configureLocal(useInMemory: false);
 
       /// after we login this is the best time to open the synced database to start persisting the data
       /// this will close whatever inMemory db we opened temporarly to have the app running
@@ -482,7 +492,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
-      throw ErrorReadingFromYBServer(term: "Not found");
+      throw RemoteError(term: "Not found");
     } else {
       log(response.body.toString(), name: "login error");
       throw Exception(response.body.toString());

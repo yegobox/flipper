@@ -107,8 +107,7 @@ class _PinLoginState extends State<PinLogin> {
                                                       ),
                                                     ),
                                                   );
-                                                } else if (e
-                                                    is ErrorReadingFromYBServer) {
+                                                } else if (e is RemoteError) {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(

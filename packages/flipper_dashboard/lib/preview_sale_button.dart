@@ -4,13 +4,14 @@ import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
-import 'bottom_sheets/preview_sale_bottom_sheet.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/app.locator.dart';
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
   const PreviewSaleButton(
@@ -57,51 +58,39 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     }
   }
 
-  void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
-    HapticFeedback.lightImpact();
+  ////TODO: when working on order resume this.
+  // void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
+  //   HapticFeedback.lightImpact();
 
-    _controller.forward();
+  //   _controller.forward();
 
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      useRootNavigator: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 20.0),
-          child: PreviewSaleBottomSheet(mode: widget.mode),
-        );
-      },
-    );
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
+  //     ),
+  //     useRootNavigator: true,
+  //     builder: (BuildContext context) {
+  //       return Padding(
+  //         padding: const EdgeInsets.only(top: 20.0),
+  //         child: PreviewSaleBottomSheet(mode: widget.mode),
+  //       );
+  //     },
+  //   );
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ));
-    _controller.reverse();
-  }
-
-  String _getFormattedText(String wording, int itemCount) {
-    final formattedItemCount = itemCount != 0 ? '($itemCount)' : '';
-    final previewText = wording.isNotEmpty ? wording : 'Preview Cart';
-
-    return '$previewText $formattedItemCount';
-  }
+  //   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+  //     systemNavigationBarColor: Colors.transparent,
+  //     systemNavigationBarIconBrightness: Brightness.light,
+  //   ));
+  //   _controller.reverse();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    final transaction = widget.mode == SellingMode.forOrdering
-        ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
-        : ref.watch(pendingTransactionProvider(TransactionType.sale));
+    final pendingTransaction =
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
+    final _routerService = locator<RouterService>();
 
-    final itemCount = ref
-            .watch(transactionItemsStreamProvider(transaction.value?.value?.id))
-            .value
-            ?.length ??
-        0;
-    final formattedText = _getFormattedText(widget.wording ?? '', itemCount);
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -122,15 +111,25 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: () {
-                  ref.refresh(
-                      transactionItemsProvider(transaction.value?.value?.id));
-                  widget.mode == SellingMode.forSelling
-                      ? _handleSaleFlow(context, model)
-                      : _handleOrderFlow(context, model);
+                onPressed: () async {
+                  if (pendingTransaction.asData?.value.asData?.value.subTotal
+                          .round() ==
+                      0) {
+                    showSnackBar(context, "Your cart is empty",
+                        textColor: Colors.white, backgroundColor: Colors.green);
+                    return;
+                  }
+
+                  /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
+
+                  _routerService.navigateTo(
+                    PaymentsRoute(
+                      transaction: pendingTransaction.value!.value!,
+                    ),
+                  );
                 },
                 child: Text(
-                  formattedText,
+                  "Pay",
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
