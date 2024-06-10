@@ -452,3 +452,43 @@ class App {}
 /// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223231897+1717794359
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
+/// 
+///  nohup java -jar rra.war &  echo $! > pid.txt
+
+// {
+//     "resultCd": "000",
+//     "resultMsg": "It is succeeded",
+//     "resultDt": "20240610195641",
+//     "data": {
+//         "info": {
+//             "tin": "999909695",
+//             "taxprNm": "TESTING COMPANY 14 LTD",
+//             "bsnsActv": null,
+//             "bhfId": "00",
+//             "bhfNm": "Headquarter",
+//             "bhfOpenDt": "20210927",
+//             "prvncNm": "SOUTH",
+//             "dstrtNm": "KAMONYI",
+//             "sctrNm": "NYARUBAKA",
+//             "locDesc": "RRA",
+//             "hqYn": "Y",
+//             "mgrNm": "TESTING COMPANY 14 LTD",
+//             "mgrTelNo": "0788427097",
+//             "mgrEmail": "ebm@rra.gov.rw",
+//             "sdcId": null,
+//             "mrcNo": null,
+//             "dvcId": "1036147990000001",
+//             "intrlKey": null,
+//             "signKey": null,
+//             "cmcKey": null,
+//             "lastPchsInvcNo": 54,
+//             "lastSaleRcptNo": null,
+//             "lastInvcNo": null,
+//             "lastSaleInvcNo": 7885983517,
+//             "lastTrainInvcNo": null,
+//             "lastProfrmInvcNo": null,
+//             "lastCopyInvcNo": null,
+//             "vatTyCd": null
+//         }
+//     }
+// }
