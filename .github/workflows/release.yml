@@ -167,7 +167,10 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart run msix:create --install-certificate false
+          rd /s /q windows
+          flutter create .
+          dart run flutter_launcher_icons:main
+          dart run msix:create -v --install-certificate false
       - name: Configure Release (optional)
         env:
           VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
