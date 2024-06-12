@@ -182,19 +182,19 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Windows Release ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
+      # - name: Create Release
+      #   uses: actions/create-release@v1.0.0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      #   with:
+      #     tag_name: ${{ steps.get_version.outputs.version }}
+      #     release_name: Windows Release ${{ steps.get_version.outputs.version }}
+      #     draft: false
+      #     prerelease: false
+      #     body: |
+      #       Changes in this Release
+      #       - First Change
+      #       - Second Change
       - name: Upload .msix to Release
         uses: actions/upload-artifact@v3
         env:
