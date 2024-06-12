@@ -133,7 +133,6 @@ flutter:
   uses-material-design: true
   assets:
     - ./assets/
-    - ../../google_fonts/
 generate: true
 dev_dependencies:
   build_runner: ^2.4.8
