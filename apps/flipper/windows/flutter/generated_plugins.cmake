@@ -22,7 +22,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   sentry_flutter
   share_plus
   smart_auth
-  system_theme
   tray_manager
   url_launcher_windows
   window_manager
