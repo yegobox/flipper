@@ -317,7 +317,7 @@ dependencies:
   flipper_services: ^1.0.0-dev
   flipper_login: ^0.0.1-dev.5
   flipper_socials: 1.0.0+1
-  flipper_actionable: ^0.0.1
+  # flipper_actionable: ^0.0.1
 
 dev_dependencies:
   flutter_test:
