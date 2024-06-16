@@ -335,7 +335,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       IUser user = IUser.fromJson(jsonResponse);
       await _configureTheBox(userPhone, user);
 
-      /// because we want to avoid memoery leak on app logout we want to close realm opened
+      /// because we want to avoid memoery leak on app logout we want to close realm opened!
       /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
       /// need the bellow line
       if (ProxyService.realm.realm == null) {
