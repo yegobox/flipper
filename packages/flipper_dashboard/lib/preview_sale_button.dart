@@ -8,9 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
-
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
+import 'package:flipper_loading/loading.dart';
 
 typedef void CompleteTransaction();
 
@@ -64,11 +63,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
-    // final pendingTransaction =
-    //     ref.watch(pendingTransactionProvider(TransactionType.sale));
-    // final _routerService = locator<RouterService>();
+    final isLoading = ref.watch(isLoadingProvider);
 
-    return ViewModelBuilder.reactive(
+    return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SizedBox(
@@ -88,33 +85,26 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: () async {
-                  talker.info("init callback to complete transaction");
-                  widget.completeTransaction!();
-                  // if (pendingTransaction.asData?.value.asData?.value.subTotal
-                  //         .round() ==
-                  //     0) {
-                  //   showSnackBar(context, "Your cart is empty",
-                  //       textColor: Colors.white, backgroundColor: Colors.green);
-                  //   return;
-                  // }
-
-                  // /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
-
-                  // _routerService.navigateTo(
-                  //   PaymentsRoute(
-                  //     transaction: pendingTransaction.value!.value!,
-                  //   ),
-                  // );
-                },
-                child: Text(
-                  "Pay",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: const Color(0xffFFFFFF),
-                  ),
-                ),
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        talker.info("init callback to complete transaction");
+                        widget.completeTransaction!();
+                      },
+                child: isLoading
+                    ? Loading(
+                        indicator: BallPulseIndicator(),
+                        size: 50.0,
+                        color: Colors.white,
+                      )
+                    : Text(
+                        "Pay",
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: const Color(0xffFFFFFF),
+                        ),
+                      ),
               );
             },
           ),

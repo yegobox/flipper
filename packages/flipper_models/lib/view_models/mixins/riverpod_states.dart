@@ -627,6 +627,9 @@ final universalProductsNames =
   }
 });
 
+// State provider for managing loading state
+final isLoadingProvider = StateProvider<bool>((ref) => false);
+
 List<ProviderBase> allProviders = [
   productProvider,
   customerSearchStringProvider,

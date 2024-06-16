@@ -2870,6 +2870,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<void> downloadAssetSave() async {
+    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
     int branchId = ProxyService.box.getBranchId()!;
 
     // Fetch the branch assets

@@ -308,9 +308,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                             if (number == null) {
                               return 'Please enter a valid number';
                             }
-                            if (number < 0 || number > 100) {
-                              return 'Received Amount must be between 0 and 100';
-                            }
                             return null;
                           },
                         ),

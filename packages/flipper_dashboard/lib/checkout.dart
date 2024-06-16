@@ -265,6 +265,10 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 nodeDisabled: true,
                                 completeTransaction: () {
                                   if (_formKey.currentState!.validate()) {
+                                    ref.read(isLoadingProvider.notifier).state =
+                                        true;
+                                    ref.refresh(isLoadingProvider.notifier);
+
                                     confirmPayment(
                                       amount: double.tryParse(
                                               receivedAmountController.text) ??
@@ -281,6 +285,15 @@ class CheckOutState extends ConsumerState<CheckOut>
                                           .value
                                           .value!,
                                     );
+                                    receivedAmountController.clear();
+                                    ref.read(isLoadingProvider.notifier).state =
+                                        false;
+                                    ref.refresh(isLoadingProvider.notifier);
+                                    showSnackBar(
+                                        context, "Transaction completed",
+                                        textColor: Colors.white,
+                                        backgroundColor:
+                                            Color.fromARGB(255, 187, 255, 1));
                                   }
                                 },
                               ),
