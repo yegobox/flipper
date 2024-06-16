@@ -2755,6 +2755,8 @@ class RealmAPI<M extends IJsonSerializable>
     /// refreshing the user token will invalidate any session
     await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
 
+    await amplifyLogout();
+
     /// calling close on logout inroduced error where another attempt to login will fail since
     /// the instance of realm is instantiated at app start level.
     // close();
@@ -2932,5 +2934,12 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Assets? getAsset({required String assetName}) {
     return realm!.query<Assets>(r'assetName == $0', [assetName]).firstOrNull;
+  }
+
+  @override
+  Future<void> amplifyLogout() async {
+    try {
+      amplify.Amplify.Auth.signOut();
+    } catch (e) {}
   }
 }
