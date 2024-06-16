@@ -22,7 +22,8 @@ import 'package:flutter/services.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
-  String ebmUrl = "https://turbo.yegobox.com";
+  // String ebmUrl = "https://turbo.yegobox.com";
+  String ebmUrl = "http://10.0.2.2:8080/rra";
 
   RWTax();
 
@@ -103,9 +104,9 @@ class RWTax implements TaxApi {
         printResponseMessage: true,
       ),
     ));
-    final jsonData = json.encode(data);
+    //final jsonData = json.encode(data);
 
-    Clipboard.setData(ClipboardData(text: jsonData.toString()));
+    // Clipboard.setData(ClipboardData(text: jsonData.toString()));
     try {
       final response = await dio.post(
         baseUrl,
@@ -340,6 +341,9 @@ class RWTax implements TaxApi {
       talker.error(s);
     }
 
+    Customer? customer =
+        ProxyService.realm.getCustomer(id: transaction.customerId);
+
     double totalTaxA = taxTotals['A'] ?? 0.0;
     double totalTaxB = taxTotals['B'] ?? 0.0;
     double totalTaxC = taxTotals['C'] ?? 0.0;
@@ -347,7 +351,7 @@ class RWTax implements TaxApi {
     Map<String, dynamic> data = {
       "tin": business.tinNumber ?? 999909695,
       "bhfId": business.bhfId ?? "00",
-      "invcNo": counter.curRcptNo,
+      "invcNo": counter.invcNo,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
       "rcptTyCd": rcptTyCd,
@@ -361,35 +365,47 @@ class RWTax implements TaxApi {
       "taxblAmtA": totalTaxA,
       "taxblAmtC": totalTaxC,
       "taxblAmtD": totalTaxD,
+      "taxAmtC": totalTaxC,
       "taxAmtA": totalTaxA,
+      "taxAmtD": totalTaxD,
       "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totAmt": totalMinusExemptedProducts,
-      "prchrAcptcYn": "Y",
+      "prchrAcptcYn": "N",
       "regrId": transaction.id,
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
-      "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
+      "taxRtA": 0,
+      "taxRtB": 0,
+      "taxRtC": 0,
+      "taxRtD": 0,
+      "custNm": customer?.custNm ?? "N/A",
+      "prcOrdCd": null,
+      "cnclDt": null,
+      "rfdDt": null,
+      "rfdRsnCd": null,
+      "remark": "",
+
       "receipt": {
-        "curRcptNo": counter.curRcptNo,
-        "totRcptNo": counter.totRcptNo,
-        "rptNo": date,
-        "rcptPbctDt": date,
-        "intrlData": itemPrefix +
-            transaction.id.toString() +
-            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
-        "rcptSign": transaction.id,
-        "trdeNm": business.name ?? "YB",
-        "topMsg": "Shop with us",
+        "rptNo": counter.invcNo,
+        "adrs": "",
+        // "rcptPbctDt": date,
+        // "intrlData": itemPrefix +
+        //     transaction.id.toString() +
+        //     DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
+        // "rcptSign": transaction.id,
+        "trdeNm": business.name ?? "YEGOBOX",
+        // "topMsg": "Shop with us",
+        "topMsg":
+            "${business.name}\n\nAddress:${business.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business.tinNumber}",
         "btmMsg": "Welcome",
-        "prchrAcptcYn": "Y"
+        "prchrAcptcYn": "N",
+        "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
       },
       "itemList": itemsList
     };
-    Customer? customer =
-        await ProxyService.realm.getCustomer(id: transaction.customerId);
 
     Map<String, dynamic> finalData;
 

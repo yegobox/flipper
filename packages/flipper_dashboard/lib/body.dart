@@ -14,14 +14,18 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
 
+typedef void CompleteTransaction();
+
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
-// ignore: non_constant_identifier_names
+
 Widget PaymentTicketManager(
     {required BuildContext context,
     required CoreViewModel model,
     required TextEditingController controller,
+    CompleteTransaction? completeTransaction,
     required bool nodeDisabled}) {
   final _routerService = locator<RouterService>();
+
   return SalesButtonsController(
     tab: model.tab,
     model: model,
@@ -31,11 +35,12 @@ Widget PaymentTicketManager(
         final transaction = await ProxyService.realm
             .manageTransaction(transactionType: TransactionType.sale);
         if (transaction.subTotal == 0) {
-          _routerService.navigateTo(PaymentsRoute(transaction: transaction));
+          // _routerService.navigateTo(PaymentsRoute(transaction: transaction));
+          completeTransaction?.call();
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
-            background: Colors.green,
+            background: Colors.red,
             position: NotificationPosition.bottom,
           );
         }
@@ -46,6 +51,7 @@ Widget PaymentTicketManager(
 
         _routerService.navigateTo(TicketsListRoute(transaction: transaction));
       },
+      completeTransaction: completeTransaction,
     ),
     controller: controller,
     amount: double.tryParse(model.key) ?? 0.0,

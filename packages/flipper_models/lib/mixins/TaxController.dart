@@ -173,7 +173,7 @@ class TaxController<OBJ> {
     talker.warning("Final computed Tax for D: $totalTaxD");
 
     Customer? customer =
-        await ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
+        ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
 
     Print print = Print();
 
@@ -197,8 +197,7 @@ class TaxController<OBJ> {
       receiptSignature: receipt.rcptSign ?? "",
       cashierName: business.name!,
       sdcId: receipt.sdcId ?? "",
-      sdcReceiptNum: receipt.receiptType ?? "",
-      invoiceNum: receipt.totRcptNo ?? 0,
+      invoiceNum: receipt.invcNo!,
       brandName: business.name!,
       brandAddress: business.adrs ?? "Kigali,Rwanda",
       brandTel: ProxyService.box.getUserPhone()!,
@@ -243,21 +242,15 @@ class TaxController<OBJ> {
           id: randomNumber(),
           branchId: ProxyService.box.getBranchId()!,
           businessId: ProxyService.box.getBusinessId()!,
-          curRcptNo: 1,
+          invcNo: 1,
           lastTouched: DateTime.now(),
           receiptType: receiptType,
-          totRcptNo: 1,
         );
         await ProxyService.realm.realm!.putAsync(counter);
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
-      if (counter.totRcptNo == 0 || counter.curRcptNo == 0) {
-        ProxyService.realm.realm!.writeAsync(() {
-          counter!.totRcptNo = 1;
-          counter.curRcptNo = 1;
-        });
-      }
+
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
       RwApiResponse? receiptSignature =
@@ -295,7 +288,8 @@ class TaxController<OBJ> {
         counters.map((Counter count) {
           count.totRcptNo = receiptSignature.data?.totRcptNo;
 
-          count.curRcptNo = count.curRcptNo! + 1;
+          count.curRcptNo = count.curRcptNo!;
+          count.invcNo = count.invcNo! + 1;
           return count;
         }).toList();
       });
@@ -346,7 +340,7 @@ class TaxController<OBJ> {
     ITransaction transaction,
     String qrCode,
     Counter counter,
-    String receiptNumber,
+    String receiptType,
   ) async {
     try {
       await ProxyService.realm.createReceipt(
@@ -354,7 +348,7 @@ class TaxController<OBJ> {
         transaction: transaction,
         qrCode: qrCode,
         counter: counter,
-        receiptType: receiptNumber,
+        receiptType: receiptType,
       );
     } catch (e) {
       rethrow;

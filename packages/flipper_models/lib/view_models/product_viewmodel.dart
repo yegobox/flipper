@@ -100,7 +100,7 @@ class ProductViewModel extends FlipperBaseModel
   String? kProductName;
   Future<Product> getProduct({int? productId}) async {
     if (productId != null) {
-      Product? product = await ProxyService.realm.getProduct(id: productId);
+      Product? product = ProxyService.realm.getProduct(id: productId);
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
       kProductName = product.name!;
@@ -203,7 +203,7 @@ class ProductViewModel extends FlipperBaseModel
       if (type == 'product') {
         product?.unit = newUnit.name;
         // get updated product
-        product = await ProxyService.realm.getProduct(id: product!.id!);
+        product = ProxyService.realm.getProduct(id: product!.id!);
       }
 
       if (type == 'variant') {
@@ -293,7 +293,7 @@ class ProductViewModel extends FlipperBaseModel
     double? supplyPrice,
     double? retailPrice,
   }) async {
-    Product? product = await ProxyService.realm.getProduct(id: productId ?? 0);
+    Product? product = ProxyService.realm.getProduct(id: productId ?? 0);
     List<Variant> variants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
@@ -381,7 +381,7 @@ class ProductViewModel extends FlipperBaseModel
     ProxyService.realm.realm!.writeAsync(() async {
       product!.expiryDate = date.toIso8601String();
     });
-    Product? cProduct = await ProxyService.realm.getProduct(id: product!.id!);
+    Product? cProduct = ProxyService.realm.getProduct(id: product!.id!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }

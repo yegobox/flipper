@@ -89,6 +89,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
         child: PreviewSaleButton(
           wording: "Preview Cart",
           mode: SellingMode.forOrdering,
+          completeTransaction: () {},
         ),
       ),
     );

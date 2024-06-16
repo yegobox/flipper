@@ -4,6 +4,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flipper_rw/StateObserver.dart';
 
 import 'package:flipper_localize/flipper_localize.dart';
@@ -32,6 +33,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'newRelic.dart' if (dart.library.html) 'newRelic_web.dart';
 import 'package:flutter/foundation.dart';
 // import 'package:firebase_app_check/firebase_app_check.dart';
+// TODO: configure https://docs.amplify.aws/gen1/flutter/start/project-setup/platform-setup/ for ios,macos
+// import 'package:firebase_app_check/firebase_app_check.dart';
+// Amplify Flutter Packages
+import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
+
+// Generated in previous step
+import 'amplifyconfiguration.dart';
+
+Future<void> _configureAmplify() async {
+  // Add any Amplify plugins you want to use
+  final authPlugin = cognito.AmplifyAuthCognito();
+  AmplifyStorageS3 amplifyStorageS3 = AmplifyStorageS3();
+  // await apmplify.Amplify.addPlugin(authPlugin);
+  await apmplify.Amplify.addPlugins([
+    authPlugin,
+    amplifyStorageS3,
+  ]);
+
+  // You can use addPlugins if you are going to be adding multiple plugins
+  // await Amplify.addPlugins([authPlugin, analyticsPlugin]);
+
+  // Once Plugins are added, configure Amplify
+  // Note: Amplify can only be configured once.
+  try {
+    await apmplify.Amplify.configure(amplifyconfig);
+  } catch (e) {
+    print(e);
+  }
+}
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
@@ -61,6 +92,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  _configureAmplify();
   if (!isWindows) {
     ///https://firebase.google.com/docs/app-check/flutter/debug-provider?hl=en&authuser=1
     // await FirebaseAppCheck.instance.activate(

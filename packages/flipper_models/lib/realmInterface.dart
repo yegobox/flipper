@@ -9,6 +9,8 @@ import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
 
+import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+
 extension StringToIntList on String? {
   List<int> toIntList() {
     if (this == null) {
@@ -90,7 +92,7 @@ abstract class RealmApiInterface {
   Stream<Tenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
-  Future<Product?> getProduct({required int id});
+  Product? getProduct({required int id});
   Future<Product?> getProductByBarCode({required String barCode});
   Future<List<Product?>> getProductByName({required String name});
   // Future
@@ -151,7 +153,9 @@ abstract class RealmApiInterface {
       {required int customerId, int? transactionId});
   Future removeCustomerFromTransaction(
       {required int customerId, required int transactionId});
-  Future<Customer?> getCustomer({String? key, int? id});
+  Customer? getCustomer({String? key, int? id});
+  List<Customer> getCustomers({String? key, int? id});
+  Future<Customer?> getCustomerFuture({String? key, int? id});
 
   Future<ITransaction?> getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
@@ -164,7 +168,7 @@ abstract class RealmApiInterface {
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
-  Future<TransactionItem?> getTransactionItemByVariantId(
+  TransactionItem? getTransactionItemByVariantId(
       {required int variantId, required int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});
@@ -368,4 +372,9 @@ abstract class RealmApiInterface {
   Future<Drawers?> openDrawer({required Drawers drawer});
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate});
+
+  Future<void> syncUserWithAwsIncognito({required String identifier});
+  Future<void> downloadAssetSave();
+  Future<bool> removeS3File({required String fileName});
+  Assets? getAsset({required String assetName});
 }

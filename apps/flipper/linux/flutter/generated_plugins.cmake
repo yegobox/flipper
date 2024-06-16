@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  amplify_db_common
   desktop_webview_auth
   device_type
   file_selector_linux

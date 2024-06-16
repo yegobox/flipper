@@ -23,11 +23,11 @@ mixin TransactionMixin {
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
 
-    TransactionItem? existTransactionItem = await ProxyService.realm
+    TransactionItem? existTransactionItem = ProxyService.realm
         .getTransactionItemByVariantId(
             variantId: variation.id!, transactionId: pendingTransaction.id);
 
-    await addTransactionItems(
+    addTransactionItems(
       variationId: variation.id!,
       pendingTransaction: pendingTransaction,
       name: name,
@@ -56,7 +56,7 @@ mixin TransactionMixin {
     TransactionItem? item,
   }) async {
     if (item != null && !isCustom) {
-      List<TransactionItem> items = await ProxyService.realm.transactionItems(
+      List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: true,
@@ -75,7 +75,7 @@ mixin TransactionMixin {
       });
       return;
     }
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: false);

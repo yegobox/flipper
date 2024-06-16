@@ -283,22 +283,22 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                                   color: Colors.black,
                                 )),
                             style: ButtonStyle(
-                              shape: MaterialStateProperty.resolveWith<
+                              shape: WidgetStateProperty.resolveWith<
                                   OutlinedBorder>(
                                 (states) => RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   const Color(0xffF2F2F2)),
                               overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
+                                  WidgetStateProperty.resolveWith<Color?>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.hovered)) {
                                     return Colors.blue.withOpacity(0.04);
                                   }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
+                                  if (states.contains(WidgetState.focused) ||
+                                      states.contains(WidgetState.pressed)) {
                                     return Colors.blue.withOpacity(0.12);
                                   }
                                   return null; // Defer to the widget's default.

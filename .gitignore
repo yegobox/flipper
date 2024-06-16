@@ -70,3 +70,4 @@ build
 upload-keystore.jks
 upload_certificate.pem
 keystoreBase64
+team-provider-info.json

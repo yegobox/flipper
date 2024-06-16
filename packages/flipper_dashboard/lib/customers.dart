@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/custom_widgets.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -37,6 +39,7 @@ class CustomersState extends ConsumerState<Customers> {
           child: Scaffold(
             appBar: CustomAppBar(
               onPop: () {
+                ref.refresh(customersProvider);
                 _routerService.pop();
               },
               title: 'Add Customer',

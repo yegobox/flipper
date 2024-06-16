@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
@@ -11,7 +11,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -44,7 +44,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final String color;
   final String productName;
   final String? imageUrl;
-  final DeleteProductFunction deleteProduct;
+  final DeleteProductFunction delete;
   final DeleteVariantFunction deleteVariant;
   final Function edit;
   final Function enableNfc;
@@ -64,7 +64,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.variantName,
     required this.stock,
     this.addToMenu = _defaultFunction,
-    this.deleteProduct = _defaultFunction,
+    this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
     this.enableNfc = _defaultFunction,
@@ -86,6 +86,7 @@ class RowItem extends StatefulHookConsumerWidget {
 
 class _RowItemState extends ConsumerState<RowItem> {
   final _routerService = locator<RouterService>();
+  bool _showButtons = false;
 
   @override
   Widget build(BuildContext context) {
@@ -93,95 +94,188 @@ class _RowItemState extends ConsumerState<RowItem> {
         widget.product?.id ?? widget.variant?.productId ?? 0));
 
     return ViewModelBuilder.nonReactive(
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, c) {
-          return InkWell(
-            onTap: () async {
-              /// directly add this to cart
-              Stock? stock = await ProxyService.realm
-                  .stockByVariantId(variantId: widget.variant?.id ?? 0);
-              final pendingTransaction =
-                  ref.watch(pendingTransactionProvider(TransactionType.sale));
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, c) {
+        return InkWell(
+          onTap: () async {
+            Stock? stock = ProxyService.realm
+                .stockByVariantId(variantId: widget.variant?.id ?? 0);
+            final pendingTransaction =
+                ref.watch(pendingTransactionProvider(TransactionType.sale));
 
-              await model.saveTransaction(
-                variation: widget.variant!,
-                amountTotal: widget.variant?.retailPrice ?? 0,
-                customItem: false,
-                currentStock: stock!.currentStock,
-                pendingTransaction: pendingTransaction.value!.value!,
-              );
-              ref.refresh(transactionItemsProvider(
-                  pendingTransaction.value?.value?.id));
-            },
-            child: Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 4.0,
-                    spreadRadius: 1.0,
-                  ),
-                ],
+            model.saveTransaction(
+              variation: widget.variant!,
+              amountTotal: widget.variant?.retailPrice ?? 0,
+              customItem: false,
+              currentStock: stock!.currentStock,
+              pendingTransaction: pendingTransaction.value!.value!,
+            );
+            await Future.delayed(Duration(microseconds: 1000));
+            ref.refresh(
+                transactionItemsProvider(pendingTransaction.value?.value?.id));
+
+            await Future.delayed(Duration(microseconds: 200));
+            ref.refresh(
+                transactionItemsProvider(pendingTransaction.value?.value?.id));
+          },
+          onLongPress: () {
+            setState(() {
+              _showButtons = !_showButtons;
+            });
+          },
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: _showButtons ? Colors.grey[300] : Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4.0,
+                      spreadRadius: 1.0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: _buildImage(),
+                    ),
+                    SizedBox(height: 8.0),
+                    _buildProductDetails(variantStream),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildImage(),
-                  Text(
-                    widget.variantName.length > 10
-                        ? widget.variantName.substring(0, 10)
-                        : widget.variantName,
-                    style: const TextStyle(color: Colors.black, fontSize: 16.0),
-                    overflow: TextOverflow.ellipsis,
+              if (_showButtons)
+                Positioned(
+                  left: 8.0,
+                  bottom: 8.0,
+                  child: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      if (widget.variant != null) {
+                        widget.delete(widget.variant?.productId, 'product');
+                      } else if (widget.product != null) {
+                        widget.delete(widget.product?.id, 'product');
+                      }
+                    },
                   ),
-                  Text(
-                    widget.productName,
-                    style: const TextStyle(color: Colors.black, fontSize: 16.0),
-                    overflow: TextOverflow.ellipsis,
+                ),
+              if (_showButtons)
+                Positioned(
+                  right: 8.0,
+                  bottom: 8.0,
+                  child: IconButton(
+                    icon: Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () {
+                      if (widget.variant != null) {
+                        widget.edit(widget.variant?.productId, 'product');
+                      } else if (widget.product != null) {
+                        widget.edit(widget.product?.id, 'product');
+                      }
+                    },
                   ),
-                  Text(
-                    "Stock: ${widget.stock}",
-                    style: const TextStyle(color: Colors.black, fontSize: 14.0),
-                  ),
-                  _buildPrices(variantStream),
-                ],
-              ),
-            ),
-          );
-        });
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    final appSupportDir = await getApplicationSupportDirectory();
+    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
+    }
   }
 
   Widget _buildImage() {
-    return SizedBox(
-      width: 130,
-      child: widget.imageUrl?.isEmpty ?? true
-          ? TextDrawable(
-              backgroundColor:
-                  HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
-              text: widget.productName,
-              isTappable: true,
-              onTap: null,
-              boxShape: BoxShape.rectangle,
-            )
-          : CachedNetworkImage(
-              imageUrl: widget.imageUrl!,
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
+    if (widget.imageUrl?.isEmpty ?? true) {
+      return Container(
+        width: double.infinity,
+        color: HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.productName,
+              style: const TextStyle(color: Colors.white, fontSize: 16.0),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return FutureBuilder<String?>(
+        future: getImageFilePath(imageFileName: widget.imageUrl!),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            final imageFilePath = snapshot.data!;
+            return Image.file(
+              File(imageFilePath),
+              width: double.infinity,
+              height: 130,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  height: 130,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 50,
+                      color: Colors.grey[500],
+                    ),
                   ),
+                );
+              },
+            );
+          } else {
+            return Container(
+              width: double.infinity,
+              height: 130,
+              color: Colors.grey[300],
+              child: Center(
+                child: Icon(
+                  Icons.image,
+                  size: 50,
+                  color: Colors.grey[500],
                 ),
               ),
-              placeholder: (context, url) => SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: const CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            );
+          }
+        },
+      );
+    }
+  }
+
+  Widget _buildProductDetails(AsyncValue<List<Variant>> variantStream) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Name:" + widget.productName,
+          style: const TextStyle(color: Colors.black, fontSize: 16.0),
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 4.0),
+        Text(
+          "Stock: ${widget.stock}",
+          style: const TextStyle(color: Colors.black, fontSize: 14.0),
+        ),
+        SizedBox(height: 4.0),
+        _buildPrices(variantStream),
+      ],
     );
   }
 
@@ -254,9 +348,9 @@ class _RowItemState extends ConsumerState<RowItem> {
         },
       );
     } else {
-      // copy variant.name to clipboard, handy tool when want to copy name for some use.
       if (widget.variant != null) {
-        await Clipboard.setData(ClipboardData(text: widget.variant!.name!));
+        // Copy variant.name to clipboard, handy tool when want to copy name for some use.
+        // await Clipboard.setData(ClipboardData(text: widget.variant!.name!));
       }
       if (widget.variant == null) {
         _routerService.navigateTo(SellRoute(product: widget.product!));

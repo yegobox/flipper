@@ -160,6 +160,7 @@ class _Counter {
   String? receiptType;
   int? totRcptNo;
   int? curRcptNo;
+  int? invcNo;
   DateTime? lastTouched;
   String? action;
 }
@@ -382,6 +383,7 @@ class _Receipt {
 
   DateTime? lastTouched;
   String? action;
+  int? invcNo;
 }
 
 @RealmModel()
@@ -474,7 +476,7 @@ class _Variant {
   String? unit;
   String? productName;
   int? branchId;
-  String? taxName;
+  String? taxName = "";
   double taxPercentage = 0.0;
 
   @deprecated
@@ -486,33 +488,33 @@ class _Variant {
   // add RRA fields
   int? itemSeq;
   // insurance code
-  String? isrccCd;
+  String? isrccCd = "";
   // insurance name
-  String? isrccNm;
+  String? isrccNm = "";
   // premium rate
-  int? isrcRt;
+  int? isrcRt = 0;
   // insurance amount
-  int? isrcAmt;
+  int? isrcAmt = 0;
   // taxation type code.
-  String? taxTyCd;
+  String? taxTyCd = "B";
   // bar code
-  String? bcd;
+  String? bcd = "";
   // Item code
   String? itemClsCd;
   // Item type code
   String? itemTyCd;
   // Item standard name
-  String? itemStdNm;
+  String? itemStdNm = "";
   // Item origin
-  String? orgnNatCd;
+  String? orgnNatCd = "";
   // packaging unit code
-  String? pkg;
+  String? pkg = "1";
   // item code
-  String? itemCd;
+  String? itemCd = "";
 
-  String? pkgUnitCd;
+  String? pkgUnitCd = "CT";
 
-  String? qtyUnitCd;
+  String? qtyUnitCd = "BX";
   // same as name but for rra happiness
   String? itemNm;
   double qty = 0.0;
@@ -522,10 +524,10 @@ class _Variant {
   double splyAmt = 0.0;
   int? tin;
   String? bhfId;
-  double? dftPrc;
-  String? addInfo;
-  String? isrcAplcbYn;
-  String? useYn;
+  double? dftPrc = 0;
+  String? addInfo = "";
+  String? isrcAplcbYn = "";
+  String? useYn = "";
   String? regrId;
   String? regrNm;
   String? modrId;
@@ -608,11 +610,11 @@ class _TransactionItem {
   // insurance code
   String? isrccCd;
   // insurance name
-  String? isrccNm;
+  String? isrccNm = "";
   // premium rate
-  int? isrcRt;
+  int? isrcRt = 0;
   // insurance amount
-  int? isrcAmt;
+  int? isrcAmt = 0;
   // taxation type code.
   String? taxTyCd;
   // bar code
@@ -630,9 +632,9 @@ class _TransactionItem {
   // item code
   String? itemCd;
 
-  String? pkgUnitCd;
+  String? pkgUnitCd = "CT";
 
-  String? qtyUnitCd;
+  String? qtyUnitCd = "BX";
   // same as name but for rra happiness
   String? itemNm;
   // unit price
@@ -872,4 +874,17 @@ class _AppNotification {
 
   ///if it is a transaction being notified then the identifier will be transaction id;
   int? identifier;
+}
+
+@RealmModel()
+class _Assets {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  String? assetName;
+  int? productId;
 }

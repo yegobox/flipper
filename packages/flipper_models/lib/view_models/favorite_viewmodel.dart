@@ -46,7 +46,7 @@ class FavoriteViewModel extends ProductViewModel {
   }
 
   Future<Product?> getProductById(int prodIndex) async {
-    Product? res = await ProxyService.realm.getProduct(id: prodIndex);
+    Product? res = ProxyService.realm.getProduct(id: prodIndex);
     return res;
   }
 }

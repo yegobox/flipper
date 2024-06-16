@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
@@ -48,11 +50,17 @@ class ProductViewState extends ConsumerState<ProductView> {
     super.dispose();
   }
 
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
     int buttonIndex = ref.watch(buttonIndexProvider);
+
+    final deviceType = _getDeviceType(context);
 
     if (buttonIndex == 1) {
       return TransactionList();
@@ -67,7 +75,7 @@ class ProductViewState extends ConsumerState<ProductView> {
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        return true
+        return deviceType != 'Phone'
             ? buildVariantList(context, model)
             : buildProductsSection(context, model);
       },
@@ -90,15 +98,25 @@ class ProductViewState extends ConsumerState<ProductView> {
           .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
           .when(
             data: (variants) {
+              // Ensure the list is updated correctly and length is checked
+              if (variants.isEmpty) {
+                return Text('No variants available.');
+              }
+
               return GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  // Use MaxCrossAxisExtent for responsive column count
+                  maxCrossAxisExtent: 200, // Adjust this value as needed
                   mainAxisSpacing: 5.0,
                   crossAxisSpacing: 2.0,
-                  crossAxisCount:
-                      MediaQuery.of(context).size.width > 600 ? 4 : 2,
                 ),
                 itemCount: variants.length,
                 itemBuilder: (context, index) {
+                  // Double-check the index before accessing the list
+                  if (index < 0 || index >= variants.length) {
+                    return SizedBox
+                        .shrink(); // Or handle the out-of-bound case appropriately
+                  }
                   return buildVariantRow(context, model, variants[index]);
                 },
                 shrinkWrap: true,
@@ -136,36 +154,57 @@ class ProductViewState extends ConsumerState<ProductView> {
     Variant variant,
     double stock,
   ) {
+    Product? product =
+        ProxyService.realm.getProduct(id: variant.productId ?? 0);
     return RowItem(
-      color: "#d63031",
-      // Replace with actual color
+      color: variant.color ?? "#673AB7",
       stock: stock,
       model: model,
       variant: variant,
       productName: variant.productName ?? "",
       variantName: variant.name ?? "",
-      edit: (productId) {
-        _routerService.navigateTo(
-          AddProductViewRoute(productId: productId),
-        );
+      imageUrl: product?.imageUrl,
+      edit: (productId, type) {
+        talker.info("navigating to Edit!");
+        if (_getDeviceType(context) != "Phone") {
+          showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (context) => OptionModal(
+              child: ProductEntryScreen(productId: productId),
+            ),
+          );
+        } else {
+          _routerService.navigateTo(
+            AddProductViewRoute(productId: productId),
+          );
+        }
       },
-      deleteProduct: (id, type) async {
+      delete: (productId, type) async {
         try {
-          if (type == 'product') {
-            ProxyService.realm.delete(id: id!, endPoint: 'product');
-          }
-          if (type == 'variant') {
-            ProxyService.realm.delete(id: id!, endPoint: 'variant');
-          }
+          /// first if there is image attached delete if first
+          Product? product = ProxyService.realm.getProduct(id: productId!);
+          if (product!.imageUrl != null) {
+            if (await ProxyService.realm
+                .removeS3File(fileName: product.imageUrl!)) {
+              await model.deleteProduct(productId: productId);
+              ref.refresh(
+                  outerVariantsProvider(ProxyService.box.getBranchId()!));
 
-          ref
-              .refresh(
-                productsProvider(
-                  ProxyService.box.getBranchId() ?? 0,
-                ).notifier,
-              )
-              .loadProducts(searchString: "", scanMode: false);
-        } catch (e) {}
+              /// delete assets related to a product
+              Assets? asset =
+                  ProxyService.realm.getAsset(assetName: product.imageUrl!);
+              ProxyService.realm.delete(id: asset?.id ?? 0);
+            }
+          } else {
+            await model.deleteProduct(productId: productId);
+            ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+          }
+        } catch (e, s) {
+          talker.error("ProductViewClass:" + s.toString());
+          talker.error("ProductViewClass:" + e.toString());
+          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+        }
       },
       enableNfc: (product) {
         // Handle NFC functionality
@@ -233,10 +272,6 @@ class ProductViewState extends ConsumerState<ProductView> {
     }
   }
 
-  String _getDeviceType(BuildContext context) {
-    return DeviceType.getDeviceType(context);
-  }
-
   int? productId;
 
   Widget buildProductRows(
@@ -297,17 +332,28 @@ class ProductViewState extends ConsumerState<ProductView> {
                             );
                           }
                         },
-                        deleteProduct: (productId, type) async {
+                        delete: (productId, type) async {
                           try {
-                            await model.deleteProduct(productId: productId!);
-                            ref
-                                .refresh(
-                                  productsProvider(
-                                    ProxyService.box.getBranchId() ?? 0,
-                                  ).notifier,
-                                )
-                                .loadProducts(
-                                    searchString: "", scanMode: false);
+                            /// first if there is image attached delete if first
+                            Product? product =
+                                ProxyService.realm.getProduct(id: productId!);
+                            if (product!.imageUrl != null) {
+                              if (await ProxyService.realm
+                                  .removeS3File(fileName: product.imageUrl!)) {
+                                await model.deleteProduct(productId: productId);
+                                ref.refresh(outerVariantsProvider(
+                                    ProxyService.box.getBranchId()!));
+
+                                /// delete assets related to a product
+                                Assets? asset = ProxyService.realm
+                                    .getAsset(assetName: product.imageUrl!);
+                                ProxyService.realm.delete(id: asset?.id ?? 0);
+                              }
+                            } else {
+                              await model.deleteProduct(productId: productId);
+                              ref.refresh(outerVariantsProvider(
+                                  ProxyService.box.getBranchId()!));
+                            }
                           } catch (e, s) {
                             talker.error("ProductViewClass:" + s.toString());
                             talker.error("ProductViewClass:" + e.toString());

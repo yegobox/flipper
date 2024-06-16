@@ -1,41 +1,43 @@
 // ignore_for_file: unused_result
 
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-extension StringExtensions on String {
-  /// Extracts the part of the string before the first '(' and the number after the first '(' and before the first ')'.
-  ///
-  /// For example:
-  ///   'Product Name (123)' -> 'Product Name, 123'
-  ///   'Product Name' -> 'Product Name, '
-  ///
-  /// Returns a string with the name and number separated by a comma and a space.
-  String extractNameAndNumber() {
-    String name = split('(')[0];
-    String number = '';
-
-    if (contains('(')) {
-      number = split('(')[1].split(')')[0];
-    }
-
-    return '$name $number'; // Concatenate name and number with a comma and space
-  }
-}
+import 'package:flipper_models/helperModels/extensions.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
+  final GlobalKey<FormState> _formKey;
+  final TextEditingController discountController;
+  final TextEditingController receivedAmountController;
+  final TextEditingController customerPhoneNumberController;
+  final TextEditingController paymentTypeController;
+
+  QuickSellingView({
+    required GlobalKey<FormState> formKey,
+    required this.discountController,
+    required this.receivedAmountController,
+    required this.customerPhoneNumberController,
+    required this.paymentTypeController,
+  }) : _formKey = formKey;
+
   @override
   _QuickSellingViewState createState() => _QuickSellingViewState();
 }
 
 class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
-  final TextEditingController discountController = TextEditingController();
-  final TextEditingController shippingController = TextEditingController();
+  // static final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   List<TransactionItem> transactionItems = [];
+  final List<String> _customerTypes = [
+    'Cash',
+    'MOMO MTN',
+    'Card',
+  ];
+  String _selectedPaymentMethod = 'Cash'; // Track the selected payment method
 
   double get grandTotal {
     return transactionItems.fold(
@@ -43,9 +45,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
   }
 
   double get totalAfterDiscountAndShipping {
-    double discount = double.tryParse(discountController.text) ?? 0.0;
-    double shipping = double.tryParse(shippingController.text) ?? 0.0;
-    return grandTotal - discount + shipping;
+    double discount = double.tryParse(widget.discountController.text) ?? 0.0;
+
+    // double shipping =
+    //     double.tryParse(widget.receivedAmountController.text) ?? 0.0;
+    return grandTotal - discount + 0;
   }
 
   @override
@@ -227,6 +231,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                               ProxyService.realm.realm!.write(() {
                                 ProxyService.realm.realm!.delete(item);
                               });
+                              ref.refresh(transactionItemsProvider(
+                                  transaction.value?.value?.id));
                             },
                           ),
                         ),
@@ -248,41 +254,176 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
               ],
             ),
             SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: discountController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Discount',
-                      suffixIcon: Icon(Icons.discount),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) => null,
+            Form(
+              key: widget._formKey,
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: widget.discountController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Discount',
+                            suffixIcon: Icon(
+                              FluentIcons.shopping_bag_percent_24_regular,
+                              color: Colors.blue,
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => null,
+                          validator: (String? value) {
+                            if (value == null || value.isEmpty) return null;
+                            final number = double.tryParse(value);
+                            if (number == null) {
+                              return 'Please enter a valid number';
+                            }
+                            if (number < 0 || number > 100) {
+                              return 'Discount must be between 0 and 100';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 16.0),
+                      Expanded(
+                        child: TextFormField(
+                          controller: widget.receivedAmountController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Received Amount',
+                            suffixIcon: Icon(
+                              FeatherIcons.dollarSign,
+                              color: Colors.blue,
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => null,
+                          validator: (String? value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter received amount';
+                            }
+                            final number = double.tryParse(value);
+                            if (number == null) {
+                              return 'Please enter a valid number';
+                            }
+                            if (number < 0 || number > 100) {
+                              return 'Received Amount must be between 0 and 100';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(width: 16.0),
-                Expanded(
-                  child: TextField(
-                    controller: shippingController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Shipping',
-                      suffixIcon: Icon(Icons.local_shipping),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) => null,
+                  SizedBox(
+                    width: 6.0,
+                    height: 6,
                   ),
-                ),
-              ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: widget.customerPhoneNumberController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Customer Phone number',
+                            suffixIcon: Icon(
+                              FluentIcons.call_20_regular,
+                              color: Colors.blue,
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (value) => null,
+                          validator: (String? value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a phone number';
+                            }
+                            // Regular expression for validating a phone number without a leading zero
+                            final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                            if (!phoneExp.hasMatch(value)) {
+                              return 'Please enter a valid 9-digit phone number without a leading zero';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      SizedBox(width: 16.0),
+                      Expanded(
+                        child: TextFormField(
+                          controller: widget.paymentTypeController,
+                          keyboardType: TextInputType.text,
+                          readOnly: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select or enter a payment method';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Payment Method',
+                            border: OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                  color: Colors.grey.shade400, width: 1.0),
+                            ),
+                            suffixIcon: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                DropdownButton<String>(
+                                  isDense: true,
+                                  alignment: AlignmentDirectional.topStart,
+                                  value: _selectedPaymentMethod,
+                                  icon: const Icon(Icons.arrow_drop_down),
+                                  elevation: 16,
+                                  style: const TextStyle(color: Colors.black),
+                                  underline: Container(
+                                    height: 2,
+                                    color: Colors.transparent,
+                                  ),
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      _selectedPaymentMethod = newValue!;
+                                      // Update the TextFormField's controller
+                                      widget.paymentTypeController.text =
+                                          newValue;
+                                    });
+                                  },
+                                  items: _customerTypes
+                                      .map<DropdownMenuItem<String>>(
+                                    (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    },
+                                  ).toList(),
+                                ),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Icon(
+                                    FluentIcons.credit_card_clock_20_regular,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
-                  'Total: \RWF${totalAfterDiscountAndShipping.toStringAsFixed(2)}',
+                  'Total - Discount: \RWF${totalAfterDiscountAndShipping.toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

@@ -1,6 +1,11 @@
-import 'dart:async';
+// ignore_for_file: unused_result
 
+import 'dart:async';
+import 'dart:io';
+
+import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -49,6 +54,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _blurRadius = 5;
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
+
+  bool _selectAll = false;
+  bool _showDeleteButton = false;
 
   bool _savingInProgress = false;
 
@@ -347,23 +355,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
       await model.bulkUpdateVariants(true);
     }
 
+    model.currentColor = pickerColor.toHex();
     await model.addVariant(
         variations: model.scannedVariants,
         packagingUnit: selectedPackageUnitValue.split(":")[0]);
-    model.currentColor = pickerColor.toHex();
 
-    Product? product = await model.saveProduct(
+    await model.saveProduct(
         mproduct: productRef,
         inUpdateProcess: widget.productId != null,
         productName: model.kProductName!);
 
-    ref
-        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-        .addProducts(products: [
-      if (product != null) ...[product]
-    ]);
-    // Future.delayed(Duration(seconds: 3));
-    /// reload saved product
     final searchKeyword = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
     ref
@@ -372,6 +373,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     /// end of reloading
     toast("Product Saved");
+
+    ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+
+    ITransaction currentTransaction = await ProxyService.realm
+        .manageTransaction(transactionType: TransactionType.sale);
+    ref.refresh(pendingTransactionProvider(TransactionType.sale).future);
+    ref.refresh(transactionItemsProvider(currentTransaction.id));
+    ref.refresh(searchStringProvider);
     Navigator.maybePop(context);
   }
 
@@ -491,314 +500,427 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Container(
-                      width: 300, // Set a specific width
-                      height: 50, // Set a specific height
-                      child: Row(
-                        children: [
-                          ElevatedButton(
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                          content: SingleChildScrollView(
-                                        child: BlockPicker(
-                                          pickerColor: pickerColor,
-                                          onColorChanged: changeColor,
-                                          availableColors: colors,
-                                          layoutBuilder: pickerLayoutBuilder,
-                                        ),
-                                      ));
-                                    });
-                              },
-                              child: Icon(Icons.color_lens,
-                                  color: useWhiteForeground(pickerColor)
-                                      ? Colors.white
-                                      : Colors.black),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: pickerColor,
-                                shadowColor: pickerColor.withOpacity(1),
-                                elevation: 0,
-                              )),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () => _onSaveButtonPressed(
-                              model,
-                              context,
-                              productRef!,
-                            ),
-                            child: const Text('Save'),
-                          ),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () async {
-                              Navigator.maybePop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red, // Background color
-                              foregroundColor: Colors.white, // Text color
-                            ),
-                            child: const Text('Close'),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      controller: productNameController,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (value) {
-                        model.setProductName(name: value);
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Product name is required';
-                        } else if (value.length < 3) {
-                          return 'Product name must be at least 3 characters long';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Product Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      controller: retailPriceController,
-                      onChanged: (value) => model.setRetailPrice(price: value),
-                      decoration: InputDecoration(
-                        labelText: 'Retail Price',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      controller: supplyPriceController,
-                      onChanged: (value) => model.setSupplyPrice(price: value),
-                      decoration: InputDecoration(
-                        labelText: 'Supply Price',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      controller: scannedInputController,
-                      decoration: InputDecoration(
-                        labelText: 'Scan or Type',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (scannedInput) {
-                        _inputTimer?.cancel();
-                        _inputTimer = Timer(const Duration(seconds: 1), () {
-                          if (scannedInput.isNotEmpty) {
-                            model.onAddVariant(
-                              editmode: widget.productId != null,
-                              variantName: scannedInput,
-                              isTaxExempted: false,
-                              product: productRef!,
-                            );
-                            scannedInputController.clear();
-                            scannedInputFocusNode.requestFocus();
-                          }
-                        });
-                      },
-                      focusNode: scannedInputFocusNode,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: model.EBMenabled
-                        ? _buildDropdownButton(model)
-                        : const SizedBox.shrink(),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Product Name: ${model.kProductName}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Stack(
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: ListView(
-                          children: [
-                            DataTable(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors.transparent,
-                                ),
-                              ),
-                              columns: const [
-                                DataColumn(label: Text('Name')),
-                                DataColumn(label: Text('Price')),
-                                DataColumn(label: Text('Created At')),
-                                DataColumn(label: Text('Quantity')),
-                                DataColumn(label: Text('Tax')),
-                                DataColumn(label: Text('Unit')),
-                                DataColumn(label: Text('ClsCd')),
-                                DataColumn(label: Text('Action')),
-                              ],
-                              rows:
-                                  model.scannedVariants.reversed.map((variant) {
-                                return DataRow(
-                                    color: MaterialStateProperty.resolveWith<
-                                        Color?>((Set<MaterialState> states) {
-                                      if (states
-                                          .contains(MaterialState.selected)) {
-                                        return Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.08);
-                                      }
-                                      return null; // Use the default value.
-                                    }),
-                                    cells: [
-                                      DataCell(Text(variant.name!)),
-                                      DataCell(Text(variant.retailPrice
-                                          .toStringAsFixed(2))),
-                                      DataCell(
-                                        Text(
-                                          variant.lastTouched == null
-                                              ? ''
-                                              : variant.lastTouched!
-                                                  .toLocal()
-                                                  .toIso8601String(),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        QuantityCell(
-                                          quantity: variant.qty,
-                                          onEdit: () {
-                                            _showEditQuantityDialog(
-                                              context,
-                                              variant,
-                                              model,
-                                              () {
-                                                FocusScope.of(context)
-                                                    .requestFocus(
-                                                        scannedInputFocusNode);
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      DataCell(
-                                        _buildTaxDropdown(
-                                            context, variant, model),
-                                      ),
-                                      DataCell(
-                                        _buildUnitOfMeasureDropDown(
-                                            context, variant, model),
-                                      ),
-                                      DataCell(
-                                        _buildUniversalProductDropDown(
-                                            context, model, variant),
-                                      ),
-                                      DataCell(
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            model.removeVariant(
-                                                id: variant.id!);
-                                          },
-                                          child: const Text('Delete'),
-                                        ),
-                                      ),
-                                    ]);
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Display a confirmation dialog or perform any other action
-                            bool confirmed = await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Confirm Deletion'),
-                                  content: Text(
-                                      'Are you sure you want to delete all variants?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(false);
-                                      },
-                                      child: Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(true);
-                                      },
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-
-                            // If user confirmed, call model.deleteAllVariants()
-                            if (confirmed == true) {
-                              model.deleteAllVariants();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red, // Background color
-                            foregroundColor: Colors.white, // Text color
-                          ),
-                          child: const Text('Delete'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  topButtons(context, model, productRef),
+                  productNameField(model),
+                  retailPrice(model),
+                  supplyPrice(model),
+                  scanField(model, productRef),
+                  packagingDropDown(model),
+                  // previewName(model),
+                  TableVariants(model, context),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    final appSupportDir = await getApplicationSupportDirectory();
+    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      talker.info("image exist at path ${imageFilePath}");
+      return imageFilePath;
+    } else {
+      talker.info("image does not exist at path ${imageFilePath}");
+      return null;
+    }
+  }
+
+  Widget topButtons(
+      BuildContext context, ScannViewModel productModel, Product? productRef) {
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => UploadViewModel(),
+        builder: (context, model, child) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  // mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                    content: SingleChildScrollView(
+                                  child: BlockPicker(
+                                    pickerColor: pickerColor,
+                                    onColorChanged: changeColor,
+                                    availableColors: colors,
+                                    layoutBuilder: pickerLayoutBuilder,
+                                  ),
+                                ));
+                              });
+                        },
+                        child: Icon(Icons.color_lens,
+                            color: useWhiteForeground(pickerColor)
+                                ? Colors.white
+                                : Colors.black),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: pickerColor,
+                          shadowColor: pickerColor.withOpacity(1),
+                          elevation: 0,
+                        )),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () => _onSaveButtonPressed(
+                        productModel,
+                        context,
+                        productRef!,
+                      ),
+                      child: const Text('Save'),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.maybePop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Background color
+                        foregroundColor: Colors.white, // Text color
+                      ),
+                      child: const Text('Close'),
+                    )
+                  ],
+                ),
+              ),
+              if (ref.watch(productProvider)?.imageUrl != null)
+                FutureBuilder(
+                  future: getImageFilePath(
+                      imageFileName: ref.watch(productProvider)!.imageUrl!),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      final imageFilePath = snapshot.data as String;
+                      return Container(
+                        width: 200, // Specify the width you need
+                        height: 200, // Specify the height you need
+                        child: Image.file(
+                          new File(imageFilePath),
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    } else {
+                      return Container(
+                        width: 200,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 50,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                )
+              else
+                Container(
+                  width: 200,
+                  height: 200,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 50,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ),
+              Browsephotos(
+                productId: ref.read(productProvider)?.id ?? 0,
+              )
+            ],
+          );
+        });
+  }
+
+  Padding productNameField(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        controller: productNameController,
+        textInputAction: TextInputAction.next,
+        onChanged: (value) {
+          model.setProductName(name: value);
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Product name is required';
+          } else if (value.length < 3) {
+            return 'Product name must be at least 3 characters long';
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          labelText: 'Product Name',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+      ),
+    );
+  }
+
+  Container previewName(ScannViewModel model) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      alignment: Alignment.center,
+      child: Text(
+        'Product Name: ${model.kProductName}',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Padding packagingDropDown(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: model.EBMenabled
+          ? _buildDropdownButton(model)
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Padding scanField(ScannViewModel model, Product? productRef) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        controller: scannedInputController,
+        decoration: InputDecoration(
+          labelText: 'Scan or Type',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (scannedInput) {
+          _inputTimer?.cancel();
+          _inputTimer = Timer(const Duration(seconds: 1), () {
+            if (scannedInput.isNotEmpty) {
+              model.onAddVariant(
+                editmode: widget.productId != null,
+                variantName: scannedInput,
+                isTaxExempted: false,
+                product: productRef!,
+              );
+              scannedInputController.clear();
+              scannedInputFocusNode.requestFocus();
+            }
+          });
+        },
+        focusNode: scannedInputFocusNode,
+      ),
+    );
+  }
+
+  Padding supplyPrice(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        textInputAction: TextInputAction.next,
+        controller: supplyPriceController,
+        onChanged: (value) => model.setSupplyPrice(price: value),
+        decoration: InputDecoration(
+          labelText: 'Supply Price',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  Padding retailPrice(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        textInputAction: TextInputAction.next,
+        controller: retailPriceController,
+        onChanged: (value) => model.setRetailPrice(price: value),
+        decoration: InputDecoration(
+          labelText: 'Retail Price',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  Stack TableVariants(ScannViewModel model, BuildContext context) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: 200,
+          child: ListView(
+            children: [
+              DataTable(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.transparent,
+                  ),
+                ),
+                columns: [
+                  DataColumn(
+                    label: Row(
+                      children: [
+                        Checkbox(
+                          value: _selectAll,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectAll = value!;
+                              _showDeleteButton = value;
+                            });
+                          },
+                        ),
+                        const Text('All'),
+                      ],
+                    ),
+                  ),
+                  const DataColumn(label: Text('Name')),
+                  const DataColumn(label: Text('Price')),
+                  const DataColumn(label: Text('Created At')),
+                  const DataColumn(label: Text('Quantity')),
+                  const DataColumn(label: Text('Tax')),
+                  const DataColumn(label: Text('Unit')),
+                  const DataColumn(label: Text('ClsCd')),
+                  const DataColumn(label: Text('Action')),
+                ],
+                rows: model.scannedVariants.reversed.map((variant) {
+                  return DataRow(
+                    color: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.08);
+                      }
+                      return null; // Use the default value.
+                    }),
+                    cells: [
+                      DataCell(Checkbox(
+                        value: _selectAll,
+                        onChanged: (value) {
+                          // Handle row checkbox state if needed
+                        },
+                      )),
+                      DataCell(Text(variant.name!)),
+                      DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
+                      DataCell(
+                        Text(
+                          variant.lastTouched == null
+                              ? ''
+                              : variant.lastTouched!
+                                  .toLocal()
+                                  .toIso8601String(),
+                        ),
+                      ),
+                      DataCell(
+                        QuantityCell(
+                          quantity: variant.qty,
+                          onEdit: () {
+                            _showEditQuantityDialog(
+                              context,
+                              variant,
+                              model,
+                              () {
+                                FocusScope.of(context)
+                                    .requestFocus(scannedInputFocusNode);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      DataCell(
+                        _buildTaxDropdown(context, variant, model),
+                      ),
+                      DataCell(
+                        _buildUnitOfMeasureDropDown(context, variant, model),
+                      ),
+                      DataCell(
+                        _buildUniversalProductDropDown(context, model, variant),
+                      ),
+                      DataCell(
+                        ElevatedButton(
+                          onPressed: () {
+                            model.removeVariant(id: variant.id!);
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        if (_showDeleteButton)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: ElevatedButton(
+              onPressed: () async {
+                // Display a confirmation dialog or perform any other action
+                bool confirmed = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Confirm Deletion'),
+                      content:
+                          Text('Are you sure you want to delete all variants?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                          child: Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
+                          child: Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                // If user confirmed, call model.deleteAllVariants()
+                if (confirmed == true) {
+                  model.deleteAllVariants();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Background color
+                foregroundColor: Colors.white, // Text color
+              ),
+              child: const Text('Delete'),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -6,19 +6,21 @@ import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
+
+typedef void CompleteTransaction();
 
 class PayableView extends StatefulHookConsumerWidget {
   PayableView(
       {Key? key,
       required this.onClick,
       required this.ticketHandler,
+      required this.completeTransaction,
       required this.model})
       : super(key: key);
   final Function onClick;
   final Function ticketHandler;
   final CoreViewModel model;
-
+  final CompleteTransaction? completeTransaction;
   @override
   _PayableViewState createState() => _PayableViewState();
 }
@@ -57,7 +59,7 @@ class _PayableViewState extends ConsumerState<PayableView> {
           const SizedBox(
             width: 10,
           ),
-          PreviewSaleButton()
+          PreviewSaleButton(completeTransaction: widget.completeTransaction)
         ],
       ),
     );

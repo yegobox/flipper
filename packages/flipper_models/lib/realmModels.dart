@@ -25,4 +25,5 @@ final realmModels = [
   Voucher.schema,
   Token.schema,
   Configurations.schema,
+  Assets.schema,
 ];

@@ -346,6 +346,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           .configure(useInMemoryDb: false, useFallBack: false);
       await configureLocal(useInMemory: false);
 
+      /// Download assets for the app to start with all assets required.
+      await ProxyService.realm.downloadAssetSave();
+
       /// after we login this is the best time to open the synced database to start persisting the data
       /// this will close whatever inMemory db we opened temporarly to have the app running
 

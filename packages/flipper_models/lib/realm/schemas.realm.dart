@@ -1413,6 +1413,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
     String? receiptType,
     int? totRcptNo,
     int? curRcptNo,
+    int? invcNo,
     DateTime? lastTouched,
     String? action,
   }) {
@@ -1423,6 +1424,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'receiptType', receiptType);
     RealmObjectBase.set(this, 'totRcptNo', totRcptNo);
     RealmObjectBase.set(this, 'curRcptNo', curRcptNo);
+    RealmObjectBase.set(this, 'invcNo', invcNo);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
   }
@@ -1468,6 +1470,11 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
   set curRcptNo(int? value) => RealmObjectBase.set(this, 'curRcptNo', value);
 
   @override
+  int? get invcNo => RealmObjectBase.get<int>(this, 'invcNo') as int?;
+  @override
+  set invcNo(int? value) => RealmObjectBase.set(this, 'invcNo', value);
+
+  @override
   DateTime? get lastTouched =>
       RealmObjectBase.get<DateTime>(this, 'lastTouched') as DateTime?;
   @override
@@ -1499,6 +1506,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
       'receiptType': receiptType.toEJson(),
       'totRcptNo': totRcptNo.toEJson(),
       'curRcptNo': curRcptNo.toEJson(),
+      'invcNo': invcNo.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
     };
@@ -1515,6 +1523,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
         'receiptType': EJsonValue receiptType,
         'totRcptNo': EJsonValue totRcptNo,
         'curRcptNo': EJsonValue curRcptNo,
+        'invcNo': EJsonValue invcNo,
         'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
       } =>
@@ -1526,6 +1535,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
           receiptType: fromEJson(receiptType),
           totRcptNo: fromEJson(totRcptNo),
           curRcptNo: fromEJson(curRcptNo),
+          invcNo: fromEJson(invcNo),
           lastTouched: fromEJson(lastTouched),
           action: fromEJson(action),
         ),
@@ -1545,6 +1555,7 @@ class Counter extends _Counter with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
       SchemaProperty('totRcptNo', RealmPropertyType.int, optional: true),
       SchemaProperty('curRcptNo', RealmPropertyType.int, optional: true),
+      SchemaProperty('invcNo', RealmPropertyType.int, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
@@ -3132,6 +3143,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     int? transactionId,
     DateTime? lastTouched,
     String? action,
+    int? invcNo,
   }) {
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
@@ -3151,6 +3163,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'transactionId', transactionId);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
+    RealmObjectBase.set(this, 'invcNo', invcNo);
   }
 
   Receipt._();
@@ -3260,6 +3273,11 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
   set action(String? value) => RealmObjectBase.set(this, 'action', value);
 
   @override
+  int? get invcNo => RealmObjectBase.get<int>(this, 'invcNo') as int?;
+  @override
+  set invcNo(int? value) => RealmObjectBase.set(this, 'invcNo', value);
+
+  @override
   Stream<RealmObjectChanges<Receipt>> get changes =>
       RealmObjectBase.getChanges<Receipt>(this);
 
@@ -3290,6 +3308,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       'transactionId': transactionId.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
+      'invcNo': invcNo.toEJson(),
     };
   }
 
@@ -3315,6 +3334,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
         'transactionId': EJsonValue transactionId,
         'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
+        'invcNo': EJsonValue invcNo,
       } =>
         Receipt(
           fromEJson(realmId),
@@ -3335,6 +3355,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
           transactionId: fromEJson(transactionId),
           lastTouched: fromEJson(lastTouched),
           action: fromEJson(action),
+          invcNo: fromEJson(invcNo),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3365,6 +3386,7 @@ class Receipt extends _Receipt with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),
       SchemaProperty('action', RealmPropertyType.string, optional: true),
+      SchemaProperty('invcNo', RealmPropertyType.int, optional: true),
     ]);
   }();
 
@@ -4012,34 +4034,34 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String? unit,
     String? productName,
     int? branchId,
-    String? taxName,
+    String? taxName = "",
     double taxPercentage = 0.0,
     bool isTaxExempted = false,
     int? itemSeq,
-    String? isrccCd,
-    String? isrccNm,
-    int? isrcRt,
-    int? isrcAmt,
-    String? taxTyCd,
-    String? bcd,
+    String? isrccCd = "",
+    String? isrccNm = "",
+    int? isrcRt = 0,
+    int? isrcAmt = 0,
+    String? taxTyCd = "B",
+    String? bcd = "",
     String? itemClsCd,
     String? itemTyCd,
-    String? itemStdNm,
-    String? orgnNatCd,
-    String? pkg,
-    String? itemCd,
-    String? pkgUnitCd,
-    String? qtyUnitCd,
+    String? itemStdNm = "",
+    String? orgnNatCd = "",
+    String? pkg = "1",
+    String? itemCd = "",
+    String? pkgUnitCd = "CT",
+    String? qtyUnitCd = "BX",
     String? itemNm,
     double qty = 0.0,
     double prc = 0.0,
     double splyAmt = 0.0,
     int? tin,
     String? bhfId,
-    double? dftPrc,
-    String? addInfo,
-    String? isrcAplcbYn,
-    String? useYn,
+    double? dftPrc = 0,
+    String? addInfo = "",
+    String? isrcAplcbYn = "",
+    String? useYn = "",
     String? regrId,
     String? regrNm,
     String? modrId,
@@ -4057,11 +4079,28 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Variant>({
+        'taxName': "",
         'taxPercentage': 0.0,
         'isTaxExempted': false,
+        'isrccCd': "",
+        'isrccNm': "",
+        'isrcRt': 0,
+        'isrcAmt': 0,
+        'taxTyCd': "B",
+        'bcd': "",
+        'itemStdNm': "",
+        'orgnNatCd': "",
+        'pkg': "1",
+        'itemCd': "",
+        'pkgUnitCd': "CT",
+        'qtyUnitCd': "BX",
         'qty': 0.0,
         'prc': 0.0,
         'splyAmt': 0.0,
+        'dftPrc': 0,
+        'addInfo': "",
+        'isrcAplcbYn': "",
+        'useYn': "",
         'rsdQty': 0.0,
         'supplyPrice': 0.0,
         'retailPrice': 0.0,
@@ -4696,9 +4735,9 @@ class TransactionItem extends _TransactionItem
     double totAmt = 0.0,
     int? itemSeq,
     String? isrccCd,
-    String? isrccNm,
-    int? isrcRt,
-    int? isrcAmt,
+    String? isrccNm = "",
+    int? isrcRt = 0,
+    int? isrcAmt = 0,
     String? taxTyCd,
     String? bcd,
     String? itemClsCd,
@@ -4707,8 +4746,8 @@ class TransactionItem extends _TransactionItem
     String? orgnNatCd,
     String? pkg,
     String? itemCd,
-    String? pkgUnitCd,
-    String? qtyUnitCd,
+    String? pkgUnitCd = "CT",
+    String? qtyUnitCd = "BX",
     String? itemNm,
     double prc = 0.0,
     double splyAmt = 0.0,
@@ -4741,6 +4780,11 @@ class TransactionItem extends _TransactionItem
         'taxblAmt': 0.0,
         'taxAmt': 0.0,
         'totAmt': 0.0,
+        'isrccNm': "",
+        'isrcRt': 0,
+        'isrcAmt': 0,
+        'pkgUnitCd': "CT",
+        'qtyUnitCd': "BX",
         'prc': 0.0,
         'splyAmt': 0.0,
         'ebmSynced': false,
@@ -7182,6 +7226,120 @@ class AppNotification extends _AppNotification
       SchemaProperty('type', RealmPropertyType.string, optional: true),
       SchemaProperty('message', RealmPropertyType.string, optional: true),
       SchemaProperty('identifier', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class Assets extends _Assets with RealmEntity, RealmObjectBase, RealmObject {
+  Assets(
+    ObjectId realmId, {
+    int? id,
+    int? branchId,
+    int? businessId,
+    String? assetName,
+    int? productId,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'assetName', assetName);
+    RealmObjectBase.set(this, 'productId', productId);
+  }
+
+  Assets._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get assetName =>
+      RealmObjectBase.get<String>(this, 'assetName') as String?;
+  @override
+  set assetName(String? value) => RealmObjectBase.set(this, 'assetName', value);
+
+  @override
+  int? get productId => RealmObjectBase.get<int>(this, 'productId') as int?;
+  @override
+  set productId(int? value) => RealmObjectBase.set(this, 'productId', value);
+
+  @override
+  Stream<RealmObjectChanges<Assets>> get changes =>
+      RealmObjectBase.getChanges<Assets>(this);
+
+  @override
+  Stream<RealmObjectChanges<Assets>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Assets>(this, keyPaths);
+
+  @override
+  Assets freeze() => RealmObjectBase.freezeObject<Assets>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'assetName': assetName.toEJson(),
+      'productId': productId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Assets value) => value.toEJson();
+  static Assets _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'assetName': EJsonValue assetName,
+        'productId': EJsonValue productId,
+      } =>
+        Assets(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          assetName: fromEJson(assetName),
+          productId: fromEJson(productId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Assets._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Assets, 'Assets', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('assetName', RealmPropertyType.string, optional: true),
+      SchemaProperty('productId', RealmPropertyType.int, optional: true),
     ]);
   }();
 

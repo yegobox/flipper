@@ -28,7 +28,11 @@ mixin ProductMixin {
           variant.pkgUnitCd = packagingUnit;
           final number = randomNumber().toString().substring(0, 5);
 
-          variant.itemClsCd = variant.itemCd ?? "5020230602";
+          variant.itemClsCd = variant.itemClsCd ?? "5020230602";
+          variant.isrccNm = "";
+          variant.isrcRt = 0;
+          variant.color = currentColor;
+          variant.pkg = "1";
           variant.itemCd = randomNumber().toString().substring(0, 5);
           variant.modrNm = number;
           variant.modrId = number;
@@ -57,7 +61,8 @@ mixin ProductMixin {
 
           /// taxation type code
           variant.taxTyCd =
-              variant.taxTyCd; // available types A(A-EX),B(B-18.00%),C,D
+              variant.taxTyCd ?? "B"; // available types A(A-EX),B(B-18.00%),C,D
+          variant.taxName = variant.taxTyCd ?? "B";
           // default unit price
           variant.dftPrc = variant.retailPrice;
 
@@ -137,6 +142,6 @@ mixin ProductMixin {
       }
     });
 
-    return await ProxyService.realm.getProduct(id: mproduct.id!);
+    return ProxyService.realm.getProduct(id: mproduct.id!);
   }
 }

@@ -103,7 +103,7 @@ class PaymentsState extends ConsumerState<Payments> {
         /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
         /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
         /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
-        Customer? customer = await ProxyService.realm
+        Customer? customer = ProxyService.realm
             .getCustomer(id: widget.transaction.customerId ?? 0);
         if (customer == null) {
           /// there is no customer attached to this transaction then enable extra field.
@@ -118,11 +118,11 @@ class PaymentsState extends ConsumerState<Payments> {
     return CustomAppBar(
       onPop: () {
         ref.refresh(pendingTransactionProvider(TransactionType.sale));
-        _routerService.back;
+        _routerService.back();
       },
       onActionButtonClicked: () {
         ref.refresh(pendingTransactionProvider(TransactionType.sale));
-        _routerService.back;
+        _routerService.back();
       },
       rightActionButtonName: 'Split payment',
       icon: Icons.close,
@@ -189,7 +189,7 @@ class PaymentsState extends ConsumerState<Payments> {
       height: 70.63,
       child: OutlinedButton(
         style: primary3ButtonStyle.copyWith(
-          shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+          shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -407,26 +407,26 @@ class PaymentsState extends ConsumerState<Payments> {
           });
         },
         style: primaryButtonStyle.copyWith(
-          shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+          shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(0.0),
             ),
           ),
-          side: MaterialStateProperty.resolveWith<BorderSide>(
+          side: WidgetStateProperty.resolveWith<BorderSide>(
             (states) => BorderSide(
               color: Colors.black.withOpacity(0.25),
               width: 0.50,
             ),
           ),
-          textStyle: MaterialStatePropertyAll<TextStyle>(
+          textStyle: WidgetStatePropertyAll<TextStyle>(
             TextStyle(color: Colors.white),
           ),
-          backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-              if (states.contains(MaterialState.hovered) ||
-                  states.contains(MaterialState.focused) ||
-                  states.contains(MaterialState.pressed)) {
+          backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.hovered) ||
+                  states.contains(WidgetState.focused) ||
+                  states.contains(WidgetState.pressed)) {
                 return Colors.white;
               }
               return null;

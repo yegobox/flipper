@@ -1,11 +1,16 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -34,6 +39,16 @@ class CheckOutState extends ConsumerState<CheckOut>
   final FocusNode keyPadFocusNode = FocusNode();
   final TextEditingController textEditController = TextEditingController();
   final TextEditingController searchContrroller = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController discountController = TextEditingController();
+  final TextEditingController receivedAmountController =
+      TextEditingController();
+  final TextEditingController customerPhoneNumberController =
+      TextEditingController();
+  final TextEditingController paymentTypeController = TextEditingController();
+  bool _busy = false;
+
+  final TextEditingController _purchasecodecontroller = TextEditingController();
 
   @override
   void initState() {
@@ -64,62 +79,233 @@ class CheckOutState extends ConsumerState<CheckOut>
     super.dispose();
   }
 
+  Future<void> handleReceiptGeneration(
+      [String? purchaseCode, ITransaction? transaction]) async {
+    try {
+      await TaxController(object: transaction).handleReceiptGeneration(
+        transaction: transaction!,
+        purchaseCode: purchaseCode,
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      setState(() => _busy = false);
+      showSnackBar(context, e.toString().split(': ').last,
+          textColor: Colors.white, backgroundColor: Colors.green);
+    }
+  }
+
+  Future<void> confirmPayment(
+      {required CoreViewModel model,
+      required String paymentType,
+      required double amount,
+      required ITransaction transaction,
+      required double discount}) async {
+    model.handlingConfirm = true;
+
+    // Parse discount ONLY if _discount.text is NOT empty
+
+    await model.collectPayment(
+        paymentType: paymentType,
+        transaction: transaction,
+        amountReceived: amount,
+        discount: discount);
+
+    await handleReceiptGeneration();
+
+    if (transaction.customerId != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final double height = MediaQuery.of(context).size.height;
+          final double adjustedHeight =
+              height * 0.8; // Adjust the height to 80% of the screen height
+
+          return AlertDialog(
+            title: Text('Digital Receipt'),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: adjustedHeight,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text('Do you need a digital receipt?'),
+                    TextFormField(
+                      controller: _purchasecodecontroller,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Purchase Code',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a purchase code';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) {},
+                      // Handle the purchase code input
+                      onSaved: (value) {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              BoxButton(
+                title: 'Submit',
+                busy: _busy,
+                onTap: () async {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    setState(() {
+                      _busy = true;
+                    });
+                    _formKey.currentState?.save();
+                    String purchaseCode = _purchasecodecontroller.text;
+                    talker.warning("received purchase code: ${purchaseCode}");
+                    try {
+                      await handleReceiptGeneration(purchaseCode);
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      setState(() {
+                        _busy = false;
+                      });
+                      String errorMessage = e.toString();
+                      int startIndex = errorMessage.indexOf(': ');
+                      if (startIndex != -1) {
+                        errorMessage = errorMessage.substring(startIndex + 2);
+                      }
+                      // toast(errorMessage);
+                      showSnackBar(context, errorMessage,
+                          textColor: Colors.white,
+                          backgroundColor: Colors.green);
+                      return;
+                    }
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () async {
+                  /// still print the purchase code without the customer information!
+                  /// this is standard for non customer attached receipt
+                  await TaxController(object: transaction)
+                      .handleReceiptGeneration(
+                    transaction: transaction,
+                  );
+                  // Handle when the user doesn't need a digital receipt
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    /// refresh and go home
+    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+
+    model.handlingConfirm = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (context, model, child) {
-          return Card(
-            color: Colors.white,
-            surfaceTintColor: Colors.white,
-            child: FadeTransition(
-              opacity: _animation,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              bool isLargeScreen = constraints.maxWidth > 600;
-                              return isLargeScreen
-                                  ? Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: IconRow(),
-                                    )
-                                  : Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: IconRow(),
+          return Stack(
+            children: [
+              Card(
+                color: Colors.white,
+                surfaceTintColor: Colors.white,
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  bool isLargeScreen =
+                                      constraints.maxWidth > 600;
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: IconRow(),
+                                  );
+                                },
+                              ),
+                            ),
+                            // Placeholder for the SearchInputWithDropdown to maintain space
+                            SizedBox(
+                                height: 60.0), // Adjust the height as needed
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: QuickSellingView(
+                                formKey: _formKey,
+                                discountController: discountController,
+                                receivedAmountController:
+                                    receivedAmountController,
+                                customerPhoneNumberController:
+                                    customerPhoneNumberController,
+                                paymentTypeController: paymentTypeController,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: PaymentTicketManager(
+                                context: context,
+                                model: model,
+                                controller: textEditController,
+                                nodeDisabled: true,
+                                completeTransaction: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    confirmPayment(
+                                      amount: double.tryParse(
+                                              receivedAmountController.text) ??
+                                          0,
+                                      model: model,
+                                      discount: double.tryParse(
+                                              discountController.text) ??
+                                          0,
+                                      paymentType: paymentTypeController.text,
+                                      transaction: ref
+                                          .watch(pendingTransactionProvider(
+                                              TransactionType.sale))
+                                          .asData!
+                                          .value
+                                          .value!,
                                     );
-                            },
-                          ),
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: SearchInputWithDropdown(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: QuickSellingView(),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: PaymentTicketManager(
-                            context: context,
-                            model: model,
-                            controller: textEditController,
-                            nodeDisabled: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
+              Positioned(
+                top: 92.0,
+                left: 5.0,
+                right: 8.0,
+                child: SearchInputWithDropdown(
+                  transaction: ref
+                      .watch(pendingTransactionProvider(TransactionType.sale))
+                      .asData
+                      ?.value
+                      .asData
+                      ?.value,
+                ),
+              ),
+            ],
           );
         },
       );

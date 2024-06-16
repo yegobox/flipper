@@ -62,6 +62,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(width: 20),
             Expanded(

@@ -1,7 +1,6 @@
 // ignore: unused_import
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -27,6 +26,9 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
+
 import 'package:talker_flutter/talker_flutter.dart';
 
 // This issue describe how I can mark something for completion later
@@ -183,7 +185,26 @@ class RealmAPI<M extends IJsonSerializable>
   Future<void> addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item}) async {
+    // Add the new item to the database
     await realm!.putAsync<TransactionItem>(item);
+
+    // Fetch all items
+    var allItems = await realm!.query<TransactionItem>(
+        r'transactionId ==$0', [transaction.id]).toList();
+
+    // Sort the items if necessary
+    // Assuming there's a property 'createdAt' to sort items chronologically
+    allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+    // Update the itemSeq for each item
+    for (var i = 0; i < allItems.length; i++) {
+      allItems[i].itemSeq = i + 1; // itemSeq should start from 1
+    }
+
+    // Save the updated items back to the database
+    for (var updatedItem in allItems) {
+      await realm!.putAsync<TransactionItem>(updatedItem);
+    }
   }
 
   @override
@@ -643,6 +664,7 @@ class RealmAPI<M extends IJsonSerializable>
         totRcptNo: signature.data?.totRcptNo ?? 0,
         mrcNo: signature.data?.mrcNo ?? "",
         transactionId: transaction.id!,
+        invcNo: counter.invcNo,
         resultDt: signature.resultDt ?? "");
 
     try {
@@ -695,9 +717,12 @@ class RealmAPI<M extends IJsonSerializable>
         });
         break;
       case 'product':
-        Product? product = realm!.query<Product>(r'id == $0 ', [id]).first;
+        Product? product =
+            realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete(product);
+          if (product != null) {
+            realm!.delete(product);
+          }
         });
         break;
       case 'variant':
@@ -768,6 +793,12 @@ class RealmAPI<M extends IJsonSerializable>
             return true;
           });
         }
+        break;
+      case 'assets':
+        Assets? asset = realm!.query<Assets>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(asset);
+        });
         break;
       default:
         return Future.value(false);
@@ -888,7 +919,25 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, int? id}) async {
+  List<Customer> getCustomers({String? key, int? id}) {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+    if (id != null) {
+      return realm!.query<Customer>(r'id == $0', [id]).toList();
+    } else if (key != null) {
+      final customer = realm!.query<Customer>(
+          r'custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0',
+          [key]).toList();
+      return customer;
+    } else {
+      return [];
+    }
+  }
+
+  @override
+  Customer? getCustomer({String? key, int? id}) {
     if (key != null && id != null) {
       throw ArgumentError(
           'Cannot provide both a key and an id at the same time');
@@ -897,7 +946,25 @@ class RealmAPI<M extends IJsonSerializable>
       return realm!.query<Customer>(r'id == $0', [id]).firstOrNull;
     } else if (key != null) {
       final customer = realm!.query<Customer>(
-          r'(custNm CONTAINS $1 OR email CONTAINS $1 OR telNo CONTAINS $1) AND deletedAt == nil',
+          r'(custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0) AND deletedAt == nil',
+          [key]).firstOrNull;
+      return customer;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Future<Customer?> getCustomerFuture({String? key, int? id}) async {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+    if (id != null) {
+      return realm!.query<Customer>(r'id == $0', [id]).firstOrNull;
+    } else if (key != null) {
+      final customer = realm!.query<Customer>(
+          r'(custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0) AND deletedAt == nil',
           [key]).firstOrNull;
       return customer;
     } else {
@@ -990,7 +1057,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Product?> getProduct({required int id}) async {
+  Product? getProduct({required int id}) {
     return realm!
         .query<Product>(r'id == $0 AND deletedAt == nil', [id]).firstOrNull;
   }
@@ -1119,10 +1186,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, required int? transactionId}) async {
+  TransactionItem? getTransactionItemByVariantId(
+      {required int variantId, required int? transactionId}) {
     return realm!.query<TransactionItem>(
-        r'variantId == $0 AND transactionId == $1 AND deletedAt == nil',
+        r'variantId == $0 AND transactionId == $1',
         [variantId, transactionId]).firstOrNull;
   }
 
@@ -1993,6 +2060,7 @@ class RealmAPI<M extends IJsonSerializable>
     await realm!.subscriptions.waitForSynchronization(token);
   }
 
+  ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/
   Future<Configuration> _createPersistentConfig(User user, String path) async {
     return Configuration.flexibleSync(
       user,
@@ -2001,7 +2069,19 @@ class RealmAPI<M extends IJsonSerializable>
       path: path,
       clientResetHandler:
           RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
-        log("reset requested here..");
+        // Executed before the client reset begins.
+        // Can be used to notify the user that a reset is going
+        // to happen.
+        talker.warning("start resetting");
+      }, onAfterReset: (beforeResetRealm, afterResetRealm) {
+        // Executed after the client reset is complete.
+        // Can be used to notify the user that the reset is done.
+        talker.warning("done resetting");
+      }, onManualResetFallback: (clientResetError) {
+        // Automatic reset failed. Handle the reset manually here.
+        // Refer to the "Manual Client Reset Fallback" documentation
+        // for more information on what you can include here.
+        talker.warning("resetting failed");
       }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
@@ -2083,6 +2163,7 @@ class RealmAPI<M extends IJsonSerializable>
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
     final configs = realm!.query<Configurations>(r'branchId == $0', [branchId]);
+    final assets = realm!.query<Assets>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2109,6 +2190,7 @@ class RealmAPI<M extends IJsonSerializable>
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
       mutableSubscriptions.add(drawers, name: "drawers", update: true);
       mutableSubscriptions.add(token, name: "token", update: true);
+      mutableSubscriptions.add(assets, name: "assets", update: true);
 
       mutableSubscriptions.add(tenant,
           name: "tenant-${businessId}", update: true);
@@ -2733,5 +2815,121 @@ class RealmAPI<M extends IJsonSerializable>
     };
 
     return controller.stream;
+  }
+
+  @override
+  Future<void> syncUserWithAwsIncognito({required String identifier}) async {
+    try {
+      final result = await amplify.Amplify.Auth.fetchAuthSession();
+      if (!result.isSignedIn) {
+        final signInResult = await amplify.Amplify.Auth.signIn(
+          username: identifier,
+          password: identifier,
+        );
+        if (signInResult.isSignedIn) {
+          talker.warning('User logged in successfully');
+        } else {
+          talker.warning('Login not complete. Additional steps required.');
+        }
+      }
+
+      /// TODO: once I enable for a user to auth using his creds maybe I will enable this
+      /// but we have one user we keep using for auth uploads
+      // final Map<cognito.AuthUserAttributeKey, String> userAttributes = {
+      //   if (identifier.contains('@'))
+      //     cognito.AuthUserAttributeKey.email: identifier,
+      //   if (!identifier.contains('@')) ...{
+      //     cognito.AuthUserAttributeKey.phoneNumber: identifier,
+      //     // Provide a default email to satisfy the schema requirement
+      //     cognito.AuthUserAttributeKey.email: 'yegobox@gmail.com',
+      //   }
+      // };
+
+      // final signUpResult = await amplify.Amplify.Auth.signUp(
+      //   username: identifier,
+      //   password:
+      //       identifier, // Using the identifier as the password for simplicity
+      //   options: cognito.SignUpOptions(
+      //     userAttributes: userAttributes,
+      //   ),
+      // );
+
+      // if (signUpResult.isSignUpComplete) {
+      //   talker.warning('User signed up successfully!');
+      // } else {
+      //   talker.warning('Sign up not complete. Additional steps required.');
+      // }
+    } on cognito.AuthException catch (e) {
+      talker.error('Unexpected error: $e');
+      rethrow;
+    } catch (e) {
+      talker.error('Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> downloadAssetSave() async {
+    int branchId = ProxyService.box.getBranchId()!;
+
+    // Fetch the branch assets
+    List<Assets> assets =
+        realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
+
+    // Get the application support directory
+    final applicationSupportDirectory = await getApplicationSupportDirectory();
+
+    // // Ensure a user is authenticated with AWS Cognito
+
+    for (Assets asset in assets) {
+      final filePath = '${applicationSupportDirectory.path}/${asset.assetName}';
+
+      // Check if the file already exists
+      final file = File(filePath);
+      if (await file.exists() || asset.assetName == null) {
+        talker.warning('File already exists or is null: ${file.path}');
+        continue;
+      }
+
+      try {
+        final result = await amplify.Amplify.Storage
+            .downloadFile(
+              path: amplify.StoragePath.fromString(
+                  'public/branch-$branchId/${asset.assetName}'),
+              localFile: amplify.AWSFile.fromPath(filePath),
+            )
+            .result;
+
+        talker
+            .warning('Downloaded file is located at: ${result.localFile.path}');
+      } catch (e) {
+        talker.warning('Error downloading file: $e');
+        rethrow;
+      }
+    }
+  }
+
+  @override
+  Future<bool> removeS3File({required String fileName}) async {
+    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+    int branchId = ProxyService.box.getBranchId()!;
+    try {
+      final result = await amplify.Amplify.Storage
+          .remove(
+            path: amplify.StoragePath.fromString(
+                'public/branch-$branchId/$fileName'),
+          )
+          .result;
+      talker.warning('Removed file: ${result.removedItem.path}');
+      return true; // Return true if the file is successfully removed
+    } on amplify.StorageException catch (e) {
+      talker.warning(e.message);
+      return false; // Return false if an exception occurs during the removal process
+    }
+  }
+
+  @override
+  Assets? getAsset({required String assetName}) {
+    return realm!.query<Assets>(r'assetName == $0', [assetName]).firstOrNull;
   }
 }

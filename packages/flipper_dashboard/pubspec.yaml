@@ -22,7 +22,7 @@ dependencies:
   flex_color_scheme: ^4.2.0
   image_picker: ^0.8.7+5
   firebase_storage: ^11.0.2
-  file_picker: ^5.2.11
+  file_picker: ^8.0.5
   firebase_ui_auth: ^1.14.0
   stacked: ^3.4.2
   azlistview: ^2.0.0
@@ -113,11 +113,14 @@ dependencies:
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
   flutter_colorpicker:
     git: https://github.com/mchome/flutter_colorpicker.git
-  realm: ^2.3.0
+  realm: ^3.0.0
   device_type: ^0.0.6
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0
+  amplify_api: ^2.1.0
+  amplify_flutter: ^2.1.0
+  amplify_auth_cognito: ^2.1.0
 
 dependency_overrides:
   http: ^1.2.1

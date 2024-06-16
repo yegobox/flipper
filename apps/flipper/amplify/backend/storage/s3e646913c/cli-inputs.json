@@ -1,0 +1,14 @@
+{
+  "resourceName": "s3e646913c",
+  "policyUUID": "e646913c",
+  "bucketName": "flipperc891b2ada58d471daad8a4d47d721382",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "CREATE_AND_UPDATE"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

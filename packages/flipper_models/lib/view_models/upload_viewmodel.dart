@@ -1,90 +1,156 @@
-// import 'dart:developer';
+import 'dart:io';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flipper_models/helperModels/random.dart';
 
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
-// import 'package:flipper_services/upload_response.dart';
-// import 'package:flutter_uploader/flutter_uploader.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:realm/realm.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class UploadViewModel extends ProductViewModel {
-  // FlutterUploader uploader = FlutterUploader();
-
   final appService = loc.getIt<AppService>();
+  File? selectedImage;
+
   void browsePictureFromGallery(
       {required dynamic id,
-      required Function(String) callBack,
-      required URLTYPE urlType}) {
-    // uploader.clearUploads();
-    ProxyService.upload.browsePictureFromGallery(
-        productId: id, urlType: urlType, uploader: 'uploader');
-    handleUploaderResult(urlType, id, callBack);
+      required Function(Product) callBack,
+      required URLTYPE urlType}) async {
+    // final pickedFile = await FilePicker.platform.pickFiles(
+    //   type: FileType.custom,
+    //   withData: false,
+    //   // Ensure to get file stream for better performance
+    //   withReadStream: true,
+    //   allowedExtensions: ['jpg', 'png'],
+    // );
+    // if (pickedFile != null) {
+    // selectedImage = File(pickedFile.files.single.path!);
+    await uploadImage(id: id, urlType: urlType, callBack: callBack);
+    // }
   }
-
-  void handleUploaderResult(URLTYPE urlType, id, Function(String) callBack) {
-    // uploader.result.listen((UploadTaskResponse result) async {
-    //   ProxyService.realm.realm!.writeAsync(() async {
-    //     if (result.status?.description == "Completed") {
-    //       if (urlType == URLTYPE.PRODUCT) {
-    //         final UploadResponse uploadResponse =
-    //             uploadResponseFromJson(result.response!);
-    //         Product? product = await ProxyService.realm.getProduct(id: id);
-    //         product!.imageUrl = uploadResponse.url;
-    //         Product? kProduct = await ProxyService.realm.getProduct(id: id);
-    //         setCurrentProduct(currentProduct: kProduct!);
-    //         callBack(uploadResponse.url);
-    //       }
-    //       if (urlType == URLTYPE.BUSINESS) {
-    //         final UploadResponse uploadResponse =
-    //             uploadResponseFromJson(result.response!);
-    //         Business business = await ProxyService.realm
-    //             .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    //         business.imageUrl = uploadResponse.url;
-    //         updateBusinessProfile(url: uploadResponse.url);
-    //         callBack(uploadResponse.url);
-    //       }
-    //     }
-    //   });
-    // }, onError: (ex, stacktrace) {
-    //   log(ex);
-    // });
-  }
-
-  // Stream<double> uploadProgress() {
-  //   // return uploader.progress.map((progress) => progress.progress!.toDouble());
-  // }
 
   void takePicture(
       {required int productId,
-      required Function(String) callBack,
-      required URLTYPE urlType}) {
-    //uploader.clearUploads();
-    ProxyService.upload
-        .takePicture(urlType: urlType, id: productId, uploader: 'uploader');
-    handleUploaderResult(urlType, productId, callBack);
+      required Function(Product) callBack,
+      required URLTYPE urlType}) async {
+    // final pickedFile = await FilePicker.platform.pickFiles(
+    //   type: FileType.custom,
+    //   withData: false,
+    //   // Ensure to get file stream for better performance
+    //   withReadStream: true,
+    //   allowedExtensions: ['jpg', 'png'],
+    // );
+    // if (pickedFile != null) {
+    //   selectedImage = File(pickedFile.files.single.path!);
+    await uploadImage(id: productId, urlType: urlType, callBack: callBack);
+    // }
   }
 
-  void updateBusinessProfile({required String url}) async {
-    Tenant? tenant = await ProxyService.realm
-        .getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-    // update business as well as for this time tenant is the same as busienss
+  Future<void> uploadImage({
+    required int id,
+    required URLTYPE urlType,
+    required Function(Product) callBack,
+  }) async {
+    final talker = TalkerFlutter.init();
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      withData: false,
+      withReadStream: true,
+      allowedExtensions: ['jpg', 'png', 'jpeg'],
+    );
 
-    if (tenant != null) {
+    if (result == null) {
+      safePrint('No file selected');
+      return;
+    }
+
+    int branchId = ProxyService.box.getBranchId()!;
+    final platformFile = result.files.single;
+    // final mimeType =
+    //     lookupMimeType(platformFile.name) ?? 'application/octet-stream';
+
+    // Generate a unique file name
+    final uuid = randomNumber().toString();
+    final uniqueFileName = '$uuid.${platformFile.extension!}';
+
+    try {
+      // Log step: Ensure user is authenticated with AWS Cognito
+      talker.warning('Authenticating user with AWS Cognito...');
+      await ProxyService.realm
+          .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+
+      // Log step: Save the picked file locally
+      talker.warning('Saving picked file locally...');
+
+      // Log step: Preparing to upload to S3
+      final filePath = 'public/branch-$branchId/$uniqueFileName';
+      talker.warning('Uploading file to S3 at path: $filePath');
+
+      await Amplify.Storage.uploadFile(
+        localFile: AWSFile.fromStream(
+          platformFile.readStream!,
+          size: platformFile.size,
+        ),
+        // options: StorageUploadFileOptions(
+        //   metadata: {'contentType': mimeType},
+        // ),
+        path: StoragePath.fromString(filePath),
+        // path: StoragePath.fromString('public/${platformFile.name}'),
+        onProgress: (progress) {
+          talker.warning('Fraction completed: ${progress.fractionCompleted}');
+        },
+      ).result;
+
+      // Log step: Save asset and update database
+      talker.warning('Saving asset and updating database...');
+      saveAsset(assetName: uniqueFileName, productId: id);
+      Product? product = ProxyService.realm.getProduct(id: id);
       ProxyService.realm.realm!.write(() {
-        tenant.imageUrl = url;
+        if (product != null) {
+          product.imageUrl = uniqueFileName;
+        }
       });
-    }
 
-    /// if the user has enabled the flipper connecta update his profile image in contacts as well
-    if (await appService.isSocialLoggedin()) {
-      // we are logged in in social so safe to patch the image as well
-      ProxyService.realm.updateContact(contact: {
-        "phoneNumber": ProxyService.box.getUserPhone(),
-        "avatar": url,
-        "entity": "contacts",
-        "businessId": ProxyService.box.getBusinessId()
-      }, businessId: ProxyService.box.getBusinessId()!);
+      await ProxyService.realm.downloadAssetSave();
+      // Log success
+      talker.warning('File uploaded and database updated successfully.');
+      Product? _product = ProxyService.realm.getProduct(id: id);
+      callBack(_product!);
+    } on StorageException catch (e) {
+      talker.warning('StorageException: ${e.message}');
+    } catch (e) {
+      talker.warning('General Exception: $e');
     }
+  }
+
+  // Helper function to save the picked file locally
+  Future<void> savePickedFileLocally(
+      PlatformFile platformFile, String fileName) async {
+    final appDocDir = await getApplicationDocumentsDirectory();
+    final localFile = File('${appDocDir.path}/$fileName');
+    final stream = platformFile.readStream;
+
+    if (stream != null) {
+      final sink = localFile.openWrite();
+      await stream.pipe(sink);
+      await sink.close();
+    }
+  }
+
+  void saveAsset({required int productId, required assetName}) async {
+    ProxyService.realm.realm!.write(() {
+      ProxyService.realm.realm!.add<Assets>(
+        Assets(ObjectId(),
+            assetName: assetName,
+            productId: productId,
+            id: randomNumber(),
+            branchId: ProxyService.box.getBranchId()!,
+            businessId: ProxyService.box.getBusinessId()!),
+      );
+    });
   }
 }

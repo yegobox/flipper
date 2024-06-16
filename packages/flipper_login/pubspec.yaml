@@ -50,7 +50,7 @@ dependencies:
   riverpod: ^2.0.0
   hooks_riverpod: ^2.0.0
   loading_animation_widget: ^1.2.0+4
-  sentry_flutter: ^8.2.0
+  sentry_flutter: ^8.1.0
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.11.0

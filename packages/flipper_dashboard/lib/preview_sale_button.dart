@@ -10,15 +10,20 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 
+typedef void CompleteTransaction();
+
 class PreviewSaleButton extends StatefulHookConsumerWidget {
-  const PreviewSaleButton(
-      {Key? key, this.wording, this.mode = SellingMode.forSelling})
-      : super(key: key);
+  const PreviewSaleButton({
+    Key? key,
+    this.wording,
+    this.mode = SellingMode.forSelling,
+    required this.completeTransaction,
+  }) : super(key: key);
   final String? wording;
   final SellingMode mode;
+  final CompleteTransaction? completeTransaction;
   @override
   PreviewSaleButtonState createState() => PreviewSaleButtonState();
 }
@@ -53,43 +58,15 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
         ),
       );
     } else {
-      //TODO: show a notification toast
       toast("There is no item on cart");
     }
   }
 
-  ////TODO: when working on order resume this.
-  // void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
-  //   HapticFeedback.lightImpact();
-
-  //   _controller.forward();
-
-  //   showModalBottomSheet(
-  //     context: context,
-  //     shape: const RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-  //     ),
-  //     useRootNavigator: true,
-  //     builder: (BuildContext context) {
-  //       return Padding(
-  //         padding: const EdgeInsets.only(top: 20.0),
-  //         child: PreviewSaleBottomSheet(mode: widget.mode),
-  //       );
-  //     },
-  //   );
-
-  //   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-  //     systemNavigationBarColor: Colors.transparent,
-  //     systemNavigationBarIconBrightness: Brightness.light,
-  //   ));
-  //   _controller.reverse();
-  // }
-
   @override
   Widget build(BuildContext context) {
-    final pendingTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.sale));
-    final _routerService = locator<RouterService>();
+    // final pendingTransaction =
+    //     ref.watch(pendingTransactionProvider(TransactionType.sale));
+    // final _routerService = locator<RouterService>();
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -101,9 +78,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
             builder: (context, child) {
               return TextButton(
                 style: primaryButtonStyle.copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.pressed)) {
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states) {
+                      if (states.contains(WidgetState.pressed)) {
                         return _buttonColorTween.value;
                       }
                       return primaryButtonStyle.backgroundColor!
@@ -112,21 +89,23 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                   ),
                 ),
                 onPressed: () async {
-                  if (pendingTransaction.asData?.value.asData?.value.subTotal
-                          .round() ==
-                      0) {
-                    showSnackBar(context, "Your cart is empty",
-                        textColor: Colors.white, backgroundColor: Colors.green);
-                    return;
-                  }
+                  talker.info("init callback to complete transaction");
+                  widget.completeTransaction!();
+                  // if (pendingTransaction.asData?.value.asData?.value.subTotal
+                  //         .round() ==
+                  //     0) {
+                  //   showSnackBar(context, "Your cart is empty",
+                  //       textColor: Colors.white, backgroundColor: Colors.green);
+                  //   return;
+                  // }
 
-                  /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
+                  // /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
 
-                  _routerService.navigateTo(
-                    PaymentsRoute(
-                      transaction: pendingTransaction.value!.value!,
-                    ),
-                  );
+                  // _routerService.navigateTo(
+                  //   PaymentsRoute(
+                  //     transaction: pendingTransaction.value!.value!,
+                  //   ),
+                  // );
                 },
                 child: Text(
                   "Pay",

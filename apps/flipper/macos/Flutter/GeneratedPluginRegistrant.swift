@@ -5,6 +5,8 @@
 import FlutterMacOS
 import Foundation
 
+import amplify_auth_cognito
+import amplify_secure_storage
 import connectivity_plus
 import desktop_webview_auth
 import device_info_plus
@@ -27,6 +29,7 @@ import local_notifier
 import location
 import package_info_plus
 import path_provider_foundation
+import patrol
 import printing
 import realm
 import screen_retriever
@@ -41,6 +44,8 @@ import window_manager
 import window_size
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+  AmplifyAuthCognitoPlugin.register(with: registry.registrar(forPlugin: "AmplifyAuthCognitoPlugin"))
+  AmplifySecureStoragePlugin.register(with: registry.registrar(forPlugin: "AmplifySecureStoragePlugin"))
   ConnectivityPlusPlugin.register(with: registry.registrar(forPlugin: "ConnectivityPlusPlugin"))
   DesktopWebviewAuthPlugin.register(with: registry.registrar(forPlugin: "DesktopWebviewAuthPlugin"))
   DeviceInfoPlusMacosPlugin.register(with: registry.registrar(forPlugin: "DeviceInfoPlusMacosPlugin"))
@@ -63,6 +68,7 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   LocationPlugin.register(with: registry.registrar(forPlugin: "LocationPlugin"))
   FPPPackageInfoPlusPlugin.register(with: registry.registrar(forPlugin: "FPPPackageInfoPlusPlugin"))
   PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
+  PatrolPlugin.register(with: registry.registrar(forPlugin: "PatrolPlugin"))
   PrintingPlugin.register(with: registry.registrar(forPlugin: "PrintingPlugin"))
   RealmPlugin.register(with: registry.registrar(forPlugin: "RealmPlugin"))
   ScreenRetrieverPlugin.register(with: registry.registrar(forPlugin: "ScreenRetrieverPlugin"))
