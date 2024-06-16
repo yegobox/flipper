@@ -2905,6 +2905,9 @@ class RealmAPI<M extends IJsonSerializable>
 
         talker
             .warning('Downloaded file is located at: ${result.localFile.path}');
+      } on amplify.StorageException catch (e) {
+        /// There might be cases where a file might be in asset but not in the s3 then we silently ignore such error
+        talker.warning('Download error - ${e.message}');
       } catch (e) {
         talker.warning('Error downloading file: $e');
         rethrow;
