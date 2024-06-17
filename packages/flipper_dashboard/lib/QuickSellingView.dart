@@ -9,6 +9,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> _formKey;
@@ -419,6 +421,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                kDebugMode
+                    ? GestureDetector(
+                        onTap: () {
+                          final transaction = ref.watch(
+                              pendingTransactionProvider(TransactionType.sale));
+                          Clipboard.setData(ClipboardData(
+                              text: transaction.asData!.value.asData!.value.id
+                                  .toString()));
+                          showSnackBar(context, "TransactionId copied ",
+                              textColor: Colors.white,
+                              backgroundColor: Colors.redAccent);
+                        },
+                        child: Text("Copy "))
+                    : SizedBox(),
                 Text(
                   'Total - Discount: \RWF${totalAfterDiscountAndShipping.toStringAsFixed(2)}',
                   style: TextStyle(

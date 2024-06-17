@@ -18,12 +18,13 @@ import 'package:realm/realm.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
   // String ebmUrl = "https://turbo.yegobox.com";
-  String ebmUrl = "http://10.0.2.2:8080/rra";
+  // String ebmUrl = "http://10.0.2.2:8080/rra";
+  String ebmUrl = "http://localhost:8080/rra";
 
   RWTax();
 

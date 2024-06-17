@@ -197,9 +197,11 @@ class RealmAPI<M extends IJsonSerializable>
     allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
     // Update the itemSeq for each item
-    for (var i = 0; i < allItems.length; i++) {
-      allItems[i].itemSeq = i + 1; // itemSeq should start from 1
-    }
+    realm!.write(() {
+      for (var i = 0; i < allItems.length; i++) {
+        allItems[i].itemSeq = i + 1; // itemSeq should start from 1
+      }
+    });
 
     // Save the updated items back to the database
     for (var updatedItem in allItems) {
@@ -1197,7 +1199,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) async {
     return realm!.query<TransactionItem>(
-        r'transactionId == $0 AND deletedAt == nil', [transactionId]).toList();
+        r'transactionId == $0', [transactionId]).toList();
   }
 
   @override
