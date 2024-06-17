@@ -378,4 +378,6 @@ abstract class RealmApiInterface {
   Future<bool> removeS3File({required String fileName});
   Assets? getAsset({required String assetName});
   Future<void> amplifyLogout();
+  List<Product> getProducts({String? key});
+  List<Variant> getVariants({String? key});
 }

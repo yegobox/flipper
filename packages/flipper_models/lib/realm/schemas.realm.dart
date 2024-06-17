@@ -2834,12 +2834,14 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     String? action,
     DateTime? deletedAt,
     String? spplrNm,
+    bool? isComposite = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Product>({
         'color': "#e74c3c",
         'nfcEnabled': false,
         'isFavorite': false,
+        'isComposite': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -2864,6 +2866,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'spplrNm', spplrNm);
+    RealmObjectBase.set(this, 'isComposite', isComposite);
   }
 
   Product._();
@@ -2996,6 +2999,13 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
   set spplrNm(String? value) => RealmObjectBase.set(this, 'spplrNm', value);
 
   @override
+  bool? get isComposite =>
+      RealmObjectBase.get<bool>(this, 'isComposite') as bool?;
+  @override
+  set isComposite(bool? value) =>
+      RealmObjectBase.set(this, 'isComposite', value);
+
+  @override
   Stream<RealmObjectChanges<Product>> get changes =>
       RealmObjectBase.getChanges<Product>(this);
 
@@ -3030,6 +3040,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       'action': action.toEJson(),
       'deletedAt': deletedAt.toEJson(),
       'spplrNm': spplrNm.toEJson(),
+      'isComposite': isComposite.toEJson(),
     };
   }
 
@@ -3059,6 +3070,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
         'action': EJsonValue action,
         'deletedAt': EJsonValue deletedAt,
         'spplrNm': EJsonValue spplrNm,
+        'isComposite': EJsonValue isComposite,
       } =>
         Product(
           fromEJson(realmId),
@@ -3083,6 +3095,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
           action: fromEJson(action),
           deletedAt: fromEJson(deletedAt),
           spplrNm: fromEJson(spplrNm),
+          isComposite: fromEJson(isComposite),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3116,6 +3129,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('spplrNm', RealmPropertyType.string, optional: true),
+      SchemaProperty('isComposite', RealmPropertyType.bool, optional: true),
     ]);
   }();
 

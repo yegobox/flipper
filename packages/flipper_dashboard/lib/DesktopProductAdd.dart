@@ -3,6 +3,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flipper_dashboard/SearchProduct.dart';
+import 'package:flipper_dashboard/SelectedVariant.dart';
+import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
@@ -501,13 +504,35 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               child: Column(
                 children: [
                   topButtons(context, model, productRef),
+
+                  /// toggle between is composite vs non-composite product
+                  ToggleButtonWidget(),
+
+                  /// End of toggle
                   productNameField(model),
                   retailPrice(model),
                   supplyPrice(model),
-                  scanField(model, productRef),
+                  !ref.watch(isCompositeProvider)
+                      ? scanField(model, productRef)
+                      : SizedBox.shrink(),
                   packagingDropDown(model),
                   // previewName(model),
-                  TableVariants(model, context),
+                  !ref.watch(isCompositeProvider)
+                      ? TableVariants(model, context)
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? SearchProduct()
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text("Components"),
+                        )
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? SelectedVariant(
+                          supplyPriceController: supplyPriceController)
+                      : SizedBox.shrink(),
                 ],
               ),
             ),
@@ -730,20 +755,36 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   }
 
   Padding supplyPrice(ScannViewModel model) {
+    bool isComposite = ref.watch(isCompositeProvider);
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextFormField(
         textInputAction: TextInputAction.next,
         controller: supplyPriceController,
+        readOnly: isComposite,
         onChanged: (value) => model.setSupplyPrice(price: value),
         decoration: InputDecoration(
-          labelText: 'Supply Price',
+          labelText: 'Cost',
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          filled: isComposite, // Fill the background color when read-only
+          fillColor: isComposite
+              ? Colors.grey[200]
+              : null, // Light grey background when read-only
+          suffixIcon: isComposite
+              ? Icon(Icons.lock,
+                  color: Colors.grey) // Lock icon to indicate read-only
+              : null,
         ),
         keyboardType: TextInputType.number,
+        style: TextStyle(
+          color: isComposite
+              ? Colors.grey
+              : Colors.black, // Lighter text color when read-only
+        ),
       ),
     );
   }
@@ -756,7 +797,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         controller: retailPriceController,
         onChanged: (value) => model.setRetailPrice(price: value),
         decoration: InputDecoration(
-          labelText: 'Retail Price',
+          labelText: 'Price',
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),

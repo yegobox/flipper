@@ -2952,4 +2952,17 @@ class RealmAPI<M extends IJsonSerializable>
       amplify.Amplify.Auth.signOut();
     } catch (e) {}
   }
+
+  @override
+  List<Product> getProducts({String? key}) {
+    final product = realm!.query<Product>(r'name CONTAINS $0', [key]).toList();
+    return product;
+  }
+
+  @override
+  List<Variant> getVariants({String? key}) {
+    final variant =
+        realm!.query<Variant>(r'productName CONTAINS $0', [key]).toList();
+    return variant;
+  }
 }

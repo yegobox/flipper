@@ -356,6 +356,7 @@ class _Product {
   @Ignored()
   bool searchMatch = false;
   String? spplrNm;
+  bool? isComposite = false;
 }
 
 @RealmModel()
