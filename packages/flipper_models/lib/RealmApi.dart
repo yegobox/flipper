@@ -2871,47 +2871,54 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> downloadAssetSave() async {
+  Future<void> downloadAssetSave({String? assetName}) async {
     await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
     int branchId = ProxyService.box.getBranchId()!;
+    final applicationSupportDirectory = await getApplicationSupportDirectory();
 
-    // Fetch the branch assets
+    if (assetName != null) {
+      await _downloadAsset(
+          branchId, assetName, applicationSupportDirectory.path);
+      return;
+    }
+
     List<Assets> assets =
         realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
 
-    // Get the application support directory
-    final applicationSupportDirectory = await getApplicationSupportDirectory();
-
-    // // Ensure a user is authenticated with AWS Cognito
-
     for (Assets asset in assets) {
-      final filePath = '${applicationSupportDirectory.path}/${asset.assetName}';
-
-      // Check if the file already exists
-      final file = File(filePath);
-      if (await file.exists() || asset.assetName == null) {
-        talker.warning('File already exists or is null: ${file.path}');
-        continue;
+      if (asset.assetName != null) {
+        await _downloadAsset(
+            branchId, asset.assetName!, applicationSupportDirectory.path);
+      } else {
+        talker.warning('Asset name is null for asset: ${asset.id}');
       }
+    }
+  }
 
-      try {
-        final result = await amplify.Amplify.Storage
-            .downloadFile(
-              path: amplify.StoragePath.fromString(
-                  'public/branch-$branchId/${asset.assetName}'),
-              localFile: amplify.AWSFile.fromPath(filePath),
-            )
-            .result;
+  Future<void> _downloadAsset(
+      int branchId, String assetName, String directoryPath) async {
+    final filePath = '$directoryPath/$assetName';
+    final file = File(filePath);
 
-        talker
-            .warning('Downloaded file is located at: ${result.localFile.path}');
-      } on amplify.StorageException catch (e) {
-        /// There might be cases where a file might be in asset but not in the s3 then we silently ignore such error
-        talker.warning('Download error - ${e.message}');
-      } catch (e) {
-        talker.warning('Error downloading file: $e');
-        rethrow;
-      }
+    if (await file.exists()) {
+      talker.warning('File already exists: ${file.path}');
+      return;
+    }
+
+    try {
+      final result = await amplify.Amplify.Storage
+          .downloadFile(
+            path: amplify.StoragePath.fromString(
+                'public/branch-$branchId/$assetName'),
+            localFile: amplify.AWSFile.fromPath(filePath),
+          )
+          .result;
+      talker.warning('Downloaded file is located at: ${result.localFile.path}');
+    } on amplify.StorageException catch (e) {
+      talker.warning('Download error - ${e.message}');
+    } catch (e) {
+      talker.warning('Error downloading file: $e');
+      rethrow;
     }
   }
 

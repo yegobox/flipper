@@ -374,7 +374,7 @@ abstract class RealmApiInterface {
       {DateTime? startDate, DateTime? endDate});
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
-  Future<void> downloadAssetSave();
+  Future<void> downloadAssetSave({String? assetName});
   Future<bool> removeS3File({required String fileName});
   Assets? getAsset({required String assetName});
   Future<void> amplifyLogout();

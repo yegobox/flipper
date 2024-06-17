@@ -64,11 +64,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     _focusNode.requestFocus();
 
     _handleScanningMode(value, model);
-    // if (ref.read(scanningModeProvider)) {
-    //   _handleScanningMode(value, model);
-    // }
-
-    //ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
   }
 
   void _handleScanningMode(String value, CoreViewModel model) async {
@@ -190,25 +185,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
       icon: _buildOrderIcon(orders),
     );
   }
-
-  // IconButton indicatorButton() {
-  //   return IconButton(
-  //     onPressed: _handleScanningModeToggle,
-  //     icon: Icon(
-  //       ref.watch(scanningModeProvider)
-  //           ? FluentIcons.camera_switch_24_regular
-  //           : FluentIcons.camera_switch_24_regular,
-  //       color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
-  //     ),
-  //   );
-  // }
-
-  // void _handleScanningModeToggle() {
-  //   ref.read(scanningModeProvider.notifier).toggleScanningMode();
-  //   toast(ref.watch(scanningModeProvider)
-  //       ? "Scanning mode Activated"
-  //       : "Scanning mode DeActivated");
-  // }
 
   void _handleReceiveOrderToggle() {
     ref.read(receivingOrdersModeProvider.notifier).toggleReceiveOrder();

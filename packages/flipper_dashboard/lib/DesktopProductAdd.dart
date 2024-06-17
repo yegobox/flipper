@@ -372,15 +372,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         .loadProducts(searchString: searchKeyword, scanMode: scanMode);
 
     /// end of reloading
+
+    /// attempt to see newly created product
+    ref.read(searchStringProvider.notifier).emitString(value: "search");
+    ref.read(searchStringProvider.notifier).emitString(value: "");
+
+    ref
+        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+        .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
     toast("Product Saved");
-
-    ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-
-    ITransaction currentTransaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.sale);
-    ref.refresh(pendingTransactionProvider(TransactionType.sale).future);
-    ref.refresh(transactionItemsProvider(currentTransaction.id));
-    ref.refresh(searchStringProvider);
     Navigator.maybePop(context);
   }
 

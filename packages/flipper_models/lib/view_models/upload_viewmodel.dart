@@ -115,7 +115,7 @@ class UploadViewModel extends ProductViewModel {
         }
       });
 
-      await ProxyService.realm.downloadAssetSave();
+      await ProxyService.realm.downloadAssetSave(assetName: uniqueFileName);
       // Log success
       talker.warning('File uploaded and database updated successfully.');
       Product? _product = ProxyService.realm.getProduct(id: id);
