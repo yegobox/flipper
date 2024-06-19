@@ -2,7 +2,6 @@
 
 import 'dart:io';
 import 'package:collection/collection.dart';
-import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';

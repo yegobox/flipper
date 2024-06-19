@@ -7360,3 +7360,113 @@ class Assets extends _Assets with RealmEntity, RealmObjectBase, RealmObject {
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class Composite extends _Composite
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Composite(
+    ObjectId realmId, {
+    int? id,
+    int? productId,
+    int? variantId,
+    int? quantity = 1,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Composite>({
+        'quantity': 1,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'productId', productId);
+    RealmObjectBase.set(this, 'variantId', variantId);
+    RealmObjectBase.set(this, 'quantity', quantity);
+  }
+
+  Composite._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get productId => RealmObjectBase.get<int>(this, 'productId') as int?;
+  @override
+  set productId(int? value) => RealmObjectBase.set(this, 'productId', value);
+
+  @override
+  int? get variantId => RealmObjectBase.get<int>(this, 'variantId') as int?;
+  @override
+  set variantId(int? value) => RealmObjectBase.set(this, 'variantId', value);
+
+  @override
+  int? get quantity => RealmObjectBase.get<int>(this, 'quantity') as int?;
+  @override
+  set quantity(int? value) => RealmObjectBase.set(this, 'quantity', value);
+
+  @override
+  Stream<RealmObjectChanges<Composite>> get changes =>
+      RealmObjectBase.getChanges<Composite>(this);
+
+  @override
+  Stream<RealmObjectChanges<Composite>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Composite>(this, keyPaths);
+
+  @override
+  Composite freeze() => RealmObjectBase.freezeObject<Composite>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'productId': productId.toEJson(),
+      'variantId': variantId.toEJson(),
+      'quantity': quantity.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Composite value) => value.toEJson();
+  static Composite _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'productId': EJsonValue productId,
+        'variantId': EJsonValue variantId,
+        'quantity': EJsonValue quantity,
+      } =>
+        Composite(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          productId: fromEJson(productId),
+          variantId: fromEJson(variantId),
+          quantity: fromEJson(quantity),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Composite._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Composite, 'Composite', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('productId', RealmPropertyType.int, optional: true),
+      SchemaProperty('variantId', RealmPropertyType.int, optional: true),
+      SchemaProperty('quantity', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

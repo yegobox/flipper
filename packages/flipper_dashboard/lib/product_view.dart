@@ -136,7 +136,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     Variant variant,
   ) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id!));
+    final stockStream = ref.watch(stockByVariantIdProvider(variant.id ?? 0));
 
     return stockStream.when(
       data: (double stock) {

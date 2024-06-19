@@ -60,12 +60,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
         transactionItemsProvider(transaction.value?.value?.id!).notifier);
     transactionItemsNotifier.updatePendingTransaction();
 
-    transactionItems = (ref
-            .watch(
-              transactionItemsProvider(transaction.value?.value?.id),
-            )
-            .value ??
-        []);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      transactionItems = (ref
+              .watch(
+                transactionItemsProvider(transaction.value?.value?.id),
+              )
+              .value ??
+          []);
+    });
 
     return Padding(
       padding: const EdgeInsets.all(16.0),

@@ -889,3 +889,15 @@ class _Assets {
   String? assetName;
   int? productId;
 }
+
+@RealmModel()
+class _Composite {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? productId;
+  int? variantId;
+  int? quantity = 1;
+}

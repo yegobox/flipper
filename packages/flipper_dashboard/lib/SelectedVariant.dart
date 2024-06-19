@@ -45,6 +45,15 @@ class VariantNotifier extends StateNotifier<List<VariantState>> {
   void deleteVariant(VVariant variant) {
     state = state.where((vs) => vs.variant != variant).toList();
   }
+
+  // Add this method to add variants back
+  void addVariant(VVariant variant) {
+    // Check if the variant already exists in the list
+    if (!state.any((vs) => vs.variant == variant)) {
+      // If it doesn't exist, add it
+      state = [...state, VariantState(variant: variant)];
+    }
+  }
 }
 
 final selectedVariantsLocalProvider =
@@ -79,7 +88,9 @@ class _SearchVariantState extends ConsumerState<SelectedVariant> {
   @override
   void initState() {
     super.initState();
-    recalculateTotalCost();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      recalculateTotalCost();
+    });
   }
 
   void recalculateTotalCost() {

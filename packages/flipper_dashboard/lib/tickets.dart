@@ -125,27 +125,52 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                               return TicketTile(
                                 ticket: ticket,
                                 onTap: () async {
-                                  /// make sure there one pending transaction before resume otherwise throw error because
-                                  /// preview cart use FIFO in handling the transaction so one pending transaction will show at the time.
-                                  ITransaction? transaction = await ProxyService
-                                      .realm
-                                      .pendingTransaction(
-                                    branchId: ProxyService.box.getBranchId()!,
-                                    transactionType: TransactionType.sale,
-                                    includeSubTotalCheck: true,
+                                  bool? confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Confirm Resume'),
+                                        content: Text(
+                                            'Are you sure you want to resume this order?'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(false);
+                                            },
+                                            child: Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop(true);
+                                            },
+                                            child: Text('Confirm'),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   );
-                                  if (transaction == null) {
+
+                                  if (confirm == true) {
                                     await model.resumeTransaction(
                                         ticketId: ticket.id!);
-                                    ref.refresh(pendingTransactionProvider(
-                                        TransactionType.sale));
+
+                                    await Future.delayed(
+                                        Duration(microseconds: 800));
+
+                                    /// refresh the cart, this is messy but for now it is all I have
+
+                                    /// Refreshing after I resume is so hard, not working as I want it.
+                                    ///FIXME: so I am doing so many hack I know I should not including this loop
+                                    for (var i = 0; i < 120; i++) {
+                                      final transaction = ref.refresh(
+                                          pendingTransactionProvider(
+                                              TransactionType.sale));
+                                      ref.refresh(transactionItemsProvider(
+                                              transaction.value?.value?.id!)
+                                          .notifier);
+                                    }
                                     _routerService
                                         .clearStackAndShow(FlipperAppRoute());
-                                  } else {
-                                    showSnackBar(context,
-                                        "There is ongoing sale, first complete it or park it again!",
-                                        textColor: Colors.black,
-                                        backgroundColor: Colors.red);
                                   }
                                 },
                               );

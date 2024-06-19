@@ -172,18 +172,29 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     }
   }
 
-  Future<void> bulkUpdateVariants(bool editmode) async {
+  Future<void> bulkUpdateVariants(bool editmode,
+      {required String color}) async {
     if (editmode) {
       final variantsLength = scannedVariants.length;
 
       // loop through all variants and update all with retailPrice and supplyPrice
-      for (var i = 0; i < variantsLength; i++) {
-        // If found, update it
-        scannedVariants[i].retailPrice = retailPrice;
-        scannedVariants[i].supplyPrice = supplyPrice;
-        scannedVariants[i].qty = (scannedVariants[i].qty);
-        notifyListeners();
-      }
+      ProxyService.realm.realm!.write(() {
+        for (var i = 0; i < variantsLength; i++) {
+          scannedVariants[i].color = color;
+          // If found, update it
+          if (retailPrice != 0) {
+            scannedVariants[i].retailPrice = retailPrice;
+          }
+
+          if (supplyPrice != 0) {
+            scannedVariants[i].supplyPrice = supplyPrice;
+          }
+
+          scannedVariants[i].qty = (scannedVariants[i].qty);
+          scannedVariants[i].lastTouched = DateTime.now().toLocal();
+          notifyListeners();
+        }
+      });
     }
   }
 }

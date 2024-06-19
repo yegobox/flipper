@@ -131,11 +131,7 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void setProductName({String? name}) {
-    kProductName = name;
-    notifyListeners();
-  }
-
-  void setName({String? name}) {
+    if (name == null) return;
     kProductName = name;
     notifyListeners();
   }

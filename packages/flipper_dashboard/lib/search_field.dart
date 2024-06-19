@@ -72,7 +72,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
     _hasText = false;
     if (value.isNotEmpty) {
       Variant? variant = await ProxyService.realm.variant(name: value);
-      if (variant != null) {
+      if (variant != null && variant.id != null) {
         Stock? stock = await ProxyService.realm
             .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
         ITransaction currentTransaction = await ProxyService.realm

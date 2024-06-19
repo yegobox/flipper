@@ -64,33 +64,36 @@ class NewTicketState extends State<NewTicket>
               ),
             ),
             actions: [
-              ElevatedButton(
-                onPressed: _ticketNameValue && _noteValue
-                    ? () {
-                        if (_formKey.currentState!.validate()) {
-                          model.saveTicket(
-                            ticketName: _swipeController.text,
-                            transaction: widget.transaction,
-                            ticketNote: _noteController.text,
-                          );
-                          _routerService.pop();
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: _ticketNameValue && _noteValue
+                      ? () {
+                          if (_formKey.currentState!.validate()) {
+                            model.saveTicket(
+                              ticketName: _swipeController.text,
+                              transaction: widget.transaction,
+                              ticketNote: _noteController.text,
+                            );
+                            _routerService.pop();
+                          }
                         }
-                      }
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF01B8E4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF01B8E4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(
-                    'Save',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16,
-                      color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Text(
+                      'Save',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -101,66 +104,82 @@ class NewTicketState extends State<NewTicket>
             padding: const EdgeInsets.all(20.0),
             child: Form(
               key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _swipeController,
-                    onChanged: (value) {
-                      setState(() {
-                        _ticketNameValue = value.isNotEmpty ? true : false;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "You need to enter ticket name or swipe";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      enabled: true,
-                      hintText: "Ticket name (or Swipe)",
-                      // prefixIcon: Icon(Icons.cash),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ticket Name (or Swipe)',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
-                      errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      errorMaxLines: 2,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _noteController,
-                    onChanged: (value) {
-                      setState(() {
-                        _noteValue = value.isNotEmpty ? true : false;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "You need to enter the note";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      enabled: true,
-                      hintText: "Add note",
-                      prefixIcon: Icon(Icons.note),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _swipeController,
+                      onChanged: (value) {
+                        setState(() {
+                          _ticketNameValue = value.isNotEmpty ? true : false;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "You need to enter ticket name or swipe";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        enabled: true,
+                        hintText: "Enter Ticket name or Swipe",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        errorMaxLines: 2,
                       ),
-                      errorBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.red),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      errorMaxLines: 2,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Text(
+                      'Note',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _noteController,
+                      onChanged: (value) {
+                        setState(() {
+                          _noteValue = value.isNotEmpty ? true : false;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "You need to enter the note";
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        enabled: true,
+                        hintText: "Add note",
+                        prefixIcon: Icon(Icons.note),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.red),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        errorMaxLines: 2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

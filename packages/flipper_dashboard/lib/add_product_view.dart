@@ -65,7 +65,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
         // Start locking the save button.
         widget.productId == null
-            ? model.setName(name: ' ')
+            ? model.setProductName(name: ' ')
             : ref.read(productProvider)?.name;
 
         // Get the regular variant to fill in the form in edit mode.
@@ -191,7 +191,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                                 hintText: "Product Name"),
                             controller: productForm.productNameController,
                             onChanged: (value) {
-                              model.setName(name: value);
+                              model.setProductName(name: value);
                             },
                           ),
                         ),

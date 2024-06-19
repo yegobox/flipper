@@ -92,10 +92,6 @@ class App {}
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
 // flutter attach -d <DEVICE_ID>
-// 
-// FIXME: windows is not building
-// https://github.com/flutter/flutter/issues/102451#issuecomment-1124651845
-// https://github.com/mogol/flutter_secure_storage/issues/379
 
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
@@ -106,7 +102,6 @@ class App {}
 // https://www.youtube.com/watch?v=sqw-taR2_Ww
 // TODO: implement shortcut https://www.youtube.com/watch?v=WMVoNA5cY9A
 //TODO: can I sync data acrross connect bluethooth?? https://github.com/boskokg/flutter_blue_plus
-// FIXME: https://github.com/isar/isar/issues/686
 // TODO: tip for pro flutter web: https://www.youtube.com/watch?v=ZFx9leiFlvM
 
 /// packages to use in socials
@@ -442,6 +437,7 @@ class App {}
 /// https://medium.com/lodgify-technology-blog/deploy-your-flutter-app-to-google-play-with-github-actions-f13a11c4492e
 /// base64 -i upload-keystore.jks -o keystoreBase64
 /// ShoreBird skll down here!
+/// shorebird release android
 /// ✅ Published Release 1.170.4252223231897+1717794359!
 /// Your next step is to upload the app bundle to the Play Store:
 /// Users/richard/Documents/GitHub/flipper/apps/flipper/build/app/outputs/bundle/release/app-release.aab
@@ -449,7 +445,7 @@ class App {}
 /// For information on uploading to the Play Store, see:
 /// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
 
-/// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223231897+1717794359
+/// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223231965+1718626337
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
 /// 

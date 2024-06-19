@@ -334,11 +334,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   // Helper function to get a valid color or a default color
 
   // Helper function to check if a string is a valid hexadecimal color code
-
-  void _showSaveInProgressToast() {
-    toast('Saving item in progress, please be patient!');
-  }
-
   void _showNoProductNameToast() {
     toast('No product name!');
   }
@@ -355,13 +350,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     }
 
     if (widget.productId != null) {
-      await model.bulkUpdateVariants(true);
+      await model.bulkUpdateVariants(true, color: model.currentColor);
+    } else {
+      await model.addVariant(
+          variations: model.scannedVariants,
+          packagingUnit: selectedPackageUnitValue.split(":")[0]);
     }
 
     model.currentColor = pickerColor.toHex();
-    await model.addVariant(
-        variations: model.scannedVariants,
-        packagingUnit: selectedPackageUnitValue.split(":")[0]);
 
     await model.saveProduct(
         mproduct: productRef,
@@ -389,24 +385,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product) {
-    print("product");
-    // _saveProductAndVariants(model, context, product);
-    if (!_savingInProgress) {
-      setState(() {
-        _savingInProgress = true;
-      });
-
-      /// if the there is no scanned variant and there is no productId it means we are creating new item
-      /// then we inforce having the variants saved, otherwise we can allow the user to edit the product name and or its
-      /// retail price, supply price.
-
-      if (model.scannedVariants.isEmpty && widget.productId == null) {
-        _showNoProductSavedToast();
-      } else {
-        _saveProductAndVariants(model, context, product);
-      }
+    if (model.scannedVariants.isEmpty && widget.productId == null) {
+      _showNoProductSavedToast();
     } else {
-      _showSaveInProgressToast();
+      _saveProductAndVariants(model, context, product);
     }
   }
 
