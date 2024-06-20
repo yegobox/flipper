@@ -192,6 +192,10 @@ final outerVariantsProvider = StateNotifierProvider.autoDispose
   return productsNotifier;
 });
 
+///The code will now first try to filter the variants based on the search string in the name field.
+/// If no match is found in name, it will then search in the productName field.
+/// This ensures that the filter prioritizes searching by name and only searches by productName if no matching name is found.
+/// With this modification, the OuterVariantsNotifier will filter variants as you intended, giving priority to filtering by name first and then falling back to productName if necessary.
 class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
     with TransactionMixin {
   int branchId;
@@ -208,9 +212,13 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
       // Apply search if searchString is not empty
       final filteredVariants = searchString.isNotEmpty
           ? allVariants
-              .where((variant) => variant.name!
-                  .toLowerCase()
-                  .contains(searchString.toLowerCase()))
+              .where((variant) =>
+                  variant.name!
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()) ||
+                  variant.productName!
+                      .toLowerCase()
+                      .contains(searchString.toLowerCase()))
               .toList()
           : allVariants;
 

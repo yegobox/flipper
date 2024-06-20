@@ -123,10 +123,8 @@ class ProductViewState extends ConsumerState<ProductView> {
               );
             },
             error: (error, e) => SizedBox.shrink(),
-            loading: () => SizedBox(
-                width: 20,
-                height: 20,
-                child: const CircularProgressIndicator()),
+            loading: () =>
+                SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
           ),
     );
   }
@@ -143,8 +141,8 @@ class ProductViewState extends ConsumerState<ProductView> {
         return buildRowItem(context, model, variant, stock);
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () => SizedBox(
-          width: 20, height: 20, child: const CircularProgressIndicator()),
+      loading: () =>
+          SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
     );
   }
 
