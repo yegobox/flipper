@@ -173,7 +173,7 @@ class _AuthOptionPageState extends State<AuthOptionPage> {
                             StartUpViewRoute(invokeLogin: true));
                       }
                     } catch (e) {
-                      ProxyService.realm.logOut();
+                      // ProxyService.realm.logOut();
                       Sentry.captureException(e,
                           stackTrace: StackTrace.current);
                       setState(() {

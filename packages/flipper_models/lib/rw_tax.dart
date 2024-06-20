@@ -18,12 +18,12 @@ import 'package:realm/realm.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
-import 'package:flutter/services.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
   // String ebmUrl = "https://turbo.yegobox.com";
-  String ebmUrl = "http://10.0.2.2:8080/rra";
+  // String ebmUrl = "http://10.0.2.2:8080/rra";
+  String ebmUrl = "http://localhost:8080/rra";
 
   RWTax();
 
@@ -245,12 +245,16 @@ class RWTax implements TaxApi {
   @override
   Future<RwApiResponse?> generateReceiptSignature({
     required ITransaction transaction,
-    required List<TransactionItem> items,
     required String receiptType,
     required Counter counter,
     String? purchaseCode,
   }) async {
     Business? business = await ProxyService.local.getBusiness();
+
+    List<TransactionItem> items =
+        await ProxyService.realm.getTransactionItemsByTransactionId(
+      transactionId: transaction.id,
+    );
     String date = DateTime.now()
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')
@@ -262,6 +266,40 @@ class RWTax implements TaxApi {
                 qty: item.qty,
                 discount: item.discount,
                 remainingStock: item.remainingStock,
+                itemCd: item.itemCd,
+                variantId: item.id,
+                qtyUnitCd: item.qtyUnitCd,
+                prc: item.price,
+                regrNm: item.regrNm,
+                dcRt: item.dcRt,
+                pkg: item.pkg,
+                dcAmt: item.dcAmt,
+                taxblAmt: item.taxAmt,
+                taxAmt: item.taxAmt,
+                itemClsCd: item.itemClsCd,
+                itemNm: item.name,
+                totAmt: item.totAmt,
+                itemSeq: item.itemSeq,
+                isrccCd: item.isrccCd,
+                isrccNm: item.isrccNm,
+                isrcRt: item.isrcRt,
+                isrcAmt: item.isrcAmt,
+                taxTyCd: item.taxTyCd,
+                bcd: item.bcd,
+                itemTyCd: item.itemTyCd,
+                itemStdNm: item.itemStdNm,
+                orgnNatCd: item.orgnNatCd,
+                pkgUnitCd: item.pkgUnitCd,
+                splyAmt: item.splyAmt,
+                tin: item.tin,
+                bhfId: item.bhfId,
+                dftPrc: item.dftPrc,
+                addInfo: item.addInfo,
+                isrcAplcbYn: item.isrcAplcbYn,
+                useYn: item.useYn,
+                regrId: item.regrId,
+                modrId: item.modrId,
+                modrNm: item.modrNm,
                 name: item.name)
             .toJson())
         .toList();
@@ -378,7 +416,7 @@ class RWTax implements TaxApi {
       "modrId": transaction.id,
       "modrNm": transaction.id,
       "taxRtA": 0,
-      "taxRtB": 0,
+      "taxRtB": 18,
       "taxRtC": 0,
       "taxRtD": 0,
       "custNm": customer?.custNm ?? "N/A",

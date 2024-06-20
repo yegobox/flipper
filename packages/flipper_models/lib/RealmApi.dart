@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_services/locator.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
@@ -197,9 +198,11 @@ class RealmAPI<M extends IJsonSerializable>
     allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
     // Update the itemSeq for each item
-    for (var i = 0; i < allItems.length; i++) {
-      allItems[i].itemSeq = i + 1; // itemSeq should start from 1
-    }
+    realm!.write(() {
+      for (var i = 0; i < allItems.length; i++) {
+        allItems[i].itemSeq = i + 1; // itemSeq should start from 1
+      }
+    });
 
     // Save the updated items back to the database
     for (var updatedItem in allItems) {
@@ -1197,7 +1200,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) async {
     return realm!.query<TransactionItem>(
-        r'transactionId == $0 AND deletedAt == nil', [transactionId]).toList();
+        r'transactionId == $0', [transactionId]).toList();
   }
 
   @override
@@ -2759,6 +2762,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     /// calling close on logout inroduced error where another attempt to login will fail since
     /// the instance of realm is instantiated at app start level.
+    // resetDependencies(dispose: true);
     // close();
     return Future.value(true);
   }

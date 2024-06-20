@@ -3,8 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/locator.dart' as loc;
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -22,8 +21,7 @@ mixin TokenLogin {
 
 class LoginViewModel extends FlipperBaseModel with TokenLogin {
   LoginViewModel();
-  final appService = loc.getIt<AppService>();
-  final _routerService = locator<RouterService>();
+
   bool loginStart = false;
   bool otpStart = false;
 
@@ -78,6 +76,11 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
         // Navigate based on the default app setting
         final defaultApp = ProxyService.box.getDefaultApp();
         if (defaultApp == "2") {
+          if (!areDependenciesInitialized) {
+            /// This is high likely that we were logged out and we need to re-init the dependencies
+            await initDependencies();
+          }
+          final _routerService = locator<RouterService>();
           _routerService.navigateTo(SocialHomeViewRoute());
         } else {
           openDrawer();

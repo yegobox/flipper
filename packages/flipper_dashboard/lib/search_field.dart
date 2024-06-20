@@ -85,10 +85,12 @@ class SearchFieldState extends ConsumerState<SearchField> {
           pendingTransaction: currentTransaction,
           currentStock: stock!.currentStock,
         );
-        await model.keyboardKeyPressed(key: '+');
-        ref.refresh(pendingTransactionProvider(TransactionType.sale).future);
-        ref.refresh(transactionItemsProvider(currentTransaction.id));
-        ref.refresh(searchStringProvider);
+        final pendingTransaction =
+            ref.watch(pendingTransactionProvider(TransactionType.sale));
+
+        await Future.delayed(Duration(microseconds: 500));
+        ref.refresh(
+            transactionItemsProvider(pendingTransaction.value?.value?.id));
       }
     }
   }

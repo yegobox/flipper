@@ -14,6 +14,7 @@ import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -338,9 +339,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       /// because we want to avoid memoery leak on app logout we want to close realm opened!
       /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
       /// need the bellow line
-      if (ProxyService.realm.realm == null) {
-        //await initDependencies();
-      }
+     
 
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);

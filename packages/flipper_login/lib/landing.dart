@@ -142,22 +142,22 @@ class _LandingState extends State<Landing> {
                   height: 68,
                   child: OutlinedButton(
                     style: ButtonStyle(
-                      shape: MaterialStateProperty.all<OutlinedBorder>(
+                      shape: WidgetStateProperty.all<OutlinedBorder>(
                         RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
-                      side: MaterialStateProperty.resolveWith(
+                      side: WidgetStateProperty.resolveWith(
                           (states) => const BorderSide(color: Colors.white)),
                       backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.transparent),
-                      overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                        (Set<MaterialState> states) {
-                          if (states.contains(MaterialState.hovered)) {
+                          WidgetStateProperty.all<Color>(Colors.transparent),
+                      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.hovered)) {
                             return Colors.transparent;
                           }
-                          if (states.contains(MaterialState.focused) ||
-                              states.contains(MaterialState.pressed)) {
+                          if (states.contains(WidgetState.focused) ||
+                              states.contains(WidgetState.pressed)) {
                             return Colors.transparent;
                           }
                           return null;
@@ -185,12 +185,11 @@ class _LandingState extends State<Landing> {
                   child: OutlinedButton(
                     key: signInButtonKey,
                     style: primaryButtonStyle.copyWith(
-                        side: MaterialStateProperty.resolveWith((states) =>
+                        side: WidgetStateProperty.resolveWith((states) =>
                             const BorderSide(color: Color(0xff006AFE))),
-                        shape:
-                            MaterialStateProperty.resolveWith<OutlinedBorder>(
-                                (states) => RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(4)))),
+                        shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
+                            (states) => RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4)))),
                     onPressed: () async {
                       _routerService.clearStackAndShow(AuthOptionPageRoute());
                     },

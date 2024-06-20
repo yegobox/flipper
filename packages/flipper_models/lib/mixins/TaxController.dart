@@ -67,11 +67,14 @@ class TaxController<OBJ> {
           await ProxyService.realm.getTransactionItemsByTransactionId(
         transactionId: transaction.id,
       );
+      // List<TransactionItem> items = await ProxyService.realm.transactionItemsFuture(
+      //   transactionId: transaction.id!,
+      //   doneWithTransaction: false,
+      //   active: true);
 
       try {
         if (!skiGenerateRRAReceiptSignature) {
           await generateRRAReceiptSignature(
-            items: items,
             business: business,
             transaction: transaction,
             receiptType: transaction.receiptType!,
@@ -222,7 +225,6 @@ class TaxController<OBJ> {
    * @param transaction - The transaction object
   */
   Future<void> generateRRAReceiptSignature({
-    required List<TransactionItem> items,
     required Business business,
     required String receiptType,
     required ITransaction transaction,
@@ -256,7 +258,6 @@ class TaxController<OBJ> {
       RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
-        items: items,
         receiptType: receiptType,
         counter: counter,
         purchaseCode: purchaseCode,
@@ -288,8 +289,8 @@ class TaxController<OBJ> {
         counters.map((Counter count) {
           count.totRcptNo = receiptSignature.data?.totRcptNo;
 
-          count.curRcptNo = count.curRcptNo!;
-          count.invcNo = count.invcNo! + 1;
+          count.curRcptNo = receiptSignature.data?.rcptNo;
+          count.invcNo = count.invcNo ?? 0 + 1;
           return count;
         }).toList();
       });
