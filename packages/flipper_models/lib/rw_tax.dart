@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -21,9 +22,8 @@ import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
-  // String ebmUrl = "https://turbo.yegobox.com";
-  // String ebmUrl = "http://10.0.2.2:8080/rra";
-  String ebmUrl = "http://localhost:8080/rra";
+  // String eBMURL = "https://turbo.yegobox.com";
+  // String eBMURL = "http://10.0.2.2:8080/rra";
 
   RWTax();
 
@@ -69,7 +69,7 @@ class RWTax implements TaxApi {
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
-          ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
+          EBMURL + "/stockMaster/saveStockMaster", variant.toJson());
       // sendEmailLogging(
       //     requestBody: response.requestOptions.data,
       //     subject: "Worked",
@@ -179,7 +179,7 @@ class RWTax implements TaxApi {
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
   Future<bool> saveItem({required IVariant variation}) async {
-    final url = '$ebmUrl/items/saveItems';
+    final url = '$EBMURL/items/saveItems';
     try {
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
@@ -410,7 +410,7 @@ class RWTax implements TaxApi {
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totAmt": totalMinusExemptedProducts,
-      "prchrAcptcYn": "N",
+      "prchrAcptcYn": "Y",
       "regrId": transaction.id,
       "regrNm": transaction.id,
       "modrId": transaction.id,
@@ -458,7 +458,7 @@ class RWTax implements TaxApi {
     }
     talker.warning(finalData);
     try {
-      final url = '$ebmUrl/trnsSales/saveSales';
+      final url = '$EBMURL/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
       // Clipboard.setData(ClipboardData(text: finalData.toString()));
       if (response.statusCode == 200) {
@@ -472,8 +472,16 @@ class RWTax implements TaxApi {
         /// update transaction.ebmSynced to true;
         /// update transaction.refunded to false < get this flag given to the type of sale type being used.
         for (TransactionItem item in items) {
+          /// here we update stock, so it is updated back to rra backoffice as we have new!
+
+          Stock? stock =
+              ProxyService.realm.stockByVariantId(variantId: item.variantId!);
+
           ProxyService.realm.realm!.write(() {
             item.ebmSynced = true;
+            if (stock != null) {
+              stock.ebmSynced = false;
+            }
             if (rcptTyCd == "R") {
               item.isRefunded = true;
             }
@@ -521,7 +529,7 @@ class RWTax implements TaxApi {
 
   @override
   Future<RwApiResponse> saveCustomer({required ICustomer customer}) async {
-    final url = '$ebmUrl/branches/saveBrancheCustomers';
+    final url = '$EBMURL/branches/saveBrancheCustomers';
 
     try {
       final response = await sendPostRequest(url, customer.toJson());
@@ -557,7 +565,7 @@ class RWTax implements TaxApi {
 
   @override
   Future<RwApiResponse> savePurchases({required SaleList item}) async {
-    final baseUrl = ebmUrl + '/trnsPurchase/savePurchases';
+    final baseUrl = EBMURL + '/trnsPurchase/savePurchases';
     //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
@@ -624,7 +632,7 @@ class RWTax implements TaxApi {
     required String bhfId,
     required String lastReqDt,
   }) async {
-    final baseUrl = ebmUrl + '/imports/selectImportItems';
+    final baseUrl = EBMURL + '/imports/selectImportItems';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -655,7 +663,7 @@ class RWTax implements TaxApi {
       {required int tin,
       required String bhfId,
       required String lastReqDt}) async {
-    final baseUrl = ebmUrl + '/trnsPurchase/selectTrnsPurchaseSales';
+    final baseUrl = EBMURL + '/trnsPurchase/selectTrnsPurchaseSales';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -683,7 +691,7 @@ class RWTax implements TaxApi {
 
   @override
   Future<RwApiResponse> updateImportItems({required Item item}) async {
-    final baseUrl = ebmUrl + '/imports/updateImportItems';
+    final baseUrl = EBMURL + '/imports/updateImportItems';
     final data = item.toJson();
 
     try {

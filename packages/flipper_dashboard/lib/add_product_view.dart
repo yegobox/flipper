@@ -128,6 +128,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     await model.getProduct(productId: widget.productId);
                 await model.saveProduct(
                     mproduct: product,
+                    color: model.currentColor,
                     inUpdateProcess: widget.productId != null,
                     productName: model.kProductName!);
 

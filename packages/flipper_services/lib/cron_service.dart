@@ -55,11 +55,12 @@ class CronService {
             RootIsolateToken.instance,
             receivePort.sendPort,
             ProxyService.box.getBranchId()!,
-            await ProxyService.realm.dbPath(
-                path: 'synced', folder: ProxyService.box.getBusinessId()),
+            await ProxyService.realm
+                .dbPath(path: name, folder: ProxyService.box.getBusinessId()),
             ProxyService.box.encryptionKey(),
             business.tinNumber,
-            business.bhfId ?? "00"
+            business.bhfId ?? "00",
+            ProxyService.box.getBusinessId()
           ],
         );
 
@@ -128,7 +129,12 @@ class CronService {
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
-      await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+
+      /// bootstrap data for universal Product names;
+
+      await _spawnIsolate("local", IsolateHandler.localData);
+
+      await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });
 
     await _setupFirebase();

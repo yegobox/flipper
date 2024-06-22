@@ -61,8 +61,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   bool _selectAll = false;
   bool _showDeleteButton = false;
 
-  bool _savingInProgress = false;
-
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
 
   void changeColor(Color color) => setState(() => pickerColor = color);
@@ -361,6 +359,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
     await model.saveProduct(
         mproduct: productRef,
+        color: model.currentColor,
         inUpdateProcess: widget.productId != null,
         productName: model.kProductName!);
 
@@ -826,7 +825,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   const DataColumn(label: Text('Quantity')),
                   const DataColumn(label: Text('Tax')),
                   const DataColumn(label: Text('Unit')),
-                  const DataColumn(label: Text('ClsCd')),
+                  const DataColumn(label: Text('Classification')),
                   const DataColumn(label: Text('Action')),
                 ],
                 rows: model.scannedVariants.reversed.map((variant) {

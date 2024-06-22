@@ -490,9 +490,9 @@ class PaymentsState extends ConsumerState<Payments> {
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
       await TaxController(object: widget.transaction).handleReceiptGeneration(
-        transaction: widget.transaction,
-        purchaseCode: purchaseCode,
-      );
+          transaction: widget.transaction,
+          purchaseCode: purchaseCode,
+          handlePrint: (bytes) {});
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
@@ -597,6 +597,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   /// this is standard for non customer attached receipt
                   await TaxController(object: widget.transaction)
                       .handleReceiptGeneration(
+                    handlePrint: (bytes) {},
                     transaction: widget.transaction,
                   );
                   // Handle when the user doesn't need a digital receipt

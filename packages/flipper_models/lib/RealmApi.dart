@@ -435,7 +435,7 @@ class RealmAPI<M extends IJsonSerializable>
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
     //NOTE: trigger EBM, now
-    TaxController(object: transaction).handleReceipt();
+    TaxController(object: transaction).handleReceipt(handlePrint: (bytes) {});
   }
 
   @override
@@ -2326,6 +2326,9 @@ class RealmAPI<M extends IJsonSerializable>
       required bool ebmSynced}) {
     final int variantId = randomNumber();
     final number = randomNumber().toString().substring(0, 5);
+    String itemPrefix = "FLIPPER-";
+    String clip = itemPrefix +
+        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
     return Variant(ObjectId(),
         lastTouched: DateTime.now(),
         name: product.name,
@@ -2345,9 +2348,8 @@ class RealmAPI<M extends IJsonSerializable>
         addInfo: "A",
         pkg: "1",
         splyAmt: supplierPrice,
-        itemClsCd:
-            "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-        itemCd: randomNumber().toString().substring(0, 5),
+        itemClsCd: "5020230602",
+        itemCd: clip,
         modrNm: number,
         modrId: number,
         pkgUnitCd: "BJ",
@@ -2379,8 +2381,8 @@ class RealmAPI<M extends IJsonSerializable>
 
         // NOTE: I believe bellow item are required when saving purchase
         ///but I wonder how to get them when saving an item.
-        spplrItemCd: randomNumber().toString().substring(0, 5),
-        spplrItemClsCd: randomNumber().toString().substring(0, 5),
+        spplrItemCd: "",
+        spplrItemClsCd: "",
         spplrItemNm: product.name,
 
         /// Packaging Unit

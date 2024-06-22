@@ -3,7 +3,6 @@ import 'dart:developer';
 
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/exceptions.dart';
-import 'package:flipper_models/helperModels/UniversalProduct.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -14,7 +13,6 @@ import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -339,7 +337,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       /// because we want to avoid memoery leak on app logout we want to close realm opened!
       /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
       /// need the bellow line
-     
 
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
@@ -1067,76 +1064,11 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-// Function to fetch data from the URL endpoint
-  Future<void> fetchDataAndSaveUniversalProducts() async {
-    try {
-      Business business =
-          getBusiness(businessId: ProxyService.box.getBusinessId());
-
-      final url = "https://turbo.yegobox.com/itemClass/selectItemsClass";
-      final headers = {"Content-Type": "application/json"};
-      final body = jsonEncode({
-        "tin": business.tinNumber,
-        "bhfId": business.bhfId ?? "00",
-
-        ///TODO: change this date to a working date in production
-        "lastReqDt": "20190523000000",
-      });
-
-      final response =
-          await http.post(Uri.parse(url), headers: headers, body: body);
-      if (response.statusCode == 200) {
-        // Parse the JSON response
-        final jsonResponse = json.decode(response.body);
-
-        // Check if the response contains the data and itemClsList
-        if (jsonResponse['data'] != null &&
-            jsonResponse['data']['itemClsList'] != null) {
-          final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
-
-          // Loop through the itemClsList and print the itemClsNm (name)
-          for (var item in itemClsList) {
-            final UniversalProduct product = UniversalProduct.fromJson(item);
-            UnversalProduct? uni = localRealm!.query<UnversalProduct>(
-                r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
-            if (uni == null) {
-              talker.info("Now saving universal");
-              localRealm!.write(() {
-                localRealm!.add(
-                  UnversalProduct(
-                    ObjectId(),
-                    id: randomNumber(),
-                    itemClsCd: product.itemClsCd,
-                    itemClsLvl: product.itemClsLvl,
-                    itemClsNm: product.itemClsNm,
-                    branchId: ProxyService.box.getBranchId(),
-                    businessId: ProxyService.box.getBusinessId(),
-                    useYn: product.useYn,
-                    mjrTgYn: product.mjrTgYn,
-                    taxTyCd: product.taxTyCd,
-                  ),
-                );
-              });
-            }
-          }
-        } else {
-          talker.warning('No data found in the response.');
-        }
-      } else {
-        talker
-            .error('Failed to load data. Status code: ${response.statusCode}');
-      }
-    } catch (e) {
-      talker.error('Error fetching data: $e');
-    }
-  }
-
   @override
   Future<List<UnversalProduct>> universalProductNames(
       {required int branchId}) async {
     /// attempt to re-add new universal item names but do not wait for the future
     /// this means I can face side effect but that is okay
-    fetchDataAndSaveUniversalProducts();
     print("this is invoked");
     List<UnversalProduct> items = localRealm!
         .query<UnversalProduct>(r'branchId == $0', [branchId]).toList();

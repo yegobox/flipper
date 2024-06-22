@@ -114,9 +114,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
       await TaxController(object: widget.transaction).handleReceiptGeneration(
-        transaction: widget.transaction,
-        purchaseCode: purchaseCode,
-      );
+          transaction: widget.transaction,
+          purchaseCode: purchaseCode,
+          handlePrint: (bytes) {});
       Navigator.of(context).pop();
     } catch (e) {
       setState(() => _busy = false);
@@ -180,8 +180,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 final transaction =
                     currentTransactionWatched.asData?.value.first;
                 if (transaction?.ebmSynced ?? false) {
-                  await TaxController(object: transaction)
-                      .handleReceipt(skiGenerateRRAReceiptSignature: true);
+                  await TaxController(object: transaction).handleReceipt(
+                      skiGenerateRRAReceiptSignature: true,
+                      handlePrint: (bytes) {});
                 } else {
                   toast("Please wait we are generating the receipt");
                 }

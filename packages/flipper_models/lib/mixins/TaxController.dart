@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -18,7 +19,12 @@ class TaxController<OBJ> {
   OBJ? object;
 
   Future<void> handleReceipt(
-      {bool skiGenerateRRAReceiptSignature = false}) async {
+      {required Function(Uint8List bytes) handlePrint,
+
+      /// This paramter is needed when we are printing a copy of the receipt without necessary telling
+      /// RRA that this is a copy, this might be needed when completed transaction
+      /// and for some reason you missed the print but the customer still stands while waiting for receipt
+      bool skiGenerateRRAReceiptSignature = false}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
@@ -40,6 +46,9 @@ class TaxController<OBJ> {
         await handleReceiptGeneration(
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          handlePrint: (Uint8List bytes) {
+            handlePrint(bytes);
+          },
         );
       } else if ((transaction.receiptType == TransactionReceptType.NR ||
               transaction.receiptType == TransactionReceptType.TS ||
@@ -49,6 +58,9 @@ class TaxController<OBJ> {
         await handleReceiptGeneration(
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          handlePrint: (Uint8List bytes) {
+            handlePrint(bytes);
+          },
         );
       }
     }
@@ -60,7 +72,8 @@ class TaxController<OBJ> {
   Future<void> handleReceiptGeneration(
       {required ITransaction transaction,
       String? purchaseCode,
-      bool skiGenerateRRAReceiptSignature = false}) async {
+      bool skiGenerateRRAReceiptSignature = false,
+      required Function(Uint8List bytes) handlePrint}) async {
     if (await ProxyService.realm.isTaxEnabled()) {
       Business? business = await ProxyService.local.getBusiness();
       List<TransactionItem> items =
@@ -82,12 +95,14 @@ class TaxController<OBJ> {
           );
         }
 
-        await printReceipt(
-          items: items,
-          business: business,
-          transaction: transaction,
-          receiptType: transaction.receiptType!,
-        );
+        return await printReceipt(
+            items: items,
+            business: business,
+            transaction: transaction,
+            receiptType: transaction.receiptType!,
+            handlePrint: (bytes) {
+              handlePrint(bytes);
+            });
       } catch (e, s) {
         talker.critical(s);
         rethrow;
@@ -119,6 +134,7 @@ class TaxController<OBJ> {
     required Business business,
     required String receiptType,
     required ITransaction transaction,
+    required Function(Uint8List bytes) handlePrint,
   }) async {
     Receipt? receipt =
         await ProxyService.realm.getReceipt(transactionId: transaction.id!);
@@ -181,38 +197,40 @@ class TaxController<OBJ> {
     Print print = Print();
 
     print.print(
-      grandTotal: transaction.subTotal,
-      totalTaxA: totalTaxA,
-      totalTaxB: totalTaxB,
-      totalTaxC: totalTaxC,
-      totalTaxD: totalTaxD,
-      currencySymbol: "RW",
-      transaction: transaction,
-      totalTax:
-          (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
-      items: items,
-      cash: transaction.subTotal,
-      received: transaction.cashReceived,
-      payMode: "Cash",
-      mrc: receipt!.mrcNo ?? "",
-      internalData: receipt.intrlData ?? "",
-      receiptQrCode: receipt.qrCode ?? "",
-      receiptSignature: receipt.rcptSign ?? "",
-      cashierName: business.name!,
-      sdcId: receipt.sdcId ?? "",
-      invoiceNum: receipt.invcNo!,
-      brandName: business.name!,
-      brandAddress: business.adrs ?? "Kigali,Rwanda",
-      brandTel: ProxyService.box.getUserPhone()!,
-      brandTIN: business.tinNumber.toString(),
-      brandDescription: business.name!,
-      brandFooter: business.name!,
-      emails: ['info@yegobox.com'],
-      customerTin: customer?.custTin ??
-          ProxyService.box.currentSaleCustomerPhoneNumber(),
-      receiptType: receiptType,
-      customerName: customer?.custNm ?? "N/A",
-    );
+        grandTotal: transaction.subTotal,
+        totalTaxA: totalTaxA,
+        totalTaxB: totalTaxB,
+        totalTaxC: totalTaxC,
+        totalTaxD: totalTaxD,
+        currencySymbol: "RW",
+        transaction: transaction,
+        totalTax:
+            (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
+        items: items,
+        cash: transaction.subTotal,
+        received: transaction.cashReceived,
+        payMode: "Cash",
+        mrc: receipt!.mrcNo ?? "",
+        internalData: receipt.intrlData ?? "",
+        receiptQrCode: receipt.qrCode ?? "",
+        receiptSignature: receipt.rcptSign ?? "",
+        cashierName: business.name!,
+        sdcId: receipt.sdcId ?? "",
+        invoiceNum: receipt.invcNo!,
+        brandName: business.name!,
+        brandAddress: business.adrs ?? "Kigali,Rwanda",
+        brandTel: ProxyService.box.getUserPhone()!,
+        brandTIN: business.tinNumber.toString(),
+        brandDescription: business.name!,
+        brandFooter: business.name!,
+        emails: ['info@yegobox.com'],
+        customerTin: customer?.custTin ??
+            ProxyService.box.currentSaleCustomerPhoneNumber(),
+        receiptType: receiptType,
+        customerName: customer?.custNm ?? "N/A",
+        handlePrint: (bypes) {
+          return handlePrint(bypes);
+        });
   }
 
   /**
@@ -288,9 +306,8 @@ class TaxController<OBJ> {
       ProxyService.realm.realm!.write(() {
         counters.map((Counter count) {
           count.totRcptNo = receiptSignature.data?.totRcptNo;
-
           count.curRcptNo = receiptSignature.data?.rcptNo;
-          count.invcNo = count.invcNo ?? 0 + 1;
+          count.invcNo = (count.invcNo != null) ? count.invcNo! + 1 : 1;
           return count;
         }).toList();
       });

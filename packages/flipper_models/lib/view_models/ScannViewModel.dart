@@ -138,11 +138,23 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      variant.qty = newQuantity;
+      ProxyService.realm.realm!.write(() {
+        variant.qty = newQuantity;
+        variant.ebmSynced = false;
+      });
+
+      Stock? stock =
+          ProxyService.realm.stockByVariantId(variantId: variant.id!);
+      ProxyService.realm.realm!.write(() {
+        stock!.rsdQty = newQuantity;
+        stock.ebmSynced = false;
+        stock.currentStock = newQuantity;
+      });
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
-      print('Variant with ID $id not found.');
+      print('Variant with ID $id has error while updating it');
+      talker.error(e);
     }
   }
 
@@ -163,12 +175,14 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its unit
-      variant.unit =
-          selectedUnit ?? 'Per Item'; // Default value if selectedUnit is null
+      ProxyService.realm.realm!.write(() {
+        variant.unit = selectedUnit ?? 'Per Item';
+      });
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
-      print('Variant with ID $id not found.');
+      print('Variant with ID $id has error while updating it');
+      talker.error(e);
     }
   }
 
@@ -181,6 +195,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       ProxyService.realm.realm!.write(() {
         for (var i = 0; i < variantsLength; i++) {
           scannedVariants[i].color = color;
+          scannedVariants[i].ebmSynced = false;
           // If found, update it
           if (retailPrice != 0) {
             scannedVariants[i].retailPrice = retailPrice;

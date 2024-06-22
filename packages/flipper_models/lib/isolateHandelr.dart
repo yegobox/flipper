@@ -1,13 +1,19 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
+import 'package:flipper_models/helperModels/UniversalProduct.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/constants.dart';
 
+import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 
 import 'package:flutter/services.dart';
@@ -15,7 +21,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 mixin IsolateHandler {
   static Realm? realm;
-  static Future<void> syncUnsynced(List<dynamic> args) async {
+  static Realm? localRealm;
+  static Future<void> flexibleSync(List<dynamic> args) async {
     final dbPatch = args[3] as String;
     String key = args[4] as String;
     List<int> encryptionKey = key.toIntList();
@@ -23,7 +30,7 @@ mixin IsolateHandler {
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
-        realmConfig(user, encryptionKey, dbPatch);
+        flexibleConfig(user, encryptionKey, dbPatch);
 
     final realm = Realm(config);
 
@@ -43,7 +50,7 @@ mixin IsolateHandler {
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
-        realmConfig(user, encryptionKey.toIntList(), dbPatch);
+        flexibleConfig(user, encryptionKey.toIntList(), dbPatch);
 
     realm?.close();
     realm = Realm(config);
@@ -53,7 +60,7 @@ mixin IsolateHandler {
     //log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
     // load all variants
     List<Variant> variants = realm!.query<Variant>(
-        r'ebmSynced == $0 && branchId == $1 LIMIT(5)',
+        r'ebmSynced == $0 && branchId == $1 LIMIT(1000)',
         [false, branchId]).toList();
     final talker = TalkerFlutter.init();
     List<Variant> gvariantIds = <Variant>[];
@@ -128,7 +135,7 @@ mixin IsolateHandler {
       }
     }
     List<Stock> stocks =
-        realm!.query<Stock>(r'branchId ==$0 LIMIT(5)', [branchId]).toList();
+        realm!.query<Stock>(r'branchId ==$0 LIMIT(1000)', [branchId]).toList();
 
     // // Fetching all variant ids from stocks
     List<int?> variantIds = stocks.map((stock) => stock.variantId).toList();
@@ -263,7 +270,7 @@ mixin IsolateHandler {
     }
   }
 
-  static FlexibleSyncConfiguration realmConfig(
+  static FlexibleSyncConfiguration flexibleConfig(
     User? user,
     List<int> encryptionKey,
     String dbPatch,
@@ -275,5 +282,108 @@ mixin IsolateHandler {
       path: dbPatch,
     );
     return config;
+  }
+
+  static LocalConfiguration localConfig(
+    List<int> encryptionKey,
+    String dbPatch,
+  ) {
+    final config = Configuration.local(
+      [
+        UserActivity.schema,
+        Business.schema,
+        Branch.schema,
+        Drawers.schema,
+        UnversalProduct.schema,
+      ],
+      encryptionKey: encryptionKey,
+      path: dbPatch,
+    );
+    return config;
+  }
+
+  static Future<void> localData(List<dynamic> args) async {
+    final dbPatch = args[3] as String;
+    String key = args[4] as String;
+    List<int> encryptionKey = key.toIntList();
+    int branchId = args[2] as int;
+    int businessId = args[7] as int;
+    LocalConfiguration config = localConfig(encryptionKey, dbPatch);
+
+    localRealm?.close();
+    localRealm = Realm(config);
+    final talker = TalkerFlutter.init();
+    List<UnversalProduct> codes = localRealm!
+        .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
+    if (codes.isEmpty) {
+      talker.warning("Codes empty");
+      fetchDataAndSaveUniversalProducts(businessId, branchId);
+    }
+  }
+
+  // Function to fetch data from the URL endpoint
+  static Future<void> fetchDataAndSaveUniversalProducts(
+      int businessId, int branchId) async {
+    final talker = TalkerFlutter.init();
+    try {
+      Business business =
+          localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
+
+      final url = EBMURL + "/itemClass/selectItemsClass";
+      final headers = {"Content-Type": "application/json"};
+      final body = jsonEncode({
+        "tin": business.tinNumber,
+        "bhfId": business.bhfId ?? "00",
+
+        ///TODO: change this date to a working date in production
+        "lastReqDt": "20190523000000",
+      });
+      talker.warning("Loading item codes");
+      final response =
+          await http.post(Uri.parse(url), headers: headers, body: body);
+      if (response.statusCode == 200) {
+        // Parse the JSON response
+        final jsonResponse = json.decode(response.body);
+
+        // Check if the response contains the data and itemClsList
+        if (jsonResponse['data'] != null &&
+            jsonResponse['data']['itemClsList'] != null) {
+          final List<dynamic> itemClsList = jsonResponse['data']['itemClsList'];
+
+          // Loop through the itemClsList and print the itemClsNm (name)
+          for (var item in itemClsList) {
+            final UniversalProduct product = UniversalProduct.fromJson(item);
+            UnversalProduct? uni = localRealm!.query<UnversalProduct>(
+                r'itemClsCd == $0', [product.itemClsCd]).firstOrNull;
+            if (uni == null) {
+              // talker.info("Now saving universal");
+              localRealm!.write(() {
+                localRealm!.add(
+                  UnversalProduct(
+                    ObjectId(),
+                    id: randomNumber(),
+                    itemClsCd: product.itemClsCd,
+                    itemClsLvl: product.itemClsLvl,
+                    itemClsNm: product.itemClsNm,
+                    branchId: branchId,
+                    businessId: businessId,
+                    useYn: product.useYn,
+                    mjrTgYn: product.mjrTgYn,
+                    taxTyCd: product.taxTyCd,
+                  ),
+                );
+              });
+            }
+          }
+        } else {
+          talker.warning('No data found in the response.');
+        }
+      } else {
+        talker.warning(
+            'Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      talker.warning('Error fetching data: $e');
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+String EBMURL = "http://localhost:8080/rra";
 void showSnackBar(BuildContext context, String message,
     {required Color textColor, required Color backgroundColor}) {
   ScaffoldMessenger.of(context).showSnackBar(
@@ -105,19 +106,19 @@ bool isWindows = UniversalPlatform.isWindows;
 bool isLinux = UniversalPlatform.isLinux;
 bool isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
 ButtonStyle primaryButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
     (states) => RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     ),
   ),
-  backgroundColor: MaterialStateProperty.all<Color>(Color(0xff006AFE)),
-  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.hovered)) {
+  backgroundColor: WidgetStateProperty.all<Color>(Color(0xff006AFE)),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.hovered)) {
         return Color(0xff006AFE);
       }
-      if (states.contains(MaterialState.focused) ||
-          states.contains(MaterialState.pressed)) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.pressed)) {
         return Color(0xff006AFE);
       }
       return null;
@@ -125,19 +126,19 @@ ButtonStyle primaryButtonStyle = ButtonStyle(
   ),
 );
 ButtonStyle secondaryButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
     (states) => RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(10.0),
     ),
   ),
-  backgroundColor: MaterialStateProperty.all<Color>(const Color(0xffF2F2F2)),
-  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.hovered)) {
+  backgroundColor: WidgetStateProperty.all<Color>(const Color(0xffF2F2F2)),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.hovered)) {
         return Colors.blue.withOpacity(0.04);
       }
-      if (states.contains(MaterialState.focused) ||
-          states.contains(MaterialState.pressed)) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.pressed)) {
         return Colors.blue.withOpacity(0.12);
       }
       return null; // Defer to the widget's default.
@@ -145,20 +146,20 @@ ButtonStyle secondaryButtonStyle = ButtonStyle(
   ),
 );
 ButtonStyle primary2ButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
         color: Color(0xFF98C3FE).withOpacity(0.8),
       )),
-  backgroundColor: MaterialStateProperty.all<Color>(
-      const Color(0xFF98C3FE).withOpacity(0.8)),
-  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.hovered)) {
+  backgroundColor:
+      WidgetStateProperty.all<Color>(const Color(0xFF98C3FE).withOpacity(0.8)),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.hovered)) {
         return Color(0xFF98C3FE).withOpacity(0.8);
       }
-      if (states.contains(MaterialState.focused) ||
-          states.contains(MaterialState.pressed)) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.pressed)) {
         return Color(0xFF98C3FE).withOpacity(0.8);
       }
       return null;
@@ -167,28 +168,28 @@ ButtonStyle primary2ButtonStyle = ButtonStyle(
 );
 
 ButtonStyle primary3ButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
         color: Color(0xFF98C3FE).withOpacity(0.8),
       )),
 );
 
 ButtonStyle primary4ButtonStyle = ButtonStyle(
-  shape: MaterialStateProperty.resolveWith<OutlinedBorder>((states) =>
+  shape: WidgetStateProperty.resolveWith<OutlinedBorder>((states) =>
       RoundedRectangleBorder(borderRadius: BorderRadius.circular(0))),
-  side: MaterialStateProperty.resolveWith<BorderSide>((states) => BorderSide(
+  side: WidgetStateProperty.resolveWith<BorderSide>((states) => BorderSide(
         color: Color(0xFF00FE38).withOpacity(0.8),
       )),
-  backgroundColor: MaterialStateProperty.all<Color>(
-      const Color(0xFF00FE38).withOpacity(0.8)),
-  overlayColor: MaterialStateProperty.resolveWith<Color?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.hovered)) {
+  backgroundColor:
+      WidgetStateProperty.all<Color>(const Color(0xFF00FE38).withOpacity(0.8)),
+  overlayColor: WidgetStateProperty.resolveWith<Color?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.hovered)) {
         return Color(0xFF00FE38).withOpacity(0.8);
       }
-      if (states.contains(MaterialState.focused) ||
-          states.contains(MaterialState.pressed)) {
+      if (states.contains(WidgetState.focused) ||
+          states.contains(WidgetState.pressed)) {
         return Color(0xFF00FE38).withOpacity(0.8);
       }
       return null;

@@ -18,6 +18,8 @@ import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
 import 'product_view.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class CheckOut extends StatefulHookConsumerWidget {
   CheckOut({
@@ -85,6 +87,12 @@ class CheckOutState extends ConsumerState<CheckOut>
       await TaxController(object: transaction).handleReceiptGeneration(
         transaction: transaction!,
         purchaseCode: purchaseCode,
+        handlePrint: (bytes) async {
+          talker.warning("I received data to print");
+          Printer? pri = await Printing.pickPrinter(context: context);
+          await Printing.directPrintPdf(
+              printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+        },
       );
       Navigator.of(context).pop();
     } catch (e) {
@@ -192,6 +200,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                   /// this is standard for non customer attached receipt
                   await TaxController(object: transaction)
                       .handleReceiptGeneration(
+                    handlePrint: (bytes) {},
                     transaction: transaction,
                   );
                   // Handle when the user doesn't need a digital receipt
