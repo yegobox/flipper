@@ -499,12 +499,14 @@ class CoreViewModel extends FlipperBaseModel
       {required String paymentType,
       required ITransaction transaction,
       required double amountReceived,
-      required double discount}) async {
+      required double discount,
+      bool directlyHandleReceipt = true}) async {
     await ProxyService.realm.collectPayment(
       cashReceived: amountReceived,
       transaction: transaction,
       paymentType: paymentType,
       discount: discount,
+      directlyHandleReceipt: directlyHandleReceipt,
     );
   }
 

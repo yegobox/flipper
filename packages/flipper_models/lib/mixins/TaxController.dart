@@ -19,8 +19,7 @@ class TaxController<OBJ> {
   OBJ? object;
 
   Future<void> handleReceipt(
-      {required Function(Uint8List bytes) handlePrint,
-
+      {
       /// This paramter is needed when we are printing a copy of the receipt without necessary telling
       /// RRA that this is a copy, this might be needed when completed transaction
       /// and for some reason you missed the print but the customer still stands while waiting for receipt
@@ -43,69 +42,21 @@ class TaxController<OBJ> {
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        await handleReceiptGeneration(
+        await printReceipt(
+          receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-          handlePrint: (Uint8List bytes) {
-            handlePrint(bytes);
-          },
         );
       } else if ((transaction.receiptType == TransactionReceptType.NR ||
               transaction.receiptType == TransactionReceptType.TS ||
               transaction.receiptType == TransactionReceptType.PS ||
               transaction.receiptType == TransactionReceptType.CS) &&
           transaction.status == COMPLETE) {
-        await handleReceiptGeneration(
+        await printReceipt(
+          receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-          handlePrint: (Uint8List bytes) {
-            handlePrint(bytes);
-          },
         );
-      }
-    }
-  }
-
-  /// Generates a receipt for the given transaction. Checks if tax is enabled, gets the
-  /// business and transaction items from the database, generates a signature, prints the
-  /// receipt, and handles any errors.
-  Future<void> handleReceiptGeneration(
-      {required ITransaction transaction,
-      String? purchaseCode,
-      bool skiGenerateRRAReceiptSignature = false,
-      required Function(Uint8List bytes) handlePrint}) async {
-    if (await ProxyService.realm.isTaxEnabled()) {
-      Business? business = await ProxyService.local.getBusiness();
-      List<TransactionItem> items =
-          await ProxyService.realm.getTransactionItemsByTransactionId(
-        transactionId: transaction.id,
-      );
-      // List<TransactionItem> items = await ProxyService.realm.transactionItemsFuture(
-      //   transactionId: transaction.id!,
-      //   doneWithTransaction: false,
-      //   active: true);
-
-      try {
-        if (!skiGenerateRRAReceiptSignature) {
-          await generateRRAReceiptSignature(
-            business: business,
-            transaction: transaction,
-            receiptType: transaction.receiptType!,
-            purchaseCode: purchaseCode,
-          );
-        }
-
-        return await printReceipt(
-            items: items,
-            business: business,
-            transaction: transaction,
-            receiptType: transaction.receiptType!,
-            handlePrint: (bytes) {
-              handlePrint(bytes);
-            });
-      } catch (e, s) {
-        talker.critical(s);
-        rethrow;
       }
     }
   }
@@ -129,13 +80,25 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<void> printReceipt({
-    required List<TransactionItem> items,
-    required Business business,
+  Future<Uint8List> printReceipt({
     required String receiptType,
     required ITransaction transaction,
-    required Function(Uint8List bytes) handlePrint,
+    String? purchaseCode,
+    bool skiGenerateRRAReceiptSignature = false,
   }) async {
+    if (!skiGenerateRRAReceiptSignature) {
+      await generateRRAReceiptSignature(
+        // business: business,
+        transaction: transaction,
+        receiptType: transaction.receiptType!,
+        purchaseCode: purchaseCode,
+      );
+    }
+    Business? business = await ProxyService.local.getBusiness();
+    List<TransactionItem> items =
+        await ProxyService.realm.getTransactionItemsByTransactionId(
+      transactionId: transaction.id,
+    );
     Receipt? receipt =
         await ProxyService.realm.getReceipt(transactionId: transaction.id!);
 
@@ -196,41 +159,42 @@ class TaxController<OBJ> {
 
     Print print = Print();
 
-    print.print(
-        grandTotal: transaction.subTotal,
-        totalTaxA: totalTaxA,
-        totalTaxB: totalTaxB,
-        totalTaxC: totalTaxC,
-        totalTaxD: totalTaxD,
-        currencySymbol: "RW",
-        transaction: transaction,
-        totalTax:
-            (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
-        items: items,
-        cash: transaction.subTotal,
-        received: transaction.cashReceived,
-        payMode: "Cash",
-        mrc: receipt!.mrcNo ?? "",
-        internalData: receipt.intrlData ?? "",
-        receiptQrCode: receipt.qrCode ?? "",
-        receiptSignature: receipt.rcptSign ?? "",
-        cashierName: business.name!,
-        sdcId: receipt.sdcId ?? "",
-        invoiceNum: receipt.invcNo!,
-        brandName: business.name!,
-        brandAddress: business.adrs ?? "Kigali,Rwanda",
-        brandTel: ProxyService.box.getUserPhone()!,
-        brandTIN: business.tinNumber.toString(),
-        brandDescription: business.name!,
-        brandFooter: business.name!,
-        emails: ['info@yegobox.com'],
-        customerTin: customer?.custTin ??
-            ProxyService.box.currentSaleCustomerPhoneNumber(),
-        receiptType: receiptType,
-        customerName: customer?.custNm ?? "N/A",
-        handlePrint: (bypes) {
-          return handlePrint(bypes);
-        });
+    return await print.print(
+      grandTotal: transaction.subTotal,
+      totalTaxA: totalTaxA,
+      totalTaxB: totalTaxB,
+      totalTaxC: totalTaxC,
+      totalTaxD: totalTaxD,
+      currencySymbol: "RW",
+      transaction: transaction,
+      totalTax:
+          (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
+      items: items,
+      cash: transaction.subTotal,
+      received: transaction.cashReceived,
+      payMode: "Cash",
+      mrc: receipt!.mrcNo ?? "",
+      internalData: receipt.intrlData ?? "",
+      receiptQrCode: receipt.qrCode ?? "",
+      receiptSignature: receipt.rcptSign ?? "",
+      cashierName: business.name!,
+      sdcId: receipt.sdcId ?? "",
+      invoiceNum: receipt.invcNo!,
+      rcptNo: receipt.rcptNo ?? 0,
+      totRcptNo: receipt.totRcptNo ?? 0,
+      brandName: business.name!,
+      brandAddress: business.adrs ?? "Kigali,Rwanda",
+      brandTel: ProxyService.box.getUserPhone()!,
+      brandTIN: business.tinNumber.toString(),
+      brandDescription: business.name!,
+      brandFooter: business.name!,
+      emails: ['info@yegobox.com'],
+      customerTin: customer?.custTin ??
+          ProxyService.box.currentSaleCustomerPhoneNumber(),
+      receiptType: receiptType,
+      customerName: customer?.custNm ?? "N/A",
+      handlePrint: (bytes) {},
+    );
   }
 
   /**
@@ -243,7 +207,6 @@ class TaxController<OBJ> {
    * @param transaction - The transaction object
   */
   Future<void> generateRRAReceiptSignature({
-    required Business business,
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,

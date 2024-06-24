@@ -94,8 +94,7 @@ class _RefundState extends State<Refund> {
             : TransactionReceptType.CS;
       });
 
-      await TaxController(object: widget.transaction)
-          .handleReceipt(handlePrint: (bytes) {});
+      await TaxController(object: widget.transaction).handleReceipt();
 
       setState(() {
         if (filterType == FilterType.CS) {

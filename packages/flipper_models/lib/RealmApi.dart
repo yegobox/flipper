@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:flipper_services/locator.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
@@ -363,7 +362,8 @@ class RealmAPI<M extends IJsonSerializable>
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType,
-      required double discount}) async {
+      required double discount,
+      bool directlyHandleReceipt = true}) async {
     List<TransactionItem> items = transactionItems(
         transactionId: transaction.id!,
         doneWithTransaction: false,
@@ -435,7 +435,9 @@ class RealmAPI<M extends IJsonSerializable>
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
     //NOTE: trigger EBM, now
-    TaxController(object: transaction).handleReceipt(handlePrint: (bytes) {});
+    // if (directlyHandleReceipt) {
+    TaxController(object: transaction).handleReceipt();
+    // }
   }
 
   @override

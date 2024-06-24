@@ -67,31 +67,43 @@ class SearchFieldState extends ConsumerState<SearchField> {
   }
 
   void _handleScanningMode(String value, CoreViewModel model) async {
-    ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
-    if (value.isNotEmpty) {
-      Variant? variant = await ProxyService.realm.variant(name: value);
-      if (variant != null && variant.id != null) {
-        Stock? stock = await ProxyService.realm
-            .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
-        ITransaction currentTransaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.sale);
 
-        await model.saveTransaction(
-          variation: variant,
-          amountTotal: variant.retailPrice,
-          customItem: false,
-          pendingTransaction: currentTransaction,
-          currentStock: stock!.currentStock,
-        );
-        final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.sale));
+    /// if the state is not true then we are not in search mode, we are in scan mode
+    /// this means that we can simply search and display item as user search
+    /// this is useful when a customer want to search item mabybe want to edit it while not in
+    /// selling mode.
+    if (!ref.read(toggleProvider.notifier).state) {
+      ref.read(searchStringProvider.notifier).emitString(value: '');
+      if (value.isNotEmpty) {
+        Variant? variant = await ProxyService.realm.variant(name: value);
+        if (variant != null && variant.id != null) {
+          Stock? stock = await ProxyService.realm
+              .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
+          ITransaction currentTransaction = await ProxyService.realm
+              .manageTransaction(transactionType: TransactionType.sale);
 
-        await Future.delayed(Duration(microseconds: 500));
-        ref.refresh(
-            transactionItemsProvider(pendingTransaction.value?.value?.id));
+          await model.saveTransaction(
+            variation: variant,
+            amountTotal: variant.retailPrice,
+            customItem: false,
+            pendingTransaction: currentTransaction,
+            currentStock: stock!.currentStock,
+          );
+          final pendingTransaction =
+              ref.watch(pendingTransactionProvider(TransactionType.sale));
+
+          await Future.delayed(Duration(microseconds: 500));
+          ref.refresh(
+              transactionItemsProvider(pendingTransaction.value?.value?.id));
+          await Future.delayed(Duration(microseconds: 500));
+          ref.refresh(
+              transactionItemsProvider(pendingTransaction.value?.value?.id));
+        }
       }
+    } else {
+      /// we do normal search of item
     }
   }
 
@@ -145,6 +157,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  toggleSearch(),
                   if (widget.showOrderButton) orderButton(orders),
                   if (widget.showIncomingButton) incomingButton(),
                   if (widget.showAddButton) addButton(),
@@ -161,14 +174,30 @@ class SearchFieldState extends ConsumerState<SearchField> {
   IconButton datePicker() {
     return IconButton(
       onPressed: _handleDateTimePicker,
-      icon: Icon(Icons.date_range, color: Colors.blue),
+      icon: Icon(Icons.date_range, color: Colors.grey),
     );
   }
 
   IconButton incomingButton() {
     return IconButton(
       onPressed: _handlePurchaseImport,
-      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.blue),
+      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.grey),
+    );
+  }
+
+  IconButton toggleSearch() {
+    return IconButton(
+      onPressed: () {
+        ref.read(toggleProvider.notifier).state =
+            !ref.read(toggleProvider.notifier).state;
+
+        if (!ref.read(toggleProvider)) {
+          ref.read(searchStringProvider.notifier).emitString(value: '');
+        }
+      },
+      icon: ref.watch(toggleProvider)
+          ? Icon(Icons.search, color: Colors.blue)
+          : Icon(Icons.search_off, color: Colors.grey),
     );
   }
 
@@ -198,15 +227,15 @@ class SearchFieldState extends ConsumerState<SearchField> {
       AsyncData(:final value) => badges.Badge(
           badgeContent: Text(value.length.toString(),
               style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
       AsyncError() => badges.Badge(
           badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
       _ => const badges.Badge(
           badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
     };
   }

@@ -507,3 +507,7 @@ class App {}
 // Try "amplify add api" to create a backend API and then "amplify push" to deploy everything
 /// https://myrratest.rra.gov.rw/app/ebm/trns/sales/indexTrnsSalesInvoice
 /// FLIPPER-17189
+/// https://momoapi.mtn.co.rw/  
+/// https://partner.mtn.co.rw/
+/// Username: YEGOBOX.SP
+/// JS Interop: https://www.youtube.com/watch?v=cTzmllsYiCI

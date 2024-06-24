@@ -18,8 +18,6 @@ import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
 import 'product_view.dart';
-import 'package:printing/printing.dart';
-import 'package:pdf/pdf.dart';
 
 class CheckOut extends StatefulHookConsumerWidget {
   CheckOut({
@@ -84,21 +82,21 @@ class CheckOutState extends ConsumerState<CheckOut>
   Future<void> handleReceiptGeneration(
       [String? purchaseCode, ITransaction? transaction]) async {
     try {
-      await TaxController(object: transaction).handleReceiptGeneration(
-        transaction: transaction!,
+      // TaxController(object: transaction).handleReceipt(handlePrint: (bytes) {});
+      final f = TaxController(object: transaction);
+      final bytes = await f.printReceipt(
+        receiptType: transaction!.receiptType!,
+        transaction: transaction,
         purchaseCode: purchaseCode,
-        handlePrint: (bytes) async {
-          talker.warning("I received data to print");
-          Printer? pri = await Printing.pickPrinter(context: context);
-          await Printing.directPrintPdf(
-              printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
-        },
+        skiGenerateRRAReceiptSignature: false,
       );
-      Navigator.of(context).pop();
+      talker.warning("received bytes $bytes");
+      // Navigator.of(context).pop();
     } catch (e) {
-      setState(() => _busy = false);
-      showSnackBar(context, e.toString().split(': ').last,
-          textColor: Colors.white, backgroundColor: Colors.green);
+      talker.error(e);
+      // setState(() => _busy = false);
+      // showSnackBar(context, e.toString().split(': ').last,
+      //     textColor: Colors.white, backgroundColor: Colors.green);
     }
   }
 
@@ -113,11 +111,14 @@ class CheckOutState extends ConsumerState<CheckOut>
     // Parse discount ONLY if _discount.text is NOT empty
 
     await model.collectPayment(
-        paymentType: paymentType,
-        transaction: transaction,
-        amountReceived: amount,
-        discount: discount);
+      paymentType: paymentType,
+      transaction: transaction,
+      amountReceived: amount,
+      discount: discount,
+      directlyHandleReceipt: false,
+    );
 
+    /// now handle the receipt now!. manually
     await handleReceiptGeneration();
 
     if (transaction.customerId != null) {
@@ -185,9 +186,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                         errorMessage = errorMessage.substring(startIndex + 2);
                       }
                       // toast(errorMessage);
-                      showSnackBar(context, errorMessage,
-                          textColor: Colors.white,
-                          backgroundColor: Colors.green);
+                      // showSnackBar(context, errorMessage,
+                      //     textColor: Colors.white,
+                      //     backgroundColor: Colors.green);
                       return;
                     }
                   }
@@ -198,9 +199,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
-                  await TaxController(object: transaction)
-                      .handleReceiptGeneration(
-                    handlePrint: (bytes) {},
+                  await TaxController(object: transaction).printReceipt(
+                    receiptType: transaction.receiptType!,
                     transaction: transaction,
                   );
                   // Handle when the user doesn't need a digital receipt
@@ -241,8 +241,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                               padding: const EdgeInsets.all(8.0),
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
-                                  bool isLargeScreen =
-                                      constraints.maxWidth > 600;
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: IconRow(),
@@ -274,9 +272,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 nodeDisabled: true,
                                 completeTransaction: () {
                                   if (_formKey.currentState!.validate()) {
-                                    ref.read(isLoadingProvider.notifier).state =
+                                    ref.read(loadingProvider.notifier).state =
                                         true;
-                                    ref.refresh(isLoadingProvider.notifier);
+                                    ref.refresh(loadingProvider.notifier);
 
                                     confirmPayment(
                                       amount: double.tryParse(
@@ -295,9 +293,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                                           .value!,
                                     );
                                     receivedAmountController.clear();
-                                    ref.read(isLoadingProvider.notifier).state =
+                                    ref.read(loadingProvider.notifier).state =
                                         false;
-                                    ref.refresh(isLoadingProvider.notifier);
+                                    ref.refresh(loadingProvider.notifier);
                                     showSnackBar(
                                         context, "Transaction completed",
                                         textColor: Colors.white,

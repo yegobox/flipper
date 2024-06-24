@@ -124,11 +124,13 @@ abstract class RealmApiInterface {
       {DateTime? startDate, DateTime? endDate});
   Future<Variant?> getCustomVariant();
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  Future<void> collectPayment(
-      {required double cashReceived,
-      required ITransaction transaction,
-      required String paymentType,
-      required double discount});
+  Future<void> collectPayment({
+    required double cashReceived,
+    required ITransaction transaction,
+    required String paymentType,
+    required double discount,
+    bool directlyHandleReceipt = false,
+  });
 
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});

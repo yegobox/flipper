@@ -336,7 +336,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                             ),
                             border: OutlineInputBorder(),
                           ),
-                          onChanged: (value) => null,
+                          onChanged: (value) => ProxyService.box.writeString(
+                              key: 'currentSaleCustomerPhoneNumber',
+                              value: value),
                           validator: (String? value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter a phone number';

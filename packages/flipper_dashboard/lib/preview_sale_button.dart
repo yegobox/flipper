@@ -63,7 +63,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(isLoadingProvider);
+    final isLoading = ref.watch(loadingProvider);
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
