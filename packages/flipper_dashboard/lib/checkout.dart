@@ -84,13 +84,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     try {
       // TaxController(object: transaction).handleReceipt(handlePrint: (bytes) {});
       final f = TaxController(object: transaction);
-      final bytes = await f.printReceipt(
+      await f.printReceipt(
         receiptType: transaction!.receiptType!,
         transaction: transaction,
         purchaseCode: purchaseCode,
         skiGenerateRRAReceiptSignature: false,
       );
-      talker.warning("received bytes $bytes");
+      //talker.warning("received bytes $bytes");
       // Navigator.of(context).pop();
     } catch (e) {
       talker.error(e);

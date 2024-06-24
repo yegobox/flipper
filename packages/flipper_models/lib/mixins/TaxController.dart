@@ -80,7 +80,7 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<Uint8List> printReceipt({
+  Future<void> printReceipt({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
@@ -159,7 +159,7 @@ class TaxController<OBJ> {
 
     Print print = Print();
 
-    return await print.print(
+    await print.print(
       grandTotal: transaction.subTotal,
       totalTaxA: totalTaxA,
       totalTaxB: totalTaxB,
