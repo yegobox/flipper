@@ -193,7 +193,6 @@ class TaxController<OBJ> {
           ProxyService.box.currentSaleCustomerPhoneNumber(),
       receiptType: receiptType,
       customerName: customer?.custNm ?? "N/A",
-      handlePrint: (bytes) {},
     );
   }
 
