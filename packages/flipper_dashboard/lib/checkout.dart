@@ -82,7 +82,6 @@ class CheckOutState extends ConsumerState<CheckOut>
   Future<void> handleReceiptGeneration(
       [String? purchaseCode, ITransaction? transaction]) async {
     try {
-      // TaxController(object: transaction).handleReceipt(handlePrint: (bytes) {});
       final f = TaxController(object: transaction);
       await f.printReceipt(
         receiptType: transaction!.receiptType!,
