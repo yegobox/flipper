@@ -125,6 +125,7 @@ dependencies:
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.12.0
+  sane_uuid: 1.0.0-alpha.5
   # realm_dart: 2.1.0
   # realm_generator: 2.1.0
   # realm_common: 2.1.0
