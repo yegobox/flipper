@@ -71,7 +71,7 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, '[run integration tests windows ]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, '[run integration tests windows]')
     runs-on: windows-2022
     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
