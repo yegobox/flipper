@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/constants.dart';
@@ -94,7 +96,8 @@ class _RefundState extends State<Refund> {
             : TransactionReceptType.CS;
       });
 
-      await TaxController(object: widget.transaction).handleReceipt();
+      await TaxController(object: widget.transaction)
+          .handleReceipt(printCallback: (Uint8List bytes) {});
 
       setState(() {
         if (filterType == FilterType.CS) {

@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:typed_data';
+
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/favorites.dart';
@@ -18,6 +20,8 @@ import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
 import 'product_view.dart';
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class CheckOut extends StatefulHookConsumerWidget {
   CheckOut({
@@ -80,22 +84,25 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Future<void> handleReceiptGeneration(
-      [String? purchaseCode, ITransaction? transaction]) async {
+      {String? purchaseCode, ITransaction? transaction}) async {
     try {
-      final f = TaxController(object: transaction);
-      await f.printReceipt(
-        receiptType: transaction!.receiptType!,
-        transaction: transaction,
-        purchaseCode: purchaseCode,
-        skiGenerateRRAReceiptSignature: false,
+      ITransaction? trans =
+          await ProxyService.realm.getTransactionById(id: transaction!.id!);
+      TaxController(object: trans).handleReceipt(
+        printCallback: (Uint8List bytes) async {
+          // talker.warning("received bytes $bytes");
+          final printers = await Printing.listPrinters();
+          if (printers.isNotEmpty) {
+            Printer? pri = await Printing.pickPrinter(
+                context: context, title: "List of printers");
+
+            await Printing.directPrintPdf(
+                printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+          }
+        },
       );
-      //talker.warning("received bytes $bytes");
-      // Navigator.of(context).pop();
     } catch (e) {
       talker.error(e);
-      // setState(() => _busy = false);
-      // showSnackBar(context, e.toString().split(': ').last,
-      //     textColor: Colors.white, backgroundColor: Colors.green);
     }
   }
 
@@ -109,7 +116,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     // Parse discount ONLY if _discount.text is NOT empty
 
-    await model.collectPayment(
+    ITransaction trans = await model.collectPayment(
       paymentType: paymentType,
       transaction: transaction,
       amountReceived: amount,
@@ -118,7 +125,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
 
     /// now handle the receipt now!. manually
-    await handleReceiptGeneration();
+    await handleReceiptGeneration(transaction: trans);
 
     if (transaction.customerId != null) {
       showDialog(
@@ -173,7 +180,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                     String purchaseCode = _purchasecodecontroller.text;
                     talker.warning("received purchase code: ${purchaseCode}");
                     try {
-                      await handleReceiptGeneration(purchaseCode);
+                      await handleReceiptGeneration(purchaseCode: purchaseCode);
                       Navigator.of(context).pop();
                     } catch (e) {
                       setState(() {
@@ -201,6 +208,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                   await TaxController(object: transaction).printReceipt(
                     receiptType: transaction.receiptType!,
                     transaction: transaction,
+                    printCallback: (Uint8List bytes) {},
                   );
                   // Handle when the user doesn't need a digital receipt
                   Navigator.of(context).pop();

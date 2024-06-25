@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -117,6 +119,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
         receiptType: widget.transaction.receiptType!,
         transaction: widget.transaction,
         purchaseCode: purchaseCode,
+        printCallback: (Uint8List bytes) {},
       );
       Navigator.of(context).pop();
     } catch (e) {
@@ -182,8 +185,9 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                     currentTransactionWatched.asData?.value.first;
                 if (transaction?.ebmSynced ?? false) {
                   await TaxController(object: transaction).handleReceipt(
-                      skiGenerateRRAReceiptSignature: true,
-                     );
+                    skiGenerateRRAReceiptSignature: true,
+                    printCallback: (Uint8List bytes) {},
+                  );
                 } else {
                   toast("Please wait we are generating the receipt");
                 }

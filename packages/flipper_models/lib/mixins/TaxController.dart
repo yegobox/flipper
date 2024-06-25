@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:typed_data';
-
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -23,6 +22,7 @@ class TaxController<OBJ> {
       /// This paramter is needed when we are printing a copy of the receipt without necessary telling
       /// RRA that this is a copy, this might be needed when completed transaction
       /// and for some reason you missed the print but the customer still stands while waiting for receipt
+      required Function(Uint8List bytes) printCallback,
       bool skiGenerateRRAReceiptSignature = false}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
@@ -46,6 +46,9 @@ class TaxController<OBJ> {
           receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          printCallback: (bytes) {
+            printCallback(bytes);
+          },
         );
       } else if ((transaction.receiptType == TransactionReceptType.NR ||
               transaction.receiptType == TransactionReceptType.TS ||
@@ -56,6 +59,9 @@ class TaxController<OBJ> {
           receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          printCallback: (bytes) {
+            printCallback(bytes);
+          },
         );
       }
     }
@@ -85,6 +91,7 @@ class TaxController<OBJ> {
     required ITransaction transaction,
     String? purchaseCode,
     bool skiGenerateRRAReceiptSignature = false,
+    required Function(Uint8List bytes) printCallback,
   }) async {
     if (!skiGenerateRRAReceiptSignature) {
       await generateRRAReceiptSignature(
@@ -193,6 +200,9 @@ class TaxController<OBJ> {
           ProxyService.box.currentSaleCustomerPhoneNumber(),
       receiptType: receiptType,
       customerName: customer?.custNm ?? "N/A",
+      printCallback: (Uint8List bytes) {
+        printCallback(bytes);
+      },
     );
   }
 

@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -493,6 +494,7 @@ class PaymentsState extends ConsumerState<Payments> {
         receiptType: widget.transaction.receiptType!,
         transaction: widget.transaction,
         purchaseCode: purchaseCode,
+        printCallback: (Uint8List bytes) {},
       );
       Navigator.of(context).pop();
     } catch (e) {
@@ -599,6 +601,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   await TaxController(object: widget.transaction).printReceipt(
                     receiptType: widget.transaction.receiptType!,
                     transaction: widget.transaction,
+                    printCallback: (Uint8List bytes) {},
                   );
                   // Handle when the user doesn't need a digital receipt
                   Navigator.of(context).pop();
