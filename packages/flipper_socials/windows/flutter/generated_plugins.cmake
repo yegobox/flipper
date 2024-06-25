@@ -3,20 +3,21 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  battery_plus
-  cloud_firestore
+  amplify_db_common
   connectivity_plus
   desktop_webview_auth
+  device_type
   file_selector_windows
   firebase_auth
   firebase_core
+  firebase_storage
   flutter_window_close
   geolocator_windows
-  isar_flutter_libs
   local_auth_windows
   local_notifier
   permission_handler_windows
   printing
+  realm
   screen_retriever
   sentry_flutter
   share_plus

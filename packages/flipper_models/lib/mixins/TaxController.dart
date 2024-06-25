@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';

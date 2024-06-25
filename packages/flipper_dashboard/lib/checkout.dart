@@ -1,6 +1,6 @@
 // ignore_for_file: unused_result
 
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
