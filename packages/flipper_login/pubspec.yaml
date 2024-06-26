@@ -54,7 +54,7 @@ dependencies:
 dependency_overrides:
   http: ^1.2.1
   meta: ^1.11.0
-  sane_uuid: 1.0.0-alpha.5
+  
 flutter:
   assets:
     - assets/
