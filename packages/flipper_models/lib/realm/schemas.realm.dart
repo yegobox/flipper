@@ -2835,6 +2835,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     DateTime? deletedAt,
     String? spplrNm,
     bool? isComposite = false,
+    Iterable<Composite> composites = const [],
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Product>({
@@ -2867,6 +2868,8 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
     RealmObjectBase.set(this, 'spplrNm', spplrNm);
     RealmObjectBase.set(this, 'isComposite', isComposite);
+    RealmObjectBase.set<RealmList<Composite>>(
+        this, 'composites', RealmList<Composite>(composites));
   }
 
   Product._();
@@ -3006,6 +3009,14 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'isComposite', value);
 
   @override
+  RealmList<Composite> get composites =>
+      RealmObjectBase.get<Composite>(this, 'composites')
+          as RealmList<Composite>;
+  @override
+  set composites(covariant RealmList<Composite> value) =>
+      throw RealmUnsupportedSetError();
+
+  @override
   Stream<RealmObjectChanges<Product>> get changes =>
       RealmObjectBase.getChanges<Product>(this);
 
@@ -3041,6 +3052,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       'deletedAt': deletedAt.toEJson(),
       'spplrNm': spplrNm.toEJson(),
       'isComposite': isComposite.toEJson(),
+      'composites': composites.toEJson(),
     };
   }
 
@@ -3071,6 +3083,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
         'deletedAt': EJsonValue deletedAt,
         'spplrNm': EJsonValue spplrNm,
         'isComposite': EJsonValue isComposite,
+        'composites': EJsonValue composites,
       } =>
         Product(
           fromEJson(realmId),
@@ -3096,6 +3109,7 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
           deletedAt: fromEJson(deletedAt),
           spplrNm: fromEJson(spplrNm),
           isComposite: fromEJson(isComposite),
+          composites: fromEJson(composites),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -3130,6 +3144,8 @@ class Product extends _Product with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
       SchemaProperty('spplrNm', RealmPropertyType.string, optional: true),
       SchemaProperty('isComposite', RealmPropertyType.bool, optional: true),
+      SchemaProperty('composites', RealmPropertyType.object,
+          linkTarget: 'Composite', collectionType: RealmCollectionType.list),
     ]);
   }();
 
@@ -7371,6 +7387,8 @@ class Composite extends _Composite
     int? productId,
     int? variantId,
     int? quantity = 1,
+    int? branchId,
+    int? businessId,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Composite>({
@@ -7382,6 +7400,8 @@ class Composite extends _Composite
     RealmObjectBase.set(this, 'productId', productId);
     RealmObjectBase.set(this, 'variantId', variantId);
     RealmObjectBase.set(this, 'quantity', quantity);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
   }
 
   Composite._();
@@ -7413,6 +7433,16 @@ class Composite extends _Composite
   set quantity(int? value) => RealmObjectBase.set(this, 'quantity', value);
 
   @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
   Stream<RealmObjectChanges<Composite>> get changes =>
       RealmObjectBase.getChanges<Composite>(this);
 
@@ -7430,6 +7460,8 @@ class Composite extends _Composite
       'productId': productId.toEJson(),
       'variantId': variantId.toEJson(),
       'quantity': quantity.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
     };
   }
 
@@ -7442,6 +7474,8 @@ class Composite extends _Composite
         'productId': EJsonValue productId,
         'variantId': EJsonValue variantId,
         'quantity': EJsonValue quantity,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
       } =>
         Composite(
           fromEJson(realmId),
@@ -7449,6 +7483,8 @@ class Composite extends _Composite
           productId: fromEJson(productId),
           variantId: fromEJson(variantId),
           quantity: fromEJson(quantity),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7464,6 +7500,117 @@ class Composite extends _Composite
       SchemaProperty('productId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
       SchemaProperty('quantity', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  SKU(
+    ObjectId realmId, {
+    int? id,
+    int? sku = 1000,
+    int? branchId,
+    int? businessId,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<SKU>({
+        'sku': 1000,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'sku', sku);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+  }
+
+  SKU._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get sku => RealmObjectBase.get<int>(this, 'sku') as int?;
+  @override
+  set sku(int? value) => RealmObjectBase.set(this, 'sku', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  Stream<RealmObjectChanges<SKU>> get changes =>
+      RealmObjectBase.getChanges<SKU>(this);
+
+  @override
+  Stream<RealmObjectChanges<SKU>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<SKU>(this, keyPaths);
+
+  @override
+  SKU freeze() => RealmObjectBase.freezeObject<SKU>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'sku': sku.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(SKU value) => value.toEJson();
+  static SKU _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'sku': EJsonValue sku,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+      } =>
+        SKU(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          sku: fromEJson(sku),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(SKU._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, SKU, 'SKU', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('sku', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
     ]);
   }();
 

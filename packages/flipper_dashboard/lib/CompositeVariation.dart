@@ -8,8 +8,15 @@ class VVariant {
   final String productName;
   final String? name;
   final double retailPrice;
+  final int id;
+  final int productId;
 
-  VVariant({required this.productName, this.name, required this.retailPrice});
+  VVariant(
+      {required this.productName,
+      this.name,
+      required this.retailPrice,
+      required this.id,
+      required this.productId});
 }
 
 class VariantState {
@@ -63,16 +70,18 @@ final selectedVariantsLocalProvider =
       .map((e) => VVariant(
           productName: e.productName ?? "",
           name: e.name,
+          id: e.id!,
+          productId: e.productId!,
           retailPrice: e.retailPrice))
       .toList();
   return VariantNotifier(variants);
 });
 
-class SelectedVariant extends StatefulHookConsumerWidget {
+class CompositeVariation extends StatefulHookConsumerWidget {
   final EdgeInsets padding;
   final TextEditingController supplyPriceController;
 
-  SelectedVariant({
+  CompositeVariation({
     Key? key,
     this.padding = const EdgeInsets.all(16.0),
     required this.supplyPriceController,
@@ -82,7 +91,7 @@ class SelectedVariant extends StatefulHookConsumerWidget {
   _SearchVariantState createState() => _SearchVariantState();
 }
 
-class _SearchVariantState extends ConsumerState<SelectedVariant> {
+class _SearchVariantState extends ConsumerState<CompositeVariation> {
   double totalCost = 0.0;
 
   @override

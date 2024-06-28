@@ -115,10 +115,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction).printReceipt(
-        receiptType: widget.transaction.receiptType!,
-        transaction: widget.transaction,
-        purchaseCode: purchaseCode,
+      await TaxController(object: widget.transaction).handleReceipt(
         printCallback: (Uint8List bytes) {},
       );
       Navigator.of(context).pop();

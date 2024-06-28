@@ -357,6 +357,8 @@ class _Product {
   bool searchMatch = false;
   String? spplrNm;
   bool? isComposite = false;
+
+  List<_Composite> composites = [];
 }
 
 @RealmModel()
@@ -900,4 +902,18 @@ class _Composite {
   int? productId;
   int? variantId;
   int? quantity = 1;
+  int? branchId;
+  int? businessId;
+}
+
+@RealmModel()
+class _SKU {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? sku = 1000;
+  int? branchId;
+  int? businessId;
 }

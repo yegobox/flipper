@@ -490,10 +490,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
   Future<void> handleReceiptGeneration([String? purchaseCode]) async {
     try {
-      await TaxController(object: widget.transaction).printReceipt(
-        receiptType: widget.transaction.receiptType!,
-        transaction: widget.transaction,
-        purchaseCode: purchaseCode,
+      await TaxController(object: widget.transaction).handleReceipt(
         printCallback: (Uint8List bytes) {},
       );
       Navigator.of(context).pop();
@@ -598,9 +595,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
-                  await TaxController(object: widget.transaction).printReceipt(
-                    receiptType: widget.transaction.receiptType!,
-                    transaction: widget.transaction,
+                  await TaxController(object: widget.transaction).handleReceipt(
                     printCallback: (Uint8List bytes) {},
                   );
                   // Handle when the user doesn't need a digital receipt

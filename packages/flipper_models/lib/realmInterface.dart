@@ -4,12 +4,11 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
-
-import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 
 extension StringToIntList on String? {
   List<int> toIntList() {
@@ -382,4 +381,7 @@ abstract class RealmApiInterface {
   Future<void> amplifyLogout();
   List<Product> getProducts({String? key});
   List<Variant> getVariants({String? key});
+
+  void saveComposite({required Composite composite});
+  Stream<SKU?> sku({required int branchId});
 }

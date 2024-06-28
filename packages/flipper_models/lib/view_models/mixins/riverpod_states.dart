@@ -635,6 +635,11 @@ final universalProductsNames =
   }
 });
 
+final skuProvider =
+    StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
+  return ProxyService.realm.sku(branchId: branchId);
+});
+
 // State provider for managing loading state
 final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);

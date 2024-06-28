@@ -23,7 +23,8 @@ class TaxController<OBJ> {
       /// RRA that this is a copy, this might be needed when completed transaction
       /// and for some reason you missed the print but the customer still stands while waiting for receipt
       required Function(Uint8List bytes) printCallback,
-      bool skiGenerateRRAReceiptSignature = false}) async {
+      bool skiGenerateRRAReceiptSignature = false,
+      String? purchaseCode}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
@@ -42,9 +43,10 @@ class TaxController<OBJ> {
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        await printReceipt(
+        await _printReceipt(
           receiptType: transaction.receiptType!,
           transaction: transaction,
+          purchaseCode: purchaseCode,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
           printCallback: (bytes) {
             printCallback(bytes);
@@ -55,7 +57,8 @@ class TaxController<OBJ> {
               transaction.receiptType == TransactionReceptType.PS ||
               transaction.receiptType == TransactionReceptType.CS) &&
           transaction.status == COMPLETE) {
-        await printReceipt(
+        await _printReceipt(
+          purchaseCode: purchaseCode,
           receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
@@ -86,7 +89,7 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<void> printReceipt({
+  Future<void> _printReceipt({
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,

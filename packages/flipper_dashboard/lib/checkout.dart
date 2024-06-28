@@ -89,6 +89,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       ITransaction? trans =
           await ProxyService.realm.getTransactionById(id: transaction!.id!);
       TaxController(object: trans).handleReceipt(
+        purchaseCode: purchaseCode,
         printCallback: (Uint8List bytes) async {
           // talker.warning("received bytes $bytes");
           final printers = await Printing.listPrinters();
@@ -205,9 +206,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                 onPressed: () async {
                   /// still print the purchase code without the customer information!
                   /// this is standard for non customer attached receipt
-                  await TaxController(object: transaction).printReceipt(
-                    receiptType: transaction.receiptType!,
-                    transaction: transaction,
+                  await TaxController(object: transaction).handleReceipt(
                     printCallback: (Uint8List bytes) {},
                   );
                   // Handle when the user doesn't need a digital receipt

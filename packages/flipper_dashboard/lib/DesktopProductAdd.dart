@@ -3,8 +3,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flipper_dashboard/FieldCompositeActivated.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
-import 'package:flipper_dashboard/SelectedVariant.dart';
+import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
@@ -18,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class QuantityCell extends StatelessWidget {
@@ -120,9 +122,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   TextEditingController retailPriceController = TextEditingController();
   TextEditingController supplyPriceController = TextEditingController();
   TextEditingController scannedInputController = TextEditingController();
+  TextEditingController barCodeController = TextEditingController();
+  TextEditingController skuController = TextEditingController();
   FocusNode scannedInputFocusNode = FocusNode();
   Timer? _inputTimer;
   final _formKey = GlobalKey<FormState>();
+  final _fieldComposite = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -502,6 +507,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                       ? TableVariants(model, context)
                       : SizedBox.shrink(),
                   ref.watch(isCompositeProvider)
+                      ? Fieldcompositeactivated(
+                          formKey: _fieldComposite,
+                          skuController: skuController,
+                          barCodeController: barCodeController,
+                        )
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
                       ? SearchProduct()
                       : SizedBox.shrink(),
                   ref.watch(isCompositeProvider)
@@ -511,7 +523,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         )
                       : SizedBox.shrink(),
                   ref.watch(isCompositeProvider)
-                      ? SelectedVariant(
+                      ? CompositeVariation(
                           supplyPriceController: supplyPriceController)
                       : SizedBox.shrink(),
                 ],
@@ -578,11 +590,45 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                         )),
                     SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: () => _onSaveButtonPressed(
-                        productModel,
-                        context,
-                        productRef!,
-                      ),
+                      onPressed: () {
+                        /// form is validated and we are not dealing with composite product
+                        if (_formKey.currentState!.validate() &&
+                            !ref.watch(isCompositeProvider)) {
+                          _onSaveButtonPressed(
+                            productModel,
+                            context,
+                            productRef!,
+                          );
+                        } else if (_fieldComposite.currentState!.validate()) {
+                          /// we are now officially dealing with composite product
+                          talker.warning(
+                              "we are dealing with composite product now handle down here");
+
+                          /// Steps
+                          /// 1. Get a list of components of this product
+                          /// 2. save them in a maped model that map the created with other composite variant
+                          /// 3. Validate the user also gave bar code to use while seraching for this composite's variant
+                          ///
+                          List<VariantState> partOfComposite =
+                              ref.watch(selectedVariantsLocalProvider);
+                          for (var i = 0; i <= partOfComposite.length; i++) {
+                            partOfComposite[i].variant.id;
+
+                            /// now save each
+                            ProxyService.realm.saveComposite(
+                              composite: Composite(ObjectId(),
+                                  businessId: ProxyService.box.getBusinessId(),
+                                  branchId: ProxyService.box.getBranchId(),
+                                  variantId: partOfComposite[i].variant.id),
+                            );
+                          }
+
+                          /// because this product has no variant attached
+                          // final productRef = ref.watch(productProvider);
+
+                          /// at the end then save the product with the composite attached.
+                        }
+                      },
                       child: const Text('Save'),
                     ),
                     SizedBox(width: 10),
@@ -777,6 +823,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         textInputAction: TextInputAction.next,
         controller: retailPriceController,
         onChanged: (value) => model.setRetailPrice(price: value),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Price is required';
+          }
+
+          // Use tryParse to check if the value can be converted to a double
+          if (double.tryParse(value) == null) {
+            return 'Wrong value given';
+          }
+
+          return null; // Validation passed
+        },
         decoration: InputDecoration(
           labelText: 'Price',
           border: OutlineInputBorder(
