@@ -2,6 +2,8 @@
 
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
+import 'package:flipper_dashboard/keypad_view.dart';
+import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -158,6 +160,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   toggleSearch(),
+                  calc(model: model),
                   if (widget.showOrderButton) orderButton(orders),
                   if (widget.showIncomingButton) incomingButton(),
                   if (widget.showAddButton) addButton(),
@@ -175,6 +178,13 @@ class SearchFieldState extends ConsumerState<SearchField> {
     return IconButton(
       onPressed: _handleDateTimePicker,
       icon: Icon(Icons.date_range, color: Colors.grey),
+    );
+  }
+
+  IconButton calc({required CoreViewModel model}) {
+    return IconButton(
+      onPressed: () => _handleShowingCustomAmountCalculator(model: model),
+      icon: Icon(Icons.calculate_outlined, color: Colors.grey),
     );
   }
 
@@ -260,6 +270,41 @@ class SearchFieldState extends ConsumerState<SearchField> {
         child: _getDeviceType(context) == "Phone"
             ? SizedBox.shrink()
             : ImportPurchasePage(),
+      ),
+    );
+  }
+
+  void _handleShowingCustomAmountCalculator({required CoreViewModel model}) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 400, // Adjust this value as needed
+            maxHeight: MediaQuery.of(context).size.height *
+                0.8, // 80% of screen height
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity, // Ensure full width
+                    height: 800,
+                    child: KeyPadView(
+                      isBigScreen: true,
+                      model: model,
+                      accountingMode: false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -640,6 +640,30 @@ final skuProvider =
   return ProxyService.realm.sku(branchId: branchId);
 });
 
+final keypadProvider = StateNotifierProvider<KeypadNotifier, String>((ref) {
+  return KeypadNotifier();
+});
+
+class KeypadNotifier extends StateNotifier<String> {
+  KeypadNotifier() : super("0.00");
+
+  void addKey(String key) {
+    state = state == "0.00" ? key : "$state$key";
+  }
+
+  void pop() {
+    if (state.length > 2) {
+      state = state.substring(0, state.length - 1);
+    } else {
+      state = "0.00";
+    }
+  }
+
+  void reset() {
+    state = "0.00"; // Directly set the state to "0.00"
+  }
+}
+
 // State provider for managing loading state
 final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);

@@ -41,9 +41,7 @@ class FieldcompositeactivatedState
     // Set initial value for the barCodeController
     if (initialSku != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // if (widget.barCodeController.text.isEmpty) {
         widget.skuController.text = initialSku.sku.toString();
-        // }
       });
     }
 
@@ -58,10 +56,31 @@ class FieldcompositeactivatedState
               child: TextFormField(
                 controller: widget.skuController,
                 keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null) {
+                    return "SKU is required or identifier";
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   labelText: 'SKU',
+                  labelStyle: const TextStyle(
+                    // Add labelStyle
+                    color: Colors.black,
+                  ),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).colorScheme.error),
+                  ),
+                  // When in error state and focused
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               ),
             ),
@@ -70,10 +89,31 @@ class FieldcompositeactivatedState
               flex: 2,
               child: TextFormField(
                 controller: widget.barCodeController,
+                validator: (value) {
+                  if (value == null) {
+                    return "Bar code is required or identifier";
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   labelText: 'Bar Code',
+                  labelStyle: const TextStyle(
+                    // Add labelStyle
+                    color: Colors.black,
+                  ),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).colorScheme.error),
+                  ),
+                  // When in error state and focused
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).colorScheme.error),
+                  ),
                 ),
               ),
             ),

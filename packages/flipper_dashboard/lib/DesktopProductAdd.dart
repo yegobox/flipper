@@ -611,16 +611,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           ///
                           List<VariantState> partOfComposite =
                               ref.watch(selectedVariantsLocalProvider);
-                          for (var i = 0; i <= partOfComposite.length; i++) {
+                          for (var i = 0; i < partOfComposite.length; i++) {
                             partOfComposite[i].variant.id;
+                            talker.warning(
+                                "This is the variant on composite${partOfComposite[i].variant.id}");
 
                             /// now save each
-                            ProxyService.realm.saveComposite(
-                              composite: Composite(ObjectId(),
-                                  businessId: ProxyService.box.getBusinessId(),
-                                  branchId: ProxyService.box.getBranchId(),
-                                  variantId: partOfComposite[i].variant.id),
-                            );
+                            // ProxyService.realm.saveComposite(
+                            //   composite: Composite(ObjectId(),
+                            //       businessId: ProxyService.box.getBusinessId(),
+                            //       branchId: ProxyService.box.getBranchId(),
+                            //       variantId: partOfComposite[i].variant.id),
+                            // );
                           }
 
                           /// because this product has no variant attached
@@ -716,10 +718,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         },
         decoration: InputDecoration(
           labelText: 'Product Name',
+          labelStyle: const TextStyle(
+            // Add labelStyle
+            color: Colors.black,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          // When in error state
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
+          // When in error state and focused
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
         ),
       ),
     );

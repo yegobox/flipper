@@ -270,11 +270,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Discount',
+                            labelStyle: const TextStyle(
+                              // Add labelStyle
+                              color: Colors.black,
+                            ),
                             suffixIcon: Icon(
                               FluentIcons.shopping_bag_percent_24_regular,
                               color: Colors.blue,
                             ),
                             border: OutlineInputBorder(),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
+                            // When in error state and focused
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
                           ),
                           onChanged: (value) => null,
                           validator: (String? value) {
@@ -297,11 +312,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Received Amount',
+                            labelStyle: const TextStyle(
+                              // Add labelStyle
+                              color: Colors.black,
+                            ),
                             suffixIcon: Icon(
                               FeatherIcons.dollarSign,
                               color: Colors.blue,
                             ),
                             border: OutlineInputBorder(),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
+                            // When in error state and focused
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
                           ),
                           onChanged: (value) => null,
                           validator: (String? value) {
@@ -330,11 +360,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: 'Customer Phone number',
+                            labelStyle: const TextStyle(
+                              // Add labelStyle
+                              color: Colors.black,
+                            ),
                             suffixIcon: Icon(
                               FluentIcons.call_20_regular,
                               color: Colors.blue,
                             ),
                             border: OutlineInputBorder(),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
+                            // When in error state and focused
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.error),
+                            ),
                           ),
                           onChanged: (value) => ProxyService.box.writeString(
                               key: 'currentSaleCustomerPhoneNumber',

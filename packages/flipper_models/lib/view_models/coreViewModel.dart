@@ -53,7 +53,7 @@ class CoreViewModel extends FlipperBaseModel
     notifyListeners();
   }
 
-  String get key => keypad.key;
+  // String get key => keypad.key;
 
   late String? longitude;
   late String? latitude;
@@ -111,9 +111,11 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> keyboardKeyPressed(
-      {required String key, String? transactionType = "Sale"}) async {
+      {required String key,
+      required Function reset,
+      String? transactionType = "Sale"}) async {
     if (double.tryParse(key) != null) {
-      ProxyService.keypad.addKey(key);
+      // ProxyService.keypad.addKey(key);
     }
 
     ITransaction? pendingTransaction = await ProxyService.realm
@@ -128,7 +130,7 @@ class CoreViewModel extends FlipperBaseModel
 
     switch (key) {
       case 'C':
-        handleClearKey(items, pendingTransaction);
+        handleClearKey(items, pendingTransaction, reset);
 
         break;
 
@@ -141,28 +143,31 @@ class CoreViewModel extends FlipperBaseModel
             // Wait for 500ms before updating the next item
           }
         });
-        ProxyService.keypad.reset();
+        // ProxyService.keypad.reset();
+        reset();
 
         break;
       default:
-        if (ProxyService.keypad.key.length == 1) {
-          handleSingleDigitKey(items, pendingTransaction);
-        } else if (ProxyService.keypad.key.length > 1) {
-          handleMultipleDigitKey(items, pendingTransaction);
+        if (key.length == 1) {
+          handleSingleDigitKey(items, pendingTransaction, double.parse(key));
+        } else if (key.length > 1) {
+          handleMultipleDigitKey(items, pendingTransaction, double.parse(key));
         }
 
         break;
     }
   }
 
-  void handleClearKey(
-      List<TransactionItem> items, ITransaction pendingTransaction) async {
+  void handleClearKey(List<TransactionItem> items,
+      ITransaction pendingTransaction, Function reset) async {
     try {
       if (items.isEmpty) {
-        ProxyService.keypad.reset();
+        // ProxyService.keypad.reset();
+        reset();
         return;
       }
-      ProxyService.keypad.reset();
+      // ProxyService.keypad.reset();
+      reset();
       TransactionItem itemToDelete = items.last;
       await ProxyService.realm
           .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
@@ -186,9 +191,9 @@ class CoreViewModel extends FlipperBaseModel
     }
   }
 
-  void handleSingleDigitKey(
-      List<TransactionItem> items, ITransaction pendingTransaction) async {
-    double amount = double.parse(ProxyService.keypad.key);
+  void handleSingleDigitKey(List<TransactionItem> items,
+      ITransaction pendingTransaction, double amount) async {
+    // double amount = double.parse(ProxyService.keypad.key);
 
     if (amount == 0) return;
 
@@ -238,9 +243,9 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setTransaction(pendingTransaction);
   }
 
-  void handleMultipleDigitKey(
-      List<TransactionItem> items, ITransaction pendingTransaction) async {
-    double amount = double.parse(ProxyService.keypad.key);
+  void handleMultipleDigitKey(List<TransactionItem> items,
+      ITransaction pendingTransaction, double amount) async {
+    // double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.realm.getCustomVariant();
     if (variation == null) return;
 
@@ -368,13 +373,13 @@ class CoreViewModel extends FlipperBaseModel
 
   Branch? get branch => app.branch;
 
-  void pop() {
-    ProxyService.keypad.pop();
-  }
+  // void pop() {
+  //   ProxyService.keypad.pop();
+  // }
 
-  void reset() {
-    ProxyService.keypad.reset();
-  }
+  // void reset() {
+  //   ProxyService.keypad.reset();
+  // }
 
   void handleCustomQtySetBeforeSelectingVariation() {
     if (_currentItemStock != null) {

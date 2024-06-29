@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class SalesButtonsController extends StatelessWidget {
   SalesButtonsController(
       {Key? key,
-      this.amount = 0.0,
       this.note,
       this.ticketsEnabled = true,
       required this.controller,
@@ -13,7 +12,6 @@ class SalesButtonsController extends StatelessWidget {
       required this.tab,
       required this.model})
       : super(key: key);
-  final double amount;
   final String? note;
   final TextEditingController controller;
   final Widget? payable;

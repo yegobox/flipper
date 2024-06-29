@@ -2198,49 +2198,48 @@ class RealmAPI<M extends IJsonSerializable>
     // End of unsubscribing
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
-      mutableSubscriptions.add(composites, name: "composites", update: false);
-      mutableSubscriptions.add(drawers, name: "drawers", update: false);
-      mutableSubscriptions.add(token, name: "token", update: false);
-      mutableSubscriptions.add(assets, name: "assets", update: false);
-      mutableSubscriptions.add(skus, name: "skus", update: false);
+      mutableSubscriptions.add(composites, name: "composites", update: true);
+      mutableSubscriptions.add(drawers, name: "drawers", update: true);
+      mutableSubscriptions.add(token, name: "token", update: true);
+      mutableSubscriptions.add(assets, name: "assets", update: true);
+      mutableSubscriptions.add(skus, name: "skus", update: true);
 
       mutableSubscriptions.add(tenant,
-          name: "tenant-${businessId}", update: false);
+          name: "tenant-${businessId}", update: true);
       mutableSubscriptions.add(permission,
-          name: "permission-${businessId}", update: false);
-      mutableSubscriptions.add(pin, name: "pin-${businessId}", update: false);
+          name: "permission-${businessId}", update: true);
+      mutableSubscriptions.add(pin, name: "pin-${businessId}", update: true);
       mutableSubscriptions.add(units,
-          name: "units-${businessId}", update: false);
+          name: "units-${businessId}", update: true);
       mutableSubscriptions.add(receipts,
-          name: "receipts-${businessId}", update: false);
+          name: "receipts-${businessId}", update: true);
       mutableSubscriptions.add(favorites,
-          name: "favorites-${branchId}", update: false);
-      mutableSubscriptions.add(ebms, name: "ebms-${businessId}", update: false);
+          name: "favorites-${branchId}", update: true);
+      mutableSubscriptions.add(ebms, name: "ebms-${businessId}", update: true);
       mutableSubscriptions.add(devices,
-          name: "devices-${businessId}", update: false);
+          name: "devices-${businessId}", update: true);
       mutableSubscriptions.add(conversations,
-          name: "conversations-${businessId}", update: false);
+          name: "conversations-${businessId}", update: true);
       mutableSubscriptions.add(colors,
-          name: "colors-${businessId}", update: false);
+          name: "colors-${businessId}", update: true);
       mutableSubscriptions.add(category,
-          name: "category-${businessId}", update: false);
+          name: "category-${businessId}", update: true);
       mutableSubscriptions.add(customer,
-          name: "iCustomer-${branchId}", update: false);
+          name: "iCustomer-${branchId}", update: true);
       mutableSubscriptions.add(product,
-          name: "iProduct-${branchId}", update: false);
+          name: "iProduct-${branchId}", update: true);
       mutableSubscriptions.add(counter,
-          name: "iCounter-${branchId}", update: false);
+          name: "iCounter-${branchId}", update: true);
       mutableSubscriptions.add(variant,
-          name: "iVariant-${branchId}", update: false);
-      mutableSubscriptions.add(stock,
-          name: "iStock-${branchId}", update: false);
-      mutableSubscriptions.add(unit, name: "iUnit-${branchId}", update: false);
+          name: "iVariant-${branchId}", update: true);
+      mutableSubscriptions.add(stock, name: "iStock-${branchId}", update: true);
+      mutableSubscriptions.add(unit, name: "iUnit-${branchId}", update: true);
       mutableSubscriptions.add(transaction,
-          name: "transaction-${branchId}", update: false);
+          name: "transaction-${branchId}", update: true);
       mutableSubscriptions.add(transactionItem,
-          name: "transactionItem-${branchId}", update: false);
+          name: "transactionItem-${branchId}", update: true);
 
-      mutableSubscriptions.add(configs, name: "configs", update: false);
+      mutableSubscriptions.add(configs, name: "configs", update: true);
     });
   }
 
@@ -2997,15 +2996,20 @@ class RealmAPI<M extends IJsonSerializable>
 
     final existingSku =
         realm!.query<SKU>(r'branchId == $0', [branchId]).firstOrNull;
-    if (existingSku == null) {
-      realm!.write(() {
-        realm!.add<SKU>(SKU(
-          ObjectId(),
-          sku: 1000,
-          branchId: ProxyService.box.getBranchId(),
-          businessId: ProxyService.box.getBusinessId(),
-        ));
-      });
+    try {
+      if (existingSku == null) {
+        realm!.write(() {
+          realm!.add<SKU>(SKU(
+            ObjectId(),
+            id: randomNumber(),
+            sku: 1000,
+            branchId: ProxyService.box.getBranchId(),
+            businessId: ProxyService.box.getBusinessId(),
+          ));
+        });
+      }
+    } catch (e) {
+      talker.error(e);
     }
 
     yield* realm!
