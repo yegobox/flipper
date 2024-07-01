@@ -314,10 +314,6 @@ class TransactionList extends ConsumerWidget {
                     ),
                     Expanded(
                       child: DataView(
-                        /// TODO: build similar query based on date but on transactionItem
-                        /// pass them to be shown based on flag we have isPluReport or not
-                        /// in DataView remove querying transactionItem based on first transaction because that is
-                        /// not intention and it is wrong
                         transactions: transactionData,
                         transactionItems: transactionItems.asData?.value,
                         startDate: startDate!,
