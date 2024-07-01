@@ -512,3 +512,11 @@ class App {}
 /// https://partner.mtn.co.rw/
 /// Username: YEGOBOX.SP
 /// JS Interop: https://www.youtube.com/watch?v=cTzmllsYiCI
+/// 
+/// NOTE: deal with python experiment, python will be used
+/// for heavy experimentation.
+///  mkdir py
+///  cd py
+///  python3 -m venv venv
+///  source venv/bin/activate
+///  pip install tensorflow pandas scikit-learn matplotlib
