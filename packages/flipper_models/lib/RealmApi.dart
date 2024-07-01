@@ -401,6 +401,11 @@ class RealmAPI<M extends IJsonSerializable>
 
     try {
       for (TransactionItem item in items) {
+        /// because there might case where we have non-active transactionItem in the list of
+        /// TransactionItem, then we remove it first before completing the transaction
+        if (!item.active!) {
+          realm!.delete(item);
+        }
         Stock? stock = await stockByVariantId(variantId: item.variantId!);
         realm!.write(() {
           item.dcAmt = discount;
@@ -602,7 +607,7 @@ class RealmAPI<M extends IJsonSerializable>
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false}) async {
-    final Business? business = await ProxyService.local.getBusiness();
+    final Business? business = ProxyService.local.getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
     final int businessId = ProxyService.box.getBusinessId()!;
 
@@ -623,11 +628,14 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.query<Product>(r'id == $0 ', [product.id]).first;
 
       // Create a Regular Variant
-      final Variant newVariant = _createRegularVariant(
-          product, branchId, business,
+      final Variant newVariant = _createRegularVariant(branchId, business,
           qty: qty,
+          product: product,
           supplierPrice: supplyPrice,
           retailPrice: retailPrice,
+          name: product.name!,
+          sku: _getSku(branchId: branchId)!.sku.toString(),
+          productId: product.id!,
           itemSeq: itemSeq,
           ebmSynced: ebmSynced);
       await realm!.putAsync<Variant>(newVariant);
@@ -1346,7 +1354,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    ITransaction? existTransaction = await pendingTransaction(
+    ITransaction? existTransaction = await _pendingTransaction(
         branchId: branchId, transactionType: transactionType);
 
     int businessId = ProxyService.box.getBusinessId()!;
@@ -1382,17 +1390,17 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<ITransaction> manageTransaction(
-      {required String transactionType}) async {
+  ITransaction manageTransaction(
+      {required String transactionType, bool? includeSubTotalCheck = false}) {
     /// check if realm is not closed
     if (realm == null) {
       throw Exception("realm is empty");
     }
     int branchId = ProxyService.box.getBranchId()!;
-    ITransaction? existTransaction = await pendingTransaction(
+    ITransaction? existTransaction = _pendingTransaction(
         branchId: branchId,
         transactionType: transactionType,
-        includeSubTotalCheck: false);
+        includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
       final int id = randomNumber();
       final transaction = ITransaction(ObjectId(),
@@ -1412,7 +1420,7 @@ class RealmAPI<M extends IJsonSerializable>
           createdAt: DateTime.now().toIso8601String());
 
       // save transaction to isar
-      await realm!.putAsync<ITransaction>(transaction);
+      realm!.put<ITransaction>(transaction);
 
       ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
       return transaction;
@@ -1455,19 +1463,59 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
+  /// when item.active == true
+  /// then this means item is on cart
   @override
-  Future<ITransaction?> pendingTransaction(
-      {required int branchId,
-      required String transactionType,
-      bool includeSubTotalCheck = true}) async {
-    String query = r'branchId == $0 AND transactionType == $1 AND status == $2';
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    String queryString = "";
+
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+
+    final items = realm!.query<TransactionItem>(queryString,
+        [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    return items;
+  }
+
+  /// because we want to deal with transaction that has item
+  /// we just return any transaction that has TransactionItem attached
+  /// this is to avoid having to deal with multiple transaction that are not complete
+  /// we should first return any transaction that has item first.
+  ITransaction? _pendingTransaction({
+    required int branchId,
+    required String transactionType,
+    bool includeSubTotalCheck = true,
+  }) {
+    String query =
+        r'branchId == $0 AND transactionType == $1 AND status == $2 SORT(createdAt DESC)';
     List<dynamic> parameters = [branchId, transactionType, PENDING];
 
     if (includeSubTotalCheck) {
       query += ' AND subTotal > 0';
     }
 
-    return realm!.query<ITransaction>(query, parameters).firstOrNull;
+    List<ITransaction> transactions =
+        realm!.query<ITransaction>(query, parameters).toList();
+
+    for (ITransaction transaction in transactions) {
+      List<TransactionItem> items = transactionItems(
+        transactionId: transaction.id!,
+        doneWithTransaction: false,
+        active: true,
+      );
+
+      if (items.isNotEmpty) {
+        return transaction;
+      }
+    }
+
+    // If no transaction with items found, return the first transaction (if any)
+    return transactions.isNotEmpty ? transactions.first : null;
   }
 
   @override
@@ -1702,23 +1750,6 @@ class RealmAPI<M extends IJsonSerializable>
     });
 
     return subject.stream;
-  }
-
-  @override
-  List<TransactionItem> transactionItems(
-      {required int transactionId,
-      required bool doneWithTransaction,
-      required bool active}) {
-    int branchId = ProxyService.box.getBranchId()!;
-    String queryString = "";
-
-    queryString =
-        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3 && deletedAt = nil';
-
-    final items = realm!.query<TransactionItem>(queryString,
-        [transactionId, doneWithTransaction, branchId, active]).toList();
-
-    return items;
   }
 
   @override
@@ -2326,13 +2357,43 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Variant _createRegularVariant(
-      Product product, int branchId, Business? business,
+  @override
+  void createVariant(
+      {required String barCode,
+      required String sku,
+      required int productId,
+      required double retailPrice,
+      required double supplierPrice,
+      required String color,
+      required double qty,
+      required int itemSeq,
+      required String name}) {
+    final Business? business = ProxyService.local.getBusiness();
+    Variant variant = _createRegularVariant(
+        ProxyService.box.getBranchId()!, business,
+        qty: qty,
+        supplierPrice: supplierPrice,
+        retailPrice: retailPrice,
+        itemSeq: itemSeq,
+        name: name,
+        sku: sku,
+        ebmSynced: false,
+        productId: productId);
+    realm!.write(() {
+      realm!.add<Variant>(variant);
+    });
+  }
+
+  Variant _createRegularVariant(int branchId, Business? business,
       {required double qty,
       required double supplierPrice,
       required double retailPrice,
       required int itemSeq,
-      required bool ebmSynced}) {
+      required bool ebmSynced,
+      Product? product,
+      required int productId,
+      required String name,
+      required String sku}) {
     final int variantId = randomNumber();
     final number = randomNumber().toString().substring(0, 5);
     String itemPrefix = "FLIPPER-";
@@ -2340,13 +2401,13 @@ class RealmAPI<M extends IJsonSerializable>
         DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
     return Variant(ObjectId(),
         lastTouched: DateTime.now(),
-        name: product.name,
-        sku: 'sku',
+        name: product?.name ?? name,
+        sku: sku,
         action: 'create',
-        productId: product.id!,
-        color: product.color,
+        productId: product?.id ?? productId,
+        color: product?.color,
         unit: 'Per Item',
-        productName: product.name,
+        productName: product?.name ?? name,
         branchId: branchId,
         supplyPrice: supplierPrice,
         retailPrice: retailPrice,
@@ -2363,36 +2424,36 @@ class RealmAPI<M extends IJsonSerializable>
         modrId: number,
         pkgUnitCd: "BJ",
         regrId: randomNumber().toString().substring(0, 5),
-        rsdQty: 1,
+        rsdQty: qty,
         itemTyCd: "2", // this is a finished product
         /// available type for itemTyCd are 1 for raw material and 3 for service
         /// is insurance applicable default is not applicable
         isrcAplcbYn: "N",
         useYn: "N",
         itemSeq: itemSeq,
-        itemNm: product.name,
+        itemNm: product?.name ?? name,
         taxPercentage: 18.0,
         tin: business!.tinNumber,
-        bcd: product.name,
+        bcd: product?.name ?? name,
 
         /// country of origin for this item we default until we support something different
         /// and this will happen when we do import.
         orgnNatCd: "RW",
 
         /// registration name
-        regrNm: product.name,
+        regrNm: product?.name ?? name,
 
         /// taxation type code
         taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
         // default unit price
-        dftPrc: 0,
-        prc: 1,
+        dftPrc: retailPrice,
+        prc: retailPrice,
 
         // NOTE: I believe bellow item are required when saving purchase
         ///but I wonder how to get them when saving an item.
         spplrItemCd: "",
         spplrItemClsCd: "",
-        spplrItemNm: product.name,
+        spplrItemNm: product?.name ?? name,
 
         /// Packaging Unit
         qtyUnitCd: "U", // see 4.6 in doc
@@ -2988,33 +3049,78 @@ class RealmAPI<M extends IJsonSerializable>
     });
   }
 
-  @override
-  Stream<SKU?> sku({required int branchId}) async* {
+  // Function to create a new SKU
+  SKU _createNewSku() {
+    return SKU(
+      ObjectId(),
+      id: randomNumber(),
+      sku: 1000,
+      branchId: ProxyService.box.getBranchId(),
+      businessId: ProxyService.box.getBusinessId(),
+      consumed: false,
+    );
+  }
+
+  SKU? _getSku({required int branchId}) {
     if (realm == null) {
       throw Exception('Realm is null!');
     }
 
-    final existingSku =
-        realm!.query<SKU>(r'branchId == $0', [branchId]).firstOrNull;
+    // Check for existing non-consumed SKU
+    SKU? existingSku = realm!.query<SKU>(
+        r'branchId == $0 AND consumed == false', [branchId]).firstOrNull;
+
     try {
       if (existingSku == null) {
         realm!.write(() {
-          realm!.add<SKU>(SKU(
-            ObjectId(),
-            id: randomNumber(),
-            sku: 1000,
-            branchId: ProxyService.box.getBranchId(),
-            businessId: ProxyService.box.getBusinessId(),
-          ));
+          existingSku = _createNewSku();
+          realm!.add<SKU>(existingSku!);
         });
       }
     } catch (e) {
       talker.error(e);
     }
 
-    yield* realm!
-        .query<SKU>(r'branchId == $0', [branchId])
-        .changes
-        .map((event) => event.results.isEmpty ? null : event.results.first);
+    return existingSku;
+  }
+
+  @override
+  Stream<SKU?> sku({required int branchId}) async* {
+    if (realm == null) {
+      throw Exception('Realm is null!');
+    }
+
+    // Check for existing non-consumed SKU
+    SKU? existingSku = realm!.query<SKU>(
+        r'branchId == $0 AND consumed == false', [branchId]).firstOrNull;
+
+    try {
+      if (existingSku == null) {
+        realm!.write(() {
+          existingSku = _createNewSku();
+          realm!.add<SKU>(existingSku!);
+        });
+      }
+    } catch (e) {
+      talker.error(e);
+    }
+
+    // Use RealmResults to continuously observe changes
+    final results =
+        realm!.query<SKU>(r'branchId == $0 AND consumed == false', [branchId]);
+
+    yield* results.changes.map((event) {
+      if (event.results.isEmpty) {
+        // If there are no non-consumed SKUs, create a new one
+        late SKU newSku;
+        realm!.write(() {
+          newSku = _createNewSku();
+          realm!.add<SKU>(newSku);
+        });
+        return newSku;
+      } else {
+        return event.results.first;
+      }
+    });
   }
 }

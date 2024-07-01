@@ -10,7 +10,8 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 import '_transaction.dart';
 
-final productProvider = StateNotifierProvider<ProductNotifier, Product?>((ref) {
+final unsavedProductProvider =
+    StateNotifierProvider<ProductNotifier, Product?>((ref) {
   return ProductNotifier();
 });
 
@@ -97,23 +98,23 @@ final variantsProvider = FutureProvider.autoDispose
   return variants;
 });
 
-final pendingTransactionProvider = FutureProvider.autoDispose
-    .family<AsyncValue<ITransaction>, String>((ref, mode) async {
+final pendingTransactionProvider =
+    Provider.autoDispose.family<AsyncValue<ITransaction>, String>((ref, mode) {
   try {
     ITransaction pendingTransaction =
-        await ProxyService.realm.manageTransaction(transactionType: mode);
+        ProxyService.realm.manageTransaction(transactionType: mode);
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
   }
 });
+
 final talker = TalkerFlutter.init();
 
 final transactionItemsProvider = StateNotifierProvider.autoDispose
     .family<TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, int?>(
   (ref, currentTransaction) {
-    return TransactionItemsNotifier(
-        currentTransaction: currentTransaction ?? 0);
+    return TransactionItemsNotifier(currentTransaction: currentTransaction!);
   },
 );
 
@@ -554,7 +555,7 @@ final transactionListProvider =
     // Use `switchMap` to handle potential changes in dateRangeProvider
     return stream.switchMap((transactions) {
       // Handle null or empty transactions if needed
-      return Stream.value(transactions ?? []);
+      return Stream.value(transactions);
     });
   } catch (e, stackTrace) {
     // Return an error stream if something goes wrong
@@ -665,11 +666,39 @@ class KeypadNotifier extends StateNotifier<String> {
 }
 
 // State provider for managing loading state
+
 final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);
 
+final refreshPrivider = Provider((ref) {
+  return CombinedNotifier(ref);
+});
+
+class CombinedNotifier {
+  final Ref ref;
+
+  CombinedNotifier(this.ref);
+
+  void performActions({required String productName, required bool scanMode}) {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      throw Exception('Branch ID is null!');
+    }
+
+    ref.read(searchStringProvider.notifier).emitString(value: "search");
+    ref.read(searchStringProvider.notifier).emitString(value: "");
+
+    ref.read(productsProvider(branchId).notifier).loadProducts(
+          searchString: productName,
+          scanMode: scanMode,
+        );
+  }
+}
+
+// StateNotifierProvider
+
 List<ProviderBase> allProviders = [
-  productProvider,
+  unsavedProductProvider,
   customerSearchStringProvider,
   searchStringProvider,
   sellingModeProvider,

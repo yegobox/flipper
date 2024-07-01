@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 extension DateTimeExtensions on DateTime? {
   bool isNewDateCompareTo(DateTime? other) {
@@ -38,5 +39,16 @@ extension StringExtensions on String {
     }
 
     return '$name $number'; // Concatenate name and number with a comma and space
+  }
+}
+
+extension CurrencyFormatExtension on num {
+  String toRwf({String? symbol}) {
+    final numberFormat = NumberFormat.currency(
+      locale: 'en',
+      symbol: symbol ?? 'RWF ',
+      decimalDigits: 2,
+    );
+    return numberFormat.format(this);
   }
 }

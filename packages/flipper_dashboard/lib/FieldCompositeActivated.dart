@@ -5,14 +5,16 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class Fieldcompositeactivated extends StatefulHookConsumerWidget {
   const Fieldcompositeactivated({
-    super.key,
+    Key? key,
     required this.barCodeController,
     required this.skuController,
     required this.formKey,
-  });
+  }) : super(key: key);
+
   final TextEditingController barCodeController;
   final TextEditingController skuController;
   final GlobalKey<FormState> formKey;
+
   @override
   FieldcompositeactivatedState createState() => FieldcompositeactivatedState();
 }
@@ -21,28 +23,10 @@ class FieldcompositeactivatedState
     extends ConsumerState<Fieldcompositeactivated> {
   @override
   Widget build(BuildContext context) {
-    final branchId = ProxyService.box.getBranchId(); // Get the branch ID
+    final branchId = ProxyService.box.getBranchId();
 
-    // Handle branchId being null
     if (branchId == null) {
       return Center(child: Text('Branch ID is null'));
-    }
-
-    // 1. Access the stream (using ref.watch)
-    final skuStream = ref.watch(skuProvider(branchId));
-
-    // Assuming `initialSku` comes from `skuStream` or some other source
-    final initialSku = skuStream.when(
-      data: (data) => data,
-      loading: () => null,
-      error: (err, stack) => null,
-    );
-
-    // Set initial value for the barCodeController
-    if (initialSku != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        widget.skuController.text = initialSku.sku.toString();
-      });
     }
 
     return Padding(
@@ -57,17 +41,14 @@ class FieldcompositeactivatedState
                 controller: widget.skuController,
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null) {
-                    return "SKU is required or identifier";
+                  if (value == null || value.isEmpty) {
+                    return "SKU is required";
                   }
                   return null;
                 },
                 decoration: InputDecoration(
                   labelText: 'SKU',
-                  labelStyle: const TextStyle(
-                    // Add labelStyle
-                    color: Colors.black,
-                  ),
+                  labelStyle: const TextStyle(color: Colors.black),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                   errorBorder: OutlineInputBorder(
@@ -75,7 +56,6 @@ class FieldcompositeactivatedState
                     borderSide:
                         BorderSide(color: Theme.of(context).colorScheme.error),
                   ),
-                  // When in error state and focused
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                     borderSide:
@@ -90,17 +70,14 @@ class FieldcompositeactivatedState
               child: TextFormField(
                 controller: widget.barCodeController,
                 validator: (value) {
-                  if (value == null) {
-                    return "Bar code is required or identifier";
+                  if (value == null || value.isEmpty) {
+                    return "Bar code is required";
                   }
                   return null;
                 },
                 decoration: InputDecoration(
                   labelText: 'Bar Code',
-                  labelStyle: const TextStyle(
-                    // Add labelStyle
-                    color: Colors.black,
-                  ),
+                  labelStyle: const TextStyle(color: Colors.black),
                   border: OutlineInputBorder(),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 8.0),
                   errorBorder: OutlineInputBorder(
@@ -108,7 +85,6 @@ class FieldcompositeactivatedState
                     borderSide:
                         BorderSide(color: Theme.of(context).colorScheme.error),
                   ),
-                  // When in error state and focused
                   focusedErrorBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                     borderSide:
@@ -121,5 +97,25 @@ class FieldcompositeactivatedState
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId != null) {
+        ref.listenManual(
+          skuProvider(branchId),
+          (previous, next) {
+            next.whenData((sku) {
+              if (sku != null && mounted) {
+                widget.skuController.text = sku.sku.toString();
+              }
+            });
+          },
+        );
+      }
+    });
   }
 }

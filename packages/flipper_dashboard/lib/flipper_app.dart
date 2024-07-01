@@ -146,7 +146,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     final currentTransaction =
         ref.watch(pendingTransactionProvider(TransactionType.sale));
     // ignore: unused_result
-    ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
+    ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
     initializeApplicationIfRequired();
     model.defaultBranch();
     ProxyService.local.refreshSession(
@@ -185,7 +185,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
         await model.sellWithCard(
           tenantId: int.parse(firstPart),
-          pendingTransaction: pendingTransaction.value!.value!,
+          pendingTransaction: pendingTransaction.value!,
         );
 
         showToast(context, 'Sale recorded successfully.');

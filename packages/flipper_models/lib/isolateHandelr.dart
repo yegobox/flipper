@@ -121,6 +121,16 @@ mixin IsolateHandler {
           // Convert EJsonValue to JSON string
           // Clipboard.setData(ClipboardData(text: iVariant.toJson().toString()));
 
+          /// is this variant part of the composite product then do not attempt to save to EBM server
+          /// as the respective variant have been saved there already!
+          Product? product = realm!
+              .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
+
+          /// Check if the product exists and is composite
+          if (product?.isComposite ?? false) {
+            return; // Return early if the product is composite
+          }
+
           /// do not attempt saving a variant with missing fields
           if (variant.qtyUnitCd == null || variant.taxTyCd == null) return;
           await RWTax().saveItem(variation: iVariant);

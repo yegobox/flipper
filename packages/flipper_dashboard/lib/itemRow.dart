@@ -55,6 +55,7 @@ class RowItem extends StatefulHookConsumerWidget {
   final int? favIndex;
   final Function? addToMenu;
   final String variantName;
+  final bool isComposite;
 
   RowItem({
     Key? key,
@@ -73,6 +74,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.product,
     this.addFavoriteMode,
     this.favIndex,
+    required this.isComposite,
   }) : super(key: key);
 
   static _defaultFunction(int? id, String type) {
@@ -107,15 +109,13 @@ class _RowItemState extends ConsumerState<RowItem> {
               amountTotal: widget.variant?.retailPrice ?? 0,
               customItem: false,
               currentStock: stock!.currentStock,
-              pendingTransaction: pendingTransaction.value!.value!,
+              pendingTransaction: pendingTransaction.value!,
             );
             await Future.delayed(Duration(microseconds: 1000));
-            ref.refresh(
-                transactionItemsProvider(pendingTransaction.value?.value?.id));
+            ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
 
             await Future.delayed(Duration(microseconds: 200));
-            ref.refresh(
-                transactionItemsProvider(pendingTransaction.value?.value?.id));
+            ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
           },
           onLongPress: () {
             setState(() {
@@ -144,7 +144,8 @@ class _RowItemState extends ConsumerState<RowItem> {
                       child: _buildImage(),
                     ),
                     SizedBox(height: 8.0),
-                    _buildProductDetails(variantStream),
+                    _buildProductDetails(variantStream,
+                        isComposite: widget.isComposite),
                   ],
                 ),
               ),
@@ -258,18 +259,19 @@ class _RowItemState extends ConsumerState<RowItem> {
     }
   }
 
-  Widget _buildProductDetails(AsyncValue<List<Variant>> variantStream) {
+  Widget _buildProductDetails(AsyncValue<List<Variant>> variantStream,
+      {required bool isComposite}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Name:" + widget.productName,
+          "Name: ${widget.productName}",
           style: const TextStyle(color: Colors.black, fontSize: 16.0),
           overflow: TextOverflow.ellipsis,
         ),
         SizedBox(height: 4.0),
         Text(
-          "Stock: ${widget.stock}",
+          "Stock: ${isComposite ? '-' : widget.stock}",
           style: const TextStyle(color: Colors.black, fontSize: 14.0),
         ),
         SizedBox(height: 4.0),

@@ -66,7 +66,7 @@ class SellState extends ConsumerState<Sell> {
                   amountTotal: model.amountTotal,
                   customItem: false,
                   currentStock: stock!.currentStock,
-                  pendingTransaction: pendingTransaction.value!.value!);
+                  pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);

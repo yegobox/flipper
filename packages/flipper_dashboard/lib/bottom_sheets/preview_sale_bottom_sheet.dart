@@ -125,8 +125,8 @@ class PreviewSaleBottomSheetState
   Widget build(BuildContext context) {
     final transaction =
         ref.watch(pendingTransactionProvider(TransactionType.sale));
-    final transactionItemsNotifier = ref.watch(
-        transactionItemsProvider(transaction.value?.value?.id!).notifier);
+    final transactionItemsNotifier =
+        ref.watch(transactionItemsProvider(transaction.value?.id!).notifier);
 
     final totalPayable = transactionItemsNotifier.totalPayable;
 
@@ -140,13 +140,13 @@ class PreviewSaleBottomSheetState
     );
   }
 
-  Column transactionListView(AsyncValue<AsyncValue<ITransaction>> transaction,
+  Column transactionListView(AsyncValue<ITransaction> transaction,
       BuildContext context, CoreViewModel model, double totalPayable) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         widget.mode == SellingMode.forSelling
-            ? AddCustomerButton(transactionId: transaction.value?.value?.id!)
+            ? AddCustomerButton(transactionId: transaction.value?.id!)
             : SizedBox.shrink(),
         Expanded(
           child: ListView.builder(
@@ -154,8 +154,7 @@ class PreviewSaleBottomSheetState
             shrinkWrap: true,
             itemCount: (ref
                         .watch(
-                          transactionItemsProvider(
-                              transaction.value?.value?.id),
+                          transactionItemsProvider(transaction.value!.id),
                         )
                         .value ??
                     [])
@@ -165,7 +164,7 @@ class PreviewSaleBottomSheetState
             itemBuilder: (context, index) {
               final items = (ref
                       .watch(
-                        transactionItemsProvider(transaction.value?.value?.id),
+                        transactionItemsProvider(transaction.value?.id),
                       )
                       .value ??
                   [])[index];
@@ -178,7 +177,7 @@ class PreviewSaleBottomSheetState
                     context: context,
                   );
                   ref.refresh(
-                    transactionItemsProvider(transaction.value?.value?.id),
+                    transactionItemsProvider(transaction.value?.id),
                   );
                 },
                 items: items,

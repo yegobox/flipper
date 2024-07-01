@@ -674,19 +674,23 @@ class _ITransaction {
   String? reference;
   String? categoryId;
   String? transactionNumber;
+  @Indexed()
   int? branchId;
+  @Indexed()
   String? status;
+  @Indexed()
   String? transactionType;
   double subTotal = 0.0;
   String? paymentType;
   double cashReceived = 0.0;
   double customerChangeDue = 0.0;
+  @Indexed()
   String? createdAt;
   // add receipt type offerered on this transaction
   /// remember we also have receipt model where each receipt generated is saved.
   String? receiptType;
   String? updatedAt;
-
+  @Indexed()
   int? customerId;
   String? customerType;
   String? note;
@@ -892,6 +896,10 @@ class _Assets {
   int? productId;
 }
 
+/// we have this composite to map out
+/// the quantity of item that will be deducted when we sell
+/// respective item from composite.
+
 @RealmModel()
 class _Composite {
   int? id;
@@ -906,6 +914,13 @@ class _Composite {
   int? businessId;
 }
 
+/// a note on composite,
+/// when a composite item is sold, we don't really care about the variant we should
+/// we ripple-effect to the composite's item
+/// therefore when scanned on while about selling, we will show the composite items, not the default variant
+/// attached to it
+///  Product -> Variant (default) not considered
+/// Product-> Compostes (a list of item attached) are considered.
 @RealmModel()
 class _SKU {
   int? id;
@@ -916,4 +931,5 @@ class _SKU {
   int? sku = 1000;
   int? branchId;
   int? businessId;
+  bool? consumed = false;
 }

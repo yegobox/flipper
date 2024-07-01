@@ -48,7 +48,7 @@ class BrowsephotosState extends ConsumerState<Browsephotos> {
                   callBack: (product) {
                     // talker.info(product.imageUrl);
                     ref
-                        .read(productProvider.notifier)
+                        .read(unsavedProductProvider.notifier)
                         .emitProduct(value: product);
                   },
                   urlType: URLTYPE.PRODUCT,

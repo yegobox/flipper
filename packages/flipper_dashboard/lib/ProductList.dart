@@ -36,6 +36,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                       itemCount: products!.length,
                       itemBuilder: (context, index) {
                         return RowItem(
+                          isComposite: false,
                           variant: products[index],
                           color: products[index].color!,
                           productName: products[index].name!,
@@ -52,8 +53,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                             ITransaction? iTransaction = ref
                                 .read(pendingTransactionProvider(
                                     TransactionType.cashOut))
-                                .value
-                                ?.value;
+                                .value;
 
                             ProxyService.realm.realm!.write(() {
                               iTransaction!.supplierId = variant.branchId;

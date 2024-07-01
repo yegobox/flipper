@@ -260,7 +260,7 @@ class ProductViewModel extends FlipperBaseModel
       _color.branchId = branchId;
       product!.color = color.name!;
       widgetReference
-          .read(productProvider.notifier)
+          .read(unsavedProductProvider.notifier)
           .emitProduct(value: product!);
     });
 

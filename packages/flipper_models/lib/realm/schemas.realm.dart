@@ -5794,18 +5794,22 @@ class ITransaction extends _ITransaction
       SchemaProperty('categoryId', RealmPropertyType.string, optional: true),
       SchemaProperty('transactionNumber', RealmPropertyType.string,
           optional: true),
-      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
-      SchemaProperty('status', RealmPropertyType.string, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int,
+          optional: true, indexType: RealmIndexType.regular),
+      SchemaProperty('status', RealmPropertyType.string,
+          optional: true, indexType: RealmIndexType.regular),
       SchemaProperty('transactionType', RealmPropertyType.string,
-          optional: true),
+          optional: true, indexType: RealmIndexType.regular),
       SchemaProperty('subTotal', RealmPropertyType.double),
       SchemaProperty('paymentType', RealmPropertyType.string, optional: true),
       SchemaProperty('cashReceived', RealmPropertyType.double),
       SchemaProperty('customerChangeDue', RealmPropertyType.double),
-      SchemaProperty('createdAt', RealmPropertyType.string, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.string,
+          optional: true, indexType: RealmIndexType.regular),
       SchemaProperty('receiptType', RealmPropertyType.string, optional: true),
       SchemaProperty('updatedAt', RealmPropertyType.string, optional: true),
-      SchemaProperty('customerId', RealmPropertyType.int, optional: true),
+      SchemaProperty('customerId', RealmPropertyType.int,
+          optional: true, indexType: RealmIndexType.regular),
       SchemaProperty('customerType', RealmPropertyType.string, optional: true),
       SchemaProperty('note', RealmPropertyType.string, optional: true),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
@@ -7518,10 +7522,12 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
     int? sku = 1000,
     int? branchId,
     int? businessId,
+    bool? consumed = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<SKU>({
         'sku': 1000,
+        'consumed': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -7529,6 +7535,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'sku', sku);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'consumed', consumed);
   }
 
   SKU._();
@@ -7560,6 +7567,11 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
   set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
 
   @override
+  bool? get consumed => RealmObjectBase.get<bool>(this, 'consumed') as bool?;
+  @override
+  set consumed(bool? value) => RealmObjectBase.set(this, 'consumed', value);
+
+  @override
   Stream<RealmObjectChanges<SKU>> get changes =>
       RealmObjectBase.getChanges<SKU>(this);
 
@@ -7577,6 +7589,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
       'sku': sku.toEJson(),
       'branchId': branchId.toEJson(),
       'businessId': businessId.toEJson(),
+      'consumed': consumed.toEJson(),
     };
   }
 
@@ -7589,6 +7602,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
         'sku': EJsonValue sku,
         'branchId': EJsonValue branchId,
         'businessId': EJsonValue businessId,
+        'consumed': EJsonValue consumed,
       } =>
         SKU(
           fromEJson(realmId),
@@ -7596,6 +7610,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
           sku: fromEJson(sku),
           branchId: fromEJson(branchId),
           businessId: fromEJson(businessId),
+          consumed: fromEJson(consumed),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -7611,6 +7626,7 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('sku', RealmPropertyType.int, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('consumed', RealmPropertyType.bool, optional: true),
     ]);
   }();
 

@@ -16,7 +16,7 @@ class ToggleButtonWidget extends HookConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'CompositeItem',
+            'Composite Item',
             style: TextStyle(fontSize: 18),
           ),
           Switch.adaptive(

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -6,26 +7,6 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked/stacked.dart';
-
-class SelectedVariantsNotifier extends StateNotifier<List<Variant>> {
-  SelectedVariantsNotifier() : super([]);
-
-  void addVariant(Variant product) {
-    if (!state.contains(product)) {
-      state = [...state, product];
-    }
-  }
-
-  // Delete a variant from the list
-  void deleteVariant(Variant variant) {
-    state = state.where((v) => v != variant).toList();
-  }
-}
-
-final selectedVariantsProvider =
-    StateNotifierProvider<SelectedVariantsNotifier, List<Variant>>((ref) {
-  return SelectedVariantsNotifier();
-});
 
 class SearchProduct extends StatefulHookConsumerWidget {
   const SearchProduct({Key? key, this.transaction}) : super(key: key);
@@ -126,9 +107,16 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     return InkWell(
                       onTap: () {
                         ref
-                            .read(selectedVariantsProvider.notifier)
-                            .addVariant(_searchResults[index]);
-                        talker.warning("click Happened");
+                            .read(selectedVariantsLocalProvider.notifier)
+                            .addVariant(
+                                variant: VVariant(
+                              productName: _searchResults[index].productName!,
+                              name: _searchResults[index].name!,
+                              retailPrice: _searchResults[index].retailPrice,
+                              id: _searchResults[index].id!,
+                              productId: _searchResults[index].productId!,
+                            ));
+                        talker.warning("click on item found");
                         _searchController.clear();
                         setState(() {
                           _searchResults = [];

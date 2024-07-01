@@ -295,8 +295,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                           .watch(pendingTransactionProvider(
                                               TransactionType.sale))
                                           .asData!
-                                          .value
-                                          .value!,
+                                          .value,
                                     );
                                     receivedAmountController.clear();
                                     ref.read(loadingProvider.notifier).state =
@@ -325,8 +324,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                 child: SearchInputWithDropdown(
                   transaction: ref
                       .watch(pendingTransactionProvider(TransactionType.sale))
-                      .asData
-                      ?.value
                       .asData
                       ?.value,
                 ),

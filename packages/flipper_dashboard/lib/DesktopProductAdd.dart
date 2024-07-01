@@ -439,7 +439,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productRef = ref.watch(productProvider);
+    final productRef = ref.watch(unsavedProductProvider);
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
@@ -448,7 +448,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           Product product =
               await model.getProduct(productId: widget.productId!);
-          ref.read(productProvider.notifier).emitProduct(value: product);
+          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name!;
@@ -475,7 +475,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         } else {
           // If productId is not given, create a new product
           Product? product = await model.createProduct(name: TEMP_PRODUCT);
-          ref.read(productProvider.notifier).emitProduct(value: product!);
+          ref
+              .read(unsavedProductProvider.notifier)
+              .emitProduct(value: product!);
         }
 
         model.initialize();
@@ -561,7 +563,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  // mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
                         onPressed: () {
@@ -599,34 +600,80 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             context,
                             productRef!,
                           );
-                        } else if (_fieldComposite.currentState!.validate()) {
+                        } else if (_fieldComposite.currentState?.validate() ??
+                            false) {
                           /// we are now officially dealing with composite product
-                          talker.warning(
+                          talker.info(
                               "we are dealing with composite product now handle down here");
 
-                          /// Steps
-                          /// 1. Get a list of components of this product
-                          /// 2. save them in a maped model that map the created with other composite variant
-                          /// 3. Validate the user also gave bar code to use while seraching for this composite's variant
-                          ///
                           List<VariantState> partOfComposite =
                               ref.watch(selectedVariantsLocalProvider);
                           for (var i = 0; i < partOfComposite.length; i++) {
                             partOfComposite[i].variant.id;
-                            talker.warning(
+                            talker.info(
                                 "This is the variant on composite${partOfComposite[i].variant.id}");
 
                             /// now save each
-                            // ProxyService.realm.saveComposite(
-                            //   composite: Composite(ObjectId(),
-                            //       businessId: ProxyService.box.getBusinessId(),
-                            //       branchId: ProxyService.box.getBranchId(),
-                            //       variantId: partOfComposite[i].variant.id),
-                            // );
+                            ProxyService.realm.saveComposite(
+                              composite: Composite(ObjectId(),
+                                  businessId: ProxyService.box.getBusinessId(),
+                                  productId:
+                                      ref.read(unsavedProductProvider)!.id!,
+                                  quantity: partOfComposite[i].quantity,
+                                  branchId: ProxyService.box.getBranchId(),
+                                  variantId: partOfComposite[i].variant.id),
+                            );
                           }
 
                           /// because this product has no variant attached
                           // final productRef = ref.watch(productProvider);
+                          String sku = skuController.text;
+                          String barCode = barCodeController.text;
+                          String name = productNameController.text;
+
+                          /// print the sku and bar
+                          talker.info("SKU ${sku} Bar Code ${barCode}");
+
+                          Product? product = ProxyService.realm.getProduct(
+                              id: ref.read(unsavedProductProvider)!.id!);
+
+                          /// update the product with propper name
+                          ProxyService.realm.realm!.write(() {
+                            product?.name = productNameController.text;
+                            product?.color = model.currentColor;
+                            product?.isComposite = true;
+                          });
+
+                          /// create the default variant to represent this composite item, in flipper each product
+                          /// has a default variant
+                          ProxyService.realm.createVariant(
+                            itemSeq: 1,
+
+                            /// because this is a placeholder variant, then qty does not matter in this scenario
+                            /// we only care about it when the qty will be involved in manaing stock
+                            /// but for composite, stock is managed to the level of the composites item not the default item on product
+                            qty: 1,
+                            barCode: barCode,
+                            sku: sku,
+                            retailPrice:
+                                double.tryParse(retailPriceController.text) ??
+                                    0,
+                            supplierPrice:
+                                double.tryParse(supplyPriceController.text) ??
+                                    0,
+                            productId: product!.id!,
+                            color: product.color,
+                            name: name,
+                          );
+
+                          /// refresh the list
+                          final combinedNotifier = ref.read(refreshPrivider);
+                          combinedNotifier.performActions(
+                              productName: "", scanMode: true);
+                          ref
+                              .read(selectedVariantsLocalProvider.notifier)
+                              .clearState();
+                          Navigator.maybePop(context);
 
                           /// at the end then save the product with the composite attached.
                         }
@@ -647,10 +694,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ],
                 ),
               ),
-              if (ref.watch(productProvider)?.imageUrl != null)
+              if (ref.watch(unsavedProductProvider)?.imageUrl != null)
                 FutureBuilder(
                   future: getImageFilePath(
-                      imageFileName: ref.watch(productProvider)!.imageUrl!),
+                      imageFileName:
+                          ref.watch(unsavedProductProvider)!.imageUrl!),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
                       final imageFilePath = snapshot.data as String;
@@ -692,7 +740,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                   ),
                 ),
               Browsephotos(
-                productId: ref.read(productProvider)?.id ?? 0,
+                productId: ref.read(unsavedProductProvider)?.id ?? 0,
               )
             ],
           );

@@ -162,6 +162,7 @@ class ProductViewState extends ConsumerState<ProductView> {
       productName: variant.productName ?? "",
       variantName: variant.name ?? "",
       imageUrl: product?.imageUrl,
+      isComposite: product?.isComposite ?? false,
       edit: (productId, type) {
         talker.info("navigating to Edit!");
         if (_getDeviceType(context) != "Phone") {
@@ -304,6 +305,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                     future: ProxyService.realm.stocks(productId: product.id),
                     builder: (BuildContext context, stock) {
                       return RowItem(
+                        isComposite: product.isComposite ?? false,
                         color: product.color,
                         stock: stock.data ?? 0.0,
                         model: model,

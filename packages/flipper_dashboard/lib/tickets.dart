@@ -166,7 +166,7 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                                           pendingTransactionProvider(
                                               TransactionType.sale));
                                       ref.refresh(transactionItemsProvider(
-                                              transaction.value?.value?.id!)
+                                              transaction.value?.id!)
                                           .notifier);
                                     }
                                     _routerService

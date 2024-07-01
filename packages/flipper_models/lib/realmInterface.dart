@@ -37,11 +37,6 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
 
-  Future<ITransaction?> pendingTransaction(
-      {required int branchId,
-      required String transactionType,
-      bool includeSubTotalCheck = true});
-
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
 
@@ -111,7 +106,8 @@ abstract class RealmApiInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<ITransaction> manageTransaction({required String transactionType});
+  ITransaction manageTransaction(
+      {required String transactionType, bool? includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType});
@@ -384,4 +380,14 @@ abstract class RealmApiInterface {
 
   void saveComposite({required Composite composite});
   Stream<SKU?> sku({required int branchId});
+  void createVariant(
+      {required String barCode,
+      required String sku,
+      required int productId,
+      required double retailPrice,
+      required double supplierPrice,
+      required double qty,
+      required String color,
+      required int itemSeq,
+      required String name});
 }

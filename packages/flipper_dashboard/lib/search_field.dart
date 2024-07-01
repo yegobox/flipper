@@ -97,11 +97,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
               ref.watch(pendingTransactionProvider(TransactionType.sale));
 
           await Future.delayed(Duration(microseconds: 500));
-          ref.refresh(
-              transactionItemsProvider(pendingTransaction.value?.value?.id));
+          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
           await Future.delayed(Duration(microseconds: 500));
-          ref.refresh(
-              transactionItemsProvider(pendingTransaction.value?.value?.id));
+          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
         }
       }
     } else {

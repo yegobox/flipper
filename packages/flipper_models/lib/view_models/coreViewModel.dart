@@ -122,7 +122,8 @@ class CoreViewModel extends FlipperBaseModel
         .manageTransaction(transactionType: transactionType!);
 
     /// query for an item that is not active so we can edit it
-    /// if the item is not available it will be created
+    /// if the item is not available it will be created, if we are done with working with item
+    /// we then change status of active from false to true
     List<TransactionItem> items = await ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
@@ -230,15 +231,6 @@ class CoreViewModel extends FlipperBaseModel
       newItem.action = AppActions.created;
       await ProxyService.realm
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
-      items = await ProxyService.realm.transactionItems(
-          transactionId: pendingTransaction.id!,
-          doneWithTransaction: false,
-          active: true);
-    } else {
-      items = await ProxyService.realm.transactionItems(
-          transactionId: pendingTransaction.id!,
-          doneWithTransaction: false,
-          active: true);
     }
     keypad.setTransaction(pendingTransaction);
   }

@@ -239,12 +239,11 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       reset: () {
         ref.read(keypadProvider.notifier).reset();
       },
-      key: key,
+      key: ref.watch(keypadProvider),
     );
     ref.refresh(transactionItemsProvider(ref
         .read(pendingTransactionProvider(widget.transactionType))
         .value
-        ?.value
         ?.id));
   }
 
@@ -255,9 +254,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     if (key == 'C') {
       await _handleNumberKey(key);
     } else if (key == 'Confirm') {
-      await _handleConfirmKey(transaction.asData!.value, key);
+      await _handleConfirmKey(transaction, key);
     } else if (key == '+') {
-      await _handlePlusKey(transaction.asData!.value);
+      await _handlePlusKey(transaction);
     } else {
       await _handleNumberKey(key);
     }
@@ -332,6 +331,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
     widget.model
         .saveCashBookTransaction(cbTransactionType: widget.transactionType);
-    ref.refresh(transactionItemsProvider(transaction.value?.value?.id));
+    ref.refresh(transactionItemsProvider(transaction.value?.id));
   }
 }

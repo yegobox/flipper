@@ -58,7 +58,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         }
 
         Product product = await model.getProduct(productId: widget.productId);
-        ref.read(productProvider.notifier).emitProduct(value: product);
+        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
         model.loadCategories();
         await model.loadColors();
         model.loadUnits();
@@ -66,7 +66,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         // Start locking the save button.
         widget.productId == null
             ? model.setProductName(name: ' ')
-            : ref.read(productProvider)?.name;
+            : ref.read(unsavedProductProvider)?.name;
 
         // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
@@ -143,14 +143,14 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     inUpdateProcess: true,
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
-                    productId: ref.read(productProvider)?.id);
+                    productId: ref.read(unsavedProductProvider)?.id);
 
                 await model.updateRegularVariant(
                     inUpdateProcess: true,
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
-                    productId: ref.read(productProvider)?.id);
+                    productId: ref.read(unsavedProductProvider)?.id);
 
                 _routerService.clearStackAndShow(CheckOutRoute(
                   isBigScreen: false,
@@ -168,11 +168,12 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     key: _sub,
                     child: Column(children: <Widget>[
                       verticalSpaceSmall,
-                      ref.read(productProvider) == null
+                      ref.read(unsavedProductProvider) == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: ref.read(productProvider)!.color,
-                              product: ref.read(productProvider),
+                              currentColor:
+                                  ref.read(unsavedProductProvider)!.color,
+                              product: ref.read(unsavedProductProvider),
                             ),
                       Text(
                         'Product',
@@ -213,10 +214,10 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       const CenterDivider(
                         width: double.infinity,
                       ),
-                      ref.read(productProvider) == null
+                      ref.read(unsavedProductProvider) == null
                           ? const SizedBox.shrink()
                           : SectionSelectUnit(
-                              product: ref.read(productProvider)!,
+                              product: ref.read(unsavedProductProvider)!,
                               type: 'product',
                             ),
                       verticalSpaceSmall,
@@ -232,7 +233,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
                                   inUpdateProcess: true,
-                                  productId: ref.read(productProvider)?.id);
+                                  productId:
+                                      ref.read(unsavedProductProvider)?.id);
                             } else {
                               model.lockButton(true);
                             }
@@ -252,7 +254,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
                                   inUpdateProcess: true,
-                                  productId: ref.read(productProvider)?.id);
+                                  productId:
+                                      ref.read(unsavedProductProvider)?.id);
                             } else {
                               return '.';
                             }
@@ -266,16 +269,18 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                           width: double.infinity,
                           child: TextButton(
                             child: Text(
-                                (ref.read(productProvider) == null ||
-                                        (ref.read(productProvider) != null &&
+                                (ref.read(unsavedProductProvider) == null ||
+                                        (ref.read(unsavedProductProvider) !=
+                                                null &&
                                             ref
-                                                    .read(productProvider)!
+                                                    .read(
+                                                        unsavedProductProvider)!
                                                     .expiryDate ==
                                                 null))
                                     ? 'Expiry Date'
                                     : 'Expires at ' +
                                         formatter.format(DateTime.tryParse(ref
-                                                .read(productProvider)!
+                                                .read(unsavedProductProvider)!
                                                 .expiryDate!) ??
                                             DateTime.now()),
                                 style: GoogleFonts.poppins(
@@ -320,7 +325,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       verticalSpaceSmall,
                       StreamBuilder<List<Variant>>(
                         stream: ProxyService.realm.geVariantStreamByProductId(
-                            productId: ref.read(productProvider)?.id ?? 0),
+                            productId:
+                                ref.read(unsavedProductProvider)?.id ?? 0),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -360,7 +366,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: ref.read(productProvider)!.id!);
+                                  productId:
+                                      ref.read(unsavedProductProvider)!.id!);
                             },
                           ),
                         ),
