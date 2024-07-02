@@ -8,6 +8,7 @@ import openpyxl
 import io
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
+import boto3
 
 # --- Data ---
 products = [
@@ -47,7 +48,6 @@ def calculate_gross_profit():
         profit_margin = product["price"] - product["cost"]
         total_profit += profit_margin
     return total_profit
-
 
 def predict_sales(product_id, days_to_predict=7):
     """Uses LSTM to predict sales for a given product."""
@@ -94,78 +94,11 @@ def predict_sales(product_id, days_to_predict=7):
 
     return predictions.flatten()
 
-# --- Example Usage ---
-inventory_value = calculate_inventory_value()
-print("Total Inventory Value:", inventory_value)
-
-gross_profit = calculate_gross_profit()
-print("Gross Profit Margin:", gross_profit)
-
-# --- Time Series Prediction (for T-Shirt) ---
-predicted_sales = predict_sales(1)
-print("Predicted Sales for T-Shirt (next 7 days):", predicted_sales)
-
-# --- Visualization (for T-Shirt) ---
-sales_history = sales_data[1]
-df = pd.DataFrame(sales_history)
-df['date'] = pd.to_datetime(df['date'])
-df = df.set_index('date')
-
-# Predict future sales
-predicted_sales = predict_sales(1)
-
-# Create a DataFrame for Excel output (CORRECTED VERSION)
-output_df = pd.DataFrame({
-    'Date': df.index.append(pd.to_datetime(df.index[-1] + pd.to_timedelta(range(1, len(predicted_sales) + 1), unit='d'))),
-    'Actual Sales': df['sales'].values.tolist() + [np.nan] * len(predicted_sales),
-    'Predicted Sales': [np.nan] * len(df['sales']) + list(predicted_sales)
-})
-
-# --- Create chart using matplotlib ---
-plt.figure(figsize=(10, 6))
-plt.plot(output_df['Date'], output_df['Actual Sales'], label='Actual Sales')
-plt.plot(output_df['Date'], output_df['Predicted Sales'], label='Predicted Sales')
-
-plt.title('T-Shirt Sales: Actual vs. Predicted')
-plt.xlabel('Date')
-plt.ylabel('Sales Quantity')
-plt.legend()
-plt.grid(True)
-
-# Save the chart to a buffer
-buf = io.BytesIO()
-plt.savefig(buf, format="png")
-buf.seek(0)
-
-# --- Create Excel workbook and add data ---
-wb = Workbook()
-ws = wb.active
-ws.title = "Sales Predictions"
-
-# Write DataFrame to Excel sheet
-for row in output_df.values.tolist():
-    ws.append(row)
-
-# Add chart to Excel sheet
-# FIX: Pass the buffer directly to Image
-img = Image(buf) 
-ws.add_image(img, 'B10')  # Adjust position as needed
-
-# Save Excel file
-wb.save('sales_predictions.xlsx')
-print("Sales data and chart saved to sales_predictions.xlsx")
-
-# --- Stock Replenishment (Simple Example) ---
 def replenish_stock(product_id, target_quantity=100):
     current_quantity = stock.get(product_id, 0)
     if current_quantity < target_quantity:
         stock[product_id] = target_quantity
         print(f"Replenished stock for product {product_id} to {target_quantity}")
-
-# --- Cost Fluctuations (Example) ---
-cost_fluctuations = {
-    1: [10.0, 10.5, 10.2, 10.8, 10.0], # Example T-Shirt cost fluctuations
-}
 
 def update_cost(product_id, new_cost):
     """Updates the cost of a product."""
@@ -174,14 +107,87 @@ def update_cost(product_id, new_cost):
             product["cost"] = new_cost
             break
 
-# --- Margin Analysis (Example) ---
 def analyze_margins():
     """Calculates and prints margin analysis."""
     for product in products:
         margin = (product["price"] - product["cost"]) / product["price"] * 100
         print(f"{product['name']}: Margin - {margin:.2f}%")
 
-# --- Example Run ---
-replenish_stock(1) # Replenish T-Shirt stock
-update_cost(1, 10.5) # Update T-Shirt cost
-analyze_margins() 
+def upload_to_s3(file_object, bucket_name, file_name):
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.upload_fileobj(file_object, bucket_name, file_name)
+        print(f"File uploaded successfully to {bucket_name}/{file_name}")
+    except Exception as e:
+        print(f"Error uploading file to S3: {str(e)}")
+
+# --- Main Execution ---
+if __name__ == "__main__":
+    # Calculate and print inventory value
+    inventory_value = calculate_inventory_value()
+    print("Total Inventory Value:", inventory_value)
+
+    # Calculate and print gross profit
+    gross_profit = calculate_gross_profit()
+    print("Gross Profit Margin:", gross_profit)
+
+    # Predict sales for T-Shirt
+    predicted_sales = predict_sales(1)
+    print("Predicted Sales for T-Shirt (next 7 days):", predicted_sales)
+
+    # Prepare data for visualization
+    sales_history = sales_data[1]
+    df = pd.DataFrame(sales_history)
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.set_index('date')
+
+    # Create a DataFrame for Excel output
+    output_df = pd.DataFrame({
+        'Date': df.index.append(pd.to_datetime(df.index[-1] + pd.to_timedelta(range(1, len(predicted_sales) + 1), unit='d'))),
+        'Actual Sales': df['sales'].values.tolist() + [np.nan] * len(predicted_sales),
+        'Predicted Sales': [np.nan] * len(df['sales']) + list(predicted_sales)
+    })
+
+    # Create chart using matplotlib
+    plt.figure(figsize=(10, 6))
+    plt.plot(output_df['Date'], output_df['Actual Sales'], label='Actual Sales')
+    plt.plot(output_df['Date'], output_df['Predicted Sales'], label='Predicted Sales')
+
+    plt.title('T-Shirt Sales: Actual vs. Predicted')
+    plt.xlabel('Date')
+    plt.ylabel('Sales Quantity')
+    plt.legend()
+    plt.grid(True)
+
+    # Save the chart to a buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+
+    # Create Excel workbook and add data
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Predictions"
+
+    # Write DataFrame to Excel sheet
+    for row in output_df.values.tolist():
+        ws.append(row)
+
+    # Add chart to Excel sheet
+    img = Image(buf) 
+    ws.add_image(img, 'B10')  # Adjust position as needed
+
+    # Save Excel file to a BytesIO object
+    excel_buffer = io.BytesIO()
+    wb.save(excel_buffer)
+    excel_buffer.seek(0)
+
+    # Upload to S3
+    upload_to_s3(excel_buffer, "flipperc891b2ada58d471daad8a4d47d721382d2dc2-dev", "sales_predictions.xlsx")
+
+    print("Sales data and chart saved to S3 bucket 'd-dev' as sales_predictions.xlsx")
+
+    # Additional operations
+    replenish_stock(1)  # Replenish T-Shirt stock
+    update_cost(1, 10.5)  # Update T-Shirt cost
+    analyze_margins()  # Analyze margins
