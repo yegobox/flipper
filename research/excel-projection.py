@@ -147,7 +147,8 @@ for row in output_df.values.tolist():
     ws.append(row)
 
 # Add chart to Excel sheet
-img = Image(buf.read())
+# FIX: Pass the buffer directly to Image
+img = Image(buf) 
 ws.add_image(img, 'B10')  # Adjust position as needed
 
 # Save Excel file
