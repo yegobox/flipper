@@ -136,6 +136,19 @@ mixin TransactionMixin {
       );
       await ProxyService.realm
           .addTransactionItem(transaction: pendingTransaction, item: newItem);
+    } else {
+      ///set the current items to active for them to be added to the cart as well
+      /// This means if there is pending custom item it will be added as well
+      /// even if the intention was not there, but the assumption is that only
+      /// custom amount is added when a user is on keypadview
+      /// and clicked +, if for somereason a user pressed a number on keyboard and leave the keypad
+      /// the custom amount with the number pressed will be available waiting
+      /// so it is logical to add it here so user can decide to delete it later.
+      for (TransactionItem item in items) {
+        ProxyService.realm.realm!.write(() {
+          item.active = true;
+        });
+      }
     }
 
     ProxyService.realm.realm!.write(() {

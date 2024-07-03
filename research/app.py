@@ -8,14 +8,13 @@ import numpy as np
 import openpyxl
 import io
 from openpyxl import Workbook
-from openpyxl.drawing.image import Image
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.chart import LineChart, Reference
 import boto3
 from botocore.exceptions import ClientError
 import matplotlib
 matplotlib.use('Agg')  # Set the backend
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import os
 from dotenv import load_dotenv
@@ -40,7 +39,7 @@ def fetch_data_from_api(collection, branchId):
 
     try:
         response = requests.post(url, json=payload, headers=headers)
-        response.raise_for_status()  # Raises a HTTPError if the status is 4xx, 5xx
+        response.raise_for_status()
         return response.json().get('documents', [])
     except requests.RequestException as e:
         print(f"Error fetching {collection} data from API: {e}")
@@ -87,23 +86,8 @@ def fetch_sales(branchId):
     return processed_sales
 
 # --- Functions ---
-def calculate_inventory_value():
-    total_value = 0
-    for product_id, product in products.items():
-        stock_quantity = stock.get(product_id, 0)
-        value = stock_quantity * product["price"]
-        total_value += value
-    return total_value
-
-def calculate_gross_profit():
-    total_profit = 0
-    for product in products.values():
-        profit_margin = product["price"] - product["cost"]
-        total_profit += profit_margin
-    return total_profit
 
 def predict_sales(product_id, days_to_predict=7):
-    """Uses LSTM to predict sales for a given product."""
     if product_id not in sales_data or len(sales_data[product_id]['date']) < 2:
         print(f"Insufficient sales data for product {product_id}")
         return []
@@ -111,26 +95,30 @@ def predict_sales(product_id, days_to_predict=7):
     df = pd.DataFrame(sales_data[product_id])
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date')
-    df = df.sort_index()  # Ensure the data is sorted by date
+    df = df.sort_index()
+    df = df.resample('D').sum().fillna(0)  # Resample to daily data, filling missing days with 0
+
+    # Use more historical data for training
+    train_data = df['sales'].values[-30:]  # Use last 30 days for training
 
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(df['sales'].values.reshape(-1, 1))
+    scaled_data = scaler.fit_transform(train_data.reshape(-1, 1))
 
     X, y = [], []
     for i in range(1, len(scaled_data)):
         X.append(scaled_data[i-1:i])
-        y.append(scaled_data[i]) 
-    X, y = np.array(X), np.array(y)  
-    y = y.reshape(-1, 1)
-
+        y.append(scaled_data[i])
+    X, y = np.array(X), np.array(y)
     X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
 
     model = Sequential()
-    model.add(LSTM(4, input_shape=(1, 1)))
+    model.add(LSTM(50, return_sequences=True, input_shape=(1, 1)))
+    model.add(LSTM(50, return_sequences=False))
+    model.add(Dense(25))
     model.add(Dense(1))
-    model.compile(loss='mean_squared_error', optimizer='adam')
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
-    model.fit(X, y, epochs=50, batch_size=1, verbose=0)
+    model.fit(X, y, batch_size=1, epochs=100, verbose=0)
 
     last_day_sales = scaled_data[-1].reshape(1, 1, 1)
     predictions = []
@@ -141,64 +129,84 @@ def predict_sales(product_id, days_to_predict=7):
         last_day_sales = next_day_prediction.reshape(1, 1, 1)
 
     predictions = scaler.inverse_transform(np.array(predictions).reshape(-1, 1))
-
-    return predictions.flatten()
+    
+    # Apply a smoothing factor to prevent extreme fluctuations
+    smoothing_factor = 0.8
+    smoothed_predictions = [predictions[0][0]]
+    for i in range(1, len(predictions)):
+        smoothed_predictions.append(smoothing_factor * predictions[i][0] + (1 - smoothing_factor) * smoothed_predictions[i-1])
+    
+    return np.array(smoothed_predictions)
 
 def generate_excel_file():
     if not sales_data:
         raise ValueError("No sales data available")
-
+    
     wb = Workbook()
     ws = wb.active
     ws.title = "Sales Predictions"
-    headers = ['Date', 'Product Name', 'Actual Sales', 'Predicted Sales']
+    headers = ['Date', 'Product Name', 'Predicted Sales', 'Current Stock', 'Stock Replenishment', 'Stock Value']
     ws.append(headers)
     
     for product_id, product in products.items():
         product_name = product['name']
         predicted_sales = predict_sales(product_id)
-        sales_history = sales_data.get(product_id, {'date': [], 'sales': []})
-
-        if not sales_history['date']:
+        
+        if len(predicted_sales) == 0:
             continue
         
-        df = pd.DataFrame(sales_history)
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date')
-
-        output_df = pd.DataFrame({
-            'Date': df.index.append(pd.to_datetime(df.index[-1] + pd.to_timedelta(range(1, len(predicted_sales) + 1), unit='d'))),
-            'Product Name': [product_name] * (len(df['sales']) + len(predicted_sales)),
-            'Actual Sales': df['sales'].values.tolist() + [np.nan] * len(predicted_sales),
-            'Predicted Sales': [np.nan] * len(df['sales']) + list(predicted_sales)
-        })
+        current_stock = stock.get(product_id, 0)  # Get the current stock for this product
+        current_date = datetime.now().date()
         
-        for row in output_df.itertuples(index=False, name=None):
+        output_data = []
+        
+        for i, sales_prediction in enumerate(predicted_sales):
+            date = current_date + timedelta(days=i)
+            target_stock_level = max(7 * sales_prediction, current_stock * 0.9)  # Keep at least 90% of current stock
+            replenishment_needed = max(0, target_stock_level - current_stock)
+            stock_value = current_stock * product['price']
+            
+            output_data.append([
+                date,
+                product_name,
+                round(sales_prediction, 2),
+                round(current_stock, 2),
+                round(replenishment_needed, 2),
+                round(stock_value, 2)
+            ])
+            
+            # Update current_stock for the next day
+            current_stock = max(0, current_stock - sales_prediction + replenishment_needed)
+        
+        for row in output_data:
             ws.append(row)
     
     for col in ws.columns:
         max_length = max(len(str(cell.value)) for cell in col)
         col_letter = col[0].column_letter
         ws.column_dimensions[col_letter].width = max_length + 2
-
+    
     # Create chart
     chart = LineChart()
-    chart.title = "Sales Predictions"
+    chart.title = "Sales Predictions and Stock Levels"
     chart.style = 10
-    chart.y_axis.title = 'Sales Quantity'
+    chart.y_axis.title = 'Quantity'
     chart.x_axis.title = 'Date'
-
-    data = Reference(ws, min_col=3, min_row=1, max_col=4, max_row=ws.max_row)
+    
+    data = Reference(ws, min_col=3, min_row=1, max_col=5, max_row=ws.max_row)
     categories = Reference(ws, min_col=1, min_row=2, max_row=ws.max_row)
     chart.add_data(data, titles_from_data=True)
     chart.set_categories(categories)
-
-    ws.add_chart(chart, "F2")
-
+    
+    chart.width = 20
+    chart.height = 12
+    
+    ws.add_chart(chart, "H2")
+    
     excel_buffer = io.BytesIO()
     wb.save(excel_buffer)
     excel_buffer.seek(0)
-
+    
     return excel_buffer
 
 def generate_file_name():
