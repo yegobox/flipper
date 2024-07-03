@@ -520,3 +520,4 @@ class App {}
 ///  python3 -m venv venv
 ///  source venv/bin/activate
 ///  pip install tensorflow pandas scikit-learn matplotlib
+/// pip install python-dotenv
