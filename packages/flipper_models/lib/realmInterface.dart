@@ -182,7 +182,9 @@ abstract class RealmApiInterface {
   Future<List<Discount>> getDiscounts({required int branchId});
 
   Future<void> addTransactionItem(
-      {required ITransaction transaction, required TransactionItem item});
+      {required ITransaction transaction,
+      required TransactionItem item,
+      required bool partOfComposite});
 
   void emptySentMessageQueue();
   bool suggestRestore();
@@ -241,7 +243,7 @@ abstract class RealmApiInterface {
       required bool doneWithTransaction,
       required bool active});
 
-  Future<Variant?> getVariantById({required int id});
+  Variant? getVariantById({required int id});
   bool isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -379,6 +381,8 @@ abstract class RealmApiInterface {
   List<Variant> getVariants({String? key});
 
   void saveComposite({required Composite composite});
+  List<Composite> composites({required int productId});
+  Composite composite({required int variantId});
   Stream<SKU?> sku({required int branchId});
   void createVariant(
       {required String barCode,

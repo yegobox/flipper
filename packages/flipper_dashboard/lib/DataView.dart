@@ -328,7 +328,7 @@ abstract class DynamicDataSource extends DataGridSource {
       return data.map((item) {
         if (item is ITransaction) {
           return DataGridRow(cells: [
-            DataGridCell<String>(columnName: 'id', value: item.id.toString()),
+            DataGridCell<String>(columnName: 'Name', value: item.id.toString()),
             DataGridCell<String>(
                 columnName: 'Type', value: item.receiptType ?? "-"),
             DataGridCell<double>(columnName: 'Amount', value: item.subTotal),

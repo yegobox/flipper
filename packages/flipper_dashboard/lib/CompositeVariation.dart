@@ -22,13 +22,13 @@ class VVariant {
 
 class VariantState {
   final VVariant variant;
-  final int quantity;
+  final double quantity;
   final double cost;
 
   VariantState({required this.variant, this.quantity = 1})
       : cost = variant.retailPrice * quantity;
 
-  VariantState copyWith({VVariant? variant, int? quantity}) {
+  VariantState copyWith({VVariant? variant, double? quantity}) {
     return VariantState(
       variant: variant ?? this.variant,
       quantity: quantity ?? this.quantity,
@@ -45,7 +45,7 @@ class VariantNotifier extends StateNotifier<List<VariantState>> {
     state = variants.map((variant) => VariantState(variant: variant)).toList();
   }
 
-  void updateQuantity(VVariant variant, int quantity) {
+  void updateQuantity(VVariant variant, double quantity) {
     state = [
       for (final vs in state)
         if (vs.variant.id == variant.id) vs.copyWith(quantity: quantity) else vs
@@ -151,7 +151,7 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                     controller: quantityController,
                     keyboardType: TextInputType.number,
                     onChanged: (value) {
-                      final int quantity = int.tryParse(value) ?? 0;
+                      final double quantity = double.tryParse(value) ?? 0.0;
                       selectedVariantsNotifier.updateQuantity(
                           variantState.variant, quantity);
                       recalculateTotalCost();

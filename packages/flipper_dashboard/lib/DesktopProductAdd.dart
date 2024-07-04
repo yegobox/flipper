@@ -619,7 +619,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                                   businessId: ProxyService.box.getBusinessId(),
                                   productId:
                                       ref.read(unsavedProductProvider)!.id!,
-                                  quantity: partOfComposite[i].quantity,
+                                  qty: partOfComposite[i].quantity,
                                   branchId: ProxyService.box.getBranchId(),
                                   variantId: partOfComposite[i].variant.id),
                             );

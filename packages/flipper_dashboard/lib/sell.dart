@@ -59,9 +59,10 @@ class SellState extends ConsumerState<Sell> {
               Stock? stock = await ProxyService.realm
                   .stockByVariantId(variantId: model.checked);
               Variant? variant =
-                  await ProxyService.realm.getVariantById(id: model.checked);
+                  ProxyService.realm.getVariantById(id: model.checked);
 
               bool saved = await model.saveTransaction(
+                  partOfComposite: false,
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,

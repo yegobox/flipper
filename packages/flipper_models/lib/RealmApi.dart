@@ -185,9 +185,16 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<void> addTransactionItem(
       {required ITransaction transaction,
-      required TransactionItem item}) async {
+      required TransactionItem item,
+      required bool partOfComposite}) async {
     // Add the new item to the database
     await realm!.putAsync<TransactionItem>(item);
+
+    /// update this item to know if it is involved in the composition
+    /// so it will be treated differently on cart.
+    realm!.write(() {
+      item.partOfComposite = partOfComposite;
+    });
 
     // Fetch all items
     var allItems = await realm!.query<TransactionItem>(
@@ -1251,9 +1258,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> getVariantById({required int id}) async {
-    return realm!
-        .query<Variant>(r'id == $0 AND deletedAt == nil', [id]).firstOrNull;
+  Variant? getVariantById({required int id}) {
+    return realm!.query<Variant>(r'id == $0', [id]).firstOrNull;
   }
 
   @override
@@ -2106,21 +2112,13 @@ class RealmAPI<M extends IJsonSerializable>
       realmModels,
       encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       path: path,
-      clientResetHandler:
-          RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
-        // Executed before the client reset begins.
-        // Can be used to notify the user that a reset is going
-        // to happen.
+      clientResetHandler: ManualRecoveryHandler((clientResetError) {
         talker.warning("start resetting");
-      }, onAfterReset: (beforeResetRealm, afterResetRealm) {
-        // Executed after the client reset is complete.
-        // Can be used to notify the user that the reset is done.
-        talker.warning("done resetting");
-      }, onManualResetFallback: (clientResetError) {
-        // Automatic reset failed. Handle the reset manually here.
-        // Refer to the "Manual Client Reset Fallback" documentation
-        // for more information on what you can include here.
-        talker.warning("resetting failed");
+        // You must close the Realm before attempting the client reset.
+        realm!.close();
+        // Handle manual client reset here...
+        // Then perform the client reset.
+        clientResetError.resetRealm();
       }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
@@ -3122,5 +3120,20 @@ class RealmAPI<M extends IJsonSerializable>
         return event.results.first;
       }
     });
+  }
+
+  @override
+  List<Composite> composites({required int productId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'productId == $0', [productId]);
+
+    return queryBuilder.toList();
+  }
+
+  @override
+  Composite composite({required int variantId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'variantId == $0', [variantId]);
+    return queryBuilder.first;
   }
 }

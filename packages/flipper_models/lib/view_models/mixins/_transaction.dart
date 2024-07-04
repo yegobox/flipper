@@ -16,7 +16,8 @@ mixin TransactionMixin {
       required double amountTotal,
       required bool customItem,
       required ITransaction pendingTransaction,
-      required double currentStock}) async {
+      required double currentStock,
+      required bool partOfComposite}) async {
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
@@ -35,6 +36,7 @@ mixin TransactionMixin {
       currentStock: currentStock,
       amountTotal: amountTotal,
       isCustom: customItem,
+      partOfComposite: partOfComposite,
       item: existTransactionItem,
     );
 
@@ -54,6 +56,7 @@ mixin TransactionMixin {
     required double amountTotal,
     required bool isCustom,
     TransactionItem? item,
+    required bool partOfComposite,
   }) async {
     if (item != null && !isCustom) {
       List<TransactionItem> items = ProxyService.realm.transactionItems(
@@ -81,6 +84,15 @@ mixin TransactionMixin {
         active: false);
 
     if (items.isEmpty) {
+      /// check if given variant is part of composite before adding it to the cart, we lock it for it to be editable on the cart
+      double computedQty = isCustom ? 1.0 : quantity;
+      if (partOfComposite) {
+        /// get this composite by variantId to use the default qty set when the composite is sold
+        Composite composite =
+            ProxyService.realm.composite(variantId: variation.id!);
+        computedQty = composite.qty!;
+      }
+
       TransactionItem newItem = TransactionItem(
         ObjectId(),
         id: randomNumber(),
@@ -102,7 +114,7 @@ mixin TransactionMixin {
         isTaxExempted: variation.isTaxExempted,
         remainingStock: currentStock - quantity,
         lastTouched: DateTime.now(),
-        qty: isCustom ? 1.0 : quantity,
+        qty: computedQty,
         taxblAmt: variation.retailPrice * quantity,
         taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
         totAmt: variation.retailPrice,
@@ -134,8 +146,11 @@ mixin TransactionMixin {
         modrId: variation.modrId,
         modrNm: variation.modrNm,
       );
-      await ProxyService.realm
-          .addTransactionItem(transaction: pendingTransaction, item: newItem);
+
+      await ProxyService.realm.addTransactionItem(
+          transaction: pendingTransaction,
+          item: newItem,
+          partOfComposite: partOfComposite);
     } else {
       ///set the current items to active for them to be added to the cart as well
       /// This means if there is pending custom item it will be added as well

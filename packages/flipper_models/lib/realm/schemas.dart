@@ -662,6 +662,7 @@ class _TransactionItem {
 
   int? branchId;
   bool ebmSynced = false;
+  bool partOfComposite = false;
 }
 
 @RealmModel()
@@ -909,7 +910,7 @@ class _Composite {
 
   int? productId;
   int? variantId;
-  int? quantity = 1;
+  double? qty = 1.0;
   int? branchId;
   int? businessId;
 }

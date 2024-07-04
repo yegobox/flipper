@@ -193,11 +193,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                         icon: Icon(Icons.remove,
                                             color: Colors.white),
                                         onPressed: () {
-                                          ProxyService.realm.realm!.write(() {
-                                            if (item.qty > 0) item.qty--;
-                                          });
-                                          ref.refresh(transactionItemsProvider(
-                                              transaction.value?.id));
+                                          /// if item is not part of composite then we are allowed to
+                                          /// modify the qty while selling
+                                          if (!item.partOfComposite) {
+                                            ProxyService.realm.realm!.write(() {
+                                              if (item.qty > 0) item.qty--;
+                                            });
+                                            ref.refresh(
+                                                transactionItemsProvider(
+                                                    transaction.value?.id));
+                                          }
                                         },
                                       ),
                                     ),
@@ -212,11 +217,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                         icon: Icon(Icons.add,
                                             color: Colors.white),
                                         onPressed: () {
-                                          ProxyService.realm.realm!.write(() {
-                                            if (item.qty > 0) item.qty++;
-                                          });
-                                          ref.refresh(transactionItemsProvider(
-                                              transaction.value?.id));
+                                          /// if item is not part of composite then we are allowed to
+                                          /// modify the qty while selling
+                                          if (!item.partOfComposite) {
+                                            ProxyService.realm.realm!.write(() {
+                                              if (item.qty > 0) item.qty++;
+                                            });
+                                            ref.refresh(
+                                                transactionItemsProvider(
+                                                    transaction.value?.id));
+                                          }
                                         },
                                       ),
                                     ),

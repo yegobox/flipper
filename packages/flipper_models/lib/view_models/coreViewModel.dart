@@ -229,8 +229,11 @@ class CoreViewModel extends FlipperBaseModel
         remainingStock: stock?.currentStock ?? 0 - 1,
       );
       newItem.action = AppActions.created;
-      await ProxyService.realm
-          .addTransactionItem(transaction: pendingTransaction, item: newItem);
+      await ProxyService.realm.addTransactionItem(
+        transaction: pendingTransaction,
+        item: newItem,
+        partOfComposite: false,
+      );
     }
     keypad.setTransaction(pendingTransaction);
   }
@@ -293,8 +296,11 @@ class CoreViewModel extends FlipperBaseModel
             transactionId: pendingTransaction.id!,
             doneWithTransaction: false,
             active: true);
-        await ProxyService.realm
-            .addTransactionItem(transaction: pendingTransaction, item: newItem);
+        await ProxyService.realm.addTransactionItem(
+          transaction: pendingTransaction,
+          item: newItem,
+          partOfComposite: false,
+        );
 
         await ProxyService.realm.realm!.writeAsync(() {
           pendingTransaction.subTotal =
@@ -817,10 +823,11 @@ class CoreViewModel extends FlipperBaseModel
     keypad.setAmount(amount: variants.first.retailPrice * quantity);
     toggleCheckbox(variantId: variants.first.id!);
     increaseQty(callback: (quantity) {}, custom: true);
-    Variant? variant = await ProxyService.realm.getVariantById(id: checked);
+    Variant? variant = ProxyService.realm.getVariantById(id: checked);
     Stock? stock =
         await ProxyService.realm.stockByVariantId(variantId: checked);
     await saveTransaction(
+        partOfComposite: false,
         variation: variant!,
         amountTotal: amountTotal,
         customItem: false,

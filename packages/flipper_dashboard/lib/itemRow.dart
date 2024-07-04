@@ -99,23 +99,62 @@ class _RowItemState extends ConsumerState<RowItem> {
       builder: (context, model, c) {
         return InkWell(
           onTap: () async {
-            Stock? stock = ProxyService.realm
-                .stockByVariantId(variantId: widget.variant?.id ?? 0);
             final pendingTransaction =
                 ref.watch(pendingTransactionProvider(TransactionType.sale));
 
-            model.saveTransaction(
-              variation: widget.variant!,
-              amountTotal: widget.variant?.retailPrice ?? 0,
-              customItem: false,
-              currentStock: stock!.currentStock,
-              pendingTransaction: pendingTransaction.value!,
-            );
-            await Future.delayed(Duration(microseconds: 1000));
-            ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+            /// first check if this item is a composite
+            Product? product =
+                ProxyService.realm.getProduct(id: widget.variant!.productId!);
+            if (product != null &&
+                product.isComposite != null &&
+                product.isComposite!) {
+              /// get items of this composite
+              List<Composite> composites =
+                  ProxyService.realm.composites(productId: product.id!);
+              for (Composite composite in composites) {
+                /// find a stock for a given variant
+                Stock? stock = ProxyService.realm
+                    .stockByVariantId(variantId: composite.variantId!);
+                Variant? variant =
+                    ProxyService.realm.getVariantById(id: composite.variantId!);
+                model.saveTransaction(
+                  variation: variant!,
+                  amountTotal: variant.retailPrice,
+                  customItem: false,
+                  currentStock: stock!.currentStock,
+                  pendingTransaction: pendingTransaction.value!,
+                  partOfComposite: true,
+                );
+              }
 
-            await Future.delayed(Duration(microseconds: 200));
-            ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+              await Future.delayed(Duration(microseconds: 1000));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+
+              await Future.delayed(Duration(microseconds: 200));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+            } else {
+              Stock? stock = ProxyService.realm
+                  .stockByVariantId(variantId: widget.variant?.id ?? 0);
+
+              model.saveTransaction(
+                variation: widget.variant!,
+                amountTotal: widget.variant?.retailPrice ?? 0,
+                customItem: false,
+                currentStock: stock!.currentStock,
+                pendingTransaction: pendingTransaction.value!,
+                partOfComposite: false,
+              );
+
+              await Future.delayed(Duration(microseconds: 1000));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+
+              await Future.delayed(Duration(microseconds: 200));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+            }
           },
           onLongPress: () {
             setState(() {

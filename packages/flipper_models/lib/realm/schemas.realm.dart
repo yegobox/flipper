@@ -4796,6 +4796,7 @@ class TransactionItem extends _TransactionItem
     String? action,
     int? branchId,
     bool ebmSynced = false,
+    bool partOfComposite = false,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<TransactionItem>({
@@ -4818,6 +4819,7 @@ class TransactionItem extends _TransactionItem
         'prc': 0.0,
         'splyAmt': 0.0,
         'ebmSynced': false,
+        'partOfComposite': false,
       });
     }
     RealmObjectBase.set(this, 'id', id);
@@ -4874,6 +4876,7 @@ class TransactionItem extends _TransactionItem
     RealmObjectBase.set(this, 'action', action);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
+    RealmObjectBase.set(this, 'partOfComposite', partOfComposite);
   }
 
   TransactionItem._();
@@ -5178,6 +5181,13 @@ class TransactionItem extends _TransactionItem
   set ebmSynced(bool value) => RealmObjectBase.set(this, 'ebmSynced', value);
 
   @override
+  bool get partOfComposite =>
+      RealmObjectBase.get<bool>(this, 'partOfComposite') as bool;
+  @override
+  set partOfComposite(bool value) =>
+      RealmObjectBase.set(this, 'partOfComposite', value);
+
+  @override
   Stream<RealmObjectChanges<TransactionItem>> get changes =>
       RealmObjectBase.getChanges<TransactionItem>(this);
 
@@ -5246,6 +5256,7 @@ class TransactionItem extends _TransactionItem
       'action': action.toEJson(),
       'branchId': branchId.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
+      'partOfComposite': partOfComposite.toEJson(),
     };
   }
 
@@ -5307,6 +5318,7 @@ class TransactionItem extends _TransactionItem
         'action': EJsonValue action,
         'branchId': EJsonValue branchId,
         'ebmSynced': EJsonValue ebmSynced,
+        'partOfComposite': EJsonValue partOfComposite,
       } =>
         TransactionItem(
           fromEJson(realmId),
@@ -5363,6 +5375,7 @@ class TransactionItem extends _TransactionItem
           action: fromEJson(action),
           branchId: fromEJson(branchId),
           ebmSynced: fromEJson(ebmSynced),
+          partOfComposite: fromEJson(partOfComposite),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -5430,6 +5443,7 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('action', RealmPropertyType.string, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
+      SchemaProperty('partOfComposite', RealmPropertyType.bool),
     ]);
   }();
 
@@ -7390,20 +7404,20 @@ class Composite extends _Composite
     int? id,
     int? productId,
     int? variantId,
-    int? quantity = 1,
+    double? qty = 1.0,
     int? branchId,
     int? businessId,
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Composite>({
-        'quantity': 1,
+        'qty': 1.0,
       });
     }
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'productId', productId);
     RealmObjectBase.set(this, 'variantId', variantId);
-    RealmObjectBase.set(this, 'quantity', quantity);
+    RealmObjectBase.set(this, 'qty', qty);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'businessId', businessId);
   }
@@ -7432,9 +7446,9 @@ class Composite extends _Composite
   set variantId(int? value) => RealmObjectBase.set(this, 'variantId', value);
 
   @override
-  int? get quantity => RealmObjectBase.get<int>(this, 'quantity') as int?;
+  double? get qty => RealmObjectBase.get<double>(this, 'qty') as double?;
   @override
-  set quantity(int? value) => RealmObjectBase.set(this, 'quantity', value);
+  set qty(double? value) => RealmObjectBase.set(this, 'qty', value);
 
   @override
   int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
@@ -7463,7 +7477,7 @@ class Composite extends _Composite
       '_id': realmId.toEJson(),
       'productId': productId.toEJson(),
       'variantId': variantId.toEJson(),
-      'quantity': quantity.toEJson(),
+      'qty': qty.toEJson(),
       'branchId': branchId.toEJson(),
       'businessId': businessId.toEJson(),
     };
@@ -7477,7 +7491,7 @@ class Composite extends _Composite
         '_id': EJsonValue realmId,
         'productId': EJsonValue productId,
         'variantId': EJsonValue variantId,
-        'quantity': EJsonValue quantity,
+        'qty': EJsonValue qty,
         'branchId': EJsonValue branchId,
         'businessId': EJsonValue businessId,
       } =>
@@ -7486,7 +7500,7 @@ class Composite extends _Composite
           id: fromEJson(id),
           productId: fromEJson(productId),
           variantId: fromEJson(variantId),
-          quantity: fromEJson(quantity),
+          qty: fromEJson(qty),
           branchId: fromEJson(branchId),
           businessId: fromEJson(businessId),
         ),
@@ -7503,7 +7517,7 @@ class Composite extends _Composite
           mapTo: '_id', primaryKey: true),
       SchemaProperty('productId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
-      SchemaProperty('quantity', RealmPropertyType.int, optional: true),
+      SchemaProperty('qty', RealmPropertyType.double, optional: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
     ]);

@@ -71,6 +71,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 variation: variant,
                                 currentStock: 1.0,
                                 amountTotal: variant.retailPrice,
+                                partOfComposite: false,
                                 customItem: false,
                                 pendingTransaction: iTransaction!);
                             ref.refresh(

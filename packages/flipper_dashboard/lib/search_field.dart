@@ -85,14 +85,14 @@ class SearchFieldState extends ConsumerState<SearchField> {
               .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
           ITransaction currentTransaction = await ProxyService.realm
               .manageTransaction(transactionType: TransactionType.sale);
-
+          //// TODO: suport sell of composite item while scanning see itemRow @line 107 for how it is done
           await model.saveTransaction(
-            variation: variant,
-            amountTotal: variant.retailPrice,
-            customItem: false,
-            pendingTransaction: currentTransaction,
-            currentStock: stock!.currentStock,
-          );
+              variation: variant,
+              amountTotal: variant.retailPrice,
+              customItem: false,
+              pendingTransaction: currentTransaction,
+              currentStock: stock!.currentStock,
+              partOfComposite: false);
           final pendingTransaction =
               ref.watch(pendingTransactionProvider(TransactionType.sale));
 
