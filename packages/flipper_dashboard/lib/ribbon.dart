@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/transactionList.dart';
+import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -82,19 +82,35 @@ class IconRowState extends ConsumerState<IconRow> {
           children: <Widget>[
             GestureDetector(
               onDoubleTap: () {
-                showModalBottomSheet(
+                showDialog(
+                  barrierDismissible: true,
                   context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(10.0)),
+                  builder: (context) => Dialog(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        // maxWidth: 400, // Adjust this value as needed
+                        maxHeight: MediaQuery.of(context).size.height *
+                            0.8, // 80% of screen height
+                      ),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: double.infinity, // Ensure full width
+                                height: 800,
+                                child: TaxConfiguration(
+                                  showheader: false,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  useRootNavigator: true,
-                  builder: (BuildContext context) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: SetingsBottomSheet(),
-                    );
-                  },
                 );
               },
               child: IconText(

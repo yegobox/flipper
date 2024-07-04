@@ -11,6 +11,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
@@ -338,7 +339,8 @@ mixin IsolateHandler {
       Business business =
           localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
 
-      final url = EBMURL + "/itemClass/selectItemsClass";
+      final url =
+          ProxyService.box.getServerUrl()! + "/itemClass/selectItemsClass";
       final headers = {"Content-Type": "application/json"};
       final body = jsonEncode({
         "tin": business.tinNumber,

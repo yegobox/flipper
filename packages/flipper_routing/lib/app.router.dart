@@ -379,7 +379,9 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     TaxConfigurationRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TaxConfiguration(),
+        child: const _i1.TaxConfiguration(
+          showheader: true,
+        ),
         opaque: true,
         barrierDismissible: false,
       );

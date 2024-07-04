@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-String EBMURL = "http://localhost:8080/rra";
+// String EBMURL = "http://localhost:8080/rra";
 // String EBMURL = "https://turbo.yegobox.com/rra";
 void showSnackBar(BuildContext context, String message,
     {required Color textColor, required Color backgroundColor}) {

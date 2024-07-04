@@ -138,7 +138,9 @@ Widget SettingLayout(
                         ),
                         useRootNavigator: true,
                         builder: (BuildContext context) {
-                          return TaxConfiguration();
+                          return TaxConfiguration(
+                            showheader: true,
+                          );
                         },
                       );
                     },

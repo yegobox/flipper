@@ -64,7 +64,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getServerUrl() {
-    return prefs.getString('serverUrl');
+    return prefs.getString('getServerUrl');
   }
 
   @override
