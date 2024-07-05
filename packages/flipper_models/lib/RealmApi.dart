@@ -2066,18 +2066,9 @@ class RealmAPI<M extends IJsonSerializable>
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
       talker.error(s);
+      throw e;
     }
     return this;
-  }
-
-  void _setApiEndpoints() {
-    if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
-      commApi = AppSecrets.commApi;
-    } else {
-      apihub = AppSecrets.apihubProd;
-      commApi = AppSecrets.commApi;
-    }
   }
 
   void _configureInMemory() {
@@ -2112,14 +2103,14 @@ class RealmAPI<M extends IJsonSerializable>
       realmModels,
       encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       path: path,
-      clientResetHandler: ManualRecoveryHandler((clientResetError) {
-        talker.warning("start resetting");
-        // You must close the Realm before attempting the client reset.
-        // realm?.close();
-        // Handle manual client reset here...
-        // Then perform the client reset.
-        // clientResetError.resetRealm();
-      }),
+      // clientResetHandler: ManualRecoveryHandler((clientResetError) {
+      //   talker.warning("start resetting");
+      //   // You must close the Realm before attempting the client reset.
+      //   // realm?.close();
+      //   // Handle manual client reset here...
+      //   // Then perform the client reset.
+      //   // clientResetError.resetRealm();
+      // }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
         return (totalSize > tenMB) &&
@@ -2157,6 +2148,16 @@ class RealmAPI<M extends IJsonSerializable>
     } catch (e) {
       throw e;
       // return Realm(config);
+    }
+  }
+
+  void _setApiEndpoints() {
+    if (foundation.kDebugMode) {
+      apihub = AppSecrets.apihubUat;
+      commApi = AppSecrets.commApi;
+    } else {
+      apihub = AppSecrets.apihubProd;
+      commApi = AppSecrets.commApi;
     }
   }
 
