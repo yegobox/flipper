@@ -2118,7 +2118,7 @@ class RealmAPI<M extends IJsonSerializable>
         // realm?.close();
         // Handle manual client reset here...
         // Then perform the client reset.
-        clientResetError.resetRealm();
+        // clientResetError.resetRealm();
       }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
