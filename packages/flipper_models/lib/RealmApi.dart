@@ -1995,8 +1995,9 @@ class RealmAPI<M extends IJsonSerializable>
       }
 
       // Construct the specific directory path
+      /// the 1 appended is incremented everytime there is a breaking change on a client.
       final realmDirectory =
-          p.join(appSupportDirectory.path, '${folder ?? "1"}');
+          p.join(appSupportDirectory.path, '${folder ?? ""}1');
 
       // Create the directory if it doesn't exist
       final directory = Directory(realmDirectory);
@@ -2050,11 +2051,15 @@ class RealmAPI<M extends IJsonSerializable>
       } else {
         if (ProxyService.box.encryptionKey().isEmpty) {
           talker.error("Empty ncryption key provided");
-          throw Exception("null encryption");
+          // throw Exception("null encryption");
+          realm?.close();
+          _configureInMemory();
         }
         if (ProxyService.box.getBusinessId() == null) {
           talker.error("There is no business found");
-          throw Exception("here is no business found");
+          // throw Exception("here is no business found");
+          realm?.close();
+          _configureInMemory();
         }
         realm?.close();
         String path = await dbPath(
@@ -2066,7 +2071,9 @@ class RealmAPI<M extends IJsonSerializable>
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
       talker.error(s);
-      throw e;
+      realm?.close();
+      _configureInMemory();
+      // throw e;
     }
     return this;
   }
@@ -2092,8 +2099,8 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
-    realm!.syncSession.waitForDownload();
-    realm!.subscriptions.waitForSynchronization(token);
+    await realm!.syncSession.waitForDownload();
+    await realm!.subscriptions.waitForSynchronization(token);
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/
@@ -2103,14 +2110,6 @@ class RealmAPI<M extends IJsonSerializable>
       realmModels,
       encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       path: path,
-      // clientResetHandler: ManualRecoveryHandler((clientResetError) {
-      //   talker.warning("start resetting");
-      //   // You must close the Realm before attempting the client reset.
-      //   // realm?.close();
-      //   // Handle manual client reset here...
-      //   // Then perform the client reset.
-      //   // clientResetError.resetRealm();
-      // }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
         return (totalSize > tenMB) &&
@@ -2134,13 +2133,13 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (await ProxyService.status.isInternetAvailable()) {
         talker.info("Opened realm with internet access.");
-        return await Realm.open(config, cancellationToken: token,
-            onProgressCallback: (syncProgress) {
-          if (syncProgress.progressEstimate == 1.0) {
-            talker.info('All bytes transferred!');
-          }
-        });
-        // return Realm(config);
+        // return await Realm.open(config, cancellationToken: token,
+        //     onProgressCallback: (syncProgress) {
+        //   if (syncProgress.progressEstimate == 1.0) {
+        //     talker.info('All bytes transferred!');
+        //   }
+        // });
+        return Realm(config);
       } else {
         talker.info("Opened realm with no internet access.");
         return Realm(config);
