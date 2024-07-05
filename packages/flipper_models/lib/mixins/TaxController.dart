@@ -253,6 +253,7 @@ class TaxController<OBJ> {
         transaction: transaction,
         receiptType: receiptType,
         counter: counter,
+        URI: ProxyService.box.getServerUrl()!,
         purchaseCode: purchaseCode,
       );
       //updateTransactionAndDrawer(receiptType, transaction);

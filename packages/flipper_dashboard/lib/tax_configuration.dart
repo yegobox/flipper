@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_dashboard/widgets/mini_app_icon.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +23,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
   final _formKey = GlobalKey<FormState>();
   final _proformaUrlController = TextEditingController();
 
+  // ignore: unused_field
   String _supportLine = "";
 
   @override

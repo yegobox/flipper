@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -394,4 +396,6 @@ abstract class RealmApiInterface {
       required String color,
       required int itemSeq,
       required String name});
+
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
 }

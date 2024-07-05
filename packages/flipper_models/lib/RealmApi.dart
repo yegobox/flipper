@@ -2115,7 +2115,7 @@ class RealmAPI<M extends IJsonSerializable>
       clientResetHandler: ManualRecoveryHandler((clientResetError) {
         talker.warning("start resetting");
         // You must close the Realm before attempting the client reset.
-        realm!.close();
+        // realm?.close();
         // Handle manual client reset here...
         // Then perform the client reset.
         clientResetError.resetRealm();
@@ -2789,8 +2789,12 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<RwApiResponse> selectImportItems(
       {required int tin, required String bhfId, required String lastReqDt}) {
-    return ProxyService.tax
-        .selectImportItems(tin: tin, bhfId: bhfId, lastReqDt: lastReqDt);
+    return ProxyService.tax.selectImportItems(
+      tin: tin,
+      bhfId: bhfId,
+      lastReqDt: lastReqDt,
+      URI: ProxyService.box.getServerUrl()!,
+    );
   }
 
   @override
@@ -3135,5 +3139,32 @@ class RealmAPI<M extends IJsonSerializable>
     final queryBuilder =
         realm!.query<Composite>(r'variantId == $0', [variantId]);
     return queryBuilder.first;
+  }
+
+  @override
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
+    try {
+      final filePath = 'pdfs/$fileName.pdf';
+
+      final result = await amplify.Amplify.Storage
+          .uploadFile(
+            localFile: amplify.AWSFile.fromStream(
+              Stream.value(pdfData),
+              size: pdfData.length,
+            ),
+            path: amplify.StoragePath.fromString(filePath),
+            onProgress: (progress) {
+              talker
+                  .warning('Fraction completed: ${progress.fractionCompleted}');
+            },
+          )
+          .result;
+
+      //talker.info("File uploaded successfully. S3 key: ${result.path}");
+      return result.uploadedItem.path;
+    } catch (e) {
+      talker.error("Error uploading file to S3: $e");
+      rethrow;
+    }
   }
 }

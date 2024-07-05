@@ -28,11 +28,11 @@ class RWTax implements TaxApi {
   RWTax();
 
   @override
-  Future<bool> initApi({
-    required String tinNumber,
-    required String bhfId,
-    required String dvcSrlNo,
-  }) async {
+  Future<bool> initApi(
+      {required String tinNumber,
+      required String bhfId,
+      required String dvcSrlNo,
+      required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
     EBM? ebm = await ProxyService.realm
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
@@ -64,13 +64,14 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock(
-      {required IStock stock, required IVariant variant}) async {
+      {required IStock stock,
+      required IVariant variant,
+      required String URI}) async {
     try {
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
-          ProxyService.box.getServerUrl()! + "/stockMaster/saveStockMaster",
-          variant.toJson());
+          URI + "/stockMaster/saveStockMaster", variant.toJson());
       // sendEmailLogging(
       //     requestBody: response.requestOptions.data,
       //     subject: "Worked",
@@ -179,8 +180,9 @@ class RWTax implements TaxApi {
   /// the server. For more information, refer to ‘3.2.4.1 ItemSaveReq/Res’
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
-  Future<bool> saveItem({required IVariant variation}) async {
-    final url = '${ProxyService.box.getServerUrl()!}/items/saveItems';
+  Future<bool> saveItem(
+      {required IVariant variation, required String URI}) async {
+    final url = '${URI}/items/saveItems';
     try {
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
@@ -210,6 +212,7 @@ class RWTax implements TaxApi {
   Future<bool> selectItems({
     required String tinNumber,
     required String bhfId,
+    required String URI,
     String lastReqDt = "20210523000000",
   }) async {
     EBM? ebm = await ProxyService.realm
@@ -244,12 +247,12 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse?> generateReceiptSignature({
-    required ITransaction transaction,
-    required String receiptType,
-    required Counter counter,
-    String? purchaseCode,
-  }) async {
+  Future<RwApiResponse?> generateReceiptSignature(
+      {required ITransaction transaction,
+      required String receiptType,
+      required Counter counter,
+      String? purchaseCode,
+      required String URI}) async {
     Business? business = await ProxyService.local.getBusiness();
 
     List<TransactionItem> items =
@@ -459,7 +462,7 @@ class RWTax implements TaxApi {
     }
     talker.warning(finalData);
     try {
-      final url = '${ProxyService.box.getServerUrl()!}/trnsSales/saveSales';
+      final url = '${URI}/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
       // Clipboard.setData(ClipboardData(text: finalData.toString()));
       if (response.statusCode == 200) {
@@ -529,9 +532,9 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> saveCustomer({required ICustomer customer}) async {
-    final url =
-        '${ProxyService.box.getServerUrl()!}/branches/saveBrancheCustomers';
+  Future<RwApiResponse> saveCustomer(
+      {required ICustomer customer, required String URI}) async {
+    final url = '${URI}/branches/saveBrancheCustomers';
 
     try {
       final response = await sendPostRequest(url, customer.toJson());
@@ -566,9 +569,9 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> savePurchases({required SaleList item}) async {
-    final baseUrl =
-        ProxyService.box.getServerUrl()! + '/trnsPurchase/savePurchases';
+  Future<RwApiResponse> savePurchases(
+      {required SaleList item, required String URI}) async {
+    final baseUrl = URI + '/trnsPurchase/savePurchases';
     //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
@@ -630,13 +633,12 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> selectImportItems({
-    required int tin,
-    required String bhfId,
-    required String lastReqDt,
-  }) async {
-    final baseUrl =
-        ProxyService.box.getServerUrl()! + '/imports/selectImportItems';
+  Future<RwApiResponse> selectImportItems(
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt,
+      required String URI}) async {
+    final baseUrl = URI + '/imports/selectImportItems';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -666,9 +668,9 @@ class RWTax implements TaxApi {
   Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
+      required String URI,
       required String lastReqDt}) async {
-    final baseUrl = ProxyService.box.getServerUrl()! +
-        '/trnsPurchase/selectTrnsPurchaseSales';
+    final baseUrl = URI + '/trnsPurchase/selectTrnsPurchaseSales';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -695,9 +697,9 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> updateImportItems({required Item item}) async {
-    final baseUrl =
-        ProxyService.box.getServerUrl()! + '/imports/updateImportItems';
+  Future<RwApiResponse> updateImportItems(
+      {required Item item, required String URI}) async {
+    final baseUrl = URI + '/imports/updateImportItems';
     final data = item.toJson();
 
     try {

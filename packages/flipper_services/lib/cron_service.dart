@@ -60,7 +60,8 @@ class CronService {
             ProxyService.box.encryptionKey(),
             business.tinNumber,
             business.bhfId ?? "00",
-            ProxyService.box.getBusinessId()
+            ProxyService.box.getBusinessId(),
+            ProxyService.box.getServerUrl()
           ],
         );
 

@@ -53,6 +53,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
         isLoading = true;
       });
       final data = await ProxyService.tax.selectTrnsPurchaseSales(
+        URI: ProxyService.box.getServerUrl()!,
         tin: ProxyService.box.tin(),
         bhfId: ProxyService.box.bhfId(),
         lastReqDt: convertedDate,
@@ -174,7 +175,8 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
         isLoading = true;
       });
       for (SaleList item in finalSaleList ?? []) {
-        await ProxyService.tax.savePurchases(item: item);
+        await ProxyService.tax
+            .savePurchases(item: item, URI: ProxyService.box.getServerUrl()!);
       }
       setState(() {
         isLoading = false;
@@ -194,7 +196,8 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
         isLoading = true;
       });
       for (Item item in finalItemList) {
-        await ProxyService.tax.updateImportItems(item: item);
+        await ProxyService.tax.updateImportItems(
+            item: item, URI: ProxyService.box.getServerUrl()!);
       }
       setState(() {
         isLoading = false;

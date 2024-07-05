@@ -10,8 +10,6 @@ import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
@@ -45,6 +43,7 @@ mixin IsolateHandler {
     String encryptionKey = args[4] as String;
     int tinNumber = args[5] as int;
     String bhfId = args[6] as String;
+    String URI = args[8] as String;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     final app = App.getById(AppSecrets.appId);
@@ -124,17 +123,17 @@ mixin IsolateHandler {
 
           /// is this variant part of the composite product then do not attempt to save to EBM server
           /// as the respective variant have been saved there already!
-          Product? product = realm!
-              .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
+          // Product? product = realm!
+          //     .query<Product>(r'id == $0', [variant.productId]).firstOrNull;
 
           /// Check if the product exists and is composite
-          if (product?.isComposite ?? false) {
-            return; // Return early if the product is composite
-          }
+          // if (product?.isComposite ?? false) {
+          //   return; // Return early if the product is composite
+          // }
 
           /// do not attempt saving a variant with missing fields
           if (variant.qtyUnitCd == null || variant.taxTyCd == null) return;
-          await RWTax().saveItem(variation: iVariant);
+          await RWTax().saveItem(variation: iVariant, URI: URI);
           gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");
           sendPort.send('variant:${variant.id}');
@@ -219,7 +218,7 @@ mixin IsolateHandler {
             ebmSynced: variant.ebmSynced,
           );
 
-          await RWTax().saveStock(stock: iStock, variant: iVariant);
+          await RWTax().saveStock(stock: iStock, variant: iVariant, URI: URI);
           sendPort.send('stock:${stock.id}');
           talker.warning("Successfully saved Stock.");
           anythingUpdated = true;
@@ -267,7 +266,7 @@ mixin IsolateHandler {
             customerType: customer.customerType,
           );
 
-          await RWTax().saveCustomer(customer: iCustomer);
+          await RWTax().saveCustomer(customer: iCustomer, URI: URI);
           sendPort.send('customer:${customer.id}');
           anythingUpdated = true;
         } catch (e) {}
@@ -318,6 +317,7 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     int branchId = args[2] as int;
     int businessId = args[7] as int;
+    String URI = args[8] as String;
     LocalConfiguration config = localConfig(encryptionKey, dbPatch);
 
     localRealm?.close();
@@ -327,20 +327,19 @@ mixin IsolateHandler {
         .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
     if (codes.isEmpty) {
       talker.warning("Codes empty");
-      fetchDataAndSaveUniversalProducts(businessId, branchId);
+      fetchDataAndSaveUniversalProducts(businessId, branchId, URI);
     }
   }
 
   // Function to fetch data from the URL endpoint
   static Future<void> fetchDataAndSaveUniversalProducts(
-      int businessId, int branchId) async {
+      int businessId, int branchId, String URI) async {
     final talker = TalkerFlutter.init();
     try {
       Business business =
           localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
 
-      final url =
-          ProxyService.box.getServerUrl()! + "/itemClass/selectItemsClass";
+      final url = URI + "/itemClass/selectItemsClass";
       final headers = {"Content-Type": "application/json"};
       final body = jsonEncode({
         "tin": business.tinNumber,

@@ -90,7 +90,7 @@ mixin TransactionMixin {
         /// get this composite by variantId to use the default qty set when the composite is sold
         Composite composite =
             ProxyService.realm.composite(variantId: variation.id!);
-        computedQty = composite.qty!;
+        computedQty = composite.qty ?? 0.0;
       }
 
       TransactionItem newItem = TransactionItem(
