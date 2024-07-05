@@ -2101,8 +2101,8 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
-    await realm!.syncSession.waitForDownload();
-    await realm!.subscriptions.waitForSynchronization(token);
+    realm!.syncSession.waitForDownload();
+    realm!.subscriptions.waitForSynchronization(token);
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/
