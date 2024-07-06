@@ -74,7 +74,7 @@ abstract class RealmApiInterface {
     int? productId,
   });
   Configurations getByTaxType({required String taxtype});
-  Future<Variant?> variant({int? variantId, String? name});
+  Variant? variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({required List<Variant> variations});
@@ -168,7 +168,7 @@ abstract class RealmApiInterface {
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
   TransactionItem? getTransactionItemByVariantId(
-      {required int variantId, required int? transactionId});
+      {required int variantId, int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});
 
@@ -384,6 +384,7 @@ abstract class RealmApiInterface {
 
   void saveComposite({required Composite composite});
   List<Composite> composites({required int productId});
+  List<Composite> compositesByVariantId({required int variantId});
   Composite composite({required int variantId});
   Stream<SKU?> sku({required int branchId});
   void createVariant(

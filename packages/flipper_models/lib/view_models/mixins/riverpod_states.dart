@@ -695,6 +695,11 @@ class CombinedNotifier {
   }
 }
 
+final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
+  return ProxyService.local
+      .notificationStream(identifier: ProxyService.box.getBranchId()!);
+});
+
 // StateNotifierProvider
 
 List<ProviderBase> allProviders = [

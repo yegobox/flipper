@@ -21,6 +21,8 @@ import 'mixins/all.dart';
 class CoreViewModel extends FlipperBaseModel
     with Properties, SharebleMethods, TransactionMixin {
   bool handlingConfirm = false;
+  Stream<List<AppNotification>> get notificationStream => ProxyService.local
+      .notificationStream(identifier: ProxyService.box.getBranchId()!);
 
   CoreViewModel() {}
 

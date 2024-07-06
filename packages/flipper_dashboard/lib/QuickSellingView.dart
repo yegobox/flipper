@@ -275,6 +275,31 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                     } else {
                                       /// for composite we delete all composite of this sort not just one item from a list of item
                                       /// handle the case down here.
+                                      /// get all composite item
+                                      Variant? variant = ProxyService.realm
+                                          .variant(variantId: item.variantId!);
+                                      Product? product = ProxyService.realm
+                                          .getProduct(id: variant!.productId!);
+                                      final composites = ProxyService.realm
+                                          .composites(productId: product!.id!);
+
+                                      // Batch delete operation
+
+                                      for (final composite in composites) {
+                                        final deletableItem = ProxyService.realm
+                                            .getTransactionItemByVariantId(
+                                                variantId:
+                                                    composite.variantId!);
+
+                                        if (deletableItem != null) {
+                                          ProxyService.realm.realm!.write(() {
+                                            ProxyService.realm.realm!
+                                                .delete(deletableItem);
+                                          });
+                                        }
+                                      }
+                                      ref.refresh(transactionItemsProvider(
+                                          transaction.value?.id));
                                     }
                                   },
                                 ),

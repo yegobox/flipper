@@ -15,6 +15,7 @@ import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -180,6 +181,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           Branch.schema,
           Drawers.schema,
           UnversalProduct.schema,
+          AppNotification.schema
         ],
         initialDataCallback: dataCb,
         path: path,
@@ -1074,5 +1076,27 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         .query<UnversalProduct>(r'branchId == $0', [branchId]).toList();
 
     return items;
+  }
+
+  @override
+  Stream<List<AppNotification>> notificationStream(
+      {required int identifier}) async* {
+    final subject = ReplaySubject<List<AppNotification>>();
+
+    final query = realm!.query<AppNotification>(
+        r'identifier == $0 AND completed == $1', [identifier, false]);
+
+    query.changes.listen((results) {
+      subject.add(results.results.toList());
+    });
+
+    yield* subject.stream;
+  }
+
+  @override
+  void notify({required AppNotification notification}) {
+    localRealm!.write(() {
+      localRealm!.add<AppNotification>(notification);
+    });
   }
 }

@@ -33,4 +33,6 @@ abstract class LocalRealmInterface {
       required Branch branch,
       required String userType});
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
+  Stream<List<AppNotification>> notificationStream({required int identifier});
+  void notify({required AppNotification notification});
 }

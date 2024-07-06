@@ -1210,10 +1210,19 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   TransactionItem? getTransactionItemByVariantId(
-      {required int variantId, required int? transactionId}) {
-    return realm!.query<TransactionItem>(
-        r'variantId == $0 AND transactionId == $1',
-        [variantId, transactionId]).firstOrNull;
+      {required int variantId, int? transactionId}) {
+    // Build the query string based on whether transactionId is null
+    String queryString;
+    List<int> parameters = [variantId]; // Initialize with variantId
+    if (transactionId == null) {
+      queryString = r'variantId == $0';
+    } else {
+      queryString = r'variantId == $0 AND transactionId == $1';
+      parameters.add(transactionId); // Add transactionId only if not null
+    }
+
+    // Execute the query
+    return realm!.query<TransactionItem>(queryString, parameters).firstOrNull;
   }
 
   @override
@@ -1954,7 +1963,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> variant({int? variantId, String? name}) async {
+  Variant? variant({int? variantId, String? name}) {
     if (variantId != null) {
       return realm!.query<Variant>(r'id == $0', [variantId]).firstOrNull;
     }
@@ -2103,7 +2112,7 @@ class RealmAPI<M extends IJsonSerializable>
     await realm!.subscriptions.waitForSynchronization(token);
   }
 
-  ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/
+  ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
   Future<Configuration> _createPersistentConfig(User user, String path) async {
     return Configuration.flexibleSync(
       user,
@@ -2120,6 +2129,86 @@ class RealmAPI<M extends IJsonSerializable>
           handleCompensatingWrite(syncError);
         }
       },
+      clientResetHandler: RecoverOrDiscardUnsyncedChangesHandler(
+        onBeforeReset: (realm) {
+          print(
+              'A client reset is about to occur. The app may freeze momentarily.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "A client reset is about to occur. The app may freeze momentarily.'",
+            ),
+          );
+        },
+        onAfterRecovery: (before, after) {
+          print('Automatic client reset recovery completed successfully.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "Automatic client reset recovery completed successfully.",
+            ),
+          );
+        },
+        onAfterDiscard: (before, after) {
+          talker.error(
+              'Automatic client reset recovery failed. Local changes have been discarded.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "Automatic client reset recovery failed. Local changes have been discarded.",
+            ),
+          );
+        },
+        onManualResetFallback: (clientResetError) async {
+          print('Automatic client reset failed. Manual reset is required.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  'Automatic client reset failed. Manual reset is required.',
+            ),
+          );
+          await Future.delayed(Duration(seconds: 10));
+          // 1. Close the realm
+          realm!.close();
+
+          // 2. Delete the realm file
+          try {
+            File realmFile = File(realm!.config.path);
+            if (await realmFile.exists()) {
+              await realmFile.delete();
+              print('Realm file deleted successfully.');
+            }
+          } catch (e) {
+            print('Error deleting realm file: $e');
+          }
+
+          // 3. Restart the app
+          print('Restarting the app...');
+          exit(0);
+
+          //the app re-initialize here
+        },
+      ),
     );
   }
 
@@ -3170,5 +3259,13 @@ class RealmAPI<M extends IJsonSerializable>
       talker.error("Error uploading file to S3: $e");
       rethrow;
     }
+  }
+
+  @override
+  List<Composite> compositesByVariantId({required int variantId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'variantId == $0', [variantId]);
+
+    return queryBuilder.toList();
   }
 }

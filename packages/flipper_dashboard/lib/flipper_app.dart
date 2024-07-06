@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
+import 'package:flipper_dashboard/NotificationWidget.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -137,7 +138,37 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return _buildScaffold(context, model);
+        return Stack(
+          children: [
+            _buildScaffold(context, model),
+            // Directly access the notification stream provider using ref
+            ref.watch(notificationStreamProvider).when(
+              data: (notifications) {
+                // Data is available from the notification stream
+                if (notifications.isNotEmpty) {
+                  return NotificationWidget(
+                    notifications: notifications,
+                    onAcknowledge: (id) {
+                      print('Notification acknowledged with id: $id');
+                    },
+                  );
+                } else {
+                  return SizedBox
+                      .shrink(); // Or any other widget you want to display if no notifications
+                }
+              },
+              error: (error, stackTrace) {
+                // Handle errors from the notification stream
+                // return Text('Error: $error');
+                return SizedBox.shrink();
+              },
+              loading: () {
+                // Display a loading indicator while waiting for notifications
+                return CircularProgressIndicator();
+              },
+            ),
+          ],
+        );
       },
     );
   }
