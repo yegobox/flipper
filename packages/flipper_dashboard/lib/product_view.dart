@@ -95,7 +95,7 @@ class ProductViewState extends ConsumerState<ProductView> {
   ) {
     return Center(
       child: ref
-          .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
+          .watch(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0))
           .when(
             data: (variants) {
               // Ensure the list is updated correctly and length is checked

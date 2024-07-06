@@ -3145,7 +3145,9 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
     try {
-      final filePath = 'pdfs/$fileName.pdf';
+      int branchId = ProxyService.box.getBranchId()!;
+      int businessId = ProxyService.box.getBusinessId()!;
+      final filePath = 'invoices/${businessId}_${branchId}/$fileName.pdf';
 
       final result = await amplify.Amplify.Storage
           .uploadFile(
