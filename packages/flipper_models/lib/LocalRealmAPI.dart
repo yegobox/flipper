@@ -319,7 +319,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     String phoneNumber = userPhone;
 
     if (ProxyService.realm.realm == null) {
-     await ProxyService.realm.configure(useInMemoryDb: false,useFallBack: false);
+      await ProxyService.realm
+          .configure(useInMemoryDb: false, useFallBack: false);
     }
     if (ProxyService.local.localRealm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
@@ -782,6 +783,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
+      if (ProxyService.realm.realm == null) {
+        await ProxyService.realm
+            .configure(useInMemoryDb: false, useFallBack: false);
+      }
+      if (ProxyService.local.localRealm == null) {
+        await ProxyService.local.configureLocal(useInMemory: false);
+      }
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;

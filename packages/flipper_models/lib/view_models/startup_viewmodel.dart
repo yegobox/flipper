@@ -84,7 +84,7 @@ class StartupViewModel extends FlipperBaseModel {
       }
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
-      talker.error("StartupViewModel ${e}");
+      talker.error("StartupViewModel ${stackTrace}");
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is RemoteError) {

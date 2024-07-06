@@ -2086,6 +2086,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
       talker.error(s);
+      logOut();
       throw e;
     }
     return this;
@@ -2931,7 +2932,6 @@ class RealmAPI<M extends IJsonSerializable>
     /// calling close on logout inroduced error where another attempt to login will fail since
     /// the instance of realm is instantiated at app start level.
     // resetDependencies(dispose: true);
-    // close();
     return Future.value(true);
   }
   //// drawers
@@ -3271,5 +3271,21 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.query<Composite>(r'variantId == $0', [variantId]);
 
     return queryBuilder.toList();
+  }
+
+  @override
+  Future<Tenant?> tenant({required int businessId}) async {
+    /// because this method run when app start and sometime when app start we do not have a realm instance then we re-initialize it again here
+    if (ProxyService.realm.realm == null) {
+      await ProxyService.realm
+          .configure(useInMemoryDb: false, useFallBack: false);
+    }
+    if (ProxyService.local.localRealm == null) {
+      await ProxyService.local.configureLocal(useInMemory: false);
+    }
+    Tenant? tenant =
+        realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+
+    return tenant;
   }
 }
