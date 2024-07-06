@@ -318,6 +318,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       bool stopAfterConfigure = false}) async {
     String phoneNumber = userPhone;
 
+    if (ProxyService.realm.realm == null) {
+     await ProxyService.realm.configure(useInMemoryDb: false,useFallBack: false);
+    }
+    if (ProxyService.local.localRealm == null) {
+      await ProxyService.local.configureLocal(useInMemory: false);
+    }
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
     }

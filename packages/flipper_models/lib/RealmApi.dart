@@ -2028,6 +2028,12 @@ class RealmAPI<M extends IJsonSerializable>
   /// then when user login the real db is used
   /// it is very important to avoid issue where we are saving in memory thinking that we using synced db hence why we call init on startupview model
   /// to re-configure the db now for this time not using the in-memory db.
+  ///
+
+  @override
+  Future<RealmApiInterface> instance() async {
+    return this;
+  }
 
   @override
   Future<RealmApiInterface> configure(

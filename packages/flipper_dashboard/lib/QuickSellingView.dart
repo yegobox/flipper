@@ -562,29 +562,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          kDebugMode
-                              ? GestureDetector(
-                                  onTap: () {
-                                    final transaction = ref.watch(
-                                        pendingTransactionProvider(
-                                            TransactionType.sale));
-                                    Clipboard.setData(ClipboardData(
-                                        text: transaction.asData!.value.id
-                                            .toString()));
-                                    showSnackBar(context,
-                                        "TransactionId copied to keypad ",
-                                        textColor: Colors.white,
-                                        backgroundColor: Colors.blueAccent);
-                                  },
-                                  child: Text(
-                                    "ID: ${transaction.asData?.value.id.toString()} ",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                )
-                              : SizedBox(),
+                          GestureDetector(
+                            onTap: () {
+                              final transaction = ref.watch(
+                                  pendingTransactionProvider(
+                                      TransactionType.sale));
+                              Clipboard.setData(ClipboardData(
+                                  text:
+                                      transaction.asData!.value.id.toString()));
+                              showSnackBar(
+                                  context, "TransactionId copied to keypad ",
+                                  textColor: Colors.white,
+                                  backgroundColor: Colors.blueAccent);
+                            },
+                            child: Text(
+                              "ID: ${transaction.asData?.value.id.toString()} ",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                         ],
                       )
                     ],

@@ -279,18 +279,17 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 controller: textEditController,
                                 nodeDisabled: true,
                                 completeTransaction: () {
-                                  // ProxyService.local.notify(
-                                  //   notification: AppNotification(
-                                  //     ObjectId(),
-                                  //     identifier:
-                                  //         ProxyService.box.getBranchId(),
-                                  //     type: "internal",
-                                  //     id: randomNumber(),
-                                  //     completed: false,
-                                  //     message:
-                                  //         "Automatic client reset recovery failed. Local changes have been discarded.",
-                                  //   ),
-                                  // );
+                                  ProxyService.local.notify(
+                                    notification: AppNotification(
+                                      ObjectId(),
+                                      identifier:
+                                          ProxyService.box.getBranchId(),
+                                      type: "internal",
+                                      id: randomNumber(),
+                                      completed: false,
+                                      message: "Sale starting",
+                                    ),
+                                  );
                                   if (_formKey.currentState!.validate()) {
                                     ref.read(loadingProvider.notifier).state =
                                         true;
