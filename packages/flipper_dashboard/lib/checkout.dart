@@ -279,48 +279,48 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 controller: textEditController,
                                 nodeDisabled: true,
                                 completeTransaction: () {
-                                  ProxyService.local.notify(
-                                    notification: AppNotification(
-                                      ObjectId(),
-                                      identifier:
-                                          ProxyService.box.getBranchId(),
-                                      type: "internal",
-                                      id: randomNumber(),
-                                      completed: false,
-                                      message:
-                                          "Automatic client reset recovery failed. Local changes have been discarded.",
-                                    ),
-                                  );
-                                  // if (_formKey.currentState!.validate()) {
-                                  //   ref.read(loadingProvider.notifier).state =
-                                  //       true;
-                                  //   ref.refresh(loadingProvider.notifier);
+                                  // ProxyService.local.notify(
+                                  //   notification: AppNotification(
+                                  //     ObjectId(),
+                                  //     identifier:
+                                  //         ProxyService.box.getBranchId(),
+                                  //     type: "internal",
+                                  //     id: randomNumber(),
+                                  //     completed: false,
+                                  //     message:
+                                  //         "Automatic client reset recovery failed. Local changes have been discarded.",
+                                  //   ),
+                                  // );
+                                  if (_formKey.currentState!.validate()) {
+                                    ref.read(loadingProvider.notifier).state =
+                                        true;
+                                    ref.refresh(loadingProvider.notifier);
 
-                                  //   confirmPayment(
-                                  //     amount: double.tryParse(
-                                  //             receivedAmountController.text) ??
-                                  //         0,
-                                  //     model: model,
-                                  //     discount: double.tryParse(
-                                  //             discountController.text) ??
-                                  //         0,
-                                  //     paymentType: paymentTypeController.text,
-                                  //     transaction: ref
-                                  //         .watch(pendingTransactionProvider(
-                                  //             TransactionType.sale))
-                                  //         .asData!
-                                  //         .value,
-                                  //   );
-                                  //   receivedAmountController.clear();
-                                  //   ref.read(loadingProvider.notifier).state =
-                                  //       false;
-                                  //   ref.refresh(loadingProvider.notifier);
-                                  //   showSnackBar(
-                                  //       context, "Transaction completed",
-                                  //       textColor: Colors.white,
-                                  //       backgroundColor:
-                                  //           Color.fromARGB(255, 187, 255, 1));
-                                  // }
+                                    confirmPayment(
+                                      amount: double.tryParse(
+                                              receivedAmountController.text) ??
+                                          0,
+                                      model: model,
+                                      discount: double.tryParse(
+                                              discountController.text) ??
+                                          0,
+                                      paymentType: paymentTypeController.text,
+                                      transaction: ref
+                                          .watch(pendingTransactionProvider(
+                                              TransactionType.sale))
+                                          .asData!
+                                          .value,
+                                    );
+                                    receivedAmountController.clear();
+                                    ref.read(loadingProvider.notifier).state =
+                                        false;
+                                    ref.refresh(loadingProvider.notifier);
+                                    showSnackBar(
+                                        context, "Transaction completed",
+                                        textColor: Colors.white,
+                                        backgroundColor:
+                                            Color.fromARGB(255, 187, 255, 1));
+                                  }
                                 },
                               ),
                             ),
