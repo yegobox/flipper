@@ -2080,9 +2080,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
       talker.error(s);
-      realm?.close();
-      _configureInMemory();
-      // throw e;
+      throw e;
     }
     return this;
   }
