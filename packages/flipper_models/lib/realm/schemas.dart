@@ -663,6 +663,7 @@ class _TransactionItem {
   int? branchId;
   bool ebmSynced = false;
   bool partOfComposite = false;
+  double compositePrice = 0;
 }
 
 @RealmModel()
@@ -913,6 +914,11 @@ class _Composite {
   double? qty = 1.0;
   int? branchId;
   int? businessId;
+
+  /// this hold the actual price of the sum of item on composite
+  /// sound like if we have 4 item on a composite, they will all have this column to represent the price
+  /// of the whole composite.
+  double? actualPrice = 0;
 }
 
 /// a note on composite,

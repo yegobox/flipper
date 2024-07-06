@@ -42,8 +42,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
   String _selectedPaymentMethod = 'Cash'; // Track the selected payment method
 
   double get grandTotal {
-    return transactionItems.fold(
-        0.0, (sum, product) => sum + (product.price * product.qty));
+    double total = 0.0;
+    double compositeTotal = 0.0;
+    int compositeCount = 0;
+
+    for (var item in transactionItems) {
+      if (item.compositePrice != 0) {
+        compositeTotal += item.compositePrice;
+        compositeCount++;
+      } else {
+        total += item.price * item.qty;
+      }
+    }
+
+    // If all items are composite, return just the compositeTotal
+    if (compositeCount == transactionItems.length) {
+      return compositeTotal;
+    }
+
+    // Otherwise, return the sum of regular items and composite items
+    return total + compositeTotal;
   }
 
   double get totalAfterDiscountAndShipping {
@@ -243,15 +261,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                 child: IconButton(
                                   icon: Icon(Icons.delete),
                                   onPressed: () {
-                                    // transactionItems.remove(item);
-                                    try {
-                                      ProxyService.realm.realm!.write(() {
-                                        ProxyService.realm.realm!.delete(item);
-                                      });
-                                      ref.refresh(transactionItemsProvider(
-                                          transaction.value?.id));
-                                    } catch (e) {
-                                      talker.error(e);
+                                    if (!item.partOfComposite) {
+                                      try {
+                                        ProxyService.realm.realm!.write(() {
+                                          ProxyService.realm.realm!
+                                              .delete(item);
+                                        });
+                                        ref.refresh(transactionItemsProvider(
+                                            transaction.value?.id));
+                                      } catch (e) {
+                                        talker.error(e);
+                                      }
+                                    } else {
+                                      /// for composite we delete all composite of this sort not just one item from a list of item
+                                      /// handle the case down here.
                                     }
                                   },
                                 ),

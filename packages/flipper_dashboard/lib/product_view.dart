@@ -183,7 +183,17 @@ class ProductViewState extends ConsumerState<ProductView> {
         try {
           /// first if there is image attached delete if first
           Product? product = ProxyService.realm.getProduct(id: productId!);
-          if (product!.imageUrl != null) {
+          if (product!.isComposite!) {
+            /// search composite and delete them as well
+            List<Composite> composites =
+                ProxyService.realm.composites(productId: productId);
+            ProxyService.realm.realm!.write(() {
+              for (Composite composite in composites) {
+                ProxyService.realm.realm!.delete(composite);
+              }
+            });
+          }
+          if (product.imageUrl != null) {
             if (await ProxyService.realm
                 .removeS3File(fileName: product.imageUrl!)) {
               await model.deleteProduct(productId: productId);
@@ -337,7 +347,17 @@ class ProductViewState extends ConsumerState<ProductView> {
                             /// first if there is image attached delete if first
                             Product? product =
                                 ProxyService.realm.getProduct(id: productId!);
-                            if (product!.imageUrl != null) {
+                            if (product!.isComposite!) {
+                              /// search composite and delete them as well
+                              List<Composite> composites = ProxyService.realm
+                                  .composites(productId: productId);
+                              ProxyService.realm.realm!.write(() {
+                                for (Composite composite in composites) {
+                                  ProxyService.realm.realm!.delete(composite);
+                                }
+                              });
+                            }
+                            if (product.imageUrl != null) {
                               if (await ProxyService.realm
                                   .removeS3File(fileName: product.imageUrl!)) {
                                 await model.deleteProduct(productId: productId);

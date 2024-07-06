@@ -12,7 +12,8 @@ mixin TransactionMixin {
   get quantity => keypad.quantity;
 
   Future<bool> saveTransaction(
-      {required Variant variation,
+      {double? compositePrice,
+      required Variant variation,
       required double amountTotal,
       required bool customItem,
       required ITransaction pendingTransaction,
@@ -37,6 +38,7 @@ mixin TransactionMixin {
       amountTotal: amountTotal,
       isCustom: customItem,
       partOfComposite: partOfComposite,
+      compositePrice: compositePrice,
       item: existTransactionItem,
     );
 
@@ -56,6 +58,7 @@ mixin TransactionMixin {
     required double amountTotal,
     required bool isCustom,
     TransactionItem? item,
+    double? compositePrice,
     required bool partOfComposite,
   }) async {
     if (item != null && !isCustom) {
@@ -95,6 +98,7 @@ mixin TransactionMixin {
 
       TransactionItem newItem = TransactionItem(
         ObjectId(),
+        compositePrice: partOfComposite == true ? compositePrice! : 0.0,
         id: randomNumber(),
         action: AppActions.created,
         price: variation.retailPrice,

@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/FieldCompositeActivated.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flipper_dashboard/create/browsePhotos.dart';
@@ -604,7 +605,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             false) {
                           /// we are now officially dealing with composite product
                           talker.info(
-                              "we are dealing with composite product now handle down here");
+                              "we are dealing with composite product now handle down");
 
                           List<VariantState> partOfComposite =
                               ref.watch(selectedVariantsLocalProvider);
@@ -616,10 +617,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                             /// now save each
                             ProxyService.realm.saveComposite(
                               composite: Composite(ObjectId(),
+                                  id: randomNumber(),
                                   businessId: ProxyService.box.getBusinessId(),
                                   productId:
                                       ref.read(unsavedProductProvider)!.id!,
                                   qty: partOfComposite[i].quantity,
+                                  actualPrice: double.tryParse(
+                                          retailPriceController.text) ??
+                                      0.0,
                                   branchId: ProxyService.box.getBranchId(),
                                   variantId: partOfComposite[i].variant.id),
                             );

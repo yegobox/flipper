@@ -124,6 +124,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                   currentStock: stock!.currentStock,
                   pendingTransaction: pendingTransaction.value!,
                   partOfComposite: true,
+                  compositePrice: composite.actualPrice,
                 );
               }
 
