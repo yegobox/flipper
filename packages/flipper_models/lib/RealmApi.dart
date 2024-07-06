@@ -3147,7 +3147,8 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       int branchId = ProxyService.box.getBranchId()!;
       int businessId = ProxyService.box.getBusinessId()!;
-      final filePath = 'invoices/${businessId}_${branchId}/$fileName.pdf';
+      final filePath =
+          'public/invoices/${businessId}_${branchId}/$fileName.pdf';
 
       final result = await amplify.Amplify.Storage
           .uploadFile(
