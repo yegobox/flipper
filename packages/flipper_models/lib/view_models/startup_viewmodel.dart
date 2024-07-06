@@ -10,6 +10,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class StartupViewModel extends FlipperBaseModel {
   final appService = loc.getIt<AppService>();
@@ -21,6 +22,7 @@ class StartupViewModel extends FlipperBaseModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
+    final talker = TalkerFlutter.init();
     // await ProxyService.realm.logOut();
     try {
       /// there is cases where when app re-start and then for some reason the realm is closed
@@ -81,7 +83,8 @@ class StartupViewModel extends FlipperBaseModel {
         }
       }
     } catch (e, stackTrace) {
-      log("In catch block ${e}");
+      talker.info("StartupViewModel ${e}");
+      talker.error("StartupViewModel ${e}");
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is RemoteError) {

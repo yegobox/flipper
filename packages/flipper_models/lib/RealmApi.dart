@@ -3035,10 +3035,10 @@ class RealmAPI<M extends IJsonSerializable>
       // }
     } on cognito.AuthException catch (e) {
       talker.error('Unexpected error: $e');
-      rethrow;
+      // rethrow;
     } catch (e) {
       talker.error('Unexpected error: $e');
-      rethrow;
+      // rethrow;
     }
   }
 
