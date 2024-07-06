@@ -48,7 +48,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
 
     for (var item in transactionItems) {
       if (item.compositePrice != 0) {
-        compositeTotal += item.compositePrice;
+        compositeTotal = item.compositePrice;
         compositeCount++;
       } else {
         total += item.price * item.qty;
