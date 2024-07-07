@@ -434,7 +434,7 @@ class App {}
 /// https://www.keycloak.org/migration/migrating-to-quarkus
 ///
 /// git commit -am "[build release windows] [build release android]" 
-///    
+
 /// https://medium.com/lodgify-technology-blog/deploy-your-flutter-app-to-google-play-with-github-actions-f13a11c4492e
 /// base64 -i upload-keystore.jks -o keystoreBase64
 /// ShoreBird skll down here!
