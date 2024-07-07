@@ -279,17 +279,6 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 controller: textEditController,
                                 nodeDisabled: true,
                                 completeTransaction: () {
-                                  ProxyService.local.notify(
-                                    notification: AppNotification(
-                                      ObjectId(),
-                                      identifier:
-                                          ProxyService.box.getBranchId(),
-                                      type: "internal",
-                                      id: randomNumber(),
-                                      completed: false,
-                                      message: "Sale starting",
-                                    ),
-                                  );
                                   if (_formKey.currentState!.validate()) {
                                     ref.read(loadingProvider.notifier).state =
                                         true;
@@ -314,11 +303,17 @@ class CheckOutState extends ConsumerState<CheckOut>
                                     ref.read(loadingProvider.notifier).state =
                                         false;
                                     ref.refresh(loadingProvider.notifier);
-                                    showSnackBar(
-                                        context, "Transaction completed",
-                                        textColor: Colors.white,
-                                        backgroundColor:
-                                            Color.fromARGB(255, 187, 255, 1));
+                                    ProxyService.local.notify(
+                                      notification: AppNotification(
+                                        ObjectId(),
+                                        identifier:
+                                            ProxyService.box.getBranchId(),
+                                        type: "internal",
+                                        id: randomNumber(),
+                                        completed: false,
+                                        message: "Sale completed",
+                                      ),
+                                    );
                                   }
                                 },
                               ),

@@ -211,7 +211,7 @@ def generate_excel_file():
 
 def generate_file_name():
     current_date = datetime.now().strftime("%Y%m%d")
-    return f"SALES_PREDICTIONS_{current_date}.xlsx".upper()
+    return f"REPORT_{current_date}.xlsx".upper()
 
 @app.route('/generate_s3_url', methods=['GET'])
 def generate_s3_url():
@@ -236,7 +236,9 @@ def generate_s3_url():
 
     bucket_name = os.getenv('BUCKET_NAME')
     file_name = generate_file_name()
-
+    
+    s3_client = boto3.client('s3')
+    
     try:
         excel_buffer = generate_excel_file()
     except ValueError as e:
@@ -249,21 +251,21 @@ def generate_s3_url():
     with open(file_name, 'wb') as f:
         f.write(excel_buffer.getvalue())
     
-    # Upload to S3
-    s3_client = boto3.client('s3')
+    # Upload to S3 with folder structures
+    s3_path = f"public/reports-{branchId}/{file_name}" 
     try:
-        s3_client.upload_file(file_name, bucket_name, file_name)
-        print(f"File uploaded successfully to {bucket_name}/{file_name}")
+        s3_client.upload_file(file_name, bucket_name, s3_path)
+        print(f"File uploaded successfully to {bucket_name}/{s3_path}")
         
         # Generate presigned URL
         try:
             response = s3_client.generate_presigned_url('get_object',
                                                         Params={'Bucket': bucket_name,
-                                                                'Key': file_name},
+                                                                'Key': s3_path},
                                                         ExpiresIn=3600)
             return jsonify({
                 "status": "success",
-                "message": "File uploaded and URL generated successfully",
+                "fileName": file_name,
                 "download_url": response
             }), 200
         except ClientError as e:

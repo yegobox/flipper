@@ -28,4 +28,5 @@ final realmModels = [
   Assets.schema,
   Composite.schema,
   SKU.schema,
+  Report.schema,
 ];

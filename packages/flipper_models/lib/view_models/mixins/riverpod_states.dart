@@ -697,7 +697,15 @@ class CombinedNotifier {
 
 final notificationStreamProvider = StreamProvider<List<AppNotification>>((ref) {
   return ProxyService.local
-      .notificationStream(identifier: ProxyService.box.getBranchId()!);
+      .notificationStream(identifier: ProxyService.box.getBranchId() ?? 0);
+});
+
+final reportsProvider =
+    StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {
+  return ProxyService.realm.reports(branchId: branchId).map((reports) {
+    talker.warning(reports);
+    return reports;
+  });
 });
 
 // StateNotifierProvider

@@ -149,6 +149,16 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
+  Future<void> updateSubscription(int? branchId, int? businessId) async {
+    final notification =
+        realm!.query<AppNotification>(r'branchId == $0', [branchId]);
+    localRealm!.subscriptions
+        .update((MutableSubscriptionSet mutableSubscriptions) {
+      mutableSubscriptions.add(notification,
+          name: "notification", update: true);
+    });
+  }
+
   @override
   Future<LocalRealmInterface> configureLocal(
       {required bool useInMemory}) async {
@@ -163,6 +173,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       commApi = AppSecrets.commApi;
     }
 
+    ///gross profit (sales zose ukuyemo ikiranguzo) ,
+    /// cost of good sold
+    /// sales
+    /// net profit
     Configuration config;
 
     // Close any existing local realm instance
@@ -188,6 +202,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
       localRealm = Realm(config);
+      updateSubscription(
+        ProxyService.box.getBranchId(),
+        ProxyService.box.getBusinessId(),
+      );
     } catch (e) {
       String path =
           await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
@@ -1097,7 +1115,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required int identifier}) async* {
     final subject = ReplaySubject<List<AppNotification>>();
 
-    final query = realm!.query<AppNotification>(
+
+    final query = localRealm!.query<AppNotification>(
         r'identifier == $0 AND completed == $1', [identifier, false]);
 
     query.changes.listen((results) {
@@ -1112,5 +1131,11 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     localRealm!.write(() {
       localRealm!.add<AppNotification>(notification);
     });
+  }
+  
+  @override
+  AppNotification notification({required int id}) {
+    return localRealm!.query<AppNotification>(
+        r'id == $0', [id]).first;
   }
 }

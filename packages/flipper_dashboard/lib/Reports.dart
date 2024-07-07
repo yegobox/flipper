@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/DownloadCard.dart';
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -35,6 +36,7 @@ class ReportsState extends ConsumerState<Reports>
         ref.watch(stocValueProvider(ProxyService.box.getBranchId()!));
     final soldStock =
         ref.watch(soldStockValueProvider(ProxyService.box.getBranchId()!));
+    final reports = ref.watch(reportsProvider(ProxyService.box.getBranchId()!));
 
     return SafeArea(
       child: Scaffold(
@@ -44,36 +46,112 @@ class ReportsState extends ConsumerState<Reports>
           customLeadingWidget: back.BackButton(),
           onPop: () async {},
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Sales Overview',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Stock Performance',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ReportCard(
+                            cardName: "Stock Value",
+                            wordingA: "Current Stock",
+                            wordingB: "Sold",
+                            valueA: stockValue.asData?.value ?? 0,
+                            valueB: soldStock.asData?.value ?? 0,
+                            description: "Stock Performance",
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-              const SizedBox(width: 16.0),
-              Flexible(
-                child: ReportCard(
-                  cardName: "Stock Value",
-                  wordingA: "Current Stock",
-                  wordingB: "Sold",
-                  valueA: stockValue.asData?.value ?? 0,
-                  valueB: soldStock.asData?.value ?? 0,
-                  description: "Stock Performance",
+                    const SizedBox(width: 24),
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Past Reports',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey[700],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          reports.when(
+                            data: (reports) {
+                              if (reports.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.inbox_outlined,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'No reports available',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              } else {
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: reports.length,
+                                  itemBuilder: (context, index) {
+                                    final report = reports[index];
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 12.0),
+                                      child: DownloadCard(
+                                        url: report.s3Url!,
+                                        filename: report.filename!,
+                                        downloaded: report.downloaded ?? false,
+                                        report: report,
+                                      ),
+                                    );
+                                  },
+                                );
+                              }
+                            },
+                            loading: () =>
+                                Center(child: CircularProgressIndicator()),
+                            error: (error, stack) => Center(
+                              child: Text('Error loading reports: $error'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

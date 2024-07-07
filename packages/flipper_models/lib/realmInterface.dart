@@ -375,7 +375,8 @@ abstract class RealmApiInterface {
       {DateTime? startDate, DateTime? endDate});
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
-  Future<void> downloadAssetSave({String? assetName});
+  Future<Stream<double>> downloadAssetSave(
+      {String? assetName, String? subPath = "branch"});
   Future<bool> removeS3File({required String fileName});
   Assets? getAsset({required String assetName});
   Future<void> amplifyLogout();
@@ -401,4 +402,6 @@ abstract class RealmApiInterface {
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
   Future<RealmApiInterface> instance();
   Future<Tenant?> tenant({required int businessId});
+  Stream<List<Report>> reports({required int branchId});
+  Report report({required int id});
 }

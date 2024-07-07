@@ -7675,3 +7675,136 @@ class SKU extends _SKU with RealmEntity, RealmObjectBase, RealmObject {
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class Report extends _Report with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Report(
+    ObjectId realmId, {
+    int? id,
+    int? branchId,
+    int? businessId,
+    String? filename,
+    String? s3Url,
+    bool? downloaded = false,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Report>({
+        'downloaded': false,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'filename', filename);
+    RealmObjectBase.set(this, 's3Url', s3Url);
+    RealmObjectBase.set(this, 'downloaded', downloaded);
+  }
+
+  Report._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get filename =>
+      RealmObjectBase.get<String>(this, 'filename') as String?;
+  @override
+  set filename(String? value) => RealmObjectBase.set(this, 'filename', value);
+
+  @override
+  String? get s3Url => RealmObjectBase.get<String>(this, 's3Url') as String?;
+  @override
+  set s3Url(String? value) => RealmObjectBase.set(this, 's3Url', value);
+
+  @override
+  bool? get downloaded =>
+      RealmObjectBase.get<bool>(this, 'downloaded') as bool?;
+  @override
+  set downloaded(bool? value) => RealmObjectBase.set(this, 'downloaded', value);
+
+  @override
+  Stream<RealmObjectChanges<Report>> get changes =>
+      RealmObjectBase.getChanges<Report>(this);
+
+  @override
+  Stream<RealmObjectChanges<Report>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Report>(this, keyPaths);
+
+  @override
+  Report freeze() => RealmObjectBase.freezeObject<Report>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'filename': filename.toEJson(),
+      's3Url': s3Url.toEJson(),
+      'downloaded': downloaded.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Report value) => value.toEJson();
+  static Report _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'filename': EJsonValue filename,
+        's3Url': EJsonValue s3Url,
+        'downloaded': EJsonValue downloaded,
+      } =>
+        Report(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          filename: fromEJson(filename),
+          s3Url: fromEJson(s3Url),
+          downloaded: fromEJson(downloaded),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Report._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Report, 'Report', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('filename', RealmPropertyType.string, optional: true),
+      SchemaProperty('s3Url', RealmPropertyType.string, optional: true),
+      SchemaProperty('downloaded', RealmPropertyType.bool, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

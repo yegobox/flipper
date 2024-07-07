@@ -940,3 +940,17 @@ class _SKU {
   int? businessId;
   bool? consumed = false;
 }
+
+@RealmModel()
+class _Report {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  String? filename;
+  String? s3Url;
+  bool? downloaded = false;
+}

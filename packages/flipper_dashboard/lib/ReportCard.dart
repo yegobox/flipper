@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:talker_flutter/talker_flutter.dart';
-// import 'package:sizer/sizer.dart';
 
 class ReportCard extends StatelessWidget {
   final double valueA;
@@ -23,62 +22,66 @@ class ReportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final talker = TalkerFlutter.init();
-
     talker.warning("Incoming Value A ${valueA}: Incoming Value B ${valueB}");
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.indigoAccent, Colors.lightBlueAccent],
-          ),
+
+    return SizedBox(
+      width: 250,
+      height: 150,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              cardName,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.indigoAccent, Colors.lightBlueAccent],
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cardName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
-            _buildDataRow(
-              title: wordingA,
-              value: '\RWF ${valueA.toStringAsFixed(2)}',
-              color: Colors.orangeAccent,
-            ),
-            const SizedBox(height: 8),
-            _buildDataRow(
-              title: wordingB,
-              value: '\RWF ${valueB.toStringAsFixed(2)}',
-              color: Colors.greenAccent,
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
-              backgroundColor: Colors.white,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description + ': ${(valueB / valueA * 100).toStringAsFixed(2)}%',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              const SizedBox(height: 8),
+              _buildDataRow(
+                title: wordingA,
+                value: '\RWF ${valueA.toStringAsFixed(0)}',
+                color: Colors.orangeAccent,
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              _buildDataRow(
+                title: wordingB,
+                value: '\RWF ${valueB.toStringAsFixed(0)}',
+                color: Colors.greenAccent,
+              ),
+              const SizedBox(height: 8),
+              LinearProgressIndicator(
+                value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
+                backgroundColor: Colors.white.withOpacity(0.3),
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$description: ${(valueB / valueA * 100).toStringAsFixed(1)}%',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -90,21 +93,20 @@ class ReportCard extends StatelessWidget {
     required Color color,
   }) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
             color: color,
           ),
         ),

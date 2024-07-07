@@ -49,6 +49,7 @@ dependencies:
   amplify_flutter: ^2.1.0
   amplify_auth_cognito: ^2.1.0
   amplify_storage_s3: ^2.1.0
+  async: ^2.11.0
 
 dependency_overrides:
   http: ^1.2.1

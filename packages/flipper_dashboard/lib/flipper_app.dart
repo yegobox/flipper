@@ -148,17 +148,18 @@ class FlipperAppState extends ConsumerState<FlipperApp>
                 if (notifications.isNotEmpty) {
                   return NotificationWidget(
                     notifications: notifications,
+                    onClearAll: () {},
                     onAcknowledge: (id) {
                       print('Notification acknowledged with id: $id');
                     },
                   );
                 } else {
-                  return SizedBox
-                      .shrink(); // Or any other widget you want to display if no notifications
+                  return SizedBox.shrink();
                 }
               },
               error: (error, stackTrace) {
                 // Handle errors from the notification stream
+                talker.error(stackTrace);
                 // return Text('Error: $error');
                 return SizedBox.shrink();
               },

@@ -169,16 +169,6 @@ class IconRowState extends ConsumerState<IconRow> {
   final _routerService = locator<RouterService>();
 
   void buttonNav(int index, context) async {
-    // Handle button press
-    // if (index == 1) {
-    //   //TransactionList();
-    //   // navigate to TransactionList
-    //   Navigator.of(context).push(
-    //     MaterialPageRoute(
-    //       builder: (context) => const TransactionList(),
-    //     ),
-    //   );
-    // }
     if (index == 3) {
       _routerService.navigateTo(ReportsRoute());
     }

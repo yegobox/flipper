@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
@@ -2006,7 +2007,7 @@ class RealmAPI<M extends IJsonSerializable>
       // Construct the specific directory path
       /// the 1 appended is incremented everytime there is a breaking change on a client.
       final realmDirectory =
-          p.join(appSupportDirectory.path, '${folder ?? ""}1');
+          p.join(appSupportDirectory.path, '${folder ?? ""}2');
 
       // Create the directory if it doesn't exist
       final directory = Directory(realmDirectory);
@@ -2298,6 +2299,7 @@ class RealmAPI<M extends IJsonSerializable>
     final assets = realm!.query<Assets>(r'branchId == $0', [branchId]);
     final composites = realm!.query<Composite>(r'branchId == $0', [branchId]);
     final skus = realm!.query<SKU>(r'branchId == $0', [branchId]);
+    final report = realm!.query<Report>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2327,6 +2329,7 @@ class RealmAPI<M extends IJsonSerializable>
       mutableSubscriptions.add(token, name: "token", update: true);
       mutableSubscriptions.add(assets, name: "assets", update: true);
       mutableSubscriptions.add(skus, name: "skus", update: true);
+      mutableSubscriptions.add(report, name: "report", update: true);
 
       mutableSubscriptions.add(tenant,
           name: "tenant-${businessId}", update: true);
@@ -3043,53 +3046,103 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> downloadAssetSave({String? assetName}) async {
+  Future<Stream<double>> downloadAssetSave({
+    String? assetName,
+    String? subPath = "branch",
+  }) async {
     await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
     int branchId = ProxyService.box.getBranchId()!;
     final applicationSupportDirectory = await getApplicationSupportDirectory();
 
     if (assetName != null) {
-      await _downloadAsset(
-          branchId, assetName, applicationSupportDirectory.path);
-      return;
+      return _downloadAsset(
+          branchId, assetName, applicationSupportDirectory.path, subPath!);
     }
 
     List<Assets> assets =
         realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
 
+    StreamController<double> progressController = StreamController<double>();
+
     for (Assets asset in assets) {
       if (asset.assetName != null) {
-        await _downloadAsset(
-            branchId, asset.assetName!, applicationSupportDirectory.path);
+        // Get the download stream
+        Stream<double> downloadStream = await _downloadAsset(branchId,
+            asset.assetName!, applicationSupportDirectory.path, subPath!);
+
+        // Listen to the download stream and add its events to the main controller
+        downloadStream.listen((progress) {
+          print('Download progress for ${asset.assetName}: $progress');
+          progressController.add(progress);
+        }, onError: (error) {
+          // Handle errors in the download stream
+          talker
+              .error('Error in download stream for ${asset.assetName}: $error');
+          progressController.addError(error);
+        });
       } else {
         talker.warning('Asset name is null for asset: ${asset.id}');
       }
     }
+
+    // Close the stream controller when all downloads are finished
+    Future.wait(assets.map((asset) => asset.assetName != null
+        ? _downloadAsset(branchId, asset.assetName!,
+            applicationSupportDirectory.path, subPath!)
+        : Future.value(Stream.empty()))).then((_) {
+      progressController.close();
+    }).catchError((error) {
+      talker.error('Error in downloading assets: $error');
+      progressController.close();
+    });
+
+    return progressController.stream;
   }
 
-  Future<void> _downloadAsset(
-      int branchId, String assetName, String directoryPath) async {
+  Future<Stream<double>> _downloadAsset(int branchId, String assetName,
+      String directoryPath, String subPath) async {
     final filePath = '$directoryPath/$assetName';
     final file = File(filePath);
 
     if (await file.exists()) {
-      talker.warning('File already exists: ${file.path}');
-      return;
+      talker.info('File already exists: ${file.path}');
+      return Stream.value(100.0); // Return a stream indicating 100% completion
     }
 
+    final storagePath = amplify.StoragePath.fromString(
+        'public/${subPath}-$branchId/$assetName');
+
     try {
-      final result = await amplify.Amplify.Storage
-          .downloadFile(
-            path: amplify.StoragePath.fromString(
-                'public/branch-$branchId/$assetName'),
-            localFile: amplify.AWSFile.fromPath(filePath),
-          )
-          .result;
-      talker.warning('Downloaded file is located at: ${result.localFile.path}');
-    } on amplify.StorageException catch (e) {
-      talker.warning('Download error - ${e.message}');
+      // Create a stream controller to manage the progress
+      final progressController = StreamController<double>();
+
+      // Start the download process
+      final operation = amplify.Amplify.Storage.downloadFile(
+        path: storagePath,
+        localFile: amplify.AWSFile.fromPath(filePath),
+        onProgress: (progress) {
+          // Calculate the progress percentage
+          final percentageCompleted =
+              (progress.fractionCompleted * 100).toInt();
+          // Add the progress to the stream
+          progressController.sink.add(percentageCompleted.toDouble());
+        },
+      );
+
+      // Listen for the download completion
+      operation.result.then((_) {
+        progressController.close();
+      }).catchError((error) {
+        String path = 'public/${subPath}-$branchId/$assetName';
+        talker.error('Download error ${path} - ${error.message}');
+        progressController.addError(error);
+        progressController.close();
+      });
+
+      return progressController.stream;
     } catch (e) {
-      talker.warning('Error downloading file: $e');
+      // String path = 'public/${subPath}-$branchId/$assetName';
+      talker.error('Error downloading file: $e');
       rethrow;
     }
   }
@@ -3287,5 +3340,38 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
 
     return tenant;
+  }
+
+  @override
+  Stream<List<Report>> reports({required int branchId}) async* {
+    final controller = StreamController<List<Report>>.broadcast();
+
+    final query = realm!.query<Report>(r'branchId == $0', [branchId]);
+
+    StreamSubscription<RealmResultsChanges<Report>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedReports = event.results.whereType<Report>().toList();
+        if (changedReports.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    // Emit initial data
+    controller.add(query.toList());
+
+    yield* controller.stream;
+  }
+
+  @override
+  Report report({required int id}) {
+    return realm!.query<Report>(r'id == $0', [id]).first;
   }
 }
