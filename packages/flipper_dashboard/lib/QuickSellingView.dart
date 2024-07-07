@@ -9,7 +9,6 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
@@ -273,15 +272,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                         talker.error(e);
                                       }
                                     } else {
-                                      /// for composite we delete all composite of this sort not just one item from a list of item
-                                      /// handle the case down here.
-                                      /// get all composite item
-                                      Variant? variant = ProxyService.realm
-                                          .variant(variantId: item.variantId!);
-                                      Product? product = ProxyService.realm
-                                          .getProduct(id: variant!.productId!);
+                                      Composite coo = ProxyService.realm
+                                          .composite(
+                                              variantId: item.variantId!);
+
+                                      talker.warning(
+                                          "ProductId:${coo.productId}");
                                       final composites = ProxyService.realm
-                                          .composites(productId: product!.id!);
+                                          .composites(
+                                              productId: coo.productId!);
 
                                       // Batch delete operation
 
@@ -297,6 +296,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                                 .delete(deletableItem);
                                           });
                                         }
+                                        ref.refresh(transactionItemsProvider(
+                                            transaction.value?.id));
                                       }
                                       ref.refresh(transactionItemsProvider(
                                           transaction.value?.id));
