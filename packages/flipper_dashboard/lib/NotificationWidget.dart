@@ -43,7 +43,7 @@ class NotificationWidget extends StatelessWidget {
           },
         ),
         duration: Duration(seconds: 5),
-        behavior: SnackBarBehavior.floating, // Set behavior to floating
+        behavior: SnackBarBehavior.floating,
       );
     }).toList();
 
@@ -51,7 +51,7 @@ class NotificationWidget extends StatelessWidget {
       notificationWidgets.add(
         SnackBar(
           content: Container(
-            width: 300.0, // Define the width here
+            width: 300.0,
             child: Text('Clear all notifications?'),
           ),
           action: SnackBarAction(
@@ -59,7 +59,7 @@ class NotificationWidget extends StatelessWidget {
             onPressed: onClearAll,
           ),
           duration: Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating, // Set behavior to floating
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
