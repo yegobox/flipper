@@ -59,7 +59,7 @@ class CronService {
                 .dbPath(path: name, folder: ProxyService.box.getBusinessId()),
             ProxyService.box.encryptionKey(),
             business.tinNumber,
-            business.bhfId ?? "00",
+            ProxyService.box.bhfId() ?? "00",
             ProxyService.box.getBusinessId(),
             ProxyService.box.getServerUrl()
           ],

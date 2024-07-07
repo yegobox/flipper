@@ -41,7 +41,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       });
       final data = await ProxyService.realm.selectImportItems(
         tin: ProxyService.box.tin(),
-        bhfId: ProxyService.box.bhfId(),
+        bhfId: ProxyService.box.bhfId() ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {
@@ -55,7 +55,7 @@ class _ImportPurchasePageState extends State<ImportPurchasePage> {
       final data = await ProxyService.tax.selectTrnsPurchaseSales(
         URI: ProxyService.box.getServerUrl()!,
         tin: ProxyService.box.tin(),
-        bhfId: ProxyService.box.bhfId(),
+        bhfId: ProxyService.box.bhfId() ?? "00",
         lastReqDt: convertedDate,
       );
       setState(() {

@@ -76,7 +76,7 @@ class TransactionList extends ConsumerWidget {
     Business business = await ProxyService.local.getBusiness();
     // Get the drawer to get the opening balance
     int tinNumber = business.tinNumber!;
-    String bhfId = business.bhfId ?? "00";
+    String bhfId = ProxyService.box.bhfId() ?? "00";
     Drawers? drawer = await ProxyService.realm
         .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 

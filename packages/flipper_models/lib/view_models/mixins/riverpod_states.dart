@@ -588,7 +588,9 @@ final selectImportItemsProvider = FutureProvider.autoDispose
     .family<RwApiResponse, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
   final response = await ProxyService.realm.selectImportItems(
-      tin: 999909695, bhfId: "00", lastReqDt: "20210331000000");
+      tin: 999909695,
+      bhfId: ProxyService.box.bhfId() ?? "00",
+      lastReqDt: "20210331000000");
 
   return response;
 });

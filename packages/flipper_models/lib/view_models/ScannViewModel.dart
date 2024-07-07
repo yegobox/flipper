@@ -26,7 +26,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
     EBMenabled =
-        ProxyService.box.tin() != -1 && ProxyService.box.bhfId().isNotEmpty;
+        ProxyService.box.tin() != -1 && ProxyService.box.bhfId()!.isNotEmpty;
     log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }

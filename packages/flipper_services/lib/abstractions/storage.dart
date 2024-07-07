@@ -34,7 +34,7 @@ abstract class LocalStorage {
   /// then we send it back to server and get equivalent token uid
   /// we send this while performing ProxyService.isar.login()
   String uid();
-  String bhfId();
+  String? bhfId();
   int tin();
 
   /// the intention of this is to store a temporal phone number for the sale

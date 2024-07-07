@@ -392,7 +392,7 @@ class RWTax implements TaxApi {
     double totalTaxD = taxTotals['D'] ?? 0.0;
     Map<String, dynamic> data = {
       "tin": business.tinNumber ?? 999909695,
-      "bhfId": business.bhfId ?? "00",
+      "bhfId": ProxyService.box.bhfId() ?? "00",
       "invcNo": counter.invcNo,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
@@ -575,7 +575,7 @@ class RWTax implements TaxApi {
     //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
-    data['bhfId'] = "00";
+    data['bhfId'] = ProxyService.box.bhfId() ?? "00";
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();

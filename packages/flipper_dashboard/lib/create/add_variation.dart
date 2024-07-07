@@ -90,7 +90,7 @@ class _AddVariationState extends State<AddVariation> {
                     ..branchId = ProxyService.box.getBranchId()!
                     ..taxPercentage = 0.0
                     // RRA fields
-                    ..bhfId = business.bhfId
+                    ..bhfId = ProxyService.box.bhfId() ?? "00"
                     ..tin = business.tinNumber
                     ..itemCd = clip
                     // TODOask about item clasification code, it seems to be static

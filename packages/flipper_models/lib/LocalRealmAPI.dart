@@ -440,7 +440,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               lastDbBackup: business.lastDbBackup,
               fullName: business.fullName,
               tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
+              bhfId: ProxyService.box.bhfId()??"00",
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,

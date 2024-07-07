@@ -21,7 +21,8 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
   bool isTaxEnabled = false;
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
-  final _proformaUrlController = TextEditingController();
+  final _serverUrlController = TextEditingController();
+  final _branchController = TextEditingController();
 
   // ignore: unused_field
   String _supportLine = "";
@@ -32,12 +33,14 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
     setState(() {
       _supportLine = ProxyService.remoteConfig.supportLine();
     });
-    _proformaUrlController.text = ProxyService.box.getServerUrl() ?? "";
+    _serverUrlController.text = ProxyService.box.getServerUrl() ?? "";
+    _branchController.text = ProxyService.box.bhfId() ?? "";
   }
 
   @override
   void dispose() {
-    _proformaUrlController.dispose();
+    _serverUrlController.dispose();
+    _branchController.dispose();
     super.dispose();
   }
 
@@ -53,7 +56,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
         }
         Business? business = await ProxyService.local.getBusiness();
         model.isEbmActive = business.tinNumber != null &&
-            business.bhfId != null &&
+            ProxyService.box.bhfId() != null &&
             business.dvcSrlNo != null &&
             business.taxEnabled == true;
       },
@@ -199,7 +202,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                controller: _proformaUrlController,
+                controller: _serverUrlController,
                 decoration: InputDecoration(
                   hintText: 'Enter EBM URL',
                   filled: true,
@@ -218,10 +221,30 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
                 validator: _validateUrl,
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _branchController,
+                decoration: InputDecoration(
+                  hintText: 'Branch Code',
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                ),
+                validator: _validaBhfid,
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: _saveProformaUrl,
+                onPressed: _saveForm,
                 icon: const Icon(Icons.save),
-                label: const Text('Save URL'),
+                label: const Text('Save '),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -248,14 +271,25 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
     return null;
   }
 
-  void _saveProformaUrl() {
+  String? _validaBhfid(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a valid URL';
+    }
+    return null;
+  }
+
+  void _saveForm() {
     if (_formKey.currentState!.validate()) {
       ProxyService.box.writeString(
         key: "getServerUrl",
-        value: _proformaUrlController.text,
+        value: _serverUrlController.text,
+      );
+      ProxyService.box.writeString(
+        key: "bhfId",
+        value: _branchController.text,
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('URL saved successfully')),
+        const SnackBar(content: Text('Saved successfully')),
       );
     }
   }

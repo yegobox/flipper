@@ -2509,7 +2509,7 @@ class RealmAPI<M extends IJsonSerializable>
         retailPrice: retailPrice,
         id: variantId,
         isTaxExempted: false,
-        bhfId: business?.bhfId ?? '00',
+        bhfId: ProxyService.box.bhfId() ?? '00',
         itemStdNm: "Regular",
         addInfo: "A",
         pkg: "1",
@@ -2584,7 +2584,7 @@ class RealmAPI<M extends IJsonSerializable>
             supplyPrice: 0.0,
             retailPrice: 0.0,
             itemNm: product.name,
-            bhfId: business.bhfId ?? '00',
+            bhfId: ProxyService.box.bhfId() ?? '00',
             isTaxExempted: false,
             // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
             itemClsCd: "5020230602",

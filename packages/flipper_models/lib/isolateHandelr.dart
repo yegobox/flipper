@@ -317,6 +317,7 @@ mixin IsolateHandler {
     List<int> encryptionKey = key.toIntList();
     int branchId = args[2] as int;
     int businessId = args[7] as int;
+    String bhfid = args[6] as String;
     String URI = args[8] as String;
     LocalConfiguration config = localConfig(encryptionKey, dbPatch);
 
@@ -327,13 +328,13 @@ mixin IsolateHandler {
         .query<UnversalProduct>(r'branchId==$0', [branchId]).toList();
     if (codes.isEmpty) {
       talker.warning("Codes empty");
-      fetchDataAndSaveUniversalProducts(businessId, branchId, URI);
+      fetchDataAndSaveUniversalProducts(businessId, branchId, URI, bhfid);
     }
   }
 
   // Function to fetch data from the URL endpoint
   static Future<void> fetchDataAndSaveUniversalProducts(
-      int businessId, int branchId, String URI) async {
+      int businessId, int branchId, String URI, String bhfid) async {
     final talker = TalkerFlutter.init();
     try {
       Business business =
@@ -343,7 +344,7 @@ mixin IsolateHandler {
       final headers = {"Content-Type": "application/json"};
       final body = jsonEncode({
         "tin": business.tinNumber,
-        "bhfId": business.bhfId ?? "00",
+        "bhfId": bhfid,
 
         ///TODO: change this date to a working date in production
         "lastReqDt": "20190523000000",
