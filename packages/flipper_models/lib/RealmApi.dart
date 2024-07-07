@@ -3292,9 +3292,7 @@ class RealmAPI<M extends IJsonSerializable>
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
-      int businessId = ProxyService.box.getBusinessId()!;
-      final filePath =
-          'public/invoices/${businessId}_${branchId}/$fileName.pdf';
+      final filePath = 'public/invoices-${branchId}/$fileName.pdf';
 
       final result = await amplify.Amplify.Storage
           .uploadFile(
@@ -3309,8 +3307,6 @@ class RealmAPI<M extends IJsonSerializable>
             },
           )
           .result;
-
-      //talker.info("File uploaded successfully. S3 key: ${result.path}");
       return result.uploadedItem.path;
     } catch (e) {
       talker.error("Error uploading file to S3: $e");
