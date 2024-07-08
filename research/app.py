@@ -280,14 +280,17 @@ def generate_s3_url():
     # Save file locally
     with open(file_name, 'wb') as f:
         f.write(excel_buffer.getvalue())
-    
-    # Upload to S3 with folder structures
+
+    # Upload report to S3
     s3_path = f"public/reports-{branchId}/{file_name}" 
     try:
         s3_client.upload_file(file_name, bucket_name, s3_path)
         print(f"File uploaded successfully to {bucket_name}/{s3_path}")
-        
-        # Generate presigned URL
+
+        # Upload the 'trained_models' folder to S3
+        upload_folder_to_s3(s3_client, bucket_name, 'trained_models', f"public/trained_models")
+
+        # Generate presigned URL for the report
         try:
             response = s3_client.generate_presigned_url('get_object',
                                                         Params={'Bucket': bucket_name,
@@ -310,6 +313,29 @@ def generate_s3_url():
             "status": "error",
             "message": "Failed to upload file to S3"
         }), 500
+
+
+
+def upload_folder_to_s3(s3_client, bucket_name, local_folder_path, s3_prefix):
+    """Uploads a local folder to S3.
+
+    Args:
+        s3_client: A boto3 S3 client.
+        bucket_name: The name of the S3 bucket.
+        local_folder_path: The path to the local folder.
+        s3_prefix: The S3 prefix to use for the folder.
+    """
+    for root, _, files in os.walk(local_folder_path):
+        for file in files:
+            local_file_path = os.path.join(root, file)
+            s3_key = os.path.relpath(local_file_path, local_folder_path)
+            s3_key = os.path.join(s3_prefix, s3_key)  # Construct the S3 key
+
+            try:
+                s3_client.upload_file(local_file_path, bucket_name, s3_key)
+                print(f"Uploaded {local_file_path} to {bucket_name}/{s3_key}")
+            except ClientError as e:
+                print(f"Error uploading {local_file_path}: {str(e)}")
 
 @app.route('/download_excel', methods=['GET'])
 def download_excel():
