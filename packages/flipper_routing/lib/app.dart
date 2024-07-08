@@ -521,5 +521,3 @@ class App {}
 ///  source venv/bin/activate
 ///  pip install tensorflow pandas scikit-learn matplotlib
 /// pip install python-dotenv
-// TODO: improve quarkus docker: https://www.logicmonitor.com/blog/how-to-use-quarkus-live-coding-in-docker
-// https://www.cprime.com/resources/blog/deploying-your-first-web-app-to-tomcat-on-docker/
