@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 
 class NotificationWidget extends StatelessWidget {
   final List<AppNotification> notifications;
@@ -64,8 +64,18 @@ class NotificationWidget extends StatelessWidget {
       );
     }
 
-    for (final snackBar in notificationWidgets.reversed) {
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    // Function to show the SnackBars sequentially
+    void showNextSnackBar(int index) {
+      if (index < notificationWidgets.length) {
+        ScaffoldMessenger.of(context).showSnackBar(notificationWidgets[index])
+          ..closed.then((reason) {
+            // Show the next SnackBar after the current one is closed
+            showNextSnackBar(index + 1);
+          });
+      }
     }
+
+    // Start the sequence by showing the first SnackBar
+    showNextSnackBar(0);
   }
 }

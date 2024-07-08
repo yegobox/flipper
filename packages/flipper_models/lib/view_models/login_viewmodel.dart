@@ -44,40 +44,48 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
   bool _isProceeding = false;
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
-  Future<void> desktopLogin({
-    required String pinCode,
-  }) async {
+  Future<void> desktopLogin({required String pinCode}) async {
     try {
       setIsprocessing(value: true);
       if (ProxyService.realm.realm == null) {
-        // Wait for realm to be initialized (replace with your actual initialization logic)
         await ProxyService.realm.configure(useInMemoryDb: false);
       }
 
       IPin? pin = await ProxyService.realm.getPin(pin: pinCode);
+      if (pin == null) {
+        throw Exception("Invalid PIN");
+      }
 
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
-      talker.info("${pin?.toJson().toString()}");
-      // Perform user login
-      await ProxyService.local.login(
-        skipDefaultAppSetup: false,
-        userPhone: pin!.phoneNumber,
-      );
+      talker.info("${pin.toJson().toString()}");
 
-      // Clear and re-sign in with Firebase anonymously
+      // Sign out from Firebase before attempting to log in
       await FirebaseAuth.instance.signOut();
 
-      log(ProxyService.box.uid(), name: 'tokenLogin');
-      await tokenLogin(ProxyService.box.uid());
+      // Perform user login with ProxyService
+      await ProxyService.local.login(
+        skipDefaultAppSetup: false,
+        userPhone: pin.phoneNumber,
+      );
+
+      // Get the UID after login
+      String uid = ProxyService.box.uid();
+      log(uid, name: 'tokenLogin');
+
+      // Attempt to sign in with the custom token
+      try {
+        await tokenLogin(uid);
+      } catch (tokenError) {
+        talker.error("Error during token login: $tokenError");
+        // Handle token login failure (e.g., retry or alternative auth method)
+      }
 
       // Check if a logged-in Firebase user exists
       final auth = FirebaseAuth.instance;
       if (auth.currentUser != null) {
-        // Navigate based on the default app setting
         final defaultApp = ProxyService.box.getDefaultApp();
         if (defaultApp == "2") {
           if (!areDependenciesInitialized) {
-            /// This is high likely that we were logged out and we need to re-init the dependencies
             await initDependencies();
           }
           final _routerService = locator<RouterService>();
@@ -85,13 +93,17 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
         } else {
           openDrawer();
         }
+      } else {
+        throw Exception("Failed to authenticate with Firebase");
       }
     } catch (error, s) {
+      talker.error("Login error: $error");
       talker.info(s);
-      log(s.toString());
       setIsprocessing(value: false);
-      Sentry.captureException(error, stackTrace: StackTrace.current);
-      throw error;
+      await Sentry.captureException(error, stackTrace: s);
+      rethrow;
+    } finally {
+      setIsprocessing(value: false);
     }
   }
 
