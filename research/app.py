@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 import requests
 import os
 from dotenv import load_dotenv
+import tensorflow as tf  # Import for early stopping
 
 load_dotenv()
 
@@ -87,7 +88,54 @@ def fetch_sales(branchId):
 
 # --- Functions ---
 
+def prepare_data(df, lookback=1):
+    X, y = [], []
+    for i in range(lookback, len(df)):
+        X.append(df['sales'].values[i-lookback:i])
+        y.append(df['sales'].values[i])
+    return np.array(X), np.array(y)
+
+def train_model(product_id, batch_size=32):
+    if product_id not in sales_data or len(sales_data[product_id]['date']) < 2:
+        print(f"Insufficient sales data for product {product_id}")
+        return None
+
+    df = pd.DataFrame(sales_data[product_id])
+    df['date'] = pd.to_datetime(df['date'])
+    df = df.set_index('date')
+    df = df.sort_index()
+    df = df.resample('D').sum().fillna(0)  # Resample to daily data, filling missing days with 0
+
+    # Data Preprocessing (Apply scaling here)
+    scaler = MinMaxScaler(feature_range=(0, 1))
+    df['sales'] = scaler.fit_transform(df['sales'].values.reshape(-1, 1))
+
+    X, y = prepare_data(df)
+    X = X.reshape(X.shape[0], X.shape[1], 1)  # Reshape for LSTM input
+
+    model = Sequential()
+    model.add(LSTM(50, return_sequences=True, input_shape=(X.shape[1], 1)))
+    model.add(LSTM(50, return_sequences=False))
+    model.add(Dense(25))
+    model.add(Dense(1))
+    model.compile(optimizer='adam', loss='mean_squared_error')
+
+    # Training with early stopping
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    model.fit(X, y, epochs=100, batch_size=batch_size, validation_split=0.2, callbacks=[early_stopping])
+
+    model.save(f'trained_models/{product_id}_model.h5')
+    return model  # Return the trained model
+
 def predict_sales(product_id, days_to_predict=7):
+    try:
+        model = tf.keras.models.load_model(f'trained_models/{product_id}_model.h5')  # Load the model
+    except FileNotFoundError:
+        print(f"No trained model found for product {product_id}, training a new one.")
+        model = train_model(product_id)  # Train a new model if it doesn't exist
+        if not model:
+            return []  # Return empty list if training failed
+
     if product_id not in sales_data or len(sales_data[product_id]['date']) < 2:
         print(f"Insufficient sales data for product {product_id}")
         return []
@@ -98,29 +146,11 @@ def predict_sales(product_id, days_to_predict=7):
     df = df.sort_index()
     df = df.resample('D').sum().fillna(0)  # Resample to daily data, filling missing days with 0
 
-    # Use more historical data for training
-    train_data = df['sales'].values[-30:]  # Use last 30 days for training
-
+    # Data Preprocessing (Apply scaling here)
     scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(train_data.reshape(-1, 1))
+    df['sales'] = scaler.fit_transform(df['sales'].values.reshape(-1, 1))
 
-    X, y = [], []
-    for i in range(1, len(scaled_data)):
-        X.append(scaled_data[i-1:i])
-        y.append(scaled_data[i])
-    X, y = np.array(X), np.array(y)
-    X = np.reshape(X, (X.shape[0], 1, X.shape[1]))
-
-    model = Sequential()
-    model.add(LSTM(50, return_sequences=True, input_shape=(1, 1)))
-    model.add(LSTM(50, return_sequences=False))
-    model.add(Dense(25))
-    model.add(Dense(1))
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    model.fit(X, y, batch_size=1, epochs=100, verbose=0)
-
-    last_day_sales = scaled_data[-1].reshape(1, 1, 1)
+    last_day_sales = df['sales'].values[-1].reshape(1, 1, 1)
     predictions = []
 
     for _ in range(days_to_predict):
