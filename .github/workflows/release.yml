@@ -300,7 +300,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    # needs: [unit-testing, integration-testing-windows, android-integration-test]
+    needs: [unit-testing, integration-testing-windows, android-integration-test]
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-22.04
     steps:
