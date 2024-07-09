@@ -228,8 +228,8 @@ jobs:
         target: [playstore]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-java@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
