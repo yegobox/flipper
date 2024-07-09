@@ -521,3 +521,7 @@ class App {}
 ///  source venv/bin/activate
 ///  pip install tensorflow pandas scikit-learn matplotlib
 /// pip install python-dotenv
+/// password: :93h)]6m7V8B
+/// 
+/// 
+/// https://www.mongodb.com/docs/atlas/app-services/data-api/examples/

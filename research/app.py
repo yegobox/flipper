@@ -175,7 +175,7 @@ def generate_excel_file():
     wb = Workbook()
     ws = wb.active
     ws.title = "Sales Predictions"
-    headers = ['Date', 'Product Name', 'Predicted Sales', 'Current Stock', 'Stock Replenishment', 'Stock Value']
+    headers = ['Date', 'Product Name', 'Predicted Sales', 'Current Stock', 'Stock Replenishment', 'Stock Value', 'Gross Profit', 'Cost of Goods Sold', 'Net Profit']
     ws.append(headers)
     
     for product_id, product in products.items():
@@ -196,13 +196,22 @@ def generate_excel_file():
             replenishment_needed = max(0, target_stock_level - current_stock)
             stock_value = current_stock * product['price']
             
+            # Calculate profit using actual data
+            sales_on_this_date = sales_data[product_id]['sales'][i] if i < len(sales_data[product_id]['sales']) else 0
+            gross_profit = sales_on_this_date * product['price'] - sales_on_this_date * product['cost']
+            cost_of_goods_sold = sales_on_this_date * product['cost']
+            net_profit = gross_profit 
+            
             output_data.append([
                 date,
                 product_name,
                 round(sales_prediction, 2),
                 round(current_stock, 2),
                 round(replenishment_needed, 2),
-                round(stock_value, 2)
+                round(stock_value, 2),
+                round(gross_profit, 2),  # Add gross profit
+                round(cost_of_goods_sold, 2),  # Add cost of goods sold
+                round(net_profit, 2)  # Add net profit
             ])
             
             # Update current_stock for the next day

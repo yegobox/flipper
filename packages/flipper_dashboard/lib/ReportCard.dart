@@ -1,3 +1,4 @@
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -25,7 +26,7 @@ class ReportCard extends StatelessWidget {
     talker.warning("Incoming Value A ${valueA}: Incoming Value B ${valueB}");
 
     return SizedBox(
-      width: 250,
+      width: 280,
       height: 150,
       child: Card(
         elevation: 4,
@@ -56,13 +57,13 @@ class ReportCard extends StatelessWidget {
               const SizedBox(height: 8),
               _buildDataRow(
                 title: wordingA,
-                value: '\RWF ${valueA.toStringAsFixed(0)}',
+                value: valueA.toRwf(),
                 color: Colors.orangeAccent,
               ),
               const SizedBox(height: 4),
               _buildDataRow(
                 title: wordingB,
-                value: '\RWF ${valueB.toStringAsFixed(0)}',
+                value: valueB.toRwf(),
                 color: Colors.greenAccent,
               ),
               const SizedBox(height: 8),

@@ -2199,13 +2199,14 @@ class RealmAPI<M extends IJsonSerializable>
 
           // 2. Delete the realm file
           try {
+            clientResetError.resetRealm();
+          } catch (e) {
             File realmFile = File(realm!.config.path);
             if (await realmFile.exists()) {
               await realmFile.delete();
               print('Realm file deleted successfully.');
             }
-          } catch (e) {
-            print('Error deleting realm file: $e');
+            // print('Error deleting realm file: $e');
           }
 
           // 3. Restart the app
@@ -2751,58 +2752,29 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Stream<double> soldStockValue({required branchId}) async* {
-    final controller = StreamController<double>.broadcast();
+    // Get the list of TransactionItem objects for the given branchId
+    final List<TransactionItem> transactions =
+        realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
 
-    final query = realm!.all<TransactionItem>();
+    // Calculate the total sold value
+    double totalSoldValue =
+        transactions.fold(0, (sum, transaction) => sum + transaction.totAmt);
 
-    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedTransactions =
-            event.results.whereType<TransactionItem>().toList();
-        double totalSoldValue = 0;
-        for (var transaction in changedTransactions) {
-          // Assuming each TransactionItem has a property representing sold value
-          totalSoldValue += transaction.price;
-        }
-        controller.add(totalSoldValue);
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
+    // Yield the total sold value
+    yield totalSoldValue;
   }
 
-  @override
   Stream<double> stockValue({required branchId}) async* {
-    final controller = StreamController<double>.broadcast();
+    // Get the list of Stock objects for the given branchId
+    final List<Stock> stocks = realm!.query<Stock>(
+        r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
-    final query = realm!.query<Stock>('currentStock > 0');
+    // Calculate the total stock value
+    double totalStockValue = stocks.fold(
+        0, (sum, stock) => sum + (stock.currentStock * stock.retailPrice));
 
-    StreamSubscription<RealmResultsChanges<Stock>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        double totalStockValue = 0;
-        for (var stock in event.results) {
-          // Calculate the total value of each stock item and sum them up
-          totalStockValue += stock.currentStock * stock.retailPrice;
-        }
-        controller.add(totalStockValue);
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
+    // Yield the total stock value
+    yield totalStockValue;
   }
 
   void handleCompensatingWrite(CompensatingWriteError compensatingWriteError) {

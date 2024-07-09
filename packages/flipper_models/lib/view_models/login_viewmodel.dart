@@ -94,6 +94,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
           openDrawer();
         }
       } else {
+        await FirebaseAuth.instance.signOut();
         throw Exception("Failed to authenticate with Firebase");
       }
     } catch (error, s) {
