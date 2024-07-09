@@ -80,8 +80,20 @@ class MyHttpOverrides extends HttpOverrides {
   }
 }
 
+bool _isTestEnvironment = false;
+
+// This function should be called by your test setup
+void enableTestMode() {
+  _isTestEnvironment = true;
+}
+
 Future<void> main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
+  if (!_isTestEnvironment) {
+    WidgetsFlutterBinding.ensureInitialized();
+    // Add any other initialization code here
+  } else {
+    debugPrint('Running in test environment, skipping initialization');
+  }
 
   final talker = TalkerFlutter.init();
   GoogleFonts.config.allowRuntimeFetching = false;

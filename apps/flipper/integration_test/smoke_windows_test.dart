@@ -13,6 +13,9 @@ import 'package:patrol/patrol.dart';
 //flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 void main() {
   // setUpAll(nock.init);
+  setUp(() {
+    app.enableTestMode();
+  });
 
   group('Complete E2E Test:', () {
     patrolTest('Run app-android:', (tester) async {
