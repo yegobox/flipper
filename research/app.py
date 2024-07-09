@@ -95,24 +95,41 @@ def prepare_data(df, lookback=1):
         y.append(df['sales'].values[i])
     return np.array(X), np.array(y)
 
-def train_model(product_id, batch_size=32):
+def train_model(product_id, sales_data, lookback=1, batch_size=32, validation_split=0.1):
+    """
+    Trains an LSTM model for sales prediction for a given product.
+
+    Args:
+        product_id: The ID of the product.
+        sales_data: A dictionary containing sales data for the product.
+        lookback: The number of past time steps to use as input for the LSTM model.
+        batch_size: The batch size for training.
+        validation_split: The proportion of data to use for validation.
+
+    Returns:
+        The trained LSTM model.
+    """
+
     if product_id not in sales_data or len(sales_data[product_id]['date']) < 2:
         print(f"Insufficient sales data for product {product_id}")
         return None
 
+    # Create a Pandas DataFrame from the sales data
     df = pd.DataFrame(sales_data[product_id])
     df['date'] = pd.to_datetime(df['date'])
     df = df.set_index('date')
     df = df.sort_index()
     df = df.resample('D').sum().fillna(0)  # Resample to daily data, filling missing days with 0
 
-    # Data Preprocessing (Apply scaling here)
+    # Data Preprocessing
     scaler = MinMaxScaler(feature_range=(0, 1))
     df['sales'] = scaler.fit_transform(df['sales'].values.reshape(-1, 1))
 
-    X, y = prepare_data(df)
+    # Prepare the data for the LSTM model
+    X, y = prepare_data(df, lookback)
     X = X.reshape(X.shape[0], X.shape[1], 1)  # Reshape for LSTM input
 
+    # Create the LSTM model
     model = Sequential()
     model.add(LSTM(50, return_sequences=True, input_shape=(X.shape[1], 1)))
     model.add(LSTM(50, return_sequences=False))
@@ -120,19 +137,46 @@ def train_model(product_id, batch_size=32):
     model.add(Dense(1))
     model.compile(optimizer='adam', loss='mean_squared_error')
 
-    # Training with early stopping
+    # Early Stopping to prevent overfitting
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-    model.fit(X, y, epochs=100, batch_size=batch_size, validation_split=0.2, callbacks=[early_stopping])
 
+    # Train the model with validation split (or use validation_data)
+    if len(X) > 1:  # Check if we have enough data for validation
+        model.fit(X, y, epochs=100, batch_size=batch_size, validation_split=validation_split, callbacks=[early_stopping])
+    else:
+        print(f"Skipping training for product {product_id} due to insufficient data.")
+        return None 
+
+    # Save the trained model
     model.save(f'trained_models/{product_id}_model.h5')
-    return model  # Return the trained model
+
+    return model
+
+def prepare_data(df, lookback=1):
+    """
+    Prepares the data for the LSTM model.
+
+    Args:
+        df: The Pandas DataFrame containing the sales data.
+        lookback: The number of past time steps to use as input.
+
+    Returns:
+        X: A NumPy array of the input data.
+        y: A NumPy array of the target data.
+    """
+    X, y = [], []
+    for i in range(lookback, len(df)):
+        X.append(df['sales'].values[i-lookback:i])
+        y.append(df['sales'].values[i])
+    return np.array(X), np.array(y)
 
 def predict_sales(product_id, days_to_predict=7):
     try:
         model = tf.keras.models.load_model(f'trained_models/{product_id}_model.h5')  # Load the model
     except FileNotFoundError:
         print(f"No trained model found for product {product_id}, training a new one.")
-        model = train_model(product_id)  # Train a new model if it doesn't exist
+        # Train the model for a specific product
+        model = train_model(product_id, sales_data, validation_split=0.1)
         if not model:
             return []  # Return empty list if training failed
 
@@ -177,11 +221,24 @@ def generate_excel_file():
     ws.title = "Sales Predictions"
     headers = ['Date', 'Product Name', 'Predicted Sales', 'Current Stock', 'Stock Replenishment', 'Stock Value', 'Gross Profit', 'Cost of Goods Sold', 'Net Profit']
     ws.append(headers)
-    
+
+    # Track added products to avoid duplicates
+    added_products = set()
+
+    # Deduplicate products based on product names
+    unique_products = {}
     for product_id, product in products.items():
         product_name = product['name']
+        if product_name not in unique_products:
+            unique_products[product_id] = product
+
+    for product_id, product in unique_products.items():
+        if product_id in added_products:  # Skip if already added
+            continue
+
+        product_name = product['name']
         predicted_sales = predict_sales(product_id)
-        
+
         if len(predicted_sales) == 0:
             continue
         
@@ -219,12 +276,10 @@ def generate_excel_file():
         
         for row in output_data:
             ws.append(row)
-    
-    for col in ws.columns:
-        max_length = max(len(str(cell.value)) for cell in col)
-        col_letter = col[0].column_letter
-        ws.column_dimensions[col_letter].width = max_length + 2
-    
+
+        # Add product to the list of added products
+        added_products.add(product_id)
+
     # Create chart
     chart = LineChart()
     chart.title = "Sales Predictions and Stock Levels"
@@ -357,4 +412,4 @@ def download_excel():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 

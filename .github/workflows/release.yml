@@ -24,7 +24,7 @@ env:
 jobs:
   unit-testing:
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, '[run unit tests]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -71,9 +71,9 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, '[run integration tests windows]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     runs-on: windows-2022
-    # needs: [unit-testing]
+    needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
@@ -128,8 +128,8 @@ jobs:
 
   build-and-release-windows:
     name: "Build windows app"
-    # needs: [unit-testing, integration-testing-windows, android-integration-test]
-    if: github.event_name == 'push'  && contains(github.event.head_commit.message, '[build release windows]')
+    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: windows-2022
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
@@ -218,7 +218,7 @@ jobs:
 
   android-integration-test:
     name: integration on Android
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'test')
     needs: [unit-testing]
     runs-on: macOS-12
     strategy:
@@ -301,7 +301,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     # needs: [unit-testing, integration-testing-windows, android-integration-test]
-    if: github.event_name == 'push'  && contains(github.event.head_commit.message, '[build release android]')
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
