@@ -52,6 +52,3 @@ export 'package:flipper_models/view_models/setting_view_model.dart';
 export 'package:flipper_models/view_models/favorite_viewmodel.dart';
 export 'package:flipper_models/view_models/flipperBaseModel.dart';
 export 'package:flipper_models/view_models/ScannViewModel.dart';
-
-export 'package:flipper_services/objectbox_api.dart'
-    if (dart.library.html) 'package:flipper_services/objectbox_api_web.dart';

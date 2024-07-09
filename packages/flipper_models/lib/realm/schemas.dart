@@ -160,6 +160,7 @@ class _Counter {
   String? receiptType;
   int? totRcptNo;
   int? curRcptNo;
+  int? invcNo;
   DateTime? lastTouched;
   String? action;
 }
@@ -254,10 +255,11 @@ class _Discount {
 
 @RealmModel()
 class _Drawers {
-  int? id;
   @PrimaryKey()
-  @MapTo('_id')
+  @MapTo("_id")
   late ObjectId realmId;
+
+  int? id;
 
   double? openingBalance;
   double? closingBalance;
@@ -354,6 +356,9 @@ class _Product {
   @Ignored()
   bool searchMatch = false;
   String? spplrNm;
+  bool? isComposite = false;
+
+  List<_Composite> composites = [];
 }
 
 @RealmModel()
@@ -381,6 +386,7 @@ class _Receipt {
 
   DateTime? lastTouched;
   String? action;
+  int? invcNo;
 }
 
 @RealmModel()
@@ -473,41 +479,45 @@ class _Variant {
   String? unit;
   String? productName;
   int? branchId;
-  String? taxName;
+  String? taxName = "";
   double taxPercentage = 0.0;
 
+  @deprecated
+
+  /// this field was indicating that the item is excempted but after learning that
+  /// if taxTyCd is A then we know it is Exempted
   bool isTaxExempted = false;
 
   // add RRA fields
   int? itemSeq;
   // insurance code
-  String? isrccCd;
+  String? isrccCd = "";
   // insurance name
-  String? isrccNm;
+  String? isrccNm = "";
   // premium rate
-  int? isrcRt;
+  int? isrcRt = 0;
   // insurance amount
-  int? isrcAmt;
+  int? isrcAmt = 0;
   // taxation type code.
-  String? taxTyCd;
+  String? taxTyCd = "B";
   // bar code
-  String? bcd;
+  String? bcd = "";
   // Item code
   String? itemClsCd;
   // Item type code
   String? itemTyCd;
   // Item standard name
-  String? itemStdNm;
+  String? itemStdNm = "";
   // Item origin
-  String? orgnNatCd;
+  String? orgnNatCd = "";
   // packaging unit code
-  String? pkg;
+  String? pkg = "1";
   // item code
-  String? itemCd;
+  String? itemCd = "";
 
-  String? pkgUnitCd;
+  String? pkgUnitCd = "CT";
 
-  String? qtyUnitCd;
+  String? qtyUnitCd = "BX";
   // same as name but for rra happiness
   String? itemNm;
   double qty = 0.0;
@@ -517,10 +527,10 @@ class _Variant {
   double splyAmt = 0.0;
   int? tin;
   String? bhfId;
-  double? dftPrc;
-  String? addInfo;
-  String? isrcAplcbYn;
-  String? useYn;
+  double? dftPrc = 0;
+  String? addInfo = "";
+  String? isrcAplcbYn = "";
+  String? useYn = "";
   String? regrId;
   String? regrNm;
   String? modrId;
@@ -549,6 +559,9 @@ class _Variant {
   /// with no disturbing the operation, we added this field to help us know when to try to re-submit the data
   /// to EBM in case of failure
   bool ebmSynced = false;
+
+  /// TODO: delete this as it is duplicate of taxTyCd use taxTyCd instead
+  @deprecated
   String taxType = "B";
 
   /// it can be A for exempted, B, C or D
@@ -600,11 +613,11 @@ class _TransactionItem {
   // insurance code
   String? isrccCd;
   // insurance name
-  String? isrccNm;
+  String? isrccNm = "";
   // premium rate
-  int? isrcRt;
+  int? isrcRt = 0;
   // insurance amount
-  int? isrcAmt;
+  int? isrcAmt = 0;
   // taxation type code.
   String? taxTyCd;
   // bar code
@@ -622,9 +635,9 @@ class _TransactionItem {
   // item code
   String? itemCd;
 
-  String? pkgUnitCd;
+  String? pkgUnitCd = "CT";
 
-  String? qtyUnitCd;
+  String? qtyUnitCd = "BX";
   // same as name but for rra happiness
   String? itemNm;
   // unit price
@@ -649,6 +662,8 @@ class _TransactionItem {
 
   int? branchId;
   bool ebmSynced = false;
+  bool partOfComposite = false;
+  double compositePrice = 0;
 }
 
 @RealmModel()
@@ -661,19 +676,23 @@ class _ITransaction {
   String? reference;
   String? categoryId;
   String? transactionNumber;
+  @Indexed()
   int? branchId;
+  @Indexed()
   String? status;
+  @Indexed()
   String? transactionType;
   double subTotal = 0.0;
   String? paymentType;
   double cashReceived = 0.0;
   double customerChangeDue = 0.0;
+  @Indexed()
   String? createdAt;
   // add receipt type offerered on this transaction
   /// remember we also have receipt model where each receipt generated is saved.
   String? receiptType;
   String? updatedAt;
-
+  @Indexed()
   int? customerId;
   String? customerType;
   String? note;
@@ -819,4 +838,119 @@ class _UserActivity {
   int? userId;
 
   late String action;
+}
+
+@RealmModel()
+class _UnversalProduct {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  String? itemClsCd;
+  String? itemClsNm;
+  int? itemClsLvl;
+  String? taxTyCd;
+  String? mjrTgYn;
+  String? useYn;
+
+  int? businessId;
+  int? branchId;
+}
+
+@RealmModel()
+class _Configurations {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  String? taxType = "B";
+  double? taxPercentage = 18.0;
+  int? businessId;
+  int? branchId;
+}
+
+@RealmModel()
+class _AppNotification {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  bool completed = false;
+  String? type = 'transaction';
+  String? message;
+
+  ///if it is a transaction being notified then the identifier will be transaction id;
+  int? identifier;
+}
+
+@RealmModel()
+class _Assets {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  String? assetName;
+  int? productId;
+}
+
+/// we have this composite to map out
+/// the quantity of item that will be deducted when we sell
+/// respective item from composite.
+
+@RealmModel()
+class _Composite {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? productId;
+  int? variantId;
+  double? qty = 1.0;
+  int? branchId;
+  int? businessId;
+
+  /// this hold the actual price of the sum of item on composite
+  /// sound like if we have 4 item on a composite, they will all have this column to represent the price
+  /// of the whole composite.
+  double? actualPrice = 0;
+}
+
+/// a note on composite,
+/// when a composite item is sold, we don't really care about the variant we should
+/// we ripple-effect to the composite's item
+/// therefore when scanned on while about selling, we will show the composite items, not the default variant
+/// attached to it
+///  Product -> Variant (default) not considered
+/// Product-> Compostes (a list of item attached) are considered.
+@RealmModel()
+class _SKU {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? sku = 1000;
+  int? branchId;
+  int? businessId;
+  bool? consumed = false;
+}
+
+@RealmModel()
+class _Report {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  String? filename;
+  String? s3Url;
+  bool? downloaded = false;
 }

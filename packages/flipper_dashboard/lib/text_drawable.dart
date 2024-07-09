@@ -131,9 +131,10 @@ class _TextDrawableState extends State<TextDrawable> {
               color: Colors.white,
             )
           : Text(
-              widget.text.isNotEmpty
+              widget.text.length >= 2
                   ? widget.text.substring(0, 2).toUpperCase()
-                  : '', // Use the first two letters of the name or an empty string if name is empty
+                  : widget.text
+                      .toUpperCase(), // Use the first two letters of the name or the whole string if length is less than 2
               style: widget.textStyle?.copyWith(
                     color: contrast > 1.8 ? Colors.white : Colors.black,
                   ) ??

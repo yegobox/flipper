@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_ui/helpers/utils.dart';
@@ -144,37 +145,8 @@ class ColorTileState extends ConsumerState<ColorTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(
-                      height: 64,
-                      width: 180,
-                      child: TextButton(
-                        child: Text('Choose Photo',
-                            style: GoogleFonts.poppins(
-                                color: Color(0xff006AFE),
-                                fontSize: 19,
-                                fontWeight: FontWeight.w600)),
-                        style: ButtonStyle(
-                          overlayColor:
-                              MaterialStateProperty.resolveWith<Color?>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.hovered)) {
-                                return Colors.grey.withOpacity(0.04);
-                              }
-                              if (states.contains(MaterialState.focused) ||
-                                  states.contains(MaterialState.pressed)) {
-                                return Colors.grey.withOpacity(0.12);
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        onPressed: () async {
-                          model.browsePictureFromGallery(
-                              id: model.product?.id,
-                              callBack: (e) {},
-                              urlType: URLTYPE.PRODUCT);
-                        },
-                      ),
+                    Browsephotos(
+                      productId: model.product!.id!,
                     ),
                     Container(
                       width: 10,
@@ -189,14 +161,13 @@ class ColorTileState extends ConsumerState<ColorTile> {
                                 fontSize: 19,
                                 fontWeight: FontWeight.w600)),
                         style: ButtonStyle(
-                          overlayColor:
-                              MaterialStateProperty.resolveWith<Color?>(
-                            (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.hovered)) {
+                          overlayColor: WidgetStateProperty.resolveWith<Color?>(
+                            (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.hovered)) {
                                 return Colors.grey.withOpacity(0.04);
                               }
-                              if (states.contains(MaterialState.focused) ||
-                                  states.contains(MaterialState.pressed)) {
+                              if (states.contains(WidgetState.focused) ||
+                                  states.contains(WidgetState.pressed)) {
                                 return Colors.grey.withOpacity(0.12);
                               }
                               return null; // Defer to the widget's default.

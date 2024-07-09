@@ -58,26 +58,27 @@ class AddProductViewState extends ConsumerState<AddProductView> {
         }
 
         Product product = await model.getProduct(productId: widget.productId);
-        ref.read(productProvider.notifier).emitProduct(value: product);
+        ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
         model.loadCategories();
         await model.loadColors();
         model.loadUnits();
 
         // Start locking the save button.
         widget.productId == null
-            ? model.setName(name: ' ')
-            : ref.read(productProvider)?.name;
+            ? model.setProductName(name: ' ')
+            : ref.read(unsavedProductProvider)?.name;
 
         // Get the regular variant to fill in the form in edit mode.
         if (widget.productId != null) {
-          List<Variant> variants = await ProxyService.realm
-              .getVariantByProductId(productId: widget.productId!);
+          List<Variant> variants = await ProxyService.realm.variants(
+              productId: widget.productId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           // Filter variants to get the regular variant.
           Variant? regularVariant =
               variants.firstWhereOrNull((variant) => variant.name == 'Regular');
 
-          productForm.productNameController.text = model.kProductName;
+          productForm.productNameController.text = model.kProductName!;
           if (regularVariant == null) {
             return;
           }
@@ -118,7 +119,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               disableButton: model.lock,
               showActionButton: true,
               onActionButtonClicked: () async {
-                if (model.productName == " ") {
+                if (model.kProductName == " ") {
                   showToast(context, 'Provide name for the product');
                   return;
                 }
@@ -127,7 +128,9 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     await model.getProduct(productId: widget.productId);
                 await model.saveProduct(
                     mproduct: product,
-                    inUpdateProcess: widget.productId != null);
+                    color: model.currentColor,
+                    inUpdateProcess: widget.productId != null,
+                    productName: model.kProductName!);
 
                 ref
                     .read(productsProvider(ProxyService.box.getBranchId()!)
@@ -140,14 +143,14 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     inUpdateProcess: true,
                     retailPrice:
                         double.parse(productForm.retailPriceController.text),
-                    productId: ref.read(productProvider)?.id);
+                    productId: ref.read(unsavedProductProvider)?.id);
 
                 await model.updateRegularVariant(
                     inUpdateProcess: true,
                     supplyPrice: double.tryParse(
                             productForm.supplyPriceController.text) ??
                         0.0,
-                    productId: ref.read(productProvider)?.id);
+                    productId: ref.read(unsavedProductProvider)?.id);
 
                 _routerService.clearStackAndShow(CheckOutRoute(
                   isBigScreen: false,
@@ -165,11 +168,12 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                     key: _sub,
                     child: Column(children: <Widget>[
                       verticalSpaceSmall,
-                      ref.read(productProvider) == null
+                      ref.read(unsavedProductProvider) == null
                           ? const SizedBox.shrink()
                           : ColorAndImagePlaceHolder(
-                              currentColor: ref.read(productProvider)!.color,
-                              product: ref.read(productProvider),
+                              currentColor:
+                                  ref.read(unsavedProductProvider)!.color,
+                              product: ref.read(unsavedProductProvider),
                             ),
                       Text(
                         'Product',
@@ -189,7 +193,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                                 hintText: "Product Name"),
                             controller: productForm.productNameController,
                             onChanged: (value) {
-                              model.setName(name: value);
+                              model.setProductName(name: value);
                             },
                           ),
                         ),
@@ -210,10 +214,10 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       const CenterDivider(
                         width: double.infinity,
                       ),
-                      ref.read(productProvider) == null
+                      ref.read(unsavedProductProvider) == null
                           ? const SizedBox.shrink()
                           : SectionSelectUnit(
-                              product: ref.read(productProvider)!,
+                              product: ref.read(unsavedProductProvider)!,
                               type: 'product',
                             ),
                       verticalSpaceSmall,
@@ -229,7 +233,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               await model.updateRegularVariant(
                                   retailPrice: parsedValue,
                                   inUpdateProcess: true,
-                                  productId: ref.read(productProvider)?.id);
+                                  productId:
+                                      ref.read(unsavedProductProvider)?.id);
                             } else {
                               model.lockButton(true);
                             }
@@ -249,7 +254,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                               await model.updateRegularVariant(
                                   supplyPrice: parsedValue,
                                   inUpdateProcess: true,
-                                  productId: ref.read(productProvider)?.id);
+                                  productId:
+                                      ref.read(unsavedProductProvider)?.id);
                             } else {
                               return '.';
                             }
@@ -263,16 +269,18 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                           width: double.infinity,
                           child: TextButton(
                             child: Text(
-                                (ref.read(productProvider) == null ||
-                                        (ref.read(productProvider) != null &&
+                                (ref.read(unsavedProductProvider) == null ||
+                                        (ref.read(unsavedProductProvider) !=
+                                                null &&
                                             ref
-                                                    .read(productProvider)!
+                                                    .read(
+                                                        unsavedProductProvider)!
                                                     .expiryDate ==
                                                 null))
                                     ? 'Expiry Date'
                                     : 'Expires at ' +
                                         formatter.format(DateTime.tryParse(ref
-                                                .read(productProvider)!
+                                                .read(unsavedProductProvider)!
                                                 .expiryDate!) ??
                                             DateTime.now()),
                                 style: GoogleFonts.poppins(
@@ -281,22 +289,22 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                                   color: Colors.black,
                                 )),
                             style: ButtonStyle(
-                              shape: MaterialStateProperty.resolveWith<
+                              shape: WidgetStateProperty.resolveWith<
                                   OutlinedBorder>(
                                 (states) => RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                              backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor: WidgetStateProperty.all<Color>(
                                   const Color(0xffF2F2F2)),
                               overlayColor:
-                                  MaterialStateProperty.resolveWith<Color?>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.hovered)) {
+                                  WidgetStateProperty.resolveWith<Color?>(
+                                (Set<WidgetState> states) {
+                                  if (states.contains(WidgetState.hovered)) {
                                     return Colors.blue.withOpacity(0.04);
                                   }
-                                  if (states.contains(MaterialState.focused) ||
-                                      states.contains(MaterialState.pressed)) {
+                                  if (states.contains(WidgetState.focused) ||
+                                      states.contains(WidgetState.pressed)) {
                                     return Colors.blue.withOpacity(0.12);
                                   }
                                   return null; // Defer to the widget's default.
@@ -317,7 +325,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                       verticalSpaceSmall,
                       StreamBuilder<List<Variant>>(
                         stream: ProxyService.realm.geVariantStreamByProductId(
-                            productId: ref.read(productProvider)?.id ?? 0),
+                            productId:
+                                ref.read(unsavedProductProvider)?.id ?? 0),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -357,7 +366,8 @@ class AddProductViewState extends ConsumerState<AddProductView> {
                             onPressed: () {
                               model.navigateAddVariation(
                                   context: context,
-                                  productId: ref.read(productProvider)!.id!);
+                                  productId:
+                                      ref.read(unsavedProductProvider)!.id!);
                             },
                           ),
                         ),

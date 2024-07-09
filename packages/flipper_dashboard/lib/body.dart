@@ -1,5 +1,5 @@
-import 'package:flipper_dashboard/transactions.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_dashboard/sales_buttons_controller.dart';
@@ -13,17 +13,19 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'settings.dart';
-import 'tickets.dart';
+
+typedef void CompleteTransaction();
 
 final isDesktopOrWeb = UniversalPlatform.isDesktopOrWeb;
-// ignore: non_constant_identifier_names
+
 Widget PaymentTicketManager(
     {required BuildContext context,
     required CoreViewModel model,
     required TextEditingController controller,
+    CompleteTransaction? completeTransaction,
     required bool nodeDisabled}) {
   final _routerService = locator<RouterService>();
+
   return SalesButtonsController(
     tab: model.tab,
     model: model,
@@ -31,38 +33,27 @@ Widget PaymentTicketManager(
       model: model,
       onClick: () async {
         final transaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
+            .manageTransaction(transactionType: TransactionType.sale);
         if (transaction.subTotal == 0) {
-          _routerService.navigateTo(PaymentsRoute(transaction: transaction));
+          // _routerService.navigateTo(PaymentsRoute(transaction: transaction));
+          completeTransaction?.call();
         } else {
           showSimpleNotification(
             Text(FLocalization.of(context).noPayable),
-            background: Colors.green,
+            background: Colors.red,
             position: NotificationPosition.bottom,
           );
         }
       },
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
-        showModalBottomSheet(
-          backgroundColor: Colors.red,
-          context: context,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-          ),
-          useRootNavigator: true,
-          builder: (BuildContext context) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 20.0),
-              child: Tickets(transaction: transaction),
-            );
-          },
-        );
+            .manageTransaction(transactionType: TransactionType.sale);
+
+        _routerService.navigateTo(TicketsListRoute(transaction: transaction));
       },
+      completeTransaction: completeTransaction,
     ),
     controller: controller,
-    amount: double.tryParse(model.key) ?? 0.0,
   );
 }
 

@@ -1,14 +1,14 @@
 // ignore: unused_import
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
-
+import 'dart:typed_data';
+import 'package:async/async.dart';
+import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/counter.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -28,6 +28,9 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
+
 import 'package:talker_flutter/talker_flutter.dart';
 
 // This issue describe how I can mark something for completion later
@@ -183,8 +186,36 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<void> addTransactionItem(
       {required ITransaction transaction,
-      required TransactionItem item}) async {
+      required TransactionItem item,
+      required bool partOfComposite}) async {
+    // Add the new item to the database
     await realm!.putAsync<TransactionItem>(item);
+
+    /// update this item to know if it is involved in the composition
+    /// so it will be treated differently on cart.
+    realm!.write(() {
+      item.partOfComposite = partOfComposite;
+    });
+
+    // Fetch all items
+    var allItems = await realm!.query<TransactionItem>(
+        r'transactionId ==$0', [transaction.id]).toList();
+
+    // Sort the items if necessary
+    // Assuming there's a property 'createdAt' to sort items chronologically
+    allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
+
+    // Update the itemSeq for each item
+    realm!.write(() {
+      for (var i = 0; i < allItems.length; i++) {
+        allItems[i].itemSeq = i + 1; // itemSeq should start from 1
+      }
+    });
+
+    // Save the updated items back to the database
+    for (var updatedItem in allItems) {
+      await realm!.putAsync<TransactionItem>(updatedItem);
+    }
   }
 
   @override
@@ -268,10 +299,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     final controller = StreamController<Tenant?>();
 
-    realm!
-        .query<Tenant>(r'userId == $0 && deletedAt == nil', [userId])
-        .changes
-        .listen((tenants) {
+    realm!.query<Tenant>(r'userId == $0 ', [userId]).changes.listen((tenants) {
           controller
               .add(tenants.results.isEmpty ? null : tenants.results.first);
         });
@@ -280,7 +308,7 @@ class RealmAPI<M extends IJsonSerializable>
       yield tenant;
     }
 
-    // Close the StreamController after the stream is finished
+    // Close the StreamController after the stream is finishe
     controller.close();
   }
 
@@ -335,18 +363,21 @@ class RealmAPI<M extends IJsonSerializable>
   void close() {
     if (realm == null) return null;
     realm!.close();
+    realm = null;
   }
 
   @override
-  Future<void> collectPayment(
+  Future<ITransaction> collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
-      required String paymentType}) async {
-    List<TransactionItem> items = await transactionItems(
+      required String paymentType,
+      required double discount,
+      bool directlyHandleReceipt = true}) async {
+    List<TransactionItem> items = transactionItems(
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);
-    realm!.writeAsync(() async {
+    realm!.write(() {
       transaction.status = COMPLETE;
       transaction.isIncome = true;
       double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
@@ -374,15 +405,21 @@ class RealmAPI<M extends IJsonSerializable>
 
       transaction.lastTouched =
           DateTime.now().toLocal().add(Duration(hours: 2));
-
-      //NOTE: trigger EBM, now
-      TaxController(object: transaction).handleReceipt();
     });
 
     try {
       for (TransactionItem item in items) {
+        /// because there might case where we have non-active transactionItem in the list of
+        /// TransactionItem, then we remove it first before completing the transaction
+        if (!item.active!) {
+          realm!.delete(item);
+        }
         Stock? stock = await stockByVariantId(variantId: item.variantId!);
         realm!.write(() {
+          item.dcAmt = discount;
+          item.discount = discount;
+          item.lastTouched = DateTime.now();
+
           stock!.currentStock = stock.currentStock - item.qty;
           // stock value after item deduct
           stock.value = stock.currentStock * (stock.retailPrice);
@@ -400,7 +437,7 @@ class RealmAPI<M extends IJsonSerializable>
         if (product != null) {
           realm!.write(() {
             product.lastTouched =
-                DateTime.now().toLocal().add(Duration(hours: 2));
+                DateTime.now().toLocal().add(Duration(seconds: 2));
           });
         }
       }
@@ -411,6 +448,12 @@ class RealmAPI<M extends IJsonSerializable>
     // remove currentTransactionId from local storage to leave a room
     // for listening to new transaction that will be created
     ProxyService.box.remove(key: 'currentTransactionId');
+    //NOTE: trigger EBM, now
+    if (directlyHandleReceipt) {
+      TaxController(object: transaction)
+          .handleReceipt(printCallback: (Uint8List bytes) {});
+    }
+    return transaction;
   }
 
   @override
@@ -477,7 +520,7 @@ class RealmAPI<M extends IJsonSerializable>
             active: color.active,
             branchId: color.branchId));
       }
-      realm!.writeAsync(() => realm!.addAll(colorsToAdd));
+      realm!.write(() => realm!.addAll(colorsToAdd));
     }
     if (data is Device) {
       Device device = data;
@@ -572,7 +615,7 @@ class RealmAPI<M extends IJsonSerializable>
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false}) async {
-    final Business? business = await ProxyService.local.getBusiness();
+    final Business? business = ProxyService.local.getBusiness();
     final int branchId = ProxyService.box.getBranchId()!;
     final int businessId = ProxyService.box.getBusinessId()!;
 
@@ -593,11 +636,14 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.query<Product>(r'id == $0 ', [product.id]).first;
 
       // Create a Regular Variant
-      final Variant newVariant = _createRegularVariant(
-          product, branchId, business,
+      final Variant newVariant = _createRegularVariant(branchId, business,
           qty: qty,
+          product: product,
           supplierPrice: supplyPrice,
           retailPrice: retailPrice,
+          name: product.name!,
+          sku: _getSku(branchId: branchId)!.sku.toString(),
+          productId: product.id!,
           itemSeq: itemSeq,
           ebmSynced: ebmSynced);
       await realm!.putAsync<Variant>(newVariant);
@@ -642,15 +688,17 @@ class RealmAPI<M extends IJsonSerializable>
         totRcptNo: signature.data?.totRcptNo ?? 0,
         mrcNo: signature.data?.mrcNo ?? "",
         transactionId: transaction.id!,
+        invcNo: counter.invcNo,
         resultDt: signature.resultDt ?? "");
 
     try {
-      realm!.put<Receipt>(receipt);
+      realm!.write(() => realm!.add<Receipt>(receipt));
 
       return receipt;
-    } catch (error) {
+    } catch (error, s) {
       // Handle error during write operation
-      throw error;
+      talker.error(s);
+      rethrow;
     }
   }
 
@@ -674,14 +722,14 @@ class RealmAPI<M extends IJsonSerializable>
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<PColor>(color);
+          realm!.delete(color);
         });
         break;
       case 'device':
         realm!.write(() {
           Device device = realm!.query<Device>(r'id == $0 ', [id]).first;
           realm!.write(() {
-            realm!.delete<Device>(device);
+            realm!.delete(device);
           });
           return false;
         });
@@ -689,57 +737,60 @@ class RealmAPI<M extends IJsonSerializable>
       case 'category':
         Category category = realm!.query<Category>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Category>(category);
+          realm!.delete(category);
         });
         break;
       case 'product':
-        Product? product = realm!.query<Product>(r'id == $0 ', [id]).first;
+        Product? product =
+            realm!.query<Product>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Product>(product);
+          if (product != null) {
+            realm!.delete(product);
+          }
         });
         break;
       case 'variant':
         Variant variant = realm!.query<Variant>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Variant>(variant);
+          realm!.delete(variant);
         });
         break;
       case 'stock':
         Stock? stock = realm!.query<Stock>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Stock>(stock);
+          realm!.delete(stock);
         });
         break;
       case 'setting':
         Setting setting = realm!.query<Setting>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Setting>(setting);
+          realm!.delete(setting);
         });
         break;
       case 'pin':
         Pin? pin = realm!.query<Pin>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<Pin>(pin);
+          realm!.delete(pin);
         });
         break;
       case 'business':
         final business = realm!.query<Business>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Business>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'branch':
         final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Branch>(business!);
+          realm!.delete(business!);
         });
         break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
         realm!.write(() {
-          realm!.delete<Voucher>(business!);
+          realm!.delete(business!);
         });
         break;
       case 'transactionItem':
@@ -747,13 +798,13 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.query<TransactionItem>(r'id == $0 ', [id]).first;
 
         realm!.write(() {
-          realm!.delete<TransactionItem>(transactionItem);
+          realm!.delete(transactionItem);
         });
         break;
       case 'customer':
         Customer? customer = realm!.query<Customer>(r'id == $0 ', [id]).first;
         realm!.write(() {
-          realm!.delete<Customer>(customer);
+          realm!.delete(customer);
         });
         break;
       case 'tenant':
@@ -762,10 +813,16 @@ class RealmAPI<M extends IJsonSerializable>
         if (response.statusCode == 200) {
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
-            realm!.delete<Tenant>(tenant!);
+            realm!.delete(tenant!);
             return true;
           });
         }
+        break;
+      case 'assets':
+        Assets? asset = realm!.query<Assets>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(asset);
+        });
         break;
       default:
         return Future.value(false);
@@ -886,7 +943,25 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Customer?> getCustomer({String? key, int? id}) async {
+  List<Customer> getCustomers({String? key, int? id}) {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+    if (id != null) {
+      return realm!.query<Customer>(r'id == $0', [id]).toList();
+    } else if (key != null) {
+      final customer = realm!.query<Customer>(
+          r'custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0',
+          [key]).toList();
+      return customer;
+    } else {
+      return [];
+    }
+  }
+
+  @override
+  Customer? getCustomer({String? key, int? id}) {
     if (key != null && id != null) {
       throw ArgumentError(
           'Cannot provide both a key and an id at the same time');
@@ -895,7 +970,25 @@ class RealmAPI<M extends IJsonSerializable>
       return realm!.query<Customer>(r'id == $0', [id]).firstOrNull;
     } else if (key != null) {
       final customer = realm!.query<Customer>(
-          r'(custNm CONTAINS $1 OR email CONTAINS $1 OR telNo CONTAINS $1) AND deletedAt == nil',
+          r'(custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0) AND deletedAt == nil',
+          [key]).firstOrNull;
+      return customer;
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Future<Customer?> getCustomerFuture({String? key, int? id}) async {
+    if (key != null && id != null) {
+      throw ArgumentError(
+          'Cannot provide both a key and an id at the same time');
+    }
+    if (id != null) {
+      return realm!.query<Customer>(r'id == $0', [id]).firstOrNull;
+    } else if (key != null) {
+      final customer = realm!.query<Customer>(
+          r'(custNm CONTAINS $0 OR email CONTAINS $0 OR telNo CONTAINS $0) AND deletedAt == nil',
           [key]).firstOrNull;
       return customer;
     } else {
@@ -939,12 +1032,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<List<Discount>> getDiscounts({required int branchId}) async {
     return realm!.query<Discount>(r'branchId == $0', [branchId]).toList();
-  }
-
-  @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    return realm!.query<Drawers>(
-        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
   }
 
   @override
@@ -994,7 +1081,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Product?> getProduct({required int id}) async {
+  Product? getProduct({required int id}) {
     return realm!
         .query<Product>(r'id == $0 AND deletedAt == nil', [id]).firstOrNull;
   }
@@ -1123,18 +1210,27 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, required int? transactionId}) async {
-    return realm!.query<TransactionItem>(
-        r'variantId == $0 AND transactionId == $1 AND deletedAt == nil',
-        [variantId, transactionId]).firstOrNull;
+  TransactionItem? getTransactionItemByVariantId(
+      {required int variantId, int? transactionId}) {
+    // Build the query string based on whether transactionId is null
+    String queryString;
+    List<int> parameters = [variantId]; // Initialize with variantId
+    if (transactionId == null) {
+      queryString = r'variantId == $0';
+    } else {
+      queryString = r'variantId == $0 AND transactionId == $1';
+      parameters.add(transactionId); // Add transactionId only if not null
+    }
+
+    // Execute the query
+    return realm!.query<TransactionItem>(queryString, parameters).firstOrNull;
   }
 
   @override
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId}) async {
     return realm!.query<TransactionItem>(
-        r'transactionId == $0 AND deletedAt == nil', [transactionId]).toList();
+        r'transactionId == $0', [transactionId]).toList();
   }
 
   @override
@@ -1172,15 +1268,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> getVariantById({required int id}) async {
-    return realm!
-        .query<Variant>(r'id == $0 AND deletedAt == nil', [id]).firstOrNull;
-  }
-
-  @override
-  Future<List<Variant>> getVariantByProductId({int? productId}) async {
-    return realm!.query<Variant>(
-        r'productId == $0 AND deletedAt == nil', [productId]).toList();
+  Variant? getVariantById({required int id}) {
+    return realm!.query<Variant>(r'id == $0', [id]).firstOrNull;
   }
 
   @override
@@ -1206,13 +1295,6 @@ class RealmAPI<M extends IJsonSerializable>
     };
 
     return controller.stream;
-  }
-
-  @override
-  Future<bool> isDrawerOpen({required int cashierId}) async {
-    return realm!.query<Drawers>(
-            r'cashierId == $0 AND deletedAt == nil', [cashierId]).firstOrNull !=
-        null;
   }
 
   @override
@@ -1288,7 +1370,7 @@ class RealmAPI<M extends IJsonSerializable>
       {required String transactionType}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    ITransaction? existTransaction = await pendingTransaction(
+    ITransaction? existTransaction = await _pendingTransaction(
         branchId: branchId, transactionType: transactionType);
 
     int businessId = ProxyService.box.getBusinessId()!;
@@ -1324,11 +1406,17 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<ITransaction> manageTransaction(
-      {required String transactionType}) async {
+  ITransaction manageTransaction(
+      {required String transactionType, bool? includeSubTotalCheck = false}) {
+    /// check if realm is not closed
+    if (realm == null) {
+      throw Exception("realm is empty");
+    }
     int branchId = ProxyService.box.getBranchId()!;
-    ITransaction? existTransaction = await pendingTransaction(
-        branchId: branchId, transactionType: transactionType);
+    ITransaction? existTransaction = _pendingTransaction(
+        branchId: branchId,
+        transactionType: transactionType,
+        includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
       final int id = randomNumber();
       final transaction = ITransaction(ObjectId(),
@@ -1348,22 +1436,13 @@ class RealmAPI<M extends IJsonSerializable>
           createdAt: DateTime.now().toIso8601String());
 
       // save transaction to isar
-      await realm!.putAsync<ITransaction>(transaction);
+      realm!.put<ITransaction>(transaction);
 
       ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
       return transaction;
     } else {
       return existTransaction;
     }
-  }
-
-  @override
-  Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await realm!.writeAsync(() async {
-      realm!.putAsync<Drawers>(drawer);
-    });
-    return realm!.query<Drawers>(
-        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
   }
 
   @override
@@ -1400,12 +1479,59 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
+  /// when item.active == true
+  /// then this means item is on cart
   @override
-  Future<ITransaction?> pendingTransaction(
-      {required int branchId, required String transactionType}) async {
-    return realm!.query<ITransaction>(
-        r'branchId == $0 AND transactionType == $1 AND status == $2',
-        [branchId, transactionType, PENDING]).firstOrNull;
+  List<TransactionItem> transactionItems(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    String queryString = "";
+
+    queryString =
+        r'transactionId == $0  && doneWithTransaction == $1  && branchId ==$2 && active == $3';
+
+    final items = realm!.query<TransactionItem>(queryString,
+        [transactionId, doneWithTransaction, branchId, active]).toList();
+
+    return items;
+  }
+
+  /// because we want to deal with transaction that has item
+  /// we just return any transaction that has TransactionItem attached
+  /// this is to avoid having to deal with multiple transaction that are not complete
+  /// we should first return any transaction that has item first.
+  ITransaction? _pendingTransaction({
+    required int branchId,
+    required String transactionType,
+    bool includeSubTotalCheck = true,
+  }) {
+    String query =
+        r'branchId == $0 AND transactionType == $1 AND status == $2 SORT(createdAt DESC)';
+    List<dynamic> parameters = [branchId, transactionType, PENDING];
+
+    if (includeSubTotalCheck) {
+      query += ' AND subTotal > 0';
+    }
+
+    List<ITransaction> transactions =
+        realm!.query<ITransaction>(query, parameters).toList();
+
+    for (ITransaction transaction in transactions) {
+      List<TransactionItem> items = transactionItems(
+        transactionId: transaction.id!,
+        doneWithTransaction: false,
+        active: true,
+      );
+
+      if (items.isNotEmpty) {
+        return transaction;
+      }
+    }
+
+    // If no transaction with items found, return the first transaction (if any)
+    return transactions.isNotEmpty ? transactions.first : null;
   }
 
   @override
@@ -1538,7 +1664,23 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Stock?> stockByVariantId(
+  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false}) {
+    int branchId = ProxyService.box.getBranchId()!;
+    Stock? stock;
+    if (nonZeroValue) {
+      stock = realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1 && retailPrice > 0 && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    } else {
+      stock = realm!.query<Stock>(
+          r'variantId ==$0 && branchId == $1  && deletedAt ==nil',
+          [variantId, branchId]).firstOrNull;
+    }
+    return stock;
+  }
+
+  @override
+  Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false}) async {
     int branchId = ProxyService.box.getBranchId()!;
     Stock? stock;
@@ -1613,18 +1755,11 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<List<ITransaction>> ticketsStreams() {
     int branchId = ProxyService.box.getBranchId()!;
-    String queryString = "";
-
-    queryString = r'''deletedAt = nil
-        && status == $0
-        && (
-        transactionType IN ANY {'PARKED'} && branchId == $1
-        )
-        ''';
 
     final subject = ReplaySubject<List<ITransaction>>();
 
-    final query = realm!.query<ITransaction>(queryString, [PARKED, branchId]);
+    final query = realm!.query<ITransaction>(
+        r'status == $0 AND branchId == $1', [PARKED, branchId]);
 
     query.changes.listen((results) {
       subject.add(results.results.toList());
@@ -1634,7 +1769,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<TransactionItem>> transactionItems(
+  Future<List<TransactionItem>> transactionItemsFuture(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active}) async {
@@ -1651,26 +1786,27 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate}) {
-    if (startDate == null || endDate == null) return Stream.empty();
+    if (startDate == null || endDate == null) return Stream.value([]);
+
     final controller = StreamController<List<ITransaction>>.broadcast();
 
-    /// This is a hack as the query is failing to include data that is on same endDate
-    /// so to include it I have to add 1 day to a provided endDate
-
-    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    // This is a hack as the query is failing to include data that is on the same endDate
+    // so to include it I have to add 1 day to a provided endDate
+    // Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     final query = realm!.query<ITransaction>(
-        r'lastTouched >= $0 && lastTouched <= $1 && status == $2',
-        [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE]);
+      r'lastTouched >= $0 && lastTouched <= $1 && status == $2 && subTotal > 0',
+      [startDate.toUtc(), endDate.add(Duration(days: 1)).toUtc(), COMPLETE],
+    );
 
     StreamSubscription<RealmResultsChanges<ITransaction>>? subscription;
 
     controller.onListen = () {
       subscription = query.changes.listen((event) {
-        final changedVariants =
+        final changedTransactions =
             event.results.whereType<ITransaction>().toList();
-        if (changedVariants.isNotEmpty) {
-          controller.add(query.toList());
-        }
+        // Emit the results or an empty list if no transactions found
+        controller
+            .add(changedTransactions.isNotEmpty ? changedTransactions : []);
       });
     };
 
@@ -1728,7 +1864,7 @@ class RealmAPI<M extends IJsonSerializable>
       queryString = r'''deletedAt = nil
             && status == $0
             && (
-            transactionType IN ANY {'Cash In', 'sale', 'custom', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
+            transactionType IN ANY {'Cash In', 'Sale', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
             )
             ''';
     }
@@ -1828,7 +1964,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> variant({int? variantId, String? name}) async {
+  Variant? variant({int? variantId, String? name}) {
     if (variantId != null) {
       return realm!.query<Variant>(r'id == $0', [variantId]).firstOrNull;
     }
@@ -1857,25 +1993,48 @@ class RealmAPI<M extends IJsonSerializable>
   /// I avoided assigning businessId or branchId to the directory
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
-  Future<String> dbPath({required String path}) async {
-    final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v10';
+  Future<String> dbPath({required String path, int? folder}) async {
+    try {
+      Directory appSupportDirectory;
 
-    // Create the directory if it doesn't exist
-    final directory = Directory(realmDirectory);
-    if (!(await directory.exists())) {
-      await directory.create(recursive: true);
+      // Determine the appropriate directory based on the platform
+      if (Platform.isWindows) {
+        appSupportDirectory = await getApplicationSupportDirectory();
+      } else {
+        appSupportDirectory = await getApplicationDocumentsDirectory();
+      }
+
+      // Construct the specific directory path
+      /// the 1 appended is incremented everytime there is a breaking change on a client.
+      final realmDirectory =
+          p.join(appSupportDirectory.path, '${folder ?? ""}2');
+
+      // Create the directory if it doesn't exist
+      final directory = Directory(realmDirectory);
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      // Construct the full path to the database file
+      final String fileName = '$path.realm';
+      return p.join(realmDirectory, fileName);
+    } catch (e) {
+      // Handle any exceptions that might occur
+      print('Error creating db path: $e');
+      rethrow;
     }
-
-    final String fileName = '${path}.db'; // Fixed, user-friendly name
-
-    return "$realmDirectory/$fileName";
   }
 
   /// when opening db we carefully fail gracefuly when especially on startup we use in memory db
   /// then when user login the real db is used
   /// it is very important to avoid issue where we are saving in memory thinking that we using synced db hence why we call init on startupview model
   /// to re-configure the db now for this time not using the in-memory db.
+  ///
+
+  @override
+  Future<RealmApiInterface> instance() async {
+    return this;
+  }
 
   @override
   Future<RealmApiInterface> configure(
@@ -1892,7 +2051,6 @@ class RealmAPI<M extends IJsonSerializable>
     }
 
     try {
-
       final app = App(AppConfiguration(AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
 
@@ -1908,10 +2066,20 @@ class RealmAPI<M extends IJsonSerializable>
         _configureInMemory();
       } else {
         if (ProxyService.box.encryptionKey().isEmpty) {
-          throw Exception("null encryption");
+          talker.error("Empty ncryption key provided");
+          // throw Exception("null encryption");
+          realm?.close();
+          _configureInMemory();
+        }
+        if (ProxyService.box.getBusinessId() == null) {
+          talker.error("There is no business found");
+          // throw Exception("here is no business found");
+          realm?.close();
+          _configureInMemory();
         }
         realm?.close();
-        String path = await dbPath(path: 'synced');
+        String path = await dbPath(
+            path: 'synced', folder: ProxyService.box.getBusinessId());
         await _configurePersistent(user, path);
       }
     } catch (e, s) {
@@ -1919,18 +2087,10 @@ class RealmAPI<M extends IJsonSerializable>
       /// we can not think of Ream(config) will be totally different from Realm.open()
       /// hence I can not provide different encryption key on either
       talker.error(s);
+      logOut();
+      throw e;
     }
     return this;
-  }
-
-  void _setApiEndpoints() {
-    if (foundation.kDebugMode) {
-      apihub = AppSecrets.apihubUat;
-      commApi = AppSecrets.commApi;
-    } else {
-      apihub = AppSecrets.apihubProd;
-      commApi = AppSecrets.commApi;
-    }
   }
 
   void _configureInMemory() {
@@ -1954,19 +2114,17 @@ class RealmAPI<M extends IJsonSerializable>
     int businessId = ProxyService.box.getBusinessId()!;
 
     await updateSubscription(branchId, businessId);
+    await realm!.syncSession.waitForDownload();
     await realm!.subscriptions.waitForSynchronization(token);
   }
 
+  ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
   Future<Configuration> _createPersistentConfig(User user, String path) async {
     return Configuration.flexibleSync(
       user,
       realmModels,
       encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       path: path,
-      clientResetHandler:
-          RecoverUnsyncedChangesHandler(onBeforeReset: (beforeResetRealm) {
-        log("reset requested here..");
-      }),
       shouldCompactCallback: (totalSize, usedSize) {
         const tenMB = 10 * 1048576;
         return (totalSize > tenMB) &&
@@ -1977,6 +2135,87 @@ class RealmAPI<M extends IJsonSerializable>
           handleCompensatingWrite(syncError);
         }
       },
+      clientResetHandler: RecoverOrDiscardUnsyncedChangesHandler(
+        onBeforeReset: (realm) {
+          print(
+              'A client reset is about to occur. The app may freeze momentarily.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "A client reset is about to occur. The app may freeze momentarily.'",
+            ),
+          );
+        },
+        onAfterRecovery: (before, after) {
+          print('Automatic client reset recovery completed successfully.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "Automatic client reset recovery completed successfully.",
+            ),
+          );
+        },
+        onAfterDiscard: (before, after) {
+          talker.error(
+              'Automatic client reset recovery failed. Local changes have been discarded.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  "Automatic client reset recovery failed. Local changes have been discarded.",
+            ),
+          );
+        },
+        onManualResetFallback: (clientResetError) async {
+          print('Automatic client reset failed. Manual reset is required.');
+          ProxyService.local.notify(
+            notification: AppNotification(
+              ObjectId(),
+              identifier: ProxyService.box.getBranchId(),
+              type: "internal",
+              id: randomNumber(),
+              completed: false,
+              message:
+                  'Automatic client reset failed. Manual reset is required.',
+            ),
+          );
+          await Future.delayed(Duration(seconds: 10));
+          // 1. Close the realm
+          realm!.close();
+
+          // 2. Delete the realm file
+          try {
+            clientResetError.resetRealm();
+          } catch (e) {
+            File realmFile = File(realm!.config.path);
+            if (await realmFile.exists()) {
+              await realmFile.delete();
+              print('Realm file deleted successfully.');
+            }
+            // print('Error deleting realm file: $e');
+          }
+
+          // 3. Restart the app
+          print('Restarting the app...');
+          exit(0);
+
+          //the app re-initialize here
+        },
+      ),
     );
   }
 
@@ -1990,25 +2229,36 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (await ProxyService.status.isInternetAvailable()) {
         talker.info("Opened realm with internet access.");
-        return await Realm.open(config, cancellationToken: token,
-            onProgressCallback: (syncProgress) {
-          if (syncProgress.progressEstimate == 1.0) {
-            talker.info('All bytes transferred!');
-          }
-        });
+        // return await Realm.open(config, cancellationToken: token,
+        //     onProgressCallback: (syncProgress) {
+        //   if (syncProgress.progressEstimate == 1.0) {
+        //     talker.info('All bytes transferred!');
+        //   }
+        // });
+        return Realm(config);
       } else {
         talker.info("Opened realm with no internet access.");
         return Realm(config);
       }
     } catch (e) {
-      return Realm(config);
+      throw e;
+      // return Realm(config);
+    }
+  }
+
+  void _setApiEndpoints() {
+    if (foundation.kDebugMode) {
+      apihub = AppSecrets.apihubUat;
+      commApi = AppSecrets.commApi;
+    } else {
+      apihub = AppSecrets.apihubProd;
+      commApi = AppSecrets.commApi;
     }
   }
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
-
-    for(Subscription sub in realm!.subscriptions){
-      talker.warning(sub.name );
+    for (Subscription sub in realm!.subscriptions) {
+      talker.warning(sub.name);
     }
 
     if (realm == null || businessId == null || branchId == null) return;
@@ -2034,8 +2284,6 @@ class RealmAPI<M extends IJsonSerializable>
 
     final ebms = realm!.query<EBM>(r'businessId == $0', [businessId]);
 
-
-
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
     final permission = realm!.all<LPermission>();
@@ -2048,6 +2296,11 @@ class RealmAPI<M extends IJsonSerializable>
     final tenant = realm!.all<Tenant>();
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
     final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
+    final configs = realm!.query<Configurations>(r'branchId == $0', [branchId]);
+    final assets = realm!.query<Assets>(r'branchId == $0', [branchId]);
+    final composites = realm!.query<Composite>(r'branchId == $0', [branchId]);
+    final skus = realm!.query<SKU>(r'branchId == $0', [branchId]);
+    final report = realm!.query<Report>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2072,28 +2325,49 @@ class RealmAPI<M extends IJsonSerializable>
     // End of unsubscribing
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
-      mutableSubscriptions.add(drawers, name: "drawers",update: true);
-      mutableSubscriptions.add(token,name:"token");
+      mutableSubscriptions.add(composites, name: "composites", update: true);
+      mutableSubscriptions.add(drawers, name: "drawers", update: true);
+      mutableSubscriptions.add(token, name: "token", update: true);
+      mutableSubscriptions.add(assets, name: "assets", update: true);
+      mutableSubscriptions.add(skus, name: "skus", update: true);
+      mutableSubscriptions.add(report, name: "report", update: true);
 
-      mutableSubscriptions.add(tenant, name: "tenant-${businessId}",update: true);
-      mutableSubscriptions.add(permission, name: "permission-${businessId}",update: true);
-      mutableSubscriptions.add(pin, name: "pin-${businessId}",update: true);
-      mutableSubscriptions.add(units, name: "units-${businessId}",update: true);
-      mutableSubscriptions.add(receipts, name: "favorites-${businessId}",update: true);
-      mutableSubscriptions.add(favorites, name: "favorites-${branchId}",update: true);
-      mutableSubscriptions.add(ebms, name: "ebms-${businessId}",update: true);
-      mutableSubscriptions.add(devices, name: "devices-${businessId}",update: true);
-      mutableSubscriptions.add(conversations, name: "conversations-${businessId}",update: true);
-      mutableSubscriptions.add(colors, name: "colors-${businessId}",update: true);
-      mutableSubscriptions.add(category, name: "category-${businessId}",update: true);
-      mutableSubscriptions.add(customer, name: "iCustomer-${branchId}",update: true);
-      mutableSubscriptions.add(product, name: "iProduct-${branchId}",update: true);
-      mutableSubscriptions.add(counter, name: "iCounter-${branchId}",update: true);
-      mutableSubscriptions.add(variant, name: "iVariant-${branchId}",update: true);
-      mutableSubscriptions.add(stock, name: "iStock-${branchId}",update: true);
-      mutableSubscriptions.add(unit, name: "iUnit-${branchId}",update: true);
-      mutableSubscriptions.add(transaction, name: "transaction-${branchId}",update: true);
-      mutableSubscriptions.add(transactionItem, name: "transactionItem-${branchId}",update: true);
+      mutableSubscriptions.add(tenant,
+          name: "tenant-${businessId}", update: true);
+      mutableSubscriptions.add(permission,
+          name: "permission-${businessId}", update: true);
+      mutableSubscriptions.add(pin, name: "pin-${businessId}", update: true);
+      mutableSubscriptions.add(units,
+          name: "units-${businessId}", update: true);
+      mutableSubscriptions.add(receipts,
+          name: "receipts-${businessId}", update: true);
+      mutableSubscriptions.add(favorites,
+          name: "favorites-${branchId}", update: true);
+      mutableSubscriptions.add(ebms, name: "ebms-${businessId}", update: true);
+      mutableSubscriptions.add(devices,
+          name: "devices-${businessId}", update: true);
+      mutableSubscriptions.add(conversations,
+          name: "conversations-${businessId}", update: true);
+      mutableSubscriptions.add(colors,
+          name: "colors-${businessId}", update: true);
+      mutableSubscriptions.add(category,
+          name: "category-${businessId}", update: true);
+      mutableSubscriptions.add(customer,
+          name: "iCustomer-${branchId}", update: true);
+      mutableSubscriptions.add(product,
+          name: "iProduct-${branchId}", update: true);
+      mutableSubscriptions.add(counter,
+          name: "iCounter-${branchId}", update: true);
+      mutableSubscriptions.add(variant,
+          name: "iVariant-${branchId}", update: true);
+      mutableSubscriptions.add(stock, name: "iStock-${branchId}", update: true);
+      mutableSubscriptions.add(unit, name: "iUnit-${branchId}", update: true);
+      mutableSubscriptions.add(transaction,
+          name: "transaction-${branchId}", update: true);
+      mutableSubscriptions.add(transactionItem,
+          name: "transactionItem-${branchId}", update: true);
+
+      mutableSubscriptions.add(configs, name: "configs", update: true);
     });
   }
 
@@ -2112,135 +2386,171 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<void> _processVariant(int branchId, Variant variation) async {
-    int stockId = randomNumber();
-    Variant? variant = realm!.query<Variant>(
-        r'id == $0 && branchId == $1 && deletedAt == nil',
-        [variation.id, branchId]).firstOrNull;
-
-    if (variant != null) {
-      Stock? stock = realm!.query<Stock>(
+    try {
+      int stockId = randomNumber();
+      Variant? variant = realm!.query<Variant>(
           r'id == $0 && branchId == $1 && deletedAt == nil',
-          [stockId, branchId]).firstOrNull;
+          [variation.id, branchId]).firstOrNull;
 
-      if (stock == null) {
+      if (variant != null) {
+        Stock? stock = realm!.query<Stock>(
+            r'id == $0 && branchId == $1 && deletedAt == nil',
+            [stockId, branchId]).firstOrNull;
+
+        if (stock == null) {
+          final newStock = Stock(ObjectId(),
+              id: stockId,
+              lastTouched: DateTime.now(),
+              branchId: branchId,
+              variantId: variation.id!,
+              action: AppActions.created,
+              retailPrice: variation.retailPrice,
+              supplyPrice: variation.supplyPrice,
+              currentStock: variation.qty,
+              rsdQty: variation.qty,
+              value: (variation.qty * (variation.retailPrice)).toDouble(),
+              productId: variation.productId,
+              active: false);
+          await realm!.putAsync<Stock>(newStock);
+        }
+
+        stock!.currentStock = stock.currentStock + variation.qty;
+        stock.rsdQty = stock.currentStock + variation.qty;
+        stock.action = AppActions.updated;
+        stock.lastTouched = DateTime.now().toLocal();
+        stock.value = (variation.qty * (variation.retailPrice)).toDouble();
+        await realm!.putAsync<Stock>(stock);
+
+        variant.qty = variation.qty;
+        variant.retailPrice = variation.retailPrice;
+        variant.supplyPrice = variation.supplyPrice;
+        variant.action = AppActions.updated;
+        variant.lastTouched = DateTime.now().toLocal();
+        await realm!.putAsync<Variant>(variant);
+      } else {
+        int stockId = randomNumber();
+
+        talker.info("Saving variant when scanning..... [1]");
+
+        await realm!.putAsync<Variant>(variation);
+
         final newStock = Stock(ObjectId(),
             id: stockId,
             lastTouched: DateTime.now(),
             branchId: branchId,
-            variantId: variation.id!,
+            variantId: variation.id,
             action: AppActions.created,
             retailPrice: variation.retailPrice,
             supplyPrice: variation.supplyPrice,
             currentStock: variation.qty,
-            rsdQty: variation.qty,
             value: (variation.qty * (variation.retailPrice)).toDouble(),
-            productId: variation.productId,
-            active: false);
-        await realm!.putAsync<Stock>(newStock);
+            productId: variation.productId)
+          ..active = true;
+
+        realm!.putAsync<Stock>(newStock);
       }
-
-      stock!.currentStock = stock.currentStock + variation.qty;
-      stock.rsdQty = stock.currentStock + variation.qty;
-      stock.action = AppActions.updated;
-      stock.lastTouched = DateTime.now().toLocal();
-      stock.value = (variation.qty * (variation.retailPrice)).toDouble();
-      await realm!.putAsync<Stock>(stock);
-
-      variant.qty = variation.qty;
-      variant.retailPrice = variation.retailPrice;
-      variant.supplyPrice = variation.supplyPrice;
-      variant.action = AppActions.updated;
-      variant.lastTouched = DateTime.now().toLocal();
-      await realm!.putAsync<Variant>(variant);
-    } else {
-      int stockId = randomNumber();
-
-      talker.info("Saving variant when scanning..... [1]");
-
-      await realm!.putAsync<Variant>(variation);
-
-      final newStock = Stock(ObjectId(),
-          id: stockId,
-          lastTouched: DateTime.now(),
-          branchId: branchId,
-          variantId: variation.id,
-          action: AppActions.created,
-          retailPrice: variation.retailPrice,
-          supplyPrice: variation.supplyPrice,
-          currentStock: variation.qty,
-          value: (variation.qty * (variation.retailPrice)).toDouble(),
-          productId: variation.productId)
-        ..active = true;
-
-      realm!.putAsync<Stock>(newStock);
+    } catch (e, s) {
+      talker.error(s);
     }
   }
 
-  Variant _createRegularVariant(
-      Product product, int branchId, Business? business,
+  @override
+  void createVariant(
+      {required String barCode,
+      required String sku,
+      required int productId,
+      required double retailPrice,
+      required double supplierPrice,
+      required String color,
+      required double qty,
+      required int itemSeq,
+      required String name}) {
+    final Business? business = ProxyService.local.getBusiness();
+    Variant variant = _createRegularVariant(
+        ProxyService.box.getBranchId()!, business,
+        qty: qty,
+        supplierPrice: supplierPrice,
+        retailPrice: retailPrice,
+        itemSeq: itemSeq,
+        name: name,
+        sku: sku,
+        ebmSynced: false,
+        productId: productId);
+    realm!.write(() {
+      realm!.add<Variant>(variant);
+    });
+  }
+
+  Variant _createRegularVariant(int branchId, Business? business,
       {required double qty,
       required double supplierPrice,
       required double retailPrice,
       required int itemSeq,
-      required bool ebmSynced}) {
+      required bool ebmSynced,
+      Product? product,
+      required int productId,
+      required String name,
+      required String sku}) {
     final int variantId = randomNumber();
     final number = randomNumber().toString().substring(0, 5);
+    String itemPrefix = "FLIPPER-";
+    String clip = itemPrefix +
+        DateTime.now().microsecondsSinceEpoch.toString().substring(0, 5);
     return Variant(ObjectId(),
         lastTouched: DateTime.now(),
-        name: product.name,
-        sku: 'sku',
+        name: product?.name ?? name,
+        sku: sku,
         action: 'create',
-        productId: product.id!,
-        color: product.color,
+        productId: product?.id ?? productId,
+        color: product?.color,
         unit: 'Per Item',
-        productName: product.name,
+        productName: product?.name ?? name,
         branchId: branchId,
         supplyPrice: supplierPrice,
         retailPrice: retailPrice,
         id: variantId,
         isTaxExempted: false,
-        bhfId: business?.bhfId ?? '00',
+        bhfId: ProxyService.box.bhfId() ?? '00',
         itemStdNm: "Regular",
         addInfo: "A",
         pkg: "1",
         splyAmt: supplierPrice,
-        itemClsCd:
-            "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
-        itemCd: randomNumber().toString().substring(0, 5),
+        itemClsCd: "5020230602",
+        itemCd: clip,
         modrNm: number,
         modrId: number,
         pkgUnitCd: "BJ",
         regrId: randomNumber().toString().substring(0, 5),
-        rsdQty: 1,
+        rsdQty: qty,
         itemTyCd: "2", // this is a finished product
         /// available type for itemTyCd are 1 for raw material and 3 for service
         /// is insurance applicable default is not applicable
         isrcAplcbYn: "N",
         useYn: "N",
         itemSeq: itemSeq,
-        itemNm: product.name,
+        itemNm: product?.name ?? name,
         taxPercentage: 18.0,
         tin: business!.tinNumber,
-        bcd: product.name,
+        bcd: product?.name ?? name,
 
         /// country of origin for this item we default until we support something different
         /// and this will happen when we do import.
         orgnNatCd: "RW",
 
         /// registration name
-        regrNm: product.name,
+        regrNm: product?.name ?? name,
 
         /// taxation type code
         taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
         // default unit price
-        dftPrc: 0,
-        prc: 1,
+        dftPrc: retailPrice,
+        prc: retailPrice,
 
         // NOTE: I believe bellow item are required when saving purchase
         ///but I wonder how to get them when saving an item.
-        spplrItemCd: randomNumber().toString().substring(0, 5),
-        spplrItemClsCd: randomNumber().toString().substring(0, 5),
-        spplrItemNm: product.name,
+        spplrItemCd: "",
+        spplrItemClsCd: "",
+        spplrItemNm: product?.name ?? name,
 
         /// Packaging Unit
         qtyUnitCd: "U", // see 4.6 in doc
@@ -2275,10 +2585,10 @@ class RealmAPI<M extends IJsonSerializable>
             supplyPrice: 0.0,
             retailPrice: 0.0,
             itemNm: product.name,
-            bhfId: business.bhfId ?? '00',
+            bhfId: ProxyService.box.bhfId() ?? '00',
             isTaxExempted: false,
-            itemClsCd:
-                "5020230602", // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+            // this is fixed but we can get the code to use on item we are saving under selectItemsClass endpoint
+            itemClsCd: "5020230602",
             itemCd: randomNumber().toString().substring(0, 5),
             modrNm: number,
             modrId: number,
@@ -2294,25 +2604,26 @@ class RealmAPI<M extends IJsonSerializable>
             itemStdNm: product.name,
             taxPercentage: 18.0,
             tin: business.tinNumber,
-            bcd: variant!.name,
+            bcd: CUSTOM_PRODUCT,
 
             /// country of origin for this item we default until we support something different
             /// and this will happen when we do import.
             orgnNatCd: "RW",
 
             /// registration name
-            regrNm: variant.name,
+            regrNm: CUSTOM_PRODUCT,
 
             /// taxation type code
             taxTyCd: "B", // available types A(A-EX),B(B-18.00%),C,D
             // default unit price
-            dftPrc: variant.retailPrice,
+            dftPrc: 0,
 
             // NOTE: I believe bellow item are required when saving purchase
             ///but I wonder how to get them when saving an item.
             spplrItemCd: randomNumber().toString().substring(0, 5),
             spplrItemClsCd: randomNumber().toString().substring(0, 5),
-            spplrItemNm: variant.name);
+            spplrItemNm: CUSTOM_PRODUCT,
+            qtyUnitCd: "U");
 
         Stock stock = Stock(ObjectId(),
             lastTouched: DateTime.now(),
@@ -2342,8 +2653,10 @@ class RealmAPI<M extends IJsonSerializable>
 
         return realm!.query<Variant>(r'id == $0 ', [variantId]).firstOrNull;
       }
-    } catch (e) {
+    } catch (e, s) {
       // Handle error during write operation
+      talker.error(e);
+      talker.error(s);
       throw Exception(e);
     }
     return variant;
@@ -2392,12 +2705,12 @@ class RealmAPI<M extends IJsonSerializable>
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
-        throw ErrorReadingFromYBServer(term: response.body);
+        throw RemoteError(term: response.body);
       } else {
-        throw ErrorReadingFromYBServer(term: response.body);
+        throw RemoteError(term: response.body);
       }
     } catch (error) {
-      throw ErrorReadingFromYBServer(term: error.toString());
+      throw RemoteError(term: error.toString());
     }
   }
 
@@ -2439,58 +2752,29 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Stream<double> soldStockValue({required branchId}) async* {
-    final controller = StreamController<double>.broadcast();
+    // Get the list of TransactionItem objects for the given branchId
+    final List<TransactionItem> transactions =
+        realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
 
-    final query = realm!.all<TransactionItem>();
+    // Calculate the total sold value
+    double totalSoldValue =
+        transactions.fold(0, (sum, transaction) => sum + transaction.totAmt);
 
-    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedTransactions =
-            event.results.whereType<TransactionItem>().toList();
-        double totalSoldValue = 0;
-        for (var transaction in changedTransactions) {
-          // Assuming each TransactionItem has a property representing sold value
-          totalSoldValue += transaction.price;
-        }
-        controller.add(totalSoldValue);
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
+    // Yield the total sold value
+    yield totalSoldValue;
   }
 
-  @override
   Stream<double> stockValue({required branchId}) async* {
-    final controller = StreamController<double>.broadcast();
+    // Get the list of Stock objects for the given branchId
+    final List<Stock> stocks = realm!.query<Stock>(
+        r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
-    final query = realm!.query<Stock>('currentStock > 0');
+    // Calculate the total stock value
+    double totalStockValue = stocks.fold(
+        0, (sum, stock) => sum + (stock.currentStock * stock.retailPrice));
 
-    StreamSubscription<RealmResultsChanges<Stock>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        double totalStockValue = 0;
-        for (var stock in event.results) {
-          // Calculate the total value of each stock item and sum them up
-          totalStockValue += stock.currentStock * stock.retailPrice;
-        }
-        controller.add(totalStockValue);
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    yield* controller.stream;
+    // Yield the total stock value
+    yield totalStockValue;
   }
 
   void handleCompensatingWrite(CompensatingWriteError compensatingWriteError) {
@@ -2545,10 +2829,42 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
+  Configurations getByTaxType({required String taxtype}) {
+    Configurations result;
+    double taxPercentage;
+
+    Configurations? config =
+        realm!.query<Configurations>(r'taxType == $0', [taxtype]).firstOrNull;
+
+    if (config != null) return config;
+
+    if (taxtype == "B") {
+      taxPercentage = 18.0;
+    } else {
+      taxPercentage = 0.0;
+    }
+
+    result = Configurations(
+      ObjectId(),
+      taxPercentage: taxPercentage,
+      taxType: taxtype,
+      id: randomNumber(),
+      branchId: ProxyService.box.getBranchId(),
+      businessId: ProxyService.box.getBusinessId(),
+    );
+    realm!.write(() => realm!.add(result));
+    return result;
+  }
+
+  @override
   Future<RwApiResponse> selectImportItems(
       {required int tin, required String bhfId, required String lastReqDt}) {
-    return ProxyService.tax
-        .selectImportItems(tin: tin, bhfId: bhfId, lastReqDt: lastReqDt);
+    return ProxyService.tax.selectImportItems(
+      tin: tin,
+      bhfId: bhfId,
+      lastReqDt: lastReqDt,
+      URI: ProxyService.box.getServerUrl()!,
+    );
   }
 
   @override
@@ -2563,6 +2879,9 @@ class RealmAPI<M extends IJsonSerializable>
         'phone': ProxyService.box.getUserPhone(),
         'defaultApp': ProxyService.box.getDefaultApp(),
         'deviceName': Platform.operatingSystem,
+        'uid':
+            (await firebase.FirebaseAuth.instance.currentUser?.getIdToken()) ??
+                "",
         'deviceVersion': Platform.operatingSystemVersion,
         'linkingCode': randomNumber().toString()
       });
@@ -2579,7 +2898,448 @@ class RealmAPI<M extends IJsonSerializable>
     // but for shared preference we can just clear them all
     ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
-    // await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+
+    /// refreshing the user token will invalidate any session
+    await firebase.FirebaseAuth.instance.currentUser?.getIdToken(true);
+
+    await amplifyLogout();
+
+    /// calling close on logout inroduced error where another attempt to login will fail since
+    /// the instance of realm is instantiated at app start level.
+    // resetDependencies(dispose: true);
     return Future.value(true);
+  }
+  //// drawers
+
+  @override
+  Future<bool> isDrawerOpen({required int cashierId}) async {
+    return realm!.query<Drawers>(
+            r'cashierId == $0 AND open==true', [cashierId]).firstOrNull !=
+        null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    return realm!.query<Drawers>(
+        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
+  }
+
+  @override
+  Future<Drawers?> openDrawer({required Drawers drawer}) async {
+    await realm!.writeAsync(() {
+      realm!.add<Drawers>(drawer);
+    });
+    return realm!.query<Drawers>(
+        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
+  }
+
+  @override
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate}) {
+    if (startDate == null || endDate == null) return Stream.empty();
+    final controller = StreamController<List<TransactionItem>>.broadcast();
+
+    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    final query = realm!
+        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
+      startDate.toUtc(),
+      endDate.add(Duration(days: 1)).toUtc(),
+    ]);
+
+    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedVariants =
+            event.results.whereType<TransactionItem>().toList();
+        if (changedVariants.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  @override
+  Future<void> syncUserWithAwsIncognito({required String identifier}) async {
+    try {
+      final result = await amplify.Amplify.Auth.fetchAuthSession();
+      if (!result.isSignedIn) {
+        final signInResult = await amplify.Amplify.Auth.signIn(
+          username: identifier,
+          password: identifier,
+        );
+        if (signInResult.isSignedIn) {
+          talker.warning('User logged in successfully');
+        } else {
+          talker.warning('Login not complete. Additional steps required.');
+        }
+      }
+
+      /// TODO: once I enable for a user to auth using his creds maybe I will enable this
+      /// but we have one user we keep using for auth uploads
+      // final Map<cognito.AuthUserAttributeKey, String> userAttributes = {
+      //   if (identifier.contains('@'))
+      //     cognito.AuthUserAttributeKey.email: identifier,
+      //   if (!identifier.contains('@')) ...{
+      //     cognito.AuthUserAttributeKey.phoneNumber: identifier,
+      //     // Provide a default email to satisfy the schema requirement
+      //     cognito.AuthUserAttributeKey.email: 'yegobox@gmail.com',
+      //   }
+      // };
+
+      // final signUpResult = await amplify.Amplify.Auth.signUp(
+      //   username: identifier,
+      //   password:
+      //       identifier, // Using the identifier as the password for simplicity
+      //   options: cognito.SignUpOptions(
+      //     userAttributes: userAttributes,
+      //   ),
+      // );
+
+      // if (signUpResult.isSignUpComplete) {
+      //   talker.warning('User signed up successfully!');
+      // } else {
+      //   talker.warning('Sign up not complete. Additional steps required.');
+      // }
+    } on cognito.AuthException catch (e) {
+      talker.error('Unexpected error: $e');
+      // rethrow;
+    } catch (e) {
+      talker.error('Unexpected error: $e');
+      // rethrow;
+    }
+  }
+
+  @override
+  Future<Stream<double>> downloadAssetSave({
+    String? assetName,
+    String? subPath = "branch",
+  }) async {
+    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+    int branchId = ProxyService.box.getBranchId()!;
+    final applicationSupportDirectory = await getApplicationSupportDirectory();
+
+    if (assetName != null) {
+      return _downloadAsset(
+          branchId, assetName, applicationSupportDirectory.path, subPath!);
+    }
+
+    List<Assets> assets =
+        realm!.query<Assets>(r'branchId == $0', [branchId]).toList();
+
+    StreamController<double> progressController = StreamController<double>();
+
+    for (Assets asset in assets) {
+      if (asset.assetName != null) {
+        // Get the download stream
+        Stream<double> downloadStream = await _downloadAsset(branchId,
+            asset.assetName!, applicationSupportDirectory.path, subPath!);
+
+        // Listen to the download stream and add its events to the main controller
+        downloadStream.listen((progress) {
+          print('Download progress for ${asset.assetName}: $progress');
+          progressController.add(progress);
+        }, onError: (error) {
+          // Handle errors in the download stream
+          talker
+              .error('Error in download stream for ${asset.assetName}: $error');
+          progressController.addError(error);
+        });
+      } else {
+        talker.warning('Asset name is null for asset: ${asset.id}');
+      }
+    }
+
+    // Close the stream controller when all downloads are finished
+    Future.wait(assets.map((asset) => asset.assetName != null
+        ? _downloadAsset(branchId, asset.assetName!,
+            applicationSupportDirectory.path, subPath!)
+        : Future.value(Stream.empty()))).then((_) {
+      progressController.close();
+    }).catchError((error) {
+      talker.error('Error in downloading assets: $error');
+      progressController.close();
+    });
+
+    return progressController.stream;
+  }
+
+  Future<Stream<double>> _downloadAsset(int branchId, String assetName,
+      String directoryPath, String subPath) async {
+    final filePath = '$directoryPath/$assetName';
+    final file = File(filePath);
+
+    if (await file.exists()) {
+      talker.info('File already exists: ${file.path}');
+      return Stream.value(100.0); // Return a stream indicating 100% completion
+    }
+
+    final storagePath = amplify.StoragePath.fromString(
+        'public/${subPath}-$branchId/$assetName');
+
+    try {
+      // Create a stream controller to manage the progress
+      final progressController = StreamController<double>();
+
+      // Start the download process
+      final operation = amplify.Amplify.Storage.downloadFile(
+        path: storagePath,
+        localFile: amplify.AWSFile.fromPath(filePath),
+        onProgress: (progress) {
+          // Calculate the progress percentage
+          final percentageCompleted =
+              (progress.fractionCompleted * 100).toInt();
+          // Add the progress to the stream
+          progressController.sink.add(percentageCompleted.toDouble());
+        },
+      );
+
+      // Listen for the download completion
+      operation.result.then((_) {
+        progressController.close();
+      }).catchError((error) {
+        String path = 'public/${subPath}-$branchId/$assetName';
+        talker.error('Download error ${path} - ${error.message}');
+        progressController.addError(error);
+        progressController.close();
+      });
+
+      return progressController.stream;
+    } catch (e) {
+      // String path = 'public/${subPath}-$branchId/$assetName';
+      talker.error('Error downloading file: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> removeS3File({required String fileName}) async {
+    await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+    int branchId = ProxyService.box.getBranchId()!;
+    try {
+      final result = await amplify.Amplify.Storage
+          .remove(
+            path: amplify.StoragePath.fromString(
+                'public/branch-$branchId/$fileName'),
+          )
+          .result;
+      talker.warning('Removed file: ${result.removedItem.path}');
+      return true; // Return true if the file is successfully removed
+    } on amplify.StorageException catch (e) {
+      talker.warning(e.message);
+      return false; // Return false if an exception occurs during the removal process
+    }
+  }
+
+  @override
+  Assets? getAsset({required String assetName}) {
+    return realm!.query<Assets>(r'assetName == $0', [assetName]).firstOrNull;
+  }
+
+  @override
+  Future<void> amplifyLogout() async {
+    try {
+      amplify.Amplify.Auth.signOut();
+    } catch (e) {}
+  }
+
+  @override
+  List<Product> getProducts({String? key}) {
+    final product = realm!.query<Product>(r'name CONTAINS $0', [key]).toList();
+    return product;
+  }
+
+  @override
+  List<Variant> getVariants({String? key}) {
+    final variant =
+        realm!.query<Variant>(r'productName CONTAINS $0', [key]).toList();
+    return variant;
+  }
+
+  @override
+  void saveComposite({required Composite composite}) {
+    realm!.write(() {
+      realm!.add<Composite>(composite);
+    });
+  }
+
+  // Function to create a new SKU
+  SKU _createNewSku() {
+    return SKU(
+      ObjectId(),
+      id: randomNumber(),
+      sku: 1000,
+      branchId: ProxyService.box.getBranchId(),
+      businessId: ProxyService.box.getBusinessId(),
+      consumed: false,
+    );
+  }
+
+  SKU? _getSku({required int branchId}) {
+    if (realm == null) {
+      throw Exception('Realm is null!');
+    }
+
+    // Check for existing non-consumed SKU
+    SKU? existingSku = realm!.query<SKU>(
+        r'branchId == $0 AND consumed == false', [branchId]).firstOrNull;
+
+    try {
+      if (existingSku == null) {
+        realm!.write(() {
+          existingSku = _createNewSku();
+          realm!.add<SKU>(existingSku!);
+        });
+      }
+    } catch (e) {
+      talker.error(e);
+    }
+
+    return existingSku;
+  }
+
+  @override
+  Stream<SKU?> sku({required int branchId}) async* {
+    if (realm == null) {
+      throw Exception('Realm is null!');
+    }
+
+    // Check for existing non-consumed SKU
+    SKU? existingSku = realm!.query<SKU>(
+        r'branchId == $0 AND consumed == false', [branchId]).firstOrNull;
+
+    try {
+      if (existingSku == null) {
+        realm!.write(() {
+          existingSku = _createNewSku();
+          realm!.add<SKU>(existingSku!);
+        });
+      }
+    } catch (e) {
+      talker.error(e);
+    }
+
+    // Use RealmResults to continuously observe changes
+    final results =
+        realm!.query<SKU>(r'branchId == $0 AND consumed == false', [branchId]);
+
+    yield* results.changes.map((event) {
+      if (event.results.isEmpty) {
+        // If there are no non-consumed SKUs, create a new one
+        late SKU newSku;
+        realm!.write(() {
+          newSku = _createNewSku();
+          realm!.add<SKU>(newSku);
+        });
+        return newSku;
+      } else {
+        return event.results.first;
+      }
+    });
+  }
+
+  @override
+  List<Composite> composites({required int productId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'productId == $0', [productId]);
+
+    return queryBuilder.toList();
+  }
+
+  @override
+  Composite composite({required int variantId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'variantId == $0', [variantId]);
+    return queryBuilder.first;
+  }
+
+  @override
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName) async {
+    try {
+      int branchId = ProxyService.box.getBranchId()!;
+      final filePath = 'public/invoices-${branchId}/$fileName.pdf';
+
+      final result = await amplify.Amplify.Storage
+          .uploadFile(
+            localFile: amplify.AWSFile.fromStream(
+              Stream.value(pdfData),
+              size: pdfData.length,
+            ),
+            path: amplify.StoragePath.fromString(filePath),
+            onProgress: (progress) {
+              talker
+                  .warning('Fraction completed: ${progress.fractionCompleted}');
+            },
+          )
+          .result;
+      return result.uploadedItem.path;
+    } catch (e) {
+      talker.error("Error uploading file to S3: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  List<Composite> compositesByVariantId({required int variantId}) {
+    final queryBuilder =
+        realm!.query<Composite>(r'variantId == $0', [variantId]);
+
+    return queryBuilder.toList();
+  }
+
+  @override
+  Future<Tenant?> tenant({required int businessId}) async {
+    /// because this method run when app start and sometime when app start we do not have a realm instance then we re-initialize it again here
+    if (ProxyService.realm.realm == null) {
+      await ProxyService.realm
+          .configure(useInMemoryDb: false, useFallBack: false);
+    }
+    if (ProxyService.local.localRealm == null) {
+      await ProxyService.local.configureLocal(useInMemory: false);
+    }
+    Tenant? tenant =
+        realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+
+    return tenant;
+  }
+
+  @override
+  Stream<List<Report>> reports({required int branchId}) async* {
+    final controller = StreamController<List<Report>>.broadcast();
+
+    final query = realm!.query<Report>(r'branchId == $0', [branchId]);
+
+    StreamSubscription<RealmResultsChanges<Report>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedReports = event.results.whereType<Report>().toList();
+        if (changedReports.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    // Emit initial data
+    controller.add(query.toList());
+
+    yield* controller.stream;
+  }
+
+  @override
+  Report report({required int id}) {
+    return realm!.query<Report>(r'id == $0', [id]).first;
   }
 }

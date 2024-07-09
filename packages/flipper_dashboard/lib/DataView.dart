@@ -1,117 +1,75 @@
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart' as permission;
-import 'package:share_plus/share_plus.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
-import 'package:syncfusion_flutter_datagrid_export/export.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:talker_flutter/talker_flutter.dart';
 
 class DataView extends StatefulWidget {
-  /// Creates the home page.
-  const DataView({super.key, required this.transactions});
+  const DataView({
+    super.key,
+    required this.transactions,
+    required this.startDate,
+    required this.endDate,
+    required this.workBookKey,
+    required this.showPluReport,
+    required this.rowsPerPage,
+    required this.transactionItems,
+  });
 
   final List<ITransaction> transactions;
+  final DateTime startDate;
+  final DateTime endDate;
+  final GlobalKey<SfDataGridState> workBookKey;
+  final bool showPluReport;
+  final int rowsPerPage;
+  final List<TransactionItem>? transactionItems;
 
   @override
   _DataViewState createState() => _DataViewState();
 }
 
-final int rowsPerPage = 10;
-List<ITransaction> paginatedDataSource = [];
-List<ITransaction> transactions = [];
-
 class _DataViewState extends State<DataView> {
-  final GlobalKey<SfDataGridState> _key = GlobalKey<SfDataGridState>();
-  bool isProcessing = false;
   static const double dataPagerHeight = 60;
-  late TransactionDataSource _transactionDataSource;
+  DataGridSource? _dataGridSource; // Make it nullable
   int pageIndex = 0;
+
   @override
   void initState() {
     super.initState();
-    transactions = widget.transactions;
-    _transactionDataSource = TransactionDataSource();
-    _transactionDataSource..addListener(updateWidget);
   }
 
-  updateWidget() {
-    setState(() {});
-  }
-
-  Future<void> requestPermissions() async {
-    // Request storage permissions
-    await [
-      permission.Permission.storage,
-      permission.Permission.manageExternalStorage,
-    ].request();
-
-    // Request notification permission (if needed)
-    if (await permission.Permission.notification.isDenied) {
-      await permission.Permission.notification.request();
-    }
-  }
-
-  Future<void> exportDataGridToExcel() async {
-    await requestPermissions();
-    setState(() {
-      isProcessing = true;
-    });
-    final excel.Workbook workbook = _key.currentState!.exportToExcelWorkbook();
-    final List<int> bytes = workbook.saveAsStream();
-
-    // Get the directory for temporary files
-    final Directory tempDir = await getApplicationDocumentsDirectory();
-    final File file = File('${tempDir.path}/Report.xlsx');
-
-    // Write the file
-    await file.writeAsBytes(bytes);
-
-    workbook.dispose();
-    setState(() {
-      isProcessing = false;
-    });
-
-    var now = DateTime.now();
-    var formattedDate = DateFormat('yyyy-MM-dd').format(now);
-
-    // When sharing report
-    await Share.shareXFiles([XFile(file.path)],
-        subject: "Report Download - $formattedDate");
+  @override
+  void dispose() {
+    // _dataGridSource.removeListener(updateWidget); // Remove this line
+    super.dispose();
   }
 
   final talker = TalkerFlutter.init();
 
   void handleCellTap(DataGridCellTapDetails details) {
-    final rowData = details.rowColumnIndex;
-    final rowIndex = rowData.rowIndex;
-    log("PageIndex we are using now ${pageIndex}");
-    final transaction =
-        widget.transactions[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
+    final rowIndex = details.rowColumnIndex.rowIndex;
+    if (rowIndex < 1) return;
 
-    // Do something with the row data
-    talker.warning(
-        'Tapped row: ID = ${transaction.id}, Name = ${transaction.subTotal}');
+    final dataSource = _dataGridSource as DynamicDataSource;
+    final data = dataSource.data[pageIndex == 0 ? rowIndex - 1 : rowIndex - 1];
+
+    talker.warning('Tapped row: ID = ${data.id}, Name = ${data.subTotal}');
     showDialog(
       barrierDismissible: true,
       context: context,
       builder: (context) => OptionModal(
         child: Refund(
-          refundAmount: transaction.subTotal,
-          transactionId: transaction.id.toString(),
+          refundAmount: data.subTotal,
+          transactionId: data.id.toString(),
           currency: "RWF",
-          transaction: transaction,
+          transaction: data is ITransaction ? data : null,
         ),
       ),
     );
@@ -122,32 +80,19 @@ class _DataViewState extends State<DataView> {
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
+    // Update _dataGridSource based on widget.showPluReport
+    _dataGridSource = _buildDataGridSource(widget.showPluReport,
+        widget.transactionItems, widget.transactions, widget.rowsPerPage);
+
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () => HomeViewModel(),
-        onViewModelReady: (model) {},
-        builder: (a, b, c) {
-          return Scaffold(
-            body: LayoutBuilder(builder: (context, constraint) {
+      viewModelBuilder: () => HomeViewModel(),
+      onViewModelReady: (model) {},
+      builder: (context, model, child) {
+        return Scaffold(
+          body: LayoutBuilder(
+            builder: (context, constraint) {
               return Column(
                 children: [
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
-                    child: Row(
-                      children: <Widget>[
-                        SizedBox(
-                          height: 40.0,
-                          width: 150.0,
-                          child: BoxButton(
-                            onTap: exportDataGridToExcel,
-                            borderRadius: 1,
-                            title: 'Export to Excel',
-                            busy: isProcessing,
-                          ),
-                        ),
-                        const Padding(padding: EdgeInsets.all(20)),
-                      ],
-                    ),
-                  ),
                   Expanded(
                     child: SfDataGridTheme(
                       data: SfDataGridThemeData(
@@ -165,69 +110,19 @@ class _DataViewState extends State<DataView> {
                         height: constraint.maxHeight - dataPagerHeight,
                         width: constraint.maxWidth,
                         child: SfDataGrid(
-                          rowsPerPage: rowsPerPage,
+                          rowsPerPage: widget.rowsPerPage,
                           allowFiltering: true,
                           highlightRowOnHover: true,
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
-                          key: _key,
-                          source: _transactionDataSource,
+                          key: widget.workBookKey,
+                          source:
+                              _dataGridSource!, // Make sure _dataGridSource is not null
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
-                          columns: <GridColumn>[
-                            GridColumn(
-                              columnName: 'id',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('ID',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'Type',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Type',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'Amount',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Amount',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                            GridColumn(
-                              columnName: 'CashReceived',
-                              label: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                padding: headerPadding,
-                                alignment: Alignment.center,
-                                child: const Text('Cash Received',
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                          ],
+                          columns: widget.showPluReport
+                              ? pluReportTableHeader(headerPadding)
+                              : zReportTableHeader(headerPadding),
                         ),
                       ),
                     ),
@@ -237,9 +132,10 @@ class _DataViewState extends State<DataView> {
                     child: SfDataPager(
                       lastPageItemVisible: false,
                       nextPageItemVisible: false,
-                      delegate: _transactionDataSource,
-                      pageCount: (widget.transactions.length / rowsPerPage)
-                          .ceilToDouble(),
+                      delegate: _dataGridSource!,
+                      pageCount:
+                          (_dataGridSource!.rows.length / widget.rowsPerPage)
+                              .ceilToDouble(),
                       direction: Axis.horizontal,
                       onPageNavigationEnd: (index) {
                         log("Page Index ${index}");
@@ -248,71 +144,286 @@ class _DataViewState extends State<DataView> {
                         });
                       },
                     ),
-                  )
+                  ),
                 ],
               );
-            }),
-          );
-        });
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  List<GridColumn> pluReportTableHeader(EdgeInsets headerPadding) {
+    return <GridColumn>[
+      GridColumn(
+        columnName: 'ItemCode',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Item Code', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Name',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Name', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Price',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Price', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'TaxRate',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Tax Rate', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'StockRemain',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+  }
+
+  List<GridColumn> zReportTableHeader(EdgeInsets headerPadding) {
+    return <GridColumn>[
+      GridColumn(
+        columnName: 'id',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('ID', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Type',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Type', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Amount',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Amount', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'CashReceived',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Cash Received', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+  }
+
+  DataGridSource _buildDataGridSource(
+      bool showPluReport,
+      List<TransactionItem>? transactionItem,
+      List<ITransaction> transactions,
+      int rowsPerPage) {
+    if (showPluReport) {
+      return TransactionItemDataSource(
+          transactionItem!, rowsPerPage, showPluReport);
+    } else {
+      return TransactionDataSource(transactions, rowsPerPage, showPluReport);
+    }
   }
 }
 
-class TransactionDataSource extends DataGridSource {
-  TransactionDataSource() {
-    paginatedDataSource = transactions
-        .getRange(
-            0,
-            (rowsPerPage > transactions.length)
-                ? transactions.length
-                : rowsPerPage)
-        .toList();
-    buildPaginatedDataGridRows();
-  }
+abstract class DynamicDataSource extends DataGridSource {
+  List<dynamic> data = []; // Store the data
+  bool showPluReport = false; // Add this property
 
-  List<DataGridRow> dataGridRows = [];
-
+  // Update the rows getter to dynamically check showPluReport
   @override
-  List<DataGridRow> get rows => dataGridRows;
+  List<DataGridRow> get rows {
+    if (showPluReport) {
+      return data.map((item) {
+        String name = item.name.split('(')[0];
+        String number = ''; // Initialize number to an empty stringg
+
+        // Only try to split and get the number if the name has a '('
+        if (item.name.contains('(')) {
+          number = item.name.split('(')[1].split(')')[0];
+        }
+        name = name.toUpperCase();
+
+        Configurations configurations =
+            ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
+        String formattedName = '$name-$number';
+        if (item is TransactionItem) {
+          return DataGridRow(cells: [
+            DataGridCell<String>(
+                columnName: 'ItemCode', value: item.itemClsCd.toString()),
+            DataGridCell<String>(columnName: 'Name', value: formattedName),
+            DataGridCell<double>(columnName: 'Price', value: item.price),
+            DataGridCell<double>(
+                columnName: 'TaxRate', value: configurations.taxPercentage),
+            DataGridCell<double>(
+                columnName: 'StockRemain', value: item.remainingStock),
+          ]);
+        } else {
+          // Handle the case where item is not a TransactionItem
+          return DataGridRow(cells: []);
+        }
+      }).toList();
+    } else {
+      return data.map((item) {
+        if (item is ITransaction) {
+          return DataGridRow(cells: [
+            DataGridCell<String>(columnName: 'Name', value: item.id.toString()),
+            DataGridCell<String>(
+                columnName: 'Type', value: item.receiptType ?? "-"),
+            DataGridCell<double>(columnName: 'Amount', value: item.subTotal),
+            DataGridCell<double>(
+                columnName: 'CashReceived', value: item.cashReceived),
+          ]);
+        } else {
+          // Handle the case where item is not an ITransaction
+          return DataGridRow(cells: []);
+        }
+      }).toList();
+    }
+  }
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
-        cells: row.getCells().map<Widget>((e) {
-      return Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(8.0),
-        child: Text(e.value.toString()),
-      );
-    }).toList());
+      cells: row.getCells().map<Widget>((e) {
+        return Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.all(8.0),
+          child: Text(e.value.toString()),
+        );
+      }).toList(),
+    );
   }
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    int startRowIndex = newPageIndex * rowsPerPage;
-    int endIndex = startRowIndex + rowsPerPage;
-
-    if (endIndex > transactions.length) {
-      endIndex = transactions.length - 1;
-    }
-
-    paginatedDataSource =
-        transactions.getRange(startRowIndex, endIndex).toList();
-    buildPaginatedDataGridRows();
-    notifyListeners();
+    // Handle page change logic here
     return true;
   }
 
   void buildPaginatedDataGridRows() {
-    dataGridRows = paginatedDataSource.map<DataGridRow>((transaction) {
-      return DataGridRow(cells: [
-        DataGridCell<String>(
-            columnName: 'id', value: transaction.id!.toString()),
-        DataGridCell<String>(
-            columnName: 'Type', value: transaction.receiptType ?? "-"),
-        DataGridCell<double>(columnName: 'Amount', value: transaction.subTotal),
-        DataGridCell<double>(
-            columnName: 'CashReceived', value: transaction.cashReceived),
-      ]);
-    }).toList(growable: false);
+    // Build data grid rows for the current page
+  }
+}
+
+class TransactionDataSource extends DynamicDataSource {
+  TransactionDataSource(
+      List<ITransaction> transactions, this.rowsPerPage, this.showPluReport) {
+    data = transactions;
+    buildPaginatedDataGridRows();
+  }
+
+  final int rowsPerPage;
+  bool showPluReport;
+  @override
+  void buildPaginatedDataGridRows() {
+    data = data.sublist(
+      0,
+      data.length > rowsPerPage ? rowsPerPage : data.length,
+    );
+  }
+}
+
+class TransactionItemDataSource extends DynamicDataSource {
+  final int rowsPerPage;
+  TransactionItemDataSource(
+      this.transactionItems, this.rowsPerPage, this.showPluReport) {
+    // Initialize 'transactions'
+    buildPaginatedDataGridRows();
+  }
+
+  final List<TransactionItem> transactionItems;
+
+  bool showPluReport;
+
+  @override
+  void buildPaginatedDataGridRows() {
+    if (transactionItems.isNotEmpty) {
+      data = transactionItems;
+    }
+  }
+
+  @override
+  Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
+    final int startRowIndex = newPageIndex * rowsPerPage;
+    final int endIndex = startRowIndex + rowsPerPage;
+
+    if (startRowIndex < transactionItems.length) {
+      List<TransactionItem> items = transactionItems;
+
+      if (startRowIndex < items.length) {
+        data = items.sublist(
+          startRowIndex,
+          endIndex > items.length ? items.length : endIndex,
+        );
+        notifyListeners();
+        return true;
+      } else {
+        return false; // Prevent page change
+      }
+    } else {
+      return false; // Prevent page change
+    }
   }
 }

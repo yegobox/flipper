@@ -1,15 +1,16 @@
+import 'dart:typed_data';
+
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/sync.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:realm/realm.dart';
-
-import 'helperModels/tenant.dart';
 
 extension StringToIntList on String? {
   List<int> toIntList() {
@@ -38,11 +39,6 @@ abstract class SyncReaml<M extends IJsonSerializable> implements Sync {
 abstract class RealmApiInterface {
   Future<List<Product>> products({required int branchId});
 
-  Future<ITransaction?> pendingTransaction(
-      {required int branchId, required String transactionType});
-  // Future<IUser> login(
-  //     {required String userPhone, required bool skipDefaultAppSetup});
-
   Future<SocialToken?> loginOnSocial(
       {String? phoneNumberOrEmail, String? password});
 
@@ -59,7 +55,8 @@ abstract class RealmApiInterface {
 
   Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex});
-  Future<Stock?> stockByVariantId(
+  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false});
+  Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
@@ -76,7 +73,8 @@ abstract class RealmApiInterface {
     required int branchId,
     int? productId,
   });
-  Future<Variant?> variant({int? variantId, String? name});
+  Configurations getByTaxType({required String taxtype});
+  Variant? variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
   Future<int> addVariant({required List<Variant> variations});
@@ -90,7 +88,7 @@ abstract class RealmApiInterface {
   Stream<Tenant?> getDefaultTenant({required int businessId});
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
-  Future<Product?> getProduct({required int id});
+  Product? getProduct({required int id});
   Future<Product?> getProductByBarCode({required String barCode});
   Future<List<Product?>> getProductByName({required String name});
   // Future
@@ -110,7 +108,8 @@ abstract class RealmApiInterface {
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
-  Future<ITransaction> manageTransaction({required String transactionType});
+  ITransaction manageTransaction(
+      {required String transactionType, bool? includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType});
@@ -122,10 +121,13 @@ abstract class RealmApiInterface {
       {DateTime? startDate, DateTime? endDate});
   Future<Variant?> getCustomVariant();
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  Future<void> collectPayment(
-      {required double cashReceived,
-      required ITransaction transaction,
-      required String paymentType});
+  Future<ITransaction> collectPayment({
+    required double cashReceived,
+    required ITransaction transaction,
+    required String paymentType,
+    required double discount,
+    bool directlyHandleReceipt = false,
+  });
 
 // app settings and users settings
   Future<Setting?> getSetting({required int businessId});
@@ -150,7 +152,9 @@ abstract class RealmApiInterface {
       {required int customerId, int? transactionId});
   Future removeCustomerFromTransaction(
       {required int customerId, required int transactionId});
-  Future<Customer?> getCustomer({String? key, int? id});
+  Customer? getCustomer({String? key, int? id});
+  List<Customer> getCustomers({String? key, int? id});
+  Future<Customer?> getCustomerFuture({String? key, int? id});
 
   Future<ITransaction?> getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
@@ -159,15 +163,15 @@ abstract class RealmApiInterface {
       {required int id, required FilterType filterType});
   Future<int> deleteTransactionByIndex({required int transactionIndex});
 
-  Future<List<Variant>> getVariantByProductId({int? productId});
   Stream<List<Variant>> getVariantByProductIdStream({int? productId});
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
   Future<void> createGoogleSheetDoc({required String email});
-  Future<TransactionItem?> getTransactionItemByVariantId(
-      {required int variantId, required int? transactionId});
+  TransactionItem? getTransactionItemByVariantId(
+      {required int variantId, int? transactionId});
   Future<List<TransactionItem>> getTransactionItemsByTransactionId(
       {required int? transactionId});
+
   //abstract method to update business
 
   //analytics
@@ -180,7 +184,9 @@ abstract class RealmApiInterface {
   Future<List<Discount>> getDiscounts({required int branchId});
 
   Future<void> addTransactionItem(
-      {required ITransaction transaction, required TransactionItem item});
+      {required ITransaction transaction,
+      required TransactionItem item,
+      required bool partOfComposite});
 
   void emptySentMessageQueue();
   bool suggestRestore();
@@ -229,12 +235,17 @@ abstract class RealmApiInterface {
   });
 
   /// get a list of transactionItems given transactionId
-  Future<List<TransactionItem>> transactionItems(
+  List<TransactionItem> transactionItems(
       {required int transactionId,
       required bool doneWithTransaction,
       required bool active});
 
-  Future<Variant?> getVariantById({required int id});
+  Future<List<TransactionItem>> transactionItemsFuture(
+      {required int transactionId,
+      required bool doneWithTransaction,
+      required bool active});
+
+  Variant? getVariantById({required int id});
   bool isTaxEnabled();
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
@@ -245,17 +256,13 @@ abstract class RealmApiInterface {
   Future<Receipt?> getReceipt({required int transactionId});
 
   Future<void> refund({required int itemId});
-  Future<bool> isDrawerOpen({required int cashierId});
-  Future<Drawers?> getDrawer({required int cashierId});
-
-  Future<Drawers?> openDrawer({required Drawers drawer});
 
   Future<int> size<T>({required T object});
   Future<Counter?> getCounter(
       {required int branchId, required String receiptType});
   // Future<void> loadCounterFromOnline({required int businessId});
 
-  Future<String> dbPath({required String path});
+  Future<String> dbPath({required String path, int? folder});
   Future<bool> bindProduct({required int productId, required int tenantId});
   Future<Product?> findProductByTenantId({required int tenantId});
 
@@ -358,5 +365,43 @@ abstract class RealmApiInterface {
     required String bhfId,
     required String lastReqDt,
   });
-  // Future<Drawers> getDrawer({required int businessId});
+
+  /// drawers
+  Future<bool> isDrawerOpen({required int cashierId});
+  Future<Drawers?> getDrawer({required int cashierId});
+
+  Future<Drawers?> openDrawer({required Drawers drawer});
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate});
+
+  Future<void> syncUserWithAwsIncognito({required String identifier});
+  Future<Stream<double>> downloadAssetSave(
+      {String? assetName, String? subPath = "branch"});
+  Future<bool> removeS3File({required String fileName});
+  Assets? getAsset({required String assetName});
+  Future<void> amplifyLogout();
+  List<Product> getProducts({String? key});
+  List<Variant> getVariants({String? key});
+
+  void saveComposite({required Composite composite});
+  List<Composite> composites({required int productId});
+  List<Composite> compositesByVariantId({required int variantId});
+  Composite composite({required int variantId});
+  Stream<SKU?> sku({required int branchId});
+  void createVariant(
+      {required String barCode,
+      required String sku,
+      required int productId,
+      required double retailPrice,
+      required double supplierPrice,
+      required double qty,
+      required String color,
+      required int itemSeq,
+      required String name});
+
+  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
+  Future<RealmApiInterface> instance();
+  Future<Tenant?> tenant({required int businessId});
+  Stream<List<Report>> reports({required int branchId});
+  Report report({required int id});
 }

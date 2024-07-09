@@ -19,7 +19,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   List<String> pkgUnits = [];
 
   void initialize() {
-    scannedVariants = [];
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnits;
     log(ProxyService.box.tin().toString(), name: "ScannViewModel");
@@ -27,7 +26,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
     EBMenabled =
-        ProxyService.box.tin() != -1 && ProxyService.box.bhfId().isNotEmpty;
+        ProxyService.box.tin() != -1 && ProxyService.box.bhfId()!.isNotEmpty;
     log(EBMenabled.toString(), name: "ScannViewModel");
     notifyListeners();
   }
@@ -73,7 +72,7 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         productId: product.id,
         color: currentColor,
         unit: 'Per Item',
-        productName: productName ?? product.name,
+        productName: kProductName ?? product.name,
         branchId: branchId,
         isTaxExempted: isTaxExempted,
         action: AppActions.created,
@@ -103,11 +102,6 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     );
   }
 
-  void setProductName({String? name}) {
-    productName = name;
-    notifyListeners();
-  }
-
   void removeVariant({required int id}) {
     // Find the index of the variant with the specified id
     int index = scannedVariants.indexWhere((variant) => variant.id == id);
@@ -115,7 +109,9 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     if (index != -1) {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
-      ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      try {
+        ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+      } catch (e) {}
       scannedVariants.removeAt(index);
       notifyListeners();
     }
@@ -142,11 +138,23 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its quantity
-      variant.qty = newQuantity;
+      ProxyService.realm.realm!.write(() {
+        variant.qty = newQuantity;
+        variant.ebmSynced = false;
+      });
+
+      Stock? stock =
+          ProxyService.realm.stockByVariantId(variantId: variant.id!);
+      ProxyService.realm.realm!.write(() {
+        stock!.rsdQty = newQuantity;
+        stock.ebmSynced = false;
+        stock.currentStock = newQuantity;
+      });
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
-      print('Variant with ID $id not found.');
+      print('Variant with ID $id has error while updating it');
+      talker.error(e);
     }
   }
 
@@ -167,27 +175,41 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
           scannedVariants.firstWhere((variant) => variant.id == id);
 
       // If the variant is found, update its unit
-      variant.unit =
-          selectedUnit ?? 'Per Item'; // Default value if selectedUnit is null
+      ProxyService.realm.realm!.write(() {
+        variant.unit = selectedUnit ?? 'Per Item';
+      });
       notifyListeners();
     } catch (e) {
       // Handle the exception if the variant is not found
-      print('Variant with ID $id not found.');
+      print('Variant with ID $id has error while updating it');
+      talker.error(e);
     }
   }
 
-  Future<void> bulkUpdateVariants(bool editmode) async {
+  Future<void> bulkUpdateVariants(bool editmode,
+      {required String color}) async {
     if (editmode) {
       final variantsLength = scannedVariants.length;
 
       // loop through all variants and update all with retailPrice and supplyPrice
-      for (var i = 0; i < variantsLength; i++) {
-        // If found, update it
-        scannedVariants[i].retailPrice = retailPrice;
-        scannedVariants[i].supplyPrice = supplyPrice;
-        scannedVariants[i].qty = (scannedVariants[i].qty);
-        notifyListeners();
-      }
+      ProxyService.realm.realm!.write(() {
+        for (var i = 0; i < variantsLength; i++) {
+          scannedVariants[i].color = color;
+          scannedVariants[i].ebmSynced = false;
+          // If found, update it
+          if (retailPrice != 0) {
+            scannedVariants[i].retailPrice = retailPrice;
+          }
+
+          if (supplyPrice != 0) {
+            scannedVariants[i].supplyPrice = supplyPrice;
+          }
+
+          scannedVariants[i].qty = (scannedVariants[i].qty);
+          scannedVariants[i].lastTouched = DateTime.now().toLocal();
+          notifyListeners();
+        }
+      });
     }
   }
 }

@@ -1,19 +1,20 @@
-import 'package:cached_network_image/cached_network_image.dart';
+// ignore_for_file: unused_result
+
+import 'dart:io';
 import 'package:collection/collection.dart';
-import 'package:flipper_dashboard/text_drawable.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 Map<int, String> positionString = {
@@ -28,7 +29,7 @@ Map<int, String> positionString = {
   8: 'ninth',
   9: 'tenth',
   10: 'eleventh',
-  11: 'twelvth',
+  11: 'twelfth',
   12: 'thirteenth',
   13: 'fourteenth',
   14: 'fifteenth',
@@ -40,9 +41,9 @@ typedef void DeleteVariantFunction(int? id, String type);
 
 class RowItem extends StatefulHookConsumerWidget {
   final String color;
-  final String name;
+  final String productName;
   final String? imageUrl;
-  final DeleteProductFunction deleteProduct;
+  final DeleteProductFunction delete;
   final DeleteVariantFunction deleteVariant;
   final Function edit;
   final Function enableNfc;
@@ -53,14 +54,17 @@ class RowItem extends StatefulHookConsumerWidget {
   final bool? addFavoriteMode;
   final int? favIndex;
   final Function? addToMenu;
+  final String variantName;
+  final bool isComposite;
 
   RowItem({
     Key? key,
     required this.color,
-    required this.name,
+    required this.productName,
+    required this.variantName,
     required this.stock,
     this.addToMenu = _defaultFunction,
-    this.deleteProduct = _defaultFunction,
+    this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
     this.enableNfc = _defaultFunction,
@@ -70,6 +74,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.product,
     this.addFavoriteMode,
     this.favIndex,
+    required this.isComposite,
   }) : super(key: key);
 
   static _defaultFunction(int? id, String type) {
@@ -82,87 +87,236 @@ class RowItem extends StatefulHookConsumerWidget {
 
 class _RowItemState extends ConsumerState<RowItem> {
   final _routerService = locator<RouterService>();
+  bool _showButtons = false;
 
   @override
   Widget build(BuildContext context) {
     final variantStream = ref.watch(variantStreamProvider(
         widget.product?.id ?? widget.variant?.productId ?? 0));
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 0.5,
-        ),
-        Slidable(
-          key: Key('slide-${widget.product?.id ?? widget.variant?.id}'),
-          child: InkWell(
-            onTap: () {
-              onRowClick(context);
-            },
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildImage(),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.name,
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                      Text(
-                        "${widget.stock}",
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                    ],
+    return ViewModelBuilder.nonReactive(
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, c) {
+        return InkWell(
+          onTap: () async {
+            final pendingTransaction =
+                ref.watch(pendingTransactionProvider(TransactionType.sale));
+
+            /// first check if this item is a composite
+            Product? product =
+                ProxyService.realm.getProduct(id: widget.variant!.productId!);
+            if (product != null &&
+                product.isComposite != null &&
+                product.isComposite!) {
+              /// get items of this composite
+              List<Composite> composites =
+                  ProxyService.realm.composites(productId: product.id!);
+              for (Composite composite in composites) {
+                /// find a stock for a given variant
+                Stock? stock = ProxyService.realm
+                    .stockByVariantId(variantId: composite.variantId!);
+                Variant? variant =
+                    ProxyService.realm.getVariantById(id: composite.variantId!);
+                model.saveTransaction(
+                  variation: variant!,
+                  amountTotal: variant.retailPrice,
+                  customItem: false,
+                  currentStock: stock!.currentStock,
+                  pendingTransaction: pendingTransaction.value!,
+                  partOfComposite: true,
+                  compositePrice: composite.actualPrice,
+                );
+              }
+
+              await Future.delayed(Duration(microseconds: 1000));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+
+              await Future.delayed(Duration(microseconds: 200));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+            } else {
+              Stock? stock = ProxyService.realm
+                  .stockByVariantId(variantId: widget.variant?.id ?? 0);
+
+              model.saveTransaction(
+                variation: widget.variant!,
+                amountTotal: widget.variant?.retailPrice ?? 0,
+                customItem: false,
+                currentStock: stock!.currentStock,
+                pendingTransaction: pendingTransaction.value!,
+                partOfComposite: false,
+              );
+
+              await Future.delayed(Duration(microseconds: 1000));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+
+              await Future.delayed(Duration(microseconds: 200));
+              ref.refresh(
+                  transactionItemsProvider(pendingTransaction.value?.id));
+            }
+          },
+          onLongPress: () {
+            setState(() {
+              _showButtons = !_showButtons;
+            });
+          },
+          child: Stack(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: _showButtons ? Colors.grey[300] : Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4.0,
+                      spreadRadius: 1.0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: _buildImage(),
+                    ),
+                    SizedBox(height: 8.0),
+                    _buildProductDetails(variantStream,
+                        isComposite: widget.isComposite),
+                  ],
+                ),
+              ),
+              if (_showButtons)
+                Positioned(
+                  left: 8.0,
+                  bottom: 8.0,
+                  child: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      if (widget.variant != null) {
+                        widget.delete(widget.variant?.productId, 'product');
+                      } else if (widget.product != null) {
+                        widget.delete(widget.product?.id, 'product');
+                      }
+                    },
                   ),
                 ),
-                SizedBox(width: 10),
-                _buildPrices(variantStream),
-              ],
-            ),
+              if (_showButtons)
+                Positioned(
+                  right: 8.0,
+                  bottom: 8.0,
+                  child: IconButton(
+                    icon: Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () {
+                      if (widget.variant != null) {
+                        widget.edit(widget.variant?.productId, 'product');
+                      } else if (widget.product != null) {
+                        widget.edit(widget.product?.id, 'product');
+                      }
+                    },
+                  ),
+                ),
+            ],
           ),
-          startActionPane: _buildStartActionPane(),
-
-          /// when add to menu is given then we have one swiping option therefore
-          /// disable the bellow swipe
-          endActionPane:
-              widget.addToMenu == null ? null : _buildEndActionPane(),
-        ),
-      ],
+        );
+      },
     );
   }
 
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    final appSupportDir = await getApplicationSupportDirectory();
+    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      return imageFilePath;
+    } else {
+      return null;
+    }
+  }
+
   Widget _buildImage() {
-    return SizedBox(
-      width: 58,
-      child: widget.imageUrl?.isEmpty ?? true
-          ? TextDrawable(
-              backgroundColor:
-                  HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
-              text: widget.name,
-              isTappable: true,
-              onTap: null,
-              boxShape: BoxShape.rectangle,
-            )
-          : CachedNetworkImage(
-              imageUrl: widget.imageUrl!,
-              imageBuilder: (context, imageProvider) => Container(
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: imageProvider,
-                    fit: BoxFit.cover,
+    if (widget.imageUrl?.isEmpty ?? true) {
+      return Container(
+        width: double.infinity,
+        color: HexColor(widget.color.isEmpty ? "#FF0000" : widget.color),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              widget.productName,
+              style: const TextStyle(color: Colors.white, fontSize: 16.0),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    } else {
+      return FutureBuilder<String?>(
+        future: getImageFilePath(imageFileName: widget.imageUrl!),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            final imageFilePath = snapshot.data!;
+            return Image.file(
+              File(imageFilePath),
+              width: double.infinity,
+              height: 130,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: double.infinity,
+                  height: 130,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 50,
+                      color: Colors.grey[500],
+                    ),
                   ),
+                );
+              },
+            );
+          } else {
+            return Container(
+              width: double.infinity,
+              height: 130,
+              color: Colors.grey[300],
+              child: Center(
+                child: Icon(
+                  Icons.image,
+                  size: 50,
+                  color: Colors.grey[500],
                 ),
               ),
-              placeholder: (context, url) => SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: const CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            );
+          }
+        },
+      );
+    }
+  }
+
+  Widget _buildProductDetails(AsyncValue<List<Variant>> variantStream,
+      {required bool isComposite}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Name: ${widget.productName}",
+          style: const TextStyle(color: Colors.black, fontSize: 16.0),
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: 4.0),
+        Text(
+          "Stock: ${isComposite ? '-' : widget.stock}",
+          style: const TextStyle(color: Colors.black, fontSize: 14.0),
+        ),
+        SizedBox(height: 4.0),
+        _buildPrices(variantStream),
+      ],
     );
   }
 
@@ -176,81 +330,13 @@ class _RowItemState extends ConsumerState<RowItem> {
 
           return Text(
             'RWF ${NumberFormat('#,###').format(nonZeroPrice?.retailPrice ?? 0)}',
-            style: const TextStyle(color: Colors.black),
+            style: const TextStyle(color: Colors.black, fontSize: 14.0),
+            overflow: TextOverflow.ellipsis,
           );
         },
         error: (error, stackTrace) => const SizedBox.shrink(),
         loading: () => Text("loading.."),
       ),
-    );
-  }
-
-  ActionPane _buildStartActionPane() {
-    return ActionPane(
-      motion: ScrollMotion(
-        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
-      ),
-      children: [
-        SlidableAction(
-          onPressed: (_) {
-            if (widget.addToMenu == null) {
-              if (widget.product?.id == null) {
-                widget.deleteVariant(widget.variant?.id!, 'variant');
-              } else {
-                widget.deleteProduct(widget.product?.id!, 'product');
-              }
-            } else {
-              widget.addToMenu!(widget.product ?? widget.variant);
-            }
-          },
-          backgroundColor: const Color(0xFFFE4A49),
-          foregroundColor: Colors.white,
-          icon: widget.addToMenu == null
-              ? FluentIcons.delete_20_regular
-              : FluentIcons.cart_24_regular,
-          label: '',
-        ),
-        if (widget.variant == null)
-          SlidableAction(
-            onPressed: (_) {
-              widget.edit(widget.product?.id ?? widget.variant?.id);
-            },
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
-            icon: FluentIcons.edit_24_regular,
-            label: '',
-          ),
-        if (widget.variant == null)
-          SlidableAction(
-            onPressed: (_) {
-              widget.enableNfc(widget.product);
-            },
-            backgroundColor:
-                widget.product?.nfcEnabled == true ? Colors.blue : Colors.red,
-            foregroundColor: Colors.white,
-            icon: Icons.nfc,
-            label: '',
-          ),
-      ],
-    );
-  }
-
-  ActionPane _buildEndActionPane() {
-    return ActionPane(
-      motion: ScrollMotion(
-        key: Key('dismissable-${widget.product?.id ?? widget.variant?.id}'),
-      ),
-      children: [
-        SlidableAction(
-          onPressed: (_) {
-            widget.edit(widget.product?.id ?? widget.variant?.id);
-          },
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          icon: FluentIcons.edit_24_regular,
-          label: '',
-        ),
-      ],
     );
   }
 
@@ -263,7 +349,7 @@ class _RowItemState extends ConsumerState<RowItem> {
           return AlertDialog(
             title: Text('Confirm Favorite'),
             content: Text(
-              'You are about to add ${widget.name} to your $position favorite position.\n\nDo you approve?',
+              'You are about to add ${widget.productName} to your $position favorite position.\n\nDo you approve?',
             ),
             actions: <Widget>[
               OutlinedButton(
@@ -303,9 +389,9 @@ class _RowItemState extends ConsumerState<RowItem> {
         },
       );
     } else {
-      // copy variant.name to clipboard, handy tool when want to copy name for some use.
       if (widget.variant != null) {
-        await Clipboard.setData(ClipboardData(text: widget.variant!.name!));
+        // Copy variant.name to clipboard, handy tool when want to copy name for some use.
+        // await Clipboard.setData(ClipboardData(text: widget.variant!.name!));
       }
       if (widget.variant == null) {
         _routerService.navigateTo(SellRoute(product: widget.product!));

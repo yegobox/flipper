@@ -30,14 +30,14 @@ class SaleIndicatorState extends ConsumerState<SaleIndicator> {
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {
           return Row(children: [
             StreamBuilder<List<TransactionItem>>(
-              stream: model.transactionItemsStream(
-                  transaction: transaction.value!.value!),
+              stream:
+                  model.transactionItemsStream(transaction: transaction.value!),
               builder: (context, snapshot) {
                 final List<TransactionItem> transactionItems =
                     snapshot.data ?? [];

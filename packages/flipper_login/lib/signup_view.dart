@@ -107,12 +107,13 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
       signupViewModel.setCountry(country: countryName.value);
-      signupViewModel.tin = tinNumber.value.isEmpty ? "11111" : tinNumber.value;
+      signupViewModel.tin =
+          tinNumber.value.isEmpty ? "999909695" : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
       await signupViewModel.signup();
 
-      // _routerService.navigateTo(StartUpViewRoute());
-      // emitSuccess();
+      _routerService.navigateTo(StartUpViewRoute(invokeLogin: true));
+      emitSuccess();
     } catch (e) {
       showSimpleNotification(
           const Text("Error while signing up try again later"),

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/exceptions.dart';
@@ -15,8 +14,8 @@ import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:realm/realm.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
@@ -26,6 +25,139 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
   @override
   Realm? localRealm;
+
+  void dataCb(Realm realm) {
+    List<Map<String, dynamic>> itemClsList = [
+      {
+        "itemClsCd": "5020230601",
+        "itemClsNm": "Fanta",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "5020230602",
+        "itemClsNm": "water",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "5020230102",
+        "itemClsNm": "Inyange",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "1112200101",
+        "itemClsNm": "Gypsum boad",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "3011170102",
+        "itemClsNm": "Gypsum board 1",
+        "itemClsLvl": 5,
+        "taxTyCd": "B",
+        "mjrTgYn": "Y",
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "10122101",
+        "itemClsNm": "Miscellaneous animal food",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "50202203",
+        "itemClsNm": "Wine",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "26111612",
+        "itemClsNm": "Solar equipment systems",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "31211905",
+        "itemClsNm": "Paint mixers",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "10171702",
+        "itemClsNm": "Fungicides",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "22101539",
+        "itemClsNm": "Earthmoving machinery parts and accessories",
+        "itemClsLvl": 4,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+      {
+        "itemClsCd": "25132100",
+        "itemClsNm": "Unmanned aerial vehicle",
+        "itemClsLvl": 3,
+        "taxTyCd": null,
+        "mjrTgYn": null,
+        "useYn": "Y"
+      },
+    ];
+
+    for (final item in itemClsList) {
+      // Check if an item with the same 'itemClsCd' already exists
+      final existingItem = realm.query<UnversalProduct>(
+        r'itemClsCd == $0',
+        [item['itemClsCd']],
+      ).firstOrNull;
+
+      // If it doesn't exist, add it
+      if (existingItem == null) {
+        realm.add(UnversalProduct(
+          ObjectId(),
+          id: 1,
+          itemClsCd: item['itemClsCd'],
+          itemClsNm: item['itemClsNm'],
+          itemClsLvl: item['itemClsLvl'],
+          taxTyCd: item['taxTyCd'],
+          mjrTgYn: item['mjrTgYn'],
+          useYn: item['useYn'],
+        ));
+      }
+    }
+  }
+
+  Future<void> updateSubscription(int? branchId, int? businessId) async {
+    final notification =
+        realm!.query<AppNotification>(r'branchId == $0', [branchId]);
+    localRealm!.subscriptions
+        .update((MutableSubscriptionSet mutableSubscriptions) {
+      mutableSubscriptions.add(notification,
+          name: "notification", update: true);
+    });
+  }
 
   @override
   Future<LocalRealmInterface> configureLocal(
@@ -41,7 +173,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       commApi = AppSecrets.commApi;
     }
 
-    String path = await dbPath(path: 'local');
+    ///gross profit (sales zose ukuyemo ikiranguzo) ,
+    /// cost of good sold
+    /// sales
+    /// net profit
     Configuration config;
 
     // Close any existing local realm instance
@@ -51,13 +186,29 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       if (ProxyService.box.encryptionKey().isEmpty) {
         throw Exception("null encryption");
       }
+      String path =
+          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       config = Configuration.local(
-        [UserActivity.schema, Business.schema, Branch.schema],
+        [
+          UserActivity.schema,
+          Business.schema,
+          Branch.schema,
+          Drawers.schema,
+          UnversalProduct.schema,
+          AppNotification.schema
+        ],
+        initialDataCallback: dataCb,
         path: path,
         encryptionKey: ProxyService.box.encryptionKey().toIntList(),
       );
       localRealm = Realm(config);
+      updateSubscription(
+        ProxyService.box.getBranchId(),
+        ProxyService.box.getBusinessId(),
+      );
     } catch (e) {
+      String path =
+          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       talker.warning(e);
       localRealm?.close();
       config = Configuration.inMemory(
@@ -113,46 +264,31 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     return returnValue;
   }
 
+  ///TODO: work on this function to be efficient
   @override
   Future<void> refreshSession(
       {required int branchId, int? refreshRate = 5}) async {
     while (true) {
       try {
-        int userId = ProxyService.box.getUserId()!;
+        int? userId = ProxyService.box.getUserId();
+        if (userId == null) return;
         bool noActivity = await hasNoActivityInLast5Minutes(
             userId: userId, refreshRate: refreshRate);
         talker.warning(noActivity.toString());
 
-        if (noActivity) {
-          Tenant? tenant =
-              await getTenantBYUserId(userId: ProxyService.box.getUserId()!);
-          ProxyService.realm.realm!
-              .writeAsync(() => tenant!.sessionActive = false);
-        }
-      } catch (error) {
-        print('Error fetching tenant: $error');
+        // if (noActivity) {
+        //   Tenant? tenant = await getTenantBYUserId(userId: userId);
+        //   if (tenant != null) {
+        //     ProxyService.realm.realm!
+        //         .writeAsync(() => tenant.sessionActive = false);
+        //   }
+        // }
+      } catch (error, s) {
+        talker.error('Error fetching tenant: $s');
+        talker.error('Error fetching tenant: $error');
       }
       await Future.delayed(Duration(minutes: refreshRate!));
     }
-  }
-
-  /// because both non-synced and synced should be in one dir
-  /// I avoided assigning businessId or branchId to the directory
-  /// because it assumed that realm will upload data if they exist and they are not synced
-  @override
-  Future<String> dbPath({required String path}) async {
-    final appDocsDirectory = await getApplicationDocumentsDirectory();
-    final realmDirectory = '${appDocsDirectory.path}/v10';
-
-    // Create the directory if it doesn't exist
-    final directory = Directory(realmDirectory);
-    if (!(await directory.exists())) {
-      await directory.create(recursive: true);
-    }
-
-    final String fileName = '${path}.db'; // Fixed, user-friendly name
-
-    return "$realmDirectory/$fileName";
   }
 
   Future<void> _configureTheBox(String userPhone, IUser user) async {
@@ -200,6 +336,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       bool stopAfterConfigure = false}) async {
     String phoneNumber = userPhone;
 
+    if (ProxyService.realm.realm == null) {
+      await ProxyService.realm
+          .configure(useInMemoryDb: false, useFallBack: false);
+    }
+    if (ProxyService.local.localRealm == null) {
+      await ProxyService.local.configureLocal(useInMemory: false);
+    }
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
     }
@@ -218,9 +361,16 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       IUser user = IUser.fromJson(jsonResponse);
       await _configureTheBox(userPhone, user);
 
-      await configureLocal(useInMemory: false);
+      /// because we want to avoid memoery leak on app logout we want to close realm opened!
+      /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
+      /// need the bellow line
+
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
+      await configureLocal(useInMemory: false);
+
+      /// Download assets for the app to start with all assets required.
+      await ProxyService.realm.downloadAssetSave();
 
       /// after we login this is the best time to open the synced database to start persisting the data
       /// this will close whatever inMemory db we opened temporarly to have the app running
@@ -290,7 +440,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               lastDbBackup: business.lastDbBackup,
               fullName: business.fullName,
               tinNumber: business.tinNumber,
-              bhfId: business.bhfId,
+              bhfId: ProxyService.box.bhfId()??"00",
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,
@@ -368,7 +518,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
-      throw ErrorReadingFromYBServer(term: "Not found");
+      throw RemoteError(term: "Not found");
     } else {
       log(response.body.toString(), name: "login error");
       throw Exception(response.body.toString());
@@ -651,6 +801,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
+      if (ProxyService.realm.realm == null) {
+        await ProxyService.realm
+            .configure(useInMemoryDb: false, useFallBack: false);
+      }
+      if (ProxyService.local.localRealm == null) {
+        await ProxyService.local.configureLocal(useInMemory: false);
+      }
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
@@ -939,5 +1096,46 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else {
       throw InternalServerError(term: "internal server error");
     }
+  }
+
+  @override
+  Future<List<UnversalProduct>> universalProductNames(
+      {required int branchId}) async {
+    /// attempt to re-add new universal item names but do not wait for the future
+    /// this means I can face side effect but that is okay
+    print("this is invoked");
+    List<UnversalProduct> items = localRealm!
+        .query<UnversalProduct>(r'branchId == $0', [branchId]).toList();
+
+    return items;
+  }
+
+  @override
+  Stream<List<AppNotification>> notificationStream(
+      {required int identifier}) async* {
+    final subject = ReplaySubject<List<AppNotification>>();
+
+
+    final query = localRealm!.query<AppNotification>(
+        r'identifier == $0 AND completed == $1', [identifier, false]);
+
+    query.changes.listen((results) {
+      subject.add(results.results.toList());
+    });
+
+    yield* subject.stream;
+  }
+
+  @override
+  void notify({required AppNotification notification}) {
+    localRealm!.write(() {
+      localRealm!.add<AppNotification>(notification);
+    });
+  }
+  
+  @override
+  AppNotification notification({required int id}) {
+    return localRealm!.query<AppNotification>(
+        r'id == $0', [id]).first;
   }
 }

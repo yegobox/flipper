@@ -55,10 +55,13 @@ class CronService {
             RootIsolateToken.instance,
             receivePort.sendPort,
             ProxyService.box.getBranchId()!,
-            await ProxyService.realm.dbPath(path: 'synced'),
+            await ProxyService.realm
+                .dbPath(path: name, folder: ProxyService.box.getBusinessId()),
             ProxyService.box.encryptionKey(),
             business.tinNumber,
-            business.bhfId ?? "00"
+            ProxyService.box.bhfId() ?? "00",
+            ProxyService.box.getBusinessId(),
+            ProxyService.box.getServerUrl()
           ],
         );
 
@@ -125,7 +128,14 @@ class CronService {
     // create a compute function to keep track of unsaved data back to EBM do this in background
 
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
-      await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+      if (ProxyService.box.getUserId() == null ||
+          ProxyService.box.getBusinessId() == null) return;
+
+      /// bootstrap data for universal Product names;
+
+      await _spawnIsolate("local", IsolateHandler.localData);
+
+      await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });
 
     await _setupFirebase();

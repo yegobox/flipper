@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realmExtension.dart';
@@ -18,7 +18,13 @@ class TaxController<OBJ> {
   OBJ? object;
 
   Future<void> handleReceipt(
-      {bool skiGenerateRRAReceiptSignature = false}) async {
+      {
+      /// This paramter is needed when we are printing a copy of the receipt without necessary telling
+      /// RRA that this is a copy, this might be needed when completed transaction
+      /// and for some reason you missed the print but the customer still stands while waiting for receipt
+      required Function(Uint8List bytes) printCallback,
+      bool skiGenerateRRAReceiptSignature = false,
+      String? purchaseCode}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
 
@@ -37,57 +43,29 @@ class TaxController<OBJ> {
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        await handleReceiptGeneration(
+        await _printReceipt(
+          receiptType: transaction.receiptType!,
           transaction: transaction,
+          purchaseCode: purchaseCode,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          printCallback: (bytes) {
+            printCallback(bytes);
+          },
         );
       } else if ((transaction.receiptType == TransactionReceptType.NR ||
               transaction.receiptType == TransactionReceptType.TS ||
               transaction.receiptType == TransactionReceptType.PS ||
               transaction.receiptType == TransactionReceptType.CS) &&
           transaction.status == COMPLETE) {
-        await handleReceiptGeneration(
+        await _printReceipt(
+          purchaseCode: purchaseCode,
+          receiptType: transaction.receiptType!,
           transaction: transaction,
           skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+          printCallback: (bytes) {
+            printCallback(bytes);
+          },
         );
-      }
-    }
-  }
-
-  /// Generates a receipt for the given transaction. Checks if tax is enabled, gets the
-  /// business and transaction items from the database, generates a signature, prints the
-  /// receipt, and handles any errors.
-  Future<void> handleReceiptGeneration(
-      {required ITransaction transaction,
-      String? purchaseCode,
-      bool skiGenerateRRAReceiptSignature = false}) async {
-    if (await ProxyService.realm.isTaxEnabled()) {
-      Business? business = await ProxyService.local.getBusiness();
-      List<TransactionItem> items =
-          await ProxyService.realm.getTransactionItemsByTransactionId(
-        transactionId: transaction.id,
-      );
-
-      try {
-        if (!skiGenerateRRAReceiptSignature) {
-          await generateRRAReceiptSignature(
-            items: items,
-            business: business,
-            transaction: transaction,
-            receiptType: transaction.receiptType!,
-            purchaseCode: purchaseCode,
-          );
-        }
-
-        await printReceipt(
-          items: items,
-          business: business,
-          transaction: transaction,
-          receiptType: transaction.receiptType!,
-        );
-      } catch (e, s) {
-        talker.critical(s);
-        rethrow;
       }
     }
   }
@@ -111,24 +89,97 @@ class TaxController<OBJ> {
    * @params receiptType - The type of receipt to print.
    * @params transaction - The transaction to print a receipt for.
    */
-  Future<void> printReceipt(
-      {required List<TransactionItem> items,
-      required Business business,
-      required String receiptType,
-      required ITransaction transaction}) async {
+  Future<void> _printReceipt({
+    required String receiptType,
+    required ITransaction transaction,
+    String? purchaseCode,
+    bool skiGenerateRRAReceiptSignature = false,
+    required Function(Uint8List bytes) printCallback,
+  }) async {
+    if (!skiGenerateRRAReceiptSignature) {
+      await generateRRAReceiptSignature(
+        // business: business,
+        transaction: transaction,
+        receiptType: transaction.receiptType!,
+        purchaseCode: purchaseCode,
+      );
+    }
+    Business? business = await ProxyService.local.getBusiness();
+    List<TransactionItem> items =
+        await ProxyService.realm.getTransactionItemsByTransactionId(
+      transactionId: transaction.id,
+    );
     Receipt? receipt =
         await ProxyService.realm.getReceipt(transactionId: transaction.id!);
 
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
+
+    try {
+      for (var item in items) {
+        // Log the item details
+        talker.warning(
+            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
+
+        // Fetch the tax configuration
+        var taxConfig =
+            ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
+        talker.info("Tax To be applied on: ${item.taxTyCd}");
+        // Ensure taxPercentage is not null
+        if (taxConfig.taxPercentage == 0.0) {
+          talker.warning(
+              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
+          continue; // Skip this item if tax percentage is null
+        }
+
+        // Calculate the tax amount
+        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty) *
+                (taxConfig.taxPercentage!)) /
+            118;
+
+        // Accumulate tax amount instead of overwriting
+        String taxType = item.taxTyCd ?? "B";
+        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+
+        // Log the accumulated tax amount
+        talker.warning(
+            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
+      }
+    } catch (s) {
+      talker.error(s);
+    }
+
+    double totalTaxA = taxTotals['A'] ?? 0.0;
+    double totalTaxB = taxTotals['B'] ?? 0.0;
+    double totalTaxC = taxTotals['C'] ?? 0.0;
+    double totalTaxD = taxTotals['D'] ?? 0.0;
+
+    talker.warning("Final computed Tax for A: $totalTaxA");
+    talker.warning("Final computed Tax for B: $totalTaxB");
+    talker.warning("Final computed Tax for C: $totalTaxC");
+    talker.warning("Final computed Tax for D: $totalTaxD");
+
+    Customer? customer =
+        ProxyService.realm.getCustomer(id: transaction.customerId ?? 0);
+
     Print print = Print();
-    print.print(
+
+    await print.print(
       grandTotal: transaction.subTotal,
+      totalTaxA: totalTaxA,
+      totalTaxB: totalTaxB,
+      totalTaxC: totalTaxC,
+      totalTaxD: totalTaxD,
       currencySymbol: "RW",
       transaction: transaction,
-      totalAEx: 0,
+      totalTax:
+          (totalTaxA + totalTaxB + totalTaxC + totalTaxD).toStringAsFixed(2),
       items: items,
-      totalB18: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
-      totalB: transaction.subTotal,
-      totalTax: (transaction.subTotal * 18 / 118).toStringAsFixed(2),
       cash: transaction.subTotal,
       received: transaction.cashReceived,
       payMode: "Cash",
@@ -138,8 +189,9 @@ class TaxController<OBJ> {
       receiptSignature: receipt.rcptSign ?? "",
       cashierName: business.name!,
       sdcId: receipt.sdcId ?? "",
-      sdcReceiptNum: receipt.receiptType ?? "",
-      invoiceNum: receipt.totRcptNo ?? 0,
+      invoiceNum: receipt.invcNo!,
+      rcptNo: receipt.rcptNo ?? 0,
+      totRcptNo: receipt.totRcptNo ?? 0,
       brandName: business.name!,
       brandAddress: business.adrs ?? "Kigali,Rwanda",
       brandTel: ProxyService.box.getUserPhone()!,
@@ -147,8 +199,13 @@ class TaxController<OBJ> {
       brandDescription: business.name!,
       brandFooter: business.name!,
       emails: ['info@yegobox.com'],
-      customerTin: "0000000000",
+      customerTin: customer?.custTin ??
+          ProxyService.box.currentSaleCustomerPhoneNumber(),
       receiptType: receiptType,
+      customerName: customer?.custNm ?? "N/A",
+      printCallback: (Uint8List bytes) {
+        printCallback(bytes);
+      },
     );
   }
 
@@ -162,48 +219,41 @@ class TaxController<OBJ> {
    * @param transaction - The transaction object
   */
   Future<void> generateRRAReceiptSignature({
-    required List<TransactionItem> items,
-    required Business business,
     required String receiptType,
     required ITransaction transaction,
     String? purchaseCode,
   }) async {
     // Use local counter as long as it is marked as synced.
-    log(receiptType, name: "onBefore: current Counter");
-    int branchId = ProxyService.box.getBranchId()!;
-    Counter? counter = await ProxyService.realm
-        .getCounter(branchId: branchId, receiptType: receiptType);
 
-    if (counter == null) {
-      counter = Counter(
-        ObjectId(),
-        id: randomNumber(),
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-        curRcptNo: 1,
-        lastTouched: DateTime.now(),
-        receiptType: receiptType,
-        totRcptNo: 1,
-      );
-      await ProxyService.realm.realm!.putAsync(counter);
-    }
-
-    /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
-    if (counter.totRcptNo == 0 || counter.curRcptNo == 0) {
-      ProxyService.realm.realm!.writeAsync(() {
-        counter!.totRcptNo = 1;
-        counter.curRcptNo = 1;
-      });
-    }
-    // increment the counter before we pass it in
-    // this is because if we don't then the EBM counter will give us the
     try {
+      log(receiptType, name: "onBefore: current Counter");
+      int branchId = ProxyService.box.getBranchId()!;
+      Counter? counter = await ProxyService.realm
+          .getCounter(branchId: branchId, receiptType: receiptType);
+
+      if (counter == null) {
+        counter = Counter(
+          ObjectId(),
+          id: randomNumber(),
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+          invcNo: 1,
+          lastTouched: DateTime.now(),
+          receiptType: receiptType,
+        );
+        await ProxyService.realm.realm!.putAsync(counter);
+      }
+
+      /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
+
+      // increment the counter before we pass it in
+      // this is because if we don't then the EBM counter will give us the
       RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
-        items: items,
         receiptType: receiptType,
         counter: counter,
+        URI: ProxyService.box.getServerUrl()!,
         purchaseCode: purchaseCode,
       );
       //updateTransactionAndDrawer(receiptType, transaction);
@@ -223,21 +273,23 @@ class TaxController<OBJ> {
       /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
       /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
       /// since curRcptNo need to be update when one change to keep track on current then we find all
+      // Fetch the counters from the database
       List<Counter> counters = ProxyService.realm.realm!
           .query<Counter>(r'branchId == $0', [branchId]).toList();
 
-      for (Counter count in counters) {
-        await ProxyService.realm.realm!.writeAsync(() {
-          /// here we take the current counter being in current transaction
-          /// use its curRcptNo to update other counter's curRcptNo
-          /// this is to make sure all they have current curRcptNo
-          count
-            ..totRcptNo = receiptSignature.data?.totRcptNo
-            ..curRcptNo = count.curRcptNo! + 1;
-        });
-      }
+      /// I have a dought that maybe wrapping this into write does not make sense as this code is called before in realmExtension
+      /// and the wrapper is wrapped before.
+      ProxyService.realm.realm!.write(() {
+        counters.map((Counter count) {
+          count.totRcptNo = receiptSignature.data?.totRcptNo;
+          count.curRcptNo = receiptSignature.data?.rcptNo;
+          count.invcNo = (count.invcNo != null) ? count.invcNo! + 1 : 1;
+          return count;
+        }).toList();
+      });
     } catch (e, s) {
       talker.critical(s);
+      talker.critical(e);
       rethrow;
     }
   }
@@ -282,7 +334,7 @@ class TaxController<OBJ> {
     ITransaction transaction,
     String qrCode,
     Counter counter,
-    String receiptNumber,
+    String receiptType,
   ) async {
     try {
       await ProxyService.realm.createReceipt(
@@ -290,7 +342,7 @@ class TaxController<OBJ> {
         transaction: transaction,
         qrCode: qrCode,
         counter: counter,
-        receiptType: receiptNumber,
+        receiptType: receiptType,
       );
     } catch (e) {
       rethrow;

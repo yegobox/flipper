@@ -41,7 +41,7 @@ class SellState extends ConsumerState<Sell> {
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.custom));
+            ref.watch(pendingTransactionProvider(TransactionType.sale));
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -59,13 +59,15 @@ class SellState extends ConsumerState<Sell> {
               Stock? stock = await ProxyService.realm
                   .stockByVariantId(variantId: model.checked);
               Variant? variant =
-                  await ProxyService.realm.getVariantById(id: model.checked);
+                  ProxyService.realm.getVariantById(id: model.checked);
+
               bool saved = await model.saveTransaction(
+                  partOfComposite: false,
                   variation: variant!,
                   amountTotal: model.amountTotal,
                   customItem: false,
                   currentStock: stock!.currentStock,
-                  pendingTransaction: pendingTransaction.value!.value!);
+                  pendingTransaction: pendingTransaction.value!);
               if (!saved) {
                 showSimpleNotification(const Text('No item selected'),
                     background: Colors.red);
@@ -73,7 +75,7 @@ class SellState extends ConsumerState<Sell> {
 
               /// when we are ordering transaction type is cashOut
               ref.refresh(pendingTransactionProvider(TransactionType.cashOut));
-              ref.refresh(pendingTransactionProvider(TransactionType.custom));
+              ref.refresh(pendingTransactionProvider(TransactionType.sale));
               _routerService.pop();
             },
             icon: Icons.close,

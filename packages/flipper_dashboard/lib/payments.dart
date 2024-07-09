@@ -1,7 +1,15 @@
+// ignore_for_file: unused_result
+
+import 'dart:developer';
+import 'dart:typed_data';
+
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -25,11 +33,19 @@ class Payments extends StatefulHookConsumerWidget {
 class PaymentsState extends ConsumerState<Payments> {
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
+  final _customerKey = GlobalKey<FormState>();
   final TextEditingController _cash = TextEditingController();
+  final TextEditingController _discount = TextEditingController();
+  final TextEditingController _customer = TextEditingController();
+
+  bool _busy = false;
+  final TextEditingController _controller = TextEditingController();
 
   late Map<String, bool> isFocusedMap;
   late bool cashPayment;
   String? paymentType;
+  bool showDiscountField = false;
+  bool showCustomerField = false;
 
   @override
   void initState() {
@@ -53,19 +69,62 @@ class PaymentsState extends ConsumerState<Payments> {
           child: Scaffold(
             appBar: _buildCustomAppBar(),
             resizeToAvoidBottomInset: false,
-            body: _buildBody(model),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 45),
+                  _buildAmountSection(widget.transaction.subTotal),
+                  const SizedBox(height: 20),
+                  Visibility(
+                    visible: showDiscountField,
+                    child: _buildDiscountField(),
+                  ),
+                  Visibility(
+                    visible: showCustomerField,
+                    child: _builCustomerField(),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildPaymentButtons(model),
+                  const SizedBox(height: 20),
+                  _buildConfirmButton(model),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
           ),
         );
       },
-      onViewModelReady: (model) => model.updatePayable(),
+      onViewModelReady: (model) async {
+        model.updatePayable();
+
+        /// check if there is a full customer attached, because there is cases where we don't want to create a user in normal flow
+        /// because it might be tedious to fill tin number,name and phone number etc... then it make sense if no customer attached to this transaction
+        /// to add extra field to request phone number from a user completing this transaction for the tin to be used as placeholder in this case
+        Customer? customer = ProxyService.realm
+            .getCustomer(id: widget.transaction.customerId ?? 0);
+        if (customer == null) {
+          /// there is no customer attached to this transaction then enable extra field.
+          showCustomerField = true;
+        }
+      },
       viewModelBuilder: () => CoreViewModel(),
     );
   }
 
   PreferredSizeWidget _buildCustomAppBar() {
     return CustomAppBar(
-      onPop: _routerService.pop,
-      onActionButtonClicked: _routerService.pop,
+      onPop: () {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        _routerService.back();
+      },
+      onActionButtonClicked: () {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        _routerService.back();
+      },
       rightActionButtonName: 'Split payment',
       icon: Icons.close,
       multi: 3,
@@ -74,41 +133,52 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
-  Widget _buildBody(CoreViewModel model) {
-    final totalPayable = widget.transaction.subTotal;
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: 145),
-        _buildAmountSection(totalPayable),
-        Spacer(),
-        _buildPaymentButtons(model),
-        const SizedBox(height: 10),
-        _buildConfirmButton(model),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
-
   Widget _buildAmountSection(double totalPayable) {
     return Column(
+      mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
       children: [
         Text(
           'RWF ' + NumberFormat('#,###').format(totalPayable),
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.w400,
-            fontSize: 20,
+            fontSize: 32,
             color: Colors.black,
           ),
         ),
         const SizedBox(height: 40),
-        _buildSendInvoiceButton(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildSendInvoiceButton(),
+            const SizedBox(width: 10),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  showDiscountField = !showDiscountField;
+                });
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  showDiscountField ? "Hide Discount" : "Add Discount",
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 10),
         Visibility(
           visible: cashPayment,
-          child: _buildCashReceivedFormField(totalPayable),
+          child:
+              _buildCashReceivedFormField(totalTransactionAmount: totalPayable),
         ),
       ],
     );
@@ -120,7 +190,7 @@ class PaymentsState extends ConsumerState<Payments> {
       height: 70.63,
       child: OutlinedButton(
         style: primary3ButtonStyle.copyWith(
-          shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+          shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(4),
             ),
@@ -142,7 +212,98 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
-  Widget _buildCashReceivedFormField(double totalTransactionAmount) {
+  Widget _buildDiscountField() {
+    return SizedBox(
+      width: 280,
+      child: Form(
+        child: TextFormField(
+          keyboardType: TextInputType.number,
+          controller: _discount,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter discount amount';
+            }
+            if (double.parse(value) > widget.transaction.subTotal) {
+              return "Discount cannot exceed the total amount";
+            }
+            return null;
+          },
+          onFieldSubmitted: (value) {
+            _discount.text = value;
+          },
+          onChanged: (value) {},
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.black.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+            hintText: 'Discount',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _builCustomerField() {
+    return SizedBox(
+      width: 280,
+      child: Form(
+        key: _customerKey,
+        child: TextFormField(
+          keyboardType: TextInputType.number,
+          controller: _customer,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter Phone number without 0 e.g 783054874';
+            }
+            if (value.length > 9) {
+              return 'Please enter Phone number without 0 e.g 783054874';
+            }
+            if (value.length < 9) {
+              return 'Please enter Phone number without 0 e.g 783054874';
+            }
+            return null;
+          },
+          onFieldSubmitted: (value) {
+            _customer.text = value;
+            ProxyService.box.writeString(
+                key: 'currentSaleCustomerPhoneNumber', value: value);
+          },
+          onChanged: (value) {
+            ProxyService.box.writeString(
+                key: 'currentSaleCustomerPhoneNumber', value: value);
+          },
+          decoration: InputDecoration(
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.grey.shade400,
+                width: 1.0,
+              ),
+              borderRadius: BorderRadius.circular(4.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(
+                color: Colors.black.withOpacity(0.1),
+                width: 0.5,
+              ),
+            ),
+            hintText: 'Customer Phone Number',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCashReceivedFormField({required double totalTransactionAmount}) {
     return SizedBox(
       width: 280,
       child: Form(
@@ -154,7 +315,10 @@ class PaymentsState extends ConsumerState<Payments> {
             if (value == null || value.isEmpty) {
               return 'Please enter Cash Received';
             }
-            if (double.parse(value) < totalTransactionAmount) {
+            final amountReceived = double.parse(value);
+            final discount =
+                _discount.text.isEmpty ? 0.0 : double.parse(_discount.text);
+            if (amountReceived < (totalTransactionAmount - discount)) {
               return "Amount is less than amount payable";
             }
             return null;
@@ -187,7 +351,8 @@ class PaymentsState extends ConsumerState<Payments> {
   Widget _buildPaymentButtons(CoreViewModel model) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 0,
+      spacing: 10,
+      runSpacing: 10,
       children: [
         _buildPaymentButton(
           icon: FluentIcons.money_calculator_24_regular,
@@ -223,7 +388,7 @@ class PaymentsState extends ConsumerState<Payments> {
 
     return SizedBox(
       height: 96,
-      width: 136,
+      width: 96,
       child: TextButton(
         onPressed: () {
           setState(() {
@@ -243,26 +408,26 @@ class PaymentsState extends ConsumerState<Payments> {
           });
         },
         style: primaryButtonStyle.copyWith(
-          shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+          shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
             (states) => RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(0.0),
             ),
           ),
-          side: MaterialStateProperty.resolveWith<BorderSide>(
+          side: WidgetStateProperty.resolveWith<BorderSide>(
             (states) => BorderSide(
               color: Colors.black.withOpacity(0.25),
               width: 0.50,
             ),
           ),
-          textStyle: MaterialStatePropertyAll<TextStyle>(
+          textStyle: WidgetStatePropertyAll<TextStyle>(
             TextStyle(color: Colors.white),
           ),
-          backgroundColor: MaterialStateProperty.all<Color>(Colors.white),
-          overlayColor: MaterialStateProperty.resolveWith<Color?>(
-            (Set<MaterialState> states) {
-              if (states.contains(MaterialState.hovered) ||
-                  states.contains(MaterialState.focused) ||
-                  states.contains(MaterialState.pressed)) {
+          backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+          overlayColor: WidgetStateProperty.resolveWith<Color?>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.hovered) ||
+                  states.contains(WidgetState.focused) ||
+                  states.contains(WidgetState.pressed)) {
                 return Colors.white;
               }
               return null;
@@ -270,6 +435,7 @@ class PaymentsState extends ConsumerState<Payments> {
           ),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min, // Fix: Shrink-wrap Column
           children: [
             SizedBox(
               height: 52,
@@ -298,20 +464,22 @@ class PaymentsState extends ConsumerState<Payments> {
           busy: model.handlingConfirm,
           borderRadius: 4,
           onTap: () async {
-            if (paymentType == "Cash") {
-              if (_formKey.currentState!.validate()) {
+            if (_customerKey.currentState!.validate()) {
+              if (paymentType == "Cash") {
+                if (_formKey.currentState!.validate()) {
+                  await confirmPayment(model);
+                }
+              } else {
+                if (paymentType == null) {
+                  showSimpleNotification(
+                    const Text("You need to choose a payment method"),
+                    background: Colors.red,
+                    position: NotificationPosition.bottom,
+                  );
+                  return;
+                }
                 await confirmPayment(model);
               }
-            } else {
-              if (paymentType == null) {
-                showSimpleNotification(
-                  const Text("You need to choose a payment method"),
-                  background: Colors.red,
-                  position: NotificationPosition.bottom,
-                );
-                return;
-              }
-              await confirmPayment(model);
             }
           },
           title: "Confirm Payment",
@@ -320,19 +488,129 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
+  Future<void> handleReceiptGeneration([String? purchaseCode]) async {
+    try {
+      await TaxController(object: widget.transaction).handleReceipt(
+        printCallback: (Uint8List bytes) {},
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      setState(() => _busy = false);
+      showSnackBar(context, e.toString().split(': ').last,
+          textColor: Colors.white, backgroundColor: Colors.green);
+    }
+  }
+
   Future<void> confirmPayment(CoreViewModel model) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal
         : double.parse(_cash.text);
+    // Parse discount ONLY if _discount.text is NOT empty
+    double discount =
+        _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
     await model.collectPayment(
         paymentType: paymentType!,
         transaction: widget.transaction,
-        amountReceived: amount);
-    _routerService.navigateTo(
-      PaymentConfirmationRoute(
-        transaction: widget.transaction,
-      ),
-    );
+        amountReceived: amount,
+        discount: discount);
+
+    await handleReceiptGeneration();
+
+    if (widget.transaction.customerId != null) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          final double height = MediaQuery.of(context).size.height;
+          final double adjustedHeight =
+              height * 0.8; // Adjust the height to 80% of the screen height
+
+          return AlertDialog(
+            title: Text('Digital Receipt'),
+            content: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: adjustedHeight,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text('Do you need a digital receipt?'),
+                    TextFormField(
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Purchase Code',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a purchase code';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (value) {},
+                      // Handle the purchase code input
+                      onSaved: (value) {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              BoxButton(
+                title: 'Submit',
+                busy: _busy,
+                onTap: () async {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    setState(() {
+                      _busy = true;
+                    });
+                    _formKey.currentState?.save();
+                    String purchaseCode = _controller.text;
+                    log("received purchase code: ${purchaseCode}");
+                    try {
+                      await handleReceiptGeneration(purchaseCode);
+                      Navigator.of(context).pop();
+                    } catch (e) {
+                      setState(() {
+                        _busy = false;
+                      });
+                      String errorMessage = e.toString();
+                      int startIndex = errorMessage.indexOf(': ');
+                      if (startIndex != -1) {
+                        errorMessage = errorMessage.substring(startIndex + 2);
+                      }
+                      // toast(errorMessage);
+                      showSnackBar(context, errorMessage,
+                          textColor: Colors.white,
+                          backgroundColor: Colors.green);
+                      return;
+                    }
+                  }
+                },
+              ),
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () async {
+                  /// still print the purchase code without the customer information!
+                  /// this is standard for non customer attached receipt
+                  await TaxController(object: widget.transaction).handleReceipt(
+                    printCallback: (Uint8List bytes) {},
+                  );
+                  // Handle when the user doesn't need a digital receipt
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    /// refresh and go home
+    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+    _routerService.back;
+    model.handlingConfirm = false;
   }
 }

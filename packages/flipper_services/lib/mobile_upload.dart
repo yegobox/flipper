@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:path_provider/path_provider.dart';
 // import 'package:flutter_uploader/flutter_uploader.dart';
-import 'package:flutter_luban/flutter_luban.dart';
 import 'proxy.dart';
 
 class HttpUpload implements UploadT {
@@ -109,23 +108,23 @@ class MobileUpload implements UploadT {
       log(image.path, name: "Path choosen");
       final File file = File(image.path);
       final tempDir = await getTemporaryDirectory();
-      CompressObject compressObject = CompressObject(
-        imageFile: file, //image
-        path: tempDir.path, //compress to path
-        quality: 85,
-        step: 9,
-        mode: CompressMode.LARGE2SMALL, //default AUTO
-      );
-      Luban.compressImage(compressObject).then((_path) {
-        upload(
-          id: productId,
-          paths: [_path!],
-          urlType: urlType,
-          uploader: uploader,
-        );
-      }).onError((error, stackTrace) {
-        log(error.toString(), name: "error compressing image");
-      });
+      // CompressObject compressObject = CompressObject(
+      //   imageFile: file, //image
+      //   path: tempDir.path, //compress to path
+      //   quality: 85,
+      //   step: 9,
+      //   mode: CompressMode.LARGE2SMALL, //default AUTO
+      // );
+      // Luban.compressImage(compressObject).then((_path) {
+      //   upload(
+      //     id: productId,
+      //     paths: [_path!],
+      //     urlType: urlType,
+      //     uploader: uploader,
+      //   );
+      // }).onError((error, stackTrace) {
+      //   log(error.toString(), name: "error compressing image");
+      // });
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');
@@ -144,23 +143,23 @@ class MobileUpload implements UploadT {
       if (image == null) return;
       final File file = File(image.path);
       final tempDir = await getTemporaryDirectory();
-      CompressObject compressObject = CompressObject(
-        imageFile: file, //image
-        path: tempDir.path, //compress to path
-        quality: 85,
-        step: 9,
-        mode: CompressMode.LARGE2SMALL, //default AUTO
-      );
-      Luban.compressImage(compressObject).then((_path) {
-        upload(
-          id: id,
-          paths: [_path!],
-          urlType: urlType,
-          uploader: uploader,
-        );
-      }).onError((error, stackTrace) {
-        log(error.toString(), name: "error compressing image");
-      });
+      // CompressObject compressObject = CompressObject(
+      //   imageFile: file, //image
+      //   path: tempDir.path, //compress to path
+      //   quality: 85,
+      //   step: 9,
+      //   mode: CompressMode.LARGE2SMALL, //default AUTO
+      // );
+      // Luban.compressImage(compressObject).then((_path) {
+      //   upload(
+      //     id: id,
+      //     paths: [_path!],
+      //     urlType: urlType,
+      //     uploader: uploader,
+      //   );
+      // }).onError((error, stackTrace) {
+      //   log(error.toString(), name: "error compressing image");
+      // });
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');

@@ -2,6 +2,7 @@
 
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
+import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -12,7 +13,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -22,8 +22,20 @@ import 'package:badges/badges.dart' as badges;
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
-  SearchField({Key? key, required this.controller}) : super(key: key);
+  const SearchField({
+    Key? key,
+    required this.controller,
+    required this.showOrderButton,
+    required this.showIncomingButton,
+    required this.showAddButton,
+    required this.showDatePicker,
+  }) : super(key: key);
+
   final TextEditingController controller;
+  final bool showOrderButton;
+  final bool showIncomingButton;
+  final bool showAddButton;
+  final bool showDatePicker;
 
   @override
   SearchFieldState createState() => SearchFieldState();
@@ -33,6 +45,7 @@ class SearchFieldState extends ConsumerState<SearchField> {
   late bool _hasText;
   late FocusNode _focusNode;
   final _textSubject = BehaviorSubject<String>();
+
   @override
   void initState() {
     super.initState();
@@ -47,45 +60,49 @@ class SearchFieldState extends ConsumerState<SearchField> {
     });
   }
 
-  //// this wait for few seconds for a user or scanner to type into the keyboard
-  /// once that is done then we emit the value being scanned or typed
   void _processDebouncedValue(String value, CoreViewModel model) {
     ref.read(searchStringProvider.notifier).emitString(value: value);
-    // search product by name an if found add it to the current list
-
     _focusNode.requestFocus();
 
-    if (ref.read(scanningModeProvider)) {
-      _handleScanningMode(value, model);
-    }
-
-    ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    _handleScanningMode(value, model);
   }
 
   void _handleScanningMode(String value, CoreViewModel model) async {
-    ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     _hasText = false;
-    if (value.isNotEmpty) {
-      Variant? variant = await ProxyService.realm.variant(name: value);
-      if (variant != null) {
-        Stock? stock = await ProxyService.realm
-            .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
-        ITransaction currentTransaction = await ProxyService.realm
-            .manageTransaction(transactionType: TransactionType.custom);
 
-        await model.saveTransaction(
-          variation: variant,
-          amountTotal: variant.retailPrice,
-          customItem: false,
-          pendingTransaction: currentTransaction,
-          currentStock: stock!.currentStock,
-        );
-        await model.keyboardKeyPressed(key: '+');
-        ref.refresh(pendingTransactionProvider(TransactionType.custom).future);
-        ref.refresh(transactionItemsProvider(currentTransaction.id));
-        ref.refresh(searchStringProvider);
+    /// if the state is not true then we are not in search mode, we are in scan mode
+    /// this means that we can simply search and display item as user search
+    /// this is useful when a customer want to search item mabybe want to edit it while not in
+    /// selling mode.
+    if (!ref.read(toggleProvider.notifier).state) {
+      ref.read(searchStringProvider.notifier).emitString(value: '');
+      if (value.isNotEmpty) {
+        Variant? variant = await ProxyService.realm.variant(name: value);
+        if (variant != null && variant.id != null) {
+          Stock? stock = await ProxyService.realm
+              .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
+          ITransaction currentTransaction = await ProxyService.realm
+              .manageTransaction(transactionType: TransactionType.sale);
+          //// TODO: suport sell of composite item while scanning see itemRow @line 107 for how it is done
+          await model.saveTransaction(
+              variation: variant,
+              amountTotal: variant.retailPrice,
+              customItem: false,
+              pendingTransaction: currentTransaction,
+              currentStock: stock!.currentStock,
+              partOfComposite: false);
+          final pendingTransaction =
+              ref.watch(pendingTransactionProvider(TransactionType.sale));
+
+          await Future.delayed(Duration(microseconds: 500));
+          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+          await Future.delayed(Duration(microseconds: 500));
+          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        }
       }
+    } else {
+      /// we do normal search of item
     }
   }
 
@@ -100,68 +117,94 @@ class SearchFieldState extends ConsumerState<SearchField> {
   @override
   Widget build(BuildContext context) {
     final orders = ref.watch(ordersStreamProvider);
-    final currentLocation = ref.watch(buttonIndexProvider);
-    return ViewModelBuilder<CoreViewModel>.nonReactive(
-      viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) {
-        _textSubject.debounceTime(Duration(seconds: 1)).listen((value) {
-          _processDebouncedValue(value, model);
-        });
-      },
-      builder: (a, model, b) {
-        return TextFormField(
-          controller: widget.controller,
-          maxLines: null,
-          focusNode: _focusNode,
-          textInputAction: TextInputAction.done,
-          keyboardType: TextInputType.text,
-          onFieldSubmitted: (value) => _textSubject,
-          onChanged: (value) {
-            _textSubject.add(value);
-          },
-          decoration: InputDecoration(
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final padding = screenWidth * 0.001;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: padding),
+      child: ViewModelBuilder<CoreViewModel>.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        onViewModelReady: (model) {
+          _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
+            _processDebouncedValue(value, model);
+          });
+        },
+        builder: (a, model, b) {
+          return TextFormField(
+            controller: widget.controller,
+            maxLines: null,
+            focusNode: _focusNode,
+            textInputAction: TextInputAction.done,
+            keyboardType: TextInputType.text,
+            onFieldSubmitted: (value) => _textSubject,
+            onChanged: (value) {
+              _textSubject.add(value);
+            },
+            decoration: InputDecoration(
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
+              ),
+              prefixIcon: IconButton(
+                onPressed: () {
+                  // Handle search functionality here
+                },
+                icon: Icon(FluentIcons.search_24_regular),
+              ),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  toggleSearch(),
+                  calc(model: model),
+                  if (widget.showOrderButton) orderButton(orders),
+                  if (widget.showIncomingButton) incomingButton(),
+                  if (widget.showAddButton) addButton(),
+                  if (widget.showDatePicker) datePicker(),
+                ],
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
-            ),
-            prefixIcon: IconButton(
-              onPressed: () {
-                // Handle search functionality here
-              },
-              icon: Icon(FluentIcons.search_24_regular),
-            ),
-            suffixIcon: Wrap(
-              children: [
-                if ([0, 1, 2, 4].contains(currentLocation)) indicatorButton(),
-                if (ProxyService.remoteConfig.isOrderFeatureOrderEnabled() &&
-                    [0, 1, 2, 4].contains(currentLocation))
-                  orderButton(orders),
-                if ([0, 1, 2, 4].contains(currentLocation)) incomingButton(),
-                if ([0, 1, 2, 4].contains(currentLocation)) addButton(),
-                if (currentLocation == 1) datePicker(),
-              ],
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   IconButton datePicker() {
     return IconButton(
       onPressed: _handleDateTimePicker,
-      icon: Icon(Icons.date_range, color: Colors.blue),
+      icon: Icon(Icons.date_range, color: Colors.grey),
     );
   }
 
-  /// the button to click when dealing with imports and purchases
-  /// when EBM RW RRA api is active
+  IconButton calc({required CoreViewModel model}) {
+    return IconButton(
+      onPressed: () => _handleShowingCustomAmountCalculator(model: model),
+      icon: Icon(Icons.calculate_outlined, color: Colors.grey),
+    );
+  }
+
   IconButton incomingButton() {
     return IconButton(
       onPressed: _handlePurchaseImport,
-      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.blue),
+      icon: Icon(Icons.close_fullscreen_outlined, color: Colors.grey),
+    );
+  }
+
+  IconButton toggleSearch() {
+    return IconButton(
+      onPressed: () {
+        ref.read(toggleProvider.notifier).state =
+            !ref.read(toggleProvider.notifier).state;
+
+        if (!ref.read(toggleProvider)) {
+          ref.read(searchStringProvider.notifier).emitString(value: '');
+        }
+      },
+      icon: ref.watch(toggleProvider)
+          ? Icon(Icons.search, color: Colors.blue)
+          : Icon(Icons.search_off, color: Colors.grey),
     );
   }
 
@@ -181,25 +224,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
     );
   }
 
-  IconButton indicatorButton() {
-    return IconButton(
-      onPressed: _handleScanningModeToggle,
-      icon: Icon(
-        ref.watch(scanningModeProvider)
-            ? FluentIcons.camera_switch_24_regular
-            : FluentIcons.camera_switch_24_regular,
-        color: ref.watch(scanningModeProvider) ? Colors.green : Colors.blue,
-      ),
-    );
-  }
-
-  void _handleScanningModeToggle() {
-    ref.read(scanningModeProvider.notifier).toggleScanningMode();
-    toast(ref.watch(scanningModeProvider)
-        ? "Scanning mode Activated"
-        : "Scanning mode DeActivated");
-  }
-
   void _handleReceiveOrderToggle() {
     ref.read(receivingOrdersModeProvider.notifier).toggleReceiveOrder();
     _routerService.navigateTo(OrdersRoute());
@@ -210,15 +234,15 @@ class SearchFieldState extends ConsumerState<SearchField> {
       AsyncData(:final value) => badges.Badge(
           badgeContent: Text(value.length.toString(),
               style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
       AsyncError() => badges.Badge(
           badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
       _ => const badges.Badge(
           badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.blue),
+          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
         ),
     };
   }
@@ -226,7 +250,9 @@ class SearchFieldState extends ConsumerState<SearchField> {
   void _clearSearchText() {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
-    _hasText = false;
+    setState(() {
+      _hasText = false;
+    });
   }
 
   String _getDeviceType(BuildContext context) {
@@ -241,6 +267,41 @@ class SearchFieldState extends ConsumerState<SearchField> {
         child: _getDeviceType(context) == "Phone"
             ? SizedBox.shrink()
             : ImportPurchasePage(),
+      ),
+    );
+  }
+
+  void _handleShowingCustomAmountCalculator({required CoreViewModel model}) {
+    showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (context) => Dialog(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 400, // Adjust this value as needed
+            maxHeight: MediaQuery.of(context).size.height *
+                0.8, // 80% of screen height
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity, // Ensure full width
+                    height: 800,
+                    child: KeyPadView(
+                      isBigScreen: true,
+                      model: model,
+                      accountingMode: false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -260,12 +321,11 @@ class SearchFieldState extends ConsumerState<SearchField> {
   _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     if (args.value is PickerDateRange) {
       PickerDateRange date = args.value as PickerDateRange;
-      if (date.endDate != null && date.endDate != null) {
+      if (date.endDate != null) {
         showSnackBar(context, "Date range selected",
             textColor: Colors.white, backgroundColor: Colors.purple);
         ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
         ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
-
         ref.refresh(transactionListProvider);
       }
     }

@@ -165,8 +165,12 @@ class AppService with ListenableServiceMixin {
 
     // Iterate over businesses and perform the operations
     for (Business business in businesses) {
-      await ProxyService.local
-          .tenantsFromOnline(businessId: business.serverId!);
+      Tenant? tenant =
+          await ProxyService.realm.tenant(businessId: business.serverId!);
+      if (tenant == null) {
+        await ProxyService.local
+            .tenantsFromOnline(businessId: business.serverId!);
+      }
     }
   }
 

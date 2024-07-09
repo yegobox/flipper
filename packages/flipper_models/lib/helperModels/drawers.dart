@@ -1,4 +1,3 @@
-import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync_service.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase/pocketbase.dart';

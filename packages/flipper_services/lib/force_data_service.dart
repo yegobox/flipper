@@ -70,6 +70,11 @@ class ForceDataEntryService {
         talker.critical(e);
       }
     }
+
+    /// bootstrap tax if not bootstraped
+    for (String item in ["A", "B", "C", "D"]) {
+      ProxyService.realm.getByTaxType(taxtype: item);
+    }
   }
 
   final talker = TalkerFlutter.init();

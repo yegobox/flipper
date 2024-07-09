@@ -2,7 +2,6 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:flipper_models/isolateHandelr.dart';
-import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
@@ -18,19 +17,17 @@ extension RealmExtension on Realm {
       add(object);
       talker.warning(
           "Saved using standart non async on realm extension :) ${object.toEJson()}");
-      TaxController(object: object).handleReceipt();
       _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
 
   Future<void> putAsync<T extends RealmObject>(T object) async {
-    await writeAsync(() async {
+    await writeAsync(() {
       final talker = TalkerFlutter.init();
       add(object);
       talker.warning(
           "Saved using async on realm Extension:) ${object.toEJson()}");
-      TaxController(object: object).handleReceipt();
-      await _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
+      _spawnIsolate("transactions", IsolateHandler.handleEBMTrigger);
     });
   }
 
@@ -50,7 +47,8 @@ extension RealmExtension on Realm {
           RootIsolateToken.instance,
           receivePort.sendPort,
           ProxyService.box.getBranchId()!,
-          await ProxyService.realm.dbPath(path: 'fallback'),
+          await ProxyService.realm
+              .dbPath(path: 'synced', folder: ProxyService.box.getBusinessId()),
           encryptionKey,
           business.tinNumber,
           ebm.bhfId

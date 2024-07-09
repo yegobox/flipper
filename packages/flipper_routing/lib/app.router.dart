@@ -379,7 +379,9 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     TaxConfigurationRoute.name: (routeData) {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TaxConfiguration(),
+        child: const _i1.TaxConfiguration(
+          showheader: true,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -457,12 +459,11 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    TicketsRoute.name: (routeData) {
-      final args =
-          routeData.argsAs<TicketsArgs>(orElse: () => const TicketsArgs());
+    TicketsListRoute.name: (routeData) {
+      final args = routeData.argsAs<TicketsListArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: _i1.Tickets(
+        child: _i1.TicketsList(
           key: args.key,
           transaction: args.transaction,
         ),
@@ -477,6 +478,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i1.NewTicket(
           key: args.key,
           transaction: args.transaction,
+          onClose: args.onClose,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -729,8 +731,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           path: '/conversation-history',
         ),
         _i3.RouteConfig(
-          TicketsRoute.name,
-          path: '/Tickets',
+          TicketsListRoute.name,
+          path: '/tickets-list',
         ),
         _i3.RouteConfig(
           NewTicketRoute.name,
@@ -1850,27 +1852,27 @@ class ConversationHistoryArgs {
 }
 
 /// generated route for
-/// [_i1.Tickets]
-class TicketsRoute extends _i3.PageRouteInfo<TicketsArgs> {
-  TicketsRoute({
+/// [_i1.TicketsList]
+class TicketsListRoute extends _i3.PageRouteInfo<TicketsListArgs> {
+  TicketsListRoute({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
   }) : super(
-          TicketsRoute.name,
-          path: '/Tickets',
-          args: TicketsArgs(
+          TicketsListRoute.name,
+          path: '/tickets-list',
+          args: TicketsListArgs(
             key: key,
             transaction: transaction,
           ),
         );
 
-  static const String name = 'Tickets';
+  static const String name = 'TicketsList';
 }
 
-class TicketsArgs {
-  const TicketsArgs({
+class TicketsListArgs {
+  const TicketsListArgs({
     this.key,
-    this.transaction,
+    required this.transaction,
   });
 
   final _i4.Key? key;
@@ -1879,7 +1881,7 @@ class TicketsArgs {
 
   @override
   String toString() {
-    return 'TicketsArgs{key: $key, transaction: $transaction}';
+    return 'TicketsListArgs{key: $key, transaction: $transaction}';
   }
 }
 
@@ -1889,12 +1891,14 @@ class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
   }) : super(
           NewTicketRoute.name,
           path: '/new-ticket',
           args: NewTicketArgs(
             key: key,
             transaction: transaction,
+            onClose: onClose,
           ),
         );
 
@@ -1905,15 +1909,18 @@ class NewTicketArgs {
   const NewTicketArgs({
     this.key,
     required this.transaction,
+    required this.onClose,
   });
 
   final _i4.Key? key;
 
   final _i8.ITransaction transaction;
 
+  final void Function() onClose;
+
   @override
   String toString() {
-    return 'NewTicketArgs{key: $key, transaction: $transaction}';
+    return 'NewTicketArgs{key: $key, transaction: $transaction, onClose: $onClose}';
   }
 }
 
@@ -2615,13 +2622,13 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> navigateToTickets({
+  Future<dynamic> navigateToTicketsList({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
-      TicketsRoute(
+      TicketsListRoute(
         key: key,
         transaction: transaction,
       ),
@@ -2632,12 +2639,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToNewTicket({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       NewTicketRoute(
         key: key,
         transaction: transaction,
+        onClose: onClose,
       ),
       onFailure: onFailure,
     );
@@ -3238,13 +3247,13 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithTickets({
+  Future<dynamic> replaceWithTicketsList({
     _i4.Key? key,
-    _i8.ITransaction? transaction,
+    required _i8.ITransaction? transaction,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
-      TicketsRoute(
+      TicketsListRoute(
         key: key,
         transaction: transaction,
       ),
@@ -3255,12 +3264,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> replaceWithNewTicket({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required void Function() onClose,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       NewTicketRoute(
         key: key,
         transaction: transaction,
+        onClose: onClose,
       ),
       onFailure: onFailure,
     );

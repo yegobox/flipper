@@ -36,9 +36,11 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                       itemCount: products!.length,
                       itemBuilder: (context, index) {
                         return RowItem(
+                          isComposite: false,
                           variant: products[index],
                           color: products[index].color!,
-                          name: products[index].name!,
+                          productName: products[index].name!,
+                          variantName: products[index].name!,
                           stock: 1,
                           model: model,
                           addToMenu: (item) async {
@@ -51,8 +53,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                             ITransaction? iTransaction = ref
                                 .read(pendingTransactionProvider(
                                     TransactionType.cashOut))
-                                .value
-                                ?.value;
+                                .value;
 
                             ProxyService.realm.realm!.write(() {
                               iTransaction!.supplierId = variant.branchId;
@@ -70,6 +71,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
                                 variation: variant,
                                 currentStock: 1.0,
                                 amountTotal: variant.retailPrice,
+                                partOfComposite: false,
                                 customItem: false,
                                 pendingTransaction: iTransaction!);
                             ref.refresh(
@@ -88,6 +90,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
         child: PreviewSaleButton(
           wording: "Preview Cart",
           mode: SellingMode.forOrdering,
+          completeTransaction: () {},
         ),
       ),
     );

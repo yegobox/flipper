@@ -10,6 +10,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class StartupViewModel extends FlipperBaseModel {
   final appService = loc.getIt<AppService>();
@@ -21,6 +22,8 @@ class StartupViewModel extends FlipperBaseModel {
   Future<void> runStartupLogic({
     required bool refreshCredentials,
   }) async {
+    final talker = TalkerFlutter.init();
+    // await ProxyService.realm.logOut();
     try {
       /// there is cases where when app re-start and then for some reason the realm is closed
       /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
@@ -37,7 +40,7 @@ class StartupViewModel extends FlipperBaseModel {
       /// then we are are forced here when app start to re-open the realm with useInMemoryDb false
       /// for performance this is supposed to take a time to configure the db and get data in sync
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
-      /// which sync data later...i.e not wait for synchronization
+      /// which sync data later...i.e not wait for synchronizations
       if (ProxyService.box.encryptionKey().isEmpty) {
         ProxyService.realm.configure(useInMemoryDb: false, useFallBack: false);
       }
@@ -80,10 +83,11 @@ class StartupViewModel extends FlipperBaseModel {
         }
       }
     } catch (e, stackTrace) {
-      log("In catch block ${e}");
+      talker.info("StartupViewModel ${e}");
+      talker.error("StartupViewModel ${stackTrace}");
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
-      } else if (e is SessionException || e is ErrorReadingFromYBServer) {
+      } else if (e is SessionException || e is RemoteError) {
         log(stackTrace.toString(), name: 'runStartupLogic');
         await ProxyService.realm.logOut();
         _routerService.clearStackAndShow(LoginViewRoute());

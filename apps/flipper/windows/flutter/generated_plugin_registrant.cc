@@ -6,7 +6,7 @@
 
 #include "generated_plugin_registrant.h"
 
-#include <battery_plus/battery_plus_windows_plugin.h>
+#include <amplify_db_common/amplify_db_common_plugin.h>
 #include <connectivity_plus/connectivity_plus_windows_plugin.h>
 #include <desktop_webview_auth/desktop_webview_auth_plugin.h>
 #include <device_type/device_type_plugin_c_api.h>
@@ -26,15 +26,14 @@
 #include <sentry_flutter/sentry_flutter_plugin.h>
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <smart_auth/smart_auth_plugin.h>
-#include <system_theme/system_theme_plugin.h>
 #include <tray_manager/tray_manager_plugin.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 #include <window_manager/window_manager_plugin.h>
 #include <window_size/window_size_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
-  BatteryPlusWindowsPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("BatteryPlusWindowsPlugin"));
+  AmplifyDbCommonPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("AmplifyDbCommonPlugin"));
   ConnectivityPlusWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
   DesktopWebviewAuthPluginRegisterWithRegistrar(
@@ -73,8 +72,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
   SmartAuthPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("SmartAuthPlugin"));
-  SystemThemePluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("SystemThemePlugin"));
   TrayManagerPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("TrayManagerPlugin"));
   UrlLauncherWindowsRegisterWithRegistrar(

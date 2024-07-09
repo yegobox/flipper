@@ -2,12 +2,9 @@
 
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
-import 'package:flipper_dashboard/discount_row.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/profile.dart';
-import 'package:flipper_dashboard/search_field.dart';
-import 'package:flipper_dashboard/sticky_search.dart';
 import 'package:flipper_dashboard/tenants_list.dart';
 import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -20,11 +17,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-
-import 'ribbon.dart';
 
 class ProductView extends StatefulHookConsumerWidget {
   final int? favIndex;
@@ -51,91 +45,48 @@ class ProductViewState extends ConsumerState<ProductView> {
   final _routerService = locator<RouterService>();
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  String _getDeviceType(BuildContext context) {
+    return DeviceType.getDeviceType(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
+    int buttonIndex = ref.watch(buttonIndexProvider);
+
+    final deviceType = _getDeviceType(context);
+
+    if (buttonIndex == 1) {
+      return TransactionList();
+    }
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
         ref
-            .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+            .read(
+                productsProvider(ProxyService.box.getBranchId() ?? 0).notifier)
             .loadProducts(searchString: searchKeyword, scanMode: scanMode);
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {
-        double searchFieldWidth = MediaQuery.of(context).size.width * 0.61;
-        return buildRowView(context, model, searchFieldWidth);
+        return deviceType != 'Phone'
+            ? buildVariantList(context, model)
+            : buildProductsSection(context, model);
       },
     );
   }
 
-  Widget buildRowView(
-    BuildContext context,
-    ProductViewModel model,
-    double searchFieldWidth,
-  ) {
-    final scanMode = ref.watch(scanningModeProvider);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Check if the width is greater than a certain threshold (e.g., for large screens)
-        bool isLargeScreen = constraints.maxWidth > 600;
-
-        return CustomScrollView(
-          slivers: [
-            buildIconRow(isLargeScreen),
-            buildStickyHeader(searchFieldWidth),
-            buildContent(context, model, scanMode),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget buildIconRow(bool isLargeScreen) {
-    return SliverToBoxAdapter(
-      child: isLargeScreen ? IconRow() : SizedBox(),
-    );
-  }
-
-  Widget buildContent(
-      BuildContext context, ProductViewModel model, bool scanMode) {
-    int buttonIndex = ref.watch(buttonIndexProvider);
-
-    if (buttonIndex == 1) {
-      return SliverToBoxAdapter(
-          child: Padding(
-        padding: const EdgeInsets.all(28.0),
-        child: TransactionList(),
-      ));
-    }
-
-    return scanMode
-        ? buildVariantList(context, model)
-        : buildProductList(context, model);
-  }
-
-  SliverList buildVariantList(
+  Widget buildVariantList(
     BuildContext context,
     ProductViewModel model,
   ) {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        SizedBox(height: 8),
-        buildVariantsSection(context, model),
-      ]),
-    );
+    return buildVariantsSection(context, model);
   }
 
   Widget buildVariantsSection(
@@ -143,25 +94,38 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
   ) {
     return Center(
-      child: Center(
-        child: ref
-            .watch(outerVariantsProvider(ProxyService.box.getBranchId()!))
-            .when(
-              data: (variants) {
-                return Column(
-                  children: [
-                    for (int index = 0; index < variants.length; index++)
-                      buildVariantRow(context, model, variants[index]),
-                  ],
-                );
-              },
-              error: (error, e) => SizedBox.shrink(),
-              loading: () => SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: const CircularProgressIndicator()),
-            ),
-      ),
+      child: ref
+          .watch(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0))
+          .when(
+            data: (variants) {
+              // Ensure the list is updated correctly and length is checked
+              if (variants.isEmpty) {
+                return Text('No variants available.');
+              }
+
+              return GridView.builder(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  // Use MaxCrossAxisExtent for responsive column count
+                  maxCrossAxisExtent: 200, // Adjust this value as needed
+                  mainAxisSpacing: 5.0,
+                  crossAxisSpacing: 2.0,
+                ),
+                itemCount: variants.length,
+                itemBuilder: (context, index) {
+                  // Double-check the index before accessing the list
+                  if (index < 0 || index >= variants.length) {
+                    return SizedBox
+                        .shrink(); // Or handle the out-of-bound case appropriately
+                  }
+                  return buildVariantRow(context, model, variants[index]);
+                },
+                shrinkWrap: true,
+              );
+            },
+            error: (error, e) => SizedBox.shrink(),
+            loading: () =>
+                SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
+          ),
     );
   }
 
@@ -170,19 +134,15 @@ class ProductViewState extends ConsumerState<ProductView> {
     ProductViewModel model,
     Variant variant,
   ) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id!));
+    final stockStream = ref.watch(stockByVariantIdProvider(variant.id ?? 0));
 
     return stockStream.when(
       data: (double stock) {
-        if (stock == 0) {
-          return SizedBox.shrink();
-        } else {
-          return buildRowItem(context, model, variant, stock);
-        }
+        return buildRowItem(context, model, variant, stock);
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () => SizedBox(
-          width: 20, height: 20, child: const CircularProgressIndicator()),
+      loading: () =>
+          SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
     );
   }
 
@@ -192,71 +152,72 @@ class ProductViewState extends ConsumerState<ProductView> {
     Variant variant,
     double stock,
   ) {
+    Product? product =
+        ProxyService.realm.getProduct(id: variant.productId ?? 0);
     return RowItem(
-      color: "#d63031",
-      // Replace with actual color
+      color: variant.color ?? "#673AB7",
       stock: stock,
       model: model,
       variant: variant,
-      name: variant.name ?? "",
-      edit: (productId) {
-        _routerService.navigateTo(
-          AddProductViewRoute(productId: productId),
-        );
+      productName: variant.productName ?? "",
+      variantName: variant.name ?? "",
+      imageUrl: product?.imageUrl,
+      isComposite: product?.isComposite ?? false,
+      edit: (productId, type) {
+        talker.info("navigating to Edit!");
+        if (_getDeviceType(context) != "Phone") {
+          showDialog(
+            barrierDismissible: false,
+            context: context,
+            builder: (context) => OptionModal(
+              child: ProductEntryScreen(productId: productId),
+            ),
+          );
+        } else {
+          _routerService.navigateTo(
+            AddProductViewRoute(productId: productId),
+          );
+        }
       },
-      deleteProduct: (id, type) async {
-        if (type == 'product') {
-          ProxyService.realm.delete(id: id!, endPoint: 'product');
-        }
-        if (type == 'variant') {
-          ProxyService.realm.delete(id: id!, endPoint: 'variant');
-        }
+      delete: (productId, type) async {
+        try {
+          /// first if there is image attached delete if first
+          Product? product = ProxyService.realm.getProduct(id: productId!);
+          if (product!.isComposite!) {
+            /// search composite and delete them as well
+            List<Composite> composites =
+                ProxyService.realm.composites(productId: productId);
+            ProxyService.realm.realm!.write(() {
+              for (Composite composite in composites) {
+                ProxyService.realm.realm!.delete(composite);
+              }
+            });
+          }
+          if (product.imageUrl != null) {
+            if (await ProxyService.realm
+                .removeS3File(fileName: product.imageUrl!)) {
+              await model.deleteProduct(productId: productId);
+              ref.refresh(
+                  outerVariantsProvider(ProxyService.box.getBranchId()!));
 
-        // ignore: unused_result
-        ref.refresh(
-          outerVariantsProvider(ProxyService.box.getBranchId()!),
-        );
+              /// delete assets related to a product
+              Assets? asset =
+                  ProxyService.realm.getAsset(assetName: product.imageUrl!);
+              ProxyService.realm.delete(id: asset?.id ?? 0);
+            }
+          } else {
+            await model.deleteProduct(productId: productId);
+            ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+          }
+        } catch (e, s) {
+          talker.error("ProductViewClass:" + s.toString());
+          talker.error("ProductViewClass:" + e.toString());
+          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+        }
       },
       enableNfc: (product) {
         // Handle NFC functionality
       },
-    );
-  }
-
-  Widget buildStickyHeader(double searchFieldWidth) {
-    return SliverPadding(
-      padding: EdgeInsets.only(top: 15),
-      sliver: SliverPersistentHeader(
-        pinned: true,
-        floating: false,
-        delegate: StickyHeader(
-          child: Container(
-            height: kToolbarHeight,
-            child: buildStickyHeaderContents(searchFieldWidth),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildStickyHeaderContents(double searchFieldWidth) {
-    return Wrap(
-      direction: Axis.horizontal,
-      children: <Widget>[
-        // IconRow(),
-        buildSearchField(searchFieldWidth),
-        SizedBox(width: 5),
-        // buildProfileWidget(),
-      ],
-    );
-  }
-
-  Widget buildSearchField(double width) {
-    return SizedBox(
-      width: isDesktopOrWeb ? width : double.infinity,
-      child: SearchField(
-        controller: searchController,
-      ),
     );
   }
 
@@ -280,33 +241,22 @@ class ProductViewState extends ConsumerState<ProductView> {
         : SizedBox.shrink();
   }
 
-  SliverList buildProductList(BuildContext context, ProductViewModel model) {
-    return SliverList(
-      delegate: SliverChildListDelegate([
-        SizedBox(height: 8),
-        buildProductsSection(context, model),
-      ]),
-    );
-  }
-
   Widget buildProductsSection(BuildContext context, ProductViewModel model) {
     final productsRef =
-        ref.watch(productsProvider(ProxyService.box.getBranchId()!));
+        ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
     return Center(
-      child: Center(
-        child: switch (productsRef) {
-          AsyncData(:final value) => Column(
-              children: [
-                buildProductsOrNoItemsFoundWidget(value),
-                buildProductRows(context, model, value),
-              ],
-            ),
-          // ignore: unused_local_variable
-          AsyncError(:final error) => SizedBox.shrink(),
-          _ => SizedBox(
-              width: 20, height: 20, child: const CircularProgressIndicator()),
-        },
-      ),
+      child: switch (productsRef) {
+        AsyncData(:final value) => Column(
+            children: [
+              buildProductsOrNoItemsFoundWidget(value),
+              buildProductRows(context, model, value),
+            ],
+          ),
+        // ignore: unused_local_variable
+        AsyncError(:final error) => SizedBox.shrink(),
+        _ => SizedBox(
+            width: 20, height: 20, child: const CircularProgressIndicator()),
+      },
     );
   }
 
@@ -331,10 +281,6 @@ class ProductViewState extends ConsumerState<ProductView> {
     }
   }
 
-  String _getDeviceType(BuildContext context) {
-    return DeviceType.getDeviceType(context);
-  }
-
   int? productId;
 
   Widget buildProductRows(
@@ -351,7 +297,7 @@ class ProductViewState extends ConsumerState<ProductView> {
             expandedHeaderPadding: EdgeInsets.zero,
             expansionCallback: (int panelIndex, bool isExpanded) {
               ref
-                  .read(productsProvider(ProxyService.box.getBranchId()!)
+                  .read(productsProvider(ProxyService.box.getBranchId() ?? 0)
                       .notifier)
                   .expanded(products[index]);
 
@@ -369,11 +315,13 @@ class ProductViewState extends ConsumerState<ProductView> {
                     future: ProxyService.realm.stocks(productId: product.id),
                     builder: (BuildContext context, stock) {
                       return RowItem(
+                        isComposite: product.isComposite ?? false,
                         color: product.color,
                         stock: stock.data ?? 0.0,
                         model: model,
                         product: product,
-                        name: product.name ?? "",
+                        productName: product.name ?? "",
+                        variantName: product.name ?? "",
                         addToMenu: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
@@ -394,14 +342,42 @@ class ProductViewState extends ConsumerState<ProductView> {
                             );
                           }
                         },
-                        deleteProduct: (productId, type) async {
-                          await model.deleteProduct(productId: productId!);
-                          ref.refresh(
-                            productsProvider(
-                              ProxyService.box.getBranchId()!,
-                            ).notifier,
-                          );
-                          // .deleteProduct(productId: productId);
+                        delete: (productId, type) async {
+                          try {
+                            /// first if there is image attached delete if first
+                            Product? product =
+                                ProxyService.realm.getProduct(id: productId!);
+                            if (product!.isComposite!) {
+                              /// search composite and delete them as well
+                              List<Composite> composites = ProxyService.realm
+                                  .composites(productId: productId);
+                              ProxyService.realm.realm!.write(() {
+                                for (Composite composite in composites) {
+                                  ProxyService.realm.realm!.delete(composite);
+                                }
+                              });
+                            }
+                            if (product.imageUrl != null) {
+                              if (await ProxyService.realm
+                                  .removeS3File(fileName: product.imageUrl!)) {
+                                await model.deleteProduct(productId: productId);
+                                ref.refresh(outerVariantsProvider(
+                                    ProxyService.box.getBranchId()!));
+
+                                /// delete assets related to a product
+                                Assets? asset = ProxyService.realm
+                                    .getAsset(assetName: product.imageUrl!);
+                                ProxyService.realm.delete(id: asset?.id ?? 0);
+                              }
+                            } else {
+                              await model.deleteProduct(productId: productId);
+                              ref.refresh(outerVariantsProvider(
+                                  ProxyService.box.getBranchId()!));
+                            }
+                          } catch (e, s) {
+                            talker.error("ProductViewClass:" + s.toString());
+                            talker.error("ProductViewClass:" + e.toString());
+                          }
                         },
                         enableNfc: (product) {
                           showMaterialModalBottomSheet(
@@ -435,84 +411,24 @@ class ProductViewState extends ConsumerState<ProductView> {
                         itemCount: variants.length,
                         itemBuilder: (context, index) {
                           final variant = variants[index];
-                          return ListTile(
-                            trailing: Text(variant.name ?? ""),
-                            leading:
-                                Text(variant.retailPrice.toString() + " RWF"),
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: Text(variant.name ?? ""),
+                              ),
+                              Expanded(
+                                child: Text(
+                                    variant.retailPrice.toString() + " RWF"),
+                              ),
+                            ],
                           );
                         },
                       ),
                     ),
-                isExpanded: products[index].searchMatch,
               ),
             ],
           ),
       ],
     );
-  }
-
-  SliverList buildDiscountsList(BuildContext context, ProductViewModel model) {
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (BuildContext context, int index) {
-          return FutureBuilder<List<Widget>>(
-            future: buildDiscountRows(context, model),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                final widgets = snapshot.data ?? [];
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: widgets,
-                      ),
-                    ),
-                  ],
-                );
-              } else {
-                return SizedBox.shrink();
-              }
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Future<List<Widget>> buildDiscountRows(
-      BuildContext context, ProductViewModel model) async {
-    final discounts = model.productService.discountStream(
-      branchId: ProxyService.box.getBranchId() ?? 0,
-    );
-
-    if (!ProxyService.remoteConfig.isDiscountAvailable() ||
-        await discounts.isEmpty) {
-      return [];
-    }
-
-    return (await discounts).map((discount) {
-      return DiscountRow(
-        discount: discount.first,
-        name: discount.first.name,
-        model: model,
-        hasImage: false,
-        delete: (id) {
-          model.deleteDiscount(id: id);
-        },
-        edit: (discount) {
-          _routerService.navigateTo(AddDiscountRoute());
-        },
-        applyDiscount: (discount) async {
-          await model.applyDiscount(discount: discount);
-          showSimpleNotification(
-            const Text('Apply discount'),
-            background: Colors.green,
-            position: NotificationPosition.bottom,
-          );
-        },
-      );
-    }).toList();
   }
 }

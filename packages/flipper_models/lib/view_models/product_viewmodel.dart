@@ -97,10 +97,10 @@ class ProductViewModel extends FlipperBaseModel
 
   /// Create a temporal product to use during this session of product creation
   /// the same product will be use if it is still temp product
-  String kProductName = 'null';
+  String? kProductName;
   Future<Product> getProduct({int? productId}) async {
     if (productId != null) {
-      Product? product = await ProxyService.realm.getProduct(id: productId);
+      Product? product = ProxyService.realm.getProduct(id: productId);
       setCurrentProduct(currentProduct: product!);
       setCurrentProduct(currentProduct: product);
       kProductName = product.name!;
@@ -130,8 +130,9 @@ class ProductViewModel extends FlipperBaseModel
     return product;
   }
 
-  void setName({String? name}) {
-    productName = name;
+  void setProductName({String? name}) {
+    if (name == null) return;
+    kProductName = name;
     notifyListeners();
   }
 
@@ -149,9 +150,9 @@ class ProductViewModel extends FlipperBaseModel
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
-    if (productName == null) return;
+    if (kProductName == null) return;
     final Category category = Category(ObjectId(),
-        name: productName!,
+        name: kProductName!,
         active: true,
         focused: false,
         branchId: branchId!,
@@ -198,7 +199,7 @@ class ProductViewModel extends FlipperBaseModel
       if (type == 'product') {
         product?.unit = newUnit.name;
         // get updated product
-        product = await ProxyService.realm.getProduct(id: product!.id!);
+        product = ProxyService.realm.getProduct(id: product!.id!);
       }
 
       if (type == 'variant') {
@@ -259,7 +260,7 @@ class ProductViewModel extends FlipperBaseModel
       _color.branchId = branchId;
       product!.color = color.name!;
       widgetReference
-          .read(productProvider.notifier)
+          .read(unsavedProductProvider.notifier)
           .emitProduct(value: product!);
     });
 
@@ -288,7 +289,7 @@ class ProductViewModel extends FlipperBaseModel
     double? supplyPrice,
     double? retailPrice,
   }) async {
-    Product? product = await ProxyService.realm.getProduct(id: productId ?? 0);
+    Product? product = ProxyService.realm.getProduct(id: productId ?? 0);
     List<Variant> variants = await ProxyService.realm.variants(
         branchId: ProxyService.box.getBranchId()!, productId: productId);
 
@@ -376,7 +377,7 @@ class ProductViewModel extends FlipperBaseModel
     ProxyService.realm.realm!.writeAsync(() async {
       product!.expiryDate = date.toIso8601String();
     });
-    Product? cProduct = await ProxyService.realm.getProduct(id: product!.id!);
+    Product? cProduct = ProxyService.realm.getProduct(id: product!.id!);
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }

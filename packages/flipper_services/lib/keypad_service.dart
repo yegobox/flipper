@@ -1,18 +1,12 @@
 import 'package:flipper_services/constants.dart';
-import 'package:flipper_ui/helpers/stack.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/realm_model_export.dart';
 
 class KeyPadService with ListenableServiceMixin {
-  final _key = ReactiveValue<String>("0.00");
-  Stack stack = Stack<String>();
-
   final _quantity = ReactiveValue<double>(1.0);
 
   get quantity => _quantity.value;
-
-  String get key => _key.value;
 
   final _countTransactionItems = ReactiveValue<int>(0);
 
@@ -29,11 +23,6 @@ class KeyPadService with ListenableServiceMixin {
   final _cashReceived = ReactiveValue<double>(0.00);
 
   get cashReceived => _cashReceived.value;
-
-  void addKey(String key) {
-    stack.push(key);
-    _key.value = stack.list.join('');
-  }
 
   setAmount({required double amount}) {
     _amountTotal.value = amount;
@@ -67,27 +56,30 @@ class KeyPadService with ListenableServiceMixin {
   }
 
   void setTransaction(ITransaction? transaction) async {
-    if (transaction != null) {
-      _transaction.value = transaction;
-    } else {
-      _transaction.value = null;
-    }
+    ProxyService.realm.realm!.write(() {
+      if (transaction != null) {
+        _transaction.value = transaction;
+      } else {
+        _transaction.value = null;
+      }
+    });
   }
 
   /// transaction can not be more than 1 lenght i.e at one instance
   /// we have one transaction but an transaction can have more than 1 transactionitem(s)
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
   Future<ITransaction?> getPendingTransaction({required int branchId}) async {
-    ITransaction? transaction = await ProxyService.realm.pendingTransaction(
-        branchId: branchId, transactionType: TransactionType.custom);
+    ITransaction? transaction = await ProxyService.realm.manageTransaction(
+      transactionType: TransactionType.sale,
+      includeSubTotalCheck: false,
+    );
 
-    if (transaction != null) {
-      List<TransactionItem> items = await ProxyService.realm.transactionItems(
-          transactionId: transaction.id!,
-          doneWithTransaction: false,
-          active: true);
-      _countTransactionItems.value = items.length;
-    }
+    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+        transactionId: transaction.id!,
+        doneWithTransaction: false,
+        active: true);
+    _countTransactionItems.value = items.length;
+
     _transaction.value = transaction;
     return transaction;
   }
@@ -102,14 +94,6 @@ class KeyPadService with ListenableServiceMixin {
 
     _transaction.value = od;
     return _transaction.value!;
-  }
-
-  void reset() {
-    _key.value = '0.0';
-    while (stack.isNotEmpty) {
-      stack.pop();
-    }
-    notifyListeners();
   }
 
   void increaseQty({required bool custom, double? qty}) {
@@ -137,21 +121,11 @@ class KeyPadService with ListenableServiceMixin {
   /// but with new structure the clear or + button set the key back to 0.0
   /// therefore there is no reason to use pop strategy but I am keeping the code
   /// here for later reference.
-  void pop() {
-    if (stack.isNotEmpty && stack.length > 1) {
-      stack.pop();
-      _key.value = stack.list.join('');
-    } else if (stack.isNotEmpty) {
-      stack.pop();
-      _key.value = '0.0';
-    }
-  }
 
   //increase quantity
 
   KeyPadService() {
     listenToReactiveValues([
-      _key,
       _transaction,
       _countTransactionItems,
       _quantity,

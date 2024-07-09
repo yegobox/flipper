@@ -1,6 +1,16 @@
-import 'dart:async';
+// ignore_for_file: unused_result
 
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flipper_dashboard/FieldCompositeActivated.dart';
+import 'package:flipper_dashboard/SearchProduct.dart';
+import 'package:flipper_dashboard/CompositeVariation.dart';
+import 'package:flipper_dashboard/ToggleButtonWidget.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_dashboard/create/browsePhotos.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -10,6 +20,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 
 class QuantityCell extends StatelessWidget {
@@ -50,7 +61,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   double _iconSize = 24;
   Color pickerColor = Colors.amber;
 
-  bool _savingInProgress = false;
+  bool _selectAll = false;
+  bool _showDeleteButton = false;
 
   String selectedPackageUnitValue = "BJ: Bucket Bucket";
 
@@ -111,9 +123,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
   TextEditingController retailPriceController = TextEditingController();
   TextEditingController supplyPriceController = TextEditingController();
   TextEditingController scannedInputController = TextEditingController();
+  TextEditingController barCodeController = TextEditingController();
+  TextEditingController skuController = TextEditingController();
   FocusNode scannedInputFocusNode = FocusNode();
   Timer? _inputTimer;
   final _formKey = GlobalKey<FormState>();
+  final _fieldComposite = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -182,35 +197,93 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     });
   }
 
-  Widget _buildUnitDropdown(
+  Widget _buildUniversalProductDropDown(
+      BuildContext context, ScannViewModel model, Variant variant) {
+    final unitsAsyncValue = ref.watch(universalProductsNames);
+
+    return unitsAsyncValue.when(
+      data: (items) {
+        final List<String> itemClsCdList = items.asData?.value
+                .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))
+                .toList() ??
+            [];
+
+        // talker.warning(itemClsCdList);
+        return Container(
+          width: double.infinity,
+          child: DropdownSearch<String>(
+            items: itemClsCdList,
+            selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                disabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+              ),
+            ),
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                // Loop through model.scannedVariants
+                for (var scannedVariant in model.scannedVariants) {
+                  // Find the related variant based on some criteria
+                  // For example, matching variant.id
+                  if (scannedVariant.id == variant.id) {
+                    // Update the variant.itemClsCd with the value of newValue
+                    final value = newValue.split(' ').last;
+                    scannedVariant.itemClsCd = value;
+                    break; // Exit the loop since the variant is found and updated
+                  }
+                }
+              }
+            },
+          ),
+        );
+      },
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text('Error: $error'),
+    );
+  }
+
+  Widget _buildUnitOfMeasureDropDown(
       BuildContext context, Variant variant, ScannViewModel model) {
     final unitsAsyncValue = ref.watch(unitsProvider);
 
     return unitsAsyncValue.when(
       data: (units) {
         return Container(
-          width: double.infinity, // Adjust the width as needed
+          width: double.infinity,
           child: DropdownSearch<String>(
             items: units.asData?.value.map((unit) => unit.name!).toList() ?? [],
             selectedItem: variant.unit,
             dropdownDecoratorProps: DropDownDecoratorProps(
               dropdownSearchDecoration: InputDecoration(
                 border: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border
+                  borderSide: BorderSide.none,
                 ),
                 disabledBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide.none, // Remove the border when disabled
+                  borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border when enabled
+                  borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none, // Remove the border when focused
+                  borderSide: BorderSide.none,
                 ),
                 errorBorder: OutlineInputBorder(
-                  borderSide:
-                      BorderSide.none, // Remove the border when in error state
+                  borderSide: BorderSide.none,
                 ),
                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
               ),
@@ -225,14 +298,46 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
     );
   }
 
-  // Helper function to get a valid color or a default color
+  Widget _buildTaxDropdown(
+      BuildContext context, Variant variant, ScannViewModel model) {
+    final List<String> options = ["A", "B", "C", "D"];
 
-// Helper function to check if a string is a valid hexadecimal color code
-
-  void _showSaveInProgressToast() {
-    toast('Saving item in progress, please be patient!');
+    return DropdownSearch<String>(
+      items: options,
+      selectedItem: variant.taxTyCd ?? "B",
+      dropdownDecoratorProps: DropDownDecoratorProps(
+        dropdownSearchDecoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
+        ),
+      ),
+      onChanged: (String? newValue) {
+        try {
+          ProxyService.realm.realm!.write(() => variant.taxTyCd = newValue!);
+        } catch (e) {
+          talker.error(e);
+        }
+      },
+    );
   }
 
+  // Helper function to get a valid color or a default color
+
+  // Helper function to check if a string is a valid hexadecimal color code
   void _showNoProductNameToast() {
     toast('No product name!');
   }
@@ -243,32 +348,27 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   Future<void> _saveProductAndVariants(
       ScannViewModel model, BuildContext context, Product productRef) async {
-    if (model.productName == null) {
+    if (model.kProductName == null) {
       _showNoProductNameToast();
       return;
     }
 
     if (widget.productId != null) {
-      await model.bulkUpdateVariants(true);
+      await model.bulkUpdateVariants(true, color: model.currentColor);
+    } else {
+      await model.addVariant(
+          variations: model.scannedVariants,
+          packagingUnit: selectedPackageUnitValue.split(":")[0]);
     }
 
-    await model.addVariant(
-        variations: model.scannedVariants,
-        packagingUnit: selectedPackageUnitValue.split(":")[0]);
     model.currentColor = pickerColor.toHex();
 
-    Product? product = await model.saveProduct(
-      mproduct: productRef,
-      inUpdateProcess: widget.productId != null,
-    );
+    await model.saveProduct(
+        mproduct: productRef,
+        color: model.currentColor,
+        inUpdateProcess: widget.productId != null,
+        productName: model.kProductName!);
 
-    ref
-        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
-        .addProducts(products: [
-      if (product != null) ...[product]
-    ]);
-    // Future.delayed(Duration(seconds: 3));
-    /// reload saved product
     final searchKeyword = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
     ref
@@ -276,25 +376,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         .loadProducts(searchString: searchKeyword, scanMode: scanMode);
 
     /// end of reloading
+
+    /// attempt to see newly created product
+    ref.read(searchStringProvider.notifier).emitString(value: "search");
+    ref.read(searchStringProvider.notifier).emitString(value: "");
+
+    ref
+        .read(productsProvider(ProxyService.box.getBranchId()!).notifier)
+        .loadProducts(searchString: model.kProductName ?? "", scanMode: true);
     toast("Product Saved");
     Navigator.maybePop(context);
   }
 
   void _onSaveButtonPressed(
       ScannViewModel model, BuildContext context, Product product) {
-    // _saveProductAndVariants(model, context, product);
-    if (!_savingInProgress) {
-      setState(() {
-        _savingInProgress = true;
-      });
-
-      if (model.scannedVariants.isEmpty) {
-        _showNoProductSavedToast();
-      } else {
-        _saveProductAndVariants(model, context, product);
-      }
+    if (model.scannedVariants.isEmpty && widget.productId == null) {
+      _showNoProductSavedToast();
     } else {
-      _showSaveInProgressToast();
+      _saveProductAndVariants(model, context, product);
     }
   }
 
@@ -341,7 +440,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productRef = ref.watch(productProvider);
+    final productRef = ref.watch(unsavedProductProvider);
     return ViewModelBuilder<ScannViewModel>.reactive(
       viewModelBuilder: () => ScannViewModel(),
       onViewModelReady: (model) async {
@@ -350,15 +449,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
 
           Product product =
               await model.getProduct(productId: widget.productId!);
-          ref.read(productProvider.notifier).emitProduct(value: product);
+          ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
 
           // Populate product name with the name of the product being edited
           productNameController.text = product.name!;
-          model.setProductName(name: product.name);
+          model.setProductName(name: product.name!);
 
           // Populate variants related to the product
-          List<Variant> variants = await ProxyService.realm
-              .getVariantByProductId(productId: widget.productId!);
+          List<Variant> variants = await ProxyService.realm.variants(
+              productId: widget.productId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           /// populate the supplyPrice and retailPrice of the first item
           /// this in assumption that all variants added has same supply and retail price
@@ -376,7 +476,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
         } else {
           // If productId is not given, create a new product
           Product? product = await model.createProduct(name: TEMP_PRODUCT);
-          ref.read(productProvider.notifier).emitProduct(value: product!);
+          ref
+              .read(unsavedProductProvider.notifier)
+              .emitProduct(value: product!);
         }
 
         model.initialize();
@@ -390,307 +492,584 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: Container(
-                      width: 300, // Set a specific width
-                      height: 50, // Set a specific height
-                      child: Row(
-                        children: [
-                          ElevatedButton(
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                          content: SingleChildScrollView(
-                                        child: BlockPicker(
-                                          pickerColor: pickerColor,
-                                          onColorChanged: changeColor,
-                                          availableColors: colors,
-                                          layoutBuilder: pickerLayoutBuilder,
-                                        ),
-                                      ));
-                                    });
-                              },
-                              child: Icon(Icons.color_lens,
-                                  color: useWhiteForeground(pickerColor)
-                                      ? Colors.white
-                                      : Colors.black),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: pickerColor,
-                                shadowColor: pickerColor.withOpacity(1),
-                                elevation: 0,
-                              )),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () => _onSaveButtonPressed(
-                              model,
-                              context,
-                              productRef!,
-                            ),
-                            child: const Text('Save'),
-                          ),
-                          SizedBox(width: 10),
-                          ElevatedButton(
-                            onPressed: () async {
-                              Navigator.maybePop(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red, // Background color
-                              foregroundColor: Colors.white, // Text color
-                            ),
-                            child: const Text('Close'),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      controller: productNameController,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (value) {
-                        model.setProductName(name: value);
-                      },
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Product name is required';
-                        } else if (value.length < 3) {
-                          return 'Product name must be at least 3 characters long';
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Product Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      controller: retailPriceController,
-                      onChanged: (value) => model.setRetailPrice(price: value),
-                      decoration: InputDecoration(
-                        labelText: 'Retail Price',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      textInputAction: TextInputAction.next,
-                      controller: supplyPriceController,
-                      onChanged: (value) => model.setSupplyPrice(price: value),
-                      decoration: InputDecoration(
-                        labelText: 'Supply Price',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      keyboardType: TextInputType.number,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: TextFormField(
-                      controller: scannedInputController,
-                      decoration: InputDecoration(
-                        labelText: 'Scan or Type',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16.0),
-                      ),
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (scannedInput) {
-                        _inputTimer?.cancel();
-                        _inputTimer = Timer(const Duration(seconds: 1), () {
-                          if (scannedInput.isNotEmpty) {
-                            model.onAddVariant(
-                              editmode: widget.productId != null,
-                              variantName: scannedInput,
-                              isTaxExempted: false,
-                              product: productRef!,
-                            );
-                            scannedInputController.clear();
-                            scannedInputFocusNode.requestFocus();
-                          }
-                        });
-                      },
-                      focusNode: scannedInputFocusNode,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: model.EBMenabled
-                        ? _buildDropdownButton(model)
-                        : const SizedBox.shrink(),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Product Name: ${model.productName}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Stack(
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: ListView(
-                          children: [
-                            DataTable(
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Colors
-                                      .transparent, // Set the border color to transparent to remove the border
-                                ),
-                              ),
-                              columns: const [
-                                DataColumn(label: Text('Variant Name')),
-                                DataColumn(label: Text('Price')),
-                                DataColumn(label: Text('Created At')),
-                                DataColumn(label: Text('Quantity')),
-                                DataColumn(label: Text('Unit of Measure')),
-                                DataColumn(label: Text('Action')),
-                              ],
-                              rows:
-                                  model.scannedVariants.reversed.map((variant) {
-                                return DataRow(
-                                    color: MaterialStateProperty.resolveWith<
-                                        Color?>((Set<MaterialState> states) {
-                                      if (states
-                                          .contains(MaterialState.selected)) {
-                                        return Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withOpacity(0.08);
-                                      }
-                                      return null; // Use the default value.
-                                    }),
-                                    cells: [
-                                      DataCell(Text(variant.name!)),
-                                      DataCell(Text(variant.retailPrice
-                                          .toStringAsFixed(2))),
-                                      DataCell(
-                                        Text(
-                                          variant.lastTouched == null
-                                              ? ''
-                                              : variant.lastTouched!
-                                                  .toLocal()
-                                                  .toIso8601String(),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        QuantityCell(
-                                          quantity: variant.qty,
-                                          onEdit: () {
-                                            _showEditQuantityDialog(
-                                              context,
-                                              variant,
-                                              model,
-                                              () {
-                                                FocusScope.of(context)
-                                                    .requestFocus(
-                                                        scannedInputFocusNode);
-                                              },
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      //TODO: add tax options here to be attached to a variant.
-                                      DataCell(
-                                        _buildUnitDropdown(
-                                            context, variant, model),
-                                      ),
+                  topButtons(context, model, productRef),
 
-                                      DataCell(
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            model.removeVariant(
-                                                id: variant.id!);
-                                          },
-                                          child: const Text('Delete'),
-                                        ),
-                                      ),
-                                    ]);
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Display a confirmation dialog or perform any other action
-                            bool confirmed = await showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: Text('Confirm Deletion'),
-                                  content: Text(
-                                      'Are you sure you want to delete all variants?'),
-                                  actions: <Widget>[
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(false);
-                                      },
-                                      child: Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(true);
-                                      },
-                                      child: Text('Delete'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
+                  /// toggle between is composite vs non-composite product
+                  ToggleButtonWidget(),
 
-                            // If user confirmed, call model.deleteAllVariants()
-                            if (confirmed == true) {
-                              model.deleteAllVariants();
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red, // Background color
-                            foregroundColor: Colors.white, // Text color
-                          ),
-                          child: const Text('Delete'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  /// End of toggle
+                  productNameField(model),
+                  retailPrice(model),
+                  supplyPrice(model),
+                  !ref.watch(isCompositeProvider)
+                      ? scanField(model, productRef)
+                      : SizedBox.shrink(),
+                  packagingDropDown(model),
+                  // previewName(model),
+                  !ref.watch(isCompositeProvider)
+                      ? TableVariants(model, context)
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? Fieldcompositeactivated(
+                          formKey: _fieldComposite,
+                          skuController: skuController,
+                          barCodeController: barCodeController,
+                        )
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? SearchProduct()
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text("Components"),
+                        )
+                      : SizedBox.shrink(),
+                  ref.watch(isCompositeProvider)
+                      ? CompositeVariation(
+                          supplyPriceController: supplyPriceController)
+                      : SizedBox.shrink(),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Future<String?> getImageFilePath({required String imageFileName}) async {
+    final appSupportDir = await getApplicationSupportDirectory();
+    final imageFilePath = '${appSupportDir.path}/${imageFileName}';
+    final file = File(imageFilePath);
+
+    if (await file.exists()) {
+      talker.info("image exist at path ${imageFilePath}");
+      return imageFilePath;
+    } else {
+      talker.info("image does not exist at path ${imageFilePath}");
+      return null;
+    }
+  }
+
+  Widget topButtons(
+      BuildContext context, ScannViewModel productModel, Product? productRef) {
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => UploadViewModel(),
+        builder: (context, model, child) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                        onPressed: () {
+                          showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                    content: SingleChildScrollView(
+                                  child: BlockPicker(
+                                    pickerColor: pickerColor,
+                                    onColorChanged: changeColor,
+                                    availableColors: colors,
+                                    layoutBuilder: pickerLayoutBuilder,
+                                  ),
+                                ));
+                              });
+                        },
+                        child: Icon(Icons.color_lens,
+                            color: useWhiteForeground(pickerColor)
+                                ? Colors.white
+                                : Colors.black),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: pickerColor,
+                          shadowColor: pickerColor.withOpacity(1),
+                          elevation: 0,
+                        )),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () {
+                        /// form is validated and we are not dealing with composite product
+                        if (_formKey.currentState!.validate() &&
+                            !ref.watch(isCompositeProvider)) {
+                          _onSaveButtonPressed(
+                            productModel,
+                            context,
+                            productRef!,
+                          );
+                        } else if (_fieldComposite.currentState?.validate() ??
+                            false) {
+                          /// we are now officially dealing with composite product
+                          talker.info(
+                              "we are dealing with composite product now handle down");
+
+                          List<VariantState> partOfComposite =
+                              ref.watch(selectedVariantsLocalProvider);
+                          for (var i = 0; i < partOfComposite.length; i++) {
+                            partOfComposite[i].variant.id;
+                            talker.info(
+                                "This is the variant on composite${partOfComposite[i].variant.id}");
+
+                            /// now save each
+                            ProxyService.realm.saveComposite(
+                              composite: Composite(ObjectId(),
+                                  id: randomNumber(),
+                                  businessId: ProxyService.box.getBusinessId(),
+                                  productId:
+                                      ref.read(unsavedProductProvider)!.id!,
+                                  qty: partOfComposite[i].quantity,
+                                  actualPrice: double.tryParse(
+                                          retailPriceController.text) ??
+                                      0.0,
+                                  branchId: ProxyService.box.getBranchId(),
+                                  variantId: partOfComposite[i].variant.id),
+                            );
+                          }
+
+                          /// because this product has no variant attached
+                          // final productRef = ref.watch(productProvider);
+                          String sku = skuController.text;
+                          String barCode = barCodeController.text;
+                          String name = productNameController.text;
+
+                          /// print the sku and bar
+                          talker.info("SKU ${sku} Bar Code ${barCode}");
+
+                          Product? product = ProxyService.realm.getProduct(
+                              id: ref.read(unsavedProductProvider)!.id!);
+
+                          /// update the product with propper name
+                          ProxyService.realm.realm!.write(() {
+                            product?.name = productNameController.text;
+                            product?.color = model.currentColor;
+                            product?.isComposite = true;
+                          });
+
+                          /// create the default variant to represent this composite item, in flipper each product
+                          /// has a default variant
+                          ProxyService.realm.createVariant(
+                            itemSeq: 1,
+
+                            /// because this is a placeholder variant, then qty does not matter in this scenario
+                            /// we only care about it when the qty will be involved in manaing stock
+                            /// but for composite, stock is managed to the level of the composites item not the default item on product
+                            qty: 1,
+                            barCode: barCode,
+                            sku: sku,
+                            retailPrice:
+                                double.tryParse(retailPriceController.text) ??
+                                    0,
+                            supplierPrice:
+                                double.tryParse(supplyPriceController.text) ??
+                                    0,
+                            productId: product!.id!,
+                            color: product.color,
+                            name: name,
+                          );
+
+                          /// refresh the list
+                          final combinedNotifier = ref.read(refreshPrivider);
+                          combinedNotifier.performActions(
+                              productName: "", scanMode: true);
+                          ref
+                              .read(selectedVariantsLocalProvider.notifier)
+                              .clearState();
+                          Navigator.maybePop(context);
+
+                          /// at the end then save the product with the composite attached.
+                        }
+                      },
+                      child: const Text('Save'),
+                    ),
+                    SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.maybePop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Background color
+                        foregroundColor: Colors.white, // Text color
+                      ),
+                      child: const Text('Close'),
+                    )
+                  ],
+                ),
+              ),
+              if (ref.watch(unsavedProductProvider)?.imageUrl != null)
+                FutureBuilder(
+                  future: getImageFilePath(
+                      imageFileName:
+                          ref.watch(unsavedProductProvider)!.imageUrl!),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      final imageFilePath = snapshot.data as String;
+                      return Container(
+                        width: 200, // Specify the width you need
+                        height: 200, // Specify the height you need
+                        child: Image.file(
+                          new File(imageFilePath),
+                          fit: BoxFit.cover,
+                        ),
+                      );
+                    } else {
+                      return Container(
+                        width: 200,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 50,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                )
+              else
+                Container(
+                  width: 200,
+                  height: 200,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(
+                      Icons.image,
+                      size: 50,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ),
+              Browsephotos(
+                productId: ref.read(unsavedProductProvider)?.id ?? 0,
+              )
+            ],
+          );
+        });
+  }
+
+  Padding productNameField(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        controller: productNameController,
+        textInputAction: TextInputAction.next,
+        onChanged: (value) {
+          model.setProductName(name: value);
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Product name is required';
+          } else if (value.length < 3) {
+            return 'Product name must be at least 3 characters long';
+          }
+          return null;
+        },
+        decoration: InputDecoration(
+          labelText: 'Product Name',
+          labelStyle: const TextStyle(
+            // Add labelStyle
+            color: Colors.black,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          // When in error state
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
+          // When in error state and focused
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Container previewName(ScannViewModel model) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      alignment: Alignment.center,
+      child: Text(
+        'Product Name: ${model.kProductName}',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Padding packagingDropDown(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: model.EBMenabled
+          ? _buildDropdownButton(model)
+          : const SizedBox.shrink(),
+    );
+  }
+
+  Padding scanField(ScannViewModel model, Product? productRef) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        controller: scannedInputController,
+        decoration: InputDecoration(
+          labelText: 'Scan or Type',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (scannedInput) {
+          _inputTimer?.cancel();
+          _inputTimer = Timer(const Duration(seconds: 1), () {
+            if (scannedInput.isNotEmpty) {
+              model.onAddVariant(
+                editmode: widget.productId != null,
+                variantName: scannedInput,
+                isTaxExempted: false,
+                product: productRef!,
+              );
+              scannedInputController.clear();
+              scannedInputFocusNode.requestFocus();
+            }
+          });
+        },
+        focusNode: scannedInputFocusNode,
+      ),
+    );
+  }
+
+  Padding supplyPrice(ScannViewModel model) {
+    bool isComposite = ref.watch(isCompositeProvider);
+
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        textInputAction: TextInputAction.next,
+        controller: supplyPriceController,
+        readOnly: isComposite,
+        onChanged: (value) => model.setSupplyPrice(price: value),
+        decoration: InputDecoration(
+          labelText: 'Cost',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+          filled: isComposite, // Fill the background color when read-only
+          fillColor: isComposite
+              ? Colors.grey[200]
+              : null, // Light grey background when read-only
+          suffixIcon: isComposite
+              ? Icon(Icons.lock,
+                  color: Colors.grey) // Lock icon to indicate read-only
+              : null,
+        ),
+        keyboardType: TextInputType.number,
+        style: TextStyle(
+          color: isComposite
+              ? Colors.grey
+              : Colors.black, // Lighter text color when read-only
+        ),
+      ),
+    );
+  }
+
+  Padding retailPrice(ScannViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: TextFormField(
+        textInputAction: TextInputAction.next,
+        controller: retailPriceController,
+        onChanged: (value) => model.setRetailPrice(price: value),
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Price is required';
+          }
+
+          // Use tryParse to check if the value can be converted to a double
+          if (double.tryParse(value) == null) {
+            return 'Wrong value given';
+          }
+
+          return null; // Validation passed
+        },
+        decoration: InputDecoration(
+          labelText: 'Price',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        keyboardType: TextInputType.number,
+      ),
+    );
+  }
+
+  Stack TableVariants(ScannViewModel model, BuildContext context) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: 200,
+          child: ListView(
+            children: [
+              DataTable(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.transparent,
+                  ),
+                ),
+                columns: [
+                  DataColumn(
+                    label: Row(
+                      children: [
+                        Checkbox(
+                          value: _selectAll,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectAll = value!;
+                              _showDeleteButton = value;
+                            });
+                          },
+                        ),
+                        const Text('All'),
+                      ],
+                    ),
+                  ),
+                  const DataColumn(label: Text('Name')),
+                  const DataColumn(label: Text('Price')),
+                  const DataColumn(label: Text('Created At')),
+                  const DataColumn(label: Text('Quantity')),
+                  const DataColumn(label: Text('Tax')),
+                  const DataColumn(label: Text('Unit')),
+                  const DataColumn(label: Text('Classification')),
+                  const DataColumn(label: Text('Action')),
+                ],
+                rows: model.scannedVariants.reversed.map((variant) {
+                  return DataRow(
+                    color: WidgetStateProperty.resolveWith<Color?>(
+                        (Set<WidgetState> states) {
+                      if (states.contains(WidgetState.selected)) {
+                        return Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.08);
+                      }
+                      return null; // Use the default value.
+                    }),
+                    cells: [
+                      DataCell(Checkbox(
+                        value: _selectAll,
+                        onChanged: (value) {
+                          // Handle row checkbox state if needed
+                        },
+                      )),
+                      DataCell(Text(variant.name!)),
+                      DataCell(Text(variant.retailPrice.toStringAsFixed(2))),
+                      DataCell(
+                        Text(
+                          variant.lastTouched == null
+                              ? ''
+                              : variant.lastTouched!
+                                  .toLocal()
+                                  .toIso8601String(),
+                        ),
+                      ),
+                      DataCell(
+                        QuantityCell(
+                          quantity: variant.qty,
+                          onEdit: () {
+                            _showEditQuantityDialog(
+                              context,
+                              variant,
+                              model,
+                              () {
+                                FocusScope.of(context)
+                                    .requestFocus(scannedInputFocusNode);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      DataCell(
+                        _buildTaxDropdown(context, variant, model),
+                      ),
+                      DataCell(
+                        _buildUnitOfMeasureDropDown(context, variant, model),
+                      ),
+                      DataCell(
+                        _buildUniversalProductDropDown(context, model, variant),
+                      ),
+                      DataCell(
+                        ElevatedButton(
+                          onPressed: () {
+                            model.removeVariant(id: variant.id!);
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+        if (_showDeleteButton)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: ElevatedButton(
+              onPressed: () async {
+                // Display a confirmation dialog or perform any other action
+                bool confirmed = await showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Confirm Deletion'),
+                      content:
+                          Text('Are you sure you want to delete all variants?'),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(false);
+                          },
+                          child: Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(true);
+                          },
+                          child: Text('Delete'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                // If user confirmed, call model.deleteAllVariants()
+                if (confirmed == true) {
+                  model.deleteAllVariants();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Background color
+                foregroundColor: Colors.white, // Text color
+              ),
+              child: const Text('Delete'),
+            ),
+          ),
+      ],
     );
   }
 }

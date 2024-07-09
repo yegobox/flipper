@@ -211,7 +211,7 @@ class CashbookState extends ConsumerState<Cashbook> {
         KeyPadView.cashBookMode(
           model: model,
           isBigScreen: widget.isBigScreen,
-          transactionMode: true,
+          accountingMode: true,
           transactionType: model.newTransactionType,
         ),
       ],

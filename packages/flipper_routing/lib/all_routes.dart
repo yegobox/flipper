@@ -18,6 +18,8 @@ export 'package:flipper_dashboard/create/add_variation.dart';
 export 'package:flipper_dashboard/create/color_tile.dart';
 export 'package:flipper_dashboard/create/list_categories.dart';
 export 'package:flipper_dashboard/create/list_units.dart';
+export 'package:flipper_dashboard/TransactionList.dart';
+//
 export 'package:flipper_dashboard/create/receive_stock.dart';
 export 'package:flipper_dashboard/customers.dart';
 export 'package:flipper_dashboard/flipper_app.dart';

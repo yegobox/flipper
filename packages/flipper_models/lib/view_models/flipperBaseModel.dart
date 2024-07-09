@@ -11,9 +11,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/services.dart';
 
 class FlipperBaseModel extends ReactiveViewModel {
-  final DialogService _dialogService = locator<DialogService>();
-
-  final _routerService = locator<RouterService>();
   void openDrawer() {
     Drawers drawer = Drawers(
       ObjectId(),
@@ -26,6 +23,7 @@ class FlipperBaseModel extends ReactiveViewModel {
       open: true,
     );
 
+    final _routerService = locator<RouterService>();
     _routerService.navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
   }
 
@@ -42,6 +40,8 @@ class FlipperBaseModel extends ReactiveViewModel {
   /// keyboard events handler
 
   void handleKeyBoardEvents({required KeyEvent event}) {
+    final DialogService _dialogService = locator<DialogService>();
+
     if (event.logicalKey == LogicalKeyboardKey.f9) {
       print("F9 is pressed");
       // Add your F9 key handling logic here

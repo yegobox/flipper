@@ -105,7 +105,7 @@ class _LoginChoicesState extends State<LoginChoices> {
   ) async {
     model.setDefaultBusiness(business: selectedBusiness);
     ProxyService.box
-        .writeString(key: 'bhfId', value: selectedBusiness.bhfId ?? "");
+        .writeString(key: 'bhfId', value: ProxyService.box.bhfId() ?? "00");
     ProxyService.box
         .writeInt(key: 'tin', value: selectedBusiness.tinNumber ?? 0);
 

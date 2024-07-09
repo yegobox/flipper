@@ -11,6 +11,7 @@ import 'all_routes.dart';
     CustomRoute(page: SignUpView),
     CustomRoute(page: FlipperApp),
 
+    // CustomRoute(page: TransactionList),
     //Login Routes
     CustomRoute(page: LoginView),
     CustomRoute(page: Landing),
@@ -51,7 +52,7 @@ import 'all_routes.dart';
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: ChatListView),
     CustomRoute(page: ConversationHistory),
-    CustomRoute(page: Tickets),
+    CustomRoute(page: TicketsList),
     CustomRoute(page: NewTicket),
     CustomRoute(page: Apps),
     CustomRoute(page: CheckOut),
@@ -91,10 +92,6 @@ class App {}
 // NOTE: we have custom toast service you can call it like this  showToast(
 //                                 context, 'Binded to ${tenants[index].name}');
 // flutter attach -d <DEVICE_ID>
-// 
-// FIXME: windows is not building
-// https://github.com/flutter/flutter/issues/102451#issuecomment-1124651845
-// https://github.com/mogol/flutter_secure_storage/issues/379
 
 // FIXME: use dart-define for secrets
 // https://thiele.dev/blog/part-1-configure-a-flutter-app-with-dart-define-environment-variable/
@@ -105,7 +102,6 @@ class App {}
 // https://www.youtube.com/watch?v=sqw-taR2_Ww
 // TODO: implement shortcut https://www.youtube.com/watch?v=WMVoNA5cY9A
 //TODO: can I sync data acrross connect bluethooth?? https://github.com/boskokg/flutter_blue_plus
-// FIXME: https://github.com/isar/isar/issues/686
 // TODO: tip for pro flutter web: https://www.youtube.com/watch?v=ZFx9leiFlvM
 
 /// packages to use in socials
@@ -128,7 +124,7 @@ class App {}
 // -https://pub.dev/packages/tray_manager
 // -ref: https://github.com/Merrit/adventure_list/blob/main/lib/src/system_tray/system_tray_manager.dart
 // TODO:  packages we can use
-// - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to remove the one we use on while showing product item)
+// - https://github.com/luckysmg/flutter_swipe_action_cell(if we choose to use this, then we will need to  the one we use on while showing product item)
 // git submodule update --remote --merge 
 // git config submodule.recurse false
 // git pull https://github.com/joelhigi/flipper.git stable
@@ -432,7 +428,100 @@ class App {}
 /// 1. update branchId and businessId in counter in realm
 /// 2. test receipt see if I am not getting counter issue
 // / 999959413
+/// 999909695 Client tin
 /// enhance login and permission https://github.com/quarkusio/quarkus-quickstarts/tree/main/security-keycloak-authorization-quickstart
 /// https://quarkus.io/guides/security-keycloak-authorization
 /// https://www.keycloak.org/migration/migrating-to-quarkus
+///
+/// git commit -am "[build release windows] [build release android]" 
 
+/// https://medium.com/lodgify-technology-blog/deploy-your-flutter-app-to-google-play-with-github-actions-f13a11c4492e
+/// base64 -i upload-keystore.jks -o keystoreBase64
+/// ShoreBird skll down here!
+/// shorebird release android
+/// ✅ Published Release 1.170.4252223231897+1717794359!
+/// Your next step is to upload the app bundle to the Play Store:
+/// Users/richard/Documents/GitHub/flipper/apps/flipper/build/app/outputs/bundle/release/app-release.aab
+
+/// For information on uploading to the Play Store, see:
+/// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
+
+/// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223232017+1720068464
+
+/// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
+/// 
+///  nohup java -jar rra.war &  echo $! > pid.txt
+
+// {
+//     "resultCd": "000",
+//     "resultMsg": "It is succeeded",
+//     "resultDt": "20240610195641",
+//     "data": {
+//         "info": {
+//             "tin": "999909695",
+//             "taxprNm": "TESTING COMPANY 14 LTD",
+//             "bsnsActv": null,
+//             "bhfId": "00",
+//             "bhfNm": "Headquarter",
+//             "bhfOpenDt": "20210927",
+//             "prvncNm": "SOUTH",
+//             "dstrtNm": "KAMONYI",
+//             "sctrNm": "NYARUBAKA",
+//             "locDesc": "RRA",
+//             "hqYn": "Y",
+//             "mgrNm": "TESTING COMPANY 14 LTD",
+//             "mgrTelNo": "0788427097",
+//             "mgrEmail": "ebm@rra.gov.rw",
+//             "sdcId": null,
+//             "mrcNo": null,
+//             "dvcId": "1036147990000001",
+//             "intrlKey": null,
+//             "signKey": null,
+//             "cmcKey": null,
+//             "lastPchsInvcNo": 54,
+//             "lastSaleRcptNo": null,
+//             "lastInvcNo": null,
+//             "lastSaleInvcNo": 7885983517,
+//             "lastTrainInvcNo": null,
+//             "lastProfrmInvcNo": null,
+//             "lastCopyInvcNo": null,
+//             "vatTyCd": null
+//         }
+//     }
+// }
+//  docker run -it -e NGROK_AUTHTOKEN=2iuypwkYzPBh8SXyZbGbH_4XTQbAcY12w4yG7Tyag1h ngrok/ngrok http 8080
+// ngrok http http://localhost:8080 
+
+// ✔ Initialized provider successfully.
+// ✅ Initialized your environment successfully.
+// ✅ Your project has been successfully initialized and connected to the cloud!
+// Some next steps:
+
+// "amplify status" will show you what you've added already and if it's locally configured or deployed
+// "amplify add <category>" will allow you to add features like user login or a backend API
+// "amplify push" will build all your local backend resources and provision it in the cloud
+// "amplify console" to open the Amplify Console and view your project status
+// "amplify publish" will build all your local backend and frontend resources (if you have hosting category added) and provision it in the cloud
+
+
+// Pro tip:
+// Try "amplify add api" to create a backend API and then "amplify push" to deploy everything
+/// https://myrratest.rra.gov.rw/app/ebm/trns/sales/indexTrnsSalesInvoice
+/// FLIPPER-17189
+/// https://momoapi.mtn.co.rw/  
+/// https://partner.mtn.co.rw/
+/// Username: YEGOBOX.SP
+/// JS Interop: https://www.youtube.com/watch?v=cTzmllsYiCI
+/// 
+/// NOTE: deal with python experiment, python will be used
+/// for heavy experimentation.
+///  mkdir py
+///  cd py
+///  python3 -m venv venv
+///  source venv/bin/activate
+///  pip install tensorflow pandas scikit-learn matplotlib
+/// pip install python-dotenv
+/// password: :93h)]6m7V8B
+/// 
+/// 
+/// https://www.mongodb.com/docs/atlas/app-services/data-api/examples/

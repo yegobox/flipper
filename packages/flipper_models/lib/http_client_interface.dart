@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 abstract class HttpClientInterface extends http.BaseClient {
@@ -25,5 +24,5 @@ abstract class HttpClientInterface extends http.BaseClient {
 
   Future<String> read(Uri url, {Map<String, String>? headers});
 
-  Future<Uint8List> readBytes(Uri url, {Map<String, String>? headers});
+  // Future<Uint8List> readBytes(Uri url, {Map<String, String>? headers});
 }

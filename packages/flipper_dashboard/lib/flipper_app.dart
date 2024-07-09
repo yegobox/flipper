@@ -1,8 +1,11 @@
+// ignore_for_file: unused_result
+
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:easy_sidemenu/easy_sidemenu.dart';
+import 'package:flipper_dashboard/NotificationWidget.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -131,19 +134,51 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
+        ref.refresh(pendingTransactionProvider(TransactionType.sale));
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return _buildScaffold(context, model);
+        return Stack(
+          children: [
+            _buildScaffold(context, model),
+            // Directly access the notification stream provider using ref
+            ref.watch(notificationStreamProvider).when(
+              data: (notifications) {
+                // Data is available from the notification stream
+                if (notifications.isNotEmpty) {
+                  return NotificationWidget(
+                    notifications: notifications,
+                    onClearAll: () {},
+                    onAcknowledge: (id) {
+                      print('Notification acknowledged with id: $id');
+                    },
+                  );
+                } else {
+                  return SizedBox.shrink();
+                }
+              },
+              error: (error, stackTrace) {
+                // Handle errors from the notification stream
+                talker.error(stackTrace);
+                // return Text('Error: $error');
+                return SizedBox.shrink();
+              },
+              loading: () {
+                // Display a loading indicator while waiting for notifications
+                return CircularProgressIndicator();
+              },
+            ),
+          ],
+        );
       },
     );
   }
 
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
     // ignore: unused_result
-    ref.refresh(transactionItemsProvider(currentTransaction.value?.value?.id));
+    ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
     initializeApplicationIfRequired();
     model.defaultBranch();
     ProxyService.local.refreshSession(
@@ -175,14 +210,14 @@ class FlipperAppState extends ConsumerState<FlipperApp>
       AppService.cleanedData.listen((data) async {
         log("listened to data");
         final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.custom));
+            ref.watch(pendingTransactionProvider(TransactionType.sale));
         log(data);
         List<String> parts = data.split(':');
         String firstPart = parts[0];
 
         await model.sellWithCard(
           tenantId: int.parse(firstPart),
-          pendingTransaction: pendingTransaction.value!.value!,
+          pendingTransaction: pendingTransaction.value!,
         );
 
         showToast(context, 'Sale recorded successfully.');

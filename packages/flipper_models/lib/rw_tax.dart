@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -18,20 +19,20 @@ import 'package:realm/realm.dart';
 import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger_interceptor.dart';
 import 'package:talker_dio_logger/talker_dio_logger_settings.dart';
-import 'package:flutter/services.dart';
 
 class RWTax implements TaxApi {
   String itemPrefix = "flip-";
-  String ebmUrl = "https://turbo.yegobox.com";
+  // String eBMURL = "https://turbo.yegobox.com";
+  // String eBMURL = "http://10.0.2.2:8080/rra";
 
   RWTax();
 
   @override
-  Future<bool> initApi({
-    required String tinNumber,
-    required String bhfId,
-    required String dvcSrlNo,
-  }) async {
+  Future<bool> initApi(
+      {required String tinNumber,
+      required String bhfId,
+      required String dvcSrlNo,
+      required String URI}) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
     EBM? ebm = await ProxyService.realm
         .getEbmByBranchId(branchId: ProxyService.box.getBranchId()!);
@@ -63,12 +64,14 @@ class RWTax implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<bool> saveStock(
-      {required IStock stock, required IVariant variant}) async {
+      {required IStock stock,
+      required IVariant variant,
+      required String URI}) async {
     try {
       /// update the remaining stock of this item in rra
       variant.rsdQty = stock.currentStock;
       Response response = await sendPostRequest(
-          ebmUrl + "/stockMaster/saveStockMaster", variant.toJson());
+          URI + "/stockMaster/saveStockMaster", variant.toJson());
       // sendEmailLogging(
       //     requestBody: response.requestOptions.data,
       //     subject: "Worked",
@@ -103,9 +106,9 @@ class RWTax implements TaxApi {
         printResponseMessage: true,
       ),
     ));
-    final jsonData = json.encode(data);
+    //final jsonData = json.encode(data);
 
-    Clipboard.setData(ClipboardData(text: jsonData.toString()));
+    // Clipboard.setData(ClipboardData(text: jsonData.toString()));
     try {
       final response = await dio.post(
         baseUrl,
@@ -177,8 +180,9 @@ class RWTax implements TaxApi {
   /// the server. For more information, refer to ‘3.2.4.1 ItemSaveReq/Res’
   /// After saving item then we can use items/selectItems endPoint to get the item information. of item saved before
   @override
-  Future<bool> saveItem({required IVariant variation}) async {
-    final url = '$ebmUrl/items/saveItems';
+  Future<bool> saveItem(
+      {required IVariant variation, required String URI}) async {
+    final url = '${URI}/items/saveItems';
     try {
       final response = await sendPostRequest(url, variation.toJson());
       if (response.statusCode == 200) {
@@ -208,6 +212,7 @@ class RWTax implements TaxApi {
   Future<bool> selectItems({
     required String tinNumber,
     required String bhfId,
+    required String URI,
     String lastReqDt = "20210523000000",
   }) async {
     EBM? ebm = await ProxyService.realm
@@ -242,14 +247,18 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse?> generateReceiptSignature({
-    required ITransaction transaction,
-    required List<TransactionItem> items,
-    required String receiptType,
-    required Counter counter,
-    String? purchaseCode,
-  }) async {
+  Future<RwApiResponse?> generateReceiptSignature(
+      {required ITransaction transaction,
+      required String receiptType,
+      required Counter counter,
+      String? purchaseCode,
+      required String URI}) async {
     Business? business = await ProxyService.local.getBusiness();
+
+    List<TransactionItem> items =
+        await ProxyService.realm.getTransactionItemsByTransactionId(
+      transactionId: transaction.id,
+    );
     String date = DateTime.now()
         .toString()
         .replaceAll(RegExp(r'[:-\s]'), '')
@@ -261,6 +270,40 @@ class RWTax implements TaxApi {
                 qty: item.qty,
                 discount: item.discount,
                 remainingStock: item.remainingStock,
+                itemCd: item.itemCd,
+                variantId: item.id,
+                qtyUnitCd: item.qtyUnitCd,
+                prc: item.price,
+                regrNm: item.regrNm,
+                dcRt: item.dcRt,
+                pkg: item.pkg,
+                dcAmt: item.dcAmt,
+                taxblAmt: item.taxAmt,
+                taxAmt: item.taxAmt,
+                itemClsCd: item.itemClsCd,
+                itemNm: item.name,
+                totAmt: item.totAmt,
+                itemSeq: item.itemSeq,
+                isrccCd: item.isrccCd,
+                isrccNm: item.isrccNm,
+                isrcRt: item.isrcRt,
+                isrcAmt: item.isrcAmt,
+                taxTyCd: item.taxTyCd,
+                bcd: item.bcd,
+                itemTyCd: item.itemTyCd,
+                itemStdNm: item.itemStdNm,
+                orgnNatCd: item.orgnNatCd,
+                pkgUnitCd: item.pkgUnitCd,
+                splyAmt: item.splyAmt,
+                tin: item.tin,
+                bhfId: item.bhfId,
+                dftPrc: item.dftPrc,
+                addInfo: item.addInfo,
+                isrcAplcbYn: item.isrcAplcbYn,
+                useYn: item.useYn,
+                regrId: item.regrId,
+                modrId: item.modrId,
+                modrNm: item.modrNm,
                 name: item.name)
             .toJson())
         .toList();
@@ -277,6 +320,10 @@ class RWTax implements TaxApi {
         salesTyCd = "N";
         rcptTyCd = "R";
         break;
+      case "NS":
+        salesTyCd = "N";
+        rcptTyCd = "S";
+        break;
       case "CS":
         salesTyCd = "C";
         rcptTyCd = "S";
@@ -290,14 +337,63 @@ class RWTax implements TaxApi {
         rcptTyCd = "S";
         break;
       default:
-        salesTyCd = "T";
+        salesTyCd = "N";
         rcptTyCd = "S";
         break;
     }
+
+    ///TODO: refactor required I have code like this in TaxController I will look for a way to put into one place
+    Map<String, double> taxTotals = {
+      'A': 0.0,
+      'B': 0.0,
+      'C': 0.0,
+      'D': 0.0,
+    };
+
+    try {
+      for (var item in items) {
+        // Log the item details
+        talker.warning(
+            "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
+
+        // Fetch the tax configuration
+        var taxConfig =
+            await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+
+        talker.info("Tax To be applied on: ${item.taxTyCd}");
+        // Ensure taxPercentage is not null
+        if (taxConfig.taxPercentage == 0.0) {
+          talker.warning(
+              "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
+          continue; // Skip this item if tax percentage is null
+        }
+
+        // Calculate the tax amount
+        double taxAmount = (((item.price == 0.0 ? 1 : item.price) * item.qty));
+
+        // Accumulate tax amount instead of overwriting
+        String taxType = item.taxTyCd ?? "B";
+        taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
+
+        // Log the accumulated tax amount
+        talker.warning(
+            "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
+      }
+    } catch (s) {
+      talker.error(s);
+    }
+
+    Customer? customer =
+        ProxyService.realm.getCustomer(id: transaction.customerId);
+
+    double totalTaxA = taxTotals['A'] ?? 0.0;
+    double totalTaxB = taxTotals['B'] ?? 0.0;
+    double totalTaxC = taxTotals['C'] ?? 0.0;
+    double totalTaxD = taxTotals['D'] ?? 0.0;
     Map<String, dynamic> data = {
       "tin": business.tinNumber ?? 999909695,
-      "bhfId": business.bhfId ?? "00",
-      "invcNo": counter.curRcptNo,
+      "bhfId": ProxyService.box.bhfId() ?? "00",
+      "invcNo": counter.invcNo,
       "orgInvcNo": 0,
       "salesTyCd": salesTyCd,
       "rcptTyCd": rcptTyCd,
@@ -307,6 +403,13 @@ class RWTax implements TaxApi {
       "salesDt": date.substring(0, 8),
       "stockRlsDt": date,
       "totItemCnt": itemsList.length,
+      "taxblAmtB": totalTaxB,
+      "taxblAmtA": totalTaxA,
+      "taxblAmtC": totalTaxC,
+      "taxblAmtD": totalTaxD,
+      "taxAmtC": totalTaxC,
+      "taxAmtA": totalTaxA,
+      "taxAmtD": totalTaxD,
       "taxAmtB": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
       "totTaxblAmt": totalMinusExemptedProducts,
       "totTaxAmt": (totalMinusExemptedProducts * 18 / 118).toStringAsFixed(2),
@@ -316,24 +419,35 @@ class RWTax implements TaxApi {
       "regrNm": transaction.id,
       "modrId": transaction.id,
       "modrNm": transaction.id,
+      "taxRtA": 0,
+      "taxRtB": 18,
+      "taxRtC": 0,
+      "taxRtD": 0,
+      "custNm": customer?.custNm ?? "N/A",
+      "prcOrdCd": null,
+      "cnclDt": null,
+      "rfdDt": null,
+      "rfdRsnCd": null,
+      "remark": "",
+
       "receipt": {
-        "curRcptNo": counter.curRcptNo,
-        "totRcptNo": counter.totRcptNo,
-        "rptNo": date,
-        "rcptPbctDt": date,
-        "intrlData": itemPrefix +
-            transaction.id.toString() +
-            DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
-        "rcptSign": transaction.id,
-        "trdeNm": business.name ?? "YB",
-        "topMsg": "Shop with us",
+        "rptNo": counter.invcNo,
+        "adrs": "",
+        // "rcptPbctDt": date,
+        // "intrlData": itemPrefix +
+        //     transaction.id.toString() +
+        //     DateTime.now().microsecondsSinceEpoch.toString().substring(0, 10),
+        // "rcptSign": transaction.id,
+        "trdeNm": business.name ?? "YEGOBOX",
+        // "topMsg": "Shop with us",
+        "topMsg":
+            "${business.name}\n\nAddress:${business.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business.tinNumber}",
         "btmMsg": "Welcome",
-        "prchrAcptcYn": "Y"
+        "prchrAcptcYn": "N",
+        "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
       },
       "itemList": itemsList
     };
-    Customer? customer =
-        await ProxyService.realm.getCustomer(id: transaction.customerId);
 
     Map<String, dynamic> finalData;
 
@@ -348,9 +462,9 @@ class RWTax implements TaxApi {
     }
     talker.warning(finalData);
     try {
-      final url = '$ebmUrl/trnsSales/saveSales';
+      final url = '${URI}/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
-
+      // Clipboard.setData(ClipboardData(text: finalData.toString()));
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
@@ -362,8 +476,16 @@ class RWTax implements TaxApi {
         /// update transaction.ebmSynced to true;
         /// update transaction.refunded to false < get this flag given to the type of sale type being used.
         for (TransactionItem item in items) {
+          /// here we update stock, so it is updated back to rra backoffice as we have new!
+
+          Stock? stock =
+              ProxyService.realm.stockByVariantId(variantId: item.variantId!);
+
           ProxyService.realm.realm!.write(() {
             item.ebmSynced = true;
+            if (stock != null) {
+              stock.ebmSynced = false;
+            }
             if (rcptTyCd == "R") {
               item.isRefunded = true;
             }
@@ -410,8 +532,9 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> saveCustomer({required ICustomer customer}) async {
-    final url = '$ebmUrl/branches/saveBrancheCustomers';
+  Future<RwApiResponse> saveCustomer(
+      {required ICustomer customer, required String URI}) async {
+    final url = '${URI}/branches/saveBrancheCustomers';
 
     try {
       final response = await sendPostRequest(url, customer.toJson());
@@ -446,12 +569,13 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> savePurchases({required SaleList item}) async {
-    final baseUrl = ebmUrl + '/trnsPurchase/savePurchases';
+  Future<RwApiResponse> savePurchases(
+      {required SaleList item, required String URI}) async {
+    final baseUrl = URI + '/trnsPurchase/savePurchases';
     //TODO: finalize the remove the hardcoded value such as 999909695 and "00"
     Map<String, dynamic> data = item.toJson();
     data['tin'] = 999909695;
-    data['bhfId'] = "00";
+    data['bhfId'] = ProxyService.box.bhfId() ?? "00";
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;
     data['regrId'] = randomNumber().toString();
@@ -509,12 +633,12 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> selectImportItems({
-    required int tin,
-    required String bhfId,
-    required String lastReqDt,
-  }) async {
-    final baseUrl = ebmUrl + '/imports/selectImportItems';
+  Future<RwApiResponse> selectImportItems(
+      {required int tin,
+      required String bhfId,
+      required String lastReqDt,
+      required String URI}) async {
+    final baseUrl = URI + '/imports/selectImportItems';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -544,8 +668,9 @@ class RWTax implements TaxApi {
   Future<RwApiResponse> selectTrnsPurchaseSales(
       {required int tin,
       required String bhfId,
+      required String URI,
       required String lastReqDt}) async {
-    final baseUrl = ebmUrl + '/trnsPurchase/selectTrnsPurchaseSales';
+    final baseUrl = URI + '/trnsPurchase/selectTrnsPurchaseSales';
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -572,8 +697,9 @@ class RWTax implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> updateImportItems({required Item item}) async {
-    final baseUrl = ebmUrl + '/imports/updateImportItems';
+  Future<RwApiResponse> updateImportItems(
+      {required Item item, required String URI}) async {
+    final baseUrl = URI + '/imports/updateImportItems';
     final data = item.toJson();
 
     try {

@@ -3,7 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  battery_plus
+  amplify_db_common
   connectivity_plus
   desktop_webview_auth
   device_type
@@ -23,7 +23,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   sentry_flutter
   share_plus
   smart_auth
-  system_theme
   tray_manager
   url_launcher_windows
   window_manager

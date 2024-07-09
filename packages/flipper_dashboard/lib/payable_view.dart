@@ -3,19 +3,29 @@ import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/material.dart';
 
-class PayableView extends StatelessWidget {
-  const PayableView(
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+typedef void CompleteTransaction();
+
+class PayableView extends StatefulHookConsumerWidget {
+  PayableView(
       {Key? key,
       required this.onClick,
       required this.ticketHandler,
+      required this.completeTransaction,
       required this.model})
       : super(key: key);
   final Function onClick;
   final Function ticketHandler;
   final CoreViewModel model;
+  final CompleteTransaction? completeTransaction;
+  @override
+  _PayableViewState createState() => _PayableViewState();
+}
 
+class _PayableViewState extends ConsumerState<PayableView> {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -23,43 +33,33 @@ class PayableView extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          //TODO: resume working on ticket, I think they are not necessary in v1 public product
-          // Expanded(
-          //     child: SizedBox(
-          //   height: 64,
-          //   child: TextButton(
-          //     style: secondaryButtonStyle,
-          //     onPressed: () {
-          //       ticketHandler();
-          //     },
-          //     child: StreamBuilder<List<ITransaction>>(
-          //       stream: ProxyService.realm.ticketsStreams(),
-          //       builder: (context, snapshot) {
-          //         final List<ITransaction> transactions = snapshot.data ?? [];
-          //         final int tickets = transactions.length;
-          //
-          //         return StreamBuilder<List<ITransaction>>(
-          //           stream: model.getTransactions(transactionStatus: PENDING),
-          //           builder: (context, snapshot) {
-          //             final List<ITransaction> pendingTransactions =
-          //                 snapshot.data ?? [];
-          //             final int transactionsCount = pendingTransactions.length;
-          //
-          //             return Ticket(
-          //               tickets: tickets,
-          //               transactions: transactionsCount,
-          //               context: context,
-          //             );
-          //           },
-          //         );
-          //       },
-          //     ),
-          //   ),
-          // )),
-          // const SizedBox(
-          //   width: 10,
-          // ),
-          PreviewSaleButton()
+          Expanded(
+              child: SizedBox(
+            height: 64,
+            child: TextButton(
+              style: secondaryButtonStyle,
+              onPressed: () {
+                widget.ticketHandler();
+              },
+              child: StreamBuilder<List<ITransaction>>(
+                stream: ProxyService.realm.ticketsStreams(),
+                builder: (context, snapshot) {
+                  final List<ITransaction> transactions = snapshot.data ?? [];
+                  final int tickets = transactions.length;
+
+                  return Ticket(
+                    tickets: tickets,
+                    transactions: tickets,
+                    context: context,
+                  );
+                },
+              ),
+            ),
+          )),
+          const SizedBox(
+            width: 10,
+          ),
+          PreviewSaleButton(completeTransaction: widget.completeTransaction)
         ],
       ),
     );

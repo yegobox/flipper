@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cd ./open-sources && cd cli_dialog && git checkout main && git pull origin main
 cd .. && cd dart_console && git checkout main && git pull origin main
 cd .. && cd flutter.widgets && git checkout main && git pull origin main

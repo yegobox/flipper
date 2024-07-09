@@ -19,9 +19,9 @@ class SetingsBottomSheetState extends ConsumerState<SetingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.custom));
-    final transactionItemsNotifier = ref
-        .watch(transactionItemsProvider(transaction.value?.value?.id).notifier);
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
+    final transactionItemsNotifier =
+        ref.watch(transactionItemsProvider(transaction.value?.id).notifier);
 
     transactionItemsNotifier.updatePendingTransaction();
 

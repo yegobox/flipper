@@ -9,7 +9,7 @@ abstract class LocalRealmInterface {
   bool isRealmClosed();
   Future<void> refreshSession({required int branchId, int? refreshRate = 5});
   Future<List<UserActivity>> activities({required int userId});
-  Future<String> dbPath({required String path});
+  // Future<String> dbPath({required String path});
   Future<IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
@@ -32,4 +32,8 @@ abstract class LocalRealmInterface {
       {required Business business,
       required Branch branch,
       required String userType});
+  Future<List<UnversalProduct>> universalProductNames({required int branchId});
+  Stream<List<AppNotification>> notificationStream({required int identifier});
+  void notify({required AppNotification notification});
+  AppNotification notification({required int id});
 }

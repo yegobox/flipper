@@ -1,25 +1,28 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
+import 'package:flipper_loading/loading.dart';
 
-import 'bottom_sheets/preview_sale_bottom_sheet.dart';
+typedef void CompleteTransaction();
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
-  const PreviewSaleButton(
-      {Key? key, this.wording, this.mode = SellingMode.forSelling})
-      : super(key: key);
+  const PreviewSaleButton({
+    Key? key,
+    this.wording,
+    this.mode = SellingMode.forSelling,
+    required this.completeTransaction,
+  }) : super(key: key);
   final String? wording;
   final SellingMode mode;
+  final CompleteTransaction? completeTransaction;
   @override
   PreviewSaleButtonState createState() => PreviewSaleButtonState();
 }
@@ -45,7 +48,7 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
   }
 
   void _handleOrderFlow(BuildContext context, CoreViewModel model) {
-    final cartItem = ref.read(productFromSupplier);
+    final cartItem = ref.watch(productFromSupplier); // Use watch here
 
     if (cartItem.value != null && cartItem.value!.isNotEmpty) {
       Navigator.of(context).push(
@@ -54,56 +57,15 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
         ),
       );
     } else {
-      //TODO: show a notification toast
       toast("There is no item on cart");
     }
   }
 
-  void _handleSaleFlow(BuildContext context, CoreViewModel model) async {
-    HapticFeedback.lightImpact();
-
-    _controller.forward();
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
-      ),
-      useRootNavigator: true,
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.only(top: 20.0),
-          child: PreviewSaleBottomSheet(mode: widget.mode),
-        );
-      },
-    );
-
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.light,
-    ));
-    _controller.reverse();
-  }
-
-  String _getFormattedText(String wording, int itemCount) {
-    final formattedItemCount = itemCount != 0 ? '($itemCount)' : '';
-    final previewText = wording.isNotEmpty ? wording : 'Preview Cart';
-
-    return '$previewText $formattedItemCount';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final transaction = widget.mode == SellingMode.forOrdering
-        ? ref.watch(pendingTransactionProvider(TransactionType.cashOut))
-        : ref.watch(pendingTransactionProvider(TransactionType.custom));
-    final itemCount = ref
-            .watch(transactionItemsStreamProvider(transaction.value?.value?.id))
-            .value
-            ?.length ??
-        0;
-    final formattedText = _getFormattedText(widget.wording ?? '', itemCount);
-    return ViewModelBuilder.reactive(
+    final isLoading = ref.watch(loadingProvider);
+
+    return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return SizedBox(
@@ -113,9 +75,9 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
             builder: (context, child) {
               return TextButton(
                 style: primaryButtonStyle.copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith<Color?>(
-                    (Set<MaterialState> states) {
-                      if (states.contains(MaterialState.pressed)) {
+                  backgroundColor: WidgetStateProperty.resolveWith<Color?>(
+                    (Set<WidgetState> states) {
+                      if (states.contains(WidgetState.pressed)) {
                         return _buttonColorTween.value;
                       }
                       return primaryButtonStyle.backgroundColor!
@@ -123,21 +85,26 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: () {
-                  ref.refresh(
-                      transactionItemsProvider(transaction.value?.value?.id));
-                  widget.mode == SellingMode.forSelling
-                      ? _handleSaleFlow(context, model)
-                      : _handleOrderFlow(context, model);
-                },
-                child: Text(
-                  formattedText,
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: const Color(0xffFFFFFF),
-                  ),
-                ),
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        talker.info("init callback to complete transaction");
+                        widget.completeTransaction!();
+                      },
+                child: isLoading
+                    ? Loading(
+                        indicator: BallPulseIndicator(),
+                        size: 50.0,
+                        color: Colors.white,
+                      )
+                    : Text(
+                        "Pay",
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: const Color(0xffFFFFFF),
+                        ),
+                      ),
               );
             },
           ),

@@ -74,7 +74,7 @@ android {
     signingConfigs {
        
         release {
-            keyAlias keystoreProperties['keyAlias']
+            keyAlias keystoreProperties['keyAlias'] // see this in google drive https://drive.google.com/drive/folders/1-FcuzslH4Ul2dgx95yeFrn2mfwVRhZC6?usp=drive_link
             keyPassword keystoreProperties['keyPassword']
             storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
             storePassword keystoreProperties['storePassword']

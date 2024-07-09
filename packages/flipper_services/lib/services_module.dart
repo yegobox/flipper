@@ -259,30 +259,12 @@ abstract class ServicesModule {
     }
   }
 
-  // @preResolve
-  // @LazySingleton()
-  // Future<IsarApiInterface> isarApi() async {
-  //   //first check if we are in testing mode.
-  //   if ((const bool.fromEnvironment('Test') == true)) {
-  //     log("in test mode");
-  //     return await IsarAPIMock().getInstance();
-  //   } else {
-  //     log('in prod mode');
-
-  //     return await IsarAPI().getInstance();
-  //   }
-  // }
-
   @preResolve
   @LazySingleton()
   Future<RealmApiInterface> realmApi() async {
     /// to speed-up the application starting time, when we init realm, we just pass in memory db
     /// then when user login we will close it and switch to flexible sync
-    return await RealmAPI().configure(
-        useInMemoryDb: false,
-
-        /// even on startup should not use fallback only fall to it when there is a need.
-        useFallBack: false);
+    return await RealmAPI().instance();
   }
 
   @preResolve

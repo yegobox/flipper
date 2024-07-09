@@ -3,12 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  amplify_db_common
   desktop_webview_auth
+  device_type
   file_selector_linux
   flutter_window_close
-  isar_flutter_libs
   local_notifier
   printing
+  realm
   screen_retriever
   sentry_flutter
   smart_auth

@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -73,7 +74,7 @@ class IconRowState extends ConsumerState<IconRow> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ToggleButtons(
@@ -81,19 +82,35 @@ class IconRowState extends ConsumerState<IconRow> {
           children: <Widget>[
             GestureDetector(
               onDoubleTap: () {
-                showModalBottomSheet(
+                showDialog(
+                  barrierDismissible: true,
                   context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(10.0)),
+                  builder: (context) => Dialog(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        // maxWidth: 400, // Adjust this value as needed
+                        maxHeight: MediaQuery.of(context).size.height *
+                            0.8, // 80% of screen height
+                      ),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: double.infinity, // Ensure full width
+                                height: 800,
+                                child: TaxConfiguration(
+                                  showheader: false,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  useRootNavigator: true,
-                  builder: (BuildContext context) {
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
-                      child: SetingsBottomSheet(),
-                    );
-                  },
                 );
               },
               child: IconText(
@@ -139,7 +156,7 @@ class IconRowState extends ConsumerState<IconRow> {
               }
             });
 
-            buttonNav(index);
+            buttonNav(index, context);
           },
           isSelected: _isSelected,
           color: Colors.white,
@@ -149,14 +166,13 @@ class IconRowState extends ConsumerState<IconRow> {
     );
   }
 
-  void buttonNav(int index) async {
-    // Handle button press
+  final _routerService = locator<RouterService>();
+
+  void buttonNav(int index, context) async {
     if (index == 3) {
-      final _routerService = locator<RouterService>();
       _routerService.navigateTo(ReportsRoute());
     }
     if (index == 2) {
-      final _routerService = locator<RouterService>();
       // Perform some action when the button is pressed
       final data = await ProxyService.realm
           .getTransactionsAmountsSum(period: TransactionPeriod.today);

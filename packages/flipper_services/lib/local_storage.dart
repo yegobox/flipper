@@ -64,7 +64,7 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getServerUrl() {
-    return prefs.getString('serverUrl');
+    return prefs.getString('getServerUrl');
   }
 
   @override
@@ -178,12 +178,17 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  String bhfId() {
-    return prefs.getString('bhfId') ?? "";
+  String? bhfId() {
+    return prefs.getString('bhfId');
   }
 
   @override
   int tin() {
     return prefs.getInt('tin') ?? -1;
+  }
+
+  @override
+  String? currentSaleCustomerPhoneNumber() {
+    return prefs.getString('currentSaleCustomerPhoneNumber');
   }
 }

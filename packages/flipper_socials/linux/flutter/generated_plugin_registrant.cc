@@ -6,12 +6,14 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <amplify_db_common/amplify_db_common_plugin.h>
 #include <desktop_webview_auth/desktop_webview_auth_plugin.h>
+#include <device_type/device_type_plugin.h>
 #include <file_selector_linux/file_selector_plugin.h>
 #include <flutter_window_close/flutter_window_close_plugin.h>
-#include <isar_flutter_libs/isar_flutter_libs_plugin.h>
 #include <local_notifier/local_notifier_plugin.h>
 #include <printing/printing_plugin.h>
+#include <realm/realm_plugin.h>
 #include <screen_retriever/screen_retriever_plugin.h>
 #include <sentry_flutter/sentry_flutter_plugin.h>
 #include <smart_auth/smart_auth_plugin.h>
@@ -21,24 +23,30 @@
 #include <window_size/window_size_plugin.h>
 
 void fl_register_plugins(FlPluginRegistry* registry) {
+  g_autoptr(FlPluginRegistrar) amplify_db_common_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "AmplifyDbCommonPlugin");
+  amplify_db_common_plugin_register_with_registrar(amplify_db_common_registrar);
   g_autoptr(FlPluginRegistrar) desktop_webview_auth_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "DesktopWebviewAuthPlugin");
   desktop_webview_auth_plugin_register_with_registrar(desktop_webview_auth_registrar);
+  g_autoptr(FlPluginRegistrar) device_type_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "DeviceTypePlugin");
+  device_type_plugin_register_with_registrar(device_type_registrar);
   g_autoptr(FlPluginRegistrar) file_selector_linux_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FileSelectorPlugin");
   file_selector_plugin_register_with_registrar(file_selector_linux_registrar);
   g_autoptr(FlPluginRegistrar) flutter_window_close_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "FlutterWindowClosePlugin");
   flutter_window_close_plugin_register_with_registrar(flutter_window_close_registrar);
-  g_autoptr(FlPluginRegistrar) isar_flutter_libs_registrar =
-      fl_plugin_registry_get_registrar_for_plugin(registry, "IsarFlutterLibsPlugin");
-  isar_flutter_libs_plugin_register_with_registrar(isar_flutter_libs_registrar);
   g_autoptr(FlPluginRegistrar) local_notifier_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "LocalNotifierPlugin");
   local_notifier_plugin_register_with_registrar(local_notifier_registrar);
   g_autoptr(FlPluginRegistrar) printing_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "PrintingPlugin");
   printing_plugin_register_with_registrar(printing_registrar);
+  g_autoptr(FlPluginRegistrar) realm_registrar =
+      fl_plugin_registry_get_registrar_for_plugin(registry, "RealmPlugin");
+  realm_plugin_register_with_registrar(realm_registrar);
   g_autoptr(FlPluginRegistrar) screen_retriever_registrar =
       fl_plugin_registry_get_registrar_for_plugin(registry, "ScreenRetrieverPlugin");
   screen_retriever_plugin_register_with_registrar(screen_retriever_registrar);

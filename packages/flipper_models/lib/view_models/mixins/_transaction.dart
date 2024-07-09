@@ -12,22 +12,24 @@ mixin TransactionMixin {
   get quantity => keypad.quantity;
 
   Future<bool> saveTransaction(
-      {required Variant variation,
+      {double? compositePrice,
+      required Variant variation,
       required double amountTotal,
       required bool customItem,
       required ITransaction pendingTransaction,
-      required double currentStock}) async {
+      required double currentStock,
+      required bool partOfComposite}) async {
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
         : variation.productName!;
 
     /// if variation  given it exist in the transactionItems of currentPending transaction then we update the transaction with new count
 
-    TransactionItem? existTransactionItem = await ProxyService.realm
+    TransactionItem? existTransactionItem = ProxyService.realm
         .getTransactionItemByVariantId(
             variantId: variation.id!, transactionId: pendingTransaction.id);
 
-    await addTransactionItems(
+    addTransactionItems(
       variationId: variation.id!,
       pendingTransaction: pendingTransaction,
       name: name,
@@ -35,6 +37,8 @@ mixin TransactionMixin {
       currentStock: currentStock,
       amountTotal: amountTotal,
       isCustom: customItem,
+      partOfComposite: partOfComposite,
+      compositePrice: compositePrice,
       item: existTransactionItem,
     );
 
@@ -54,9 +58,11 @@ mixin TransactionMixin {
     required double amountTotal,
     required bool isCustom,
     TransactionItem? item,
+    double? compositePrice,
+    required bool partOfComposite,
   }) async {
     if (item != null && !isCustom) {
-      List<TransactionItem> items = await ProxyService.realm.transactionItems(
+      List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: true,
@@ -75,14 +81,24 @@ mixin TransactionMixin {
       });
       return;
     }
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: false);
 
     if (items.isEmpty) {
+      /// check if given variant is part of composite before adding it to the cart, we lock it for it to be editable on the cart
+      double computedQty = isCustom ? 1.0 : quantity;
+      if (partOfComposite) {
+        /// get this composite by variantId to use the default qty set when the composite is sold
+        Composite composite =
+            ProxyService.realm.composite(variantId: variation.id!);
+        computedQty = composite.qty ?? 0.0;
+      }
+
       TransactionItem newItem = TransactionItem(
         ObjectId(),
+        compositePrice: partOfComposite == true ? compositePrice! : 0.0,
         id: randomNumber(),
         action: AppActions.created,
         price: variation.retailPrice,
@@ -102,7 +118,7 @@ mixin TransactionMixin {
         isTaxExempted: variation.isTaxExempted,
         remainingStock: currentStock - quantity,
         lastTouched: DateTime.now(),
-        qty: isCustom ? 1.0 : quantity,
+        qty: computedQty,
         taxblAmt: variation.retailPrice * quantity,
         taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
         totAmt: variation.retailPrice,
@@ -134,8 +150,24 @@ mixin TransactionMixin {
         modrId: variation.modrId,
         modrNm: variation.modrNm,
       );
-      await ProxyService.realm
-          .addTransactionItem(transaction: pendingTransaction, item: newItem);
+
+      await ProxyService.realm.addTransactionItem(
+          transaction: pendingTransaction,
+          item: newItem,
+          partOfComposite: partOfComposite);
+    } else {
+      ///set the current items to active for them to be added to the cart as well
+      /// This means if there is pending custom item it will be added as well
+      /// even if the intention was not there, but the assumption is that only
+      /// custom amount is added when a user is on keypadview
+      /// and clicked +, if for somereason a user pressed a number on keyboard and leave the keypad
+      /// the custom amount with the number pressed will be available waiting
+      /// so it is logical to add it here so user can decide to delete it later.
+      for (TransactionItem item in items) {
+        ProxyService.realm.realm!.write(() {
+          item.active = true;
+        });
+      }
     }
 
     ProxyService.realm.realm!.write(() {

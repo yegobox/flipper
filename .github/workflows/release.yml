@@ -24,7 +24,7 @@ env:
 jobs:
   unit-testing:
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
@@ -39,7 +39,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6"
+          flutter-version: "3.22.2"
           channel: "stable"
 
       - run: git submodule update --init
@@ -51,13 +51,17 @@ jobs:
           echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json 
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
 
       - run: |
           dart pub global activate melos
@@ -67,7 +71,7 @@ jobs:
 
   integration-testing-windows:
     name: "Integration Testing Windows"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     runs-on: windows-2022
     needs: [unit-testing]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
@@ -88,7 +92,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6"
+          flutter-version: "3.22.2"
           channel: stable
       - run: flutter doctor -v
 
@@ -107,11 +111,15 @@ jobs:
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           dart pub global activate melos
           melos bootstrap
@@ -121,6 +129,7 @@ jobs:
   build-and-release-windows:
     name: "Build windows app"
     needs: [unit-testing, integration-testing-windows, android-integration-test]
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: windows-2022
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
@@ -140,7 +149,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6"
+          flutter-version: "3.22.2"
           channel: stable
       - run: flutter doctor -v
 
@@ -154,11 +163,15 @@ jobs:
           echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
           # --store
           # --install-certificate false
           # https://github.com/YehudaKremer/msix/issues/126
@@ -166,7 +179,7 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart run msix:create --install-certificate false
+          dart run msix:create -v --install-certificate false
       - name: Configure Release (optional)
         env:
           VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
@@ -181,19 +194,19 @@ jobs:
         run: |
           $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
 
-      - name: Create Release
-        uses: actions/create-release@v1.0.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Windows Release ${{ steps.get_version.outputs.version }}
-          draft: false
-          prerelease: false
-          body: |
-            Changes in this Release
-            - First Change
-            - Second Change
+      # - name: Create Release
+      #   uses: actions/create-release@v1.0.0
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      #   with:
+      #     tag_name: ${{ steps.get_version.outputs.version }}
+      #     release_name: Windows Release ${{ steps.get_version.outputs.version }}
+      #     draft: false
+      #     prerelease: false
+      #     body: |
+      #       Changes in this Release
+      #       - First Change
+      #       - Second Change
       - name: Upload .msix to Release
         uses: actions/upload-artifact@v3
         env:
@@ -205,7 +218,7 @@ jobs:
 
   android-integration-test:
     name: integration on Android
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[run tests]')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'test')
     needs: [unit-testing]
     runs-on: macOS-12
     strategy:
@@ -223,7 +236,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6"
+          flutter-version: "3.22.2"
           channel: stable
       - name: Configure Git with PAT
         env:
@@ -243,11 +256,15 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - name: Configure Keystore
         run: |
           echo "$GOOGLE_SERVICE_JSON" > app/google-services.json
@@ -284,7 +301,7 @@ jobs:
   fastlane-deploy:
     name: "Google Deploy"
     needs: [unit-testing, integration-testing-windows, android-integration-test]
-    # if: github.event_name == 'push'  && contains(github.event.head_commit.message, '[build release android]')
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-22.04
     steps:
       - run: git config --global core.autocrlf false
@@ -292,7 +309,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.19.6" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.22.2" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
@@ -321,11 +338,16 @@ jobs:
           echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
           echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
           git config --global core.autocrlf false
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+          
         env:
           INDEX: ${{ secrets.INDEX }}
           CONFIGDART: ${{ secrets.CONFIGDART }}
           SECRETS: ${{ secrets.SECRETS }}
           FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
       - run: |
           dart pub global activate melos
           melos bootstrap

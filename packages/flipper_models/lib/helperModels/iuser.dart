@@ -1,5 +1,5 @@
-import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/helper_models.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'iuser.g.dart';
 
