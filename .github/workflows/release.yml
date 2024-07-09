@@ -32,7 +32,7 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           persist-credentials: true
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
@@ -96,7 +96,7 @@ jobs:
           channel: stable
       - run: flutter doctor -v
 
-      - uses: actions/setup-java@v2
+      - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "17"
@@ -316,7 +316,7 @@ jobs:
       # Checkout flipper code
       - name: Checkout flipper code
         uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
-      - uses: actions/setup-java@v2 #plugin for setting up the java
+      - uses: actions/setup-java@v4 #plugin for setting up the java
         with:
           distribution: "zulu"
           java-version: "17" #defines the java version
