@@ -534,21 +534,21 @@ jobs:
         uses: shorebirdtech/setup-shorebird@v1
 
       - name: Shorebird Release
-        if: startsWith(github.ref, 'refs/heads/releases/')
+        if: startsWith(github.ref, 'refs/heads/dev/')
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         run: |
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > play-store-credentials.json
-          shorebird release android  production --artifact-name app-production-release.aab
+          shorebird release android   --artifact-name app-release.aab
         working-directory: apps/flipper
 
       - name: Shorebird Patch
-        if: "!startsWith(github.ref, 'refs/heads/releases/')"
+        if: "!startsWith(github.ref, 'refs/heads/dev/')"
         env:
           GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         run: |
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > play-store-credentials.json
-          shorebird patch android  production
+          shorebird patch  
         working-directory: apps/flipper
   slackNotification:
     name: Slack Notification
