@@ -124,7 +124,8 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+          dart pub global activate patrol_cli
+          patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
   build-and-release-windows:
     name: "Build windows app"
