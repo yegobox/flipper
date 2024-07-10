@@ -152,6 +152,14 @@ jobs:
           flutter-version: "3.22.2"
           channel: stable
       - run: flutter doctor -v
+      - name: Install CocoaPods
+        run: |
+          sudo gem install cocoapods
+          pod --version
+
+      - name: Update CocoaPods repo
+        run: |
+          pod repo update
 
       - uses: actions/setup-java@v4
         with:
