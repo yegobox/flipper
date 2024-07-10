@@ -71,7 +71,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
 
       // Get the UID after login
       String uid = ProxyService.box.uid();
-      log(uid, name: 'tokenLogin');
+      talker.info("tokenLogin:${uid}");
 
       // Attempt to sign in with the custom token
       try {
