@@ -182,7 +182,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           dart pub global activate patrol_cli
-          patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+          patrol test --dart-define=Test=true -d macos integration_test/smoke_windows_test.dart
 
   build-and-release-windows:
     name: "Build windows app"
