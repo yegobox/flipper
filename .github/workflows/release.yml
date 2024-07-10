@@ -127,7 +127,7 @@ jobs:
           dart pub global activate patrol_cli
           patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
   integration-testing-macos:
-    name: "Integration Testing Windows"
+    name: "Integration Testing MacOs"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     runs-on: macos-latest
     needs: [unit-testing]
