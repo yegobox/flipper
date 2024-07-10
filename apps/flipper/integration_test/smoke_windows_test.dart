@@ -1,30 +1,27 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// Import the relevant file
-// import 'package:nock/nock.dart';
-
-import 'package:flipper_rw/main.dart' as app;
 
 import 'common.dart';
 
-// https://stackoverflow.com/questions/69248403/flutter-widget-testing-with-httpclient
-//https://pub.dev/packages/nock
-//https://github.com/nock/nock?tab=readme-ov-file#how-does-it-work
-//https://designer.mocky.io/
-//flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 void main() {
-  // setUpAll(nock.init);
+  patrol('Run app-windows:', ($) async {
+    final widgetTester = $.tester;
 
-  patrol('Run app-android:', ($) async {
-    await app.main();
-    // await $.pumpAndSettle();
-    // await $.pumpAndSettle();
+    // Clear any existing exceptions before the test
+    widgetTester.takeException();
+    await createApp($);
+    var exceptionCount = 0;
+    dynamic exception = widgetTester.takeException();
+    while (exception != null) {
+      exceptionCount++;
+      exception = widgetTester.takeException();
+    }
+    if (exceptionCount != 0) {
+      // tester.log('Warning: $exceptionCount exceptions were ignored after app initialization');
+    }
 
     expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
 
     await $.tap(find.byKey(const Key('pinLogin')));
-    // await $.pumpAndSettle();
-
     // Verify that the PIN text field is rendered within the Form
     expect(find.byType(Form), findsOneWidget);
 

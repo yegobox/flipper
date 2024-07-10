@@ -65,7 +65,7 @@ void main() {
 
       expect(find.text('PIN is required'), findsOneWidget);
 
-      // Simulate entering a non-empty PIN
+      /// Simulate entering a non-empty PIN or wrong pin
       await tester.enterText(find.byType(TextFormField), '1234');
       await tester.tap(find.text('Log in'));
 
@@ -87,6 +87,17 @@ void main() {
       // Verify the error message
       final snackBarText = tester.tester.widget<Text>(snackBarTextFinder);
       expect(snackBarText.data, 'Pin: Not found');
+
+      /// done testing the wrong pin
+      ///
+      ///
+      /// Test the right PIN
+      ///
+      await tester.enterText(find.byType(TextFormField), '73268');
+      await tester.tap(find.text('Log in'));
+
+      /// on success drawer should be open
+      expect(find.byKey(const Key("openDrawerPage")), true);
     } catch (e) {
       // print('Caught error: $e'); // Log the error for debugging
     } finally {
