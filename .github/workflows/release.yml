@@ -126,10 +126,67 @@ jobs:
           cd apps/flipper
           dart pub global activate patrol_cli
           patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+  integration-testing-macos:
+    name: "Integration Testing Windows"
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
+    runs-on: macos-latest
+    needs: [unit-testing]
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
+    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
+    steps:
+      - name: Export pub environment variable on macOS
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
+          fi
+        shell: bash
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.2"
+          channel: stable
+      - run: flutter doctor -v
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          dart pub global activate patrol_cli
+          patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
 
   build-and-release-windows:
     name: "Build windows app"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    needs: [unit-testing, integration-testing-macos, android-integration-test]
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: windows-2022
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
@@ -301,7 +358,7 @@ jobs:
 
   fastlane-deploy:
     name: "Google Deploy"
-    needs: [unit-testing, integration-testing-windows, android-integration-test]
+    needs: [unit-testing, integration-testing-macos, android-integration-test]
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: ubuntu-22.04
     steps:
