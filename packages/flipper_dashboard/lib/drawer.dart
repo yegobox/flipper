@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/customappbar.dart';
-import 'package:flipper_login/login.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
