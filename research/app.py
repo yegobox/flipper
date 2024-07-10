@@ -233,10 +233,10 @@ def generate_excel_file():
             unique_products[product_id] = product
 
     for product_id, product in unique_products.items():
-        if product_id in added_products:  # Skip if already added
+        product_name = product['name']
+        if product_name in added_products:  # Check if product name is already added
             continue
 
-        product_name = product['name']
         predicted_sales = predict_sales(product_id)
 
         if len(predicted_sales) == 0:
@@ -277,8 +277,8 @@ def generate_excel_file():
         for row in output_data:
             ws.append(row)
 
-        # Add product to the list of added products
-        added_products.add(product_id)
+        # Add product name to the list of added products
+        added_products.add(product_name)
 
     # Create chart
     chart = LineChart()

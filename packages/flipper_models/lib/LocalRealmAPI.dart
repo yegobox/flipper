@@ -440,7 +440,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
               lastDbBackup: business.lastDbBackup,
               fullName: business.fullName,
               tinNumber: business.tinNumber,
-              bhfId: ProxyService.box.bhfId()??"00",
+              bhfId: ProxyService.box.bhfId() ?? "00",
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,
               taxEnabled: business.taxEnabled,
@@ -518,10 +518,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     } else if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
-      throw RemoteError(term: "Not found");
+      throw PinError(term: "Not found");
     } else {
-      log(response.body.toString(), name: "login error");
-      throw Exception(response.body.toString());
+      // log(response.body.toString(), name: "login error");
+      throw UnknownError(term: response.statusCode.toString());
     }
   }
 
@@ -1115,7 +1115,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required int identifier}) async* {
     final subject = ReplaySubject<List<AppNotification>>();
 
-
     final query = localRealm!.query<AppNotification>(
         r'identifier == $0 AND completed == $1', [identifier, false]);
 
@@ -1132,10 +1131,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       localRealm!.add<AppNotification>(notification);
     });
   }
-  
+
   @override
   AppNotification notification({required int id}) {
-    return localRealm!.query<AppNotification>(
-        r'id == $0', [id]).first;
+    return localRealm!.query<AppNotification>(r'id == $0', [id]).first;
   }
 }

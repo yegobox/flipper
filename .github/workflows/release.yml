@@ -218,7 +218,7 @@ jobs:
 
   android-integration-test:
     name: integration on Android
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, 'test')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     needs: [unit-testing]
     runs-on: macOS-12
     strategy:

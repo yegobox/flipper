@@ -87,7 +87,7 @@ class StartupViewModel extends FlipperBaseModel {
       talker.error("StartupViewModel ${stackTrace}");
       if (e is LoginChoicesException) {
         _routerService.navigateTo(LoginChoicesRoute());
-      } else if (e is SessionException || e is RemoteError) {
+      } else if (e is SessionException || e is PinError) {
         log(stackTrace.toString(), name: 'runStartupLogic');
         await ProxyService.realm.logOut();
         _routerService.clearStackAndShow(LoginViewRoute());

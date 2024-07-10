@@ -101,12 +101,12 @@ class _PinLoginState extends State<PinLogin> {
                                                       backgroundColor:
                                                           Colors.red,
                                                       content: Text(
-                                                        "Pin not found.",
+                                                        e.errMsg(),
                                                         style: primaryTextStyle,
                                                       ),
                                                     ),
                                                   );
-                                                } else if (e is RemoteError) {
+                                                } else if (e is PinError) {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -115,11 +115,10 @@ class _PinLoginState extends State<PinLogin> {
                                                           .floating,
                                                       backgroundColor:
                                                           Colors.red,
-                                                      content: Text(e.term),
+                                                      content: Text(e.errMsg()),
                                                     ),
                                                   );
                                                 } else {
-                                                  log(e.toString());
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -128,8 +127,8 @@ class _PinLoginState extends State<PinLogin> {
                                                           .floating,
                                                       backgroundColor:
                                                           Colors.red,
-                                                      content:
-                                                          Text(e.toString()),
+                                                      content: Text(
+                                                          'Pin: Not found'),
                                                     ),
                                                   );
                                                 }

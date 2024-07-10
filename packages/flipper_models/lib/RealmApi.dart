@@ -2088,7 +2088,7 @@ class RealmAPI<M extends IJsonSerializable>
       /// hence I can not provide different encryption key on either
       talker.error(s);
       logOut();
-      throw e;
+      rethrow;
     }
     return this;
   }
@@ -2107,7 +2107,10 @@ class RealmAPI<M extends IJsonSerializable>
             cancellationReason: "Realm took too long to open")));
     talker.warning("opening persistent");
     // Sentry.captureMessage("opening persistent");
-    Configuration config = await _createPersistentConfig(user, path);
+    Configuration? config = await _createPersistentConfig(user, path);
+    if (config == null) {
+      throw Exception();
+    }
     realm = await _openRealm(config);
 
     int branchId = ProxyService.box.getBranchId()!;
@@ -2119,104 +2122,114 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
-  Future<Configuration> _createPersistentConfig(User user, String path) async {
-    return Configuration.flexibleSync(
-      user,
-      realmModels,
-      encryptionKey: ProxyService.box.encryptionKey().toIntList(),
-      path: path,
-      shouldCompactCallback: (totalSize, usedSize) {
-        const tenMB = 10 * 1048576;
-        return (totalSize > tenMB) &&
-            (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
-      },
-      syncErrorHandler: (syncError) {
-        if (syncError is CompensatingWriteError) {
-          handleCompensatingWrite(syncError);
-        }
-      },
-      clientResetHandler: RecoverOrDiscardUnsyncedChangesHandler(
-        onBeforeReset: (realm) {
-          print(
-              'A client reset is about to occur. The app may freeze momentarily.');
-          ProxyService.local.notify(
-            notification: AppNotification(
-              ObjectId(),
-              identifier: ProxyService.box.getBranchId(),
-              type: "internal",
-              id: randomNumber(),
-              completed: false,
-              message:
-                  "A client reset is about to occur. The app may freeze momentarily.'",
-            ),
-          );
+  Future<Configuration?> _createPersistentConfig(User user, String path) async {
+    try {
+      if (ProxyService.box.encryptionKey().isEmpty) {
+        throw Exception();
+      }
+      talker.warning("using key: ${ProxyService.box.encryptionKey()}");
+      return Configuration.flexibleSync(
+        user,
+        realmModels,
+        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+        path: path,
+        shouldCompactCallback: (totalSize, usedSize) {
+          const tenMB = 10 * 1048576;
+          return (totalSize > tenMB) &&
+              (usedSize.toDouble() / totalSize.toDouble()) < 0.5;
         },
-        onAfterRecovery: (before, after) {
-          print('Automatic client reset recovery completed successfully.');
-          ProxyService.local.notify(
-            notification: AppNotification(
-              ObjectId(),
-              identifier: ProxyService.box.getBranchId(),
-              type: "internal",
-              id: randomNumber(),
-              completed: false,
-              message:
-                  "Automatic client reset recovery completed successfully.",
-            ),
-          );
-        },
-        onAfterDiscard: (before, after) {
-          talker.error(
-              'Automatic client reset recovery failed. Local changes have been discarded.');
-          ProxyService.local.notify(
-            notification: AppNotification(
-              ObjectId(),
-              identifier: ProxyService.box.getBranchId(),
-              type: "internal",
-              id: randomNumber(),
-              completed: false,
-              message:
-                  "Automatic client reset recovery failed. Local changes have been discarded.",
-            ),
-          );
-        },
-        onManualResetFallback: (clientResetError) async {
-          print('Automatic client reset failed. Manual reset is required.');
-          ProxyService.local.notify(
-            notification: AppNotification(
-              ObjectId(),
-              identifier: ProxyService.box.getBranchId(),
-              type: "internal",
-              id: randomNumber(),
-              completed: false,
-              message:
-                  'Automatic client reset failed. Manual reset is required.',
-            ),
-          );
-          await Future.delayed(Duration(seconds: 10));
-          // 1. Close the realm
-          realm!.close();
-
-          // 2. Delete the realm file
-          try {
-            clientResetError.resetRealm();
-          } catch (e) {
-            File realmFile = File(realm!.config.path);
-            if (await realmFile.exists()) {
-              await realmFile.delete();
-              print('Realm file deleted successfully.');
-            }
-            // print('Error deleting realm file: $e');
+        syncErrorHandler: (syncError) {
+          if (syncError is CompensatingWriteError) {
+            handleCompensatingWrite(syncError);
           }
-
-          // 3. Restart the app
-          print('Restarting the app...');
-          exit(0);
-
-          //the app re-initialize here
         },
-      ),
-    );
+        clientResetHandler: RecoverOrDiscardUnsyncedChangesHandler(
+          onBeforeReset: (realm) {
+            print(
+                'A client reset is about to occur. The app may freeze momentarily.');
+            ProxyService.local.notify(
+              notification: AppNotification(
+                ObjectId(),
+                identifier: ProxyService.box.getBranchId(),
+                type: "internal",
+                id: randomNumber(),
+                completed: false,
+                message:
+                    "A client reset is about to occur. The app may freeze momentarily.'",
+              ),
+            );
+          },
+          onAfterRecovery: (before, after) {
+            print('Automatic client reset recovery completed successfully.');
+            ProxyService.local.notify(
+              notification: AppNotification(
+                ObjectId(),
+                identifier: ProxyService.box.getBranchId(),
+                type: "internal",
+                id: randomNumber(),
+                completed: false,
+                message:
+                    "Automatic client reset recovery completed successfully.",
+              ),
+            );
+          },
+          onAfterDiscard: (before, after) {
+            talker.error(
+                'Automatic client reset recovery failed. Local changes have been discarded.');
+            ProxyService.local.notify(
+              notification: AppNotification(
+                ObjectId(),
+                identifier: ProxyService.box.getBranchId(),
+                type: "internal",
+                id: randomNumber(),
+                completed: false,
+                message:
+                    "Automatic client reset recovery failed. Local changes have been discarded.",
+              ),
+            );
+          },
+          onManualResetFallback: (clientResetError) async {
+            print('Automatic client reset failed. Manual reset is required.');
+            ProxyService.local.notify(
+              notification: AppNotification(
+                ObjectId(),
+                identifier: ProxyService.box.getBranchId(),
+                type: "internal",
+                id: randomNumber(),
+                completed: false,
+                message:
+                    'Automatic client reset failed. Manual reset is required.',
+              ),
+            );
+            await Future.delayed(Duration(seconds: 10));
+            // 1. Close the realm
+            realm!.close();
+
+            // 2. Delete the realm file
+            try {
+              clientResetError.resetRealm();
+            } catch (e) {
+              File realmFile = File(realm!.config.path);
+              if (await realmFile.exists()) {
+                await realmFile.delete();
+                print('Realm file deleted successfully.');
+              }
+              // print('Error deleting realm file: $e');
+            }
+
+            // 3. Restart the app
+            print('Restarting the app...');
+            exit(0);
+
+            //the app re-initialize here
+          },
+        ),
+      );
+    } catch (e, s) {
+      talker.info(e);
+      talker.info(s);
+      return null;
+    }
   }
 
   Future<Realm> _openRealm(Configuration config) async {
@@ -2705,12 +2718,13 @@ class RealmAPI<M extends IJsonSerializable>
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
       } else if (response.statusCode == 404) {
-        throw RemoteError(term: response.body);
+        throw PinError(term: "Not found");
       } else {
-        throw RemoteError(term: response.body);
+        throw PinError(term: "Not found");
       }
     } catch (error) {
-      throw RemoteError(term: error.toString());
+      talker.warning(error);
+      PinError(term: "Not found");
     }
   }
 

@@ -45,6 +45,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({required String pinCode}) async {
+    ProxyService.realm.logOut();
     try {
       setIsprocessing(value: true);
       if (ProxyService.realm.realm == null) {
@@ -53,7 +54,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
 
       IPin? pin = await ProxyService.realm.getPin(pin: pinCode);
       if (pin == null) {
-        throw Exception("Invalid PIN");
+        throw PinError(term: "Not found");
       }
 
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
@@ -99,6 +100,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       }
     } catch (error, s) {
       talker.error("Login error: $error");
+      talker.error("Login trace: $s");
       talker.info(s);
       setIsprocessing(value: false);
       await Sentry.captureException(error, stackTrace: s);
