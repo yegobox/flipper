@@ -3,6 +3,7 @@
 import 'package:device_type/device_type.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';

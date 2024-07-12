@@ -2949,16 +2949,25 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate}) {
-    if (startDate == null || endDate == null) return Stream.empty();
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
+    // if (startDate == null || endDate == null) return Stream.empty();
     final controller = StreamController<List<TransactionItem>>.broadcast();
 
+    talker.info("pluReport $isPluReport");
+
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
-    final query = realm!
-        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
-      startDate.toUtc(),
-      endDate.add(Duration(days: 1)).toUtc(),
-    ]);
+    RealmResults<TransactionItem> query;
+    if (isPluReport ?? false) {
+      query = realm!.query<TransactionItem>(r'branchId == $0  ', [
+        ProxyService.box.getBranchId()!,
+      ]);
+    } else {
+      query = realm!
+          .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
+        startDate!.toUtc(),
+        endDate!.add(Duration(days: 1)).toUtc(),
+      ]);
+    }
 
     StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
 

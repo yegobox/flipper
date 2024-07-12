@@ -1,6 +1,9 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/DownloadCard.dart';
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +20,8 @@ class Reports extends StatefulHookConsumerWidget {
 class ReportsState extends ConsumerState<Reports>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+
+  bool showAIReports = true; // State to track AI report visibility
 
   @override
   void initState() {
@@ -72,7 +77,7 @@ class ReportsState extends ConsumerState<Reports>
                           ReportCard(
                             cardName: "Stock Value",
                             wordingA: "Current Stock",
-                            wordingB: "Sold",
+                            wordingB: "Gross Sales",
                             valueA: stockValue.asData?.value ?? 0,
                             valueB: soldStock.asData?.value ?? 0,
                             description: "Stock Performance",
@@ -86,83 +91,115 @@ class ReportsState extends ConsumerState<Reports>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Past Reports',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey[700],
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                !showAIReports ? 'Past Reports' : 'AI Reports',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey[700],
+                                ),
+                              ),
+                              Switch(
+                                value: showAIReports,
+                                onChanged: (value) {
+                                  ref
+                                      .read(pluReportToggleProvider.notifier)
+                                      .toggleReport();
+                                  talker.info(
+                                      "toggledReportValue ${ref.read(pluReportToggleProvider)}");
+                                  ref
+                                      .read(dateRangeProvider.notifier)
+                                      .setStartDate(DateTime.now());
+                                  ref
+                                      .read(dateRangeProvider.notifier)
+                                      .setEndDate(DateTime.now());
+                                  ref.refresh(transactionListProvider);
+                                  setState(() {
+                                    showAIReports = value;
+                                  });
+                                  ref.refresh(transactionItemListProvider);
+                                },
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
-                          reports.when(
-                            data: (reports) {
-                              if (reports.isEmpty) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.inbox_outlined,
-                                        size: 64,
-                                        color: Colors.grey,
-                                      ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'No reports available',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.grey[600],
+                          showAIReports
+                              ? reports.when(
+                                  data: (reports) {
+                                    if (reports.isEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.inbox_outlined,
+                                              size: 64,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              'No reports available',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              } else {
-                                return ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: reports.length,
-                                  itemBuilder: (context, index) {
-                                    final report = reports[index];
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: DownloadCard(
-                                        url: report.s3Url!,
-                                        filename: report.filename!,
-                                        downloaded: report.downloaded ?? false,
-                                        report: report,
-                                      ),
-                                    );
+                                      );
+                                    } else {
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: reports.length,
+                                        itemBuilder: (context, index) {
+                                          final report = reports[index];
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 12.0),
+                                            child: DownloadCard(
+                                              url: report.s3Url!,
+                                              filename: report.filename!,
+                                              downloaded:
+                                                  report.downloaded ?? false,
+                                              report: report,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }
                                   },
-                                );
-                              }
-                            },
-                            loading: () => Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'No reports available',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.grey[600],
+                                  loading: () => Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.inbox_outlined,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'No reports available',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            error: (error, stack) => Center(
-                              child: Text('Error loading reports: $error'),
-                            ),
-                          ),
+                                  error: (error, stack) => Center(
+                                    child:
+                                        Text('Error loading reports: $error'),
+                                  ),
+                                )
+                              : Center(child: TransactionList()),
                         ],
                       ),
                     ),

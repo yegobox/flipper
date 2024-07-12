@@ -23,7 +23,7 @@ class DataView extends StatefulWidget {
     required this.transactionItems,
   });
 
-  final List<ITransaction> transactions;
+  final List<ITransaction>? transactions;
   final DateTime startDate;
   final DateTime endDate;
   final GlobalKey<SfDataGridState> workBookKey;
@@ -82,7 +82,7 @@ class _DataViewState extends State<DataView> {
 
     // Update _dataGridSource based on widget.showPluReport
     _dataGridSource = _buildDataGridSource(widget.showPluReport,
-        widget.transactionItems, widget.transactions, widget.rowsPerPage);
+        widget.transactionItems, widget.transactions ?? [], widget.rowsPerPage);
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -216,6 +216,18 @@ class _DataViewState extends State<DataView> {
           child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
         ),
       ),
+      GridColumn(
+        columnName: 'Gross Profit',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Gross Profit', overflow: TextOverflow.ellipsis),
+        ),
+      ),
     ];
   }
 
@@ -318,6 +330,9 @@ abstract class DynamicDataSource extends DataGridSource {
                 columnName: 'TaxRate', value: configurations.taxPercentage),
             DataGridCell<double>(
                 columnName: 'StockRemain', value: item.remainingStock),
+            DataGridCell<double>(
+                columnName: 'Gross Profit',
+                value: item.remainingStock * item.price),
           ]);
         } else {
           // Handle the case where item is not a TransactionItem

@@ -17,41 +17,6 @@ import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
 import 'package:path/path.dart' as p;
 
-final rowsPerPageProvider = StateProvider<int>((ref) => 10); // Default to 10
-
-final pluReportToggleProvider =
-    StateNotifierProvider<PluReportToggleNotifier, bool>(
-  (ref) => PluReportToggleNotifier(),
-);
-
-class PluReportToggleNotifier extends StateNotifier<bool> {
-  PluReportToggleNotifier() : super(false); // Default to ZReport
-
-  void toggleReport() {
-    state = !state;
-  }
-}
-
-final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
-  (ref) => IsProcessingNotifier(),
-);
-
-class IsProcessingNotifier extends StateNotifier<bool> {
-  IsProcessingNotifier() : super(false); // Default to not processing
-
-  void startProcessing() {
-    state = true;
-  }
-
-  void stopProcessing() {
-    state = false;
-  }
-
-  void toggleProcessing() {
-    state = !state;
-  }
-}
-
 class TransactionList extends ConsumerWidget {
   TransactionList({Key? key}) : super(key: key);
   Future<void> requestPermissions() async {
@@ -225,120 +190,91 @@ class TransactionList extends ConsumerWidget {
     final rowsPerPageController =
         TextEditingController(text: rowsPerPage.toString());
 
-    return transactions.when(
-      data: (transactionData) {
-        return Container(
-          width: 150,
-          height: 800,
-          child: transactionData.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 28.0),
-                  child: Center(
-                      child:
-                          Text("No Data found, please select new date range")),
-                )
-              : Column(
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          // Toggle Button for PluReport/ZReport
-                          Switch(
-                            value: ref.watch(pluReportToggleProvider),
-                            onChanged: (value) {
-                              ref
-                                  .watch(pluReportToggleProvider.notifier)
-                                  .toggleReport();
-                            },
-                          ),
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              // Toggle Button for PluReport/ZReport
+              Switch(
+                  value: ref.watch(pluReportToggleProvider),
+                  onChanged: (value) {
+                    ref.read(pluReportToggleProvider.notifier).toggleReport();
+                    if (ref.read(pluReportToggleProvider)) {
+                      ref.read(rowsPerPageProvider.notifier).state = 1000;
+                    }
+                  }),
 
-                          Text(ref.read(pluReportToggleProvider)
-                              ? 'PLU Report'
-                              : 'ZReport'),
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: SizedBox(
-                              width: 150,
-                              child: TextField(
-                                controller: rowsPerPageController,
-                                keyboardType: TextInputType.number,
-                                decoration: InputDecoration(
-                                  labelText: 'Rows Per Page',
-                                  labelStyle: TextStyle(
-                                    color: Colors.grey[700],
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                      color: Colors.grey[400]!,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    borderSide: BorderSide(
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                ),
-                                style: TextStyle(
-                                  fontSize: 16.0,
-                                ),
-                                onChanged: (value) {
-                                  ref.read(rowsPerPageProvider.notifier).state =
-                                      int.tryParse(value) ?? 10;
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 40.0,
-                            width: 150.0,
-                            child: BoxButton(
-                              onTap: () {
-                                exportDataGridToExcel(
-                                    endDate: endDate!,
-                                    startDate: startDate!,
-                                    ref: ref,
-                                    workBookKey: _workBookKey);
-                              },
-                              borderRadius: 1,
-                              title: 'Export to Excel',
-                              busy: ref.watch(isProcessingProvider),
-                            ),
-                          ),
-                        ],
+              Text(
+                  ref.read(pluReportToggleProvider) ? 'PLU Report' : 'ZReport'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: SizedBox(
+                  width: 150,
+                  child: TextField(
+                    controller: rowsPerPageController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Rows Per Page',
+                      labelStyle: TextStyle(
+                        color: Colors.grey[700],
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
+                          color: Colors.grey[400]!,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: BorderSide(
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
-                    Expanded(
-                      child: DataView(
-                        transactions: transactionData,
-                        transactionItems: transactionItems.asData?.value,
-                        startDate: startDate!,
-                        endDate: endDate!,
-                        workBookKey: _workBookKey,
-                        rowsPerPage: ref.read(rowsPerPageProvider),
-                        showPluReport: ref.watch(pluReportToggleProvider),
-                      ),
+                    style: TextStyle(
+                      fontSize: 16.0,
                     ),
-                  ],
+                    onChanged: (value) {
+                      ref.read(rowsPerPageProvider.notifier).state =
+                          int.tryParse(value) ?? 1000;
+                    },
+                  ),
                 ),
-        );
-      },
-      loading: () => Padding(
-        padding: const EdgeInsets.only(top: 28.0),
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      error: (error, stackTrace) => Column(
-        children: [
-          SizedBox(
-            height: 20,
+              ),
+              SizedBox(
+                height: 40.0,
+                width: 150.0,
+                child: BoxButton(
+                  onTap: () {
+                    exportDataGridToExcel(
+                        endDate: endDate!,
+                        startDate: startDate!,
+                        ref: ref,
+                        workBookKey: _workBookKey);
+                  },
+                  borderRadius: 1,
+                  title: 'Export to Excel',
+                  busy: ref.watch(isProcessingProvider),
+                ),
+              ),
+            ],
           ),
-          Center(child: Text('Errors: $error'))
-        ],
-      ),
+        ),
+        Expanded(
+          child: DataView(
+            transactions: transactions.asData?.value,
+            transactionItems: transactionItems.asData?.value,
+            startDate: startDate!,
+            endDate: endDate!,
+            workBookKey: _workBookKey,
+            rowsPerPage: ref.read(rowsPerPageProvider),
+            showPluReport: ref.watch(pluReportToggleProvider),
+          ),
+        ),
+      ],
     );
   }
 }

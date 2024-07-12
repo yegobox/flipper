@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
+import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';
@@ -519,20 +520,31 @@ final transactionItemListProvider =
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
 
-  // Check if startDate or endDate is null, and return an empty stream if either is null
-  if (startDate == null || endDate == null) {
-    return Stream.value(
-        []); // Return an empty list stream instead of empty stream
-  }
+  // Check if startDate or endDate is null, and return an empty list stream if either is null
+  // if (startDate == null || endDate == null) {
+  //   return Stream.value([]);
+  // }
 
   try {
-    final stream = ProxyService.realm
-        .transactionItemList(startDate: startDate, endDate: endDate);
+    final stream = ProxyService.realm.transactionItemList(
+        startDate: startDate,
+        endDate: endDate,
+        isPluReport: ref.read(pluReportToggleProvider));
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
-    return stream.switchMap((transactions) => Stream.value(transactions));
+    return stream.switchMap((transactions) {
+      // Log the received data to the console
+      talker.info("Transaction Item Data: $transactions");
+
+      // Handle null or empty transactions if needed
+      return Stream.value(transactions);
+    });
   } catch (e, stackTrace) {
+    // Log the error to the console
+    talker.info("Error loading transaction items: $e");
+
     // Return an error stream if something goes wrong
+    talker.error(e);
     return Stream.error(e, stackTrace);
   }
 });
@@ -554,11 +566,15 @@ final transactionListProvider =
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
     return stream.switchMap((transactions) {
+      // Log the received data to the console
+      talker.info("Transaction Data: $transactions");
+
       // Handle null or empty transactions if needed
       return Stream.value(transactions);
     });
   } catch (e, stackTrace) {
     // Return an error stream if something goes wrong
+    talker.info("Error loading transactions: $e");
     return Stream.error(e, stackTrace);
   }
 });
@@ -709,6 +725,40 @@ final reportsProvider =
     return reports;
   });
 });
+final rowsPerPageProvider = StateProvider<int>((ref) => 10); // Default to 10
+
+final pluReportToggleProvider =
+    StateNotifierProvider<PluReportToggleNotifier, bool>(
+  (ref) => PluReportToggleNotifier(),
+);
+
+class PluReportToggleNotifier extends StateNotifier<bool> {
+  PluReportToggleNotifier() : super(false); // Default to ZReport
+
+  void toggleReport() {
+    state = !state;
+  }
+}
+
+final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
+  (ref) => IsProcessingNotifier(),
+);
+
+class IsProcessingNotifier extends StateNotifier<bool> {
+  IsProcessingNotifier() : super(false); // Default to not processing
+
+  void startProcessing() {
+    state = true;
+  }
+
+  void stopProcessing() {
+    state = false;
+  }
+
+  void toggleProcessing() {
+    state = !state;
+  }
+}
 
 // StateNotifierProvider
 

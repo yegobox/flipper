@@ -372,7 +372,7 @@ abstract class RealmApiInterface {
 
   Future<Drawers?> openDrawer({required Drawers drawer});
   Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate});
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
   Future<Stream<double>> downloadAssetSave(

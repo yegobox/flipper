@@ -550,6 +550,17 @@ jobs:
           echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > play-store-credentials.json
           shorebird patch  
         working-directory: apps/flipper
+      - name: Upload .aab to Production Track
+        id: upload_production
+        uses: KevinRohn/github-action-upload-play-store@v1.0.0
+        with:
+         
+          service_account_json: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
+          package_name: "rw.flipper"
+          aab_file_path: "./apps/flipper/build/outputs/bundle/release/app-release.aab"
+          track: "internal"
+          release_status: "completed"
+        
   slackNotification:
     name: Slack Notification
     needs: [shorebird-deploy, build-and-release-windows]

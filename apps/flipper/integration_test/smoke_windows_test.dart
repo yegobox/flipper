@@ -1,63 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:flipper_rw/main.dart' as app_main;
 
 import 'common.dart';
 
 void main() {
-  patrol('Run app-windows:', ($) async {
-    FlutterError.onError = (FlutterErrorDetails details) {
-      // Optionally, you can log the error details here
-      // print('FlutterError: ${details.exceptionAsString()}');
-    };
-    try {
-      final widgetTester = $.tester;
+  testWidgets('Login Validation Test', (WidgetTester tester) async {
+    await app_main.main();
+    await tester.pumpAndSettle();
 
-      // Clear any existing exceptions before the test
-      widgetTester.takeException();
-      await createApp($);
-      var exceptionCount = 0;
-      dynamic exception = widgetTester.takeException();
-      while (exception != null) {
-        exceptionCount++;
-        exception = widgetTester.takeException();
-      }
-      if (exceptionCount != 0) {
-        // tester.log('Warning: $exceptionCount exceptions were ignored after app initialization');
-      }
+    // Find the login button
+    final loginButton = find.text('Log in');
+    expect(loginButton, findsOneWidget);
 
-      expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
+    // Simulate entering an empty PIN
+    final pinField = find.byType(TextFormField);
+    await tester.enterText(pinField, '');
 
-      await $.tap(find.byKey(const Key('pinLogin')));
-      // Verify that the PIN text field is rendered within the Form
-      expect(find.byType(Form), findsOneWidget);
+    // Tap the login button
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
 
-      expect(find.byType(TextFormField), findsOneWidget);
+    // Verify that the validator error message is displayed
+    final errorText = find.text('PIN is required');
+    expect(errorText, findsOneWidget);
 
-      // Simulate entering an empty PIN
-      await $.enterText(find.byType(TextFormField), '');
+    // Simulate entering a non-empty PIN
+    await tester.enterText(pinField, '1234');
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
 
-      // Verify that the validator error message is displayed
-      await $.tap(find.text('Log in'));
-
-      // await $.pumpAndSettle();
-
-      expect(find.text('PIN is required'), findsOneWidget);
-
-      // Simulate entering a non-empty PIN
-      await $.enterText(find.byType(TextFormField), '1234');
-      await $.tap(find.text('Log in'));
-
-      /// now test with real PIN. it login and go to openDrawerPage
-      // await $.enterText(find.byType(TextFormField), '67814');
-      //
-      // await $.tap(find.text('Log in'));
-      //
-      // await $.pumpAndSettle(const Duration(seconds: 10));
-      //
-      // await $.tap(find.byKey(const Key('openDrawerPage')));
-    } catch (e) {
-    } finally {
-      // Restore the original error handler
-      // FlutterError.onError = originalOnError;
-    }
+    // ... (Add more test cases as needed)
   });
 }
