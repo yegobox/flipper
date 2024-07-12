@@ -125,8 +125,7 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          dart pub global activate patrol_cli
-          patrol test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+          flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
   integration-testing-macos:
     name: "Integration Testing MacOs"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
@@ -557,7 +556,7 @@ jobs:
          
           service_account_json: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           package_name: "rw.flipper"
-          aab_file_path: "./apps/flipper/build/outputs/bundle/release/app-release.aab"
+          aab_file_path: "apps/flipper/build/outputs/bundle/release/app-release.aab"
           track: "internal"
           release_status: "completed"
         
