@@ -2961,15 +2961,15 @@ class RealmAPI<M extends IJsonSerializable>
       query = realm!.query<TransactionItem>(r'branchId == $0  ', [
         ProxyService.box.getBranchId()!,
       ]);
-    } else if (endDate == null || startDate == null) {
+    } else if ((endDate == null || startDate == null) && isPluReport == true) {
       query = realm!.query<TransactionItem>(r'branchId == $0  ', [
         ProxyService.box.getBranchId()!,
       ]);
     } else {
       query = realm!
           .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
-        startDate.toUtc(),
-        endDate.add(Duration(days: 1)).toUtc(),
+        startDate?.toUtc(),
+        endDate?.add(Duration(days: 1)).toUtc(),
       ]);
     }
 

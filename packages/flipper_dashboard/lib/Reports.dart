@@ -207,10 +207,15 @@ class ReportsState extends ConsumerState<Reports>
                                         .when(
                                           data: (transactions) =>
                                               TransactionList(
-                                            showPluReportWidget: false,
+                                            showPluReportWidget: true,
                                           ),
-                                          loading: () =>
-                                              CircularProgressIndicator(),
+                                          loading: () => Text(
+                                            'No reports available',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
                                           error: (error, stackTrace) =>
                                               Text('Error: $stackTrace'),
                                         ),

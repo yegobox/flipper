@@ -63,7 +63,7 @@ class ProductViewState extends ConsumerState<ProductView> {
     final deviceType = _getDeviceType(context);
 
     if (buttonIndex == 1) {
-      return TransactionList();
+      return TransactionList(showPluReportWidget: true);
     }
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {

@@ -1,41 +1,44 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/exportExcel.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_socials/ui/views/home/home_viewmodel.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-class DataView extends StatefulWidget {
+class DataView extends StatefulHookConsumerWidget {
   const DataView({
     super.key,
-    required this.transactions,
+    this.transactions,
     required this.startDate,
     required this.endDate,
-    required this.workBookKey,
     required this.showPluReport,
     required this.rowsPerPage,
-    required this.transactionItems,
+    this.transactionItems,
   });
 
   final List<ITransaction>? transactions;
   final DateTime startDate;
   final DateTime endDate;
-  final GlobalKey<SfDataGridState> workBookKey;
   final bool showPluReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
 
   @override
-  _DataViewState createState() => _DataViewState();
+  DataViewState createState() => DataViewState();
 }
 
-class _DataViewState extends State<DataView> {
+class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
   static const double dataPagerHeight = 60;
   DataGridSource? _dataGridSource; // Make it nullable
   int pageIndex = 0;
@@ -77,12 +80,18 @@ class _DataViewState extends State<DataView> {
 
   @override
   Widget build(BuildContext context) {
+    final rowsPerPage = ref.watch(rowsPerPageProvider);
+    final rowsPerPageController =
+        TextEditingController(text: rowsPerPage.toString());
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
     // Update _dataGridSource based on widget.showPluReport
-    _dataGridSource = _buildDataGridSource(widget.showPluReport,
-        widget.transactionItems, widget.transactions ?? [], widget.rowsPerPage);
+    _dataGridSource = _buildDataGridSource(
+        widget.showPluReport,
+        widget.transactionItems ?? [],
+        widget.transactions ?? [],
+        widget.rowsPerPage);
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -93,6 +102,120 @@ class _DataViewState extends State<DataView> {
             builder: (context, constraint) {
               return Column(
                 children: [
+                  Row(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(0.0, 20, 0, 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            widget.showPluReport
+                                ? // Toggle Button for PluReport/ZReport
+                                Switch(
+                                    value: ref.watch(pluReportToggleProvider),
+                                    onChanged: (value) {
+                                      ref
+                                          .read(
+                                              pluReportToggleProvider.notifier)
+                                          .toggleReport();
+                                      if (ref.read(pluReportToggleProvider)) {
+                                        ref
+                                            .read(rowsPerPageProvider.notifier)
+                                            .state = 1000;
+                                      }
+                                    })
+                                : const SizedBox.shrink(),
+                            widget.showPluReport
+                                ? Text(ref.read(pluReportToggleProvider)
+                                    ? 'PLU Report'
+                                    : 'ZReport')
+                                : SizedBox(),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: SizedBox(
+                                width: 150,
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0),
+                                  child: SizedBox(
+                                    width: 150,
+                                    child: TextFormField(
+                                      controller: rowsPerPageController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: InputDecoration(
+                                        labelText: 'Rows Per Page',
+                                        labelStyle: TextStyle(
+                                          color: Colors.grey[700],
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          borderSide: BorderSide(
+                                            color: Colors.grey[400]!,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8.0),
+                                          borderSide: BorderSide(
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                        errorStyle: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 12,
+                                        ), // Add error style
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16.0,
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Please enter a number';
+                                        }
+                                        if (int.tryParse(value) == null) {
+                                          return 'Please enter a valid number';
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        ref
+                                            .read(rowsPerPageProvider.notifier)
+                                            .state = int.tryParse(
+                                                value) ??
+                                            1000;
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 40.0,
+                        width: 150.0,
+                        child: BoxButton(
+                          onTap: () {
+                            talker.info("Exporting data to Excel");
+                            if (workBookKey.currentState == null) {
+                              toast("Error: Workbook is null");
+                            } else {
+                              exportDataGridToExcel(
+                                endDate: widget.endDate,
+                                startDate: widget.startDate,
+                              );
+                            }
+                          },
+                          borderRadius: 1,
+                          title: 'Export to Excel',
+                          busy: ref.watch(isProcessingProvider),
+                        ),
+                      ),
+                    ],
+                  ),
                   Expanded(
                     child: SfDataGridTheme(
                       data: SfDataGridThemeData(
@@ -115,7 +238,7 @@ class _DataViewState extends State<DataView> {
                           highlightRowOnHover: true,
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
-                          key: widget.workBookKey,
+                          key: workBookKey,
                           source:
                               _dataGridSource!, // Make sure _dataGridSource is not null
                           columnWidthMode: ColumnWidthMode.fill,
@@ -217,7 +340,7 @@ class _DataViewState extends State<DataView> {
         ),
       ),
       GridColumn(
-        columnName: 'Gross Profit',
+        columnName: 'GrossProfit',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -287,13 +410,13 @@ class _DataViewState extends State<DataView> {
   DataGridSource _buildDataGridSource(
       bool showPluReport,
       List<TransactionItem>? transactionItem,
-      List<ITransaction> transactions,
+      List<ITransaction>? transactions,
       int rowsPerPage) {
     if (showPluReport) {
       return TransactionItemDataSource(
           transactionItem!, rowsPerPage, showPluReport);
     } else {
-      return TransactionDataSource(transactions, rowsPerPage, showPluReport);
+      return TransactionDataSource(transactions!, rowsPerPage, showPluReport);
     }
   }
 }
@@ -331,7 +454,7 @@ abstract class DynamicDataSource extends DataGridSource {
             DataGridCell<double>(
                 columnName: 'StockRemain', value: item.remainingStock),
             DataGridCell<double>(
-                columnName: 'Gross Profit',
+                columnName: 'GrossProfit',
                 value: item.remainingStock * item.price),
           ]);
         } else {

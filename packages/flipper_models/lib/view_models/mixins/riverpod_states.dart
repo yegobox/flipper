@@ -567,7 +567,7 @@ final transactionListProvider =
     // Use `switchMap` to handle potential changes in dateRangeProvider
     return stream.switchMap((transactions) {
       // Log the received data to the console
-      talker.info("Transaction Data: $transactions");
+      // talker.info("Transaction Data: $transactions");
 
       // Handle null or empty transactions if needed
       return Stream.value(transactions);
