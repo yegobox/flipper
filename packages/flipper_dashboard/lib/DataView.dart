@@ -112,13 +112,12 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                             widget.showPluReport
                                 ? // Toggle Button for PluReport/ZReport
                                 Switch(
-                                    value: ref.watch(pluReportToggleProvider),
+                                    value: ref.watch(showAiReport),
                                     onChanged: (value) {
                                       ref
-                                          .read(
-                                              pluReportToggleProvider.notifier)
+                                          .read(showAiReport.notifier)
                                           .toggleReport();
-                                      if (ref.read(pluReportToggleProvider)) {
+                                      if (ref.read(showAiReport)) {
                                         ref
                                             .read(rowsPerPageProvider.notifier)
                                             .state = 1000;
@@ -126,7 +125,7 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                                     })
                                 : const SizedBox.shrink(),
                             widget.showPluReport
-                                ? Text(ref.read(pluReportToggleProvider)
+                                ? Text(ref.read(showAiReport)
                                     ? 'PLU Report'
                                     : 'ZReport')
                                 : SizedBox(),

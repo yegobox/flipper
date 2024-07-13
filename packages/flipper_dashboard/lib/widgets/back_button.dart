@@ -4,8 +4,11 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class BackButton extends StatelessWidget {
-  BackButton({Key? key}) : super(key: key);
+  BackButton({Key? key, this.popCallback}) : super(key: key);
+
+  final VoidCallback? popCallback;
   final _routerService = locator<RouterService>();
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -23,7 +26,7 @@ class BackButton extends StatelessWidget {
           ],
         ),
         style: primaryButtonStyle.copyWith(
-          shape: MaterialStateProperty.all(RoundedRectangleBorder(
+          shape: WidgetStateProperty.all(RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
               topRight: Radius.circular(0.0),
               bottomRight: Radius.circular(2.0),
@@ -31,7 +34,11 @@ class BackButton extends StatelessWidget {
           )),
         ),
         onPressed: () {
-          _routerService.pop();
+          if (popCallback != null) {
+            popCallback!();
+          } else {
+            _routerService.pop();
+          }
         },
       ),
     );

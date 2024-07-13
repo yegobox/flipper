@@ -9,6 +9,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class Reports extends StatefulHookConsumerWidget {
   const Reports({super.key});
@@ -20,8 +22,6 @@ class Reports extends StatefulHookConsumerWidget {
 class ReportsState extends ConsumerState<Reports>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-
-  bool showAIReports = true; // State to track AI report visibility
 
   @override
   void initState() {
@@ -48,8 +48,17 @@ class ReportsState extends ConsumerState<Reports>
         appBar: CustomAppBar(
           closeButton: CLOSEBUTTON.WIDGET,
           isDividerVisible: false,
-          customLeadingWidget: back.BackButton(),
-          onPop: () async {},
+          onPop: () async {
+            talker.info("Invalidating transactionItemListProvider");
+            ref.invalidate(transactionItemListProvider);
+          },
+          customLeadingWidget: back.BackButton(popCallback: () {
+            talker.info("Invalidating transactionItemListProvider");
+            ref.invalidate(transactionItemListProvider);
+            ref.invalidate(transactionListProvider);
+            //pop();
+            locator<RouterService>().pop();
+          }),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -95,7 +104,9 @@ class ReportsState extends ConsumerState<Reports>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                !showAIReports ? 'Past Reports' : 'AI Reports',
+                                ref.watch(showAiReport)
+                                    ? 'Past Reports'
+                                    : 'AI Reports',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -103,31 +114,39 @@ class ReportsState extends ConsumerState<Reports>
                                 ),
                               ),
                               Switch(
-                                value: showAIReports,
+                                value: ref.watch(showAiReport),
                                 onChanged: (value) {
                                   ref
-                                      .read(pluReportToggleProvider.notifier)
+                                      .read(showAiReport.notifier)
                                       .toggleReport();
-                                  talker.info(
-                                      "toggledReportValue ${ref.read(pluReportToggleProvider)}");
+
+                                  talker.warning(
+                                      "toggledReportValue ${ref.watch(showAiReport)}");
+
                                   ref
                                       .read(dateRangeProvider.notifier)
                                       .setStartDate(DateTime.now());
                                   ref
                                       .read(dateRangeProvider.notifier)
                                       .setEndDate(DateTime.now());
-                                  ref.refresh(transactionListProvider);
-                                  setState(() {
-                                    showAIReports = value;
-                                  });
+
                                   ref.refresh(transactionItemListProvider);
                                 },
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          showAIReports
-                              ? reports.when(
+                          ref.watch(showAiReport)
+                              ? Center(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxHeight: 500),
+                                    child: TransactionList(
+                                      showPluReportWidget:
+                                          ref.watch(showAiReport),
+                                    ),
+                                  ),
+                                )
+                              : reports.when(
                                   data: (reports) {
                                     if (reports.isEmpty) {
                                       return Center(
@@ -197,28 +216,6 @@ class ReportsState extends ConsumerState<Reports>
                                   error: (error, stack) => Center(
                                     child:
                                         Text('Error loading reports: $error'),
-                                  ),
-                                )
-                              : Center(
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(maxHeight: 500),
-                                    child: ref
-                                        .watch(transactionItemListProvider)
-                                        .when(
-                                          data: (transactions) =>
-                                              TransactionList(
-                                            showPluReportWidget: true,
-                                          ),
-                                          loading: () => Text(
-                                            'No reports available',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              color: Colors.grey[600],
-                                            ),
-                                          ),
-                                          error: (error, stackTrace) =>
-                                              Text('Error: $stackTrace'),
-                                        ),
                                   ),
                                 ),
                         ],

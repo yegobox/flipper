@@ -519,34 +519,29 @@ final transactionItemListProvider =
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
+  final isPluReport = ref.watch(showAiReport);
 
-  // Check if startDate or endDate is null, and return an empty list stream if either is null
-  // if (startDate == null || endDate == null) {
-  //   return Stream.value([]);
-  // }
+  // Use keepAlive to prevent the provider from being disposed immediately
+  ref.keepAlive();
 
-  try {
-    final stream = ProxyService.realm.transactionItemList(
-        startDate: startDate,
-        endDate: endDate,
-        isPluReport: ref.read(pluReportToggleProvider));
-
-    // Use `switchMap` to handle potential changes in dateRangeProvider
-    return stream.switchMap((transactions) {
-      // Log the received data to the console
-      talker.info("Transaction Item Data: $transactions");
-
-      // Handle null or empty transactions if needed
-      return Stream.value(transactions);
-    });
-  } catch (e, stackTrace) {
-    // Log the error to the console
-    talker.info("Error loading transaction items: $e");
-
-    // Return an error stream if something goes wrong
-    talker.error(e);
-    return Stream.error(e, stackTrace);
+  if (startDate == null || endDate == null) {
+    return Stream.value([]);
   }
+
+  return ProxyService.realm
+      .transactionItemList(
+    startDate: startDate,
+    endDate: endDate,
+    isPluReport: isPluReport,
+  )
+      .map((transactions) {
+    talker.info("Transaction Item Data: $transactions");
+    return transactions;
+  }).handleError((e, stackTrace) {
+    talker.error("Error loading transaction items: $e");
+    talker.error(stackTrace);
+    throw e;
+  });
 });
 
 final transactionListProvider =
@@ -561,8 +556,10 @@ final transactionListProvider =
   }
 
   try {
-    final stream = ProxyService.realm
-        .transactionList(startDate: startDate, endDate: endDate);
+    final stream = ProxyService.realm.transactionList(
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
     return stream.switchMap((transactions) {
@@ -727,11 +724,6 @@ final reportsProvider =
 });
 final rowsPerPageProvider = StateProvider<int>((ref) => 10); // Default to 10
 
-final pluReportToggleProvider =
-    StateNotifierProvider<PluReportToggleNotifier, bool>(
-  (ref) => PluReportToggleNotifier(),
-);
-
 class PluReportToggleNotifier extends StateNotifier<bool> {
   PluReportToggleNotifier() : super(false); // Default to ZReport
 
@@ -739,6 +731,11 @@ class PluReportToggleNotifier extends StateNotifier<bool> {
     state = !state;
   }
 }
+
+final showAiReport =
+    StateNotifierProvider<PluReportToggleNotifier, bool>((ref) {
+  return PluReportToggleNotifier();
+});
 
 final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
   (ref) => IsProcessingNotifier(),

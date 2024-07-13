@@ -1,14 +1,16 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
-class TaxConfiguration extends StatefulWidget {
+class TaxConfiguration extends StatefulHookConsumerWidget {
   const TaxConfiguration({Key? key, required this.showheader})
       : super(key: key);
   final bool showheader;
@@ -17,7 +19,7 @@ class TaxConfiguration extends StatefulWidget {
   _TaxConfigurationState createState() => _TaxConfigurationState();
 }
 
-class _TaxConfigurationState extends State<TaxConfiguration> {
+class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
   bool isTaxEnabled = false;
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
@@ -65,6 +67,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
           appBar: widget.showheader
               ? CustomAppBar(
                   onPop: () async {
+                    ref.invalidate(transactionItemListProvider);
                     _routerService.pop();
                   },
                   closeButton: CLOSEBUTTON.WIDGET,
