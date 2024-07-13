@@ -529,3 +529,4 @@ class App {}
 /// Macos & ios build
 /// https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a
 /// https://medium.com/@vovaklh20012/code-push-for-flutter-update-your-app-without-new-release-using-shorebird-d3575ba0a2c0
+/// https://github.com/fastlane/fastlane/discussions/20177

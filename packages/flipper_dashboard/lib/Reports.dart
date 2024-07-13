@@ -199,7 +199,23 @@ class ReportsState extends ConsumerState<Reports>
                                         Text('Error loading reports: $error'),
                                   ),
                                 )
-                              : Center(child: TransactionList()),
+                              : Center(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxHeight: 500),
+                                    child: ref
+                                        .watch(transactionItemListProvider)
+                                        .when(
+                                          data: (transactions) =>
+                                              TransactionList(
+                                            showPluReportWidget: false,
+                                          ),
+                                          loading: () =>
+                                              CircularProgressIndicator(),
+                                          error: (error, stackTrace) =>
+                                              Text('Error: $stackTrace'),
+                                        ),
+                                  ),
+                                ),
                         ],
                       ),
                     ),
