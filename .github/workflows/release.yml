@@ -126,75 +126,6 @@ jobs:
           melos bootstrap
           cd apps/flipper
           flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
-  integration-testing-macos:
-    name: "Integration Testing MacOs"
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
-    runs-on: macos-latest
-    needs: [unit-testing]
-    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
-    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
-    steps:
-      - name: Export pub environment variable on macOS
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
-          fi
-        shell: bash
-      - run: git config --global core.autocrlf false
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          token: ${{ secrets.ACCESS_TOKEN }}
-          persist-credentials: true
-      - name: Clone Flutter repository with stable channel
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.22.2"
-          channel: stable
-      - run: flutter doctor -v
-      - name: Install CocoaPods
-        run: |
-          sudo gem install cocoapods
-          pod --version
-
-      - name: Update CocoaPods repo
-        run: |
-          pod repo update
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: "17"
-
-      - name: submodule init
-        run: git submodule update --init
-      - name: Configure Missing files
-        shell: bash
-        run: |
-          echo "$INDEX" >> apps/flipper/web/index.html
-          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
-          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
-          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
-          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
-          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
-          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
-        env:
-          INDEX: ${{ secrets.INDEX }}
-          CONFIGDART: ${{ secrets.CONFIGDART }}
-          SECRETS: ${{ secrets.SECRETS }}
-          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
-          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }}  
-          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
-      - run: |
-          dart pub global activate melos
-          melos bootstrap
-          cd apps/flipper
-          dart pub global activate patrol_cli
-          cd macos
-          pod repo update
-          cd ..
-          patrol test --dart-define=Test=true -d macos integration_test/smoke_windows_test.dart
-
   build-and-release-windows:
     name: "Build windows app"
     needs: [unit-testing, android-integration-test]
@@ -534,31 +465,9 @@ jobs:
         uses: shorebirdtech/setup-shorebird@v1
       - name: Shorebird Release
         if: startsWith(github.ref, 'refs/heads/dev/')
-        env:
-          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
         run: |
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > play-store-credentials.json
           shorebird release android --artifact-name app-release.aab
         working-directory: apps/flipper
-
-      - name: Shorebird Patch
-        if: "!startsWith(github.ref, 'refs/heads/dev/')"
-        env:
-          GOOGLE_PLAY_SERVICE_ACCOUNT_KEY: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-        run: |
-          echo "$GOOGLE_PLAY_SERVICE_ACCOUNT_KEY" > play-store-credentials.json
-          shorebird patch
-        working-directory: apps/flipper
-
-      - name: Upload .aab to Production Track
-        id: upload_production
-        uses: KevinRohn/github-action-upload-play-store@v1.0.0
-        with:
-          service_account_json: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
-          package_name: "rw.flipper"
-          aab_file_path: "apps/flipper/build/app/outputs/bundle/release/app-release.aab"
-          track: "internal"
-          release_status: "completed"
 
         
   slackNotification:
