@@ -128,7 +128,7 @@ jobs:
           flutter test --dart-define=Test=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows:
     name: "Build windows app"
-    needs: [unit-testing, android-integration-test]
+    needs: [unit-testing, android-integration-test,integration-testing-windows]
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'build')
     runs-on: windows-2022
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
@@ -389,7 +389,7 @@ jobs:
   #       working-directory: apps/flipper/android
   shorebird-deploy:
     name: "Shorebird Deploy to Google Play"
-    needs: [unit-testing, android-integration-test]
+    needs: [unit-testing, android-integration-test,integration-testing-windows]
     runs-on: ubuntu-latest
 
     steps:
