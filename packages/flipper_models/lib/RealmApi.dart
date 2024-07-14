@@ -3390,4 +3390,26 @@ class RealmAPI<M extends IJsonSerializable>
   Report report({required int id}) {
     return realm!.query<Report>(r'id == $0', [id]).first;
   }
+
+  @override
+  Future<({double grossProfit, double netProfit})> getReportData() async {
+    // Query the Realm database
+    final query = realm!
+        .query<Computed>(r'branchId == $0', [ProxyService.box.getBranchId()]);
+
+    // Check if there are any results
+    if (query.isEmpty) {
+      // Return default values if no data is found
+      return (grossProfit: 0.0, netProfit: 0.0);
+    }
+
+    // Get the first (and presumably only) result
+    final value = query.first;
+
+    // Return the data in the required format
+    return (
+      grossProfit: value.grossProfit ?? 0.0,
+      netProfit: value.netProfit ?? 0.0,
+    );
+  }
 }

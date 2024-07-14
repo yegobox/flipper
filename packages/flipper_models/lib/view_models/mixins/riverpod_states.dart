@@ -535,7 +535,7 @@ final transactionItemListProvider =
     isPluReport: isPluReport,
   )
       .map((transactions) {
-    talker.info("Transaction Item Data: $transactions");
+    // talker.info("Transaction Item Data: $transactions");
     return transactions;
   }).handleError((e, stackTrace) {
     talker.error("Error loading transaction items: $e");

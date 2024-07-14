@@ -25,8 +25,6 @@ class DataView extends StatefulHookConsumerWidget {
     required this.showPluReport,
     required this.rowsPerPage,
     this.transactionItems,
-    this.grossProfit,
-    this.netProfit,
   });
 
   final List<ITransaction>? transactions;
@@ -35,8 +33,6 @@ class DataView extends StatefulHookConsumerWidget {
   final bool showPluReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
-  final double? grossProfit;
-  final double? netProfit;
 
   @override
   DataViewState createState() => DataViewState();
@@ -201,16 +197,20 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                         height: 40.0,
                         width: 150.0,
                         child: BoxButton(
-                          onTap: () {
+                          onTap: () async {
                             talker.info("Exporting data to Excel");
                             if (workBookKey.currentState == null) {
                               toast("Error: Workbook is null");
                             } else {
+                              ///
+                              final report =
+                                  await ProxyService.realm.getReportData();
+
                               exportDataGridToExcel(
                                 endDate: widget.endDate,
                                 startDate: widget.startDate,
-                                grossProfit: widget.grossProfit,
-                                netProfit: widget.netProfit,
+                                grossProfit: report.grossProfit,
+                                netProfit: report.netProfit,
                               );
                             }
                           },

@@ -404,4 +404,10 @@ abstract class RealmApiInterface {
   Future<Tenant?> tenant({required int businessId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
+
+  Future<
+      ({
+        double grossProfit,
+        double netProfit,
+      })> getReportData();
 }

@@ -26,83 +26,103 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     double? netProfit,
   }) async {
     try {
-      // await requestPermissions();
       ref.read(isProcessingProvider.notifier).startProcessing();
 
-      Business business = await ProxyService.local.getBusiness();
-      int tinNumber = business.tinNumber ?? 0;
-      String bhfId = ProxyService.box.bhfId() ?? "00";
-      Drawers? drawer = await ProxyService.realm
+      final business = await ProxyService.local.getBusiness();
+      final tinNumber = business.tinNumber ?? 0;
+      final bhfId = ProxyService.box.bhfId() ?? "00";
+      final drawer = await ProxyService.realm
           .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
       final excel.Workbook workbook =
           workBookKey.currentState!.exportToExcelWorkbook();
       final excel.Worksheet sheet = workbook.worksheets[0];
 
-      final excel.Style balanceStyle = workbook.styles.add('balanceStyle');
-      balanceStyle.fontName = 'Arial';
-      balanceStyle.bold = true;
-      balanceStyle.fontSize = 12;
-      balanceStyle.fontColor = '#FFFFFF'; // White font color
-      balanceStyle.backColor = '#008000'; // Dark green background color
-
-      final excel.Style infoStyle = workbook.styles.add('infoStyle');
-      infoStyle.fontName = 'Arial';
-      infoStyle.bold = true;
-      infoStyle.fontSize = 12;
-      infoStyle.fontColor = '#000000'; // Black font color
-      infoStyle.backColor = '#FFFF00'; // Yellow background color
+      // Define styles
+      final excel.Style balanceStyle =
+          _createStyle(workbook, fontColor: '#FFFFFF', backColor: '#008000');
+      final excel.Style infoStyle =
+          _createStyle(workbook, fontColor: '#000000', backColor: '#FFFF00');
 
       // Add information rows at the top
-      for (int i = 0; i < 5; i++) {
-        sheet.insertRow(1);
-        for (int col = 1; col <= 5; col++) {
-          sheet.getRangeByIndex(i + 1, col).cellStyle = infoStyle;
-        }
-      }
-
-      sheet.getRangeByName('A1').setText('TIN Number');
-      sheet.getRangeByName('E1').setNumber(tinNumber.toDouble());
-      sheet.getRangeByName('A2').setText('BHF ID');
-      sheet.getRangeByName('E2').setText(bhfId);
-      sheet.getRangeByName('A3').setText('Start Date');
-      sheet.getRangeByName('E3').setText(
-          startDate?.toIso8601String() ?? "-"); // Format date as needed
-      sheet.getRangeByName('A4').setText('End Date');
-      sheet
-          .getRangeByName('E4')
-          .setText(endDate?.toIso8601String() ?? "-"); // Format date as needed
-      sheet.getRangeByName('A5').setText('Opening Balance');
-      sheet.getRangeByName('E5').setNumber(drawer?.openingBalance ?? 0);
-      sheet.getRangeByName('A6').setText('Gross Profit');
-      sheet.getRangeByName('E6').setNumber(grossProfit ?? 0);
-      sheet.getRangeByName('A7').setText('Net Profit');
-      sheet.getRangeByName('E7').setNumber(netProfit ?? 0);
+      _addInfoRows(sheet, infoStyle, tinNumber, bhfId, startDate, endDate,
+          drawer?.openingBalance, grossProfit, netProfit);
 
       // Add closing balance row at the bottom
-      final int lastRow = sheet.getLastRow() + 1;
-      sheet.insertRow(lastRow);
-      for (int col = 1; col <= 5; col++) {
-        sheet.getRangeByIndex(lastRow, col).cellStyle = balanceStyle;
-      }
-      sheet.getRangeByName('A$lastRow').setText('Closing Balance');
-      sheet.getRangeByName('E$lastRow').setFormula('=SUM(C6:C${lastRow - 1})');
+      _addClosingBalanceRow(sheet, balanceStyle);
 
-      final List<int> bytes = workbook.saveAsStream();
-
-      final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final Directory tempDir = await getApplicationDocumentsDirectory();
-      final File file = File('${tempDir.path}/${formattedDate}-Report.xlsx');
-      await file.writeAsBytes(bytes);
-
+      // Save and share the file
+      final String filePath = await _saveExcelFile(workbook);
       workbook.dispose();
+
       ref.read(isProcessingProvider.notifier).stopProcessing();
-      shareFileAsAttachment(file.path);
+      shareFileAsAttachment(filePath);
     } catch (e, s) {
       ref.read(isProcessingProvider.notifier).stopProcessing();
       talker.error(e);
       talker.error(s);
     }
+  }
+
+  excel.Style _createStyle(excel.Workbook workbook,
+      {required String fontColor, required String backColor}) {
+    final style = workbook.styles.add('customStyle');
+    style.fontName = 'Arial';
+    style.bold = true;
+    style.fontSize = 12;
+    style.fontColor = fontColor;
+    style.backColor = backColor;
+    return style;
+  }
+
+  void _addInfoRows(
+      excel.Worksheet sheet,
+      excel.Style style,
+      int tinNumber,
+      String bhfId,
+      DateTime? startDate,
+      DateTime? endDate,
+      double? openingBalance,
+      double? grossProfit,
+      double? netProfit) {
+    final infoData = [
+      ['TIN Number', tinNumber],
+      ['BHF ID', bhfId],
+      ['Start Date', startDate?.toIso8601String() ?? "-"],
+      ['End Date', endDate?.toIso8601String() ?? "-"],
+      ['Opening Balance', openingBalance ?? 0],
+      ['Gross Profit', grossProfit ?? 0],
+      ['Net Profit', netProfit ?? 0],
+    ];
+
+    for (var i = 0; i < infoData.length; i++) {
+      sheet.insertRow(i + 1);
+      sheet.getRangeByName('A${i + 1}').setText(infoData[i][0].toString());
+      sheet.getRangeByName('E${i + 1}').setValue(infoData[i][1]);
+      for (var col = 1; col <= 5; col++) {
+        sheet.getRangeByIndex(i + 1, col).cellStyle = style;
+      }
+    }
+  }
+
+  void _addClosingBalanceRow(excel.Worksheet sheet, excel.Style style) {
+    final lastRow = sheet.getLastRow() + 1;
+    sheet.insertRow(lastRow);
+    sheet.getRangeByName('A$lastRow').setText('Closing Balance');
+    sheet.getRangeByName('E$lastRow').setFormula('=SUM(C6:C${lastRow - 1})');
+    for (var col = 1; col <= 5; col++) {
+      sheet.getRangeByIndex(lastRow, col).cellStyle = style;
+    }
+  }
+
+  Future<String> _saveExcelFile(excel.Workbook workbook) async {
+    final List<int> bytes = workbook.saveAsStream();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final Directory tempDir = await getApplicationDocumentsDirectory();
+    final String filePath = '${tempDir.path}/${formattedDate}-Report.xlsx';
+    final File file = File(filePath);
+    await file.writeAsBytes(bytes);
+    return filePath;
   }
 
   Future<void> shareFileAsAttachment(String filePath) async {
