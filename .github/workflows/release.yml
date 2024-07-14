@@ -466,7 +466,7 @@ jobs:
       - name: Shorebird Release
         if: startsWith(github.ref, 'refs/heads/dev/')
         run: |
-          shorebird release android --artifact-name app-release.aab
+          shorebird patch --platforms=android --release-version=1.170.4252223232017+1720068464
         working-directory: apps/flipper
 
         
