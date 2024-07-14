@@ -145,7 +145,7 @@ dependencies:
     path: ../
   flutter_colorpicker:
     git: https://github.com/mchome/flutter_colorpicker.git
-  realm: ^3.1.0
+  realm: ^3.2.0
   device_type: ^0.0.6
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12

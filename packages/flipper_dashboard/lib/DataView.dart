@@ -25,6 +25,8 @@ class DataView extends StatefulHookConsumerWidget {
     required this.showPluReport,
     required this.rowsPerPage,
     this.transactionItems,
+    this.grossProfit,
+    this.netProfit,
   });
 
   final List<ITransaction>? transactions;
@@ -33,6 +35,8 @@ class DataView extends StatefulHookConsumerWidget {
   final bool showPluReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
+  final double? grossProfit;
+  final double? netProfit;
 
   @override
   DataViewState createState() => DataViewState();
@@ -205,6 +209,8 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                               exportDataGridToExcel(
                                 endDate: widget.endDate,
                                 startDate: widget.startDate,
+                                grossProfit: widget.grossProfit,
+                                netProfit: widget.netProfit,
                               );
                             }
                           },
@@ -327,7 +333,7 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
         ),
       ),
       GridColumn(
-        columnName: 'StockRemain',
+        columnName: 'ProfitMade',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -335,7 +341,20 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Stock Remain', overflow: TextOverflow.ellipsis),
+          child: const Text('profit made on the sale',
+              overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'CurrentStock',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Current Stock', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -451,10 +470,11 @@ abstract class DynamicDataSource extends DataGridSource {
             DataGridCell<double>(
                 columnName: 'TaxRate', value: configurations.taxPercentage),
             DataGridCell<double>(
-                columnName: 'StockRemain', value: item.remainingStock),
+                columnName: 'ProfitMade', value: item.qty * item.price),
             DataGridCell<double>(
-                columnName: 'GrossProfit',
-                value: item.remainingStock * item.price),
+                columnName: 'CurrentStock', value: item.remainingStock),
+            DataGridCell<double>(
+                columnName: 'GrossProfit', value: item.qty * item.price),
           ]);
         } else {
           // Handle the case where item is not a TransactionItem

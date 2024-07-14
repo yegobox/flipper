@@ -954,3 +954,20 @@ class _Report {
   String? s3Url;
   bool? downloaded = false;
 }
+
+/// because this model is computed, that is why we ar not mapping _id to realmId
+/// and we are using id as primary key, as we will not provide our own id
+/// because this computation will happen on atlas server
+
+@RealmModel()
+class _Computed {
+  @PrimaryKey()
+  late ObjectId id;
+  int? branchId;
+  int? businessId;
+  double? grossProfit = 0;
+  double? netProfit = 0;
+  double? totalStockValue = 0;
+  double? totalStockSoldValue = 0;
+  double? totalStockItems = 0;
+}

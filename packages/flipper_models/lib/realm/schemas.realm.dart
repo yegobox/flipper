@@ -7808,3 +7808,160 @@ class Report extends _Report with RealmEntity, RealmObjectBase, RealmObject {
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class Computed extends _Computed
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Computed(
+    ObjectId id, {
+    int? branchId,
+    int? businessId,
+    double? grossProfit = 0,
+    double? netProfit = 0,
+    double? totalStockValue = 0,
+    double? totalStockSoldValue = 0,
+    double? totalStockItems = 0,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Computed>({
+        'grossProfit': 0,
+        'netProfit': 0,
+        'totalStockValue': 0,
+        'totalStockSoldValue': 0,
+        'totalStockItems': 0,
+      });
+    }
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'grossProfit', grossProfit);
+    RealmObjectBase.set(this, 'netProfit', netProfit);
+    RealmObjectBase.set(this, 'totalStockValue', totalStockValue);
+    RealmObjectBase.set(this, 'totalStockSoldValue', totalStockSoldValue);
+    RealmObjectBase.set(this, 'totalStockItems', totalStockItems);
+  }
+
+  Computed._();
+
+  @override
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
+  @override
+  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  double? get grossProfit =>
+      RealmObjectBase.get<double>(this, 'grossProfit') as double?;
+  @override
+  set grossProfit(double? value) =>
+      RealmObjectBase.set(this, 'grossProfit', value);
+
+  @override
+  double? get netProfit =>
+      RealmObjectBase.get<double>(this, 'netProfit') as double?;
+  @override
+  set netProfit(double? value) => RealmObjectBase.set(this, 'netProfit', value);
+
+  @override
+  double? get totalStockValue =>
+      RealmObjectBase.get<double>(this, 'totalStockValue') as double?;
+  @override
+  set totalStockValue(double? value) =>
+      RealmObjectBase.set(this, 'totalStockValue', value);
+
+  @override
+  double? get totalStockSoldValue =>
+      RealmObjectBase.get<double>(this, 'totalStockSoldValue') as double?;
+  @override
+  set totalStockSoldValue(double? value) =>
+      RealmObjectBase.set(this, 'totalStockSoldValue', value);
+
+  @override
+  double? get totalStockItems =>
+      RealmObjectBase.get<double>(this, 'totalStockItems') as double?;
+  @override
+  set totalStockItems(double? value) =>
+      RealmObjectBase.set(this, 'totalStockItems', value);
+
+  @override
+  Stream<RealmObjectChanges<Computed>> get changes =>
+      RealmObjectBase.getChanges<Computed>(this);
+
+  @override
+  Stream<RealmObjectChanges<Computed>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Computed>(this, keyPaths);
+
+  @override
+  Computed freeze() => RealmObjectBase.freezeObject<Computed>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'grossProfit': grossProfit.toEJson(),
+      'netProfit': netProfit.toEJson(),
+      'totalStockValue': totalStockValue.toEJson(),
+      'totalStockSoldValue': totalStockSoldValue.toEJson(),
+      'totalStockItems': totalStockItems.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Computed value) => value.toEJson();
+  static Computed _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'grossProfit': EJsonValue grossProfit,
+        'netProfit': EJsonValue netProfit,
+        'totalStockValue': EJsonValue totalStockValue,
+        'totalStockSoldValue': EJsonValue totalStockSoldValue,
+        'totalStockItems': EJsonValue totalStockItems,
+      } =>
+        Computed(
+          fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          grossProfit: fromEJson(grossProfit),
+          netProfit: fromEJson(netProfit),
+          totalStockValue: fromEJson(totalStockValue),
+          totalStockSoldValue: fromEJson(totalStockSoldValue),
+          totalStockItems: fromEJson(totalStockItems),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Computed._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Computed, 'Computed', [
+      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('grossProfit', RealmPropertyType.double, optional: true),
+      SchemaProperty('netProfit', RealmPropertyType.double, optional: true),
+      SchemaProperty('totalStockValue', RealmPropertyType.double,
+          optional: true),
+      SchemaProperty('totalStockSoldValue', RealmPropertyType.double,
+          optional: true),
+      SchemaProperty('totalStockItems', RealmPropertyType.double,
+          optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

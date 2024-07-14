@@ -20,8 +20,10 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
   final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
 
   Future<void> exportDataGridToExcel({
-    required DateTime startDate,
-    required DateTime endDate,
+    DateTime? startDate,
+    DateTime? endDate,
+    double? grossProfit,
+    double? netProfit,
   }) async {
     try {
       // await requestPermissions();
@@ -64,15 +66,18 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
       sheet.getRangeByName('A2').setText('BHF ID');
       sheet.getRangeByName('E2').setText(bhfId);
       sheet.getRangeByName('A3').setText('Start Date');
-      sheet
-          .getRangeByName('E3')
-          .setText(startDate.toIso8601String()); // Format date as needed
+      sheet.getRangeByName('E3').setText(
+          startDate?.toIso8601String() ?? "-"); // Format date as needed
       sheet.getRangeByName('A4').setText('End Date');
       sheet
           .getRangeByName('E4')
-          .setText(endDate.toIso8601String()); // Format date as needed
+          .setText(endDate?.toIso8601String() ?? "-"); // Format date as needed
       sheet.getRangeByName('A5').setText('Opening Balance');
       sheet.getRangeByName('E5').setNumber(drawer?.openingBalance ?? 0);
+      sheet.getRangeByName('A6').setText('Gross Profit');
+      sheet.getRangeByName('E6').setNumber(grossProfit ?? 0);
+      sheet.getRangeByName('A7').setText('Net Profit');
+      sheet.getRangeByName('E7').setNumber(netProfit ?? 0);
 
       // Add closing balance row at the bottom
       final int lastRow = sheet.getLastRow() + 1;
@@ -106,7 +111,7 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     final file = File(filePath);
     final fileName = p.basename(file.path);
 
-    if (Platform.isWindows) {
+    if (Platform.isWindows || Platform.isLinux) {
       final bytes = await file.readAsBytes();
       final mimeType = _lookupMimeType(filePath);
       await Share.shareXFiles(

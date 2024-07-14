@@ -44,6 +44,19 @@ class TransactionList extends ConsumerWidget {
                       color: Colors.grey[600],
                     ));
               }
+              // if is plu report that is when we get gross profit as we sum up the qty * price
+              double? grossProfit;
+              double? netProfit;
+              if (showPluReportWidget) {
+                final List<TransactionItem> items =
+                    data as List<TransactionItem>;
+                grossProfit = items
+                    .map((e) => e.qty * e.price)
+                    .reduce((value, element) => value + element);
+                netProfit = data
+                    .map((e) => e.qty * e.price)
+                    .reduce((value, element) => value - element);
+              }
 
               return DataView(
                 transactions:
@@ -54,6 +67,8 @@ class TransactionList extends ConsumerWidget {
                 endDate: endDate ?? DateTime.now(),
                 rowsPerPage: ref.read(rowsPerPageProvider),
                 showPluReport: showPluReportWidget,
+                grossProfit: grossProfit,
+                netProfit: netProfit,
               );
             },
             loading: () => Center(child: CircularProgressIndicator()),
