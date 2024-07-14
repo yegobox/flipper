@@ -962,6 +962,7 @@ class _Report {
 @RealmModel()
 class _Computed {
   @PrimaryKey()
+  @MapTo('_id')
   late ObjectId id;
   int? branchId;
   int? businessId;

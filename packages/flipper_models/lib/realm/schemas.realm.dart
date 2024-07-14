@@ -7832,7 +7832,7 @@ class Computed extends _Computed
         'totalStockItems': 0,
       });
     }
-    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', id);
     RealmObjectBase.set(this, 'branchId', branchId);
     RealmObjectBase.set(this, 'businessId', businessId);
     RealmObjectBase.set(this, 'grossProfit', grossProfit);
@@ -7845,9 +7845,9 @@ class Computed extends _Computed
   Computed._();
 
   @override
-  ObjectId get id => RealmObjectBase.get<ObjectId>(this, 'id') as ObjectId;
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
   @override
-  set id(ObjectId value) => RealmObjectBase.set(this, 'id', value);
+  set id(ObjectId value) => RealmObjectBase.set(this, '_id', value);
 
   @override
   int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
@@ -7906,7 +7906,7 @@ class Computed extends _Computed
 
   EJsonValue toEJson() {
     return <String, dynamic>{
-      'id': id.toEJson(),
+      '_id': id.toEJson(),
       'branchId': branchId.toEJson(),
       'businessId': businessId.toEJson(),
       'grossProfit': grossProfit.toEJson(),
@@ -7921,7 +7921,7 @@ class Computed extends _Computed
   static Computed _fromEJson(EJsonValue ejson) {
     return switch (ejson) {
       {
-        'id': EJsonValue id,
+        '_id': EJsonValue id,
         'branchId': EJsonValue branchId,
         'businessId': EJsonValue businessId,
         'grossProfit': EJsonValue grossProfit,
@@ -7948,7 +7948,8 @@ class Computed extends _Computed
     RealmObjectBase.registerFactory(Computed._);
     register(_toEJson, _fromEJson);
     return SchemaObject(ObjectType.realmObject, Computed, 'Computed', [
-      SchemaProperty('id', RealmPropertyType.objectid, primaryKey: true),
+      SchemaProperty('id', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
       SchemaProperty('branchId', RealmPropertyType.int, optional: true),
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
       SchemaProperty('grossProfit', RealmPropertyType.double, optional: true),

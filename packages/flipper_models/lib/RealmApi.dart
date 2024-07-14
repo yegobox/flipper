@@ -2253,7 +2253,8 @@ class RealmAPI<M extends IJsonSerializable>
         talker.info("Opened realm with no internet access.");
         return Realm(config);
       }
-    } catch (e) {
+    } catch (e, s) {
+      talker.error(s);
       throw e;
       // return Realm(config);
     }
@@ -2314,6 +2315,7 @@ class RealmAPI<M extends IJsonSerializable>
     final composites = realm!.query<Composite>(r'branchId == $0', [branchId]);
     final skus = realm!.query<SKU>(r'branchId == $0', [branchId]);
     final report = realm!.query<Report>(r'branchId == $0', [branchId]);
+    final computed = realm!.query<Computed>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2339,6 +2341,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
       mutableSubscriptions.add(composites, name: "composites", update: true);
+      mutableSubscriptions.add(computed, name: "computed", update: true);
       mutableSubscriptions.add(drawers, name: "drawers", update: true);
       mutableSubscriptions.add(token, name: "token", update: true);
       mutableSubscriptions.add(assets, name: "assets", update: true);
@@ -2767,6 +2770,15 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<double> soldStockValue({required branchId}) async* {
     // Get the list of TransactionItem objects for the given branchId
+
+    /// first check in Computed model if we have already calculated the value
+    final List<Computed> computeds =
+        realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
+    if (computeds.isNotEmpty) {
+      final computed = computeds.first;
+      yield computed.totalStockSoldValue ?? 0;
+      return;
+    }
     final List<TransactionItem> transactions =
         realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
 
@@ -2780,6 +2792,15 @@ class RealmAPI<M extends IJsonSerializable>
 
   Stream<double> stockValue({required branchId}) async* {
     // Get the list of Stock objects for the given branchId
+    /// first check in Computed model if we have already calculated the value
+    final List<Computed> computeds =
+        realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
+    if (computeds.isNotEmpty) {
+      final computed = computeds.first;
+      yield computed.totalStockValue ?? 0;
+      return;
+    }
+
     final List<Stock> stocks = realm!.query<Stock>(
         r'currentStock > $0 AND branchId == $1', [0, branchId]).toList();
 
