@@ -72,6 +72,8 @@ mixin TransactionMixin {
         // Update existing transaction item
         item.qty = (item.qty) + quantity;
         item.price = amountTotal / quantity;
+        item.taxblAmt = variation.retailPrice * quantity;
+        item.totAmt = variation.retailPrice * quantity;
 
         /// this is to automatically show item in shopping cart
         item.active = true;
@@ -121,7 +123,7 @@ mixin TransactionMixin {
         qty: computedQty,
         taxblAmt: variation.retailPrice * quantity,
         taxAmt: double.parse((amountTotal * 18 / 118).toStringAsFixed(2)),
-        totAmt: variation.retailPrice,
+        totAmt: variation.retailPrice * quantity,
         itemSeq: variation.itemSeq,
         isrccCd: variation.isrccCd,
         isrccNm: variation.isrccNm,
