@@ -20,8 +20,6 @@ jobs:
     name: "Integration Testing Windows"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'only-windows')
     runs-on: windows-2022
-    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
-    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
       - name: Export pub environment variable on Windows
         run: |

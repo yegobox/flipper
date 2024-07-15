@@ -15,6 +15,8 @@ void main() {
     final loginButton = find.byKey(const Key('pinLogin_desktop'));
     expect(loginButton, findsOneWidget);
 
+    await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
     // navigat to pin login screen
     await tester.tap(loginButton);
     // await tester.pumpAndSettle();
