@@ -28,6 +28,7 @@ class _PinLoginState extends State<PinLogin> {
       builder: (context, model, child) {
         return SafeArea(
           child: Scaffold(
+            key: Key('PinLogin'),
             body: Stack(
               children: [
                 SizedBox(width: 85, child: back.BackButton()),

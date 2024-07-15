@@ -169,17 +169,17 @@ class CashbookState extends ConsumerState<Cashbook> {
         child: OutlinedButton(
           onPressed: onPressed,
           style: ButtonStyle(
-            side: MaterialStateProperty.all<BorderSide>(
+            side: WidgetStateProperty.all<BorderSide>(
               BorderSide(color: color),
             ),
-            shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
               (states) => RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
             ),
-            backgroundColor: MaterialStateProperty.all<Color>(color),
-            overlayColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
+            backgroundColor: WidgetStateProperty.all<Color>(color),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
                 return color; // Defer to the widget's default.
               },
             ),
@@ -208,11 +208,13 @@ class CashbookState extends ConsumerState<Cashbook> {
     return Column(
       children: [
         buildNewTransactionTypeLabel(model.newTransactionType, model),
-        KeyPadView.cashBookMode(
-          model: model,
-          isBigScreen: widget.isBigScreen,
-          accountingMode: true,
-          transactionType: model.newTransactionType,
+        Expanded(
+          child: KeyPadView.cashBookMode(
+            model: model,
+            isBigScreen: widget.isBigScreen,
+            accountingMode: true,
+            transactionType: model.newTransactionType,
+          ),
         ),
       ],
     );
