@@ -44,7 +44,8 @@ class TransactionList extends ConsumerWidget {
                       color: Colors.grey[600],
                     ));
               }
-              // if is plu report that is when we get gross profit as we sum up the qty * price
+
+              /// if is plu report that is when we get gross profit as we sum up the qty * price
 
               return DataView(
                 transactions:
