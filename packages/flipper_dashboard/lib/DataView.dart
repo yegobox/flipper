@@ -278,6 +278,18 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
         ),
       ),
       GridColumn(
+        columnName: 'Qty',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Qty', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
         columnName: 'ProfitMade',
         label: Container(
           decoration: BoxDecoration(
@@ -414,6 +426,7 @@ abstract class DynamicDataSource extends DataGridSource {
             DataGridCell<double>(columnName: 'Price', value: item.price),
             DataGridCell<double>(
                 columnName: 'TaxRate', value: configurations.taxPercentage),
+            DataGridCell<double>(columnName: 'Qty', value: item.qty),
             DataGridCell<double>(
                 columnName: 'ProfitMade',
                 value: ((item.qty * item.price) - (item.qty * item.splyAmt))),
