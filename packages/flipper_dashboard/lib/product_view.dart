@@ -180,40 +180,7 @@ class ProductViewState extends ConsumerState<ProductView> {
         }
       },
       delete: (productId, type) async {
-        try {
-          /// first if there is image attached delete if first
-          Product? product = ProxyService.realm.getProduct(id: productId!);
-          if (product!.isComposite!) {
-            /// search composite and delete them as well
-            List<Composite> composites =
-                ProxyService.realm.composites(productId: productId);
-            ProxyService.realm.realm!.write(() {
-              for (Composite composite in composites) {
-                ProxyService.realm.realm!.delete(composite);
-              }
-            });
-          }
-          if (product.imageUrl != null) {
-            if (await ProxyService.realm
-                .removeS3File(fileName: product.imageUrl!)) {
-              await model.deleteProduct(productId: productId);
-              ref.refresh(
-                  outerVariantsProvider(ProxyService.box.getBranchId()!));
-
-              /// delete assets related to a product
-              Assets? asset =
-                  ProxyService.realm.getAsset(assetName: product.imageUrl!);
-              ProxyService.realm.delete(id: asset?.id ?? 0);
-            }
-          } else {
-            await model.deleteProduct(productId: productId);
-            ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-          }
-        } catch (e, s) {
-          talker.error("ProductViewClass:" + s.toString());
-          talker.error("ProductViewClass:" + e.toString());
-          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-        }
+        await deleteFunc(productId, model);
       },
       enableNfc: (product) {
         // Handle NFC functionality
@@ -343,41 +310,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                           }
                         },
                         delete: (productId, type) async {
-                          try {
-                            /// first if there is image attached delete if first
-                            Product? product =
-                                ProxyService.realm.getProduct(id: productId!);
-                            if (product!.isComposite!) {
-                              /// search composite and delete them as well
-                              List<Composite> composites = ProxyService.realm
-                                  .composites(productId: productId);
-                              ProxyService.realm.realm!.write(() {
-                                for (Composite composite in composites) {
-                                  ProxyService.realm.realm!.delete(composite);
-                                }
-                              });
-                            }
-                            if (product.imageUrl != null) {
-                              if (await ProxyService.realm
-                                  .removeS3File(fileName: product.imageUrl!)) {
-                                await model.deleteProduct(productId: productId);
-                                ref.refresh(outerVariantsProvider(
-                                    ProxyService.box.getBranchId()!));
-
-                                /// delete assets related to a product
-                                Assets? asset = ProxyService.realm
-                                    .getAsset(assetName: product.imageUrl!);
-                                ProxyService.realm.delete(id: asset?.id ?? 0);
-                              }
-                            } else {
-                              await model.deleteProduct(productId: productId);
-                              ref.refresh(outerVariantsProvider(
-                                  ProxyService.box.getBranchId()!));
-                            }
-                          } catch (e, s) {
-                            talker.error("ProductViewClass:" + s.toString());
-                            talker.error("ProductViewClass:" + e.toString());
-                          }
+                          await deleteFunc(productId, model);
                         },
                         enableNfc: (product) {
                           showMaterialModalBottomSheet(
@@ -430,5 +363,75 @@ class ProductViewState extends ConsumerState<ProductView> {
           ),
       ],
     );
+  }
+
+  Future<void> deleteFunc(int? productId, ProductViewModel model) async {
+    // try {
+    //       /// first if there is image attached delete if first
+    //       Product? product = ProxyService.realm.getProduct(id: productId!);
+    //       if (product!.isComposite!) {
+    //         /// search composite and delete them as well
+    //         List<Composite> composites =
+    //             ProxyService.realm.composites(productId: productId);
+    //         ProxyService.realm.realm!.write(() {
+    //           for (Composite composite in composites) {
+    //             ProxyService.realm.realm!.delete(composite);
+    //           }
+    //         });
+    //       }
+    //       if (product.imageUrl != null) {
+    //         if (await ProxyService.realm
+    //             .removeS3File(fileName: product.imageUrl!)) {
+    //           await model.deleteProduct(productId: productId);
+    //           ref.refresh(
+    //               outerVariantsProvider(ProxyService.box.getBranchId()!));
+
+    //           /// delete assets related to a product
+    //           Assets? asset =
+    //               ProxyService.realm.getAsset(assetName: product.imageUrl!);
+    //           ProxyService.realm.delete(id: asset?.id ?? 0);
+    //         }
+    //       } else {
+    //         await model.deleteProduct(productId: productId);
+    //         ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    //       }
+    //     } catch (e, s) {
+    //       talker.error("ProductViewClass:" + s.toString());
+    //       talker.error("ProductViewClass:" + e.toString());
+    //       ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    //     }
+    try {
+      /// first if there is image attached delete if first
+      Product? product = ProxyService.realm.getProduct(id: productId!);
+      if (product!.isComposite!) {
+        /// search composite and delete them as well
+        List<Composite> composites =
+            ProxyService.realm.composites(productId: productId);
+        ProxyService.realm.realm!.write(() {
+          for (Composite composite in composites) {
+            ProxyService.realm.realm!.delete(composite);
+          }
+        });
+      }
+      if (product.imageUrl != null) {
+        if (await ProxyService.realm
+            .removeS3File(fileName: product.imageUrl!)) {
+          await model.deleteProduct(productId: productId);
+          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+
+          /// delete assets related to a product
+          Assets? asset =
+              ProxyService.realm.getAsset(assetName: product.imageUrl!);
+          ProxyService.realm.delete(id: asset?.id ?? 0);
+        }
+      } else {
+        await model.deleteProduct(productId: productId);
+        ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+      }
+    } catch (e, s) {
+      talker.error("ProductViewClass:" + s.toString());
+      talker.error("ProductViewClass:" + e.toString());
+      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
+    }
   }
 }

@@ -757,6 +757,8 @@ class IsProcessingNotifier extends StateNotifier<bool> {
   }
 }
 
+final selectedItemIdProvider = StateProvider<int?>((ref) => null);
+
 // StateNotifierProvider
 
 List<ProviderBase> allProviders = [

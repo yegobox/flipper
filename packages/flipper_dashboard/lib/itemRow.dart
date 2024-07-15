@@ -87,87 +87,43 @@ class RowItem extends StatefulHookConsumerWidget {
 
 class _RowItemState extends ConsumerState<RowItem> {
   final _routerService = locator<RouterService>();
-  bool _showButtons = false;
 
   @override
   Widget build(BuildContext context) {
     final variantStream = ref.watch(variantStreamProvider(
         widget.product?.id ?? widget.variant?.productId ?? 0));
+    final selectedItem = ref.watch(selectedItemIdProvider);
+    final isSelected = selectedItem == widget.variant?.id ||
+        widget.product?.id == selectedItem;
 
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
         return InkWell(
           onTap: () async {
-            final pendingTransaction =
-                ref.watch(pendingTransactionProvider(TransactionType.sale));
-
-            /// first check if this item is a composite
-            Product? product =
-                ProxyService.realm.getProduct(id: widget.variant!.productId!);
-            if (product != null &&
-                product.isComposite != null &&
-                product.isComposite!) {
-              /// get items of this composite
-              List<Composite> composites =
-                  ProxyService.realm.composites(productId: product.id!);
-              for (Composite composite in composites) {
-                /// find a stock for a given variant
-                Stock? stock = ProxyService.realm
-                    .stockByVariantId(variantId: composite.variantId!);
-                Variant? variant =
-                    ProxyService.realm.getVariantById(id: composite.variantId!);
-                model.saveTransaction(
-                  variation: variant!,
-                  amountTotal: variant.retailPrice,
-                  customItem: false,
-                  currentStock: stock!.currentStock,
-                  pendingTransaction: pendingTransaction.value!,
-                  partOfComposite: true,
-                  compositePrice: composite.actualPrice,
-                );
-              }
-
-              await Future.delayed(Duration(microseconds: 1000));
-              ref.refresh(
-                  transactionItemsProvider(pendingTransaction.value?.id));
-
-              await Future.delayed(Duration(microseconds: 200));
-              ref.refresh(
-                  transactionItemsProvider(pendingTransaction.value?.id));
+            if (isSelected) {
+              ref.read(selectedItemIdProvider.notifier).state = 1;
             } else {
-              Stock? stock = ProxyService.realm
-                  .stockByVariantId(variantId: widget.variant?.id ?? 0);
-
-              model.saveTransaction(
-                variation: widget.variant!,
-                amountTotal: widget.variant?.retailPrice ?? 0,
-                customItem: false,
-                currentStock: stock!.currentStock,
-                pendingTransaction: pendingTransaction.value!,
-                partOfComposite: false,
-              );
-
-              await Future.delayed(Duration(microseconds: 1000));
-              ref.refresh(
-                  transactionItemsProvider(pendingTransaction.value?.id));
-
-              await Future.delayed(Duration(microseconds: 200));
-              ref.refresh(
-                  transactionItemsProvider(pendingTransaction.value?.id));
+              await onTapItem(model);
             }
           },
           onLongPress: () {
-            setState(() {
-              _showButtons = !_showButtons;
-            });
+            final itemId = widget.variant?.id ?? widget.product?.id;
+            if (itemId != null) {
+              if (selectedItem == itemId) {
+                /// set it to 1 as 1 is not a valid id this will unselect item
+                ref.read(selectedItemIdProvider.notifier).state = 1;
+              } else {
+                ref.read(selectedItemIdProvider.notifier).state = itemId;
+              }
+            }
           },
           child: Stack(
             children: [
               Container(
                 padding: const EdgeInsets.all(8.0),
                 decoration: BoxDecoration(
-                  color: _showButtons ? Colors.grey[300] : Colors.white,
+                  color: isSelected ? Colors.grey[300] : Colors.white,
                   borderRadius: BorderRadius.circular(8.0),
                   boxShadow: [
                     BoxShadow(
@@ -189,7 +145,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                   ],
                 ),
               ),
-              if (_showButtons)
+              if (isSelected)
                 Positioned(
                   left: 8.0,
                   bottom: 8.0,
@@ -204,7 +160,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                     },
                   ),
                 ),
-              if (_showButtons)
+              if (isSelected)
                 Positioned(
                   right: 8.0,
                   bottom: 8.0,
@@ -224,6 +180,62 @@ class _RowItemState extends ConsumerState<RowItem> {
         );
       },
     );
+  }
+
+  Future<void> onTapItem(CoreViewModel model) async {
+    final pendingTransaction =
+        ref.watch(pendingTransactionProvider(TransactionType.sale));
+
+    /// first check if this item is a composite
+    Product? product =
+        ProxyService.realm.getProduct(id: widget.variant!.productId!);
+    if (product != null &&
+        product.isComposite != null &&
+        product.isComposite!) {
+      /// get items of this composite
+      List<Composite> composites =
+          ProxyService.realm.composites(productId: product.id!);
+      for (Composite composite in composites) {
+        /// find a stock for a given variant
+        Stock? stock = ProxyService.realm
+            .stockByVariantId(variantId: composite.variantId!);
+        Variant? variant =
+            ProxyService.realm.getVariantById(id: composite.variantId!);
+        model.saveTransaction(
+          variation: variant!,
+          amountTotal: variant.retailPrice,
+          customItem: false,
+          currentStock: stock!.currentStock,
+          pendingTransaction: pendingTransaction.value!,
+          partOfComposite: true,
+          compositePrice: composite.actualPrice,
+        );
+      }
+
+      await Future.delayed(Duration(microseconds: 1000));
+      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+
+      await Future.delayed(Duration(microseconds: 200));
+      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+    } else {
+      Stock? stock = ProxyService.realm
+          .stockByVariantId(variantId: widget.variant?.id ?? 0);
+
+      model.saveTransaction(
+        variation: widget.variant!,
+        amountTotal: widget.variant?.retailPrice ?? 0,
+        customItem: false,
+        currentStock: stock!.currentStock,
+        pendingTransaction: pendingTransaction.value!,
+        partOfComposite: false,
+      );
+
+      await Future.delayed(Duration(microseconds: 1000));
+      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+
+      await Future.delayed(Duration(microseconds: 200));
+      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+    }
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
