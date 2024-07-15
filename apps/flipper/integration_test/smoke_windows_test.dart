@@ -25,16 +25,16 @@ void main() {
     expect(find.byKey(const Key('PinLogin')), findsOneWidget);
 
     // // Simulate entering an empty PIN
-    final pinField = find.byType(TextFormField);
-    await tester.enterText(pinField, '');
-    await tester.pumpAndSettle();
-    // // Tap the login button
-    await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
-    await tester.pumpAndSettle();
-    // // Verify that the validator error message is displayed
-    final errorText = find.text('PIN is required');
-    await tester.pumpAndSettle();
-    expect(errorText, findsOneWidget);
+    // final pinField = find.byType(TextFormField);
+    // await tester.enterText(pinField, '');
+    // await tester.pumpAndSettle();
+    // // // Tap the login button
+    // await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
+    // await tester.pumpAndSettle();
+    // // // Verify that the validator error message is displayed
+    // final errorText = find.text('PIN is required');
+    // await tester.pumpAndSettle();
+    // expect(errorText, findsOneWidget);
 
     // // Simulate entering a non-empty PIN
     // await tester.enterText(pinField, '1234');

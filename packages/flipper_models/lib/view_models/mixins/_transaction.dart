@@ -74,6 +74,7 @@ mixin TransactionMixin {
         item.price = amountTotal / quantity;
         item.taxblAmt = variation.retailPrice * quantity;
         item.totAmt = variation.retailPrice * quantity;
+        item.splyAmt = variation.supplyPrice;
 
         /// this is to automatically show item in shopping cart
         item.active = true;
@@ -140,7 +141,7 @@ mixin TransactionMixin {
         pkgUnitCd: variation.pkgUnitCd,
         qtyUnitCd: variation.qtyUnitCd,
         itemNm: variation.itemNm,
-        splyAmt: variation.splyAmt,
+        splyAmt: variation.supplyPrice,
         tin: variation.tin,
         bhfId: variation.bhfId,
         dftPrc: variation.dftPrc,

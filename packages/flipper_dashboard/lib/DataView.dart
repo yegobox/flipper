@@ -415,11 +415,13 @@ abstract class DynamicDataSource extends DataGridSource {
             DataGridCell<double>(
                 columnName: 'TaxRate', value: configurations.taxPercentage),
             DataGridCell<double>(
-                columnName: 'ProfitMade', value: item.qty * item.price),
+                columnName: 'ProfitMade',
+                value: ((item.qty * item.price) - (item.qty * item.splyAmt))),
             DataGridCell<double>(
                 columnName: 'CurrentStock', value: item.remainingStock),
             DataGridCell<double>(
-                columnName: 'GrossProfit', value: item.qty * item.price),
+                columnName: 'GrossProfit',
+                value: ((item.qty * item.price) - (item.qty * item.splyAmt))),
           ]);
         } else {
           // Handle the case where item is not a TransactionItem
