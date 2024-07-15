@@ -41,7 +41,7 @@ void main() {
     final pinNotFoundError = find.text('Pin: Not found');
     expect(pinNotFoundError, findsOneWidget);
 
-    // Simulate entering a real PIN
+    // Simulate entering a real PIN.
     await tester.enterText(pinField, '73268');
     await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
     await tester.pumpAndSettle();
