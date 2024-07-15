@@ -9,21 +9,25 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 
-import 'bottom_sheets/SettingsBottomSheet.dart';
-
 // Create a custom IconText widget that displays an icon and a text below it, with a border and a background color
 class IconText extends StatelessWidget {
   // Declare the icon and text as final variables
   final IconData icon;
   final String text;
   final bool isSelected;
+  final Key key;
 
   // Create a constructor that takes the icon and text as arguments
-  IconText({required this.icon, required this.text, this.isSelected = false});
+  IconText(
+      {required this.icon,
+      required this.text,
+      required this.key,
+      this.isSelected = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: key,
       // Use width and height to set the size of the container
       width: 80.0,
       height: 70.0,
@@ -115,18 +119,21 @@ class IconRowState extends ConsumerState<IconRow> {
               },
               child: IconText(
                 icon: Icons.home,
+                key: const Key('home_desktop'),
                 text: 'Home',
                 isSelected: _isSelected[0],
               ),
             ),
             ProxyService.realm.isTaxEnabled()
                 ? IconText(
+                    key: const Key('zreport_desktop'),
                     icon: Icons.sync,
                     text: 'Z Report',
                     isSelected: _isSelected[1],
                   )
                 : SizedBox.shrink(),
             IconText(
+              key: const Key('eod_desktop'),
               icon: Icons.payment,
               text: 'EOD',
               isSelected: _isSelected[2],
@@ -134,6 +141,7 @@ class IconRowState extends ConsumerState<IconRow> {
             GestureDetector(
               onDoubleTap: () {},
               child: IconText(
+                key: const Key('reports_desktop'),
                 icon: Icons.dashboard,
                 text: 'Reports',
                 isSelected: _isSelected[3],

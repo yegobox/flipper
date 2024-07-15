@@ -150,13 +150,15 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
-    final notification =
-        realm!.query<AppNotification>(r'branchId == $0', [branchId]);
-    localRealm!.subscriptions
-        .update((MutableSubscriptionSet mutableSubscriptions) {
-      mutableSubscriptions.add(notification,
-          name: "notification", update: true);
-    });
+    if (localRealm == null) return;
+    /// subscriptions are not supported in local realm
+    // final notification =
+    //     localRealm!.query<AppNotification>(r'identifier == $0', [branchId]);
+    // localRealm!.subscriptions
+    //     .update((MutableSubscriptionSet mutableSubscriptions) {
+    //   mutableSubscriptions.add(notification,
+    //       name: "notification", update: true);
+    // });
   }
 
   @override

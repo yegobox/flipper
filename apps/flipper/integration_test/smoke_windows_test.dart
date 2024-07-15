@@ -5,6 +5,7 @@ import 'package:flipper_rw/main.dart' as app_main;
 import 'package:flipper_ui/flipper_ui.dart';
 import 'common.dart';
 
+// patrol test  --target integration_test/smoke_windows_test.dart
 void main() {
   testWidgets('Test app works on Windows', (WidgetTester tester) async {
     await app_main.main();
@@ -44,5 +45,13 @@ void main() {
     await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
     await tester.pumpAndSettle();
     expect(pinNotFoundError, findsNothing);
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+
+    /// click on  EOD from ribbon
+    await tester.tap(find.byKey(const Key('eod_desktop')));
+
+    // should see the drawer screen
+    final drawer = find.byKey(const Key('openDrawerPage'));
+    expect(drawer, findsOneWidget);
   });
 }
