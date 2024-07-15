@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flipper_rw/main.dart' as app_main;
-
+import 'package:flipper_ui/flipper_ui.dart';
 import 'common.dart';
 
 void main() {
@@ -23,8 +23,8 @@ void main() {
     await tester.enterText(pinField, '');
 
     // Tap the login button
-    await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
-    // await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
+    await tester.pumpAndSettle();
 
     // Verify that the validator error message is displayed
     final errorText = find.text('PIN is required');
@@ -33,7 +33,7 @@ void main() {
     // Simulate entering a non-empty PIN
     await tester.enterText(pinField, '1234');
     await tester.tap(loginButton);
-    // await tester.pumpAndSettle();
+    await tester.pumpAndSettle();
     expect(errorText, findsNothing);
 
     final pinNotFoundError = find.text('Pin: Not found');
@@ -41,8 +41,8 @@ void main() {
 
     // Simulate entering a real PIN
     await tester.enterText(pinField, '73268');
-    await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
-    // await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
+    await tester.pumpAndSettle();
     expect(pinNotFoundError, findsNothing);
   });
 }

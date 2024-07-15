@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/RowsPerPageInput.dart';
 import 'package:flipper_dashboard/exportExcel.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm/schemas.dart';
@@ -43,6 +44,8 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
   DataGridSource? _dataGridSource; // Make it nullable
   int pageIndex = 0;
 
+  final rowsPerPageController = TextEditingController(text: 1000.toString());
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +53,7 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
 
   @override
   void dispose() {
-    // _dataGridSource.removeListener(updateWidget); // Remove this line
+    rowsPerPageController.dispose();
     super.dispose();
   }
 
@@ -80,9 +83,6 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
 
   @override
   Widget build(BuildContext context) {
-    final rowsPerPage = ref.watch(rowsPerPageProvider);
-    final rowsPerPageController =
-        TextEditingController(text: rowsPerPage.toString());
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
@@ -132,63 +132,8 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                             Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: SizedBox(
-                                width: 150,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0),
-                                  child: SizedBox(
-                                    width: 150,
-                                    child: TextFormField(
-                                      controller: rowsPerPageController,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        labelText: 'Rows Per Page',
-                                        labelStyle: TextStyle(
-                                          color: Colors.grey[700],
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          borderSide: BorderSide(
-                                            color: Colors.grey[400]!,
-                                          ),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8.0),
-                                          borderSide: BorderSide(
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                        errorStyle: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 12,
-                                        ), // Add error style
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 16.0,
-                                      ),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Please enter a number';
-                                        }
-                                        if (int.tryParse(value) == null) {
-                                          return 'Please enter a valid number';
-                                        }
-                                        return null;
-                                      },
-                                      onChanged: (value) {
-                                        ref
-                                            .read(rowsPerPageProvider.notifier)
-                                            .state = int.tryParse(
-                                                value) ??
-                                            1000;
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              child: RowsPerPageInput(
+                                  rowsPerPageProvider: rowsPerPageProvider),
                             ),
                           ],
                         ),
