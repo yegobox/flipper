@@ -2067,20 +2067,23 @@ class RealmAPI<M extends IJsonSerializable>
       } else {
         if (ProxyService.box.encryptionKey().isEmpty) {
           talker.error("Empty ncryption key provided");
-          // throw Exception("null encryption");
+
           realm?.close();
           _configureInMemory();
+          return this;
         }
         if (ProxyService.box.getBusinessId() == null) {
           talker.error("There is no business found");
           // throw Exception("here is no business found");
           realm?.close();
           _configureInMemory();
+          return this;
         }
         realm?.close();
         String path = await dbPath(
             path: 'synced', folder: ProxyService.box.getBusinessId());
         await _configurePersistent(user, path);
+        return this;
       }
     } catch (e, s) {
       /// after a lof of thinking a fallback should use in memory because
@@ -2124,9 +2127,6 @@ class RealmAPI<M extends IJsonSerializable>
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
   Future<Configuration?> _createPersistentConfig(User user, String path) async {
     try {
-      if (ProxyService.box.encryptionKey().isEmpty) {
-        throw Exception();
-      }
       talker.warning("using key: ${ProxyService.box.encryptionKey()}");
       return Configuration.flexibleSync(
         user,
@@ -2225,10 +2225,8 @@ class RealmAPI<M extends IJsonSerializable>
           },
         ),
       );
-    } catch (e, s) {
-      talker.info(e);
-      talker.info(s);
-      return null;
+    } catch (e) {
+      rethrow;
     }
   }
 
