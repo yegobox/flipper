@@ -11,7 +11,7 @@ exports = async function ({ query }) {
     const variantCollection = db.collection("Variant");
   
     // Get all TransactionItems for the given branchId
-    const transactionItems = await transactionCollection.find({ branchId }).toArray();
+    const transactionItems = await transactionCollection.find({ branchId: parseInt(branchId) }).toArray();
   
     let updatedCount = 0;
   
@@ -20,12 +20,12 @@ exports = async function ({ query }) {
       const variantId = transaction.variantId;
   
       // Find the corresponding variant in the Variant collection
-      const variant = await variantCollection.findOne({ id: variantId });
+      const variant = await variantCollection.findOne({ "id": variantId });
   
       if (variant) {
         // Update the splyAmt of the TransactionItem to be the supplyPrice of the variant
         await transactionCollection.updateOne(
-          { _id: transaction._id },
+            { _id: transaction._id },
           { $set: { splyAmt: variant.supplyPrice } }
         );
         updatedCount++;
