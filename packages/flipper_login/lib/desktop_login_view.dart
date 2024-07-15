@@ -122,7 +122,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     height: 40,
                     width: 350,
                     child: OutlinedButton(
-                      key: Key('pinLogin'),
+                      key: Key('pinLogin_desktop'),
                       child: Text(
                         'Switch to PIN login',
                         style: TextStyle(color: Color(0xff006AFE)),
