@@ -179,10 +179,12 @@ class _LoginChoicesState extends State<LoginChoices> {
         id: randomNumber(),
         openingBalance: 0.0,
         closingBalance: 0.0,
-        cashierId: ProxyService.box.getBusinessId()!,
+        cashierId: ProxyService.box.getUserId()!,
         tradeName: ProxyService.app.business.name,
         openingDateTime: DateTime.now().toIso8601String(),
         open: true,
+        businessId: ProxyService.box.getBusinessId(),
+        branchId: ProxyService.box.getBranchId(),
       );
 
       _routerService

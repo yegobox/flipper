@@ -17,10 +17,12 @@ class FlipperBaseModel extends ReactiveViewModel {
       id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
-      cashierId: ProxyService.box.getBusinessId()!,
+      cashierId: ProxyService.box.getUserId()!,
       tradeName: ProxyService.app.business.name,
       openingDateTime: DateTime.now().toIso8601String(),
       open: true,
+      businessId: ProxyService.box.getBusinessId(),
+      branchId: ProxyService.box.getBranchId(),
     );
 
     final _routerService = locator<RouterService>();

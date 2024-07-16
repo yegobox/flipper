@@ -102,7 +102,7 @@ class _RowItemState extends ConsumerState<RowItem> {
         return InkWell(
           onTap: () async {
             if (isSelected) {
-              ref.read(selectedItemIdProvider.notifier).state = 1;
+              ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
             } else {
               await onTapItem(model);
             }
@@ -112,7 +112,7 @@ class _RowItemState extends ConsumerState<RowItem> {
             if (itemId != null) {
               if (selectedItem == itemId) {
                 /// set it to 1 as 1 is not a valid id this will unselect item
-                ref.read(selectedItemIdProvider.notifier).state = 1;
+                ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
               } else {
                 ref.read(selectedItemIdProvider.notifier).state = itemId;
               }

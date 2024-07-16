@@ -52,11 +52,9 @@ class StartupViewModel extends FlipperBaseModel {
       }
       await appService.appInit();
 
-      Business? activeBusinesses = await ProxyService.local
-          .activeBusinesses(userId: ProxyService.box.getUserId()!);
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (await ProxyService.realm
-          .isDrawerOpen(cashierId: activeBusinesses!.serverId!)) {
+          .isDrawerOpen(cashierId: ProxyService.box.getUserId()!)) {
         /// if there is missing initial data, this is the right time to add them
         /// this is the case when a user login to a different device and the data does not exist there
         /// or has not been synced! though we don't expect this scenario to happen mostly because

@@ -276,9 +276,11 @@ class _Drawers {
   int? incompleteSale;
   int? otherTransactions;
   String? paymentMode;
-  int? cashierId;
+  int? cashierId; // the userId owning this drawer
   bool? open;
   DateTime? deletedAt;
+  int? businessId;
+  int? branchId;
 }
 
 @RealmModel()

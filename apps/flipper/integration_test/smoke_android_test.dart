@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'common.dart';
 
+// patrol develop  --target integration_test/smoke_android_test.dart
 void main() {
   patrol('Run app-android:', (tester) async {
     // Override the error handler
@@ -88,16 +89,46 @@ void main() {
       final snackBarText = tester.tester.widget<Text>(snackBarTextFinder);
       expect(snackBarText.data, 'Pin: Not found');
 
-      /// done testing the wrong pin
-      ///
-      ///
-      /// Test the right PIN
-      ///
-      // await tester.enterText(find.byType(TextFormField), '73268');
-      // await tester.tap(find.text('Log in'));
+      await tester.enterText(find.byType(TextFormField), '73268');
+      await tester.tap(find.text('Log in'));
+      // pump and settle
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('openDrawerPage')), findsOneWidget);
 
-      // /// on success drawer should be open
-      // expect(find.byKey(const Key("openDrawerPage")), true);
+      ///TODO: here I will write more tests to test the app usage
+      ///
+      ///
+      ///
+      ///
+      ///
+      ///
+      ///
+
+      /// click on  EOD from ribbon
+      await tester.tap(find.byKey(const Key('eod_desktop')));
+
+      // should see the drawer screen
+      final drawer = find.byKey(const Key('openDrawerPage'));
+      expect(drawer, findsOneWidget);
+
+      // Add a delay to ensure all animations have completed
+      await tester.pumpAndSettle();
+
+      /// find TextFormField
+      final textFormField = find.byType(TextFormField);
+      await tester.enterText(textFormField, '0.0');
+
+      /// find submit button
+      final submitButton = find.byKey(const Key('closeDrawerButton'));
+      expect(submitButton, findsOneWidget);
+      // tap on submit button
+      await tester.tap(submitButton);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('openDrawerPage')), findsNothing);
+      await tester.pumpAndSettle();
+
+      /// go back to login screen
+      expect(find.text('Sign In'), findsOneWidget);
     } catch (e) {
       // print('Caught error: $e'); // Log the error for debugging
     } finally {

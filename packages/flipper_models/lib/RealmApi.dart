@@ -2307,7 +2307,8 @@ class RealmAPI<M extends IJsonSerializable>
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
     final tenant = realm!.all<Tenant>();
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
-    final drawers = realm!.query<Drawers>(r'cashierId == $0', [businessId]);
+    final drawers = realm!
+        .query<Drawers>(r'cashierId == $0', [ProxyService.box.getUserId()]);
     final configs = realm!.query<Configurations>(r'branchId == $0', [branchId]);
     final assets = realm!.query<Assets>(r'branchId == $0', [branchId]);
     final composites = realm!.query<Composite>(r'branchId == $0', [branchId]);
@@ -2929,7 +2930,10 @@ class RealmAPI<M extends IJsonSerializable>
     ProxyService.box.remove(key: 'defaultApp');
     ProxyService.box.remove(key: 'authComplete');
     // but for shared preference we can just clear them all
-    ProxyService.box.clear();
+    /// We do not clear all variable, this is because even on logout
+    /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use
+    /// therefore why the bellow line is commented out.
+    // ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
 
     /// refreshing the user token will invalidate any session
@@ -2940,14 +2944,22 @@ class RealmAPI<M extends IJsonSerializable>
     /// calling close on logout inroduced error where another attempt to login will fail since
     /// the instance of realm is instantiated at app start level.
     // resetDependencies(dispose: true);
+    /// wait to sync data for this eod
+    await ProxyService.realm.realm!.syncSession.waitForUpload();
+    close();
+    ProxyService.realm.realm = null;
     return Future.value(true);
   }
   //// drawers
 
+  /// because a drawer is open per the user logged in
   @override
   Future<bool> isDrawerOpen({required int cashierId}) async {
+    // Business? activeBusinesses = await ProxyService.local
+    //     .activeBusinesses(userId: ProxyService.box.getUserId()!);
     return realm!.query<Drawers>(
-            r'cashierId == $0 AND open==true', [cashierId]).firstOrNull !=
+            r'cashierId == $0 AND open == $1 && branchId == $2',
+            [cashierId, true, ProxyService.box.getBranchId()]).firstOrNull !=
         null;
   }
 
@@ -3150,9 +3162,25 @@ class RealmAPI<M extends IJsonSerializable>
       // Listen for the download completion
       operation.result.then((_) {
         progressController.close();
-      }).catchError((error) {
+      }).catchError((error) async {
         String path = 'public/${subPath}-$branchId/$assetName';
-        talker.error('Download error ${path} - ${error.message}');
+        try {
+          /// first delete asset from realm
+          Assets? asset = ProxyService.realm.getAsset(assetName: assetName);
+          if (asset != null) {
+            ProxyService.realm.realm!.write(() {
+              ProxyService.realm.realm!.delete(asset);
+            });
+          }
+          await amplify.Amplify.Storage.remove(
+            path: storagePath,
+            // options: const amplify.StorageRemoveOptions()
+          );
+          talker.info('Asset deleted from S3 after download error: $path');
+        } catch (deleteError) {
+          talker.error(
+              'Failed to delete asset from S3: $path - ${deleteError.toString()}');
+        }
         progressController.addError(error);
         progressController.close();
       });

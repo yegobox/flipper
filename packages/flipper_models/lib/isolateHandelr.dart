@@ -40,12 +40,16 @@ mixin IsolateHandler {
     final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
     final branchId = args[2] as int;
-    String encryptionKey = args[4] as String;
-    int tinNumber = args[5] as int;
-    String bhfId = args[6] as String;
-    String URI = args[8] as String;
+    String? encryptionKey = args[4] as String?;
+    int? tinNumber = args[5] as int?;
+    String? bhfId = args[6] as String?;
+    String? URI = args[8] as String?;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
+    if (encryptionKey == null ||
+        tinNumber == null ||
+        bhfId == null ||
+        URI == null) return;
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
@@ -132,7 +136,10 @@ mixin IsolateHandler {
           // }
 
           /// do not attempt saving a variant with missing fields
-          if (variant.qtyUnitCd == null || variant.taxTyCd == null) return;
+          if (variant.qtyUnitCd == null ||
+              variant.taxTyCd == null ||
+              variant.bhfId == null ||
+              variant.bhfId!.isEmpty) return;
           await RWTax().saveItem(variation: iVariant, URI: URI);
           gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");

@@ -7,7 +7,7 @@ class StateObserver extends ProviderObserver {
     Object? value,
     ProviderContainer container,
   ) {
-    print('Provider $provider was initialized with $value');
+    // print('Provider $provider was initialized with $value');
   }
 
   @override
@@ -15,7 +15,7 @@ class StateObserver extends ProviderObserver {
     ProviderBase<Object?> provider,
     ProviderContainer container,
   ) {
-    print('Provider $provider was disposed');
+    // print('Provider $provider was disposed');
   }
 
   @override
@@ -25,7 +25,7 @@ class StateObserver extends ProviderObserver {
     Object? newValue,
     ProviderContainer container,
   ) {
-    print('Provider $provider updated from $previousValue to $newValue');
+    // print('Provider $provider updated from $previousValue to $newValue');
   }
 
   @override
@@ -35,6 +35,6 @@ class StateObserver extends ProviderObserver {
     StackTrace stackTrace,
     ProviderContainer container,
   ) {
-    print('Provider $provider threw $error at $stackTrace');
+    // print('Provider $provider threw $error at $stackTrace');
   }
 }

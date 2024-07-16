@@ -757,7 +757,9 @@ class IsProcessingNotifier extends StateNotifier<bool> {
   }
 }
 
-final selectedItemIdProvider = StateProvider<int?>((ref) => null);
+const int NO_SELECTION = -1;
+
+final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
 
 // StateNotifierProvider
 

@@ -166,6 +166,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
         width: double.infinity,
         height: 60,
         child: BoxButton(
+          key: const Key('closeDrawerButton'),
           title: widget.open == "open" ? "Open Drawer" : "Close Drawer",
           onTap: () async {
             if (_sub.currentState!.validate()) {
@@ -186,11 +187,9 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   Future<void> handleOpenDrawer() async {
-    Business? activeBusinesses = await ProxyService.local
-        .activeBusinesses(userId: ProxyService.box.getUserId()!);
     ProxyService.realm.openDrawer(
       drawer: widget.drawer
-        ..cashierId = activeBusinesses!.serverId!
+        ..cashierId = ProxyService.box.getUserId()
         ..openingBalance = double.tryParse(_controller.text) ?? 0,
     );
 
@@ -199,11 +198,8 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   void handleCloseDrawer() async {
-    Business? activeBusinesses = await ProxyService.local
-        .activeBusinesses(userId: ProxyService.box.getUserId()!);
-
     Drawers? drawers = await ProxyService.realm
-        .getDrawer(cashierId: activeBusinesses!.serverId!);
+        .getDrawer(cashierId: ProxyService.box.getUserId()!);
     if (drawers != null) {
       ProxyService.realm.realm!.write(() {
         drawers.open = false;

@@ -2215,6 +2215,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     int? cashierId,
     bool? open,
     DateTime? deletedAt,
+    int? businessId,
+    int? branchId,
   }) {
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'id', id);
@@ -2236,6 +2238,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'cashierId', cashierId);
     RealmObjectBase.set(this, 'open', open);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'branchId', branchId);
   }
 
   Drawers._();
@@ -2368,6 +2372,16 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
   Stream<RealmObjectChanges<Drawers>> get changes =>
       RealmObjectBase.getChanges<Drawers>(this);
 
@@ -2400,6 +2414,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       'cashierId': cashierId.toEJson(),
       'open': open.toEJson(),
       'deletedAt': deletedAt.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
     };
   }
 
@@ -2427,6 +2443,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
         'cashierId': EJsonValue cashierId,
         'open': EJsonValue open,
         'deletedAt': EJsonValue deletedAt,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
       } =>
         Drawers(
           fromEJson(realmId),
@@ -2449,6 +2467,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
           cashierId: fromEJson(cashierId),
           open: fromEJson(open),
           deletedAt: fromEJson(deletedAt),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2486,6 +2506,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('cashierId', RealmPropertyType.int, optional: true),
       SchemaProperty('open', RealmPropertyType.bool, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
     ]);
   }();
 

@@ -185,7 +185,7 @@ class IconRowState extends ConsumerState<IconRow> {
       final data = await ProxyService.realm
           .getTransactionsAmountsSum(period: TransactionPeriod.today);
       Drawers? drawer = await ProxyService.realm.getDrawer(
-        cashierId: ProxyService.box.getBusinessId()!,
+        cashierId: ProxyService.box.getUserId()!,
       );
       if (drawer != null) {
         /// update the drawer with closing balance

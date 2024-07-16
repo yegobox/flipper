@@ -151,6 +151,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
   Future<void> updateSubscription(int? branchId, int? businessId) async {
     if (localRealm == null) return;
+
     /// subscriptions are not supported in local realm
     // final notification =
     //     localRealm!.query<AppNotification>(r'identifier == $0', [branchId]);
@@ -195,7 +196,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           UserActivity.schema,
           Business.schema,
           Branch.schema,
-          Drawers.schema,
           UnversalProduct.schema,
           AppNotification.schema
         ],
@@ -342,9 +342,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
     }
-    if (ProxyService.local.localRealm == null) {
-      await ProxyService.local.configureLocal(useInMemory: false);
-    }
+    await ProxyService.local.configureLocal(useInMemory: false);
+
     if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
       phoneNumber = '+' + phoneNumber;
     }
