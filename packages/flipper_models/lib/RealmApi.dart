@@ -3166,7 +3166,7 @@ class RealmAPI<M extends IJsonSerializable>
         String path = 'public/${subPath}-$branchId/$assetName';
         try {
           /// first delete asset from realm
-          Assets? asset = ProxyService.realm.getAsset(assetName: assetName);
+          Assets? asset = getAsset(assetName: assetName);
           if (asset != null) {
             ProxyService.realm.realm!.write(() {
               ProxyService.realm.realm!.delete(asset);

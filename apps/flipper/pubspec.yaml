@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223232119+1721121563
+version: 1.170.4252223232120+1721126588
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -51,7 +51,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   connectivity_plus: ^6.0.3
   #google_mobile_ads: ^5.0.0
-  device_info_plus: ^10.1.0
+  # device_info_plus: ^10.1.0
   provider: ^6.0.1
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
@@ -100,7 +100,7 @@ dependencies:
   flutter_colorpicker:
     git: https://github.com/mchome/flutter_colorpicker.git
   realm: ^3.2.0
-  device_type: ^0.0.6
+  device_type: ^1.0.0-dev
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
@@ -206,7 +206,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.2262.0
+  msix_version: 1.170.2263.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
