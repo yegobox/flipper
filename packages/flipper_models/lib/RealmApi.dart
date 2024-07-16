@@ -2201,6 +2201,7 @@ class RealmAPI<M extends IJsonSerializable>
                     'Automatic client reset failed. Manual reset is required.',
               ),
             );
+            
             await Future.delayed(Duration(seconds: 10));
             // 1. Close the realm
             // realm!.close();
