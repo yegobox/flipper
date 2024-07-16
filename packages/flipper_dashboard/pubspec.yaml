@@ -114,7 +114,7 @@ dependencies:
   flutter_colorpicker:
     git: https://github.com/mchome/flutter_colorpicker.git
   realm: ^3.2.0
-  device_type: ^1.0.0-dev
+  
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0

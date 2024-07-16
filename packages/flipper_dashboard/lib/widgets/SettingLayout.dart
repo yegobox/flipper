@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:device_type/device_type.dart';
+import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/realm_model_export.dart';
