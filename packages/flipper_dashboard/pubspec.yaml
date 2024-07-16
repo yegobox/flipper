@@ -39,7 +39,7 @@ dependencies:
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1
-  flutter_inappwebview: ^6.0.0
+  flutter_inappwebview: ^6.0.0-beta.30
   url_launcher: ^6.2.6
   google_fonts: ^6.1.0
   number_display: ^3.0.0

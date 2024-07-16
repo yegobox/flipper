@@ -2203,23 +2203,23 @@ class RealmAPI<M extends IJsonSerializable>
             );
             await Future.delayed(Duration(seconds: 10));
             // 1. Close the realm
-            realm!.close();
+            // realm!.close();
 
             // 2. Delete the realm file
             try {
               clientResetError.resetRealm();
             } catch (e) {
-              File realmFile = File(realm!.config.path);
-              if (await realmFile.exists()) {
-                await realmFile.delete();
-                print('Realm file deleted successfully.');
-              }
+              // File realmFile = File(realm!.config.path);
+              // if (await realmFile.exists()) {
+              //   await realmFile.delete();
+              //   print('Realm file deleted successfully.');
+              // }
               // print('Error deleting realm file: $e');
             }
 
             // 3. Restart the app
             print('Restarting the app...');
-            exit(0);
+            // exit(0);
 
             //the app re-initialize here
           },
