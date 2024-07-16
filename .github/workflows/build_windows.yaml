@@ -1,0 +1,102 @@
+name: Build Windows app
+
+on:
+  # Enable manual run
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "Fastlane lane"
+        required: true
+        default: "internal"
+        type: choice
+        options:
+          - beta
+          - promote_to_production
+          - production
+  
+  push:
+    branches: [main, dev]
+
+env:
+  URL: ${{ secrets.DB_URL }}
+  PASSWORD: ${{ secrets.DB_PASSWORD }}
+  SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+
+jobs:
+  build-and-release-windows:
+    name: "Build windows app"
+    if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'direct-build-windows')
+    runs-on: windows-2022
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils
+    #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
+    steps:
+      - name: Export pub environment variable on Windows
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "PUB_CACHE=$LOCALAPPDATA\\Pub\\Cache" >> $GITHUB_ENV
+          fi
+        shell: bash
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACCESS_TOKEN }}
+          persist-credentials: true
+      - name: Clone Flutter repository with stable channel
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.2"
+          channel: stable
+      - run: flutter doctor -v
+
+      - name: submodule init
+        run: git submodule update --init
+      - name: Configure Missing files
+        shell: bash
+        run: |
+          echo "$INDEX" >> apps/flipper/web/index.html
+          echo "$CONFIGDART" >> packages/flipper_login/lib/config.dart
+          echo "$SECRETS" >> packages/flipper_models/lib/secrets.dart
+          echo "$FIREBASEOPTIONS" >> apps/flipper/lib/firebase_options.dart
+          echo "$FIREBASEOPTIONS" >> packages/flipper_models/lib/firebase_options.dart
+          echo "$AMPLIFY_CONFIG" >> apps/flipper/lib/amplifyconfiguration.dart
+          echo "$AMPLIFY_TEAM_PROVIDER" >> apps/flipper/amplify/team-provider-info.json
+        env:
+          INDEX: ${{ secrets.INDEX }}
+          CONFIGDART: ${{ secrets.CONFIGDART }}
+          SECRETS: ${{ secrets.SECRETS }}
+          FIREBASEOPTIONS: ${{ secrets.FIREBASEOPTIONS }}
+          AMPLIFY_CONFIG: ${{ secrets.AMPLIFY_CONFIG }} 
+          AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
+          # --store
+          # --install-certificate false
+          # https://github.com/YehudaKremer/msix/issues/126
+      - run: |
+          dart pub global activate melos
+          melos bootstrap
+          cd apps/flipper
+          dart run msix:create -v --install-certificate false
+      - name: Configure Release (optional)
+        env:
+          VERSION: ${{ github.sha }} # Or use a semantic versioning scheme
+        run: |
+          echo "## Release Notes" >> release_notes.txt
+          echo " - New features..." >> release_notes.txt
+          echo " - Bug fixes..." >> release_notes.txt
+
+      - name: Extract msix_version
+        id: get_version
+        shell: powershell
+        run: |
+          $MSIX_VERSION = (Get-Content -Path "apps/flipper/pubspec.yaml" -Raw) -match 'msix_config:\s*([\s\S]*?)\bmsix_version:\s*(\d+\.\d+\.\d+\.\d+)\b' | ForEach-Object { if ($matches.Count -ge 2) { $matches[2] } else { Write-Output "No msix_version found"; exit 1 } }; echo "::set-output name=version::$MSIX_VERSION"
+      - name: Upload .msix to Release
+        uses: actions/upload-artifact@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        with:
+          name: windows-build
+          path: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
+          upload_release_asset: false
+
+
+  
