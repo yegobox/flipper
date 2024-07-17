@@ -52,9 +52,9 @@ class TransactionList extends ConsumerWidget {
                     !showPluReportWidget ? data as List<ITransaction> : null,
                 transactionItems:
                     showPluReportWidget ? data as List<TransactionItem> : null,
-                startDate: startDate! ,
+                startDate: startDate!,
                 endDate: endDate!,
-                rowsPerPage: ref.read(rowsPerPageProvider),
+                rowsPerPage: 1000,
                 showPluReport: showPluReportWidget,
               );
             },

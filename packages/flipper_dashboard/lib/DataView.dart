@@ -13,6 +13,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:pinput/pinput.dart';
 import 'package:stacked/stacked.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -87,6 +88,8 @@ class DataViewState extends ConsumerState<DataView>
   Widget build(BuildContext context) {
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
+
+    talker.info("Given data size: ${widget.transactionItems?.length}");
 
     // Update _dataGridSource based on widget.showPluReport
     _dataGridSource = _buildDataGridSource(
