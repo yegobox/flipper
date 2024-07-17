@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -135,7 +136,7 @@ class CashbookState extends ConsumerState<Cashbook> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         buildTransactionButton(
-          label: 'Cash In',
+          label: TransactionType.cashIn,
           color: Colors.green,
           onPressed: () {
             model.newTransactionPressed = true;
@@ -174,7 +175,7 @@ class CashbookState extends ConsumerState<Cashbook> {
             ),
             shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
               (states) => RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
+                borderRadius: BorderRadius.circular(4.0),
               ),
             ),
             backgroundColor: WidgetStateProperty.all<Color>(color),
@@ -187,7 +188,11 @@ class CashbookState extends ConsumerState<Cashbook> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Icon(Icons.add, color: Colors.white),
+              Icon(
+                  label == TransactionType.cashIn
+                      ? Icons.add
+                      : FluentIcons.subtract_24_regular,
+                  color: Colors.white),
               Spacer(),
               Text(
                 label,

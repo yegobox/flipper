@@ -92,22 +92,22 @@ class CoreViewModel extends FlipperBaseModel
     _tab = tab;
   }
 
-  void updateCategory({required Category category}) async {
+  void updateCategory({required Category category}) {
     int branchId = ProxyService.box.getBranchId()!;
-    ProxyService.realm.realm!.write(() {
-      for (Category category in categories) {
+
+    for (Category category in categories) {
+      ProxyService.realm.realm!.write(() {
         if (category.focused) {
           Category cat = category;
           cat.focused = false;
-          cat.branchId = branchId;
           cat.active = false;
         }
-      }
-
-      Category cat = category;
-      cat.focused = true;
-      cat.active = true;
-      cat.branchId = branchId;
+      });
+    }
+    ProxyService.realm.realm!.write(() {
+      category.focused = true;
+      category.active = true;
+      category.branchId = branchId;
     });
     app.loadCategories();
   }

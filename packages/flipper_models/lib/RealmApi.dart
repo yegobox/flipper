@@ -531,46 +531,32 @@ class RealmAPI<M extends IJsonSerializable>
     }
     if (data is Conversation) {
       Conversation conversation = data;
-      realm!.write(() {
-        realm!.put<Conversation>(conversation);
-      });
+      realm!.put<Conversation>(conversation);
       return null;
     }
     if (data is Category) {
       Category category = data;
-      realm!.write(() {
-        realm!.put(category);
-      });
+      realm!.put<Category>(category);
       return null;
     }
     if (data is Product) {
-      realm!.write(() {
-        realm!.put<Product>(data);
-      });
+      realm!.put<Product>(data);
     }
     if (data is Variant) {
-      realm!.write(() {
-        realm!.put<Variant>(data);
-      });
+      realm!.put<Variant>(data);
       return null;
     }
     if (data is Favorite) {
-      realm!.write(() {
-        realm!.put<Favorite>(data);
-      });
+      realm!.put<Favorite>(data);
       return null;
     }
     if (data is Stock) {
-      realm!.write(() {
-        realm!.put<Stock>(data);
-      });
+      realm!.put<Stock>(data);
       return null;
     }
 
     if (data is Token) {
-      realm!.write(() {
-        realm!.put<Token>(data);
-      });
+      realm!.put<Token>(data);
       return null;
     }
     if (data is Setting) {
@@ -580,21 +566,15 @@ class RealmAPI<M extends IJsonSerializable>
       return null;
     }
     if (data is EBM) {
-      realm!.write(() {
-        realm!.put<EBM>(data);
-      });
+      realm!.put<EBM>(data);
       return null;
     }
     if (data is ITransaction) {
-      realm!.write(() {
-        realm!.put<ITransaction>(data);
-      });
+      realm!.put<ITransaction>(data);
       return null;
     }
     if (data is TransactionItem) {
-      realm!.write(() {
-        realm!.put<TransactionItem>(data);
-      });
+      realm!.put<TransactionItem>(data);
       return null;
     }
     return null;
