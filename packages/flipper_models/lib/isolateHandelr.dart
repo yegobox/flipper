@@ -21,8 +21,10 @@ mixin IsolateHandler {
   static Realm? realm;
   static Realm? localRealm;
   static Future<void> flexibleSync(List<dynamic> args) async {
-    final dbPatch = args[3] as String;
-    String key = args[4] as String;
+    String? dbPatch = args[3] as String?;
+    String? key = args[4] as String?;
+
+    if (dbPatch == null || key == null) return;
     List<int> encryptionKey = key.toIntList();
 
     final app = App.getById(AppSecrets.appId);
@@ -320,12 +322,19 @@ mixin IsolateHandler {
 
   static Future<void> localData(List<dynamic> args) async {
     final dbPatch = args[3] as String;
-    String key = args[4] as String;
+    String? key = args[4] as String?;
+
+    int? branchId = args[2] as int?;
+    int? businessId = args[7] as int?;
+    String? bhfid = args[6] as String?;
+    String? URI = args[8] as String?;
+    if (key == null ||
+        branchId == null ||
+        businessId == null ||
+        bhfid == null ||
+        URI == null) return;
+
     List<int> encryptionKey = key.toIntList();
-    int branchId = args[2] as int;
-    int businessId = args[7] as int;
-    String bhfid = args[6] as String;
-    String URI = args[8] as String;
     LocalConfiguration config = localConfig(encryptionKey, dbPatch);
 
     localRealm?.close();

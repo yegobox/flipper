@@ -52,8 +52,8 @@ class TransactionList extends ConsumerWidget {
                     !showPluReportWidget ? data as List<ITransaction> : null,
                 transactionItems:
                     showPluReportWidget ? data as List<TransactionItem> : null,
-                startDate: startDate ?? DateTime.now(),
-                endDate: endDate ?? DateTime.now(),
+                startDate: startDate! ,
+                endDate: endDate!,
                 rowsPerPage: ref.read(rowsPerPageProvider),
                 showPluReport: showPluReportWidget,
               );

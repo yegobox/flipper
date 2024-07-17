@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/RowsPerPageInput.dart';
 import 'package:flipper_dashboard/exportExcel.dart';
@@ -39,7 +40,8 @@ class DataView extends StatefulHookConsumerWidget {
   DataViewState createState() => DataViewState();
 }
 
-class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
+class DataViewState extends ConsumerState<DataView>
+    with BaseCoreWidgetMixin, DateCoreWidget {
   static const double dataPagerHeight = 60;
   DataGridSource? _dataGridSource; // Make it nullable
   int pageIndex = 0;
@@ -135,6 +137,9 @@ class DataViewState extends ConsumerState<DataView> with BaseCoreWidgetMixin {
                               child: RowsPerPageInput(
                                   rowsPerPageProvider: rowsPerPageProvider),
                             ),
+                            widget.showPluReport
+                                ? datePicker()
+                                : SizedBox.shrink()
                           ],
                         ),
                       ),

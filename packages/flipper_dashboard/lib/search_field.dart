@@ -1,9 +1,9 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
-import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
@@ -20,8 +20,6 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
     Key? key,
@@ -42,7 +40,7 @@ class SearchField extends StatefulHookConsumerWidget {
   SearchFieldState createState() => SearchFieldState();
 }
 
-class SearchFieldState extends ConsumerState<SearchField> {
+class SearchFieldState extends ConsumerState<SearchField> with DateCoreWidget {
   late bool _hasText;
   late FocusNode _focusNode;
   final _textSubject = BehaviorSubject<String>();
@@ -169,13 +167,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
           );
         },
       ),
-    );
-  }
-
-  IconButton datePicker() {
-    return IconButton(
-      onPressed: _handleDateTimePicker,
-      icon: Icon(Icons.date_range, color: Colors.grey),
     );
   }
 
@@ -315,48 +306,6 @@ class SearchFieldState extends ConsumerState<SearchField> {
         child: _getDeviceType(context) == "Phone"
             ? AddProductButtons()
             : ProductEntryScreen(),
-      ),
-    );
-  }
-
-  _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    if (args.value is PickerDateRange) {
-      PickerDateRange date = args.value as PickerDateRange;
-      if (date.endDate != null) {
-        showSnackBar(context, "Date range selected",
-            textColor: Colors.white, backgroundColor: Colors.purple);
-        ref.read(dateRangeProvider.notifier).setStartDate(date.startDate!);
-        ref.read(dateRangeProvider.notifier).setEndDate(date.endDate!);
-        ref.refresh(transactionListProvider);
-      }
-    }
-  }
-
-  void _handleDateTimePicker() {
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (context) => OptionModal(
-        child: SfDateRangePicker(
-          onSubmit: (v) {
-            Navigator.maybePop(context);
-          },
-          onCancel: () {
-            Navigator.maybePop(context);
-          },
-          onSelectionChanged: _onSelectionChanged,
-          selectionMode: DateRangePickerSelectionMode.range,
-          showActionButtons: true,
-          navigationDirection: DateRangePickerNavigationDirection.vertical,
-          navigationMode: DateRangePickerNavigationMode.scroll,
-          showNavigationArrow: true,
-          initialSelectedRange: PickerDateRange(
-            DateTime.now().subtract(const Duration(days: 4)),
-            DateTime.now().add(
-              const Duration(days: 3),
-            ),
-          ),
-        ),
       ),
     );
   }

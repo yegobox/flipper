@@ -2986,24 +2986,17 @@ class RealmAPI<M extends IJsonSerializable>
     final controller = StreamController<List<TransactionItem>>.broadcast();
 
     talker.info("pluReport $isPluReport");
+    talker.info("startDate $startDate");
+    talker.info("startDate $endDate");
 
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     RealmResults<TransactionItem> query;
-    if (isPluReport ?? false) {
-      query = realm!.query<TransactionItem>(r'branchId == $0  ', [
-        ProxyService.box.getBranchId()!,
-      ]);
-    } else if ((endDate == null || startDate == null) && isPluReport == true) {
-      query = realm!.query<TransactionItem>(r'branchId == $0  ', [
-        ProxyService.box.getBranchId()!,
-      ]);
-    } else {
-      query = realm!
-          .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
-        startDate?.toUtc(),
-        endDate?.add(Duration(days: 1)).toUtc(),
-      ]);
-    }
+
+    query = realm!
+        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
+      startDate?.toUtc(),
+      endDate?.add(Duration(days: 1)).toUtc(),
+    ]);
 
     StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
 
