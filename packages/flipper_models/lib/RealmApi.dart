@@ -2203,6 +2203,7 @@ class RealmAPI<M extends IJsonSerializable>
             );
 
             await Future.delayed(Duration(seconds: 10));
+           
             // 1. Close the realm
             realm!.close();
 
@@ -2214,6 +2215,7 @@ class RealmAPI<M extends IJsonSerializable>
                 await realmFile.delete();
                 print('Realm file deleted successfully.');
               }
+              await logOut();
             } catch (e) {
               // print('Error deleting realm file: $e');
             }
