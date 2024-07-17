@@ -162,7 +162,7 @@ class _AppsState extends ConsumerState<Apps> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12.0),
+              padding: EdgeInsets.symmetric(horizontal: 0.0),
               child: ListTile(
                 leading: ReusableDropdown(
                   options: transactionPeriodOptions,
@@ -177,7 +177,9 @@ class _AppsState extends ConsumerState<Apps> {
                   options: profitTypeOptions,
                   selectedOption: profitType,
                   onChanged: (String? newProfitType) {
-                    setState(() {});
+                    setState(() {
+                      profitType = newProfitType!;
+                    });
                   },
                 ),
                 dense: true,

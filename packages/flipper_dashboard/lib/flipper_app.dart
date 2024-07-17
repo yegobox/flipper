@@ -177,6 +177,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
         ref.watch(pendingTransactionProvider(TransactionType.sale));
+    // ignore: duplicate_ignore
     // ignore: unused_result
     ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
     initializeApplicationIfRequired();

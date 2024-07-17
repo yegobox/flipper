@@ -403,8 +403,7 @@ class RealmAPI<M extends IJsonSerializable>
       transaction.updatedAt = DateTime.now().toIso8601String();
       transaction.createdAt = DateTime.now().toIso8601String();
 
-      transaction.lastTouched =
-          DateTime.now().toLocal().add(Duration(hours: 2));
+      transaction.lastTouched = DateTime.now().add(Duration(hours: 2));
     });
 
     try {
@@ -436,8 +435,7 @@ class RealmAPI<M extends IJsonSerializable>
         Product? product = await getProduct(id: variant!.productId!);
         if (product != null) {
           realm!.write(() {
-            product.lastTouched =
-                DateTime.now().toLocal().add(Duration(seconds: 2));
+            product.lastTouched = DateTime.now().add(Duration(seconds: 2));
           });
         }
       }
@@ -1834,18 +1832,14 @@ class RealmAPI<M extends IJsonSerializable>
       bool includePending = false}) {
     String queryString = "";
     if (isCashOut) {
-      queryString = r'''deletedAt = nil
-            && status == $0
-            && (
-            transactionType IN ANY {'Cash Out'} && branchId == $1
-            )
+      queryString = r'''status == $0
+            && isExpense == true && branchId == $1
+            SORT(createdAt DESC)
             ''';
     } else {
-      queryString = r'''deletedAt = nil
-            && status == $0
-            && (
-            transactionType IN ANY {'Cash In', 'Sale', 'Online Sale','Cash Out','Salary','Transport','Airtime'} && branchId == $1
-            )
+      queryString = r'''status == $0
+            && ((isExpense == false) || (isExpense == true)) && branchId == $1
+             SORT(createdAt DESC)
             ''';
     }
     final query =
