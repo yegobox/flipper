@@ -65,7 +65,7 @@ class ProductViewState extends ConsumerState<ProductView> {
 
     if (buttonIndex == 1) {
       return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 900),
+          constraints: BoxConstraints(maxHeight: 700),
           child: TransactionList(showPluReportWidget: true));
     }
     return ViewModelBuilder<ProductViewModel>.nonReactive(
