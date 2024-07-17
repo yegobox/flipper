@@ -69,10 +69,6 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   fluentui_system_icons: ^1.1.203
-  easy_sidemenu:
-    git:
-      url: https://github.com/Jamalianpour/easy_sidemenu.git
-      ref: master
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
@@ -121,6 +117,7 @@ dependencies:
   amplify_api: ^2.1.0
   amplify_flutter: ^2.1.0
   amplify_auth_cognito: ^2.1.0
+  flutter_side_menu: ^0.5.3
 
 dependency_overrides:
   http: ^1.2.1

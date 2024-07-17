@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:stacked/stacked.dart';
 
 /// when the user upload image
 /// we also update the business with the new image
