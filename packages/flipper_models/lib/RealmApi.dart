@@ -2988,9 +2988,9 @@ class RealmAPI<M extends IJsonSerializable>
     // if (startDate == null || endDate == null) return Stream.empty();
     final controller = StreamController<List<TransactionItem>>.broadcast();
 
-    talker.info("pluReport $isPluReport");
-    talker.info("startDate $startDate");
-    talker.info("startDate $endDate");
+    // talker.info("pluReport $isPluReport");
+    // talker.info("startDate $startDate");
+    // talker.info("startDate $endDate");
 
     /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
     RealmResults<TransactionItem> query;
