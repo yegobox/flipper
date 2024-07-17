@@ -2201,20 +2201,20 @@ class RealmAPI<M extends IJsonSerializable>
                     'Automatic client reset failed. Manual reset is required.',
               ),
             );
-            
+
             await Future.delayed(Duration(seconds: 10));
             // 1. Close the realm
-            // realm!.close();
+            realm!.close();
 
             // 2. Delete the realm file
             try {
-              clientResetError.resetRealm();
+              // clientResetError.resetRealm();
+              File realmFile = File(realm!.config.path);
+              if (await realmFile.exists()) {
+                await realmFile.delete();
+                print('Realm file deleted successfully.');
+              }
             } catch (e) {
-              // File realmFile = File(realm!.config.path);
-              // if (await realmFile.exists()) {
-              //   await realmFile.delete();
-              //   print('Realm file deleted successfully.');
-              // }
               // print('Error deleting realm file: $e');
             }
 
@@ -2934,7 +2934,7 @@ class RealmAPI<M extends IJsonSerializable>
     /// We do not clear all variable, this is because even on logout
     /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use
     /// therefore why the bellow line is commented out.
-    // ProxyService.box.clear();
+    ProxyService.box.clear();
     await firebase.FirebaseAuth.instance.signOut();
 
     /// refreshing the user token will invalidate any session
@@ -2946,7 +2946,7 @@ class RealmAPI<M extends IJsonSerializable>
     /// the instance of realm is instantiated at app start level.
     // resetDependencies(dispose: true);
     /// wait to sync data for this eod
-    await ProxyService.realm.realm!.syncSession.waitForUpload();
+    // await ProxyService.realm.realm!.syncSession.waitForUpload();
     close();
     ProxyService.realm.realm = null;
     return Future.value(true);
