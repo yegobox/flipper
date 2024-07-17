@@ -1,7 +1,6 @@
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/realm_model_export.dart' as cat;
-import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart';

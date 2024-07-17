@@ -15,6 +15,7 @@ import 'package:stacked/stacked.dart';
 /// we also update the business with the new image
 /// and current tenant logged in which in most cases is the same as
 /// the user logged in
+
 class ProfileWidget extends StatefulWidget {
   const ProfileWidget({
     super.key,
@@ -27,6 +28,7 @@ class ProfileWidget extends StatefulWidget {
   final double? size;
   final bool showIcon;
   final bool sessionActive;
+
   @override
   State<ProfileWidget> createState() => _ProfileWidgetState();
 }
@@ -36,6 +38,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
   late AnimationController _controller;
   final _dialogService = locator<DialogService>();
   final _routerService = locator<RouterService>();
+
   @override
   void initState() {
     super.initState();
@@ -50,65 +53,53 @@ class _ProfileWidgetState extends State<ProfileWidget>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<UploadViewModel>.reactive(
-        viewModelBuilder: () => UploadViewModel(),
-        builder: (context, model, child) {
-          return Stack(
-            children: [
-              !isDesktopOrWeb
-                  ? PMobile(
-                      widget: widget,
-                      dialogService: _dialogService,
-                      sessionActive: widget.sessionActive)
-                  : PDesktop(
-                      widget: widget,
-                      dialogService: _dialogService,
-                      routeService: _routerService),
-              !isDesktopOrWeb
-                  ? Positioned(
-                      bottom: 0,
-                      right: -10,
-                      child: Visibility(
-                        visible: widget.showIcon,
-                        child: IconButton(
-                          icon: Icon(Icons.camera),
-                          color: Colors.white,
-                          iconSize: 40,
-                          onPressed: () {
-                            // ScaffoldMessenger.of(context).showSnackBar(
-                            // SnackBar(
-                            //   backgroundColor: Colors.white,
-                            //   duration: Duration(hours: 1),
-                            //   content: Container(
-                            //     color: Colors.white,
-                            //     padding: EdgeInsets.all(8.0),
-                            //     child: UploadProgressWidget(
-                            //       progressStream: model.uploadProgress(),
-                            //     ),
-                            //   ),
-                            // ),
-                            // );
-                            // model.uploadProgress().listen((progress) {
-                            //   if (progress == 100) {
-                            //     ScaffoldMessenger.of(context)
-                            //         .hideCurrentSnackBar();
-                            //   }
-                            // });
-                            // model.browsePictureFromGallery(
-                            //   urlType: URLTYPE.BUSINESS,
-                            //   callBack: (res) async {
-                            //     if (res == "500") return;
-                            //   },
-                            //   id: widget.branch.businessId,
-                            // );
-                          },
-                        ),
-                      ),
-                    )
-                  : SizedBox.shrink()
-            ],
-          );
-        });
+    return Stack(
+      children: [
+        // Desktop/Web View
+        if (isDesktopOrWeb)
+          PDesktop(
+            widget: widget,
+            dialogService: _dialogService,
+            routeService: _routerService,
+          )
+        else
+          // Mobile View
+          PMobile(
+            widget: widget,
+            dialogService: _dialogService,
+            sessionActive: widget.sessionActive,
+          ),
+
+        // Add Camera Icon (Only for Mobile)
+        if (!isDesktopOrWeb && widget.showIcon)
+          Positioned(
+            bottom: 0,
+            right: -10,
+            child: IconButton(
+              icon: const Icon(Icons.camera),
+              color: Colors.white,
+              iconSize: 40,
+              onPressed: () {
+                // Your upload logic here...
+                // Example using a ViewModel
+                // ViewModelBuilder<UploadViewModel>.reactive(
+                //   viewModelBuilder: () => UploadViewModel(),
+                //   builder: (context, model, child) {
+                //     // ...
+                //     model.browsePictureFromGallery(
+                //       urlType: URLTYPE.BUSINESS,
+                //       callBack: (res) async {
+                //         if (res == "500") return;
+                //       },
+                //       id: widget.branch.businessId,
+                //     );
+                //   },
+                // );
+              },
+            ),
+          )
+      ],
+    );
   }
 }
 
@@ -130,101 +121,52 @@ class PDesktop extends StatelessWidget {
       future: ProxyService.local
           .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
-        // final data = snapshot.data;
-        // final hasImage = data?.imageUrl != null;
-
-        Widget buildContent() {
-          return PopupMenuButton<String>(
-              color: Colors.white,
-              onSelected: (value) async {
-                if (value == 'logOut') {
-                  log('logout selected');
-                  await ProxyService.realm.logOut();
-                  routeService.clearStackAndShow(LoginViewRoute());
-                }
-              },
-              itemBuilder: (BuildContext context) => [
-                    PopupMenuItem<String>(
-                      value: 'logOut',
-                      child: Text(
-                        'Log out',
-                        style: primaryTextStyle,
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'syncCounter',
-                      child: Text(
-                        'Sync counter',
-                        style: primaryTextStyle,
-                      ),
-                    ),
-                  ],
-              child: GmailLikeLetter(
-                key: Key(widget.branch.id.toString()),
-                branch: widget.branch,
-                size: widget.size,
-                sessionActive: widget.sessionActive,
-              )
-              // TODO: re-enable bellow coded once showing profile pic on client is fully supported
-              // child: hasImage
-              //     ? SizedBox(
-              //         width: isDesktopOrWeb ? 50 : 100,
-              //         height: isDesktopOrWeb ? 50 : 100,
-              //         child: Container(
-              //           width: isDesktopOrWeb ? 50 : 100,
-              //           height: isDesktopOrWeb ? 50 : 100,
-              //           decoration: BoxDecoration(
-              //             color: Colors.pink,
-              //             borderRadius: BorderRadius.circular(45),
-              //             border: Border.all(
-              //               color: Colors.pink,
-              //               width: 2.0,
-              //             ),
-              //           ),
-              //           child: ClipOval(
-              //             child: CachedNetworkImage(
-              //               imageUrl: data == null
-              //                   ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-              //                   : data.imageUrl == null
-              //                       ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-              //                       : data.imageUrl!,
-              //               placeholder: (context, url) => GmailLikeLetter(
-              //                 tenant: widget.tenant,
-              //                 size: widget.size,
-              //               ),
-              //               errorWidget: (context, url, error) => GmailLikeLetter(
-              //                 tenant: widget.tenant,
-              //                 size: widget.size,
-              //               ),
-              //               width: 100,
-              //               height: 100,
-              //               fit: BoxFit.cover,
-              //             ),
-              //           ),
-              //         ),
-              //       )
-              //     : GmailLikeLetter(
-              //         tenant: widget.tenant,
-              //         size: widget.size,
-              //       ),
-              );
-        }
-
-        return buildContent();
+        return PopupMenuButton<String>(
+          color: Colors.white,
+          onSelected: (value) async {
+            if (value == 'logOut') {
+              log('logout selected');
+              await ProxyService.realm.logOut();
+              routeService.clearStackAndShow(LoginViewRoute());
+            }
+          },
+          itemBuilder: (BuildContext context) => [
+            PopupMenuItem<String>(
+              value: 'logOut',
+              child: Text(
+                'Log out',
+                style: primaryTextStyle,
+              ),
+            ),
+            PopupMenuItem<String>(
+              value: 'syncCounter',
+              child: Text(
+                'Sync counter',
+                style: primaryTextStyle,
+              ),
+            ),
+          ],
+          child: GmailLikeLetter(
+            key: Key(widget.branch.id.toString()),
+            branch: widget.branch,
+            size: widget.size,
+            sessionActive: widget.sessionActive,
+          ),
+        );
       },
     );
   }
 }
 
 class PMobile extends StatelessWidget {
-  const PMobile(
-      {super.key,
-      required this.widget,
-      required DialogService dialogService,
-      required this.sessionActive})
-      : _dialogService = dialogService;
+  const PMobile({
+    super.key,
+    required this.widget,
+    required this.dialogService,
+    required this.sessionActive,
+  });
 
-  final DialogService _dialogService;
+  final DialogService dialogService;
   final ProfileWidget widget;
   final bool sessionActive;
 
@@ -234,76 +176,18 @@ class PMobile extends StatelessWidget {
       future: ProxyService.local
           .getBusinessFuture(businessId: widget.branch.businessId),
       builder: (context, snapshot) {
-        final data = snapshot.data;
-        // ignore: unused_local_variable
-        final hasImage = data?.imageUrl != null;
-        Widget buildContent() {
-          // ignore: unused_local_variable
-          final borderRadius = BorderRadius.only(
-            topLeft: Radius.circular(4),
-            topRight: Radius.circular(4),
-            bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(4),
-          );
-
-          return GestureDetector(
-            onTap: () {
-              _dialogService.showCustomDialog(
-                  variant: DialogType.logOut, title: 'Log out');
-            },
-            //TODO: remove negation from !hasImage if profile image is fully supported
-            // removed if from showing it because it need more work to follow ContinuousRectangleBorder specs
-            child: GmailLikeLetter(
-              key: Key(widget.branch.id.toString()),
-              branch: widget.branch,
-              sessionActive: sessionActive,
-              size: widget.size,
-            ),
-            // child: !hasImage
-            //     ? SizedBox(
-            //         width: isDesktopOrWeb ? 50 : 100,
-            //         height: isDesktopOrWeb ? 50 : 100,
-            //         child: Container(
-            //           width: isDesktopOrWeb ? 50 : 100,
-            //           height: isDesktopOrWeb ? 50 : 100,
-            //           decoration: ShapeDecoration(
-            //               shape: ContinuousRectangleBorder(
-            //                   side: BorderSide(width: 1, color: Colors.white),
-            //                   borderRadius: BorderRadius.circular(80.0)),
-            //               color: Colors.amberAccent,
-            //               shadows: []),
-            //           child: ClipRRect(
-            //             borderRadius:
-            //                 borderRadius, // Same border radius value as above
-            //             child: CachedNetworkImage(
-            //               imageUrl: data == null
-            //                   ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-            //                   : data.imageUrl == null
-            //                       ? 'https://yegobox-flipper.s3.eu-west-2.amazonaws.com/lRsBL.png'
-            //                       : data.imageUrl!,
-            //               placeholder: (context, url) => GmailLikeLetter(
-            //                 tenant: widget.tenant,
-            //                 size: widget.size,
-            //               ),
-            //               errorWidget: (context, url, error) => GmailLikeLetter(
-            //                 tenant: widget.tenant,
-            //                 size: widget.size,
-            //               ),
-            //               width: 100,
-            //               height: 100,
-            //               fit: BoxFit.cover,
-            //             ),
-            //           ),
-            //         ),
-            //       )
-            //     : GmailLikeLetter(
-            //         tenant: widget.tenant,
-            //         size: widget.size,
-            //       ),
-          );
-        }
-
-        return buildContent();
+        return GestureDetector(
+          onTap: () {
+            dialogService.showCustomDialog(
+                variant: DialogType.logOut, title: 'Log out');
+          },
+          child: GmailLikeLetter(
+            key: Key(widget.branch.id.toString()),
+            branch: widget.branch,
+            size: widget.size,
+            sessionActive: sessionActive,
+          ),
+        );
       },
     );
   }

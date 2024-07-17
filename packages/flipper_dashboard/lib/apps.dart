@@ -1,6 +1,5 @@
 import 'dart:developer';
 
-import 'package:flutter/foundation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -202,10 +201,10 @@ class _AppsState extends ConsumerState<Apps> {
                     mainAxisSpacing: 1,
                     padding: EdgeInsets.zero,
                     children: [
-                      _buildCustomPaintWithIcon(
-                          iconData: "assets/flipper_keypad.svg",
-                          color: const Color(0xff006AFE),
-                          page: "POS"),
+                      // _buildCustomPaintWithIcon(
+                      //     iconData: "assets/flipper_keypad.svg",
+                      //     color: const Color(0xff006AFE),
+                      //     page: "POS"),
                       _buildCustomPaintWithIcon(
                           iconData: FluentIcons.calculator_24_regular,
                           color: Color(0xFF66AAFF),
@@ -214,14 +213,14 @@ class _AppsState extends ConsumerState<Apps> {
                           iconData: FluentIcons.arrow_swap_20_regular,
                           color: Color(0xFFFF0331),
                           page: "Transactions"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.communication_20_regular,
-                          color: Colors.cyan,
-                          page: "Connecta"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.settings_20_regular,
-                          color: Color(0xFFCC0F03),
-                          page: "Settings"),
+                      // _buildCustomPaintWithIcon(
+                      //     iconData: FluentIcons.communication_20_regular,
+                      //     color: Colors.cyan,
+                      //     page: "Connecta"),
+                      // _buildCustomPaintWithIcon(
+                      //     iconData: FluentIcons.settings_20_regular,
+                      //     color: Color(0xFFCC0F03),
+                      //     page: "Settings"),
                       _buildCustomPaintWithIcon(
                           iconData: FluentIcons.people_32_regular,
                           color: Colors.cyan,
@@ -230,52 +229,45 @@ class _AppsState extends ConsumerState<Apps> {
                           iconData: Icons.call,
                           color: Colors.lightBlue,
                           page: "Support"),
-                      _buildCustomPaintWithIcon(
-                          iconData: FluentIcons.cart_24_regular,
-                          color: Colors.amber,
-                          page: "Orders"),
+                      // _buildCustomPaintWithIcon(
+                      //     iconData: FluentIcons.cart_24_regular,
+                      //     color: Colors.amber,
+                      //     page: "Orders"),
                     ],
                   ),
                 ),
               ],
             ),
-            Container(
-              height: 200,
-              child: Column(
-                children: [
-                  !kDebugMode
-                      ? ProxyService.remoteConfig.bannerAd()
-                      : SizedBox.shrink(),
-                  Center(
-                    child: Column(children: [
-                      FutureBuilder<LPermission?>(
-                        future: ProxyService.realm
-                            .permission(userId: ProxyService.box.getUserId()!),
-                        builder: (context, snapshot) {
-                          return Text(
-                            snapshot.data?.name ?? "-",
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              color:
-                                  Colors.black.withOpacity(0.3100000023841858),
-                              fontWeight: FontWeight.w900,
-                            ),
-                          );
-                        },
+            Column(
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Center content vertically
+              children: [
+                FutureBuilder<LPermission?>(
+                  future: ProxyService.realm
+                      .permission(userId: ProxyService.box.getUserId()!),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data?.name ?? "-",
+                      style: GoogleFonts.poppins(
+                        fontSize: 16, // Increase font size
+                        color:
+                            Colors.black.withOpacity(0.7), // Increase opacity
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        'FROM YEGOBOX',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: Colors.black.withOpacity(0.3100000023841858),
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ]),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8.0), // Add spacing between texts
+                Text(
+                  'FROM YEGOBOX',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16, // Increase font size
+                    color: Colors.black.withOpacity(0.7), // Increase opacity
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-            )
+                ),
+              ],
+            ),
           ],
         ),
       ),

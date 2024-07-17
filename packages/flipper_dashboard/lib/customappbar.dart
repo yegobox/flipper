@@ -9,25 +9,26 @@ import 'flipper_ui.dart';
 enum CLOSEBUTTON { ICON, BUTTON, WIDGET }
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  const CustomAppBar(
-      {super.key,
-      this.showActionButton,
-      this.title,
-      this.icon,
-      this.additionalText,
-      this.disableButton,
-      this.onActionButtonClicked,
-      this.onPop,
-      this.rightActionButtonName = "Save",
-      this.leftActionButtonName = "Save",
-      this.closeButton = CLOSEBUTTON.ICON,
-      this.useTransparentButton = false,
-      this.multi,
-      this.bottomSpacer,
-      this.customLeadingWidget,
-      this.bottomWidget,
-      this.customTrailingWidget,
-      this.isDividerVisible});
+  const CustomAppBar({
+    super.key,
+    this.showActionButton,
+    this.title,
+    this.icon,
+    this.additionalText,
+    this.disableButton,
+    this.onActionButtonClicked,
+    this.onPop,
+    this.rightActionButtonName = "Save",
+    this.leftActionButtonName = "Save",
+    this.closeButton = CLOSEBUTTON.ICON,
+    this.useTransparentButton = false,
+    this.multi,
+    this.bottomSpacer,
+    this.customLeadingWidget,
+    this.bottomWidget,
+    this.customTrailingWidget,
+    this.isDividerVisible,
+  });
 
   final String? rightActionButtonName;
   final String? leftActionButtonName;
@@ -52,8 +53,7 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   State<CustomAppBar> createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize =>
-      Size.fromHeight(64.0 * (multi == null ? 0.8 : multi!));
+  Size get preferredSize => Size.fromHeight(64.0 * (multi ?? 0.8));
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
@@ -62,38 +62,37 @@ class _CustomAppBarState extends State<CustomAppBar> {
     return SafeArea(
       top: true,
       child: SizedBox(
-        height: widget.bottomSpacer,
-        child: Wrap(
-          children: <Widget>[
+        height: widget.bottomSpacer ?? 64.0, // Use default value if null
+        child: Column(
+          children: [
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 0),
               leading: buildLeading(),
-              title: widget.title == null
-                  ? const SizedBox.shrink()
-                  : Text(
-                      widget.title ?? '',
+              title: widget.title != null
+                  ? Text(
+                      widget.title!,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w600),
-                    ),
+                        fontSize: 17,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
               trailing: buildTrailing(),
               dense: true,
             ),
-            Container(
-              child: widget.additionalText,
-            ),
-            widget.bottomWidget != null
-                ? Container(
-                    padding: EdgeInsets.only(left: 30, right: 5),
-                    child: widget.bottomWidget)
-                : SizedBox.shrink(),
-            Visibility(
-                visible: widget.isDividerVisible ?? true,
-                child: Divider(
-                  thickness: 0.5,
-                )),
+            if (widget.additionalText != null) widget.additionalText!,
+            if (widget.bottomWidget != null)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0), // Add padding
+                child: widget.bottomWidget!,
+              ),
+            if (widget.isDividerVisible ?? true)
+              const Divider(
+                thickness: 0.5,
+              ),
           ],
         ),
       ),
@@ -106,7 +105,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
     }
 
     return widget.showActionButton == null || !widget.showActionButton!
-        ? SizedBox.shrink()
+        ? const SizedBox.shrink()
         : FLipperButton(
             transparent: widget.useTransparentButton,
             disableButton: widget.disableButton ?? false,
@@ -115,7 +114,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           );
   }
 
-  StatelessWidget buildLeading() {
+  Widget buildLeading() {
     switch (widget.closeButton) {
       case CLOSEBUTTON.WIDGET:
         return widget.customLeadingWidget!;
@@ -136,10 +135,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
           buttonName: widget.leftActionButtonName ?? '',
         );
       default:
-        return Container(
-          width: 0,
-          height: 0,
-        );
+        return const SizedBox.shrink();
     }
   }
 }

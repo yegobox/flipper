@@ -1833,11 +1833,11 @@ class RealmAPI<M extends IJsonSerializable>
     String queryString = "";
     if (isCashOut) {
       queryString = r'''status == $0
-            && isExpense == true && branchId == $1
+            && isExpense == true && subTotal > 0 && branchId == $1 
             SORT(createdAt DESC)
             ''';
     } else {
-      queryString = r'''status == $0
+      queryString = r'''status == $0 && subTotal > 0
             && ((isExpense == false) || (isExpense == true)) && branchId == $1
              SORT(createdAt DESC)
             ''';

@@ -14,7 +14,7 @@ import 'customappbar.dart';
 import 'widgets/dropdown.dart';
 
 class Cashbook extends StatefulHookConsumerWidget {
-  Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
+  const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
 
   @override
@@ -30,9 +30,12 @@ class CashbookState extends ConsumerState<Cashbook> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        // List<ITransaction> _transactions = await ProxyService.realm
-        //     .completedTransactions(branchId: ProxyService.box.getBranchId()!);
-        // model.updateTransactionsList(newTransactions: _transactions);
+        // You can fetch transactions here
+        // model.updateTransactionsList(
+        //   newTransactions: await ProxyService.realm.completedTransactions(
+        //     branchId: ProxyService.box.getBranchId()!,
+        //   ),
+        // );
       },
       builder: (context, model, child) {
         return Scaffold(
@@ -55,21 +58,28 @@ class CashbookState extends ConsumerState<Cashbook> {
   }
 
   Widget buildBody(BuildContext context, CoreViewModel model) {
-    // final transactionData = ref.watch(transactionsStreamProvider);
     return Column(
       children: [
-        // buildDropdowns(model),
-        // SizedBox(
-        //   height: 20,
-        // ),
-        // BuildGaugeOrList(
-        //   context: context,
-        //   data: transactionData,
-        //   widgetType: 'gauge',
-        //   model: model,
-        // ),
-        buildTransactionSection(context, model),
-        SizedBox(height: 31),
+        // Filters
+        buildDropdowns(model),
+        const SizedBox(height: 20),
+
+        // Transaction List or Gauge
+        // You can use a StreamBuilder to watch transactionData
+        Expanded(
+          child: BuildGaugeOrList(
+            context: context,
+            model: model,
+            widgetType: 'list',
+            data:
+                ref.watch(transactionsStreamProvider), // Use StreamBuilder here
+          ),
+        ),
+
+        // Transaction Buttons
+        buildTransactionButtons(model),
+
+        const SizedBox(height: 31),
       ],
     );
   }
@@ -98,39 +108,6 @@ class CashbookState extends ConsumerState<Cashbook> {
     );
   }
 
-  Widget buildTransactionSection(BuildContext context, CoreViewModel model) {
-    return Expanded(
-      child: model.newTransactionPressed
-          ? buildNewTransactionContent(context, model)
-          : buildTransactionListContent(model),
-    );
-  }
-
-  Widget buildTransactionListContent(CoreViewModel model) {
-    final transactionData = ref.watch(transactionsStreamProvider);
-    return Column(
-      children: [
-        Text(
-          model.transactionPeriod,
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            color: Colors.lightBlue,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: 5),
-        Expanded(
-          child: BuildGaugeOrList(
-              context: context,
-              model: model,
-              widgetType: 'list',
-              data: transactionData),
-        ),
-        buildTransactionButtons(model),
-      ],
-    );
-  }
-
   Widget buildTransactionButtons(CoreViewModel model) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -146,7 +123,7 @@ class CashbookState extends ConsumerState<Cashbook> {
         ),
         buildTransactionButton(
           label: TransactionType.cashOut,
-          color: Color(0xFFFF0331),
+          color: const Color(0xFFFF0331),
           onPressed: () {
             model.newTransactionPressed = true;
             model.newTransactionType = TransactionType.cashOut;
@@ -193,7 +170,7 @@ class CashbookState extends ConsumerState<Cashbook> {
                       ? Icons.add
                       : FluentIcons.subtract_24_regular,
                   color: Colors.white),
-              Spacer(),
+              const Spacer(),
               Text(
                 label,
                 style: GoogleFonts.poppins(
@@ -235,14 +212,14 @@ class CashbookState extends ConsumerState<Cashbook> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        SizedBox(width: 10),
+        const SizedBox(width: 10),
         Text(
           label,
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        Spacer(),
+        const Spacer(),
         IconButton(
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
           onPressed: () {
             model.newTransactionPressed = false;
             model.notifyListeners();
