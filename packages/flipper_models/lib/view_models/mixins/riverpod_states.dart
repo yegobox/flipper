@@ -722,7 +722,7 @@ final reportsProvider =
     return reports;
   });
 });
-final rowsPerPageProvider = StateProvider<int>((ref) => 1000); // Default to 10
+final rowsPerPageProvider = StateProvider<int>((ref) => 100); // Default to 10
 
 class PluReportToggleNotifier extends StateNotifier<bool> {
   PluReportToggleNotifier() : super(false); // Default to ZReport
