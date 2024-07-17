@@ -2203,7 +2203,7 @@ class RealmAPI<M extends IJsonSerializable>
             );
 
             await Future.delayed(Duration(seconds: 10));
-           
+
             // 1. Close the realm
             realm!.close();
 
@@ -2223,6 +2223,7 @@ class RealmAPI<M extends IJsonSerializable>
             // 3. Restart the app
             print('Restarting the app...');
             // exit(0);
+            await logOut();
 
             //the app re-initialize here
           },
