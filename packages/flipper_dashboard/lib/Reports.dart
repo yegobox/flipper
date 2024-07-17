@@ -141,6 +141,7 @@ class ReportsState extends ConsumerState<Reports>
                                   child: ConstrainedBox(
                                     constraints: BoxConstraints(maxHeight: 800),
                                     child: TransactionList(
+                                     
                                       showPluReportWidget:
                                           ref.watch(showAiReport),
                                     ),

@@ -36,7 +36,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       }
     });
 
-    return Expanded(
+    return Container(
       child: dataProvider.when(
         data: (data) {
           if (data.isEmpty) {
