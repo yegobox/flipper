@@ -49,7 +49,7 @@ class CustomersState extends ConsumerState<Customers> {
               },
               icon: Icons.close,
               multi: 3,
-              bottomSpacer: 50,
+              bottomSpacer: 70,
             ),
             body: Column(
               children: [

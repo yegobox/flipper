@@ -92,6 +92,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             if (widget.isDividerVisible ?? true)
               const Divider(
                 thickness: 0.5,
+                color: Colors.grey,
               ),
           ],
         ),
