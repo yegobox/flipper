@@ -61,10 +61,10 @@ class RealmAPI<M extends IJsonSerializable>
       oldDate = DateTime.now().subtract(Duration(days: 365));
     }
 
-    List<ITransaction> transactions = await transactionsFuture();
+    List<ITransaction> transactionsList = transactions();
 
     List<ITransaction> filteredTransactions = [];
-    for (final transaction in transactions) {
+    for (final transaction in transactionsList) {
       temporaryDate = DateTime.parse(transaction.createdAt!);
       if (temporaryDate.isAfter(oldDate)) {
         filteredTransactions.add(transaction);
@@ -1797,30 +1797,42 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<ITransaction>> transactionsFuture(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      bool includePending = false}) async {
-    String queryString = "";
-    if (isCashOut) {
-      queryString = r'''deletedAt = nil
-            && status == $0
-            && (
-            isExpense ==true && branchId == $1
-            )
-            ''';
-    } else {
-      queryString = r'''deletedAt = nil
-            && status == $0
-            && (
-            isIncome==true && branchId == $1
-            )
-            ''';
-    }
-    return realm!.query<ITransaction>(
-        queryString, [status ?? 'COMPLETE', branchId]).toList();
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
+    // if (startDate == null || endDate == null) return Stream.empty();
+    final controller = StreamController<List<TransactionItem>>.broadcast();
+
+    // talker.info("pluReport $isPluReport");
+    // talker.info("startDate $startDate");
+    // talker.info("startDate $endDate");
+
+    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
+    RealmResults<TransactionItem> query;
+
+    query = realm!
+        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
+      startDate?.toUtc(),
+      endDate?.add(Duration(days: 1)).toUtc(),
+    ]);
+
+    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
+
+    controller.onListen = () {
+      subscription = query.changes.listen((event) {
+        final changedVariants =
+            event.results.whereType<TransactionItem>().toList();
+        if (changedVariants.isNotEmpty) {
+          controller.add(query.toList());
+        }
+      });
+    };
+
+    controller.onCancel = () {
+      subscription?.cancel();
+      controller.close();
+    };
+
+    return controller.stream;
   }
 
   @override
@@ -1858,6 +1870,51 @@ class RealmAPI<M extends IJsonSerializable>
     });
 
     return controller.stream;
+  }
+
+  @override
+  List<ITransaction> transactions(
+      {DateTime? startDate,
+      DateTime? endDate,
+      String? status,
+      String? transactionType,
+      int? branchId,
+      bool isExpense = false,
+      bool includePending = false}) {
+    // Initialize query string
+    String queryString;
+
+    // Check if the transaction is an expense and dates are provided
+    if (isExpense && startDate != null && endDate != null) {
+      queryString = r'''status == $0
+          && isExpense == true && subTotal > 0 && branchId == $1
+          && lastTouched >= $2 && lastTouched <= $3
+          SORT(createdAt DESC)
+          ''';
+      return realm!.query<ITransaction>(queryString, [
+        status ?? COMPLETE,
+        branchId,
+        startDate.toUtc(),
+        endDate.add(Duration(days: 1)).toUtc()
+      ]).toList();
+    }
+    // Check if the transaction is an expense and dates are not provided
+    else if (isExpense && startDate == null && endDate == null) {
+      queryString = r'''status == $0
+          && isExpense == true && subTotal > 0 && branchId == $1
+          SORT(createdAt DESC)
+          ''';
+      return realm!.query<ITransaction>(
+          queryString, [status ?? COMPLETE, branchId]).toList();
+    }
+    // For all other cases (income)
+    else {
+      queryString = r'''status == $0
+          && isIncome == true && branchId == $1
+          ''';
+      return realm!.query<ITransaction>(
+          queryString, [status ?? COMPLETE, branchId]).toList();
+    }
   }
 
   @override
@@ -2954,45 +3011,6 @@ class RealmAPI<M extends IJsonSerializable>
     });
     return realm!.query<Drawers>(
         r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
-  }
-
-  @override
-  Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate, bool? isPluReport}) {
-    // if (startDate == null || endDate == null) return Stream.empty();
-    final controller = StreamController<List<TransactionItem>>.broadcast();
-
-    // talker.info("pluReport $isPluReport");
-    // talker.info("startDate $startDate");
-    // talker.info("startDate $endDate");
-
-    /// Ref: https://stackoverflow.com/questions/74956925/querying-realm-in-flutter-using-datetime
-    RealmResults<TransactionItem> query;
-
-    query = realm!
-        .query<TransactionItem>(r'lastTouched >= $0 && lastTouched <= $1 ', [
-      startDate?.toUtc(),
-      endDate?.add(Duration(days: 1)).toUtc(),
-    ]);
-
-    StreamSubscription<RealmResultsChanges<TransactionItem>>? subscription;
-
-    controller.onListen = () {
-      subscription = query.changes.listen((event) {
-        final changedVariants =
-            event.results.whereType<TransactionItem>().toList();
-        if (changedVariants.isNotEmpty) {
-          controller.add(query.toList());
-        }
-      });
-    };
-
-    controller.onCancel = () {
-      subscription?.cancel();
-      controller.close();
-    };
-
-    return controller.stream;
   }
 
   @override

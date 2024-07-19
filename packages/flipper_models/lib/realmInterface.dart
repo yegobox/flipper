@@ -44,11 +44,13 @@ abstract class RealmApiInterface {
 
   Future<double> stocks({int? productId, int? variantId});
   Stream<double> getStockStream({int? productId, int? variantId});
-  Future<List<ITransaction>> transactionsFuture({
+  List<ITransaction> transactions({
+    DateTime? startDate,
+    DateTime? endDate,
     String? status,
     String? transactionType,
     int? branchId,
-    bool isCashOut = false,
+    bool isExpense = false,
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({int? prodIndex});

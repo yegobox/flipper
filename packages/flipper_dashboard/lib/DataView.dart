@@ -105,7 +105,7 @@ class DataViewState extends ConsumerState<DataView>
     const EdgeInsets headerPadding =
         EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0);
 
-    talker.info("Given data size: ${widget.transactionItems?.length}");
+    // talker.info("Given data size: ${widget.transactionItems?.length}");
 
     return ViewModelBuilder.reactive(
       viewModelBuilder: () => HomeViewModel(),
@@ -160,20 +160,49 @@ class DataViewState extends ConsumerState<DataView>
                         width: 150.0,
                         child: BoxButton(
                           onTap: () async {
-                            talker.info("Exporting data to Excel");
                             if (workBookKey.currentState == null) {
                               toast("Error: Workbook is null");
                             } else {
                               ///
-                              final report =
-                                  await ProxyService.realm.getReportData();
-
+                              final expenses = ProxyService.realm.transactions(
+                                  startDate: widget.startDate,
+                                  endDate: widget.endDate,
+                                  isExpense: true,
+                                  branchId: ProxyService.box.getBranchId());
+                              talker.info("Exporting data to Excel");
                               exportDataGridToExcel(
-                                endDate: widget.endDate,
-                                startDate: widget.startDate,
-                                grossProfit: report.grossProfit,
-                                netProfit: report.netProfit,
-                              );
+                                  endDate: widget.endDate,
+                                  startDate: widget.startDate,
+                                  grossProfit: widget.transactionItems!.fold<double>(
+                                      0.0,
+                                      (sum, item) =>
+                                          sum +
+                                          (((item.qty * item.price) -
+                                                  (item.qty * item.splyAmt)) -
+                                              (((item.qty * item.price) - (item.qty * item.splyAmt)) *
+                                                  18 /
+                                                  118))),
+                                  netProfit: (
+                                      // Gross profit calculation
+                                      widget.transactionItems!.fold<double>(
+                                              0.0,
+                                              (sum, item) =>
+                                                  sum +
+                                                  ((item.qty * item.price) -
+                                                      (item.qty *
+                                                          item.splyAmt)))
+                                          // Subtract tax amount
+                                          -
+                                          widget.transactionItems!.fold<double>(
+                                              0.0,
+                                              (sum, item) =>
+                                                  sum +
+                                                  (((item.qty * item.price) -
+                                                          (item.qty *
+                                                              item.splyAmt)) *
+                                                      18 /
+                                                      118))),
+                                  expenses: expenses);
                             }
                           },
                           borderRadius: 1,

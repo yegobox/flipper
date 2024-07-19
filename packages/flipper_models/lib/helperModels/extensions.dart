@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -50,5 +52,12 @@ extension CurrencyFormatExtension on num {
       decimalDigits: 2,
     );
     return numberFormat.format(this);
+  }
+}
+
+extension DoubleExtension on double {
+  double toPrecision(int fractionDigits) {
+    final factor = pow(10, fractionDigits);
+    return (this * factor).round() / factor;
   }
 }

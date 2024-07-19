@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flipper_dashboard/NotificationWidget.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
@@ -38,7 +37,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     with WidgetsBindingObserver {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
-  SideMenuController sideMenu = SideMenuController();
   int tabSelected = 0;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();

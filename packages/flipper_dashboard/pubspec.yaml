@@ -102,6 +102,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^25.2.7
   syncfusion_flutter_datagrid_export: ^25.2.7
   syncfusion_flutter_core: ^25.2.7
+  syncfusion_officechart: ^25.2.7
   # https://github.com/yegobox/flutter_datetime_picker
   flutter_datetime_picker:
     git:

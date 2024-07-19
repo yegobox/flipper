@@ -1,4 +1,5 @@
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -35,13 +36,23 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                 columnName: 'TaxRate', value: configurations.taxPercentage),
             DataGridCell<double>(columnName: 'Qty', value: item.qty),
             DataGridCell<double>(
-                columnName: 'ProfitMade',
-                value: ((item.qty * item.price) - (item.qty * item.splyAmt))),
+                columnName: 'TotalSales', value: (item.qty * item.price)),
             DataGridCell<double>(
                 columnName: 'CurrentStock', value: item.remainingStock),
             DataGridCell<double>(
+                columnName: 'TaxPayable',
+                value: (((item.qty * item.price) - (item.qty * item.splyAmt)) *
+                        18 /
+                        118)
+                    .toPrecision(2)),
+            DataGridCell<double>(
                 columnName: 'GrossProfit',
-                value: ((item.qty * item.price) - (item.qty * item.splyAmt))),
+                value: ((((item.qty * item.price) - (item.qty * item.splyAmt)))
+                        .toPrecision(2)) -
+                    (((item.qty * item.price) - (item.qty * item.splyAmt)) *
+                            18 /
+                            118)
+                        .toPrecision(2)),
           ]);
         } else {
           // Handle the case where item is not a TransactionItem

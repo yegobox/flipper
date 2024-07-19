@@ -71,6 +71,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // TODO: finalize bellow commented code before go live.
             // Container(
             //   child: SideMenu(
             //     mode: SideMenuMode.compact,

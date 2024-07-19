@@ -1,3 +1,4 @@
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'dart:io';
@@ -22,6 +23,8 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     DateTime? endDate,
     double? grossProfit,
     double? netProfit,
+    List<ITransaction>? expenses,
+    String currencySymbol = 'RF',
   }) async {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
@@ -34,12 +37,16 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
 
       final excel.Workbook workbook =
           workBookKey.currentState!.exportToExcelWorkbook();
-      final excel.Worksheet sheet = workbook.worksheets[0];
 
-      // Get the number of columns in the data
-      final int columnCount = sheet.getLastColumn();
+      final excel.Worksheet reportSheet = workbook.worksheets[0];
+      reportSheet.name = 'Report';
 
-      // Define styles
+      final int columnCount = reportSheet.getLastColumn();
+
+      if (columnCount < 1) {
+        throw Exception('The worksheet must have at least one column');
+      }
+
       final excel.Style headerStyle = _createStyle(workbook,
           fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
       final excel.Style infoStyle = _createStyle(workbook,
@@ -47,29 +54,109 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
       final excel.Style balanceStyle = _createStyle(workbook,
           fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
 
-      // Add header and information rows at the top
-      _addHeaderAndInfoRows(
-          sheet,
+      final currencyFormat =
+          '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"'; 
+
+      final Map<String, excel.Range> namedRanges = _addHeaderAndInfoRows(
+          reportSheet,
           headerStyle,
           infoStyle,
           tinNumber,
           bhfId,
           startDate,
           endDate,
-          drawer?.openingBalance,
-          grossProfit,
-          netProfit,
-          columnCount);
+          drawer?.openingBalance ?? 0,
+          grossProfit ?? 0,
+          netProfit ?? 0,
+          columnCount,
+          currencyFormat,
+          workbook);
 
-      // Add closing balance row at the bottom
-      _addClosingBalanceRow(sheet, balanceStyle, columnCount);
+      _addClosingBalanceRow(
+          reportSheet, balanceStyle, columnCount, currencyFormat);
 
-      // Auto-fit columns
-      for (int i = 1; i <= columnCount; i++) {
-        sheet.autoFitColumn(i);
+      // Apply currency formatting to gross profit and profit made columns
+      for (int row = 1; row <= reportSheet.getLastRow(); row++) {
+        reportSheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
       }
 
-      // Save and share the file
+      for (int i = 1; i <= columnCount; i++) {
+        reportSheet.autoFitColumn(i);
+      }
+
+      if (expenses != null && expenses.isNotEmpty) {
+        final expenseSheet = workbook.worksheets.addWithName('Expenses');
+        final expenseHeaderStyle = _createStyle(workbook,
+            fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+
+        // Add headers
+        expenseSheet.getRangeByIndex(1, 1).setText('Expense');
+        expenseSheet.getRangeByIndex(1, 2).setText('Amount');
+        expenseSheet.getRangeByIndex(1, 1, 1, 2).cellStyle = expenseHeaderStyle;
+
+        // Populate expense data
+        for (int i = 0; i < expenses.length; i++) {
+          final rowIndex = i + 2;
+          expenseSheet
+              .getRangeByIndex(rowIndex, 1)
+              .setText(expenses[i].transactionType);
+          expenseSheet
+              .getRangeByIndex(rowIndex, 2)
+              .setValue(expenses[i].subTotal);
+        }
+
+        final lastDataRow = expenseSheet.getLastRow();
+
+        // Create an instance of chart collection
+        // final ChartCollection charts = ChartCollection(expenseSheet);
+        // // Add the chart
+        // final Chart chart = charts.add();
+
+        // // Set Chart Type
+        // chart.chartType = ExcelChartType.pie;
+
+        // // Set data range in the worksheet (excluding headers)
+        // chart.dataRange = expenseSheet.getRangeByName('A1:B$lastDataRow');
+
+        // // Set charts to worksheet
+        // expenseSheet.charts = charts;
+
+        // // Customize chart
+        // chart.hasTitle = true;
+        // chart.chartTitle = 'Expense Distribution';
+        // chart.hasLegend = true;
+        // chart.legend!.position = ExcelLegendPosition.right;
+
+        // // Position the chart
+        // chart.topRow = 0;
+        // chart.leftColumn = 3;
+        // chart.bottomRow = 20;
+        // chart.rightColumn = 10;
+
+        // Auto-fit columns for the Expenses sheet
+        for (int i = 1; i <= 2; i++) {
+          expenseSheet.autoFitColumn(i);
+        }
+
+        // Add total expenses row
+        expenseSheet
+            .getRangeByIndex(lastDataRow + 1, 1)
+            .setText('Total Expenses');
+
+        final totalExpensesCell =
+            expenseSheet.getRangeByIndex(lastDataRow + 1, 2);
+        totalExpensesCell.setFormula('=SUM(B2:B$lastDataRow)');
+        totalExpensesCell.cellStyle = balanceStyle;
+        totalExpensesCell.numberFormat = currencyFormat;
+
+        workbook.names.add('TotalExpenses', totalExpensesCell);
+
+        final netProfitCell = namedRanges['NetProfit']!;
+        netProfitCell.setFormula(
+            '=${namedRanges['GrossProfit']!.addressGlobal} - TotalExpenses');
+        netProfitCell.numberFormat = currencyFormat;
+      }
+
       final String filePath = await _saveExcelFile(workbook);
       workbook.dispose();
 
@@ -100,7 +187,7 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     return style;
   }
 
-  void _addHeaderAndInfoRows(
+  Map<String, excel.Range> _addHeaderAndInfoRows(
       excel.Worksheet sheet,
       excel.Style headerStyle,
       excel.Style infoStyle,
@@ -108,11 +195,12 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
       String bhfId,
       DateTime? startDate,
       DateTime? endDate,
-      double? openingBalance,
-      double? grossProfit,
-      double? netProfit,
-      int columnCount) {
-    // Add title
+      double openingBalance,
+      double grossProfit,
+      double netProfit,
+      int columnCount,
+      String currencyFormat,
+      excel.Workbook workbook) {
     sheet.insertRow(1);
     final titleRange =
         sheet.getRangeByName('A1:${String.fromCharCode(64 + columnCount)}1');
@@ -120,52 +208,75 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
     titleRange.setText('Sales Report');
     titleRange.cellStyle = headerStyle;
 
-    // Add information rows
+    // Assume tax rate is provided in D1, you can adjust as per your requirement
+
+    final taxRate = 18;
+    final taxAmount = (grossProfit * taxRate) / 118;
+
     final infoData = [
-      ['TIN Number', tinNumber],
+      ['TIN Number', tinNumber.toString()],
       ['BHF ID', bhfId],
       ['Start Date', startDate?.toIso8601String() ?? "-"],
       ['End Date', endDate?.toIso8601String() ?? "-"],
-      ['Opening Balance', openingBalance ?? 0],
-      ['Gross Profit', grossProfit ?? 0],
-      ['Net Profit', netProfit ?? 0],
+      ['Opening Balance', openingBalance],
+      ['Gross Profit', grossProfit],
+      ['Net Profit', netProfit],
+      ['Tax Rate', taxRate],
+      ['Tax Amount', taxAmount],
     ];
+
+    Map<String, excel.Range> namedRanges = {};
 
     for (var i = 0; i < infoData.length; i++) {
       final rowIndex = i + 2;
       sheet.insertRow(rowIndex);
       sheet.getRangeByName('A$rowIndex').setText(infoData[i][0].toString());
-      sheet.getRangeByName('B$rowIndex').setValue(infoData[i][1]);
+
+      final value = infoData[i][1];
+      final cell = sheet.getRangeByName('B$rowIndex');
+      if (value is num) {
+        cell.setValue(value);
+        cell.numberFormat = currencyFormat;
+      } else {
+        cell.setText(value.toString());
+      }
+
       final infoRange = sheet.getRangeByName(
           'A$rowIndex:${String.fromCharCode(64 + columnCount)}$rowIndex');
       infoRange.cellStyle = infoStyle;
+
+      // Name ranges for easier reference
+      if (infoData[i][0] == 'Gross Profit') {
+        workbook.names.add('GrossProfit', cell);
+        namedRanges['GrossProfit'] = cell;
+      } else if (infoData[i][0] == 'Net Profit') {
+        workbook.names.add('NetProfit', cell);
+        namedRanges['NetProfit'] = cell;
+      }
     }
 
-    // Add an empty row for spacing
-    sheet.insertRow(infoData.length + 2);
+    return namedRanges;
   }
 
-  void _addClosingBalanceRow(
-      excel.Worksheet sheet, excel.Style style, int columnCount) {
+  void _addClosingBalanceRow(excel.Worksheet sheet, excel.Style style,
+      int columnCount, String currencyFormat) {
     final firstDataRow = _getFirstDataRow(sheet);
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
 
     sheet.insertRow(closingBalanceRow);
 
-    // Set "Closing Balance" text in the first column
     sheet.getRangeByName('A$closingBalanceRow').setText('Closing Balance');
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = style;
 
-    // Set the formula for the closing balance in the last column
     final lastColumnLetter = String.fromCharCode(64 + columnCount);
     final closingBalanceCell =
         sheet.getRangeByName('$lastColumnLetter$closingBalanceRow');
     closingBalanceCell.setFormula(
         '=SUM($lastColumnLetter$firstDataRow:$lastColumnLetter$lastDataRow)');
     closingBalanceCell.cellStyle = style;
+    closingBalanceCell.numberFormat = currencyFormat;
 
-    // Apply style to the entire row
     sheet
         .getRangeByName(
             'A$closingBalanceRow:$lastColumnLetter$closingBalanceRow')
@@ -173,14 +284,12 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
   }
 
   int _getFirstDataRow(excel.Worksheet sheet) {
-    // Assuming there's always at least one row of data after the header and info rows
-    // Adjust this logic if your sheet structure is different
     for (int i = 1; i <= sheet.getLastRow(); i++) {
       if (sheet.getRangeByName('A$i').getText() == '') {
-        return i + 1; // Return the row after the empty row
+        return i + 1;
       }
     }
-    return 2; // Fallback if structure is different
+    return 2;
   }
 
   Future<String> _saveExcelFile(excel.Workbook workbook) async {
