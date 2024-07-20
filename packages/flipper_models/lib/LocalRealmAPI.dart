@@ -493,11 +493,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         });
         final permissionToAdd = <LPermission>[];
         for (IPermission permission in tenant.permissions) {
-          LPermission? exist = ProxyService.realm.realm!
-              .query<LPermission>(r'id == $0', [permission.id]).firstOrNull;
+          LPermission? exist = ProxyService.realm.realm!.query<LPermission>(
+              r'userId == $0', [permission.userId]).firstOrNull;
           if (exist == null) {
             final perm = LPermission(ObjectId(),
-                id: permission.id, name: permission.name);
+                id: randomNumber(),
+                name: permission.name,
+                userId: permission.userId);
             permissionToAdd.add(perm);
           }
         }

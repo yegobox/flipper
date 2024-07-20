@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/UserManagment.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
@@ -71,59 +72,116 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TODO: finalize bellow commented code before go live.
-            // Container(
-            //   child: SideMenu(
-            //     mode: SideMenuMode.compact,
-            //     builder: (data) {
-            //       return SideMenuData(
-            //         header: Container(
-            //           child: Image.asset(
-            //             'assets/logo.png',
-            //             package: 'flipper_dashboard',
-            //             width: 40,
-            //             height: 40,
-            //           ),
-            //         ),
-            //         items: [
-            //           // SideMenuItemDataTile(
-            //           //   isSelected: true,
-            //           //   onTap: () {},
-            //           //   title: 'Item 1',
-            //           //   icon: Icon(
-            //           //     Icons.add,
-            //           //     color: const Color(0xff0055c3),
-            //           //   ),
-            //           // ),
-            //         ],
-            //         footer: FutureBuilder<Branch>(
-            //           future: ProxyService.local.activeBranch(),
-            //           builder: (context, snapshot) {
-            //             if (snapshot.connectionState ==
-            //                     ConnectionState.waiting ||
-            //                 !snapshot.hasData) {
-            //               return const SizedBox.shrink();
-            //             }
-            //             final data = snapshot.data;
-            //             return Padding(
-            //               padding: const EdgeInsets.only(right: 12.0),
-            //               child: SizedBox(
-            //                 height: 40,
-            //                 width: 40,
-            //                 child: ProfileWidget(
-            //                   branch: data!,
-            //                   sessionActive: true,
-            //                   size: 25,
-            //                   showIcon: false,
-            //                 ),
-            //               ),
-            //             );
-            //           },
-            //         ),
-            //       );
-            //     },
-            //   ),
-            // ),
+            ProxyService.remoteConfig.isMultiUserEnabled()
+                ? Container(
+                    child: SideMenu(
+                      mode: SideMenuMode.compact,
+                      builder: (data) {
+                        return SideMenuData(
+                          header: Container(
+                            child: Image.asset(
+                              'assets/logo.png',
+                              package: 'flipper_dashboard',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          items: [],
+                          footer: FutureBuilder<Branch>(
+                            future: ProxyService.local.activeBranch(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                      ConnectionState.waiting ||
+                                  !snapshot.hasData) {
+                                return const SizedBox.shrink();
+                              }
+                              final data = snapshot.data;
+                              return Column(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 12.0),
+                                    child: SizedBox(
+                                      height: 40,
+                                      width: 40,
+                                      child: ProfileWidget(
+                                        branch: data!,
+                                        sessionActive: true,
+                                        size: 25,
+                                        showIcon: false,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ProxyService.realm.isAdmin()
+                                      ? Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: 12.0),
+                                          child: SizedBox(
+                                            height: 40,
+                                            width: 40,
+                                            child: IconButton(
+                                              icon: const Icon(Icons.settings),
+                                              onPressed: () {
+                                                showDialog(
+                                                  barrierDismissible: true,
+                                                  context: context,
+                                                  builder: (context) => Dialog(
+                                                    child: ConstrainedBox(
+                                                      constraints:
+                                                          BoxConstraints(
+                                                        maxHeight:
+                                                            MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .height *
+                                                                0.8,
+                                                      ),
+                                                      child:
+                                                          SingleChildScrollView(
+                                                        child: Padding(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  16),
+                                                          child: Column(
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              SizedBox(
+                                                                width: double
+                                                                    .infinity,
+                                                                height: 800,
+                                                                child:
+                                                                    UserManagment(),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              style: IconButton.styleFrom(
+                                                shape: const CircleBorder(),
+                                                backgroundColor:
+                                                    Theme.of(context)
+                                                        .primaryColor,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      : SizedBox.shrink()
+                                ],
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                : SizedBox.shrink(),
             const SizedBox(width: 20),
             Expanded(
               child: isScanningMode

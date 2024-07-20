@@ -119,6 +119,7 @@ dependencies:
   amplify_flutter: ^2.1.0
   amplify_auth_cognito: ^2.1.0
   flutter_side_menu: ^0.5.3
+  flagsmith: ^5.0.1
 
 dependency_overrides:
   http: ^1.2.1

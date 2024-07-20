@@ -522,7 +522,8 @@ class App {}
 ///  pip install tensorflow pandas scikit-learn matplotlib
 /// pip install python-dotenv
 /// password: :93h)]6m7V8B
-/// 
+/// TODO: hire in future
+/// https://www.merixstudio.com/development/flutter
 /// 
 /// https://www.mongodb.com/docs/atlas/app-services/data-api/examples/
 /// 
@@ -532,3 +533,16 @@ class App {}
 /// https://github.com/fastlane/fastlane/discussions/20177
 /// Hire a developer to help you with your flutter app https://superdeclarative.com/ (This one can help in UI and Testing)
 /// https://red-badger.com/
+/// 
+/// TODO: impressive widgets
+/// https://github.com/merixstudio/flutter-vizier-challenge
+/// https://pub.dev/packages/mrx_charts
+/// 
+/// TODO: something we can steal
+/// https://gitlab.com/wolfenrain/okane
+/// https://pub.dev/packages/flutter_nearby_connections
+/// https://github.com/AOSSIE-Org/OpenPeerChat-flutter/blob/main/pubspec.yaml
+/// https://github.com/AOSSIE-Org/OpenPeerChat-flutter/tree/main
+/// https://github.com/fluttergems/awesome-open-source-flutter-apps?tab=readme-ov-file
+/// https://github.com/localsend/localsend
+/// https://github.com/tejasbadone/flutterzon_bloc

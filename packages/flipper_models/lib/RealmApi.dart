@@ -413,16 +413,22 @@ class RealmAPI<M extends IJsonSerializable>
         if (!item.active!) {
           realm!.delete(item);
         }
-        Stock? stock = await stockByVariantId(variantId: item.variantId!);
+        talker.warning("VariantSoldId for debug: ${item.variantId!}");
+        Stock? stock = stockByVariantId(variantId: item.variantId!);
+        final finalStock = (stock!.currentStock - item.qty);
         realm!.write(() {
           item.dcAmt = discount;
           item.discount = discount;
           item.lastTouched = DateTime.now();
 
-          stock!.currentStock = stock.currentStock - item.qty;
+          stock.currentStock = finalStock;
+          stock.rsdQty = finalStock;
           // stock value after item deduct
-          stock.value = stock.currentStock * (stock.retailPrice);
+          stock.value = finalStock * (stock.retailPrice);
           stock.action = AppActions.updated;
+          stock.ebmSynced = false;
+          stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
+          stock.tin = stock.tin ?? ProxyService.box.tin();
         });
         realm!.write(() {
           item.doneWithTransaction = true;
@@ -431,8 +437,8 @@ class RealmAPI<M extends IJsonSerializable>
 
         /// search the related product and touch them to make them as most used
         /// hence why we are adding time to it
-        Variant? variant = await getVariantById(id: item.variantId!);
-        Product? product = await getProduct(id: variant!.productId!);
+        Variant? variant = getVariantById(id: item.variantId!);
+        Product? product = getProduct(id: variant!.productId!);
         if (product != null) {
           realm!.write(() {
             product.lastTouched = DateTime.now().add(Duration(seconds: 2));
@@ -3426,5 +3432,12 @@ class RealmAPI<M extends IJsonSerializable>
       grossProfit: value.grossProfit ?? 0.0,
       netProfit: value.netProfit ?? 0.0,
     );
+  }
+
+  @override
+  bool isAdmin() {
+    LPermission? permission = realm!.query<LPermission>(
+        r'userId == $0', [ProxyService.box.getUserId()]).firstOrNull;
+    return permission?.name == "admin" ? true : false;
   }
 }

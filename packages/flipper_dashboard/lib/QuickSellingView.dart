@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -75,11 +73,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
   Widget build(BuildContext context) {
     final transaction =
         ref.watch(pendingTransactionProvider(TransactionType.sale));
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final transactionItemsNotifier =
-          ref.watch(transactionItemsProvider(transaction.value?.id!).notifier);
-      transactionItemsNotifier.updatePendingTransaction();
-    });
     final transactionItemsAsyncValue =
         ref.watch(transactionItemsProvider(transaction.value?.id));
 

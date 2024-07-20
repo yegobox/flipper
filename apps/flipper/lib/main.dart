@@ -161,6 +161,7 @@ Future<void> main() async {
       options.tracesSampleRate = 1.0;
       options.attachScreenshot = true;
     },
+    // backgroundColor: Colors.white.withOpacity(0.7),
     appRunner: () => runApp(
       ProviderScope(
         observers: [StateObserver()],

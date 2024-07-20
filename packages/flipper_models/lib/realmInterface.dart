@@ -412,4 +412,7 @@ abstract class RealmApiInterface {
         double grossProfit,
         double netProfit,
       })> getReportData();
+
+  /// determine if current running user is admin
+  bool isAdmin();
 }

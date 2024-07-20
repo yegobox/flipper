@@ -163,7 +163,7 @@ abstract class ServicesModule {
   @LazySingleton()
   Remote remote() {
     late Remote remote;
-    if (UniversalPlatform.isAndroid || UniversalPlatform.isMacOS) {
+    if (UniversalPlatform.isAndroid) {
       remote = RemoteConfigService();
     } else {
       remote = RemoteConfigWindows();

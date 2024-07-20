@@ -1,7 +1,9 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flutter/foundation.dart';
 import 'abstractions/remote.dart';
 import 'package:flutter/material.dart';
+import 'package:flagsmith/flagsmith.dart';
 
 class RemoteConfigService implements Remote {
   FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
@@ -278,18 +280,30 @@ class RemoteConfigService implements Remote {
   bool isEmailLogEnabled() {
     return remoteConfig.getBool('isEmailLogEnabled');
   }
+
+  @override
+  bool isMultiUserEnabled() {
+    // TODO: implement isMultiUserEnabled
+    throw UnimplementedError();
+  }
 }
 
 class RemoteConfigWindows implements Remote {
-  //FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
-
+  FlagsmithClient? flagsmithClient;
   @override
   void config() async {
-    // await remoteConfig.setConfigSettings(RemoteConfigSettings(
-    //   fetchTimeout: const Duration(seconds: 10),
-    //   minimumFetchInterval:
-    //       kDebugMode ? const Duration(hours: 0) : const Duration(hours: 4),
-    // ));
+    /// I reset everytime so the config can work
+    //
+    flagsmithClient = FlagsmithClient(
+      apiKey: AppSecrets.flagSmithApiKey,
+      config: FlagsmithConfig(caches: true, enableRealtimeUpdates: false),
+      seeds: <Flag>[
+        Flag.seed('multiple-users', enabled: true),
+      ],
+    );
+    await flagsmithClient?.initialize();
+    await flagsmithClient?.getFeatureFlags(reload: true);
+    // await flagsmithClient?.reset();
   }
 
   @override
@@ -478,5 +492,10 @@ class RemoteConfigWindows implements Remote {
   bool isEmailLogEnabled() {
     // return remoteConfig.getBool("isEmailLogEnabled");
     return true;
+  }
+
+  @override
+  bool isMultiUserEnabled() {
+    return flagsmithClient?.hasCachedFeatureFlag('multiple-users') ?? false;
   }
 }

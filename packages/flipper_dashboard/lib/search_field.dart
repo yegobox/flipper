@@ -1,16 +1,15 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -20,6 +19,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:badges/badges.dart' as badges;
+
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
     Key? key,
@@ -40,74 +40,27 @@ class SearchField extends StatefulHookConsumerWidget {
   SearchFieldState createState() => SearchFieldState();
 }
 
-class SearchFieldState extends ConsumerState<SearchField> with DateCoreWidget {
-  late bool _hasText;
-  late FocusNode _focusNode;
+class SearchFieldState extends ConsumerState<SearchField>
+    with DateCoreWidget, HandleScannWhileSelling {
   final _textSubject = BehaviorSubject<String>();
 
   @override
   void initState() {
     super.initState();
-    _hasText = false;
-    _focusNode = FocusNode();
+    hasText = false;
+    focusNode = FocusNode();
     widget.controller.addListener(_handleTextChange);
   }
 
   void _handleTextChange() {
     setState(() {
-      _hasText = widget.controller.text.isNotEmpty;
+      hasText = widget.controller.text.isNotEmpty;
     });
-  }
-
-  void _processDebouncedValue(String value, CoreViewModel model) {
-    ref.read(searchStringProvider.notifier).emitString(value: value);
-    _focusNode.requestFocus();
-
-    _handleScanningMode(value, model);
-  }
-
-  void _handleScanningMode(String value, CoreViewModel model) async {
-    widget.controller.clear();
-    _hasText = false;
-
-    /// if the state is not true then we are not in search mode, we are in scan mode
-    /// this means that we can simply search and display item as user search
-    /// this is useful when a customer want to search item mabybe want to edit it while not in
-    /// selling mode.
-    if (!ref.read(toggleProvider.notifier).state) {
-      ref.read(searchStringProvider.notifier).emitString(value: '');
-      if (value.isNotEmpty) {
-        Variant? variant = await ProxyService.realm.variant(name: value);
-        if (variant != null && variant.id != null) {
-          Stock? stock = await ProxyService.realm
-              .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
-          ITransaction currentTransaction = await ProxyService.realm
-              .manageTransaction(transactionType: TransactionType.sale);
-          //// TODO: suport sell of composite item while scanning see itemRow @line 107 for how it is done
-          await model.saveTransaction(
-              variation: variant,
-              amountTotal: variant.retailPrice,
-              customItem: false,
-              pendingTransaction: currentTransaction,
-              currentStock: stock!.currentStock,
-              partOfComposite: false);
-          final pendingTransaction =
-              ref.watch(pendingTransactionProvider(TransactionType.sale));
-
-          await Future.delayed(Duration(microseconds: 500));
-          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
-          await Future.delayed(Duration(microseconds: 500));
-          ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
-        }
-      }
-    } else {
-      /// we do normal search of item
-    }
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
@@ -125,14 +78,14 @@ class SearchFieldState extends ConsumerState<SearchField> with DateCoreWidget {
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
           _textSubject.debounceTime(Duration(seconds: 2)).listen((value) {
-            _processDebouncedValue(value, model);
+            processDebouncedValue(value, model, widget.controller);
           });
         },
         builder: (a, model, b) {
           return TextFormField(
             controller: widget.controller,
             maxLines: null,
-            focusNode: _focusNode,
+            focusNode: focusNode,
             textInputAction: TextInputAction.done,
             keyboardType: TextInputType.text,
             onFieldSubmitted: (value) => _textSubject,
@@ -202,8 +155,8 @@ class SearchFieldState extends ConsumerState<SearchField> with DateCoreWidget {
 
   IconButton addButton() {
     return IconButton(
-      onPressed: _hasText ? _clearSearchText : _handleAddProduct,
-      icon: _hasText
+      onPressed: hasText ? _clearSearchText : _handleAddProduct,
+      icon: hasText
           ? Icon(FluentIcons.dismiss_24_regular)
           : Icon(FluentIcons.add_20_regular),
     );
@@ -243,7 +196,7 @@ class SearchFieldState extends ConsumerState<SearchField> with DateCoreWidget {
     ref.read(searchStringProvider.notifier).emitString(value: '');
     widget.controller.clear();
     setState(() {
-      _hasText = false;
+      hasText = false;
     });
   }
 
