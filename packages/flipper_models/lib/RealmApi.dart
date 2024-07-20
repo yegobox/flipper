@@ -2157,9 +2157,11 @@ class RealmAPI<M extends IJsonSerializable>
     int branchId = ProxyService.box.getBranchId()!;
     int businessId = ProxyService.box.getBusinessId()!;
 
-    await updateSubscription(branchId, businessId);
-    await realm!.syncSession.waitForDownload();
-    await realm!.subscriptions.waitForSynchronization(token);
+    if (await ProxyService.status.isInternetAvailable()) {
+      await updateSubscription(branchId, businessId);
+      await realm!.syncSession.waitForDownload();
+      await realm!.subscriptions.waitForSynchronization(token);
+    }
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
@@ -2282,17 +2284,19 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (await ProxyService.status.isInternetAvailable()) {
         talker.info("Opened realm with internet access.");
-        // return await Realm.open(config, cancellationToken: token,
-        //     onProgressCallback: (syncProgress) {
-        //   if (syncProgress.progressEstimate == 1.0) {
-        //     talker.info('All bytes transferred!');
-        //   }
-        // });
-        return Realm(config);
+        return await Realm.open(config, cancellationToken: token,
+            onProgressCallback: (syncProgress) {
+          if (syncProgress.progressEstimate == 1.0) {
+            talker.info('All bytes transferred!');
+          }
+        });
+        // return Realm(config);
       } else {
         talker.info("Opened realm with no internet access.");
         return Realm(config);
       }
+    } on CancelledException catch (_) {
+      return Realm(config);
     } catch (e, s) {
       talker.error(s);
       throw e;
