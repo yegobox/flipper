@@ -185,7 +185,7 @@ abstract class RealmApiInterface {
 
   Future<List<Discount>> getDiscounts({required int branchId});
 
-  Future<void> addTransactionItem(
+  void addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite});

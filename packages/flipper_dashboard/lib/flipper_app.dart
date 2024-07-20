@@ -129,7 +129,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CoreViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
         ref.refresh(pendingTransactionProvider(TransactionType.sale));

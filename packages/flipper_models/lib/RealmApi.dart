@@ -184,21 +184,20 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<void> addTransactionItem(
+  void addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
-      required bool partOfComposite}) async {
+      required bool partOfComposite}) {
     // Add the new item to the database
-    await realm!.putAsync<TransactionItem>(item);
+    realm!.write(() {
+      realm!.add<TransactionItem>(item);
+    });
 
     /// update this item to know if it is involved in the composition
     /// so it will be treated differently on cart.
-    realm!.write(() {
-      item.partOfComposite = partOfComposite;
-    });
 
     // Fetch all items
-    var allItems = await realm!.query<TransactionItem>(
+    var allItems = realm!.query<TransactionItem>(
         r'transactionId ==$0', [transaction.id]).toList();
 
     // Sort the items if necessary
@@ -213,9 +212,11 @@ class RealmAPI<M extends IJsonSerializable>
     });
 
     // Save the updated items back to the database
-    for (var updatedItem in allItems) {
-      await realm!.putAsync<TransactionItem>(updatedItem);
-    }
+    realm!.write(() {
+      for (var updatedItem in allItems) {
+        realm!.add<TransactionItem>(updatedItem);
+      }
+    });
   }
 
   @override

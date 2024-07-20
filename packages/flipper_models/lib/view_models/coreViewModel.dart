@@ -126,7 +126,7 @@ class CoreViewModel extends FlipperBaseModel
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: false);
@@ -231,7 +231,7 @@ class CoreViewModel extends FlipperBaseModel
         remainingStock: stock?.currentStock ?? 0 - 1,
       );
       newItem.action = AppActions.created;
-      await ProxyService.realm.addTransactionItem(
+      ProxyService.realm.addTransactionItem(
         transaction: pendingTransaction,
         item: newItem,
         partOfComposite: false,
@@ -258,7 +258,7 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItemByVariantId(
               variantId: variation.id!, transactionId: pendingTransaction.id);
 
-      List<TransactionItem> items = await ProxyService.realm.transactionItems(
+      List<TransactionItem> items = ProxyService.realm.transactionItems(
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
@@ -294,11 +294,11 @@ class CoreViewModel extends FlipperBaseModel
           remainingStock: stock?.currentStock ?? 0 - 1,
         );
 
-        List<TransactionItem> items = await ProxyService.realm.transactionItems(
+        List<TransactionItem> items = ProxyService.realm.transactionItems(
             transactionId: pendingTransaction.id!,
             doneWithTransaction: false,
             active: true);
-        await ProxyService.realm.addTransactionItem(
+        ProxyService.realm.addTransactionItem(
           transaction: pendingTransaction,
           item: newItem,
           partOfComposite: false,
@@ -468,7 +468,7 @@ class CoreViewModel extends FlipperBaseModel
           (activeCat == null) ? "0" : activeCat.id.toString();
     });
 
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
       transactionId: transaction.id!,
       doneWithTransaction: false,
       active: true,
@@ -646,7 +646,7 @@ class CoreViewModel extends FlipperBaseModel
 
     if (keypad.transaction == null) return 0.0;
 
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: keypad.transaction!.id!,
         doneWithTransaction: false,
         active: true);

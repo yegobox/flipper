@@ -132,7 +132,7 @@ class TransactionItemsNotifier
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
-      final items = await ProxyService.realm.transactionItems(
+      final items = ProxyService.realm.transactionItems(
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);

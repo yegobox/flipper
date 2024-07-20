@@ -74,7 +74,7 @@ class KeyPadService with ListenableServiceMixin {
       includeSubTotalCheck: false,
     );
 
-    List<TransactionItem> items = await ProxyService.realm.transactionItems(
+    List<TransactionItem> items = ProxyService.realm.transactionItems(
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);
