@@ -23,17 +23,24 @@ class _NotificationWidgetState extends State<NotificationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.notifications.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _showNotifications(context));
 
-    return const SizedBox.shrink();
+    // Check for empty notifications in the build method
+    if (widget.notifications.isEmpty) {
+      return const SizedBox.shrink(); // Don't render anything if empty
+    }
+
+    // Render the notification content if there are notifications
+    return const SizedBox.shrink(); // Placeholder for the snackbar to be added.
   }
 
   void _showNotifications(BuildContext context) {
+    if (widget.notifications.isEmpty) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      return;
+    }
+
     final notificationWidget = SnackBar(
       elevation: 0,
       backgroundColor: Colors.transparent,
@@ -147,11 +154,12 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   }
 
   void _handleClearAll() {
-    ProxyService.local.localRealm!.write(() {
+    setState(() {
       for (var notification in widget.notifications) {
         notification.completed = true;
         widget.onAcknowledge(notification.id!);
       }
+      widget.notifications.clear();
     });
     widget.onClearAll();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -160,12 +168,11 @@ class _NotificationWidgetState extends State<NotificationWidget> {
   void _handleAcknowledge(
       AppNotification notification, int index, StateSetter setState) {
     widget.onAcknowledge(notification.id!);
-    ProxyService.local.localRealm!.write(() {
-      notification.completed = true;
-    });
     setState(() {
       widget.notifications.removeAt(index);
     });
+
+    // Update the state to hide the parent snackbar if all notifications are cleared
     if (widget.notifications.isEmpty) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
     } else {
