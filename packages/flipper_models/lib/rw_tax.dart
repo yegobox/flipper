@@ -295,8 +295,8 @@ class RWTax implements TaxApi {
                 orgnNatCd: item.orgnNatCd,
                 pkgUnitCd: item.pkgUnitCd,
                 splyAmt: item.splyAmt,
-                tin: item.tin,
-                bhfId: item.bhfId,
+                tin: item.tin ?? business.tinNumber,
+                bhfId: item.bhfId ?? ProxyService.box.bhfId(),
                 dftPrc: item.dftPrc,
                 addInfo: item.addInfo,
                 isrcAplcbYn: item.isrcAplcbYn,
@@ -427,7 +427,9 @@ class RWTax implements TaxApi {
       "prcOrdCd": null,
       "cnclDt": null,
       "rfdDt": null,
-      "rfdRsnCd": null,
+      "rfdRsnCd": receiptType == "NR"
+          ? ProxyService.box.getRefundReason() ?? "05" // 05 is refunded
+          : null,
       "remark": "",
 
       "receipt": {

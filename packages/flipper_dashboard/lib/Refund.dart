@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:flipper_dashboard/RefundReasonForm.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/constants.dart';
@@ -52,6 +53,8 @@ class _RefundState extends State<Refund> {
                   'Transaction ID: ${widget.transactionId}',
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
+                const SizedBox(height: 32),
+                RefundReasonForm(),
                 const SizedBox(height: 32),
                 BoxButton(
                   borderRadius: 1,

@@ -104,7 +104,7 @@ class ReportsState extends ConsumerState<Reports>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                ref.watch(showAiReport)
+                                ref.watch(toggleBooleanValueProvider)
                                     ? 'Past Reports'
                                     : 'AI Reports',
                                 style: TextStyle(
@@ -114,14 +114,14 @@ class ReportsState extends ConsumerState<Reports>
                                 ),
                               ),
                               Switch(
-                                value: ref.watch(showAiReport),
+                                value: ref.watch(toggleBooleanValueProvider),
                                 onChanged: (value) {
                                   ref
-                                      .read(showAiReport.notifier)
+                                      .read(toggleBooleanValueProvider.notifier)
                                       .toggleReport();
 
                                   talker.warning(
-                                      "toggledReportValue ${ref.watch(showAiReport)}");
+                                      "toggledReportValue ${ref.watch(toggleBooleanValueProvider)}");
 
                                   ref
                                       .read(dateRangeProvider.notifier)
@@ -136,13 +136,13 @@ class ReportsState extends ConsumerState<Reports>
                             ],
                           ),
                           const SizedBox(height: 16),
-                          ref.watch(showAiReport)
+                          ref.watch(toggleBooleanValueProvider)
                               ? Center(
                                   child: ConstrainedBox(
                                     constraints: BoxConstraints(maxHeight: 900),
                                     child: TransactionList(
-                                      showPluReportWidget:
-                                          ref.watch(showAiReport),
+                                      showDetailedReport:
+                                          ref.watch(toggleBooleanValueProvider),
                                     ),
                                   ),
                                 )

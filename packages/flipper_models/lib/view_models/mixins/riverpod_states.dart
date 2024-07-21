@@ -518,7 +518,7 @@ final transactionItemListProvider =
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
-  final isPluReport = ref.watch(showAiReport);
+  final isPluReport = ref.watch(toggleBooleanValueProvider);
 
   // Use keepAlive to prevent the provider from being disposed immediately
   ref.keepAlive();
@@ -731,7 +731,7 @@ class PluReportToggleNotifier extends StateNotifier<bool> {
   }
 }
 
-final showAiReport =
+final toggleBooleanValueProvider =
     StateNotifierProvider<PluReportToggleNotifier, bool>((ref) {
   return PluReportToggleNotifier();
 });

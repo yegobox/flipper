@@ -6,9 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
-  TransactionList({Key? key, this.showPluReportWidget = true})
-      : super(key: key);
-  final bool showPluReportWidget;
+  TransactionList({Key? key, this.showDetailedReport = true}) : super(key: key);
+  final bool showDetailedReport;
 
   @override
   TransactionListState createState() => TransactionListState();
@@ -22,14 +21,15 @@ class TransactionListState extends ConsumerState<TransactionList>
     final startDate = dateRange['startDate'];
     final endDate = dateRange['endDate'];
 
+    final showDetailed = ref.watch(toggleBooleanValueProvider);
     // Only watch the provider we need based on showPluReportWidget
-    final dataProvider = widget.showPluReportWidget
+    final dataProvider = showDetailed
         ? ref.watch(transactionItemListProvider)
         : ref.watch(transactionListProvider);
 
     // Force refresh of the appropriate provider when the widget is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.showPluReportWidget) {
+      if (widget.showDetailedReport) {
         ref.refresh(transactionItemListProvider);
       } else {
         ref.refresh(transactionListProvider);
@@ -53,15 +53,13 @@ class TransactionListState extends ConsumerState<TransactionList>
 
           // If it is PLU report, we get gross profit as we sum up the qty * price
           return DataView(
-            transactions:
-                !widget.showPluReportWidget ? data as List<ITransaction> : null,
-            transactionItems: widget.showPluReportWidget
-                ? data as List<TransactionItem>
-                : null,
+            transactions: !showDetailed ? data as List<ITransaction> : null,
+            transactionItems:
+                showDetailed ? data as List<TransactionItem> : null,
             startDate: startDate!,
             endDate: endDate!,
             rowsPerPage: ref.read(rowsPerPageProvider),
-            showPluReport: widget.showPluReportWidget,
+            showDetailedReport: ref.watch(toggleBooleanValueProvider),
           );
         },
         loading: () => Column(

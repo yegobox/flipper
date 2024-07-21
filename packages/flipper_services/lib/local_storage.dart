@@ -191,4 +191,9 @@ class SharedPreferenceStorage implements LocalStorage {
   String? currentSaleCustomerPhoneNumber() {
     return prefs.getString('currentSaleCustomerPhoneNumber');
   }
+
+  @override
+  String? getRefundReason() {
+    return prefs.getString("getRefundReason");
+  }
 }

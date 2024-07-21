@@ -28,7 +28,7 @@ class DataView extends StatefulHookConsumerWidget {
     this.transactions,
     required this.startDate,
     required this.endDate,
-    required this.showPluReport,
+    required this.showDetailedReport,
     required this.rowsPerPage,
     this.transactionItems,
   });
@@ -36,7 +36,7 @@ class DataView extends StatefulHookConsumerWidget {
   final List<ITransaction>? transactions;
   final DateTime startDate;
   final DateTime endDate;
-  final bool showPluReport;
+  final bool showDetailedReport;
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
 
@@ -55,7 +55,7 @@ class DataViewState extends ConsumerState<DataView>
   @override
   void initState() {
     super.initState();
-    _dataGridSource = _buildDataGridSource(widget.showPluReport,
+    _dataGridSource = _buildDataGridSource(widget.showDetailedReport,
         widget.transactionItems, widget.transactions, widget.rowsPerPage);
   }
 
@@ -65,7 +65,7 @@ class DataViewState extends ConsumerState<DataView>
     if (widget.transactionItems != oldWidget.transactionItems ||
         widget.transactions != oldWidget.transactions ||
         widget.rowsPerPage != oldWidget.rowsPerPage) {
-      _dataGridSource = _buildDataGridSource(widget.showPluReport,
+      _dataGridSource = _buildDataGridSource(widget.showDetailedReport,
           widget.transactionItems, widget.transactions, widget.rowsPerPage);
     }
   }
@@ -79,25 +79,35 @@ class DataViewState extends ConsumerState<DataView>
   final talker = TalkerFlutter.init();
 
   void handleCellTap(DataGridCellTapDetails details) {
-    final rowIndex = details.rowColumnIndex.rowIndex;
-    if (rowIndex < 1) return;
+    try {
+      final rowIndex = details.rowColumnIndex.rowIndex;
+      if (rowIndex < 1) return;
 
-    final dataSource = _dataGridSource as DynamicDataSource;
-    final data = dataSource.data[pageIndex * widget.rowsPerPage + rowIndex - 1];
+      talker.warning(pageIndex);
+      // talker.warning(pageIndex);
+      talker.warning(widget.rowsPerPage);
+      talker.warning(rowIndex);
 
-    talker.warning('Tapped row: ID = ${data.id}, Name = ${data.subTotal}');
-    showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (context) => OptionModal(
-        child: Refund(
-          refundAmount: data.subTotal,
-          transactionId: data.id.toString(),
-          currency: "RWF",
-          transaction: data is ITransaction ? data : null,
+      final dataSource = _dataGridSource as DynamicDataSource;
+      final data =
+          dataSource.data[pageIndex * widget.rowsPerPage + rowIndex - 1];
+
+      talker.warning('Tapped row: ID = ${data.id}, Name = ${data.subTotal}');
+      showDialog(
+        barrierDismissible: true,
+        context: context,
+        builder: (context) => OptionModal(
+          child: Refund(
+            refundAmount: data.subTotal,
+            transactionId: data.id.toString(),
+            currency: "RWF",
+            transaction: data is ITransaction ? data : null,
+          ),
         ),
-      ),
-    );
+      );
+    } catch (e, s) {
+      talker.error(s);
+    }
   }
 
   @override
@@ -123,33 +133,28 @@ class DataViewState extends ConsumerState<DataView>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
-                            widget.showPluReport
-                                ? // Toggle Button for PluReport/ZReport
-                                Switch(
-                                    value: ref.watch(showAiReport),
-                                    onChanged: (value) {
-                                      ref
-                                          .read(showAiReport.notifier)
-                                          .toggleReport();
-                                      if (ref.read(showAiReport)) {
-                                        ref
-                                            .read(rowsPerPageProvider.notifier)
-                                            .state = 1000;
-                                      }
-                                    })
-                                : const SizedBox.shrink(),
-                            widget.showPluReport
-                                ? Text(ref.read(showAiReport)
-                                    ? 'PLU Report'
-                                    : 'ZReport')
-                                : SizedBox(),
+                            Switch(
+                                value: ref.watch(toggleBooleanValueProvider),
+                                onChanged: (value) {
+                                  ref
+                                      .read(toggleBooleanValueProvider.notifier)
+                                      .toggleReport();
+                                  if (ref.read(toggleBooleanValueProvider)) {
+                                    ref
+                                        .read(rowsPerPageProvider.notifier)
+                                        .state = 1000;
+                                  }
+                                }),
+                            Text(ref.read(toggleBooleanValueProvider)
+                                ? 'PLU Report'
+                                : 'ZReport'),
                             Padding(
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16.0),
                               child: RowsPerPageInput(
                                   rowsPerPageProvider: rowsPerPageProvider),
                             ),
-                            widget.showPluReport
+                            widget.showDetailedReport
                                 ? datePicker()
                                 : SizedBox.shrink()
                           ],
@@ -238,7 +243,7 @@ class DataViewState extends ConsumerState<DataView>
                           source: _dataGridSource!,
                           columnWidthMode: ColumnWidthMode.fill,
                           onCellTap: handleCellTap,
-                          columns: widget.showPluReport
+                          columns: widget.showDetailedReport
                               ? pluReportTableHeader(headerPadding)
                               : zReportTableHeader(headerPadding),
                         ),
@@ -273,15 +278,15 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   DataGridSource _buildDataGridSource(
-      bool showPluReport,
+      bool showDetailed,
       List<TransactionItem>? transactionItems,
       List<ITransaction>? transactions,
       int rowsPerPage) {
-    if (showPluReport) {
+    if (showDetailed) {
       return TransactionItemDataSource(
-          transactionItems!, rowsPerPage, showPluReport);
+          transactionItems!, rowsPerPage, showDetailed);
     } else {
-      return TransactionDataSource(transactions!, rowsPerPage, showPluReport);
+      return TransactionDataSource(transactions!, rowsPerPage, showDetailed);
     }
   }
 }

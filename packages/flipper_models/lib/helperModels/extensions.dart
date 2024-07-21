@@ -61,3 +61,38 @@ extension DoubleExtension on double {
     return (this * factor).round() / factor;
   }
 }
+
+extension DateOnly on DateTime {
+  String get formattedDate {
+    return "${this.year}-${this.month.toString().padLeft(2, '0')}-${this.day.toString().padLeft(2, '0')}";
+  }
+}
+
+extension TimeOnly on DateTime {
+  String get formattedTime {
+    return "${this.hour.toString().padLeft(2, '0')}:${this.minute.toString().padLeft(2, '0')}:${this.second.toString().padLeft(2, '0')}";
+  }
+}
+
+extension DateTimeToDateTimeString on DateTime {
+  String toDateTimeString() {
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    final timeFormat = DateFormat('HH:mm:ss');
+    final dateString = dateFormat.format(this);
+    final timeString = timeFormat.format(this);
+    return '$dateString $timeString';
+  }
+}
+
+extension StringToDashedString on String {
+  String toDashedString() {
+    if (isEmpty) {
+      return '';
+    }
+    var x = 0;
+    final dashesInternalData = {2, 3, 4, 12, 6, 7};
+    final replacedInternalData = splitMapJoin(RegExp('....'),
+        onNonMatch: (s) => dashesInternalData.contains(x++) ? '-' : '');
+    return replacedInternalData;
+  }
+}
