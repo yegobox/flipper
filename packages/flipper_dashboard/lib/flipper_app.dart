@@ -142,6 +142,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
             // Directly access the notification stream provider using ref
             ref.watch(notificationStreamProvider).when(
               data: (notifications) {
+                talker.info("received ${notifications.length} notifications");
                 // Data is available from the notification stream
                 if (notifications.isNotEmpty) {
                   return NotificationWidget(

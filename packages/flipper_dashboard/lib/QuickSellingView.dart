@@ -1,4 +1,5 @@
 import 'package:feather_icons/feather_icons.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -8,6 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:realm/realm.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -398,6 +401,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                             if (number == null) {
                               return 'Please enter a valid number';
                             }
+                            if (number < grandTotal) {
+                              return 'You are receiving less compared';
+                            }
                             return null;
                           },
                         ),
@@ -533,13 +539,36 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                     ),
                     GestureDetector(
                       onTap: () {
+                        if (kDebugMode) {
+                          talker
+                              .info("We are adding dummy data in notification");
+                          ProxyService.local.notify(
+                            notification: AppNotification(
+                              ObjectId(),
+                              identifier: ProxyService.box.getBranchId(),
+                              type: "internal",
+                              id: randomNumber(),
+                              completed: false,
+                              message: "Sale completed",
+                            ),
+                          );
+                        }
+
                         final transaction = ref.watch(
                             pendingTransactionProvider(TransactionType.sale));
                         Clipboard.setData(ClipboardData(
                             text: transaction.asData!.value.id.toString()));
-                        showSnackBar(context, "TransactionId copied to keypad ",
-                            textColor: Colors.white,
-                            backgroundColor: Colors.blueAccent);
+
+                        ProxyService.local.notify(
+                          notification: AppNotification(
+                            ObjectId(),
+                            identifier: ProxyService.box.getBranchId(),
+                            type: "internal",
+                            id: randomNumber(),
+                            completed: false,
+                            message: "TransactionId copied to keypad",
+                          ),
+                        );
                       },
                       child: Text(
                         "ID: ${transaction.asData?.value.id.toString()} ",

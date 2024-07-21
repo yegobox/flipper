@@ -313,9 +313,17 @@ mixin IsolateHandler {
         Branch.schema,
         Drawers.schema,
         UnversalProduct.schema,
+        AppNotification.schema
       ],
       encryptionKey: encryptionKey,
       path: dbPatch,
+      schemaVersion: 2,
+      migrationCallback: (migration, oldSchemaVersion) {
+        if (oldSchemaVersion < 2) {
+          // This means we are migrating from version 1 to version 2
+          migration.deleteType('Drawers');
+        }
+      },
     );
     return config;
   }
