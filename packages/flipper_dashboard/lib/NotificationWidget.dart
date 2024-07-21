@@ -42,6 +42,7 @@ class _NotificationWidgetState extends State<NotificationWidget> {
     }
 
     final notificationWidget = SnackBar(
+      width: 600,
       elevation: 0,
       backgroundColor: Colors.transparent,
       content: _buildNotificationContent(context),
