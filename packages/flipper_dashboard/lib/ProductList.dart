@@ -52,7 +52,9 @@ class ProductListScreenState extends ConsumerState<ProductListScreen> {
 
                             ITransaction? iTransaction = ref
                                 .read(pendingTransactionProvider(
-                                    TransactionType.cashOut))
+                                  /// define that his is an expense
+                                  (TransactionType.cashOut, true),
+                                ))
                                 .value;
 
                             ProxyService.realm.realm!.write(() {

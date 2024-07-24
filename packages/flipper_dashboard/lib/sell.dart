@@ -40,8 +40,10 @@ class SellState extends ConsumerState<Sell> {
       },
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.sale));
+        final pendingTransaction = ref.watch(pendingTransactionProvider(
+          /// defind this is an income by setting isExpense to false
+          (TransactionType.sale, false),
+        ));
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: CustomAppBar(
@@ -74,8 +76,12 @@ class SellState extends ConsumerState<Sell> {
               }
 
               /// when we are ordering transaction type is cashOut
-              ref.refresh(pendingTransactionProvider(TransactionType.cashOut));
-              ref.refresh(pendingTransactionProvider(TransactionType.sale));
+              ref.refresh(pendingTransactionProvider(
+                (TransactionType.cashOut, true),
+              ));
+              ref.refresh(pendingTransactionProvider(
+                (TransactionType.sale, false),
+              ));
               _routerService.pop();
             },
             icon: Icons.close,

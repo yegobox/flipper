@@ -974,4 +974,22 @@ class _Computed {
   double? totalStockValue = 0;
   double? totalStockSoldValue = 0;
   double? totalStockItems = 0;
+  // DateTime? createdAt = DateTime.now();
+}
+
+@RealmModel()
+class _Access {
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId id;
+
+  int? branchId;
+  int? businessId;
+  int? userId;
+  String? featureName;
+  String? userType;
+  String? accessLevel; // e.g., 'read', 'write', 'admin'
+  DateTime? createdAt = DateTime.now();
+  DateTime? expiresAt; // Optional expiration date
+  String? status; // e.g., 'active', 'pending', 'revoked'
 }

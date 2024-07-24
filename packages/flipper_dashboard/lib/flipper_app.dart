@@ -132,7 +132,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
@@ -175,7 +175,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.sale));
+        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
     // ignore: duplicate_ignore
     // ignore: unused_result
     ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
@@ -209,8 +209,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
       AppService.cleanedData.listen((data) async {
         log("listened to data");
-        final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.sale));
+        final pendingTransaction = ref
+            .watch(pendingTransactionProvider((TransactionType.sale, false)));
         log(data);
         List<String> parts = data.split(':');
         String firstPart = parts[0];

@@ -124,6 +124,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       transaction: transaction,
       amountReceived: amount,
       discount: discount,
+      isIncome: true,
       directlyHandleReceipt: false,
     );
 
@@ -222,7 +223,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     }
 
     /// refresh and go home
-    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
 
     model.handlingConfirm = false;
   }
@@ -295,7 +296,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                       paymentType: paymentTypeController.text,
                                       transaction: ref
                                           .watch(pendingTransactionProvider(
-                                              TransactionType.sale))
+                                              (TransactionType.sale, false)))
                                           .asData!
                                           .value,
                                     );
@@ -331,7 +332,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                 right: 8.0,
                 child: SearchInputWithDropdown(
                   transaction: ref
-                      .watch(pendingTransactionProvider(TransactionType.sale))
+                      .watch(pendingTransactionProvider(
+                          (TransactionType.sale, false)))
                       .asData
                       ?.value,
                 ),

@@ -244,6 +244,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i1.Payments(
           key: args.key,
           transaction: args.transaction,
+          isIncome: args.isIncome,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -377,10 +378,12 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TaxConfigurationRoute.name: (routeData) {
+      final args = routeData.argsAs<TaxConfigurationArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TaxConfiguration(
-          showheader: true,
+        child: _i1.TaxConfiguration(
+          key: args.key,
+          showheader: args.showheader,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1357,12 +1360,14 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
           args: PaymentsArgs(
             key: key,
             transaction: transaction,
+            isIncome: isIncome,
           ),
         );
 
@@ -1373,15 +1378,18 @@ class PaymentsArgs {
   const PaymentsArgs({
     this.key,
     required this.transaction,
+    required this.isIncome,
   });
 
   final _i4.Key? key;
 
   final _i8.ITransaction transaction;
 
+  final bool isIncome;
+
   @override
   String toString() {
-    return 'PaymentsArgs{key: $key, transaction: $transaction}';
+    return 'PaymentsArgs{key: $key, transaction: $transaction, isIncome: $isIncome}';
   }
 }
 
@@ -1695,14 +1703,36 @@ class DevicesArgs {
 
 /// generated route for
 /// [_i1.TaxConfiguration]
-class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
-  const TaxConfigurationRoute()
-      : super(
+class TaxConfigurationRoute extends _i3.PageRouteInfo<TaxConfigurationArgs> {
+  TaxConfigurationRoute({
+    _i4.Key? key,
+    required bool showheader,
+  }) : super(
           TaxConfigurationRoute.name,
           path: '/tax-configuration',
+          args: TaxConfigurationArgs(
+            key: key,
+            showheader: showheader,
+          ),
         );
 
   static const String name = 'TaxConfiguration';
+}
+
+class TaxConfigurationArgs {
+  const TaxConfigurationArgs({
+    this.key,
+    required this.showheader,
+  });
+
+  final _i4.Key? key;
+
+  final bool showheader;
+
+  @override
+  String toString() {
+    return 'TaxConfigurationArgs{key: $key, showheader: $showheader}';
+  }
 }
 
 /// generated route for
@@ -2381,12 +2411,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToPayments({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PaymentsRoute(
         key: key,
         transaction: transaction,
+        isIncome: isIncome,
       ),
       onFailure: onFailure,
     );
@@ -2536,10 +2568,16 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> navigateToTaxConfiguration(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+  Future<dynamic> navigateToTaxConfiguration({
+    _i4.Key? key,
+    required bool showheader,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
     return navigateTo(
-      const TaxConfigurationRoute(),
+      TaxConfigurationRoute(
+        key: key,
+        showheader: showheader,
+      ),
       onFailure: onFailure,
     );
   }
@@ -3006,12 +3044,14 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> replaceWithPayments({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PaymentsRoute(
         key: key,
         transaction: transaction,
+        isIncome: isIncome,
       ),
       onFailure: onFailure,
     );
@@ -3161,10 +3201,16 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithTaxConfiguration(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+  Future<dynamic> replaceWithTaxConfiguration({
+    _i4.Key? key,
+    required bool showheader,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
     return replaceWith(
-      const TaxConfigurationRoute(),
+      TaxConfigurationRoute(
+        key: key,
+        showheader: showheader,
+      ),
       onFailure: onFailure,
     );
   }

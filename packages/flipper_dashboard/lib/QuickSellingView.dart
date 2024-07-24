@@ -73,7 +73,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
   @override
   Widget build(BuildContext context) {
     final transaction =
-        ref.watch(pendingTransactionProvider(TransactionType.sale));
+        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
     final transactionItemsAsyncValue =
         ref.watch(transactionItemsProvider(transaction.value?.id));
 
@@ -555,7 +555,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                         }
 
                         final transaction = ref.watch(
-                            pendingTransactionProvider(TransactionType.sale));
+                            pendingTransactionProvider(
+                                (TransactionType.sale, false)));
                         Clipboard.setData(ClipboardData(
                             text: transaction.asData!.value.id.toString()));
 

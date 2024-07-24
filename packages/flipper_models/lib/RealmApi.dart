@@ -367,97 +367,105 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<ITransaction> collectPayment(
+  ITransaction collectPayment(
       {required double cashReceived,
       required ITransaction transaction,
       required String paymentType,
+      required bool isIncome,
       required double discount,
-      bool directlyHandleReceipt = true}) async {
-    List<TransactionItem> items = transactionItems(
-        transactionId: transaction.id!,
-        doneWithTransaction: false,
-        active: true);
-    realm!.write(() {
-      transaction.status = COMPLETE;
-      transaction.isIncome = true;
-      double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
-      transaction.customerChangeDue = (cashReceived - subTotal);
-      transaction.paymentType = paymentType;
-      transaction.cashReceived = cashReceived;
-      transaction.subTotal = subTotal;
-
-      /// for now receipt type to be printed is in box shared preference
-      /// this ofcause has limitation that if more than two users are using device
-      /// one user will use configuration set by probably a different user, this need to change soon.
-      String receiptType = TransactionReceptType.NS;
-      if (ProxyService.box.isPoroformaMode()) {
-        receiptType = TransactionReceptType.PS;
-      }
-      if (ProxyService.box.isTrainingMode()) {
-        receiptType = TransactionReceptType.TS;
-      }
-      transaction.receiptType = receiptType;
-
-      /// refresh created as well to reflect when this transaction was created and completed
-
-      transaction.updatedAt = DateTime.now().toIso8601String();
-      transaction.createdAt = DateTime.now().toIso8601String();
-
-      transaction.lastTouched = DateTime.now().add(Duration(hours: 2));
-    });
-
+      bool directlyHandleReceipt = true}) {
     try {
-      for (TransactionItem item in items) {
-        /// because there might case where we have non-active transactionItem in the list of
-        /// TransactionItem, then we remove it first before completing the transaction
-        if (!item.active!) {
-          realm!.delete(item);
+      List<TransactionItem> items = transactionItems(
+          transactionId: transaction.id!,
+          doneWithTransaction: false,
+          active: true);
+      realm!.write(() {
+        transaction.status = COMPLETE;
+        transaction.isIncome = isIncome;
+        transaction.isExpense = !isIncome;
+        double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
+        transaction.customerChangeDue = (cashReceived - subTotal);
+        transaction.paymentType = paymentType;
+        transaction.cashReceived = cashReceived;
+        transaction.subTotal = subTotal;
+
+        /// for now receipt type to be printed is in box shared preference
+        /// this ofcause has limitation that if more than two users are using device
+        /// one user will use configuration set by probably a different user, this need to change soon.
+        String receiptType = TransactionReceptType.NS;
+        if (ProxyService.box.isPoroformaMode()) {
+          receiptType = TransactionReceptType.PS;
         }
-        talker.warning("VariantSoldId for debug: ${item.variantId!}");
-        Stock? stock = stockByVariantId(variantId: item.variantId!);
-        final finalStock = (stock!.currentStock - item.qty);
-        realm!.write(() {
-          item.dcAmt = discount;
-          item.discount = discount;
-          item.lastTouched = DateTime.now();
+        if (ProxyService.box.isTrainingMode()) {
+          receiptType = TransactionReceptType.TS;
+        }
+        transaction.receiptType = receiptType;
 
-          stock.currentStock = finalStock;
-          stock.rsdQty = finalStock;
-          // stock value after item deduct
-          stock.value = finalStock * (stock.retailPrice);
-          stock.action = AppActions.updated;
-          stock.ebmSynced = false;
-          stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
-          stock.tin = stock.tin ?? ProxyService.box.tin();
-        });
-        realm!.write(() {
-          item.doneWithTransaction = true;
-          item.updatedAt = DateTime.now().toIso8601String();
-        });
+        /// refresh created as well to reflect when this transaction was created and completed
 
-        /// search the related product and touch them to make them as most used
-        /// hence why we are adding time to it
-        Variant? variant = getVariantById(id: item.variantId!);
-        Product? product = getProduct(id: variant!.productId!);
-        if (product != null) {
+        transaction.updatedAt = DateTime.now().toIso8601String();
+        transaction.createdAt = DateTime.now().toIso8601String();
+
+        transaction.lastTouched = DateTime.now().add(Duration(hours: 2));
+      });
+
+      try {
+        for (TransactionItem item in items) {
+          /// because there might case where we have non-active transactionItem in the list of
+          /// TransactionItem, then we remove it first before completing the transaction
+          if (!item.active!) {
+            realm!.delete(item);
+          }
+          talker.warning("VariantSoldId for debug: ${item.variantId!}");
+          Stock? stock = stockByVariantId(variantId: item.variantId!);
+          final finalStock = (stock!.currentStock - item.qty);
           realm!.write(() {
-            product.lastTouched = DateTime.now().add(Duration(seconds: 2));
-          });
-        }
-      }
-    } catch (e, s) {
-      talker.error(s);
-    }
+            item.dcAmt = discount;
+            item.discount = discount;
+            item.lastTouched = DateTime.now();
 
-    // remove currentTransactionId from local storage to leave a room
-    // for listening to new transaction that will be created
-    ProxyService.box.remove(key: 'currentTransactionId');
-    //NOTE: trigger EBM, now
-    if (directlyHandleReceipt) {
-      TaxController(object: transaction)
-          .handleReceipt(printCallback: (Uint8List bytes) {});
+            stock.currentStock = finalStock;
+            stock.rsdQty = finalStock;
+            // stock value after item deduct
+            stock.value = finalStock * (stock.retailPrice);
+            stock.action = AppActions.updated;
+            stock.ebmSynced = false;
+            stock.bhfId = stock.bhfId ?? ProxyService.box.bhfId();
+            stock.tin = stock.tin ?? ProxyService.box.tin();
+          });
+          realm!.write(() {
+            item.doneWithTransaction = true;
+            item.updatedAt = DateTime.now().toIso8601String();
+          });
+
+          /// search the related product and touch them to make them as most used
+          /// hence why we are adding time to it
+          Variant? variant = getVariantById(id: item.variantId!);
+          Product? product = getProduct(id: variant!.productId!);
+          if (product != null) {
+            realm!.write(() {
+              product.lastTouched = DateTime.now().add(Duration(seconds: 2));
+            });
+          }
+        }
+      } catch (e, s) {
+        talker.error(s);
+      }
+
+      // remove currentTransactionId from local storage to leave a room
+      // for listening to new transaction that will be created
+      ProxyService.box.remove(key: 'currentTransactionId');
+      //NOTE: trigger EBM, now
+      if (directlyHandleReceipt) {
+        TaxController(object: transaction)
+            .handleReceipt(printCallback: (Uint8List bytes) {});
+      }
+      return transaction;
+    } catch (e, s) {
+      talker.info(e);
+      talker.error(s);
+      rethrow;
     }
-    return transaction;
   }
 
   @override
@@ -1351,11 +1359,11 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType}) async {
+      {required String transactionType, required bool isExpense}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    ITransaction? existTransaction = await _pendingTransaction(
-        branchId: branchId, transactionType: transactionType);
+    ITransaction? existTransaction =
+        await _pendingTransaction(branchId: branchId, isExpense: isExpense);
 
     int businessId = ProxyService.box.getBusinessId()!;
     if (existTransaction == null) {
@@ -1391,7 +1399,9 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   ITransaction manageTransaction(
-      {required String transactionType, bool? includeSubTotalCheck = false}) {
+      {required String transactionType,
+      required bool isExpense,
+      bool? includeSubTotalCheck = false}) {
     /// check if realm is not closed
     if (realm == null) {
       throw Exception("realm is empty");
@@ -1399,7 +1409,7 @@ class RealmAPI<M extends IJsonSerializable>
     int branchId = ProxyService.box.getBranchId()!;
     ITransaction? existTransaction = _pendingTransaction(
         branchId: branchId,
-        transactionType: transactionType,
+        isExpense: isExpense,
         includeSubTotalCheck: includeSubTotalCheck!);
     if (existTransaction == null) {
       final int id = randomNumber();
@@ -1410,6 +1420,8 @@ class RealmAPI<M extends IJsonSerializable>
           action: AppActions.created,
           transactionNumber: randomNumber().toString(),
           status: PENDING,
+          isExpense: isExpense,
+          isIncome: !isExpense,
           transactionType: transactionType,
           subTotal: 0,
           cashReceived: 0,
@@ -1488,12 +1500,12 @@ class RealmAPI<M extends IJsonSerializable>
   /// we should first return any transaction that has item first.
   ITransaction? _pendingTransaction({
     required int branchId,
-    required String transactionType,
+    required bool isExpense,
     bool includeSubTotalCheck = true,
   }) {
     String query =
-        r'branchId == $0 AND transactionType == $1 AND status == $2 SORT(createdAt DESC)';
-    List<dynamic> parameters = [branchId, transactionType, PENDING];
+        r'branchId == $0 AND isExpense == $1 AND status == $2 SORT(createdAt DESC)';
+    List<dynamic> parameters = [branchId, isExpense, PENDING];
 
     if (includeSubTotalCheck) {
       query += ' AND subTotal > 0';
@@ -1855,8 +1867,7 @@ class RealmAPI<M extends IJsonSerializable>
             SORT(createdAt DESC)
             ''';
     } else {
-      queryString = r'''status == $0 && subTotal > 0
-            && ((isExpense == false) || (isExpense == true)) && branchId == $1
+      queryString = r'''status == $0 && subTotal > 0  && branchId == $1
              SORT(createdAt DESC)
             ''';
     }

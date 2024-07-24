@@ -71,6 +71,7 @@ class KeyPadService with ListenableServiceMixin {
   Future<ITransaction?> getPendingTransaction({required int branchId}) async {
     ITransaction? transaction = await ProxyService.realm.manageTransaction(
       transactionType: TransactionType.sale,
+      isExpense: false,
       includeSubTotalCheck: false,
     );
 

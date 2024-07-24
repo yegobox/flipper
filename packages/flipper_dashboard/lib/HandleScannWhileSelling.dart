@@ -35,7 +35,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           Stock? stock = ProxyService.realm
               .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
           ITransaction currentTransaction = ProxyService.realm
-              .manageTransaction(transactionType: TransactionType.sale);
+              .manageTransaction(
+                  transactionType: TransactionType.sale, isExpense: false);
 
           await model.saveTransaction(
               variation: variant,
@@ -44,8 +45,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               pendingTransaction: currentTransaction,
               currentStock: stock!.currentStock,
               partOfComposite: false);
-          final pendingTransaction =
-              ref.watch(pendingTransactionProvider(TransactionType.sale));
+          final pendingTransaction = ref
+              .watch(pendingTransactionProvider((TransactionType.sale, false)));
 
           await Future.delayed(Duration(microseconds: 500));
           ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));

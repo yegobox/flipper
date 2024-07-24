@@ -98,11 +98,12 @@ final variantsProvider = FutureProvider.autoDispose
   return variants;
 });
 
-final pendingTransactionProvider =
-    Provider.autoDispose.family<AsyncValue<ITransaction>, String>((ref, mode) {
+final pendingTransactionProvider = Provider.autoDispose
+    .family<AsyncValue<ITransaction>, (String, bool)>((ref, params) {
+  final (mode, isExpense) = params;
   try {
-    ITransaction pendingTransaction =
-        ProxyService.realm.manageTransaction(transactionType: mode);
+    ITransaction pendingTransaction = ProxyService.realm
+        .manageTransaction(transactionType: mode, isExpense: isExpense);
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
@@ -150,8 +151,8 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       // Await the future and store the result in a local variable
-      final transaction = await ProxyService.realm
-          .manageTransaction(transactionType: TransactionType.sale);
+      final transaction = await ProxyService.realm.manageTransaction(
+          transactionType: TransactionType.sale, isExpense: false);
       ProxyService.realm.realm!.write(() {
         transaction.subTotal = totalPayable;
       });
@@ -663,11 +664,19 @@ class KeypadNotifier extends StateNotifier<String> {
   KeypadNotifier() : super("0.00");
 
   void addKey(String key) {
-    state = state == "0.00" ? key : "$state$key";
+    if (key == 'C') {
+      state = 'C';
+    } else if (state == 'C') {
+      state = key;
+    } else {
+      state = state == "0.00" ? key : "$state$key";
+    }
   }
 
   void pop() {
-    if (state.length > 2) {
+    if (state == 'C') {
+      state = "0.00";
+    } else if (state.length > 2) {
       state = state.substring(0, state.length - 1);
     } else {
       state = "0.00";
@@ -675,8 +684,10 @@ class KeypadNotifier extends StateNotifier<String> {
   }
 
   void reset() {
-    state = "0.00"; // Directly set the state to "0.00"
+    state = "0.00";
   }
+
+  String get value => state == 'C' ? '' : state;
 }
 
 // State provider for managing loading state

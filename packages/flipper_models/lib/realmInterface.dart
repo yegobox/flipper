@@ -111,10 +111,12 @@ abstract class RealmApiInterface {
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
   ITransaction manageTransaction(
-      {required String transactionType, bool? includeSubTotalCheck = false});
+      {required String transactionType,
+      required bool isExpense,
+      bool? includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType});
+      {required String transactionType, required bool isExpense});
 
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
@@ -123,12 +125,13 @@ abstract class RealmApiInterface {
       {DateTime? startDate, DateTime? endDate});
   Future<Variant?> getCustomVariant();
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  Future<ITransaction> collectPayment({
+  ITransaction collectPayment({
     required double cashReceived,
     required ITransaction transaction,
     required String paymentType,
     required double discount,
     bool directlyHandleReceipt = false,
+    required bool isIncome,
   });
 
 // app settings and users settings

@@ -22,9 +22,11 @@ import 'package:intl/intl.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class Payments extends StatefulHookConsumerWidget {
-  Payments({Key? key, required this.transaction}) : super(key: key);
+  Payments({Key? key, required this.transaction, required this.isIncome})
+      : super(key: key);
 
   final ITransaction transaction;
+  final bool isIncome;
 
   @override
   PaymentsState createState() => PaymentsState();
@@ -90,7 +92,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   const SizedBox(height: 20),
                   _buildPaymentButtons(model),
                   const SizedBox(height: 20),
-                  _buildConfirmButton(model),
+                  _buildConfirmButton(model, widget.isIncome),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -118,11 +120,11 @@ class PaymentsState extends ConsumerState<Payments> {
   PreferredSizeWidget _buildCustomAppBar() {
     return CustomAppBar(
       onPop: () {
-        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
         _routerService.back();
       },
       onActionButtonClicked: () {
-        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
         _routerService.back();
       },
       rightActionButtonName: 'Split payment',
@@ -455,7 +457,7 @@ class PaymentsState extends ConsumerState<Payments> {
     );
   }
 
-  Widget _buildConfirmButton(CoreViewModel model) {
+  Widget _buildConfirmButton(CoreViewModel model, bool isIncome) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.5),
       child: SizedBox(
@@ -467,7 +469,7 @@ class PaymentsState extends ConsumerState<Payments> {
             if (_customerKey.currentState!.validate()) {
               if (paymentType == "Cash") {
                 if (_formKey.currentState!.validate()) {
-                  await confirmPayment(model);
+                  await confirmPayment(model, isIncome);
                 }
               } else {
                 if (paymentType == null) {
@@ -478,7 +480,7 @@ class PaymentsState extends ConsumerState<Payments> {
                   );
                   return;
                 }
-                await confirmPayment(model);
+                await confirmPayment(model, isIncome);
               }
             }
           },
@@ -501,7 +503,7 @@ class PaymentsState extends ConsumerState<Payments> {
     }
   }
 
-  Future<void> confirmPayment(CoreViewModel model) async {
+  Future<void> confirmPayment(CoreViewModel model, bool isIncome) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal
@@ -510,6 +512,7 @@ class PaymentsState extends ConsumerState<Payments> {
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
     await model.collectPayment(
+        isIncome: isIncome,
         paymentType: paymentType!,
         transaction: widget.transaction,
         amountReceived: amount,
@@ -609,7 +612,7 @@ class PaymentsState extends ConsumerState<Payments> {
     }
 
     /// refresh and go home
-    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
     _routerService.back;
     model.handlingConfirm = false;
   }

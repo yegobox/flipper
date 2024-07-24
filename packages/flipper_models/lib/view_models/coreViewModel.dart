@@ -112,16 +112,13 @@ class CoreViewModel extends FlipperBaseModel
     app.loadCategories();
   }
 
-  Future<void> keyboardKeyPressed(
+  void keyboardKeyPressed(
       {required String key,
       required Function reset,
-      String? transactionType = "Sale"}) async {
-    if (double.tryParse(key) != null) {
-      // ProxyService.keypad.addKey(key);
-    }
-
-    ITransaction? pendingTransaction = await ProxyService.realm
-        .manageTransaction(transactionType: transactionType!);
+      required bool isExpense,
+      String? transactionType = "Sale"}) {
+    ITransaction? pendingTransaction = ProxyService.realm.manageTransaction(
+        transactionType: transactionType!, isExpense: isExpense);
 
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
@@ -134,9 +131,7 @@ class CoreViewModel extends FlipperBaseModel
     switch (key) {
       case 'C':
         handleClearKey(items, pendingTransaction, reset);
-
         break;
-
       case '+':
         ProxyService.realm.realm!.write(() {
           for (TransactionItem item in items) {
@@ -447,8 +442,8 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<bool> saveCashBookTransaction(
       {required String cbTransactionType}) async {
-    ITransaction transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.sale);
+    ITransaction transaction = await ProxyService.realm.manageTransaction(
+        transactionType: TransactionType.sale, isExpense: false);
 
     Category? activeCat = await ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
@@ -461,9 +456,6 @@ class CoreViewModel extends FlipperBaseModel
       /// the transaction type but first we check to see if this category is in predefined
 
       transaction.transactionType = activeCat?.name ?? cbTransactionType;
-      transaction.paymentType = "Cash";
-      transaction.isExpense = true;
-      transaction.status = COMPLETE;
       transaction.categoryId =
           (activeCat == null) ? "0" : activeCat.id.toString();
     });
@@ -488,27 +480,30 @@ class CoreViewModel extends FlipperBaseModel
       required double cashReceived,
       required String paymentType,
       required double discount}) async {
-    final transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.sale);
+    final transaction = await ProxyService.realm.manageTransaction(
+        transactionType: TransactionType.sale, isExpense: false);
     // await ProxyService.isar
     //     .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
     await ProxyService.realm.collectPayment(
         cashReceived: cashReceived,
         transaction: transaction,
         paymentType: paymentType,
+        isIncome: true,
         discount: discount);
     return "PaymentRecorded";
   }
 
-  Future<ITransaction> collectPayment(
+  ITransaction collectPayment(
       {required String paymentType,
       required ITransaction transaction,
       required double amountReceived,
       required double discount,
-      bool directlyHandleReceipt = true}) async {
-    return await ProxyService.realm.collectPayment(
+      bool directlyHandleReceipt = true,
+      required bool isIncome}) {
+    return ProxyService.realm.collectPayment(
       cashReceived: amountReceived,
       transaction: transaction,
+      isIncome: isIncome,
       paymentType: paymentType,
       discount: discount,
       directlyHandleReceipt: directlyHandleReceipt,
@@ -589,8 +584,8 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void addNoteToSale({required String note, required Function callback}) async {
-    final currentTransaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.sale);
+    final currentTransaction = await ProxyService.realm.manageTransaction(
+        transactionType: TransactionType.sale, isExpense: false);
     ITransaction? transaction =
         await ProxyService.realm.getTransactionById(id: currentTransaction.id!);
     // Map map = transaction!;
@@ -752,8 +747,8 @@ class CoreViewModel extends FlipperBaseModel
   // check if the customer is attached to the transaction then can't be deleted
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(int id, Function callback) async {
-    final transaction = await ProxyService.realm
-        .manageTransaction(transactionType: TransactionType.sale);
+    final transaction = await ProxyService.realm.manageTransaction(
+        transactionType: TransactionType.sale, isExpense: false);
     if (transaction.customerId == null) {
       await ProxyService.realm.delete(id: id, endPoint: 'customer');
       callback("customer deleted");

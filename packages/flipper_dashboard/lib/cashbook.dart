@@ -195,11 +195,10 @@ class CashbookState extends ConsumerState<Cashbook> {
         buildNewTransactionTypeLabel(model.newTransactionType, model),
         Expanded(
           child: KeyPadView.cashBookMode(
-            model: model,
-            isBigScreen: widget.isBigScreen,
-            accountingMode: true,
-            transactionType: model.newTransactionType,
-          ),
+              model: model,
+              isBigScreen: widget.isBigScreen,
+              accountingMode: true,
+              transactionType: model.newTransactionType),
         ),
       ],
     );

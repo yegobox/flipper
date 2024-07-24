@@ -10,7 +10,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:stacked/stacked.dart';
 
 class ListCategories extends StatefulHookConsumerWidget {
@@ -157,7 +156,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         title: 'Category',
         icon: Icons.close,
         multi: 3,
-        bottomSpacer: 52,
+        bottomSpacer: 80,
       ),
       body: FutureBuilder<List<Category>>(
         future: future,

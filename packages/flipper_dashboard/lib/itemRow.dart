@@ -184,7 +184,7 @@ class _RowItemState extends ConsumerState<RowItem> {
 
   Future<void> onTapItem(CoreViewModel model) async {
     final pendingTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.sale));
+        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
 
     /// first check if this item is a composite
     Product? product =
