@@ -1,11 +1,12 @@
+import 'package:flipper_dashboard/tenant_add.dart';
 import 'package:flutter/material.dart';
 
-class UserManagment extends StatefulWidget {
+class UserManagement extends StatefulWidget {
   @override
-  _UserManagmentState createState() => _UserManagmentState();
+  _UserManagementState createState() => _UserManagementState();
 }
 
-class _UserManagmentState extends State<UserManagment> {
+class _UserManagementState extends State<UserManagement> {
   final List<User> users = [
     User('John Doe', 'john.doe@example.com', ['Word', 'Excel', 'PowerPoint']),
     User('Jane Smith', 'jane.smith@example.com',
@@ -60,6 +61,13 @@ class _UserManagmentState extends State<UserManagment> {
         _selectedUser!.allowedApps.add(app);
       });
     }
+  }
+
+  void _addNewUser(User newUser) {
+    setState(() {
+      users.add(newUser);
+      _filteredUsers = users;
+    });
   }
 
   @override
@@ -120,7 +128,7 @@ class _UserManagmentState extends State<UserManagment> {
             color: Colors.blue,
             child: InkWell(
               onTap: () {
-                // Add your onPressed functionality here
+                _showAddUserDialog(context);
               },
               child: Container(
                 padding: EdgeInsets.all(16),
@@ -182,6 +190,15 @@ class _UserManagmentState extends State<UserManagment> {
             ),
           ),
       ],
+    );
+  }
+
+  void _showAddUserDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return TenantAdd();
+      },
     );
   }
 }
@@ -292,13 +309,13 @@ class _AllowedAppsPanelState extends State<AllowedAppsPanel> {
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8), // Add rounded corners
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: Offset(0, 3), // Adjust shadow offset if needed
+            offset: Offset(0, 3),
           ),
         ],
       ),
@@ -333,7 +350,7 @@ class _AllowedAppsPanelState extends State<AllowedAppsPanel> {
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 14,
-                    ), // Adjust padding as needed
+                    ),
                   ),
                 ),
               ),
@@ -347,8 +364,7 @@ class _AllowedAppsPanelState extends State<AllowedAppsPanel> {
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   textStyle: TextStyle(fontSize: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(4), // Add rounded corners
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
               ),

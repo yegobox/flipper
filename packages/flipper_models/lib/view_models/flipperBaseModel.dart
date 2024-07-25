@@ -35,7 +35,25 @@ class FlipperBaseModel extends ReactiveViewModel {
   Future<void> loadTenants() async {
     List<Tenant> users = await ProxyService.realm
         .tenants(businessId: ProxyService.box.getBusinessId()!);
-    _tenants = [...users];
+
+    // Using a set to track unique user IDs
+    Set<int> uniqueUserIds = {};
+    List<Tenant> uniqueUsers = [];
+
+    /// this is a hac to remove users that were wrongly saved multiple times due to a bug in our code, this will not be needed maybe in future
+    ProxyService.realm.realm!.write(() {
+      for (var user in users) {
+        if (!uniqueUserIds.contains(user.id)) {
+          uniqueUserIds.add(user.id!);
+          uniqueUsers.add(user);
+        } else {
+          // If the user is a duplicate, delete them from Realm
+          ProxyService.realm.realm!.delete(user);
+        }
+      }
+    });
+
+    _tenants = [...uniqueUsers];
     rebuildUi();
   }
 

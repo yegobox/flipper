@@ -546,3 +546,6 @@ class App {}
 /// https://github.com/fluttergems/awesome-open-source-flutter-apps?tab=readme-ov-file
 /// https://github.com/localsend/localsend
 /// https://github.com/tejasbadone/flutterzon_bloc
+/// 
+/// TODO: learn about integeation test or get some ideas
+/// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart

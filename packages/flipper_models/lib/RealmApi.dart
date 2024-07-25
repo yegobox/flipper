@@ -2829,8 +2829,14 @@ class RealmAPI<M extends IJsonSerializable>
     /// first check in Computed model if we have already calculated the value
     final List<Computed> computeds =
         realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
+
     if (computeds.isNotEmpty) {
-      final computed = computeds.first;
+      // Find the computed entry with the highest totalStockSoldValue
+      final computed = computeds.reduce((curr, next) =>
+          (next.totalStockSoldValue ?? 0) > (curr.totalStockSoldValue ?? 0)
+              ? next
+              : curr);
+
       yield computed.totalStockSoldValue ?? 0;
       return;
     }
@@ -2850,8 +2856,14 @@ class RealmAPI<M extends IJsonSerializable>
     /// first check in Computed model if we have already calculated the value
     final List<Computed> computeds =
         realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
+
     if (computeds.isNotEmpty) {
-      final computed = computeds.first;
+      // Find the computed entry with the highest totalStockValue
+      final computed = computeds.reduce((curr, next) =>
+          (next.totalStockValue ?? 0) > (curr.totalStockValue ?? 0)
+              ? next
+              : curr);
+
       yield computed.totalStockValue ?? 0;
       return;
     }

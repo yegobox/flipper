@@ -920,12 +920,20 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         ProxyService.realm.realm!.write(() {
           ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
         });
+        Tenant? tenanti = ProxyService.realm.realm!
+            .query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
 
-        tenantToAdd.add(iTenant);
+        if (tenanti == null) {
+          tenantToAdd.add(iTenant);
+        }
       }
-      ProxyService.realm.realm!.write(() {
-        ProxyService.realm.realm!.addAll<Tenant>(tenantToAdd);
-      });
+
+      if (tenantToAdd.isNotEmpty) {
+        ProxyService.realm.realm!.write(() {
+          ProxyService.realm.realm!.addAll<Tenant>(tenantToAdd);
+        });
+      }
+
       return ITenant.fromJsonList(response.body);
     }
     throw InternalServerException(term: "we got unexpected response");
@@ -1084,7 +1092,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
       Tenant? tenantToAdd;
       Tenant? tenant = ProxyService.realm.realm!
-          .query<Tenant>(r'id==$0', [iTenant.id]).firstOrNull;
+          .query<Tenant>(r'userId==$0', [iTenant.userId]).firstOrNull;
       if (tenant == null) {
         tenantToAdd = Tenant(ObjectId(),
             name: jTenant.name,
@@ -1093,6 +1101,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             nfcEnabled: jTenant.nfcEnabled,
             businessId: jTenant.businessId,
             userId: jTenant.userId,
+            id: randomNumber(),
             isDefault: jTenant.isDefault,
             pin: jTenant.pin);
         ProxyService.realm.realm!.add<Tenant>(tenantToAdd);

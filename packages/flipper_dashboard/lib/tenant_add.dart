@@ -1,17 +1,15 @@
 import 'dart:developer';
-
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'customappbar.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class TenantAdd extends StatefulWidget {
   const TenantAdd({Key? key}) : super(key: key);
@@ -24,168 +22,121 @@ class _TenantAddState extends State<TenantAdd> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  int _steps = 0;
   final _routerService = locator<RouterService>();
   bool isAddingUser = false;
-  String selectedValue = 'Agent';
+  String selectedUserType = 'Agent';
+  Map<String, String> permissions = {};
+  List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
+  List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
 
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<FlipperBaseModel>.reactive(
-      onViewModelReady: (model) async {
-        await model.loadTenants();
-      },
+      onViewModelReady: (model) async => await model.loadTenants(),
       viewModelBuilder: () => FlipperBaseModel(),
       builder: (context, model, widget) {
         return Scaffold(
           appBar: CustomAppBar(
+            bottomSpacer: 80,
             title: 'Add a user',
-            onPop: () async {
-              _routerService.pop();
-            },
+            multi: 3,
+            onPop: () async => _routerService.pop(),
           ),
-          body: Column(
-            children: [
-              SafeArea(
-                child: Stack(
-                  children: [
-                    isAddingUser
-                        ? Center(
-                            child: LoadingAnimationWidget.fallingDot(
-                              color: Colors.blueGrey,
-                              size: 100,
-                            ),
-                          )
-                        : SizedBox.shrink(),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: _buildAddTenantForm(model, context),
-                    ),
-                  ],
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: constraints.maxWidth > 600
+                      ? _buildWideLayout(model, context)
+                      : _buildNarrowLayout(model, context),
                 ),
-              ),
-              _buildTenantsList(model),
-            ],
+              );
+            },
           ),
         );
       },
     );
   }
 
-  Form _buildAddTenantForm(FlipperBaseModel model, BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          const Text(
-            "You are about to invite a user to your default branch and business",
-          ),
-          const SizedBox(height: 30),
-          _buildTextFormField(
-            controller: _nameController,
-            labelText: "Name of the user",
-            icon: Icons.person,
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 10),
-          _buildTextFormField(
-            controller: _phoneController,
-            labelText: "Phone number",
-            icon: Icons.phone,
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              // Validate email first
-              if (EmailValidatorFlutter().validateEmail(value ?? "")) {
-                // If valid email, return null (no validation error)
-                return null;
-              }
+  Widget _buildWideLayout(FlipperBaseModel model, BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: _buildAddTenantForm(model, context),
+        ),
+        const SizedBox(width: 20),
+        Expanded(
+          flex: 3,
+          child: _buildTenantsList(model),
+        ),
+      ],
+    );
+  }
 
-              // Focus on phone number validation
-              if (value == null || value.isEmpty) {
-                return "Please enter a phone number or email address"; // Handle empty input
-              }
+  Widget _buildNarrowLayout(FlipperBaseModel model, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildAddTenantForm(model, context),
+        const SizedBox(height: 20),
+        _buildTenantsList(model),
+      ],
+    );
+  }
 
-              if (!value.startsWith("+")) {
-                return "Phone number should contain country code with + sign";
-              }
-
-              // Extract phone number without country code
-              final phoneNumberWithoutCode = value.substring(1);
-
-              // Flexible phone number validation using a more comprehensive regex
-              final phoneExp = RegExp(r'^\d{7,15}$'); // Allow 7-15 digits
-              if (!phoneExp.hasMatch(phoneNumberWithoutCode)) {
-                return "Invalid phone number";
-              }
-              // Catch-all check for remaining invalid input
-              if (!EmailValidatorFlutter().validateEmail(value) &&
-                  !phoneExp.hasMatch(phoneNumberWithoutCode)) {
-                return "Invalid input format. Please enter a valid email address or phone number.";
-              }
-              return null; // Valid phone number
-            },
+  Widget _buildAddTenantForm(FlipperBaseModel model, BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                "Invite a user to your default branch and business",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              _buildTextFormField(
+                controller: _nameController,
+                labelText: "Name of the user",
+                icon: Icons.person,
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                controller: _phoneController,
+                labelText: "Phone number or Email",
+                icon: Icons.phone,
+                keyboardType: TextInputType.phone,
+                validator: _validatePhoneOrEmail,
+              ),
+              const SizedBox(height: 16),
+              _buildUserTypeDropdown(),
+              const SizedBox(height: 24),
+              const Text(
+                "Set Permissions",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildPermissionsSection(),
+              const SizedBox(height: 32),
+              BoxButton(
+                title: isAddingUser ? "Adding user..." : "Add user",
+                busy: isAddingUser,
+                borderRadius: 8,
+                onTap: isAddingUser ? null : () => _addUser(model, context),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text("Select User Type"),
-          const SizedBox(height: 10),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey),
-            ),
-            child: DropdownButton<String>(
-              value: selectedValue,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedValue = newValue!;
-                });
-              },
-              items: <String>['Agent', 'Cashier', 'Admin']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              style: TextStyle(color: Colors.black, fontSize: 16),
-              icon: Icon(Icons.arrow_drop_down),
-              iconSize: 30,
-              isExpanded: true,
-              underline: SizedBox(), // Remove the default underline
-            ),
-          ),
-          _steps != 0 && _steps != 1
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 10),
-                    _buildOutlinedButton(
-                      label: "Add user",
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          try {
-                            setState(() {
-                              isAddingUser = true;
-                            });
-                            await _addUser(model);
-                            setState(() {
-                              isAddingUser = false;
-                            });
-                          } catch (e) {
-                            setState(() {
-                              isAddingUser = false;
-                            });
-                            log(e.toString());
-                            _showErrorSnackBar(context);
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
-        ],
+        ),
       ),
     );
   }
@@ -196,199 +147,294 @@ class _TenantAddState extends State<TenantAdd> {
     required IconData icon,
     required TextInputType keyboardType,
     FormFieldValidator<String>? validator,
-    ValueChanged<String>? onChanged,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      onChanged: (value) {
-        if (onChanged != null) {
-          onChanged(value);
-        }
-        if (value.isNotEmpty) {
-          setState(() {
-            _steps += 1;
-          });
-        }
-      },
       validator: validator,
       decoration: InputDecoration(
-        enabled: true,
-        border: const OutlineInputBorder(),
-        suffixIcon: Icon(icon, color: Colors.blue),
         labelText: labelText,
+        prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
       ),
     );
   }
 
-  Widget _buildOutlinedButton({
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return OutlinedButton(
-      child: Text(
-        label,
-        style: primaryTextStyle.copyWith(color: Colors.white),
+  Widget _buildUserTypeDropdown() {
+    return DropdownButtonFormField<String>(
+      value: selectedUserType,
+      onChanged: (String? newValue) {
+        setState(() {
+          selectedUserType = newValue!;
+        });
+      },
+      items: <String>['Agent', 'Cashier', 'Admin']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: "Select User Type",
+        prefixIcon:
+            Icon(Icons.person_outline, color: Theme.of(context).primaryColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
       ),
-      style: primaryButtonStyle,
-      onPressed: onPressed,
     );
   }
 
-  void _showErrorSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.red,
-        content: Text("Error while adding user"),
+  Widget _buildPermissionsSection() {
+    return Column(
+      children: features.map((feature) {
+        return _buildPermissionRow(feature);
+      }).toList(),
+    );
+  }
+
+  Widget _buildPermissionRow(String feature) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(feature, style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            flex: 3,
+            child: DropdownButtonFormField<String>(
+              value: permissions[feature] ?? 'No Access',
+              onChanged: (String? newValue) {
+                setState(() {
+                  permissions[feature] = newValue!;
+                });
+              },
+              items: accessLevels.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _addUser(FlipperBaseModel model) async {
-    Business? business = await ProxyService.local.defaultBusiness();
-    Branch? branch = await ProxyService.local.defaultBranch();
+  String? _validatePhoneOrEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter a phone number or email address";
+    }
+    if (EmailValidatorFlutter().validateEmail(value)) {
+      return null;
+    }
+    if (!value.startsWith("+")) {
+      return "Phone number should contain country code with + sign";
+    }
+    final phoneNumberWithoutCode = value.substring(1);
+    final phoneExp = RegExp(r'^\d{7,15}$');
+    if (!phoneExp.hasMatch(phoneNumberWithoutCode)) {
+      return "Invalid phone number";
+    }
+    return null;
+  }
 
-    /// when a business add a tenant, this tenant might not have the account to flipper yet
-    /// but the user will be created, it is important to know that this tenant added
-    /// can log in to same business being added meaning when additional login happen
-    /// either this user or tenant being added will be prompted to choose default business
-    /// and default branch, also it is important to know that this tenant added
-    /// will be working in scope defined by permission given at time of adding him
-    await ProxyService.local.saveTenant(
-      _phoneController.text,
-      _nameController.text,
-      branch: branch!,
-      business: business!,
+  Future<void> _addUser(FlipperBaseModel model, BuildContext context) async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => isAddingUser = true);
+      try {
+        Business? business = await ProxyService.local.defaultBusiness();
+        Branch? branch = await ProxyService.local.defaultBranch();
 
-      /// pass the user type
-      userType: selectedValue,
-    );
+        // Save tenant
+        Tenant newTenant = await ProxyService.local.saveTenant(
+          _phoneController.text,
+          _nameController.text,
+          branch: branch!,
+          business: business!,
+          userType: selectedUserType,
+        );
 
-    await model.loadTenants();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        backgroundColor: Colors.green,
-        content: Text("Tenant added"),
-      ),
-    );
+        // Save permissions
+        for (String feature in features) {
+          String accessLevel = permissions[feature] ?? 'No Access';
+          if (accessLevel != 'No Access') {
+            // await ProxyService.realm.create(
+            //   endPoint: 'access',
+            //   data: {
+            //     'branchId': branch.id,
+            //     'businessId': business.id,
+            //     'userId': newTenant.id,
+            //     'featureName': feature,
+            //     'userType': selectedUserType,
+            //     'accessLevel': accessLevel.toLowerCase(),
+            //     'status': 'active',
+            //   },
+            // );
+          }
+        }
+
+        await model.loadTenants();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("User added successfully with custom permissions"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _resetForm();
+      } catch (e) {
+        log(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error while adding user"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() => isAddingUser = false);
+      }
+    }
+  }
+
+  void _resetForm() {
+    _nameController.clear();
+    _phoneController.clear();
+    setState(() {
+      selectedUserType = 'Agent';
+      permissions.clear();
+    });
   }
 
   Widget _buildTenantsList(FlipperBaseModel model) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.0),
-            topRight: Radius.circular(20.0),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              spreadRadius: 2,
-              blurRadius: 5,
-              offset: Offset(0, 3),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "Current Users",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: model.tenants.length,
+              separatorBuilder: (context, index) => Divider(),
+              itemBuilder: (context, index) =>
+                  _buildTenantCard(model.tenants[index], model),
             ),
           ],
         ),
-        child: ListView(
-          shrinkWrap: true,
-          children: model.tenants.map((tenant) {
-            return Dismissible(
-              key: Key(tenant.name!),
-              onDismissed: (direction) async {
-                if (direction == DismissDirection.endToStart) {
-                  // User swiped to delete
-                  await ProxyService.realm
-                      .delete(id: tenant.id!, endPoint: 'tenant');
-                  model.loadTenants();
-                }
-              },
-              background: Container(
-                color: Colors.red, // Background color when swiping to delete
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 16.0),
-                    child: Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              child: Card(
-                elevation: 2.0,
-                margin: EdgeInsets.symmetric(vertical: 8.0),
-                child: ListTile(
-                  onTap: () async {
-                    if (tenant.isLongPressed) {
-                      // Reset the long-press state
-                      await ProxyService.realm
-                          .delete(id: tenant.id!, endPoint: 'tenant');
-                      model.loadTenants();
-                      setState(() {
-                        tenant.isLongPressed = false;
-                      });
-                    } else {
-                      await _toggleNFC(tenant, model);
-                    }
-                  },
-                  onLongPress: () {
-                    // Long-press action
-                    setState(() {
-                      // Change the background color and switch icon
-                      tenant.isLongPressed = true;
-                    });
-                  },
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    child: Text(
-                      tenant.name!.substring(0, 1).toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                  ),
-                  title: Text(
-                    tenant.name!,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  trailing: tenant.isLongPressed
-                      ? Icon(Icons.delete, color: Colors.red)
-                      : Icon(Icons.nfc,
-                          color: tenant.nfcEnabled == true
-                              ? Colors.blue
-                              : Colors.red),
-                ),
-              ),
-            );
-          }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTenantCard(Tenant tenant, FlipperBaseModel model) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Text(
+          tenant.name!.substring(0, 1).toUpperCase(),
+          style: TextStyle(color: Colors.white),
         ),
+      ),
+      title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(tenant.phoneNumber ?? "No phone number"),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(
+              tenant.nfcEnabled == true ? Icons.nfc : Icons.nfc_outlined,
+              color: tenant.nfcEnabled == true
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
+            ),
+            onPressed: () => _toggleNFC(tenant, model),
+          ),
+          IconButton(
+            icon: Icon(Icons.delete, color: Colors.red),
+            onPressed: () => _showDeleteConfirmation(context, tenant, model),
+          ),
+        ],
       ),
     );
   }
 
   Future<void> _toggleNFC(Tenant tenant, FlipperBaseModel model) async {
-    tenant.nfcEnabled = !tenant.nfcEnabled;
     try {
       await AppService().nfc.stopNfc();
     } catch (e) {}
     AppService().nfc.startNFC(
           callback: (nfcData) async {
             nfcData.split(RegExp(r"(NFC_DATA:|en|\\x02)")).last;
-
-            showToast(context, 'You have added NFC card to ${tenant.name}');
+            showToast(context, 'NFC card added to ${tenant.name}');
             model.loadTenants();
           },
           textData:
               "${tenant.id}:${ProxyService.box.getBusinessId()}:${ProxyService.box.getBranchId()}:${tenant.phoneNumber}",
           write: true,
         );
+  }
+
+  void _showDeleteConfirmation(
+      BuildContext context, Tenant tenant, FlipperBaseModel model) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Delete Tenant"),
+          content: Text("Are you sure you want to delete this tenant?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteTenant(tenant, model);
+              },
+              child: Text("Delete"),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTenant(Tenant tenant, FlipperBaseModel model) {
+    try {
+      ProxyService.realm.delete(id: tenant.id!, endPoint: 'tenant');
+      model.loadTenants();
+      showToast(context, 'Tenant deleted successfully');
+      model.loadTenants();
+    } catch (e) {
+      log(e.toString());
+      showToast(context, 'Error deleting tenant');
+    }
   }
 }

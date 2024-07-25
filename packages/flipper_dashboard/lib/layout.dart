@@ -12,6 +12,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flutter/foundation.dart';
 
 extension on Widget {
   Widget? showOrNull(bool isShow) => isShow ? this : null;
@@ -72,7 +73,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProxyService.remoteConfig.isMultiUserEnabled()
+            ProxyService.remoteConfig.isMultiUserEnabled() && kDebugMode
                 ? Container(
                     child: SideMenu(
                       mode: SideMenuMode.compact,
@@ -152,7 +153,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                                                                     .infinity,
                                                                 height: 800,
                                                                 child:
-                                                                    UserManagment(),
+                                                                    UserManagement(),
                                                               ),
                                                             ],
                                                           ),
