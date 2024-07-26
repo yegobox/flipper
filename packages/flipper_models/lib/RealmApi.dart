@@ -3001,7 +3001,7 @@ class RealmAPI<M extends IJsonSerializable>
     /// We do not clear all variable, this is because even on logout
     /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use
     /// therefore why the bellow line is commented out.
-    ProxyService.box.clear();
+
     await firebase.FirebaseAuth.instance.signOut();
 
     /// refreshing the user token will invalidate any session

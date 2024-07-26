@@ -136,39 +136,7 @@ class FlipperAppState extends ConsumerState<FlipperApp>
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return Stack(
-          children: [
-            _buildScaffold(context, model),
-            // Directly access the notification stream provider using ref
-            ref.watch(notificationStreamProvider).when(
-              data: (notifications) {
-                talker.info("received ${notifications.length} notifications");
-                // Data is available from the notification stream
-                if (notifications.isNotEmpty) {
-                  return NotificationWidget(
-                    notifications: notifications,
-                    onClearAll: () {},
-                    onAcknowledge: (id) {
-                      print('Notification acknowledged with id: $id');
-                    },
-                  );
-                } else {
-                  return SizedBox.shrink();
-                }
-              },
-              error: (error, stackTrace) {
-                // Handle errors from the notification stream
-                talker.error(stackTrace);
-                // return Text('Error: $error');
-                return SizedBox.shrink();
-              },
-              loading: () {
-                // Display a loading indicator while waiting for notifications
-                return CircularProgressIndicator();
-              },
-            ),
-          ],
-        );
+        return _buildScaffold(context, model);
       },
     );
   }

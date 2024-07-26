@@ -1,6 +1,8 @@
 import 'package:realm/realm.dart';
 part 'schemas.realm.dart';
 
+// https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 @RealmModel()

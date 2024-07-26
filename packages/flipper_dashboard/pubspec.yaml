@@ -120,6 +120,7 @@ dependencies:
   amplify_auth_cognito: ^2.1.0
   flutter_side_menu: ^0.5.3
   flagsmith: ^5.0.1
+  phone_numbers_parser: ^8.3.0
 
 dependency_overrides:
   http: ^1.2.1

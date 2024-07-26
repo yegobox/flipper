@@ -1,5 +1,7 @@
-import 'package:flipper_dashboard/UserManagment.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/profile.dart';
+import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
@@ -123,45 +125,9 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                                             child: IconButton(
                                               icon: const Icon(Icons.settings),
                                               onPressed: () {
-                                                showDialog(
-                                                  barrierDismissible: true,
-                                                  context: context,
-                                                  builder: (context) => Dialog(
-                                                    child: ConstrainedBox(
-                                                      constraints:
-                                                          BoxConstraints(
-                                                        maxHeight:
-                                                            MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .height *
-                                                                0.8,
-                                                      ),
-                                                      child:
-                                                          SingleChildScrollView(
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.all(
-                                                                  16),
-                                                          child: Column(
-                                                            mainAxisSize:
-                                                                MainAxisSize
-                                                                    .min,
-                                                            children: [
-                                                              SizedBox(
-                                                                width: double
-                                                                    .infinity,
-                                                                height: 800,
-                                                                child:
-                                                                    UserManagement(),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
+                                                locator<RouterService>()
+                                                    .navigateTo(
+                                                        AdminControlRoute());
                                               },
                                               style: IconButton.styleFrom(
                                                 shape: const CircleBorder(),

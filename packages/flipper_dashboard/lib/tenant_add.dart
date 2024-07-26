@@ -4,7 +4,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
-import 'package:flipper_ui/toast.dart';
+import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
@@ -242,17 +242,28 @@ class _TenantAddState extends State<TenantAdd> {
     if (value == null || value.isEmpty) {
       return "Please enter a phone number or email address";
     }
+
+    // Check if the value is a valid email
     if (EmailValidatorFlutter().validateEmail(value)) {
       return null;
     }
+
+    // Check if the value is a valid phone number with country code
     if (!value.startsWith("+")) {
       return "Phone number should contain country code with + sign";
     }
-    final phoneNumberWithoutCode = value.substring(1);
-    final phoneExp = RegExp(r'^\d{7,15}$');
-    if (!phoneExp.hasMatch(phoneNumberWithoutCode)) {
+
+    final phone = PhoneNumber.parse(value);
+    if (!phone.isValid(type: PhoneNumberType.mobile)) {
+      return "Invalid Phone";
+    }
+
+    final phoneExp = RegExp(
+        r'^\+\d{1,3}\d{7,15}$'); // Updated regex to support general country codes
+    if (!phoneExp.hasMatch(value)) {
       return "Invalid phone number";
     }
+
     return null;
   }
 
@@ -264,13 +275,13 @@ class _TenantAddState extends State<TenantAdd> {
         Branch? branch = await ProxyService.local.defaultBranch();
 
         // Save tenant
-        Tenant newTenant = await ProxyService.local.saveTenant(
-          _phoneController.text,
-          _nameController.text,
-          branch: branch!,
-          business: business!,
-          userType: selectedUserType,
-        );
+        // Tenant newTenant = await ProxyService.local.saveTenant(
+        //   _phoneController.text,
+        //   _nameController.text,
+        //   branch: branch!,
+        //   business: business!,
+        //   userType: selectedUserType,
+        // );
 
         // Save permissions
         for (String feature in features) {
