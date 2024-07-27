@@ -146,8 +146,8 @@ class AppService with ListenableServiceMixin {
       throw LoginChoicesException(term: "Choose default business");
     } else {
       /// we have one business and one branch so we can set default tin and bhfid to be used during this session
-      ProxyService.box
-          .writeString(key: 'bhfId', value: businesses.first.bhfId ?? "");
+      // ProxyService.box
+      //     .writeString(key: 'bhfId', value: businesses.first.bhfId ?? "00");
       ProxyService.box
           .writeInt(key: 'tin', value: businesses.first.tinNumber ?? 0);
     }

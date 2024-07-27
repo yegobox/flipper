@@ -35,7 +35,6 @@ class TaxController<OBJ> {
       /// as it require the purchase code and
 
       if (transaction.status == COMPLETE &&
-          transaction.customerId == null &&
           transaction.receiptType == TransactionReceptType.NS) {
         //// generate a receipt for this completed transaction
         /// if a customer is attached and the customer is of type business
@@ -43,29 +42,37 @@ class TaxController<OBJ> {
         /// so when a customerI is not empty we will wait for the purchase code from the user
         /// and if the cashier does not provide it then we will go ahead and finish a transaction
         /// without the purchase code and the user detail added to the transaction
-        await _printReceipt(
-          receiptType: transaction.receiptType!,
-          transaction: transaction,
-          purchaseCode: purchaseCode,
-          skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-          printCallback: (bytes) {
-            printCallback(bytes);
-          },
-        );
+        try {
+          await _printReceipt(
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            purchaseCode: purchaseCode,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            printCallback: (bytes) {
+              printCallback(bytes);
+            },
+          );
+        } catch (e) {
+          rethrow;
+        }
       } else if ((transaction.receiptType == TransactionReceptType.NR ||
               transaction.receiptType == TransactionReceptType.TS ||
               transaction.receiptType == TransactionReceptType.PS ||
               transaction.receiptType == TransactionReceptType.CS) &&
           transaction.status == COMPLETE) {
-        await _printReceipt(
-          purchaseCode: purchaseCode,
-          receiptType: transaction.receiptType!,
-          transaction: transaction,
-          skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
-          printCallback: (bytes) {
-            printCallback(bytes);
-          },
-        );
+        try {
+          await _printReceipt(
+            purchaseCode: purchaseCode,
+            receiptType: transaction.receiptType!,
+            transaction: transaction,
+            skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            printCallback: (bytes) {
+              printCallback(bytes);
+            },
+          );
+        } catch (e) {
+          rethrow;
+        }
       }
     }
   }
@@ -97,12 +104,16 @@ class TaxController<OBJ> {
     required Function(Uint8List bytes) printCallback,
   }) async {
     if (!skiGenerateRRAReceiptSignature) {
-      await generateRRAReceiptSignature(
-        // business: business,
-        transaction: transaction,
-        receiptType: transaction.receiptType!,
-        purchaseCode: purchaseCode,
-      );
+      try {
+        await generateRRAReceiptSignature(
+          // business: business,
+          transaction: transaction,
+          receiptType: transaction.receiptType!,
+          purchaseCode: purchaseCode,
+        );
+      } catch (e) {
+        rethrow;
+      }
     }
     Business? business = await ProxyService.local.getBusiness();
     List<TransactionItem> items =
@@ -151,7 +162,7 @@ class TaxController<OBJ> {
             "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
       }
     } catch (s) {
-      talker.error(s);
+      rethrow;
     }
 
     double totalTaxA = taxTotals['A'] ?? 0.0;
@@ -288,8 +299,8 @@ class TaxController<OBJ> {
         }).toList();
       });
     } catch (e, s) {
-      talker.critical(s);
-      talker.critical(e);
+      talker.info(e);
+      talker.error(s);
       rethrow;
     }
   }

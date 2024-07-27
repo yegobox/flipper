@@ -11,7 +11,6 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -25,7 +24,28 @@ class RWTax implements TaxApi {
   // String eBMURL = "https://turbo.yegobox.com";
   // String eBMURL = "http://10.0.2.2:8080/rra";
 
-  RWTax();
+  Dio? _dio;
+  Talker? _talker;
+  RWTax() {
+    _talker = Talker();
+    _dio = Dio(BaseOptions(
+      // Set default connect timeout to 5 seconds
+      connectTimeout: const Duration(seconds: 5),
+      // Set default receive timeout to 3 seconds
+      receiveTimeout: const Duration(seconds: 30),
+      // Set default send timeout to 3 seconds
+      sendTimeout: const Duration(seconds: 3),
+    ));
+
+    _dio!.interceptors.add(TalkerDioLogger(
+      talker: _talker,
+      settings: const TalkerDioLoggerSettings(
+        printRequestHeaders: true,
+        printResponseHeaders: true,
+        printResponseMessage: true,
+      ),
+    ));
+  }
 
   @override
   Future<bool> initApi(
@@ -76,7 +96,7 @@ class RWTax implements TaxApi {
       //     requestBody: response.requestOptions.data,
       //     subject: "Worked",
       //     body: stringResponse);
-      talker.warning(response.data);
+      _talker!.warning(response.data);
       final data = RwApiResponse.fromJson(
         response.data,
       );
@@ -90,39 +110,31 @@ class RWTax implements TaxApi {
   }
 
   // Create the Dio instance and add the TalkerDioLogger interceptor
-  final talker = Talker();
-  final dio = Dio();
 
   Future<Response> sendPostRequest(
     String baseUrl,
     Map<String, dynamic>? data,
   ) async {
     final headers = {'Content-Type': 'application/json'};
-    dio.interceptors.add(TalkerDioLogger(
-      talker: talker,
-      settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: true,
-        printResponseHeaders: true,
-        printResponseMessage: true,
-      ),
-    ));
-    //final jsonData = json.encode(data);
 
-    // Clipboard.setData(ClipboardData(text: jsonData.toString()));
     try {
-      final response = await dio.post(
+      final response = await _dio!.post(
         baseUrl,
         data: json.encode(data),
         options: Options(headers: headers),
       );
+      print('Response received: ${response.statusCode}');
       return response;
     } on DioException catch (e) {
-      // Handle the error
+      print('DioException caught: ${e.message}');
       final errorMessage = e.response?.data;
-
-      // Throw an exception with the error message or a default message
       throw Exception(
           'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
+    } catch (e, s) {
+      print('General exception caught: $e');
+      _talker!.info(e);
+      _talker!.error(s);
+      throw Exception(e);
     }
   }
 
@@ -132,9 +144,9 @@ class RWTax implements TaxApi {
   ) async {
     final headers = {'Content-Type': 'application/json'};
 
-    dio.interceptors.add(
+    _dio!.interceptors.add(
       TalkerDioLogger(
-        talker: talker,
+        talker: _talker,
         settings: const TalkerDioLoggerSettings(
           printRequestHeaders: true,
           printResponseHeaders: true,
@@ -144,7 +156,7 @@ class RWTax implements TaxApi {
     );
 
     try {
-      final response = await dio.get(
+      final response = await _dio!.get(
         baseUrl,
         queryParameters: queryParameters,
         options: Options(headers: headers),
@@ -353,17 +365,17 @@ class RWTax implements TaxApi {
     try {
       for (var item in items) {
         // Log the item details
-        talker.warning(
+        _talker!.warning(
             "Processing item with price: ${(item.price == 0.0 ? 1 : item.price)} and quantity: ${item.qty}");
 
         // Fetch the tax configuration
         var taxConfig =
             await ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
 
-        talker.info("Tax To be applied on: ${item.taxTyCd}");
+        _talker!.info("Tax To be applied on: ${item.taxTyCd}");
         // Ensure taxPercentage is not null
         if (taxConfig.taxPercentage == 0.0) {
-          talker.warning(
+          _talker!.warning(
               "Tax percentage is null for tax type: ${item.taxTyCd ?? "B"}");
           continue; // Skip this item if tax percentage is null
         }
@@ -376,11 +388,11 @@ class RWTax implements TaxApi {
         taxTotals[taxType] = (taxTotals[taxType] ?? 0.0) + taxAmount;
 
         // Log the accumulated tax amount
-        talker.warning(
+        _talker!.warning(
             "Accumulated tax amount for ${taxType}: ${taxTotals[taxType]}");
       }
     } catch (s) {
-      talker.error(s);
+      _talker!.error(s);
     }
 
     Customer? customer =
@@ -446,7 +458,7 @@ class RWTax implements TaxApi {
             "${business.name}\n\nAddress:${business.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business.tinNumber}",
         "btmMsg": "Welcome",
         "prchrAcptcYn": "N",
-        "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
+        "custMblNo": "783054800",
       },
       "itemList": itemsList
     };
@@ -462,7 +474,7 @@ class RWTax implements TaxApi {
     } else {
       finalData = data;
     }
-    talker.warning(finalData);
+    _talker!.warning(finalData);
     try {
       final url = '${URI}/trnsSales/saveSales';
       final response = await sendPostRequest(url, finalData);
@@ -471,7 +483,7 @@ class RWTax implements TaxApi {
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           throw Exception(
-            "Failed to send request with invoice number ${counter.curRcptNo}: ${data.resultMsg}",
+            "${data.resultMsg}",
           );
         }
 
@@ -590,6 +602,7 @@ class RWTax implements TaxApi {
     data['regTyCd'] = 'A';
     data['modrId'] = randomNumber();
     data['rcptTyCd'] = "P";
+    final talker = Talker();
     try {
       final response = await sendPostRequest(baseUrl, data);
       if (response.statusCode == 200) {
@@ -641,6 +654,7 @@ class RWTax implements TaxApi {
       required String lastReqDt,
       required String URI}) async {
     final baseUrl = URI + '/imports/selectImportItems';
+    final talker = Talker();
     final data = {
       'tin': tin,
       'bhfId': bhfId,
@@ -678,7 +692,7 @@ class RWTax implements TaxApi {
       'bhfId': bhfId,
       'lastReqDt': lastReqDt,
     };
-
+    final talker = Talker();
     try {
       final response = await sendPostRequest(baseUrl, data);
       if (response.statusCode == 200) {
@@ -703,6 +717,7 @@ class RWTax implements TaxApi {
       {required Item item, required String URI}) async {
     final baseUrl = URI + '/imports/updateImportItems';
     final data = item.toJson();
+    final talker = Talker();
 
     try {
       final response = await sendPostRequest(baseUrl, data);
