@@ -218,8 +218,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                 ),
                 onPressed: () async {
                   if (_purchaseCodeFormkey.currentState?.validate() ?? false) {
-                    ref.read(isProcessingProvider.notifier).startProcessing();
-                    _purchaseCodeFormkey.currentState?.save();
+                    ref.read(isProcessingProvider.notifier).toggleProcessing();
+                    // _purchaseCodeFormkey.currentState?.save();
                     String purchaseCode = _purchasecodecontroller.text;
                     talker.warning("received purchase code: $purchaseCode");
                     await handlePayment(
@@ -229,6 +229,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                         amount: amount,
                         discount: discount,
                         purchaseCode: purchaseCode);
+                    Navigator.of(context).pop();
                   }
                 },
               ),
