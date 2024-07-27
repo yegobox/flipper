@@ -7988,3 +7988,180 @@ class Computed extends _Computed
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
+  Access(
+    ObjectId realmId, {
+    int? id,
+    int? branchId,
+    int? businessId,
+    int? userId,
+    String? featureName,
+    String? userType,
+    String? accessLevel,
+    DateTime? createdAt,
+    DateTime? expiresAt,
+    String? status,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'userId', userId);
+    RealmObjectBase.set(this, 'featureName', featureName);
+    RealmObjectBase.set(this, 'userType', userType);
+    RealmObjectBase.set(this, 'accessLevel', accessLevel);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'expiresAt', expiresAt);
+    RealmObjectBase.set(this, 'status', status);
+  }
+
+  Access._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get userId => RealmObjectBase.get<int>(this, 'userId') as int?;
+  @override
+  set userId(int? value) => RealmObjectBase.set(this, 'userId', value);
+
+  @override
+  String? get featureName =>
+      RealmObjectBase.get<String>(this, 'featureName') as String?;
+  @override
+  set featureName(String? value) =>
+      RealmObjectBase.set(this, 'featureName', value);
+
+  @override
+  String? get userType =>
+      RealmObjectBase.get<String>(this, 'userType') as String?;
+  @override
+  set userType(String? value) => RealmObjectBase.set(this, 'userType', value);
+
+  @override
+  String? get accessLevel =>
+      RealmObjectBase.get<String>(this, 'accessLevel') as String?;
+  @override
+  set accessLevel(String? value) =>
+      RealmObjectBase.set(this, 'accessLevel', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  DateTime? get expiresAt =>
+      RealmObjectBase.get<DateTime>(this, 'expiresAt') as DateTime?;
+  @override
+  set expiresAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'expiresAt', value);
+
+  @override
+  String? get status => RealmObjectBase.get<String>(this, 'status') as String?;
+  @override
+  set status(String? value) => RealmObjectBase.set(this, 'status', value);
+
+  @override
+  Stream<RealmObjectChanges<Access>> get changes =>
+      RealmObjectBase.getChanges<Access>(this);
+
+  @override
+  Stream<RealmObjectChanges<Access>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Access>(this, keyPaths);
+
+  @override
+  Access freeze() => RealmObjectBase.freezeObject<Access>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'userId': userId.toEJson(),
+      'featureName': featureName.toEJson(),
+      'userType': userType.toEJson(),
+      'accessLevel': accessLevel.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'expiresAt': expiresAt.toEJson(),
+      'status': status.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Access value) => value.toEJson();
+  static Access _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'userId': EJsonValue userId,
+        'featureName': EJsonValue featureName,
+        'userType': EJsonValue userType,
+        'accessLevel': EJsonValue accessLevel,
+        'createdAt': EJsonValue createdAt,
+        'expiresAt': EJsonValue expiresAt,
+        'status': EJsonValue status,
+      } =>
+        Access(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          userId: fromEJson(userId),
+          featureName: fromEJson(featureName),
+          userType: fromEJson(userType),
+          accessLevel: fromEJson(accessLevel),
+          createdAt: fromEJson(createdAt),
+          expiresAt: fromEJson(expiresAt),
+          status: fromEJson(status),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Access._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Access, 'Access', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('userId', RealmPropertyType.int, optional: true),
+      SchemaProperty('featureName', RealmPropertyType.string, optional: true),
+      SchemaProperty('userType', RealmPropertyType.string, optional: true),
+      SchemaProperty('accessLevel', RealmPropertyType.string, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('expiresAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('status', RealmPropertyType.string, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

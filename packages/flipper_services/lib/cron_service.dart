@@ -48,7 +48,8 @@ class CronService {
       Business business = ProxyService.local.localRealm!.query<Business>(
           r'serverId == $0', [ProxyService.box.getBusinessId()!]).first;
       // talker.warning("Business ID ${ProxyService.box.getBusinessId()}");
-      if (ProxyService.realm.isTaxEnabled()) {
+      if (ProxyService.realm
+          .isTaxEnabled(business: ProxyService.local.getBusiness())) {
         ReceivePort receivePort = ReceivePort();
         final isolate = await Isolate.spawn(
           isolateHandler,

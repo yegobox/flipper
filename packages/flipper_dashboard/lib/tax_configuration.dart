@@ -51,7 +51,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
-        if (await ProxyService.realm.isTaxEnabled()) {
+        if (await ProxyService.realm.isTaxEnabled(business: ProxyService.local.getBusiness())) {
           setState(() {
             isTaxEnabled = true;
           });

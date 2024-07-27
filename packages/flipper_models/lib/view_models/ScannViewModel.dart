@@ -88,6 +88,9 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
     int businessId = ProxyService.box.getBusinessId()!;
     int branchId = ProxyService.box.getBranchId()!;
     return await ProxyService.realm.createProduct(
+      tinNumber: ProxyService.box.tin(),
+      businessId: ProxyService.box.getBusinessId()!,
+      branchId: ProxyService.box.getBranchId()!,
       product: Product(
         ObjectId(),
         name: name,

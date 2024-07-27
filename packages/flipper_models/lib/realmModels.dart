@@ -30,6 +30,5 @@ final realmModels = [
   SKU.schema,
   Report.schema,
   Computed.schema,
+  Access.schema,
 ];
-
-

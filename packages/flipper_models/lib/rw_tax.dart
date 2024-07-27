@@ -40,8 +40,8 @@ class RWTax implements TaxApi {
     _dio!.interceptors.add(TalkerDioLogger(
       talker: _talker,
       settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: true,
-        printResponseHeaders: true,
+        printRequestHeaders: false,
+        printResponseHeaders: false,
         printResponseMessage: true,
       ),
     ));
@@ -734,6 +734,9 @@ class RWTax implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         ProxyService.realm.createProduct(
+          tinNumber: ProxyService.box.tin(),
+          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
           product: Product(
             ObjectId(),
             name: item.itemNm,

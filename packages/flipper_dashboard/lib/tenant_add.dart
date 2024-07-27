@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
@@ -6,9 +7,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter/material.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 import 'customappbar.dart';
 
 class TenantAdd extends StatefulWidget {
@@ -275,40 +278,30 @@ class _TenantAddState extends State<TenantAdd> {
         Branch? branch = await ProxyService.local.defaultBranch();
 
         // Save tenant
-        // Tenant newTenant = await ProxyService.local.saveTenant(
-        //   _phoneController.text,
-        //   _nameController.text,
-        //   branch: branch!,
-        //   business: business!,
-        //   userType: selectedUserType,
-        // );
-
-        // Save permissions
-        for (String feature in features) {
-          String accessLevel = permissions[feature] ?? 'No Access';
-          if (accessLevel != 'No Access') {
-            // await ProxyService.realm.create(
-            //   endPoint: 'access',
-            //   data: {
-            //     'branchId': branch.id,
-            //     'businessId': business.id,
-            //     'userId': newTenant.id,
-            //     'featureName': feature,
-            //     'userType': selectedUserType,
-            //     'accessLevel': accessLevel.toLowerCase(),
-            //     'status': 'active',
-            //   },
-            // );
-          }
-        }
+        Tenant newTenant = await ProxyService.local.saveTenant(
+          _phoneController.text,
+          _nameController.text,
+          branch: branch!,
+          business: business!,
+          userType: selectedUserType,
+        );
+        Map<String, String> accessData = permissions;
+        accessData.forEach((featureName, accessLevel) {
+          final access = Access(
+            ObjectId(),
+            id: randomNumber(),
+            branchId: branch.serverId!,
+            businessId: business.serverId,
+            userType: selectedUserType,
+            accessLevel: accessLevel.toLowerCase(),
+            status: 'active',
+            userId: newTenant.id,
+            featureName: featureName,
+          );
+        });
 
         await model.loadTenants();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("User added successfully with custom permissions"),
-            backgroundColor: Colors.green,
-          ),
-        );
+
         _resetForm();
       } catch (e) {
         log(e.toString());

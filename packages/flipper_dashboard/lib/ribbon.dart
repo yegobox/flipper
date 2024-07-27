@@ -124,7 +124,8 @@ class IconRowState extends ConsumerState<IconRow> {
                 isSelected: _isSelected[0],
               ),
             ),
-            ProxyService.realm.isTaxEnabled()
+            ProxyService.realm
+                    .isTaxEnabled(business: ProxyService.local.getBusiness())
                 ? IconText(
                     key: const Key('zreport_desktop'),
                     icon: Icons.sync,

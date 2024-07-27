@@ -97,6 +97,9 @@ abstract class RealmApiInterface {
   //this function for now figure out what is the business id on backend side.
   Future<Product?> createProduct(
       {required Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -123,7 +126,11 @@ abstract class RealmApiInterface {
   Future<TransactionItem?> getTransactionItemById({required int id});
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate});
-  Future<Variant?> getCustomVariant();
+  Future<Variant?> getCustomVariant({
+    required int businessId,
+    required int branchId,
+    required int tinNumber,
+  });
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
   ITransaction collectPayment({
     required double cashReceived,
@@ -251,7 +258,7 @@ abstract class RealmApiInterface {
       required bool active});
 
   Variant? getVariantById({required int id});
-  bool isTaxEnabled();
+  bool isTaxEnabled({required Business business});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required ITransaction transaction,
@@ -401,6 +408,7 @@ abstract class RealmApiInterface {
       required double supplierPrice,
       required double qty,
       required String color,
+      required int tinNumber,
       required int itemSeq,
       required String name});
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
@@ -601,16 +602,15 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Future<Product?> createProduct(
       {required Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false}) async {
-    final Business? business = ProxyService.local.getBusiness();
-    final int branchId = ProxyService.box.getBranchId()!;
-    final int businessId = ProxyService.box.getBusinessId()!;
-
     // Check if the product created (custom or temp) already exists and return it
     final String productName = product.name!;
     if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
@@ -628,7 +628,7 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.query<Product>(r'id == $0 ', [product.id]).first;
 
       // Create a Regular Variant
-      final Variant newVariant = _createRegularVariant(branchId, business,
+      final Variant newVariant = _createRegularVariant(branchId, tinNumber,
           qty: qty,
           product: product,
           supplierPrice: supplyPrice,
@@ -899,10 +899,11 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Variant?> getCustomVariant() async {
-    final branchId = ProxyService.box.getBranchId()!;
-    final businessId = ProxyService.box.getBusinessId()!;
-
+  Future<Variant?> getCustomVariant({
+    required int businessId,
+    required int branchId,
+    required int tinNumber,
+  }) async {
     /// Find product with name CUSTOM_PRODUCT
     Product? product = realm!.query<Product>(
         r'name == $0 AND branchId== $1 AND deletedAt == nil',
@@ -911,6 +912,9 @@ class RealmAPI<M extends IJsonSerializable>
     if (product == null) {
       // Create a new custom product if it doesn't exist
       product = await createProduct(
+          tinNumber: tinNumber,
+          branchId: branchId,
+          businessId: businessId,
           product: Product(ObjectId(),
               id: randomNumber(),
               lastTouched: DateTime.now(),
@@ -928,7 +932,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (variant == null) {
       /// If the variant doesn't exist, add it
-      variant = await _addMissingVariant(variant, product, branchId);
+      variant = await _addMissingVariant(variant, product, branchId, tinNumber);
     }
 
     return variant;
@@ -1296,12 +1300,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  bool isTaxEnabled() {
-    final businessId = ProxyService.box.getBusinessId();
-    final Business? business =
-        ProxyService.local.getBusiness(businessId: businessId);
-    //&& business?.bhfId != null
-    return business?.tinNumber != null;
+  bool isTaxEnabled({required Business business}) {
+    return business.tinNumber != null;
   }
 
   @override
@@ -2197,60 +2197,16 @@ class RealmAPI<M extends IJsonSerializable>
           onBeforeReset: (realm) {
             print(
                 'A client reset is about to occur. The app may freeze momentarily.');
-            ProxyService.local.notify(
-              notification: AppNotification(
-                ObjectId(),
-                identifier: ProxyService.box.getBranchId(),
-                type: "internal",
-                id: randomNumber(),
-                completed: false,
-                message:
-                    "A client reset is about to occur. The app may freeze momentarily.'",
-              ),
-            );
           },
           onAfterRecovery: (before, after) {
             print('Automatic client reset recovery completed successfully.');
-            ProxyService.local.notify(
-              notification: AppNotification(
-                ObjectId(),
-                identifier: ProxyService.box.getBranchId(),
-                type: "internal",
-                id: randomNumber(),
-                completed: false,
-                message:
-                    "Automatic client reset recovery completed successfully.",
-              ),
-            );
           },
           onAfterDiscard: (before, after) {
             talker.error(
                 'Automatic client reset recovery failed. Local changes have been discarded.');
-            ProxyService.local.notify(
-              notification: AppNotification(
-                ObjectId(),
-                identifier: ProxyService.box.getBranchId(),
-                type: "internal",
-                id: randomNumber(),
-                completed: false,
-                message:
-                    "Automatic client reset recovery failed. Local changes have been discarded.",
-              ),
-            );
           },
           onManualResetFallback: (clientResetError) async {
             print('Automatic client reset failed. Manual reset is required.');
-            ProxyService.local.notify(
-              notification: AppNotification(
-                ObjectId(),
-                identifier: ProxyService.box.getBranchId(),
-                type: "internal",
-                id: randomNumber(),
-                completed: false,
-                message:
-                    'Automatic client reset failed. Manual reset is required.',
-              ),
-            );
 
             await Future.delayed(Duration(seconds: 10));
 
@@ -2371,6 +2327,7 @@ class RealmAPI<M extends IJsonSerializable>
     final skus = realm!.query<SKU>(r'branchId == $0', [branchId]);
     final report = realm!.query<Report>(r'branchId == $0', [branchId]);
     final computed = realm!.query<Computed>(r'branchId == $0', [branchId]);
+    final access = realm!.query<Access>(r'branchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2395,6 +2352,7 @@ class RealmAPI<M extends IJsonSerializable>
     // End of unsubscribing
 
     realm!.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
+      mutableSubscriptions.add(access, name: "access", update: true);
       mutableSubscriptions.add(composites, name: "composites", update: true);
       mutableSubscriptions.add(computed, name: "computed", update: true);
       mutableSubscriptions.add(drawers, name: "drawers", update: true);
@@ -2535,10 +2493,10 @@ class RealmAPI<M extends IJsonSerializable>
       required String color,
       required double qty,
       required int itemSeq,
+      required int tinNumber,
       required String name}) {
-    final Business? business = ProxyService.local.getBusiness();
     Variant variant = _createRegularVariant(
-        ProxyService.box.getBranchId()!, business,
+        ProxyService.box.getBranchId()!, tinNumber,
         qty: qty,
         supplierPrice: supplierPrice,
         retailPrice: retailPrice,
@@ -2552,7 +2510,7 @@ class RealmAPI<M extends IJsonSerializable>
     });
   }
 
-  Variant _createRegularVariant(int branchId, Business? business,
+  Variant _createRegularVariant(int branchId, int? tinNumber,
       {required double qty,
       required double supplierPrice,
       required double retailPrice,
@@ -2601,7 +2559,7 @@ class RealmAPI<M extends IJsonSerializable>
         itemSeq: itemSeq,
         itemNm: product?.name ?? name,
         taxPercentage: 18.0,
-        tin: business!.tinNumber,
+        tin: tinNumber,
         bcd: product?.name ?? name,
 
         /// country of origin for this item we default until we support something different
@@ -2634,8 +2592,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   Future<Variant?> _addMissingVariant(
-      Variant? variant, Product? product, int branchId) async {
-    Business? business = await ProxyService.local.getBusiness();
+      Variant? variant, Product? product, int branchId, int tinNumber) async {
     final number = randomNumber().toString().substring(0, 5);
 
     try {
@@ -2674,7 +2631,7 @@ class RealmAPI<M extends IJsonSerializable>
             itemSeq: 1,
             itemStdNm: product.name,
             taxPercentage: 18.0,
-            tin: business.tinNumber,
+            tin: tinNumber,
             bcd: CUSTOM_PRODUCT,
 
             /// country of origin for this item we default until we support something different
@@ -2837,7 +2794,7 @@ class RealmAPI<M extends IJsonSerializable>
               ? next
               : curr);
 
-      yield computed.totalStockSoldValue ?? 0;
+      yield computed.totalStockSoldValue?.toPrecision(2) ?? 0;
       return;
     }
     final List<TransactionItem> transactions =
@@ -2864,7 +2821,7 @@ class RealmAPI<M extends IJsonSerializable>
               ? next
               : curr);
 
-      yield computed.totalStockValue ?? 0;
+      yield computed.totalStockValue?.toPrecision(2) ?? 0;
       return;
     }
 
@@ -3397,9 +3354,7 @@ class RealmAPI<M extends IJsonSerializable>
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
     }
-    if (ProxyService.local.localRealm == null) {
-      await ProxyService.local.configureLocal(useInMemory: false);
-    }
+
     Tenant? tenant =
         realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
 

@@ -195,7 +195,10 @@ class CoreViewModel extends FlipperBaseModel
 
     if (amount == 0) return;
 
-    Variant? variation = await ProxyService.realm.getCustomVariant();
+    Variant? variation = await ProxyService.realm.getCustomVariant(
+        tinNumber: ProxyService.box.tin(),
+        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
     Stock? stock =
@@ -238,7 +241,10 @@ class CoreViewModel extends FlipperBaseModel
   void handleMultipleDigitKey(List<TransactionItem> items,
       ITransaction pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
-    Variant? variation = await ProxyService.realm.getCustomVariant();
+    Variant? variation = await ProxyService.realm.getCustomVariant(
+        tinNumber: ProxyService.box.tin(),
+        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
     if (items.isEmpty) {

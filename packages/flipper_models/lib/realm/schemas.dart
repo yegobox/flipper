@@ -979,19 +979,20 @@ class _Computed {
   // DateTime? createdAt = DateTime.now();
 }
 
-// @RealmModel()
-// class _Access {
-//   @PrimaryKey()
-//   @MapTo('_id')
-//   late ObjectId id;
+@RealmModel()
+class _Access {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
 
-//   int? branchId;
-//   int? businessId;
-//   int? userId;
-//   String? featureName;
-//   String? userType;
-//   String? accessLevel; // e.g., 'read', 'write', 'admin'
-//   DateTime? createdAt = DateTime.now();
-//   DateTime? expiresAt; // Optional expiration date
-//   String? status; // e.g., 'active', 'pending', 'revoked'
-// }
+  int? branchId;
+  int? businessId;
+  int? userId;
+  String? featureName;
+  String? userType;
+  String? accessLevel; // e.g., 'read', 'write', 'admin'
+  DateTime? createdAt;
+  DateTime? expiresAt; // Optional expiration date
+  String? status; // e.g., 'active', 'pending', 'revoked'
+}
