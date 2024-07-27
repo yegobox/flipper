@@ -458,7 +458,7 @@ class RWTax implements TaxApi {
             "${business.name}\n\nAddress:${business.adrs}\nTEL: ${ProxyService.box.getUserPhone()}\nTIN: ${business.tinNumber}",
         "btmMsg": "Welcome",
         "prchrAcptcYn": "N",
-        "custMblNo": "783054800",
+        "custMblNo": ProxyService.box.currentSaleCustomerPhoneNumber(),
       },
       "itemList": itemsList
     };
