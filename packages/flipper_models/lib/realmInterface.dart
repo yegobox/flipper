@@ -161,7 +161,7 @@ abstract class RealmApiInterface {
   List<Customer> getCustomers({String? key, int? id});
   Future<Customer?> getCustomerFuture({String? key, int? id});
 
-  Future<ITransaction?> getTransactionById({required int id});
+  ITransaction? getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
   Stream<List<ITransaction>> transactionStreamById(

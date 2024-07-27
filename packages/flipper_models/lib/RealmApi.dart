@@ -1192,7 +1192,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<ITransaction?> getTransactionById({required int id}) async {
+  ITransaction? getTransactionById({required int id}) {
     return realm!.query<ITransaction>(r'id == $0', [id]).firstOrNull;
   }
 

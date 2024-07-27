@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -16,7 +15,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
@@ -89,11 +87,21 @@ class CheckOutState extends ConsumerState<CheckOut>
     try {
       ITransaction? trans =
           await ProxyService.realm.getTransactionById(id: transaction!.id!);
+
       TaxController(object: trans).handleReceipt(
         purchaseCode: purchaseCode,
         printCallback: (Uint8List bytes) async {
-          // _formKey.currentState?.reset();
+          _formKey.currentState?.reset();
+          ref.read(loadingProvider.notifier).state = true;
+          ref.refresh(loadingProvider.notifier);
+
+          // receivedAmountController.clear();
+          ref.read(loadingProvider.notifier).state = false;
+          ref.refresh(loadingProvider.notifier);
           ref.read(isProcessingProvider.notifier).stopProcessing();
+          ref.refresh(
+              pendingTransactionProvider((TransactionType.sale, false)));
+
           await printing(bytes);
         },
       );
@@ -314,37 +322,28 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 completeTransaction: () async {
                                   Customer? customer = ProxyService.realm
                                       .getCustomer(id: transaction.customerId);
+
+                                  final amount = double.tryParse(
+                                          receivedAmountController.text) ??
+                                      0;
+                                  final discount = double.tryParse(
+                                          discountController.text) ??
+                                      0;
+
                                   if (_formKey.currentState!.validate() &&
                                       customer == null) {
                                     handlePayment(
-                                        model: model,
-                                        paymentType: "Cash",
-                                        transaction: transaction,
-                                        amount: double.tryParse(
-                                                receivedAmountController
-                                                    .text) ??
-                                            0,
-                                        discount: double.tryParse(
-                                                discountController.text) ??
-                                            0);
-
-                                    ref.read(loadingProvider.notifier).state =
-                                        true;
-                                    ref.refresh(loadingProvider.notifier);
-
-                                    // receivedAmountController.clear();
-                                    ref.read(loadingProvider.notifier).state =
-                                        false;
-                                    ref.refresh(loadingProvider.notifier);
+                                      model: model,
+                                      paymentType: "Cash",
+                                      transaction: transaction,
+                                      amount: amount,
+                                      discount: discount,
+                                    );
                                   } else {
                                     confirmPayment(
-                                      amount: double.tryParse(
-                                              receivedAmountController.text) ??
-                                          0,
+                                      amount: amount,
                                       model: model,
-                                      discount: double.tryParse(
-                                              discountController.text) ??
-                                          0,
+                                      discount: discount,
                                       paymentType: paymentTypeController.text,
                                       transaction: transaction,
                                     );

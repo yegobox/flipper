@@ -550,3 +550,4 @@ class App {}
 /// 
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
+/// git commit -am "direct-build-windows"
