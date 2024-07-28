@@ -210,6 +210,8 @@ class PreviewSaleBottomSheetState
               transactionType: TransactionType.sale, isExpense: false);
           _routerService.navigateTo(
             PaymentsRoute(
+              transactionType: TransactionType.sale,
+              categoryId: "0",
               isIncome: true,
               transaction: transaction,
             ),

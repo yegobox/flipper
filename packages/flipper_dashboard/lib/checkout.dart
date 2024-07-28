@@ -224,6 +224,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                     talker.warning("received purchase code: $purchaseCode");
                     await handlePayment(
                         model: model,
+                        transactionType: TransactionType.sale,
+                        categoryId: "0",
                         paymentType: paymentType,
                         transaction: transaction,
                         amount: amount,
@@ -250,9 +252,13 @@ class CheckOutState extends ConsumerState<CheckOut>
       required CoreViewModel model,
       required String paymentType,
       required ITransaction transaction,
+      String? categoryId,
+      required String transactionType,
       required double amount,
       required double discount}) async {
     ITransaction trans = await model.collectPayment(
+      categoryId: categoryId,
+      transactionType: transactionType,
       paymentType: paymentType,
       transaction: transaction,
       amountReceived: amount,
@@ -336,6 +342,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                     handlePayment(
                                       model: model,
                                       paymentType: "Cash",
+                                      transactionType: TransactionType.sale,
                                       transaction: transaction,
                                       amount: amount,
                                       discount: discount,

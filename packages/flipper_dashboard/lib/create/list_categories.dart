@@ -108,7 +108,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             },
             showActionButton: false,
             title: 'Categories',
-            icon: Icons.arrow_back,
+            icon: Icons.arrow_back_ios,
             multi: 3,
             bottomSpacer: 80,
           ),

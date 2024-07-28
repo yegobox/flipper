@@ -137,6 +137,8 @@ abstract class RealmApiInterface {
     required ITransaction transaction,
     required String paymentType,
     required double discount,
+    required String transactionType,
+    String? categoryId,
     bool directlyHandleReceipt = false,
     required bool isIncome,
   });

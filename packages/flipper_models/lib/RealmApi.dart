@@ -374,6 +374,8 @@ class RealmAPI<M extends IJsonSerializable>
       required String paymentType,
       required bool isIncome,
       required double discount,
+      String? categoryId,
+      required String transactionType,
       bool directlyHandleReceipt = true}) {
     try {
       List<TransactionItem> items = transactionItems(
@@ -406,8 +408,10 @@ class RealmAPI<M extends IJsonSerializable>
 
         transaction.updatedAt = DateTime.now().toIso8601String();
         transaction.createdAt = DateTime.now().toIso8601String();
+        transaction.transactionType = transactionType;
+        transaction.categoryId = categoryId ?? "0";
 
-        transaction.lastTouched = DateTime.now().add(Duration(hours: 2));
+        transaction.lastTouched = DateTime.now();
       });
 
       try {

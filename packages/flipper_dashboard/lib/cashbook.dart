@@ -44,7 +44,12 @@ class CashbookState extends ConsumerState<Cashbook> {
       title: 'Cash Book',
       icon: Icons.close,
       onPop: () async {
-        _routerService.back();
+        if (model.newTransactionPressed) {
+          model.newTransactionPressed = false;
+          model.notifyListeners();
+        } else {
+          _routerService.back();
+        }
       },
     );
   }
@@ -192,40 +197,12 @@ class CashbookState extends ConsumerState<Cashbook> {
   Widget buildNewTransactionContent(BuildContext context, CoreViewModel model) {
     return Column(
       children: [
-        buildNewTransactionTypeLabel(model.newTransactionType, model),
         Expanded(
           child: KeyPadView.cashBookMode(
               model: model,
               isBigScreen: widget.isBigScreen,
               accountingMode: true,
               transactionType: model.newTransactionType),
-        ),
-      ],
-    );
-  }
-
-  Widget buildNewTransactionTypeLabel(String transactionType, model) {
-    String label = '';
-    if (transactionType == TransactionType.cashIn) {
-      label = ' Cash In';
-    } else if (transactionType == TransactionType.cashOut) {
-      label = TransactionType.cashOut;
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 10),
-        Text(
-          label,
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        Spacer(),
-        IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            model.newTransactionPressed = false;
-            model.notifyListeners();
-          },
         ),
       ],
     );

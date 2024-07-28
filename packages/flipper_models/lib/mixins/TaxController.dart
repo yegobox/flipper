@@ -259,6 +259,8 @@ class TaxController<OBJ> {
 
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
+      if (transaction.isExpense) return;
+      if (ProxyService.box.getServerUrl() == null) return;
       RwApiResponse? receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,

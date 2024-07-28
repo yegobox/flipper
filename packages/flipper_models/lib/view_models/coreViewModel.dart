@@ -452,53 +452,21 @@ class CoreViewModel extends FlipperBaseModel
 
   List<ITransaction> transactions = [];
 
-  Future<bool> saveCashBookTransaction(
-      {required String cbTransactionType}) async {
-    ITransaction transaction = await ProxyService.realm.manageTransaction(
-        transactionType: TransactionType.sale, isExpense: false);
-
-    Category? activeCat = ProxyService.realm
-        .activeCategory(branchId: ProxyService.box.getBranchId()!);
-
-    ProxyService.realm.realm!.write(() {
-      transaction.cashReceived = transaction.subTotal;
-      transaction.customerChangeDue = 0;
-
-      /// If there is category that is active then we use that category as
-      /// the transaction type but first we check to see if this category is in predefined
-
-      transaction.transactionType = activeCat?.name ?? cbTransactionType;
-      transaction.categoryId =
-          (activeCat == null) ? "0" : activeCat.id.toString();
-    });
-
-    List<TransactionItem> items = ProxyService.realm.transactionItems(
-      transactionId: transaction.id!,
-      doneWithTransaction: false,
-      active: true,
-    );
-
-    ProxyService.realm.realm!.write(() {
-      for (var item in items) {
-        item.doneWithTransaction = true;
-      }
-    });
-    notifyListeners();
-    return Future<bool>.value(true);
-  }
-
   Future<String> collectSPENNPayment(
       {required String phoneNumber,
       required double cashReceived,
       required String paymentType,
+      String? categoryId,
+      required String transactionType,
       required double discount}) async {
     final transaction = await ProxyService.realm.manageTransaction(
         transactionType: TransactionType.sale, isExpense: false);
-    // await ProxyService.isar
-    //     .spennPayment(amount: cashReceived, phoneNumber: phoneNumber);
+
     await ProxyService.realm.collectPayment(
         cashReceived: cashReceived,
         transaction: transaction,
+        categoryId: categoryId,
+        transactionType: transactionType,
         paymentType: paymentType,
         isIncome: true,
         discount: discount);
@@ -510,11 +478,15 @@ class CoreViewModel extends FlipperBaseModel
       required ITransaction transaction,
       required double amountReceived,
       required double discount,
+      String? categoryId,
+      required String transactionType,
       bool directlyHandleReceipt = true,
       required bool isIncome}) {
     return ProxyService.realm.collectPayment(
       cashReceived: amountReceived,
       transaction: transaction,
+      categoryId: categoryId,
+      transactionType: transactionType,
       isIncome: isIncome,
       paymentType: paymentType,
       discount: discount,

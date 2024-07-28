@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +19,14 @@ class KeyPadView extends StatefulHookConsumerWidget {
   final bool isBigScreen;
   final bool accountingMode;
   final String transactionType;
+  final String categoryId;
 
   const KeyPadView({
     Key? key,
     required this.model,
     this.isBigScreen = false,
     this.accountingMode = false,
+    this.categoryId = "0",
     this.transactionType = TransactionType.cashOut,
   }) : super(key: key);
 
@@ -31,6 +34,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
     Key? key,
     required this.model,
     this.isBigScreen = false,
+    this.categoryId = "0",
     required this.accountingMode,
     required this.transactionType,
   }) : super(key: key);
@@ -42,34 +46,45 @@ class KeyPadView extends StatefulHookConsumerWidget {
 class KeyPadViewState extends ConsumerState<KeyPadView> {
   @override
   Widget build(BuildContext context) {
-    final screenHeight = widget.isBigScreen ? 200 : 600;
-    final paddingHeight = screenHeight * 0.1;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final paddingHeight = screenHeight * 0.05;
     final keypad = ref.watch(keypadProvider);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildDisplay(paddingHeight, keypad),
-        Expanded(
-          child: _buildKeypad(),
-        ),
-      ],
+    return Container(
+      decoration: BoxDecoration(
+          // gradient: LinearGradient(
+          //   begin: Alignment.topCenter,
+          //   end: Alignment.bottomCenter,
+          //   colors: [Colors.blue[50]!, Colors.blue[100]!],
+          // ),
+          ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildDisplay(paddingHeight, keypad),
+          Expanded(child: _buildKeypad()),
+        ],
+      ),
     );
   }
 
   Widget _buildDisplay(double paddingHeight, String keypad) {
     return Container(
       padding: EdgeInsets.symmetric(
-        vertical: widget.accountingMode ? paddingHeight / 3 : paddingHeight,
-        horizontal: 16,
+        vertical: widget.accountingMode ? paddingHeight / 2 : paddingHeight,
+        horizontal: 24,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(4),
+          bottomRight: Radius.circular(4),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: Offset(0, 5),
           ),
         ],
       ),
@@ -85,9 +100,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         Text(
           "${NumberFormat('#,###').format(double.parse(keypad))} RWF",
           style: GoogleFonts.poppins(
-            fontSize: 35,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
+            fontSize: 40,
+            fontWeight: FontWeight.w600,
+            color: Colors.blue[800],
             height: 1,
           ),
         ),
@@ -100,8 +115,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                   ? 'Cash in for'
                   : 'Cash out for',
               style: GoogleFonts.poppins(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
                 color: Colors.black54,
               ),
             ),
@@ -116,9 +131,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     return Text(
       "${NumberFormat('#,###').format(double.tryParse(keypad) ?? 0.0)} RWF",
       style: GoogleFonts.poppins(
-        fontSize: 35,
-        fontWeight: FontWeight.w500,
-        color: Colors.black87,
+        fontSize: 40,
+        fontWeight: FontWeight.w600,
+        color: Colors.blue[800],
         height: 1.5,
       ),
     );
@@ -133,10 +148,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ];
 
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(16),
-      ),
+      padding: EdgeInsets.all(16),
       child: Column(
         children: keys.map((row) => _buildKeyPadRow(keys: row)).toList(),
       ),
@@ -146,7 +158,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   Widget _buildKeyPadRow({required List<String> keys}) {
     return Expanded(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: keys.map((key) => _buildKeyPadButton(key: key)).toList(),
       ),
     );
@@ -154,20 +165,18 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
   Widget _buildKeyPadButton({required String key}) {
     final isSpecialKey = ['C', 'Confirm', '+'].contains(key);
-    final backgroundColor = isSpecialKey ? Colors.blue[100] : Colors.white;
-    final textColor = isSpecialKey ? Colors.blue[700] : Colors.black87;
-
-    /// check if there is selected category
+    final backgroundColor = isSpecialKey ? Colors.blue[700] : Colors.white;
+    final textColor = isSpecialKey ? Colors.white : Colors.blue[700];
 
     return Expanded(
-      child: Container(
-        margin: EdgeInsets.all(4),
+      child: Padding(
+        padding: EdgeInsets.all(8),
         child: Material(
           color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          elevation: 2,
+          elevation: 4,
+          borderRadius: BorderRadius.circular(4),
           child: InkWell(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(4),
             onTap: () => _handleKeyPress(key),
             child: Center(
               child: key == 'Confirm'
@@ -175,8 +184,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                   : Text(
                       key,
                       style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
                         color: textColor,
                       ),
                     ),
@@ -255,7 +264,18 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             TextButton(
               child: Text('Confirm'),
               onPressed: () {
-                HandleTransactionFromCashBook();
+                // discount, transactionType: transactionType, isIncome: isIncome
+                final bool isIncome =
+                    (widget.transactionType == TransactionType.cashIn ||
+                        widget.transactionType == TransactionType.sale);
+
+                HandleTransactionFromCashBook(
+                  cashReceived: amount,
+                  paymentType: "Cash",
+                  discount: 0,
+                  transactionType: widget.transactionType,
+                  isIncome: isIncome,
+                );
                 Navigator.of(context).pop(true);
               },
             ),
@@ -295,14 +315,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
       talker.info(currentValue);
 
-      widget.model.collectPayment(
-        paymentType: 'Cash',
-        discount: 0,
-        isIncome: widget.transactionType == TransactionType.cashIn,
-        transaction: transaction.value!,
-        amountReceived: amount,
-      );
-
       HapticFeedback.lightImpact();
     }
   }
@@ -319,11 +331,17 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ref.refresh(transactionItemsProvider(transaction.value?.id));
   }
 
-  void HandleTransactionFromCashBook() {
+  void HandleTransactionFromCashBook(
+      {required String paymentType,
+      required double cashReceived,
+      required int discount,
+      required bool isIncome,
+      required String transactionType}) {
     widget.model.newTransactionPressed = false;
+    final isExpense = (TransactionType.cashOut == widget.transactionType);
     final transaction = ref.watch(pendingTransactionProvider((
       widget.transactionType,
-      widget.transactionType == TransactionType.cashOut ? true : false
+      isExpense,
     )));
     widget.model.keyboardKeyPressed(
       isExpense: widget.transactionType == TransactionType.cashOut,
@@ -332,8 +350,31 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
-    widget.model
-        .saveCashBookTransaction(cbTransactionType: widget.transactionType);
+    Category? category = ProxyService.realm
+        .activeCategory(branchId: ProxyService.box.getBranchId()!);
+    var shortestSide = MediaQuery.of(context).size.shortestSide;
+    var useMobileLayout = shortestSide < 600;
+
+    !useMobileLayout
+        ? ProxyService.realm.collectPayment(
+            cashReceived: cashReceived,
+            transaction: transaction.value!,
+            paymentType: paymentType,
+            discount: discount.toDouble(),
+
+            ///TODO: on big screen we do not have option to select category hence it is always a sale being recorded there
+            ///in future we might improve it.
+            transactionType: TransactionType.sale,
+            categoryId: "0",
+            isIncome: isIncome)
+        : ProxyService.realm.collectPayment(
+            cashReceived: cashReceived,
+            transaction: transaction.value!,
+            paymentType: paymentType,
+            discount: discount.toDouble(),
+            categoryId: category?.id.toString(),
+            transactionType: category?.name ?? "",
+            isIncome: isIncome);
     ref.refresh(transactionItemsProvider(transaction.value?.id));
   }
 }

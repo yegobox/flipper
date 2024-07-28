@@ -22,12 +22,18 @@ import 'package:intl/intl.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 class Payments extends StatefulHookConsumerWidget {
-  Payments({Key? key, required this.transaction, required this.isIncome})
-      : super(key: key);
+  Payments({
+    Key? key,
+    required this.transaction,
+    required this.isIncome,
+    required this.categoryId,
+    required this.transactionType,
+  }) : super(key: key);
 
   final ITransaction transaction;
   final bool isIncome;
-
+  final String categoryId;
+  final String transactionType;
   @override
   PaymentsState createState() => PaymentsState();
 }
@@ -469,7 +475,11 @@ class PaymentsState extends ConsumerState<Payments> {
             if (_customerKey.currentState!.validate()) {
               if (paymentType == "Cash") {
                 if (_formKey.currentState!.validate()) {
-                  await confirmPayment(model, isIncome);
+                  await confirmPayment(
+                      model: model,
+                      isIncome: isIncome,
+                      categoryId: widget.categoryId,
+                      transactionType: widget.transactionType);
                 }
               } else {
                 if (paymentType == null) {
@@ -480,7 +490,11 @@ class PaymentsState extends ConsumerState<Payments> {
                   );
                   return;
                 }
-                await confirmPayment(model, isIncome);
+                await confirmPayment(
+                    model: model,
+                    isIncome: isIncome,
+                    transactionType: widget.transactionType,
+                    categoryId: widget.categoryId);
               }
             }
           },
@@ -503,7 +517,11 @@ class PaymentsState extends ConsumerState<Payments> {
     }
   }
 
-  Future<void> confirmPayment(CoreViewModel model, bool isIncome) async {
+  Future<void> confirmPayment(
+      {required CoreViewModel model,
+      required bool isIncome,
+      required String transactionType,
+      required String categoryId}) async {
     model.handlingConfirm = true;
     double amount = _cash.text.isEmpty
         ? widget.transaction.subTotal
@@ -512,6 +530,8 @@ class PaymentsState extends ConsumerState<Payments> {
     double discount =
         _discount.text.isNotEmpty ? double.parse(_discount.text) : 0.0;
     await model.collectPayment(
+        transactionType: transactionType,
+        categoryId: categoryId,
         isIncome: isIncome,
         paymentType: paymentType!,
         transaction: widget.transaction,

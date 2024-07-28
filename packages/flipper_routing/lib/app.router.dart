@@ -245,6 +245,8 @@ class StackedRouterWeb extends _i3.RootStackRouter {
           key: args.key,
           transaction: args.transaction,
           isIncome: args.isIncome,
+          categoryId: args.categoryId,
+          transactionType: args.transactionType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1373,6 +1375,8 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
     _i4.Key? key,
     required _i8.ITransaction transaction,
     required bool isIncome,
+    required String categoryId,
+    required String transactionType,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
@@ -1380,6 +1384,8 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
             key: key,
             transaction: transaction,
             isIncome: isIncome,
+            categoryId: categoryId,
+            transactionType: transactionType,
           ),
         );
 
@@ -1391,6 +1397,8 @@ class PaymentsArgs {
     this.key,
     required this.transaction,
     required this.isIncome,
+    required this.categoryId,
+    required this.transactionType,
   });
 
   final _i4.Key? key;
@@ -1399,9 +1407,13 @@ class PaymentsArgs {
 
   final bool isIncome;
 
+  final String categoryId;
+
+  final String transactionType;
+
   @override
   String toString() {
-    return 'PaymentsArgs{key: $key, transaction: $transaction, isIncome: $isIncome}';
+    return 'PaymentsArgs{key: $key, transaction: $transaction, isIncome: $isIncome, categoryId: $categoryId, transactionType: $transactionType}';
   }
 }
 
@@ -2436,6 +2448,8 @@ extension RouterStateExtension on _i2.RouterService {
     _i4.Key? key,
     required _i8.ITransaction transaction,
     required bool isIncome,
+    required String categoryId,
+    required String transactionType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -2443,6 +2457,8 @@ extension RouterStateExtension on _i2.RouterService {
         key: key,
         transaction: transaction,
         isIncome: isIncome,
+        categoryId: categoryId,
+        transactionType: transactionType,
       ),
       onFailure: onFailure,
     );
@@ -3077,6 +3093,8 @@ extension RouterStateExtension on _i2.RouterService {
     _i4.Key? key,
     required _i8.ITransaction transaction,
     required bool isIncome,
+    required String categoryId,
+    required String transactionType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
@@ -3084,6 +3102,8 @@ extension RouterStateExtension on _i2.RouterService {
         key: key,
         transaction: transaction,
         isIncome: isIncome,
+        categoryId: categoryId,
+        transactionType: transactionType,
       ),
       onFailure: onFailure,
     );
