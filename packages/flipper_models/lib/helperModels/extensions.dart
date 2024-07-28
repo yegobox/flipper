@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:realm/realm.dart';
 
 extension DateTimeExtensions on DateTime? {
   bool isNewDateCompareTo(DateTime? other) {
@@ -94,5 +95,79 @@ extension StringToDashedString on String {
     final replacedInternalData = splitMapJoin(RegExp('....'),
         onNonMatch: (s) => dashesInternalData.contains(x++) ? '-' : '');
     return replacedInternalData;
+  }
+}
+
+extension RealmEJsonConverterExtension on EJsonValue {
+  /// Converts Realm EJson values to their corresponding Dart types and swaps 'id' and 'serverId'.
+  ///
+  /// **Usage:**
+  ///
+  /// ```dart
+  /// final myObject = realm.find<MyObject>('someObjectId')!;
+  /// final jsonObject = myObject.toEJson();
+  /// final convertedJson = jsonObject.convertRealmValues();
+  /// ```
+  dynamic convertRealmValues() {
+    return _convertValue(this);
+  }
+
+  dynamic _convertValue(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return _convertMap(value);
+    } else if (value is List) {
+      return value.map((item) => _convertValue(item)).toList();
+    } else if (value is ObjectId) {
+      return value.hexString;
+    } else if (value is DateTime) {
+      return value.toIso8601String();
+    }
+    return value;
+  }
+
+  Map<String, dynamic> _convertMap(Map<String, dynamic> map) {
+    final convertedMap = <String, dynamic>{};
+    map.forEach((key, value) {
+      if (value is Map<String, dynamic> && value.length == 1) {
+        final innerKey = value.keys.first;
+        final innerValue = value[innerKey];
+        switch (innerKey) {
+          case '\$numberInt':
+          case '\$numberLong':
+            convertedMap[key] = int.parse(innerValue);
+            break;
+          case '\$numberDouble':
+            convertedMap[key] = double.parse(innerValue);
+            break;
+          case '\$date':
+            if (innerValue is Map && innerValue.containsKey('\$numberLong')) {
+              convertedMap[key] = DateTime.fromMillisecondsSinceEpoch(
+                int.parse(innerValue['\$numberLong']),
+                isUtc: true,
+              ).toIso8601String();
+            } else {
+              convertedMap[key] = innerValue;
+            }
+            break;
+          case '\$oid':
+            convertedMap[key] = innerValue;
+            break;
+          default:
+            convertedMap[key] = _convertValue(value);
+        }
+      } else {
+        convertedMap[key] = _convertValue(value);
+      }
+    });
+
+    // Swap 'id' and 'serverId' if both exist
+    if (convertedMap.containsKey('id') &&
+        convertedMap.containsKey('serverId')) {
+      final temp = convertedMap['id'];
+      convertedMap['id'] = convertedMap['serverId'];
+      convertedMap['serverId'] = temp;
+    }
+
+    return convertedMap;
   }
 }

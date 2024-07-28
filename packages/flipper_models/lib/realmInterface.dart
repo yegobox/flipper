@@ -207,8 +207,6 @@ abstract class RealmApiInterface {
 
   Future<int> userNameAvailable({required String name});
 
-  Future<LPermission?> permission({required int userId});
-
   Future<List<Tenant>> tenants({int? businessId});
   Future<Tenant?> getTenantBYUserId({required int userId});
 
@@ -428,4 +426,7 @@ abstract class RealmApiInterface {
 
   /// determine if current running user is admin
   bool isAdmin();
+  Future<LPermission?> permission({required int userId});
+  List<LPermission> permissions({required int userId});
+  List<Access> access({required int userId});
 }

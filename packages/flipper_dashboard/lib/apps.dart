@@ -247,7 +247,7 @@ class _AppsState extends ConsumerState<Apps> {
                       .permission(userId: ProxyService.box.getUserId()!),
                   builder: (context, snapshot) {
                     return Text(
-                      snapshot.data?.name ?? "-",
+                      snapshot.data?.name?.toUpperCase() ?? "-",
                       style: GoogleFonts.poppins(
                         fontSize: 16, // Increase font size
                         color:

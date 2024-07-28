@@ -295,16 +295,20 @@ class _TenantAddState extends State<TenantAdd> {
             userType: selectedUserType,
             accessLevel: accessLevel.toLowerCase(),
             status: 'active',
-            userId: newTenant.id,
+            userId: newTenant.userId,
             featureName: featureName,
           );
+          ProxyService.realm.realm!.write(() {
+            ProxyService.realm.realm!.add<Access>(access);
+          });
         });
 
         await model.loadTenants();
 
         _resetForm();
-      } catch (e) {
-        log(e.toString());
+      } catch (e, s) {
+        final talker = Talker();
+        talker.error(s);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error while adding user"),
@@ -433,6 +437,18 @@ class _TenantAddState extends State<TenantAdd> {
   void _deleteTenant(Tenant tenant, FlipperBaseModel model) {
     try {
       ProxyService.realm.delete(id: tenant.id!, endPoint: 'tenant');
+
+      /// also delete related permission & acess
+      List<LPermission> permissions =
+          ProxyService.realm.permissions(userId: tenant.userId!);
+      for (LPermission permission in permissions) {
+        ProxyService.realm.delete(id: permission.id!, endPoint: 'permission');
+      }
+      //
+      List<Access> accesses = ProxyService.realm.access(userId: tenant.userId!);
+      for (Access access in accesses) {
+        ProxyService.realm.delete(id: access.id!, endPoint: 'access');
+      }
       model.loadTenants();
       showToast(context, 'Tenant deleted successfully');
       model.loadTenants();

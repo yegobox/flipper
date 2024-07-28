@@ -810,7 +810,6 @@ class RealmAPI<M extends IJsonSerializable>
           Tenant? tenant = realm!.query<Tenant>(r'id == $0 ', [id]).firstOrNull;
           realm!.write(() {
             realm!.delete(tenant!);
-            return true;
           });
         }
         break;
@@ -818,6 +817,19 @@ class RealmAPI<M extends IJsonSerializable>
         Assets? asset = realm!.query<Assets>(r'id == $0 ', [id]).first;
         realm!.write(() {
           realm!.delete(asset);
+        });
+        break;
+      case 'permission':
+        LPermission? permission =
+            realm!.query<LPermission>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(permission);
+        });
+        break;
+      case 'access':
+        Access? access = realm!.query<Access>(r'id == $0 ', [id]).first;
+        realm!.write(() {
+          realm!.delete(access);
         });
         break;
       default:
@@ -3425,5 +3437,15 @@ class RealmAPI<M extends IJsonSerializable>
     LPermission? permission = realm!.query<LPermission>(
         r'userId == $0', [ProxyService.box.getUserId()]).firstOrNull;
     return permission?.name == "admin" ? true : false;
+  }
+
+  @override
+  List<Access> access({required int userId}) {
+    return realm!.query<Access>(r'userId == $0 ', [userId]).toList();
+  }
+
+  @override
+  List<LPermission> permissions({required int userId}) {
+    return realm!.query<LPermission>(r'userId == $0 ', [userId]).toList();
   }
 }
