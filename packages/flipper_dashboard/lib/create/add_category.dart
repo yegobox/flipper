@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -15,43 +16,49 @@ class AddCategory extends StatelessWidget {
       builder: (context, model, child) {
         return Scaffold(
           appBar: CustomAppBar(
-            onPop: () async {
-              // If you want to create a category when the user clicks the back button, use the following:
-              // await model.createCategory(categoryName: model.categoryName);
-              _routerService.back();
-            },
+            onPop: () => _routerService.back(),
             title: 'Create Category',
-            icon: Icons.keyboard_backspace,
+            icon: Icons.arrow_back_ios,
             multi: 3,
-            bottomSpacer: 52,
+            bottomSpacer: 80,
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(16.0), // Added padding for better UI
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.stretch, // Align children to full width
-              children: [
-                TextFormField(
-                  style: const TextStyle(color: Colors.black),
-                  onChanged: (name) {
-                    model.setCategoryName(
-                        name: name); // Update categoryName in view model
-                  },
-                  decoration: const InputDecoration(
-                    hintText: 'Category Name',
-                    focusColor: Colors.blue,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Enter Category Name',
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                ),
-                const SizedBox(height: 24), // Added spacing between fields
-                ElevatedButton(
-                  onPressed: () async {
-                    // Create the category when the button is pressed
-                    await model.createCategory();
-                    _routerService.back();
-                  },
-                  child: const Text('Create'),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  TextFormField(
+                    style: const TextStyle(color: Colors.black),
+                    onChanged: (value) => model.setCategoryName(name: value),
+                    decoration: InputDecoration(
+                      hintText: 'Category Name',
+                      focusedBorder: OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade100,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  BoxButton(
+                    onTap: () async {
+                      await model.createCategory();
+                      _routerService.back();
+                    },
+                    title: 'Create Category',
+                  ),
+                ],
+              ),
             ),
           ),
         );

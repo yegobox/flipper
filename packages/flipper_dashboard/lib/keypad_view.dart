@@ -24,7 +24,7 @@ class KeyPadView extends StatefulHookConsumerWidget {
     required this.model,
     this.isBigScreen = false,
     this.accountingMode = false,
-    this.transactionType = TransactionType.sale,
+    this.transactionType = TransactionType.cashOut,
   }) : super(key: key);
 
   const KeyPadView.cashBookMode({
@@ -157,6 +157,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final backgroundColor = isSpecialKey ? Colors.blue[100] : Colors.white;
     final textColor = isSpecialKey ? Colors.blue[700] : Colors.black87;
 
+    /// check if there is selected category
+
     return Expanded(
       child: Container(
         margin: EdgeInsets.all(4),
@@ -266,7 +268,23 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       if (amount == 0 && key != "Confirm") {
         return;
       }
-
+      Category? activeCat = ProxyService.realm
+          .activeCategory(branchId: ProxyService.box.getBranchId()!);
+      if (activeCat == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('A category must be selected'),
+            duration: Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {
+                // Optional: Add an action when the snackbar is dismissed
+              },
+            ),
+          ),
+        );
+        return;
+      }
       widget.model.keyboardKeyPressed(
         isExpense: widget.transactionType == TransactionType.cashOut,
         key: '+',

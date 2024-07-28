@@ -62,7 +62,7 @@ abstract class RealmApiInterface {
       {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
-  Future<Category?> activeCategory({required int branchId});
+  Category? activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});

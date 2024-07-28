@@ -31,11 +31,12 @@ class CategorySelectorState extends ConsumerState<CategorySelector> {
   }) {
     return categories.when(
       data: (categories) {
-        final focused =
-            categories.firstWhereOrNull((category) => category.focused);
+        final focusedAndActive = categories.firstWhereOrNull(
+          (category) => category.focused && (category.active ?? false),
+        );
         return Text(
-          focused?.name ?? 'Select Category',
-          style: focused != null
+          focusedAndActive?.name ?? 'Select Category',
+          style: focusedAndActive != null
               ? Theme.of(context)
                   .textTheme
                   .bodyLarge

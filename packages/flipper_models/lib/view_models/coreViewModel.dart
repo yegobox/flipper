@@ -92,24 +92,30 @@ class CoreViewModel extends FlipperBaseModel
     _tab = tab;
   }
 
-  void updateCategory({required Category category}) {
+  Future<bool> updateCategory({required Category category}) async {
     int branchId = ProxyService.box.getBranchId()!;
 
-    for (Category category in categories) {
-      ProxyService.realm.realm!.write(() {
-        if (category.focused) {
-          Category cat = category;
+    try {
+      await ProxyService.realm.realm!.writeAsync(() {
+        var allCategories = ProxyService.realm.realm!
+            .all<Category>()
+            .where((cat) => cat.branchId == branchId);
+        for (var cat in allCategories) {
           cat.focused = false;
           cat.active = false;
         }
+
+        category.focused = true;
+        category.active = true;
+        category.branchId = branchId;
       });
+
+      log("Updated category: ${category.name}, focused: ${category.focused}, active: ${category.active}");
+      return true;
+    } catch (e) {
+      log("Error updating category: $e");
+      return false;
     }
-    ProxyService.realm.realm!.write(() {
-      category.focused = true;
-      category.active = true;
-      category.branchId = branchId;
-    });
-    app.loadCategories();
   }
 
   void keyboardKeyPressed(
@@ -451,7 +457,7 @@ class CoreViewModel extends FlipperBaseModel
     ITransaction transaction = await ProxyService.realm.manageTransaction(
         transactionType: TransactionType.sale, isExpense: false);
 
-    Category? activeCat = await ProxyService.realm
+    Category? activeCat = ProxyService.realm
         .activeCategory(branchId: ProxyService.box.getBranchId()!);
 
     ProxyService.realm.realm!.write(() {

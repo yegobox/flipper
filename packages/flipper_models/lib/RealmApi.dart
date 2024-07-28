@@ -110,7 +110,7 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Category?> activeCategory({required int branchId}) async {
+  Category? activeCategory({required int branchId}) {
     return realm!.query<Category>(
         r'focused == $0 && active == $1 && branchId == $2',
         [true, true, branchId]).firstOrNull;
