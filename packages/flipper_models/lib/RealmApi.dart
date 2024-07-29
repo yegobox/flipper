@@ -390,7 +390,9 @@ class RealmAPI<M extends IJsonSerializable>
         transaction.customerChangeDue = (cashReceived - subTotal);
         transaction.paymentType = paymentType;
         transaction.cashReceived = cashReceived;
-        transaction.subTotal = subTotal;
+
+        /// if we are dealing with expenses then subTotal equal to the amount received
+        transaction.subTotal = !isIncome ? cashReceived : subTotal;
 
         /// for now receipt type to be printed is in box shared preference
         /// this ofcause has limitation that if more than two users are using device

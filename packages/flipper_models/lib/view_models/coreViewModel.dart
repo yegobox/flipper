@@ -126,10 +126,6 @@ class CoreViewModel extends FlipperBaseModel
     ITransaction? pendingTransaction = ProxyService.realm.manageTransaction(
         transactionType: transactionType!, isExpense: isExpense);
 
-    /// because we do not want to recoed expense to be part of transactions or sale
-    /// so we do not record an item related to this transaction
-    if (isExpense) return;
-
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
@@ -143,6 +139,10 @@ class CoreViewModel extends FlipperBaseModel
         handleClearKey(items, pendingTransaction, reset);
         break;
       case '+':
+
+        /// because we do not want to recoed expense to be part of transactions or sale
+        /// so we do not record an item related to this transaction
+        if (isExpense) return;
         ProxyService.realm.realm!.write(() {
           for (TransactionItem item in items) {
             /// mark the item on the transaction as true so next time we will create new one
@@ -156,6 +156,10 @@ class CoreViewModel extends FlipperBaseModel
 
         break;
       default:
+
+        /// because we do not want to recoed expense to be part of transactions or sale
+        /// so we do not record an item related to this transaction
+        if (isExpense) return;
         if (key.length == 1) {
           handleSingleDigitKey(items, pendingTransaction, double.parse(key));
         } else if (key.length > 1) {
