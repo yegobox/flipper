@@ -76,7 +76,8 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProxyService.remoteConfig.isMultiUserEnabled() && kDebugMode
+            // && kDebugMode
+            ProxyService.remoteConfig.isMultiUserEnabled()
                 ? Container(
                     child: SideMenu(
                       mode: SideMenuMode.compact,
