@@ -10,6 +10,7 @@ import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
@@ -52,6 +53,7 @@ mixin IsolateHandler {
         tinNumber == null ||
         bhfId == null ||
         URI == null) return;
+
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
@@ -60,6 +62,9 @@ mixin IsolateHandler {
     realm?.close();
     realm = Realm(config);
     bool anythingUpdated = false;
+
+    /// handle missing value, part of self healing
+    _selfHeal(realm: realm);
 
     // await syncUnsynced(args);
     //log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
@@ -419,6 +424,28 @@ mixin IsolateHandler {
       }
     } catch (e) {
       talker.warning('Error fetching data: $e');
+    }
+  }
+
+  static void _selfHeal({Realm? realm}) {
+    /// first find any variant with empty itemClsCd add defaults
+    List<Variant> variants =
+        realm!.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
+    talker.info("healed ${variants.length}");
+    for (Variant variant in variants) {
+      realm.write(() {
+        variant.itemClsCd = "5020230602";
+      });
+    }
+
+    List<TransactionItem> items = realm
+        .query<TransactionItem>(r'itemClsCd == null OR itemClsCd == ""')
+        .toList();
+    talker.info("healed ${variants.length}");
+    for (TransactionItem item in items) {
+      realm.write(() {
+        item.itemClsCd = "5020230602";
+      });
     }
   }
 }

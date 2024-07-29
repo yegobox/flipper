@@ -126,6 +126,10 @@ class CoreViewModel extends FlipperBaseModel
     ITransaction? pendingTransaction = ProxyService.realm.manageTransaction(
         transactionType: transactionType!, isExpense: isExpense);
 
+    /// because we do not want to recoed expense to be part of transactions or sale
+    /// so we do not record an item related to this transaction
+    if (isExpense) return;
+
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
