@@ -221,4 +221,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement getRefundReason
     throw UnimplementedError();
   }
+
+  @override
+  String? mrc() {
+    // TODO: implement mrc
+    throw UnimplementedError();
+  }
 }

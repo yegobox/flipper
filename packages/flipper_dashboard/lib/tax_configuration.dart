@@ -25,6 +25,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
   final _branchController = TextEditingController();
+  final _mrcController = TextEditingController();
 
   // ignore: unused_field
   String _supportLine = "";
@@ -51,7 +52,8 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
-        if (await ProxyService.realm.isTaxEnabled(business: ProxyService.local.getBusiness())) {
+        if (await ProxyService.realm
+            .isTaxEnabled(business: ProxyService.local.getBusiness())) {
           setState(() {
             isTaxEnabled = true;
           });
@@ -244,6 +246,26 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                 validator: _validaBhfid,
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _mrcController,
+                decoration: InputDecoration(
+                  hintText: 'Mrc ',
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                ),
+                validator: _validaBhfid,
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _saveForm,
                 icon: const Icon(Icons.save),
@@ -276,7 +298,7 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
 
   String? _validaBhfid(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a valid URL';
+      return 'Please a value';
     }
     return null;
   }
@@ -291,6 +313,12 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
         key: "bhfId",
         value: _branchController.text,
       );
+
+      ProxyService.box.writeString(
+        key: "mrc",
+        value: _mrcController.text,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Saved successfully')),
       );

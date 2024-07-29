@@ -42,4 +42,5 @@ abstract class LocalStorage {
   /// to show on receipt.
   String? currentSaleCustomerPhoneNumber();
   String? getRefundReason();
+  String? mrc();
 }

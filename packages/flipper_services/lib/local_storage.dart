@@ -196,4 +196,9 @@ class SharedPreferenceStorage implements LocalStorage {
   String? getRefundReason() {
     return prefs.getString("getRefundReason");
   }
+
+  @override
+  String? mrc() {
+    return prefs.getString("mrc");
+  }
 }
