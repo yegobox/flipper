@@ -68,42 +68,43 @@ class MyDrawer extends StatelessWidget {
               }
 
               final List<Business> businesses = businessSnapshot.data ?? [];
+              return SizedBox.shrink();
+              // FIXME: uncomment this code.
+              // return FutureBuilder<List<Branch>>(
+              //   future: ProxyService.local
+              //       .branches(businessId: businesses.first.serverId),
+              //   builder: (context, branchSnapshot) {
+              //     if (branchSnapshot.connectionState ==
+              //         ConnectionState.waiting) {
+              //       return CircularProgressIndicator();
+              //     }
 
-              return FutureBuilder<List<Branch>>(
-                future: ProxyService.local
-                    .branches(businessId: businesses.first.serverId),
-                builder: (context, branchSnapshot) {
-                  if (branchSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  }
+              //     if (branchSnapshot.hasError) {
+              //       return Text(
+              //           'Error loading branches: ${branchSnapshot.error}');
+              //     }
 
-                  if (branchSnapshot.hasError) {
-                    return Text(
-                        'Error loading branches: ${branchSnapshot.error}');
-                  }
+              //     final List<Branch> branches = branchSnapshot.data ?? [];
 
-                  final List<Branch> branches = branchSnapshot.data ?? [];
+              //     // Extract business names and filter out null values
+              //     final List<String> businessNames = businesses
+              //         .map((business) => business.name ?? '')
+              //         .toList();
 
-                  // Extract business names and filter out null values
-                  final List<String> businessNames = businesses
-                      .map((business) => business.name ?? '')
-                      .toList();
+              //     // Extract branch names and filter out null values
+              //     final List<String> branchNames =
+              //         branches.map((branch) => branch.name ?? '').toList();
 
-                  // Extract branch names and filter out null values
-                  final List<String> branchNames =
-                      branches.map((branch) => branch.name ?? '').toList();
-
-                  return BusinessTile(
-                    businessName: businessNames.isNotEmpty
-                        ? businessNames.first
-                        : 'Default Business',
-                    branches: branchNames.isNotEmpty
-                        ? branchNames
-                        : ['Default Branch'],
-                  );
-                },
-              );
+              //     return BusinessTile(
+              //       businessName: businessNames.isNotEmpty
+              //           ? businessNames.first
+              //           : 'Default Business',
+              //       branches: branchNames.isNotEmpty
+              //           ? branchNames
+              //           : ['Default Branch'],
+              //     );
+              //   },
+              // );
             },
           )
         ],

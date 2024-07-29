@@ -1,10 +1,12 @@
 import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:realm/realm.dart';
@@ -14,14 +16,15 @@ import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'customappbar.dart';
 
-class TenantAdd extends StatefulWidget {
+class TenantAdd extends StatefulHookConsumerWidget {
   const TenantAdd({Key? key}) : super(key: key);
 
   @override
-  State<TenantAdd> createState() => _TenantAddState();
+  TenantAddState createState() => TenantAddState();
 }
 
-class _TenantAddState extends State<TenantAdd> {
+class TenantAddState extends ConsumerState<TenantAdd>
+    with WidgetsBindingObserver {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -119,6 +122,44 @@ class _TenantAddState extends State<TenantAdd> {
     );
   }
 
+  Widget _buildBranchDropdown() {
+    final branchesAsyncValue = ref.watch(branchesProvider);
+    final selectedBranch = ref.watch(selectedBranchProvider);
+
+    return branchesAsyncValue.when(
+      data: (branches) {
+        if (branches.isEmpty) {
+          return Text("No branches available");
+        }
+
+        return DropdownButtonFormField<Branch>(
+          value: selectedBranch ?? branches.first,
+          onChanged: (Branch? newValue) {
+            ref.read(selectedBranchProvider.notifier).state = newValue;
+          },
+          items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
+            return DropdownMenuItem<Branch>(
+              value: branch,
+              child: Text(branch.name ?? 'Unnamed Branch'),
+            );
+          }).toList(),
+          decoration: InputDecoration(
+            labelText: "Select Branch",
+            prefixIcon:
+                Icon(Icons.business, color: Theme.of(context).primaryColor),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            filled: true,
+            fillColor: Colors.grey[100],
+          ),
+        );
+      },
+      loading: () => CircularProgressIndicator(),
+      error: (error, stack) => Text("Error loading branches: $error"),
+    );
+  }
+
   Widget _buildAddTenantForm(FlipperBaseModel model, BuildContext context) {
     return Card(
       elevation: 4,
@@ -142,6 +183,8 @@ class _TenantAddState extends State<TenantAdd> {
                 icon: Icons.person,
                 keyboardType: TextInputType.text,
               ),
+              const SizedBox(height: 16),
+              _buildBranchDropdown(),
               const SizedBox(height: 16),
               _buildTextFormField(
                 controller: _phoneController,

@@ -784,6 +784,14 @@ final userAccessesProvider = Provider<List<Access>>((ref) {
   return ProxyService.realm.access(userId: userId);
 });
 
+final branchesProvider = FutureProvider<List<Branch>>((ref) async {
+  final businessId = await ProxyService.box.getBusinessId();
+  return ProxyService.local.branches(businessId: businessId);
+});
+
+// Define a provider for the selected branch
+final selectedBranchProvider = StateProvider<Branch?>((ref) => null);
+
 // Provider to check if a user has access to a specific feature
 final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
   final accesses = ref.watch(userAccessesProvider);

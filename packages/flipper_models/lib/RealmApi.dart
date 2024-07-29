@@ -3336,9 +3336,9 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (businessId != null) {
       tenant =
-          realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+          realm?.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
     } else {
-      tenant = realm!.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
+      tenant = realm?.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
     }
 
     return tenant;

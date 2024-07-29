@@ -623,7 +623,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<List<Branch>> branches({int? businessId}) async {
+  List<Branch> branches({int? businessId})  {
     if (businessId != null) {
       return localRealm!
           .query<Branch>(r'businessId == $0 ', [businessId]).toList();
