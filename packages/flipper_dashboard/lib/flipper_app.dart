@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_dashboard/NotificationWidget.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/realm_model_export.dart';

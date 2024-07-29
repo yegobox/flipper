@@ -1340,39 +1340,6 @@ class RealmAPI<M extends IJsonSerializable>
     throw UnimplementedError();
   }
 
-  // @override
-  // Future<void> loadCounterFromOnline({required int businessId}) async {
-  //   final http.Response response = await flipperHttpClient
-  //       .get(Uri.parse("$apihub/v2/api/counter/$businessId"));
-
-  //   if (response.statusCode == 200) {
-  //     final List<dynamic> jsonResponse = json.decode(response.body);
-  //     List<ICounter> counters = ICounter.fromJsonList(jsonResponse);
-
-  //     /// first check if we don't have local counter that we are overwriting
-  //     List<Counter> localCounters =
-  //         realm!.query<Counter>(r'businessId == $0', [businessId]).toList();
-  //     if (localCounters.isNotEmpty) return;
-  //     for (ICounter counter in counters) {
-  //       realm!.put<Counter>(Counter(ObjectId(),
-  //           id: counter.id,
-  //           branchId: counter.branchId,
-  //           businessId: counter.businessId,
-  //           totRcptNo: counter.totRcptNo,
-  //           curRcptNo: counter.curRcptNo,
-  //           receiptType: counter.receiptType));
-  //     }
-  //   } else {
-  //     throw InternalServerError(term: "Error loading the counters");
-  //   }
-  // }
-
-  @override
-  Future<void> logOutLight() {
-    // TODO: implement logOutLight
-    throw UnimplementedError();
-  }
-
   @override
   Future<ITransaction> manageCashInOutTransaction(
       {required String transactionType, required bool isExpense}) async {
@@ -2333,7 +2300,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     // fake subscription as I normally do not these model synced across devices but I don't know how I can pause one model
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
-    final tenant = realm!.all<Tenant>();
+    final tenant = realm!.query<Tenant>(r'businessId == $0', [businessId]);
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
     final drawers = realm!
         .query<Drawers>(r'cashierId == $0', [ProxyService.box.getUserId()]);
@@ -3364,15 +3331,15 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Tenant?> tenant({required int businessId}) async {
-    /// because this method run when app start and sometime when app start we do not have a realm instance then we re-initialize it again here
-    if (ProxyService.realm.realm == null) {
-      await ProxyService.realm
-          .configure(useInMemoryDb: false, useFallBack: false);
-    }
+  Tenant? tenant({int? businessId, int? userId}) {
+    Tenant? tenant;
 
-    Tenant? tenant =
-        realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+    if (businessId != null) {
+      tenant =
+          realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+    } else {
+      tenant = realm!.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
+    }
 
     return tenant;
   }

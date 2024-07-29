@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:realm/realm.dart';
 
@@ -169,5 +171,16 @@ extension RealmEJsonConverterExtension on EJsonValue {
     }
 
     return convertedMap;
+  }
+}
+
+extension AccessControlWidget on Widget {
+  Widget shouldSeeTheApp(WidgetRef ref, String featureName) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final hasAccess = ref.watch(featureAccessProvider(featureName));
+        return hasAccess ? this : SizedBox.shrink();
+      },
+    );
   }
 }

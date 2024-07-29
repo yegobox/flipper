@@ -447,7 +447,7 @@ class App {}
 /// For information on uploading to the Play Store, see:
 /// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
 
-/// To create a patch for this release, shorebird patch --platforms=android --release-version=1.170.4252223232136+1721225450
+/// To create a patch for this release, shorebird patch --platforms=android --release-version=1.170.4252223232167+1722170266
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
 /// 

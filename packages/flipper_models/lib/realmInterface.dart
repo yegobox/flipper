@@ -107,7 +107,6 @@ abstract class RealmApiInterface {
       int itemSeq = 1,
       bool ebmSynced = false});
   Future<bool> logOut();
-  Future<void> logOutLight();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
@@ -414,7 +413,7 @@ abstract class RealmApiInterface {
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
   Future<RealmApiInterface> instance();
-  Future<Tenant?> tenant({required int businessId});
+  Tenant? tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
 

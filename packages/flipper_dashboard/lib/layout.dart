@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/TenantWidget.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -90,60 +91,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                             ),
                           ),
                           items: [],
-                          footer: FutureBuilder<Branch>(
-                            future: ProxyService.local.activeBranch(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                      ConnectionState.waiting ||
-                                  !snapshot.hasData) {
-                                return const SizedBox.shrink();
-                              }
-                              final data = snapshot.data;
-                              return Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 12.0),
-                                    child: SizedBox(
-                                      height: 40,
-                                      width: 40,
-                                      child: ProfileWidget(
-                                        branch: data!,
-                                        sessionActive: true,
-                                        size: 25,
-                                        showIcon: false,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  ProxyService.realm.isAdmin()
-                                      ? Padding(
-                                          padding: const EdgeInsets.only(
-                                              right: 12.0),
-                                          child: SizedBox(
-                                            height: 40,
-                                            width: 40,
-                                            child: IconButton(
-                                              icon: const Icon(Icons.settings),
-                                              onPressed: () {
-                                                locator<RouterService>()
-                                                    .navigateTo(
-                                                        AdminControlRoute());
-                                              },
-                                              style: IconButton.styleFrom(
-                                                shape: const CircleBorder(),
-                                                backgroundColor:
-                                                    Theme.of(context)
-                                                        .primaryColor,
-                                                foregroundColor: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        )
-                                      : SizedBox.shrink()
-                                ],
-                              );
-                            },
-                          ),
+                          footer: TenantWidget(),
                         );
                       },
                     ),

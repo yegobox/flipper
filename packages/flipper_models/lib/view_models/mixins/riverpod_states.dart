@@ -771,8 +771,29 @@ const int NO_SELECTION = -1;
 
 final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
 
-// StateNotifierProvider
+final tenantProvider = Provider<Tenant?>((ref) {
+  final userId = ProxyService.box.getUserId();
+  return ProxyService.realm.tenant(userId: userId);
+});
 
+/// check if a user has either, admin,read,write on a given feature
+// StateNotifierProvider
+// Provider to get the list of user accesses
+final userAccessesProvider = Provider<List<Access>>((ref) {
+  final userId = ProxyService.box.getUserId()!;
+  return ProxyService.realm.access(userId: userId);
+});
+
+// Provider to check if a user has access to a specific feature
+final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
+  final accesses = ref.watch(userAccessesProvider);
+  final now = DateTime.now();
+
+  return accesses.any((access) =>
+      access.featureName == featureName &&
+      access.status == 'active' &&
+      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+});
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

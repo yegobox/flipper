@@ -32,6 +32,35 @@ class _TenantAddState extends State<TenantAdd> {
   List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
   List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
 
+  Widget _buildTenantsList(FlipperBaseModel model) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              "Current Users",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ListView.separated(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: model.tenants.length,
+              separatorBuilder: (context, index) => Divider(color: Colors.grey),
+              itemBuilder: (context, index) =>
+                  _buildTenantCard(model.tenants[index], model),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<FlipperBaseModel>.reactive(
@@ -287,14 +316,16 @@ class _TenantAddState extends State<TenantAdd> {
         );
         Map<String, String> accessData = permissions;
         accessData.forEach((featureName, accessLevel) {
+          //TODO: if adding same user we should update the access as required.
           final access = Access(
             ObjectId(),
             id: randomNumber(),
             branchId: branch.serverId!,
             businessId: business.serverId,
+            createdAt: DateTime.now(),
             userType: selectedUserType,
             accessLevel: accessLevel.toLowerCase(),
-            status: 'active',
+            status: accessLevel != 'No Access' ? 'active' : 'inactive',
             userId: newTenant.userId,
             featureName: featureName,
           );
@@ -330,37 +361,11 @@ class _TenantAddState extends State<TenantAdd> {
     });
   }
 
-  Widget _buildTenantsList(FlipperBaseModel model) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              "Current Users",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: model.tenants.length,
-              separatorBuilder: (context, index) => Divider(),
-              itemBuilder: (context, index) =>
-                  _buildTenantCard(model.tenants[index], model),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTenantCard(Tenant tenant, FlipperBaseModel model) {
-    return ListTile(
+    List<Access> tenantAccesses =
+        ProxyService.realm.access(userId: tenant.userId!);
+
+    return ExpansionTile(
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).primaryColor,
         child: Text(
@@ -388,7 +393,55 @@ class _TenantAddState extends State<TenantAdd> {
           ),
         ],
       ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Permissions:",
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8),
+              ...tenantAccesses
+                  .map((access) => _buildAccessItem(access))
+                  .toList(),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget _buildAccessItem(Access access) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(access.featureName ?? "Unknown Feature"),
+          Chip(
+            label: Text(
+              access.accessLevel?.toUpperCase() ?? "UNKNOWN",
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: _getAccessLevelColor(access.accessLevel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getAccessLevelColor(String? accessLevel) {
+    switch (accessLevel?.toLowerCase()) {
+      case 'admin':
+        return Colors.red;
+      case 'write':
+        return Colors.green;
+      case 'read':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 
   Future<void> _toggleNFC(Tenant tenant, FlipperBaseModel model) async {
@@ -436,6 +489,10 @@ class _TenantAddState extends State<TenantAdd> {
 
   void _deleteTenant(Tenant tenant, FlipperBaseModel model) {
     try {
+      model.deleteTenant(tenant);
+
+      showToast(context, 'Tenant deleted successfully');
+      model.deleteTenant(tenant);
       ProxyService.realm.delete(id: tenant.id!, endPoint: 'tenant');
 
       /// also delete related permission & acess
@@ -449,9 +506,8 @@ class _TenantAddState extends State<TenantAdd> {
       for (Access access in accesses) {
         ProxyService.realm.delete(id: access.id!, endPoint: 'access');
       }
-      model.loadTenants();
-      showToast(context, 'Tenant deleted successfully');
-      model.loadTenants();
+
+      model.rebuildUi();
     } catch (e) {
       log(e.toString());
       showToast(context, 'Error deleting tenant');

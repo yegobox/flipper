@@ -84,8 +84,7 @@ class _PinLoginState extends State<PinLogin> {
                                           onTap: () async {
                                             if (_form.currentState!
                                                 .validate()) {
-                                              /// First clear out any residue of a user this help if a user was logged out
-
+                                             
                                               try {
                                                 log("initiating pin login flow");
                                                 await model.desktopLogin(
@@ -121,6 +120,7 @@ class _PinLoginState extends State<PinLogin> {
                                                     ),
                                                   );
                                                 } else {
+                                                  e as UnknownError;
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -129,8 +129,7 @@ class _PinLoginState extends State<PinLogin> {
                                                           .floating,
                                                       backgroundColor:
                                                           Colors.red,
-                                                      content: Text(
-                                                          'Pin: Not found'),
+                                                      content: Text(e.errMsg()),
                                                     ),
                                                   );
                                                 }

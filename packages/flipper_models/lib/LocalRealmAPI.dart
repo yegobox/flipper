@@ -303,6 +303,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
     await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
 
+    /// FIXME: should set branchId and businessId by looking into what is set to be default
+    /// when we enable for a user to login on multiple
+
     talker.warning("Upon login: UserId ${user.id}: UserPhone: ${userPhone}");
 
     /// the token from firebase that link this user with firebase
@@ -338,12 +341,42 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false}) async {
+  Future<IUser> login({
+    required String userPhone,
+    required bool skipDefaultAppSetup,
+    bool stopAfterConfigure = false,
+  }) async {
     String phoneNumber = userPhone;
 
+    await _initializeRealms();
+
+    if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
+      phoneNumber = '+' + phoneNumber;
+    }
+
+    final http.Response response = await _sendLoginRequest(phoneNumber);
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final IUser user = IUser.fromJson(json.decode(response.body));
+
+      await _configureApp(userPhone, user);
+
+      if (stopAfterConfigure) return user;
+
+      if (!skipDefaultAppSetup) {
+        await _setDefaultApp(user);
+      }
+
+      await _updateLocalRealm(user);
+
+      return user;
+    } else {
+      await _handleLoginError(response);
+    }
+    throw Exception("Error");
+  }
+
+  Future<void> _initializeRealms() async {
     if (ProxyService.realm.realm == null) {
       await ProxyService.realm
           .configure(useInMemoryDb: false, useFallBack: false);
@@ -351,187 +384,227 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     if (ProxyService.local.localRealm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
     }
+  }
 
-    if (!isEmail(userPhone) && !phoneNumber.startsWith('+')) {
-      phoneNumber = '+' + phoneNumber;
+  Future<http.Response> _sendLoginRequest(String phoneNumber) async {
+    final String? uid = firebase.FirebaseAuth.instance.currentUser?.uid;
+    return await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/user'),
+      body:
+          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
+    );
+  }
+
+  Future<void> _configureApp(String userPhone, IUser user) async {
+    await _configureTheBox(userPhone, user);
+
+    await ProxyService.realm
+        .configure(useInMemoryDb: false, useFallBack: false);
+    await configureLocal(useInMemory: false);
+    await ProxyService.realm.downloadAssetSave();
+  }
+
+  Future<void> _setDefaultApp(IUser user) async {
+    final String defaultAppValue = user.tenants.isEmpty
+        ? 'null'
+        : ProxyService.box.getDefaultApp() != "1"
+            ? ProxyService.box.getDefaultApp()
+            : user.tenants.first.businesses.first.businessTypeId.toString();
+
+    await ProxyService.box
+        .writeString(key: 'defaultApp', value: defaultAppValue);
+  }
+
+  Future<void> _updateLocalRealm(IUser user) async {
+    for (ITenant tenant in user.tenants) {
+      await _addOrUpdateTenant(tenant, user.id.toString());
     }
-    http.Response response;
-    String? uid = firebase.FirebaseAuth.instance.currentUser?.uid ?? null;
+  }
 
-    response = await flipperHttpClient.post(Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(
-            <String, String?>{'phoneNumber': phoneNumber, 'uid': uid}));
+  Future<void> _addOrUpdateTenant(ITenant tenant, String userId) async {
+    final Tenant iTenant = Tenant(
+      ObjectId(),
+      isDefault: tenant.isDefault,
+      id: tenant.id,
+      name: tenant.name,
+      businessId: tenant.businessId,
+      nfcEnabled: tenant.nfcEnabled,
+      email: tenant.email,
+      userId: int.tryParse(userId),
+      phoneNumber: tenant.phoneNumber,
+      pin: tenant.pin,
+    );
 
-    if (response.statusCode == 200 && response.body.isNotEmpty) {
-      // Parse the JSON response
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+    await _addOrUpdateBusinesses(tenant.businesses, userId);
+    await _addOrUpdateBranches(tenant.branches);
+    await _addOrUpdatePermissions(tenant.permissions);
+    await _addOrUpdateTenantInRealm(iTenant, userId);
+  }
 
-      // Create an IUser object using the fromJson constructor
-      IUser user = IUser.fromJson(jsonResponse);
-      await _configureTheBox(userPhone, user);
+  Future<void> _addOrUpdateBusinesses(
+      List<IBusiness> businesses, String userId) async {
+    final List<Business> businessesToAdd = [];
 
-      /// because we want to avoid memoery leak on app logout we want to close realm opened!
-      /// in that case attempt login will fail because realm will be null we need to reinit the realm hence we
-      /// need the bellow line
+    for (IBusiness business in businesses) {
+      Business biz = Business(
+        ObjectId(),
+        userId: business.userId,
+        serverId: business.id,
+        name: business.name,
+        currency: business.currency,
+        categoryId: business.categoryId,
+        latitude: business.latitude,
+        longitude: business.longitude,
+        timeZone: business.timeZone,
+        country: business.country,
+        businessUrl: business.businessUrl,
+        hexColor: business.hexColor,
+        imageUrl: business.imageUrl,
+        type: business.type,
+        active: business.active,
+        chatUid: business.chatUid,
+        metadata: business.metadata,
+        role: business.role,
+        lastSeen: business.lastSeen,
+        firstName: business.firstName,
+        lastName: business.lastName,
+        createdAt: business.createdAt,
+        deviceToken: business.deviceToken,
+        backUpEnabled: business.backUpEnabled,
+        subscriptionPlan: business.subscriptionPlan,
+        nextBillingDate: business.nextBillingDate,
+        previousBillingDate: business.previousBillingDate,
+        isLastSubscriptionPaymentSucceeded:
+            business.isLastSubscriptionPaymentSucceeded,
+        backupFileId: business.backupFileId,
+        email: business.email,
+        lastDbBackup: business.lastDbBackup,
+        fullName: business.fullName,
+        tinNumber: business.tinNumber,
+        bhfId: ProxyService.box.bhfId() ?? "00",
+        dvcSrlNo: business.dvcSrlNo,
+        adrs: business.adrs,
+        taxEnabled: business.taxEnabled,
+        taxServerUrl: business.taxServerUrl,
+        isDefault: business.isDefault,
+        businessTypeId: business.businessTypeId,
+        lastTouched: business.lastTouched,
+        action: business.action,
+        deletedAt: business.deletedAt,
+        encryptionKey: business.encryptionKey,
+      );
 
-      await ProxyService.realm
-          .configure(useInMemoryDb: false, useFallBack: false);
-      await configureLocal(useInMemory: false);
-
-      /// Download assets for the app to start with all assets required.
-      await ProxyService.realm.downloadAssetSave();
-
-      /// after we login this is the best time to open the synced database to start persisting the data
-      /// this will close whatever inMemory db we opened temporarly to have the app running
-
-      if (stopAfterConfigure) return user;
-      if (skipDefaultAppSetup == false) {
-        await ProxyService.box.writeString(
-            key: 'defaultApp',
-
-            /// because we don update default app from server
-            /// because we want the ability of switching apps to be entirely offline
-            /// then if we have a default app in the box we use it if it only different from "1"
-            value: user.tenants.isEmpty
-                ? 'null'
-                : ProxyService.box.getDefaultApp() != "1"
-                    ? ProxyService.box.getDefaultApp()
-                    : user.tenants.first.businesses.first.businessTypeId
-                        .toString());
+      Business? exist = localRealm!
+          .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
+      if (exist == null) {
+        businessesToAdd.add(biz);
       }
+    }
 
-      for (ITenant tenant in user.tenants) {
-        Tenant iTenant = Tenant(ObjectId(),
-            isDefault: tenant.isDefault,
-            id: tenant.id,
-            name: tenant.name,
-            businessId: tenant.businessId,
-            nfcEnabled: tenant.nfcEnabled,
-            email: tenant.email,
-            userId: user.id!,
-            phoneNumber: tenant.phoneNumber,
-            pin: tenant.pin);
-        final businessesToAdd = <Business>[];
-        final branchToAdd = <Branch>[];
+    localRealm!.writeAsync(() {
+      localRealm!.addAll<Business>(businessesToAdd);
+    });
+  }
 
-        for (IBusiness business in tenant.businesses) {
-          Business biz = Business(ObjectId(),
-              userId: business.userId,
-              serverId: business.id,
-              name: business.name,
-              currency: business.currency,
-              categoryId: business.categoryId,
-              latitude: business.latitude,
-              longitude: business.longitude,
-              timeZone: business.timeZone,
-              country: business.country,
-              businessUrl: business.businessUrl,
-              hexColor: business.hexColor,
-              imageUrl: business.imageUrl,
-              type: business.type,
-              active: business.active,
-              chatUid: business.chatUid,
-              metadata: business.metadata,
-              role: business.role,
-              lastSeen: business.lastSeen,
-              firstName: business.firstName,
-              lastName: business.lastName,
-              createdAt: business.createdAt,
-              deviceToken: business.deviceToken,
-              backUpEnabled: business.backUpEnabled,
-              subscriptionPlan: business.subscriptionPlan,
-              nextBillingDate: business.nextBillingDate,
-              previousBillingDate: business.previousBillingDate,
-              isLastSubscriptionPaymentSucceeded:
-                  business.isLastSubscriptionPaymentSucceeded,
-              backupFileId: business.backupFileId,
-              email: business.email,
-              lastDbBackup: business.lastDbBackup,
-              fullName: business.fullName,
-              tinNumber: business.tinNumber,
-              bhfId: ProxyService.box.bhfId() ?? "00",
-              dvcSrlNo: business.dvcSrlNo,
-              adrs: business.adrs,
-              taxEnabled: business.taxEnabled,
-              taxServerUrl: business.taxServerUrl,
-              isDefault: business.isDefault,
-              businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              action: business.action,
-              deletedAt: business.deletedAt,
-              encryptionKey: business.encryptionKey);
-          Business? exist = localRealm!
-              .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
-          if (exist == null) {
-            businessesToAdd.add(biz);
-          }
-        }
-        localRealm!.writeAsync(() {
-          localRealm!.addAll<Business>(businessesToAdd);
-        });
-        for (IBranch brannch in tenant.branches) {
-          Branch branch = Branch(ObjectId(),
-              active: brannch.active,
-              serverId: brannch.id,
-              description: brannch.description,
-              name: brannch.name,
-              businessId: brannch.businessId,
-              longitude: brannch.longitude,
-              latitude: brannch.latitude,
-              isDefault: brannch.isDefault,
-              lastTouched: brannch.lastTouched,
-              action: brannch.action,
-              deletedAt: brannch.deletedAt);
-          Branch? exist = localRealm!
-              .query<Branch>(r'serverId == $0', [branch.serverId]).firstOrNull;
-          if (exist == null) {
-            branchToAdd.add(branch);
-          }
-        }
+  Future<void> _addOrUpdateBranches(List<IBranch> branches) async {
+    final List<Branch> branchToAdd = [];
 
-        localRealm!.write(() {
-          localRealm!.addAll<Branch>(branchToAdd);
-        });
-        final permissionToAdd = <LPermission>[];
-        for (IPermission permission in tenant.permissions) {
-          LPermission? exist = ProxyService.realm.realm!.query<LPermission>(
-              r'userId == $0', [permission.userId]).firstOrNull;
-          if (exist == null) {
-            final perm = LPermission(ObjectId(),
+    for (IBranch brannch in branches) {
+      Branch branch = Branch(
+        ObjectId(),
+        active: brannch.active,
+        serverId: brannch.id,
+        description: brannch.description,
+        name: brannch.name,
+        businessId: brannch.businessId,
+        longitude: brannch.longitude,
+        latitude: brannch.latitude,
+        isDefault: brannch.isDefault,
+        lastTouched: brannch.lastTouched,
+        action: brannch.action,
+        deletedAt: brannch.deletedAt,
+      );
+
+      Branch? exist = localRealm!
+          .query<Branch>(r'serverId == $0', [branch.serverId]).firstOrNull;
+      if (exist == null) {
+        branchToAdd.add(branch);
+      }
+    }
+
+    localRealm!.write(() {
+      localRealm!.addAll<Branch>(branchToAdd);
+    });
+  }
+
+  Future<void> _addOrUpdatePermissions(List<IPermission> permissions) async {
+    final List<LPermission> permissionToAdd = [];
+    final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
+
+    for (IPermission permission in permissions) {
+      LPermission? exist = ProxyService.realm.realm!
+          .query<LPermission>(r'userId == $0', [permission.userId]).firstOrNull;
+
+      if (exist == null) {
+        final perm = LPermission(
+          ObjectId(),
+          id: randomNumber(),
+          name: permission.name,
+          userId: permission.userId,
+        );
+        permissionToAdd.add(perm);
+
+        // Check if the permission is "admin" and handle access creation
+        if (permission.name.toLowerCase() == 'admin') {
+          for (String featureName in features) {
+            final Access? existingAccess = ProxyService.realm.realm!
+                .query<Access>(r'userId == $0 AND featureName == $1',
+                    [permission.userId, featureName]).firstOrNull;
+
+            if (existingAccess == null) {
+              final Access access = Access(
+                ObjectId(),
                 id: randomNumber(),
-                name: permission.name,
-                userId: permission.userId);
-            permissionToAdd.add(perm);
-          }
-        }
-        ProxyService.realm.realm!.write(() {
-          ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
-        });
-
-        Tenant? exist = ProxyService.realm.realm!
-            .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
-        if (exist == null) {
-          if (user.id == iTenant.userId) {
-            ProxyService.realm.realm!.write(() {
-              iTenant.sessionActive = true;
-              ProxyService.realm.realm!.add<Tenant>(iTenant);
-            });
-          } else {
-            ProxyService.realm.realm!.write(() {
-              ProxyService.realm.realm!.add<Tenant>(iTenant);
-            });
+                createdAt: DateTime.now(),
+                branchId: ProxyService.box.getBranchId(),
+                businessId: ProxyService.box.getBusinessId(),
+                userType: "Admin",
+                accessLevel: 'Admin'.toLowerCase(),
+                status: 'active',
+                userId: permission.userId,
+                featureName: featureName,
+              );
+              ProxyService.realm.realm!.write(() {
+                ProxyService.realm.realm!.add<Access>(access);
+              });
+            }
           }
         }
       }
-      // ProxyService.box.writeInt(key: 'businessId', value: user.tenants.first.businessId);
+    }
 
-      return user;
-    } else if (response.statusCode == 401) {
+    ProxyService.realm.realm!.write(() {
+      ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
+    });
+  }
+
+  Future<void> _addOrUpdateTenantInRealm(Tenant iTenant, String userId) async {
+    Tenant? exist = ProxyService.realm.realm!
+        .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
+    if (exist == null) {
+      ProxyService.realm.realm!.write(() {
+        iTenant.sessionActive = (userId == iTenant.userId);
+        ProxyService.realm.realm!.add<Tenant>(iTenant);
+      });
+    }
+  }
+
+  Future<void> _handleLoginError(http.Response response) async {
+    if (response.statusCode == 401) {
       throw SessionException(term: "session expired");
     } else if (response.statusCode == 500) {
       throw PinError(term: "Not found");
     } else {
-      // log(response.body.toString(), name: "login error");
       throw UnknownError(term: response.statusCode.toString());
     }
   }
@@ -990,7 +1063,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
-    talker.info(data);
+
     if (response.statusCode == 200) {
       try {
         ITenant jTenant = ITenant.fromRawJson(response.body);

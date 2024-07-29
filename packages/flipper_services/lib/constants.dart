@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+class AppFeature {
+  static const String Sales = "Sales";
+  static const String Inventory = "Inventory";
+  static const String Reports = "Reports";
+  static const String Settings = "Settings";
+}
+
 // String EBMURL = "http://localhost:8080/rra";
 // String EBMURL = "https://turbo.yegobox.com/rra";
 void showSnackBar(BuildContext context, String message,

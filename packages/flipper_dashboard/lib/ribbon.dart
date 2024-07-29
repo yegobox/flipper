@@ -131,14 +131,14 @@ class IconRowState extends ConsumerState<IconRow> {
                     icon: Icons.sync,
                     text: 'Z Report',
                     isSelected: _isSelected[1],
-                  )
+                  ).shouldSeeTheApp(ref, AppFeature.Reports)
                 : SizedBox.shrink(),
             IconText(
               key: const Key('eod_desktop'),
               icon: Icons.payment,
               text: 'EOD',
               isSelected: _isSelected[2],
-            ),
+            ).shouldSeeTheApp(ref, AppFeature.Reports),
             GestureDetector(
               onDoubleTap: () {},
               child: IconText(
@@ -147,7 +147,7 @@ class IconRowState extends ConsumerState<IconRow> {
                 text: 'Reports',
                 isSelected: _isSelected[3],
               ),
-            ),
+            ).shouldSeeTheApp(ref, AppFeature.Reports),
           ],
           onPressed: (int index) async {
             ref.read(buttonIndexProvider.notifier).setIndex(index);
