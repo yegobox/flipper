@@ -357,9 +357,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                             }
                             final number = double.tryParse(value);
                             if (number == null) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please enter a valid number';
                             }
                             if (number < 0 || number > 100) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Discount must be between 0 and 100';
                             }
                             return null;
@@ -395,13 +397,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           onChanged: (value) => null,
                           validator: (String? value) {
                             if (value == null || value.isEmpty) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please enter received amount';
                             }
                             final number = double.tryParse(value);
                             if (number == null) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please enter a valid number';
                             }
                             if (number < grandTotal) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'You are receiving less compared';
                             }
                             return null;
@@ -446,10 +451,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                               value: value),
                           validator: (String? value) {
                             if (value == null || value.isEmpty) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please enter a phone number';
                             }
                             final phoneExp = RegExp(r'^[1-9]\d{8}$');
                             if (!phoneExp.hasMatch(value)) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please enter a valid 9-digit phone number without a leading zero';
                             }
                             return null;
@@ -464,6 +471,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           readOnly: true,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
+                              ref.read(loadingProvider.notifier).state = false;
                               return 'Please select or enter a payment method';
                             }
                             return null;

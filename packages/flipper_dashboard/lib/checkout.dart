@@ -92,7 +92,6 @@ class CheckOutState extends ConsumerState<CheckOut>
         purchaseCode: purchaseCode,
         printCallback: (Uint8List bytes) async {
           _formKey.currentState?.reset();
-          ref.read(loadingProvider.notifier).state = true;
           ref.refresh(loadingProvider.notifier);
 
           // receivedAmountController.clear();
@@ -231,6 +230,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                         amount: amount,
                         discount: discount,
                         purchaseCode: purchaseCode);
+                    ref.read(loadingProvider.notifier).state = false;
                     Navigator.of(context).pop();
                   }
                 },
@@ -267,9 +267,14 @@ class CheckOutState extends ConsumerState<CheckOut>
       directlyHandleReceipt: false,
     );
 
-    /// now handle the receipt now!. manually
-    await handleReceiptGeneration(
-        transaction: trans, purchaseCode: purchaseCode);
+    if (ProxyService.realm
+            .isTaxEnabled(business: ProxyService.local.getBusiness()) &&
+        ProxyService.box.getServerUrl() != null &&
+        ProxyService.box.bhfId() != null) {
+      await handleReceiptGeneration(
+          transaction: trans, purchaseCode: purchaseCode);
+    }
+    ref.read(loadingProvider.notifier).state = false;
   }
 
   @override
@@ -327,6 +332,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 controller: textEditController,
                                 nodeDisabled: true,
                                 completeTransaction: () async {
+                                  ref.read(loadingProvider.notifier).state =
+                                      true;
                                   Customer? customer = ProxyService.realm
                                       .getCustomer(id: transaction.customerId);
 

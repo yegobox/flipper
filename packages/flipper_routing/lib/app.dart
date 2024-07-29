@@ -447,7 +447,7 @@ class App {}
 /// For information on uploading to the Play Store, see:
 /// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
 
-/// To create a patch for this release, shorebird patch --platforms=android --release-version=1.170.4252223232167+1722170266
+/// To create a patch for this release,  shorebird patch --platforms=android --release-version=1.170.4252223232173+1722284441
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
 /// 
@@ -551,3 +551,4 @@ class App {}
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "direct-build-windows"
+/// https://fly.io/docs/about/pricing/

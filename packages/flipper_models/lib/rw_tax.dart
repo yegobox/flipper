@@ -446,7 +446,8 @@ class RWTax implements TaxApi {
 
       "receipt": {
         "rptNo": counter.invcNo,
-        "adrs": "",
+        //TODO: make this dynamic
+        "adrs": "Kigali,Rwanda",
         // "rcptPbctDt": date,
         // "intrlData": itemPrefix +
         //     transaction.id.toString() +

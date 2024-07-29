@@ -383,16 +383,18 @@ class RealmAPI<M extends IJsonSerializable>
           doneWithTransaction: false,
           active: true);
       realm!.write(() {
+        transaction.lastTouched = DateTime.now().toUtc().toLocal();
         transaction.status = COMPLETE;
         transaction.isIncome = isIncome;
         transaction.isExpense = !isIncome;
         double subTotal = items.fold(0, (num a, b) => a + (b.price * b.qty));
+
+        /// if we are dealing with expenses then subTotal equal to the amount received
         final subTotalFinalied = !isIncome ? cashReceived : subTotal;
         transaction.customerChangeDue = (cashReceived - subTotalFinalied);
         transaction.paymentType = paymentType;
         transaction.cashReceived = cashReceived;
 
-        /// if we are dealing with expenses then subTotal equal to the amount received
         transaction.subTotal = subTotalFinalied;
 
         /// for now receipt type to be printed is in box shared preference
@@ -409,12 +411,12 @@ class RealmAPI<M extends IJsonSerializable>
 
         /// refresh created as well to reflect when this transaction was created and completed
 
-        transaction.updatedAt = DateTime.now().toIso8601String();
-        transaction.createdAt = DateTime.now().toIso8601String();
+        transaction.updatedAt =
+            DateTime.now().toUtc().toLocal().toIso8601String();
+        transaction.createdAt =
+            DateTime.now().toUtc().toLocal().toIso8601String();
         transaction.transactionType = transactionType;
         transaction.categoryId = categoryId ?? "0";
-
-        transaction.lastTouched = DateTime.now();
       });
 
       try {
@@ -430,7 +432,7 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.write(() {
             item.dcAmt = discount;
             item.discount = discount;
-            item.lastTouched = DateTime.now();
+            item.lastTouched = DateTime.now().toUtc().toLocal();
 
             stock.currentStock = finalStock;
             stock.rsdQty = finalStock;
@@ -443,7 +445,7 @@ class RealmAPI<M extends IJsonSerializable>
           });
           realm!.write(() {
             item.doneWithTransaction = true;
-            item.updatedAt = DateTime.now().toIso8601String();
+            item.updatedAt = DateTime.now().toUtc().toLocal().toIso8601String();
           });
 
           /// search the related product and touch them to make them as most used
@@ -452,7 +454,7 @@ class RealmAPI<M extends IJsonSerializable>
           Product? product = getProduct(id: variant!.productId!);
           if (product != null) {
             realm!.write(() {
-              product.lastTouched = DateTime.now().add(Duration(seconds: 2));
+              product.lastTouched = DateTime.now().toUtc().toLocal();
             });
           }
         }

@@ -67,22 +67,25 @@ extension DoubleExtension on double {
 
 extension DateOnly on DateTime {
   String get formattedDate {
-    return "${this.year}-${this.month.toString().padLeft(2, '0')}-${this.day.toString().padLeft(2, '0')}";
+    final localDate = this.toLocal();
+    return "${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}";
   }
 }
 
 extension TimeOnly on DateTime {
   String get formattedTime {
-    return "${this.hour.toString().padLeft(2, '0')}:${this.minute.toString().padLeft(2, '0')}:${this.second.toString().padLeft(2, '0')}";
+    final localDate = this.toLocal();
+    return "${localDate.hour.toString().padLeft(2, '0')}:${localDate.minute.toString().padLeft(2, '0')}:${localDate.second.toString().padLeft(2, '0')}";
   }
 }
 
 extension DateTimeToDateTimeString on DateTime {
   String toDateTimeString() {
+    final localDateTime = this.toLocal();
     final dateFormat = DateFormat('dd/MM/yyyy');
     final timeFormat = DateFormat('HH:mm:ss');
-    final dateString = dateFormat.format(this);
-    final timeString = timeFormat.format(this);
+    final dateString = dateFormat.format(localDateTime);
+    final timeString = timeFormat.format(localDateTime);
     return '$dateString $timeString';
   }
 }
