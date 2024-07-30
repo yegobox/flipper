@@ -256,7 +256,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       required String transactionType,
       required double amount,
       required double discount}) async {
-    ITransaction trans = await model.collectPayment(
+    ITransaction trans = model.collectPayment(
       categoryId: categoryId,
       transactionType: transactionType,
       paymentType: paymentType,
@@ -274,6 +274,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       await handleReceiptGeneration(
           transaction: trans, purchaseCode: purchaseCode);
     }
+    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
     ref.read(loadingProvider.notifier).state = false;
   }
 

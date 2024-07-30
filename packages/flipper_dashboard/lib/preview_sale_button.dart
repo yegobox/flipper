@@ -63,8 +63,6 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
 
   @override
   Widget build(BuildContext context) {
-    final isLoading = ref.watch(loadingProvider);
-
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -85,13 +83,13 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: isLoading
+                onPressed: ref.watch(loadingProvider)
                     ? null
                     : () async {
                         talker.info("init callback to complete transaction");
                         widget.completeTransaction!();
                       },
-                child: isLoading
+                child: ref.watch(loadingProvider)
                     ? Loading(
                         indicator: BallPulseIndicator(),
                         size: 50.0,

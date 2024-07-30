@@ -552,3 +552,4 @@ class App {}
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
 /// git commit -am "direct-build-windows"
 /// https://fly.io/docs/about/pricing/
+/// https://pub.dev/packages/wolt_modal_sheet#why-use-modaldecorator-for-state-management
