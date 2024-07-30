@@ -39,7 +39,7 @@ dependencies:
   ionicons: ^0.1.2
   overlay_support: ^2.1.0
   flutter_settings_ui: ^3.0.1
-  flutter_inappwebview: ^6.0.0
+  flutter_inappwebview: ^6.0.0-beta.30
   url_launcher: ^6.2.6
   google_fonts: ^6.1.0
   number_display: ^3.0.0
@@ -56,7 +56,7 @@ dependencies:
 
   connectivity_plus: ^6.0.3
 
-  device_info_plus: ^10.1.0
+  # device_info_plus: ^10.1.0
   provider: ^6.0.2
   gap: ^2.0.0
   barcode: ^2.2.0
@@ -69,10 +69,6 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   fluentui_system_icons: ^1.1.203
-  easy_sidemenu:
-    git:
-      url: https://github.com/Jamalianpour/easy_sidemenu.git
-      ref: master
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
@@ -106,6 +102,7 @@ dependencies:
   syncfusion_flutter_xlsio: ^25.2.7
   syncfusion_flutter_datagrid_export: ^25.2.7
   syncfusion_flutter_core: ^25.2.7
+  syncfusion_officechart: ^25.2.7
   # https://github.com/yegobox/flutter_datetime_picker
   flutter_datetime_picker:
     git:
@@ -113,14 +110,17 @@ dependencies:
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
   flutter_colorpicker:
     git: https://github.com/mchome/flutter_colorpicker.git
-  realm: ^3.1.0
-  device_type: ^0.0.6
+  realm: ^3.2.0
+  
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
   collection: ^1.18.0
   amplify_api: ^2.1.0
   amplify_flutter: ^2.1.0
   amplify_auth_cognito: ^2.1.0
+  flutter_side_menu: ^0.5.3
+  flagsmith: ^5.0.1
+  phone_numbers_parser: ^8.3.0
 
 dependency_overrides:
   http: ^1.2.1

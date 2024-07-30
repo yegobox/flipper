@@ -2215,6 +2215,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     int? cashierId,
     bool? open,
     DateTime? deletedAt,
+    int? businessId,
+    int? branchId,
   }) {
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'id', id);
@@ -2236,6 +2238,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'cashierId', cashierId);
     RealmObjectBase.set(this, 'open', open);
     RealmObjectBase.set(this, 'deletedAt', deletedAt);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'branchId', branchId);
   }
 
   Drawers._();
@@ -2368,6 +2372,16 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       RealmObjectBase.set(this, 'deletedAt', value);
 
   @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
   Stream<RealmObjectChanges<Drawers>> get changes =>
       RealmObjectBase.getChanges<Drawers>(this);
 
@@ -2400,6 +2414,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       'cashierId': cashierId.toEJson(),
       'open': open.toEJson(),
       'deletedAt': deletedAt.toEJson(),
+      'businessId': businessId.toEJson(),
+      'branchId': branchId.toEJson(),
     };
   }
 
@@ -2427,6 +2443,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
         'cashierId': EJsonValue cashierId,
         'open': EJsonValue open,
         'deletedAt': EJsonValue deletedAt,
+        'businessId': EJsonValue businessId,
+        'branchId': EJsonValue branchId,
       } =>
         Drawers(
           fromEJson(realmId),
@@ -2449,6 +2467,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
           cashierId: fromEJson(cashierId),
           open: fromEJson(open),
           deletedAt: fromEJson(deletedAt),
+          businessId: fromEJson(businessId),
+          branchId: fromEJson(branchId),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -2486,6 +2506,8 @@ class Drawers extends _Drawers with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('cashierId', RealmPropertyType.int, optional: true),
       SchemaProperty('open', RealmPropertyType.bool, optional: true),
       SchemaProperty('deletedAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
     ]);
   }();
 
@@ -7802,6 +7824,341 @@ class Report extends _Report with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('filename', RealmPropertyType.string, optional: true),
       SchemaProperty('s3Url', RealmPropertyType.string, optional: true),
       SchemaProperty('downloaded', RealmPropertyType.bool, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class Computed extends _Computed
+    with RealmEntity, RealmObjectBase, RealmObject {
+  static var _defaultsSet = false;
+
+  Computed(
+    ObjectId id, {
+    int? branchId,
+    int? businessId,
+    double? grossProfit = 0,
+    double? netProfit = 0,
+    double? totalStockValue = 0,
+    double? totalStockSoldValue = 0,
+    double? totalStockItems = 0,
+  }) {
+    if (!_defaultsSet) {
+      _defaultsSet = RealmObjectBase.setDefaults<Computed>({
+        'grossProfit': 0,
+        'netProfit': 0,
+        'totalStockValue': 0,
+        'totalStockSoldValue': 0,
+        'totalStockItems': 0,
+      });
+    }
+    RealmObjectBase.set(this, '_id', id);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'grossProfit', grossProfit);
+    RealmObjectBase.set(this, 'netProfit', netProfit);
+    RealmObjectBase.set(this, 'totalStockValue', totalStockValue);
+    RealmObjectBase.set(this, 'totalStockSoldValue', totalStockSoldValue);
+    RealmObjectBase.set(this, 'totalStockItems', totalStockItems);
+  }
+
+  Computed._();
+
+  @override
+  ObjectId get id => RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set id(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  double? get grossProfit =>
+      RealmObjectBase.get<double>(this, 'grossProfit') as double?;
+  @override
+  set grossProfit(double? value) =>
+      RealmObjectBase.set(this, 'grossProfit', value);
+
+  @override
+  double? get netProfit =>
+      RealmObjectBase.get<double>(this, 'netProfit') as double?;
+  @override
+  set netProfit(double? value) => RealmObjectBase.set(this, 'netProfit', value);
+
+  @override
+  double? get totalStockValue =>
+      RealmObjectBase.get<double>(this, 'totalStockValue') as double?;
+  @override
+  set totalStockValue(double? value) =>
+      RealmObjectBase.set(this, 'totalStockValue', value);
+
+  @override
+  double? get totalStockSoldValue =>
+      RealmObjectBase.get<double>(this, 'totalStockSoldValue') as double?;
+  @override
+  set totalStockSoldValue(double? value) =>
+      RealmObjectBase.set(this, 'totalStockSoldValue', value);
+
+  @override
+  double? get totalStockItems =>
+      RealmObjectBase.get<double>(this, 'totalStockItems') as double?;
+  @override
+  set totalStockItems(double? value) =>
+      RealmObjectBase.set(this, 'totalStockItems', value);
+
+  @override
+  Stream<RealmObjectChanges<Computed>> get changes =>
+      RealmObjectBase.getChanges<Computed>(this);
+
+  @override
+  Stream<RealmObjectChanges<Computed>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Computed>(this, keyPaths);
+
+  @override
+  Computed freeze() => RealmObjectBase.freezeObject<Computed>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      '_id': id.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'grossProfit': grossProfit.toEJson(),
+      'netProfit': netProfit.toEJson(),
+      'totalStockValue': totalStockValue.toEJson(),
+      'totalStockSoldValue': totalStockSoldValue.toEJson(),
+      'totalStockItems': totalStockItems.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Computed value) => value.toEJson();
+  static Computed _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        '_id': EJsonValue id,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'grossProfit': EJsonValue grossProfit,
+        'netProfit': EJsonValue netProfit,
+        'totalStockValue': EJsonValue totalStockValue,
+        'totalStockSoldValue': EJsonValue totalStockSoldValue,
+        'totalStockItems': EJsonValue totalStockItems,
+      } =>
+        Computed(
+          fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          grossProfit: fromEJson(grossProfit),
+          netProfit: fromEJson(netProfit),
+          totalStockValue: fromEJson(totalStockValue),
+          totalStockSoldValue: fromEJson(totalStockSoldValue),
+          totalStockItems: fromEJson(totalStockItems),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Computed._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Computed, 'Computed', [
+      SchemaProperty('id', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('grossProfit', RealmPropertyType.double, optional: true),
+      SchemaProperty('netProfit', RealmPropertyType.double, optional: true),
+      SchemaProperty('totalStockValue', RealmPropertyType.double,
+          optional: true),
+      SchemaProperty('totalStockSoldValue', RealmPropertyType.double,
+          optional: true),
+      SchemaProperty('totalStockItems', RealmPropertyType.double,
+          optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
+class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
+  Access(
+    ObjectId realmId, {
+    int? id,
+    int? branchId,
+    int? businessId,
+    int? userId,
+    String? featureName,
+    String? userType,
+    String? accessLevel,
+    DateTime? createdAt,
+    DateTime? expiresAt,
+    String? status,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'branchId', branchId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'userId', userId);
+    RealmObjectBase.set(this, 'featureName', featureName);
+    RealmObjectBase.set(this, 'userType', userType);
+    RealmObjectBase.set(this, 'accessLevel', accessLevel);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'expiresAt', expiresAt);
+    RealmObjectBase.set(this, 'status', status);
+  }
+
+  Access._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get branchId => RealmObjectBase.get<int>(this, 'branchId') as int?;
+  @override
+  set branchId(int? value) => RealmObjectBase.set(this, 'branchId', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  int? get userId => RealmObjectBase.get<int>(this, 'userId') as int?;
+  @override
+  set userId(int? value) => RealmObjectBase.set(this, 'userId', value);
+
+  @override
+  String? get featureName =>
+      RealmObjectBase.get<String>(this, 'featureName') as String?;
+  @override
+  set featureName(String? value) =>
+      RealmObjectBase.set(this, 'featureName', value);
+
+  @override
+  String? get userType =>
+      RealmObjectBase.get<String>(this, 'userType') as String?;
+  @override
+  set userType(String? value) => RealmObjectBase.set(this, 'userType', value);
+
+  @override
+  String? get accessLevel =>
+      RealmObjectBase.get<String>(this, 'accessLevel') as String?;
+  @override
+  set accessLevel(String? value) =>
+      RealmObjectBase.set(this, 'accessLevel', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  DateTime? get expiresAt =>
+      RealmObjectBase.get<DateTime>(this, 'expiresAt') as DateTime?;
+  @override
+  set expiresAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'expiresAt', value);
+
+  @override
+  String? get status => RealmObjectBase.get<String>(this, 'status') as String?;
+  @override
+  set status(String? value) => RealmObjectBase.set(this, 'status', value);
+
+  @override
+  Stream<RealmObjectChanges<Access>> get changes =>
+      RealmObjectBase.getChanges<Access>(this);
+
+  @override
+  Stream<RealmObjectChanges<Access>> changesFor([List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<Access>(this, keyPaths);
+
+  @override
+  Access freeze() => RealmObjectBase.freezeObject<Access>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'branchId': branchId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'userId': userId.toEJson(),
+      'featureName': featureName.toEJson(),
+      'userType': userType.toEJson(),
+      'accessLevel': accessLevel.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'expiresAt': expiresAt.toEJson(),
+      'status': status.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(Access value) => value.toEJson();
+  static Access _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'branchId': EJsonValue branchId,
+        'businessId': EJsonValue businessId,
+        'userId': EJsonValue userId,
+        'featureName': EJsonValue featureName,
+        'userType': EJsonValue userType,
+        'accessLevel': EJsonValue accessLevel,
+        'createdAt': EJsonValue createdAt,
+        'expiresAt': EJsonValue expiresAt,
+        'status': EJsonValue status,
+      } =>
+        Access(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          branchId: fromEJson(branchId),
+          businessId: fromEJson(businessId),
+          userId: fromEJson(userId),
+          featureName: fromEJson(featureName),
+          userType: fromEJson(userType),
+          accessLevel: fromEJson(accessLevel),
+          createdAt: fromEJson(createdAt),
+          expiresAt: fromEJson(expiresAt),
+          status: fromEJson(status),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(Access._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, Access, 'Access', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('branchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('userId', RealmPropertyType.int, optional: true),
+      SchemaProperty('featureName', RealmPropertyType.string, optional: true),
+      SchemaProperty('userType', RealmPropertyType.string, optional: true),
+      SchemaProperty('accessLevel', RealmPropertyType.string, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('expiresAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('status', RealmPropertyType.string, optional: true),
     ]);
   }();
 

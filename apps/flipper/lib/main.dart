@@ -82,6 +82,7 @@ class MyHttpOverrides extends HttpOverrides {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Add any other initialization code here
 
   final talker = TalkerFlutter.init();
   GoogleFonts.config.allowRuntimeFetching = false;
@@ -155,8 +156,6 @@ Future<void> main() async {
       options.dsn = kDebugMode
           ? ''
           : 'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
-      // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring.
-      // We recommend adjusting this value in production.
       options.tracesSampleRate = 1.0;
       options.attachScreenshot = true;
     },
@@ -168,15 +167,19 @@ Future<void> main() async {
             return MaterialApp.router(
               debugShowCheckedModeBanner: true,
               title: 'flipper',
-              // Define the light theme for the app, based on defined colors and
-              // properties above.
-              //TODOimplement my own as this is killing design
-              // theme: GThemeGenerator.generate(),
-              // darkTheme: GThemeGenerator.generateDark(),
               theme: ThemeData(
                 textTheme: GoogleFonts.poppinsTextTheme(),
-                colorScheme:
-                    const ColorScheme.light().copyWith(surface: Colors.white),
+                brightness: Brightness.light,
+                primaryColor: Colors.blue,
+                colorScheme: const ColorScheme.light(
+                  primary: Colors.blue,
+                  secondary: Colors.blueAccent,
+                ).copyWith(surface: Colors.white),
+                cardTheme: CardTheme(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                ),
               ),
               localizationsDelegates: [
                 FirebaseUILocalizations.withDefaultOverrides(
@@ -188,13 +191,10 @@ Future<void> main() async {
                 CountryLocalizations.delegate
               ],
               supportedLocales: const [
-                Locale('en'), // English
-                Locale('es'), // Spanish
+                Locale('en'),
+                Locale('es'),
               ],
               locale: const Locale('en'),
-              // locale: model
-              //     .languageService.locale,
-              // themeMode: model.settingService.themeMode.value,
               themeMode: ThemeMode.system,
               routerDelegate: stackedRouter.delegate(),
               routeInformationParser: stackedRouter.defaultRouteParser(),

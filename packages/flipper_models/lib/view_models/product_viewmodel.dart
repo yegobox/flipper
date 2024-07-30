@@ -111,6 +111,9 @@ class ProductViewModel extends FlipperBaseModel
 
     /// create a temp product or return it if it exists
     Product? product = await ProxyService.realm.createProduct(
+      tinNumber: ProxyService.box.tin(),
+      businessId: ProxyService.box.getBusinessId()!,
+      branchId: ProxyService.box.getBranchId()!,
       product: Product(
         ObjectId(),
         id: randomNumber(),
@@ -150,15 +153,17 @@ class ProductViewModel extends FlipperBaseModel
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
     final int? branchId = ProxyService.box.getBranchId();
-    if (kProductName == null) return;
-    final Category category = Category(ObjectId(),
-        name: kProductName!,
-        active: true,
-        focused: false,
-        branchId: branchId!,
-        id: randomNumber());
+    if (categoryName == null) return;
+    final Category category = Category(
+      ObjectId(),
+      name: categoryName!,
+      active: true,
+      focused: false,
+      branchId: branchId!,
+      id: randomNumber(),
+    );
 
-    await ProxyService.realm.create(data: category);
+    await ProxyService.realm.create<Category>(data: category);
     app.loadCategories();
   }
 
@@ -434,4 +439,10 @@ class ProductViewModel extends FlipperBaseModel
 
   @override
   List<ListenableServiceMixin> get listenableServices => [app, productService];
+
+  String? categoryName;
+  void setCategoryName({required String name}) {
+    categoryName = name;
+    notifyListeners();
+  }
 }

@@ -178,6 +178,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
             buildOutlinedButton(
               onPressed: () async {
                 model.keyboardKeyPressed(
+                  isExpense: false,
                   key: 'C',
                   reset: () {
                     ref.read(keypadProvider.notifier).reset();

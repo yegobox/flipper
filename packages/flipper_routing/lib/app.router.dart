@@ -244,6 +244,9 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         child: _i1.Payments(
           key: args.key,
           transaction: args.transaction,
+          isIncome: args.isIncome,
+          categoryId: args.categoryId,
+          transactionType: args.transactionType,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -377,10 +380,12 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TaxConfigurationRoute.name: (routeData) {
+      final args = routeData.argsAs<TaxConfigurationArgs>();
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TaxConfiguration(
-          showheader: true,
+        child: _i1.TaxConfiguration(
+          key: args.key,
+          showheader: args.showheader,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -562,6 +567,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       return _i3.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Reports(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    AdminControlRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: const _i1.AdminControl(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -769,6 +782,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           ReportsRoute.name,
           path: '/Reports',
+        ),
+        _i3.RouteConfig(
+          AdminControlRoute.name,
+          path: '/admin-control',
         ),
       ];
 }
@@ -1357,12 +1374,18 @@ class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
+    required String categoryId,
+    required String transactionType,
   }) : super(
           PaymentsRoute.name,
           path: '/Payments',
           args: PaymentsArgs(
             key: key,
             transaction: transaction,
+            isIncome: isIncome,
+            categoryId: categoryId,
+            transactionType: transactionType,
           ),
         );
 
@@ -1373,15 +1396,24 @@ class PaymentsArgs {
   const PaymentsArgs({
     this.key,
     required this.transaction,
+    required this.isIncome,
+    required this.categoryId,
+    required this.transactionType,
   });
 
   final _i4.Key? key;
 
   final _i8.ITransaction transaction;
 
+  final bool isIncome;
+
+  final String categoryId;
+
+  final String transactionType;
+
   @override
   String toString() {
-    return 'PaymentsArgs{key: $key, transaction: $transaction}';
+    return 'PaymentsArgs{key: $key, transaction: $transaction, isIncome: $isIncome, categoryId: $categoryId, transactionType: $transactionType}';
   }
 }
 
@@ -1695,14 +1727,36 @@ class DevicesArgs {
 
 /// generated route for
 /// [_i1.TaxConfiguration]
-class TaxConfigurationRoute extends _i3.PageRouteInfo<void> {
-  const TaxConfigurationRoute()
-      : super(
+class TaxConfigurationRoute extends _i3.PageRouteInfo<TaxConfigurationArgs> {
+  TaxConfigurationRoute({
+    _i4.Key? key,
+    required bool showheader,
+  }) : super(
           TaxConfigurationRoute.name,
           path: '/tax-configuration',
+          args: TaxConfigurationArgs(
+            key: key,
+            showheader: showheader,
+          ),
         );
 
   static const String name = 'TaxConfiguration';
+}
+
+class TaxConfigurationArgs {
+  const TaxConfigurationArgs({
+    this.key,
+    required this.showheader,
+  });
+
+  final _i4.Key? key;
+
+  final bool showheader;
+
+  @override
+  String toString() {
+    return 'TaxConfigurationArgs{key: $key, showheader: $showheader}';
+  }
 }
 
 /// generated route for
@@ -2120,6 +2174,18 @@ class ReportsRoute extends _i3.PageRouteInfo<void> {
   static const String name = 'Reports';
 }
 
+/// generated route for
+/// [_i1.AdminControl]
+class AdminControlRoute extends _i3.PageRouteInfo<void> {
+  const AdminControlRoute()
+      : super(
+          AdminControlRoute.name,
+          path: '/admin-control',
+        );
+
+  static const String name = 'AdminControl';
+}
+
 extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i4.Key? key,
@@ -2381,12 +2447,18 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToPayments({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
+    required String categoryId,
+    required String transactionType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PaymentsRoute(
         key: key,
         transaction: transaction,
+        isIncome: isIncome,
+        categoryId: categoryId,
+        transactionType: transactionType,
       ),
       onFailure: onFailure,
     );
@@ -2536,10 +2608,16 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> navigateToTaxConfiguration(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+  Future<dynamic> navigateToTaxConfiguration({
+    _i4.Key? key,
+    required bool showheader,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
     return navigateTo(
-      const TaxConfigurationRoute(),
+      TaxConfigurationRoute(
+        key: key,
+        showheader: showheader,
+      ),
       onFailure: onFailure,
     );
   }
@@ -2742,6 +2820,14 @@ extension RouterStateExtension on _i2.RouterService {
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const ReportsRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> navigateToAdminControl(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AdminControlRoute(),
       onFailure: onFailure,
     );
   }
@@ -3006,12 +3092,18 @@ extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> replaceWithPayments({
     _i4.Key? key,
     required _i8.ITransaction transaction,
+    required bool isIncome,
+    required String categoryId,
+    required String transactionType,
     void Function(_i3.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PaymentsRoute(
         key: key,
         transaction: transaction,
+        isIncome: isIncome,
+        categoryId: categoryId,
+        transactionType: transactionType,
       ),
       onFailure: onFailure,
     );
@@ -3161,10 +3253,16 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithTaxConfiguration(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+  Future<dynamic> replaceWithTaxConfiguration({
+    _i4.Key? key,
+    required bool showheader,
+    void Function(_i3.NavigationFailure)? onFailure,
+  }) async {
     return replaceWith(
-      const TaxConfigurationRoute(),
+      TaxConfigurationRoute(
+        key: key,
+        showheader: showheader,
+      ),
       onFailure: onFailure,
     );
   }
@@ -3367,6 +3465,14 @@ extension RouterStateExtension on _i2.RouterService {
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const ReportsRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAdminControl(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AdminControlRoute(),
       onFailure: onFailure,
     );
   }

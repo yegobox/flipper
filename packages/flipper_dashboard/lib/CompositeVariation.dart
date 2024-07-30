@@ -125,6 +125,11 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
     final selectedVariantsNotifier =
         ref.read(selectedVariantsLocalProvider.notifier);
 
+    /// wait for the state to be initialized with post frame callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      recalculateTotalCost();
+    });
+
     return Padding(
       padding: widget.padding,
       child: Column(
@@ -184,7 +189,10 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                         .deleteVariant(variantState.variant);
                     recalculateTotalCost();
                   },
-                  icon: Icon(Icons.delete),
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ),
                 ),
               ],
             ),

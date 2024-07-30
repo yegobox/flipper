@@ -136,7 +136,7 @@ class _SearchInputWithDropdownState extends State<SearchInputWithDropdown> {
                           ),
                           child: ListTile(
                             title: Text(_searchResults[index].custNm!),
-                            subtitle: Text(_searchResults[index].custNo!),
+                            subtitle: Text(_searchResults[index].custTin!),
                           ),
                         ),
                       );

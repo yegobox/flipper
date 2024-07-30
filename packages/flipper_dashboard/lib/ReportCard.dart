@@ -46,14 +46,14 @@ class ReportCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                cardName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              // Text(
+              //   cardName,
+              //   style: TextStyle(
+              //     fontSize: 16,
+              //     fontWeight: FontWeight.bold,
+              //     color: Colors.white,
+              //   ),
+              // ),
               const SizedBox(height: 8),
               _buildDataRow(
                 title: wordingA,

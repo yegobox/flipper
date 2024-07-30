@@ -652,6 +652,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           /// create the default variant to represent this composite item, in flipper each product
                           /// has a default variant
                           ProxyService.realm.createVariant(
+                            tinNumber: ProxyService.box.tin(),
                             itemSeq: 1,
 
                             /// because this is a placeholder variant, then qty does not matter in this scenario

@@ -35,13 +35,13 @@ class ListTenants extends StatelessWidget {
                         TextButton(
                           style: ButtonStyle(
                             overlayColor:
-                                MaterialStateProperty.resolveWith<Color?>(
-                                    (Set<MaterialState> states) {
-                              if (states.contains(MaterialState.focused))
+                                WidgetStateProperty.resolveWith<Color?>(
+                                    (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.focused))
                                 return Colors.red;
-                              if (states.contains(MaterialState.hovered))
+                              if (states.contains(WidgetState.hovered))
                                 return Colors.green;
-                              if (states.contains(MaterialState.pressed))
+                              if (states.contains(WidgetState.pressed))
                                 return Colors.blue;
                               return null; // Defer to the widget's default.
                             }),

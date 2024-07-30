@@ -63,6 +63,7 @@ import 'all_routes.dart';
     CustomRoute(page: Security),
     CustomRoute(page: Comfirm),
     CustomRoute(page: Reports),
+    CustomRoute(page: AdminControl),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),
@@ -446,7 +447,7 @@ class App {}
 /// For information on uploading to the Play Store, see:
 /// https://support.google.com/googleplay/android-developer/answer/9859152?hl=en
 
-/// To create a patch for this release, run shorebird patch --platforms=android --release-version=1.170.4252223232017+1720068464
+/// To create a patch for this release,  shorebird patch --platforms=android --release-version=1.170.4252223232173+1722284441
 
 /// Note: shorebird patch --platforms=android without the --release-version option will patch the current version of the app.
 /// 
@@ -522,6 +523,33 @@ class App {}
 ///  pip install tensorflow pandas scikit-learn matplotlib
 /// pip install python-dotenv
 /// password: :93h)]6m7V8B
-/// 
+/// TODO: hire in future
+/// https://www.merixstudio.com/development/flutter
 /// 
 /// https://www.mongodb.com/docs/atlas/app-services/data-api/examples/
+/// 
+/// Macos & ios build
+/// https://medium.com/team-rockstars-it/the-easiest-way-to-build-a-flutter-ios-app-using-github-actions-plus-a-key-takeaway-for-developers-48cf2ad7c72a
+/// https://medium.com/@vovaklh20012/code-push-for-flutter-update-your-app-without-new-release-using-shorebird-d3575ba0a2c0
+/// https://github.com/fastlane/fastlane/discussions/20177
+/// Hire a developer to help you with your flutter app https://superdeclarative.com/ (This one can help in UI and Testing)
+/// https://red-badger.com/
+/// 
+/// TODO: impressive widgets
+/// https://github.com/merixstudio/flutter-vizier-challenge
+/// https://pub.dev/packages/mrx_charts
+/// 
+/// TODO: something we can steal
+/// https://gitlab.com/wolfenrain/okane
+/// https://pub.dev/packages/flutter_nearby_connections
+/// https://github.com/AOSSIE-Org/OpenPeerChat-flutter/blob/main/pubspec.yaml
+/// https://github.com/AOSSIE-Org/OpenPeerChat-flutter/tree/main
+/// https://github.com/fluttergems/awesome-open-source-flutter-apps?tab=readme-ov-file
+/// https://github.com/localsend/localsend
+/// https://github.com/tejasbadone/flutterzon_bloc
+/// 
+/// TODO: learn about integeation test or get some ideas
+/// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
+/// git commit -am "direct-build-windows"
+/// https://fly.io/docs/about/pricing/
+/// https://pub.dev/packages/wolt_modal_sheet#why-use-modaldecorator-for-state-management

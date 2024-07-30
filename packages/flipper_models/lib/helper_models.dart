@@ -34,7 +34,6 @@ export 'helperModels/social_token.dart';
 export 'helperModels/conversation.dart';
 export 'helperModels/business_type.dart';
 export 'package:uuid/uuid.dart';
-export 'helperModels/drawers.dart';
 export 'helperModels/userActivity.dart';
 export 'exceptions.dart';
 export 'helperModels/extensions.dart';

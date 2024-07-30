@@ -17,10 +17,12 @@ class FlipperBaseModel extends ReactiveViewModel {
       id: randomNumber(),
       openingBalance: 0.0,
       closingBalance: 0.0,
-      cashierId: ProxyService.box.getBusinessId()!,
+      cashierId: ProxyService.box.getUserId()!,
       tradeName: ProxyService.app.business.name,
       openingDateTime: DateTime.now().toIso8601String(),
       open: true,
+      businessId: ProxyService.box.getBusinessId(),
+      branchId: ProxyService.box.getBranchId(),
     );
 
     final _routerService = locator<RouterService>();
@@ -30,11 +32,36 @@ class FlipperBaseModel extends ReactiveViewModel {
   List<Tenant> _tenants = [];
   List<Tenant> get tenants => _tenants;
 
+  void deleteTenantById(int tenantId) {
+    _tenants.removeWhere((tenant) => tenant.id == tenantId);
+    notifyListeners();
+  }
+
+  void deleteTenant(Tenant tenant) {
+    _tenants.remove(tenant);
+    notifyListeners();
+  }
+
   Future<void> loadTenants() async {
     List<Tenant> users = await ProxyService.realm
         .tenants(businessId: ProxyService.box.getBusinessId()!);
-    _tenants = [...users];
-    rebuildUi();
+
+    Set<int> uniqueUserIds = {};
+    List<Tenant> uniqueUsers = [];
+
+    ProxyService.realm.realm!.write(() {
+      for (var user in users) {
+        if (!uniqueUserIds.contains(user.id)) {
+          uniqueUserIds.add(user.id!);
+          uniqueUsers.add(user);
+        } else {
+          ProxyService.realm.realm!.delete(user);
+        }
+      }
+    });
+
+    _tenants = [...uniqueUsers];
+    notifyListeners();
   }
 
   /// keyboard events handler

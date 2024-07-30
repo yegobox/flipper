@@ -1,11 +1,16 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_dashboard/DownloadCard.dart';
 import 'package:flipper_dashboard/ReportCard.dart';
 import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class Reports extends StatefulHookConsumerWidget {
   const Reports({super.key});
@@ -43,8 +48,17 @@ class ReportsState extends ConsumerState<Reports>
         appBar: CustomAppBar(
           closeButton: CLOSEBUTTON.WIDGET,
           isDividerVisible: false,
-          customLeadingWidget: back.BackButton(),
-          onPop: () async {},
+          onPop: () async {
+            talker.info("Invalidating transactionItemListProvider");
+            ref.invalidate(transactionItemListProvider);
+          },
+          customLeadingWidget: back.BackButton(popCallback: () {
+            talker.info("Invalidating transactionItemListProvider");
+            ref.invalidate(transactionItemListProvider);
+            ref.invalidate(transactionListProvider);
+            //pop();
+            locator<RouterService>().pop();
+          }),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -72,7 +86,7 @@ class ReportsState extends ConsumerState<Reports>
                           ReportCard(
                             cardName: "Stock Value",
                             wordingA: "Current Stock",
-                            wordingB: "Sold",
+                            wordingB: "Gross Sales",
                             valueA: stockValue.asData?.value ?? 0,
                             valueB: soldStock.asData?.value ?? 0,
                             description: "Stock Performance",
@@ -86,83 +100,124 @@ class ReportsState extends ConsumerState<Reports>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Past Reports',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey[700],
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                ref.watch(toggleBooleanValueProvider)
+                                    ? 'Past Reports'
+                                    : 'AI Reports',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey[700],
+                                ),
+                              ),
+                              Switch(
+                                value: ref.watch(toggleBooleanValueProvider),
+                                onChanged: (value) {
+                                  ref
+                                      .read(toggleBooleanValueProvider.notifier)
+                                      .toggleReport();
+
+                                  talker.warning(
+                                      "toggledReportValue ${ref.watch(toggleBooleanValueProvider)}");
+
+                                  ref
+                                      .read(dateRangeProvider.notifier)
+                                      .setStartDate(DateTime.now());
+                                  ref
+                                      .read(dateRangeProvider.notifier)
+                                      .setEndDate(DateTime.now());
+
+                                  ref.refresh(transactionItemListProvider);
+                                },
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
-                          reports.when(
-                            data: (reports) {
-                              if (reports.isEmpty) {
-                                return Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.inbox_outlined,
-                                        size: 64,
-                                        color: Colors.grey,
-                                      ),
-                                      SizedBox(height: 16),
-                                      Text(
-                                        'No reports available',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              } else {
-                                return ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: reports.length,
-                                  itemBuilder: (context, index) {
-                                    final report = reports[index];
-                                    return Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 12.0),
-                                      child: DownloadCard(
-                                        url: report.s3Url!,
-                                        filename: report.filename!,
-                                        downloaded: report.downloaded ?? false,
-                                        report: report,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }
-                            },
-                            loading: () => Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.inbox_outlined,
-                                    size: 64,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'No reports available',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.grey[600],
+                          ref.watch(toggleBooleanValueProvider)
+                              ? Center(
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(maxHeight: 900),
+                                    child: TransactionList(
+                                      showDetailedReport:
+                                          ref.watch(toggleBooleanValueProvider),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                            error: (error, stack) => Center(
-                              child: Text('Error loading reports: $error'),
-                            ),
-                          ),
+                                )
+                              : reports.when(
+                                  data: (reports) {
+                                    if (reports.isEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.inbox_outlined,
+                                              size: 64,
+                                              color: Colors.grey,
+                                            ),
+                                            SizedBox(height: 16),
+                                            Text(
+                                              'No reports available',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                color: Colors.grey[600],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: reports.length,
+                                        itemBuilder: (context, index) {
+                                          final report = reports[index];
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 12.0),
+                                            child: DownloadCard(
+                                              url: report.s3Url!,
+                                              filename: report.filename!,
+                                              downloaded:
+                                                  report.downloaded ?? false,
+                                              report: report,
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    }
+                                  },
+                                  loading: () => Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.inbox_outlined,
+                                          size: 64,
+                                          color: Colors.grey,
+                                        ),
+                                        SizedBox(height: 16),
+                                        Text(
+                                          'No reports available',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  error: (error, stack) => Center(
+                                    child:
+                                        Text('Error loading reports: $error'),
+                                  ),
+                                ),
                         ],
                       ),
                     ),

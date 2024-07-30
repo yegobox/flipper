@@ -28,11 +28,7 @@ class CashbookState extends ConsumerState<Cashbook> {
     return ViewModelBuilder<CoreViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) async {
-        // List<ITransaction> _transactions = await ProxyService.realm
-        //     .completedTransactions(branchId: ProxyService.box.getBranchId()!);
-        // model.updateTransactionsList(newTransactions: _transactions);
-      },
+      onViewModelReady: (model) async {},
       builder: (context, model, child) {
         return Scaffold(
           appBar: buildCustomAppBar(model),
@@ -48,25 +44,19 @@ class CashbookState extends ConsumerState<Cashbook> {
       title: 'Cash Book',
       icon: Icons.close,
       onPop: () async {
-        _routerService.back();
+        if (model.newTransactionPressed) {
+          model.newTransactionPressed = false;
+          model.notifyListeners();
+        } else {
+          _routerService.back();
+        }
       },
     );
   }
 
   Widget buildBody(BuildContext context, CoreViewModel model) {
-    // final transactionData = ref.watch(transactionsStreamProvider);
     return Column(
       children: [
-        // buildDropdowns(model),
-        // SizedBox(
-        //   height: 20,
-        // ),
-        // BuildGaugeOrList(
-        //   context: context,
-        //   data: transactionData,
-        //   widgetType: 'gauge',
-        //   model: model,
-        // ),
         buildTransactionSection(context, model),
         SizedBox(height: 31),
       ],
@@ -169,17 +159,17 @@ class CashbookState extends ConsumerState<Cashbook> {
         child: OutlinedButton(
           onPressed: onPressed,
           style: ButtonStyle(
-            side: MaterialStateProperty.all<BorderSide>(
+            side: WidgetStateProperty.all<BorderSide>(
               BorderSide(color: color),
             ),
-            shape: MaterialStateProperty.resolveWith<OutlinedBorder>(
+            shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
               (states) => RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
             ),
-            backgroundColor: MaterialStateProperty.all<Color>(color),
-            overlayColor: MaterialStateProperty.resolveWith<Color?>(
-              (Set<MaterialState> states) {
+            backgroundColor: WidgetStateProperty.all<Color>(color),
+            overlayColor: WidgetStateProperty.resolveWith<Color?>(
+              (Set<WidgetState> states) {
                 return color; // Defer to the widget's default.
               },
             ),
@@ -207,39 +197,12 @@ class CashbookState extends ConsumerState<Cashbook> {
   Widget buildNewTransactionContent(BuildContext context, CoreViewModel model) {
     return Column(
       children: [
-        buildNewTransactionTypeLabel(model.newTransactionType, model),
-        KeyPadView.cashBookMode(
-          model: model,
-          isBigScreen: widget.isBigScreen,
-          accountingMode: true,
-          transactionType: model.newTransactionType,
-        ),
-      ],
-    );
-  }
-
-  Widget buildNewTransactionTypeLabel(String transactionType, model) {
-    String label = '';
-    if (transactionType == TransactionType.cashIn) {
-      label = ' Cash In';
-    } else if (transactionType == TransactionType.cashOut) {
-      label = TransactionType.cashOut;
-    }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        SizedBox(width: 10),
-        Text(
-          label,
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        Spacer(),
-        IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            model.newTransactionPressed = false;
-            model.notifyListeners();
-          },
+        Expanded(
+          child: KeyPadView.cashBookMode(
+              model: model,
+              isBigScreen: widget.isBigScreen,
+              accountingMode: true,
+              transactionType: model.newTransactionType),
         ),
       ],
     );

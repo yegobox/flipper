@@ -1,14 +1,16 @@
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 
-class TaxConfiguration extends StatefulWidget {
+class TaxConfiguration extends StatefulHookConsumerWidget {
   const TaxConfiguration({Key? key, required this.showheader})
       : super(key: key);
   final bool showheader;
@@ -17,12 +19,13 @@ class TaxConfiguration extends StatefulWidget {
   _TaxConfigurationState createState() => _TaxConfigurationState();
 }
 
-class _TaxConfigurationState extends State<TaxConfiguration> {
+class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
   bool isTaxEnabled = false;
   final _routerService = locator<RouterService>();
   final _formKey = GlobalKey<FormState>();
   final _serverUrlController = TextEditingController();
   final _branchController = TextEditingController();
+  final _mrcController = TextEditingController();
 
   // ignore: unused_field
   String _supportLine = "";
@@ -49,7 +52,8 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
     return ViewModelBuilder<SettingViewModel>.reactive(
       viewModelBuilder: () => SettingViewModel(),
       onViewModelReady: (model) async {
-        if (await ProxyService.realm.isTaxEnabled()) {
+        if (await ProxyService.realm
+            .isTaxEnabled(business: ProxyService.local.getBusiness())) {
           setState(() {
             isTaxEnabled = true;
           });
@@ -65,6 +69,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
           appBar: widget.showheader
               ? CustomAppBar(
                   onPop: () async {
+                    ref.invalidate(transactionItemListProvider);
                     _routerService.pop();
                   },
                   closeButton: CLOSEBUTTON.WIDGET,
@@ -241,6 +246,26 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
                 validator: _validaBhfid,
               ),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _mrcController,
+                decoration: InputDecoration(
+                  hintText: 'Mrc ',
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: Colors.blue),
+                  ),
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                ),
+                validator: _validaBhfid,
+              ),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
                 onPressed: _saveForm,
                 icon: const Icon(Icons.save),
@@ -273,7 +298,7 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
 
   String? _validaBhfid(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a valid URL';
+      return 'Please a value';
     }
     return null;
   }
@@ -288,6 +313,12 @@ class _TaxConfigurationState extends State<TaxConfiguration> {
         key: "bhfId",
         value: _branchController.text,
       );
+
+      ProxyService.box.writeString(
+        key: "mrc",
+        value: _mrcController.text,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Saved successfully')),
       );

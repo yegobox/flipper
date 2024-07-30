@@ -28,6 +28,7 @@ class _PinLoginState extends State<PinLogin> {
       builder: (context, model, child) {
         return SafeArea(
           child: Scaffold(
+            key: Key('PinLogin'),
             body: Stack(
               children: [
                 SizedBox(width: 85, child: back.BackButton()),
@@ -77,13 +78,13 @@ class _PinLoginState extends State<PinLogin> {
                                   height: 40,
                                   child: !model.isProcessing
                                       ? BoxButton(
-                                          key: const Key("pinLoginButton"),
+                                          key: const Key(
+                                              "pinLoginButton_desktop"),
                                           borderRadius: 2,
                                           onTap: () async {
                                             if (_form.currentState!
                                                 .validate()) {
-                                              /// First clear out any residue of a user this help if a user was logged out
-
+                                             
                                               try {
                                                 log("initiating pin login flow");
                                                 await model.desktopLogin(
@@ -101,12 +102,12 @@ class _PinLoginState extends State<PinLogin> {
                                                       backgroundColor:
                                                           Colors.red,
                                                       content: Text(
-                                                        "Pin not found.",
+                                                        e.errMsg(),
                                                         style: primaryTextStyle,
                                                       ),
                                                     ),
                                                   );
-                                                } else if (e is RemoteError) {
+                                                } else if (e is PinError) {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -115,11 +116,11 @@ class _PinLoginState extends State<PinLogin> {
                                                           .floating,
                                                       backgroundColor:
                                                           Colors.red,
-                                                      content: Text(e.term),
+                                                      content: Text(e.errMsg()),
                                                     ),
                                                   );
                                                 } else {
-                                                  log(e.toString());
+                                                  e as UnknownError;
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     SnackBar(
@@ -128,8 +129,7 @@ class _PinLoginState extends State<PinLogin> {
                                                           .floating,
                                                       backgroundColor:
                                                           Colors.red,
-                                                      content:
-                                                          Text(e.toString()),
+                                                      content: Text(e.errMsg()),
                                                     ),
                                                   );
                                                 }

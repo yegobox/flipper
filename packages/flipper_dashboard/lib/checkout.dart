@@ -1,6 +1,5 @@
 // ignore_for_file: unused_result
 
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
@@ -13,11 +12,9 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'body.dart';
 import 'keypad_view.dart';
@@ -46,13 +43,13 @@ class CheckOutState extends ConsumerState<CheckOut>
   final TextEditingController textEditController = TextEditingController();
   final TextEditingController searchContrroller = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _purchaseCodeFormkey = GlobalKey<FormState>();
   final TextEditingController discountController = TextEditingController();
   final TextEditingController receivedAmountController =
       TextEditingController();
   final TextEditingController customerPhoneNumberController =
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
-  bool _busy = false;
 
   final TextEditingController _purchasecodecontroller = TextEditingController();
 
@@ -90,22 +87,37 @@ class CheckOutState extends ConsumerState<CheckOut>
     try {
       ITransaction? trans =
           await ProxyService.realm.getTransactionById(id: transaction!.id!);
+
       TaxController(object: trans).handleReceipt(
         purchaseCode: purchaseCode,
         printCallback: (Uint8List bytes) async {
-          // talker.warning("received bytes $bytes");
-          final printers = await Printing.listPrinters();
-          if (printers.isNotEmpty) {
-            Printer? pri = await Printing.pickPrinter(
-                context: context, title: "List of printers");
+          _formKey.currentState?.reset();
+          ref.refresh(loadingProvider.notifier);
 
-            await Printing.directPrintPdf(
-                printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
-          }
+          // receivedAmountController.clear();
+          ref.read(loadingProvider.notifier).state = false;
+          ref.refresh(loadingProvider.notifier);
+          ref.read(isProcessingProvider.notifier).stopProcessing();
+          ref.refresh(
+              pendingTransactionProvider((TransactionType.sale, false)));
+
+          await printing(bytes);
         },
       );
     } catch (e) {
       talker.error(e);
+    }
+  }
+
+  Future<void> printing(Uint8List bytes) async {
+    final printers = await Printing.listPrinters();
+
+    if (printers.isNotEmpty) {
+      Printer? pri = await Printing.pickPrinter(
+          context: context, title: "List of printers");
+
+      await Printing.directPrintPdf(
+          printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
     }
   }
 
@@ -115,104 +127,112 @@ class CheckOutState extends ConsumerState<CheckOut>
       required double amount,
       required ITransaction transaction,
       required double discount}) async {
-    model.handlingConfirm = true;
-
-    // Parse discount ONLY if _discount.text is NOT empty
-
-    ITransaction trans = await model.collectPayment(
-      paymentType: paymentType,
-      transaction: transaction,
-      amountReceived: amount,
-      discount: discount,
-      directlyHandleReceipt: false,
-    );
-
-    /// now handle the receipt now!. manually
-    await handleReceiptGeneration(transaction: trans);
-
     if (transaction.customerId != null) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           final double height = MediaQuery.of(context).size.height;
-          final double adjustedHeight =
-              height * 0.8; // Adjust the height to 80% of the screen height
+          final double adjustedHeight = height * 0.8;
 
           return AlertDialog(
-            title: Text('Digital Receipt'),
-            content: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: adjustedHeight,
-              ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text('Do you need a digital receipt?'),
-                    TextFormField(
-                      controller: _purchasecodecontroller,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Purchase Code',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter a purchase code';
-                        }
-                        return null;
-                      },
-                      onFieldSubmitted: (value) {},
-                      // Handle the purchase code input
-                      onSaved: (value) {},
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: Colors.grey[100],
+            title: Text(
+              'Digital Receipt',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.blue[800]),
+              textAlign: TextAlign.center,
+            ),
+            content: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: adjustedHeight),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _purchaseCodeFormkey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Text(
+                          'Do you need a digital receipt?',
+                          style:
+                              TextStyle(fontSize: 18, color: Colors.grey[800]),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 24),
+                        TextFormField(
+                          controller: _purchasecodecontroller,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Purchase Code',
+                            // filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            prefixIcon:
+                                Icon(Icons.receipt, color: Colors.blue[800]),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter a purchase code';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (value) {},
+                          onSaved: (value) {},
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
             actions: <Widget>[
-              BoxButton(
-                title: 'Submit',
-                busy: _busy,
-                onTap: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    setState(() {
-                      _busy = true;
-                    });
-                    _formKey.currentState?.save();
-                    String purchaseCode = _purchasecodecontroller.text;
-                    talker.warning("received purchase code: ${purchaseCode}");
-                    try {
-                      await handleReceiptGeneration(purchaseCode: purchaseCode);
-                      Navigator.of(context).pop();
-                    } catch (e) {
-                      setState(() {
-                        _busy = false;
-                      });
-                      String errorMessage = e.toString();
-                      int startIndex = errorMessage.indexOf(': ');
-                      if (startIndex != -1) {
-                        errorMessage = errorMessage.substring(startIndex + 2);
-                      }
-                      // toast(errorMessage);
-                      // showSnackBar(context, errorMessage,
-                      //     textColor: Colors.white,
-                      //     backgroundColor: Colors.green);
-                      return;
-                    }
-                  }
+              TextButton(
+                child:
+                    Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+                onPressed: () {
+                  ref.read(isProcessingProvider.notifier).stopProcessing();
+                  Navigator.of(context).pop();
                 },
               ),
-              TextButton(
-                child: Text('Cancel'),
+              ElevatedButton(
+                child: ref.watch(isProcessingProvider)
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : Text('Submit'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[600],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
                 onPressed: () async {
-                  /// still print the purchase code without the customer information!
-                  /// this is standard for non customer attached receipt
-                  await TaxController(object: transaction).handleReceipt(
-                    printCallback: (Uint8List bytes) {},
-                  );
-                  // Handle when the user doesn't need a digital receipt
-                  Navigator.of(context).pop();
+                  if (_purchaseCodeFormkey.currentState?.validate() ?? false) {
+                    ref.read(isProcessingProvider.notifier).toggleProcessing();
+                    // _purchaseCodeFormkey.currentState?.save();
+                    String purchaseCode = _purchasecodecontroller.text;
+                    talker.warning("received purchase code: $purchaseCode");
+                    await handlePayment(
+                        model: model,
+                        transactionType: TransactionType.sale,
+                        categoryId: "0",
+                        paymentType: paymentType,
+                        transaction: transaction,
+                        amount: amount,
+                        discount: discount,
+                        purchaseCode: purchaseCode);
+                    ref.read(loadingProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  }
                 },
               ),
             ],
@@ -222,13 +242,48 @@ class CheckOutState extends ConsumerState<CheckOut>
     }
 
     /// refresh and go home
-    ref.refresh(pendingTransactionProvider(TransactionType.sale));
+    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
 
     model.handlingConfirm = false;
   }
 
+  Future<void> handlePayment(
+      {String? purchaseCode,
+      required CoreViewModel model,
+      required String paymentType,
+      required ITransaction transaction,
+      String? categoryId,
+      required String transactionType,
+      required double amount,
+      required double discount}) async {
+    ITransaction trans = model.collectPayment(
+      categoryId: categoryId,
+      transactionType: transactionType,
+      paymentType: paymentType,
+      transaction: transaction,
+      amountReceived: amount,
+      discount: discount,
+      isIncome: true,
+      directlyHandleReceipt: false,
+    );
+
+    if (ProxyService.realm
+            .isTaxEnabled(business: ProxyService.local.getBusiness()) &&
+        ProxyService.box.getServerUrl() != null &&
+        ProxyService.box.bhfId() != null) {
+      await handleReceiptGeneration(
+          transaction: trans, purchaseCode: purchaseCode);
+    }
+    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
+    ref.read(loadingProvider.notifier).state = false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final transaction = ref
+        .watch(pendingTransactionProvider((TransactionType.sale, false)))
+        .asData!
+        .value;
     if (widget.isBigScreen) {
       return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
@@ -257,8 +312,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                               ),
                             ),
                             // Placeholder for the SearchInputWithDropdown to maintain space
-                            SizedBox(
-                                height: 60.0), // Adjust the height as needed
+                            SizedBox(height: 60.0),
                             Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: QuickSellingView(
@@ -278,41 +332,36 @@ class CheckOutState extends ConsumerState<CheckOut>
                                 model: model,
                                 controller: textEditController,
                                 nodeDisabled: true,
-                                completeTransaction: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    ref.read(loadingProvider.notifier).state =
-                                        true;
-                                    ref.refresh(loadingProvider.notifier);
+                                completeTransaction: () async {
+                                  ref.read(loadingProvider.notifier).state =
+                                      true;
+                                  Customer? customer = ProxyService.realm
+                                      .getCustomer(id: transaction.customerId);
 
-                                    confirmPayment(
-                                      amount: double.tryParse(
-                                              receivedAmountController.text) ??
-                                          0,
+                                  final amount = double.tryParse(
+                                          receivedAmountController.text) ??
+                                      0;
+                                  final discount = double.tryParse(
+                                          discountController.text) ??
+                                      0;
+
+                                  if (_formKey.currentState!.validate() &&
+                                      customer == null) {
+                                    handlePayment(
                                       model: model,
-                                      discount: double.tryParse(
-                                              discountController.text) ??
-                                          0,
-                                      paymentType: paymentTypeController.text,
-                                      transaction: ref
-                                          .watch(pendingTransactionProvider(
-                                              TransactionType.sale))
-                                          .asData!
-                                          .value,
+                                      paymentType: "Cash",
+                                      transactionType: TransactionType.sale,
+                                      transaction: transaction,
+                                      amount: amount,
+                                      discount: discount,
                                     );
-                                    receivedAmountController.clear();
-                                    ref.read(loadingProvider.notifier).state =
-                                        false;
-                                    ref.refresh(loadingProvider.notifier);
-                                    ProxyService.local.notify(
-                                      notification: AppNotification(
-                                        ObjectId(),
-                                        identifier:
-                                            ProxyService.box.getBranchId(),
-                                        type: "internal",
-                                        id: randomNumber(),
-                                        completed: false,
-                                        message: "Sale completed",
-                                      ),
+                                  } else {
+                                    confirmPayment(
+                                      amount: amount,
+                                      model: model,
+                                      discount: discount,
+                                      paymentType: paymentTypeController.text,
+                                      transaction: transaction,
                                     );
                                   }
                                 },
@@ -331,7 +380,8 @@ class CheckOutState extends ConsumerState<CheckOut>
                 right: 8.0,
                 child: SearchInputWithDropdown(
                   transaction: ref
-                      .watch(pendingTransactionProvider(TransactionType.sale))
+                      .watch(pendingTransactionProvider(
+                          (TransactionType.sale, false)))
                       .asData
                       ?.value,
                 ),

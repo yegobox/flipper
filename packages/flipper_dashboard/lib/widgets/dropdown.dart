@@ -31,36 +31,21 @@ class _ReusableDropdownState extends State<ReusableDropdown> {
     return DropdownButtonHideUnderline(
       child: DropdownButton<String>(
         value: _selectedOption,
-        items: [
-          DropdownMenuItem<String>(
-            alignment: Alignment.centerLeft,
-            value: widget.options.first,
+        items: widget.options.map((String option) {
+          return DropdownMenuItem<String>(
+            value: option,
             child: Padding(
               padding: EdgeInsets.only(left: 16.0),
               child: Text(
-                widget.options.first,
+                option,
                 style: GoogleFonts.poppins(
                   fontSize: 18,
                   color: Colors.grey.shade600,
                 ),
               ),
             ),
-          ),
-          DropdownMenuItem<String>(
-            alignment: Alignment.centerRight,
-            value: widget.options.last,
-            child: Padding(
-              padding: EdgeInsets.only(left: 16.0),
-              child: Text(
-                widget.options.last,
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ),
-          )
-        ],
+          );
+        }).toList(),
         onChanged: (String? newValue) {
           setState(() {
             _selectedOption = newValue;
@@ -75,8 +60,7 @@ class _ReusableDropdownState extends State<ReusableDropdown> {
           size: 20,
         ),
         alignment: AlignmentDirectional.topStart,
-        padding:
-            EdgeInsets.symmetric(horizontal: 8.0), // Adjust horizontal padding
+        padding: EdgeInsets.symmetric(horizontal: 8.0),
       ),
     );
   }

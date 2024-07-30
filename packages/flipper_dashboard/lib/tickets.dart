@@ -35,7 +35,9 @@ class _TicketsListState extends ConsumerState<TicketsList> {
           onPressed: () {
             /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
             /// cart preview
-            ref.refresh(pendingTransactionProvider(TransactionType.sale));
+            ref.refresh(
+              pendingTransactionProvider((TransactionType.sale, false)),
+            );
             _routerService.back();
           },
           icon: const Icon(Icons.close, color: Colors.black),
@@ -164,7 +166,7 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                                     for (var i = 0; i < 120; i++) {
                                       final transaction = ref.refresh(
                                           pendingTransactionProvider(
-                                              TransactionType.sale));
+                                              (TransactionType.sale, false)));
                                       ref.refresh(transactionItemsProvider(
                                               transaction.value?.id!)
                                           .notifier);

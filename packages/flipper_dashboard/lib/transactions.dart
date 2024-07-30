@@ -180,17 +180,10 @@ class TransactionsState extends ConsumerState<Transactions> {
         continue;
       }
       Color gradientColorOne =
-          (transaction.transactionType == TransactionType.cashOut)
-              ? Colors.red
-              : (transaction.transactionType == TransactionType.cashIn)
-                  ? Colors.blueAccent
-                  : Colors.greenAccent;
+          transaction.isExpense == true ? Colors.red : Colors.greenAccent;
+
       String typeOfTransaction =
-          transaction.transactionType == TransactionType.cashOut
-              ? TransactionType.cashOut
-              : (transaction.transactionType == TransactionType.cashIn)
-                  ? TransactionType.cashIn
-                  : TransactionType.sale;
+          transaction.isExpense == true ? "Expense" : "Income";
       if (lastSeen != transaction.createdAt!.substring(0, 10)) {
         lastSeen = transaction.createdAt!.substring(0, 10);
 
@@ -244,10 +237,7 @@ class TransactionsState extends ConsumerState<Transactions> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                        NumberFormat('#,###').format(
-                                double.parse(transaction.subTotal.toString())) +
-                            " RWF",
+                    Text(transaction.subTotal.toRwf(),
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -279,77 +269,86 @@ class TransactionsState extends ConsumerState<Transactions> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
-        onViewModelReady: (model) async {
-          Drawers? drawer = await ProxyService.realm
-              .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+      onViewModelReady: (model) async {
+        Drawers? drawer = await ProxyService.realm
+            .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
 
-          // for rra z report
-          setState(() {
-            zlist = _zTransactions(drawer: drawer!);
-          });
-        },
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              isDividerVisible: false,
-              title: 'Transactions',
-              icon: Icons.close,
-              onPop: () async {
-                _routerService.back();
-              },
-            ),
-            body: defaultTransactions
-                ? Padding(
-                    padding: const EdgeInsets.only(left: 13.0),
-                    child: Column(
-                      children: [
-                        RadioButtons(
+        // for rra z report
+        setState(() {
+          zlist = _zTransactions(drawer: drawer!);
+        });
+      },
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            isDividerVisible: false,
+            title: 'Transactions',
+            icon: Icons.close,
+            onPop: () async {
+              _routerService.back();
+            },
+          ),
+          body: defaultTransactions
+              ? Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 13.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          RadioButtons(
                             buttonLabels: transactionTypeOptions,
                             onChanged: (newPeriod) {
                               setState(() {
                                 list = [];
                                 displayedTransactionType = newPeriod;
                               });
-                            }),
-                        Divider(),
-                        buildList(context, model),
-                      ],
+                            },
+                          ),
+                          const Divider(
+                            color: Colors.grey,
+                          ),
+                        ],
+                      ),
                     ),
-                  )
-                : (zlist.isEmpty
-                    ? Center(
-                        child: Text(
+                    Expanded(
+                      child: buildList(context, model),
+                    ),
+                  ],
+                )
+              : zlist.isEmpty
+                  ? Center(
+                      child: Text(
                         "No Z Report",
                         style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 15,
-                            color: Colors.black),
-                      ))
-                    : ListView(
-                        children: zlist,
-                      )),
-          );
-        });
+                          fontWeight: FontWeight.w400,
+                          fontSize: 15,
+                          color: Colors.black,
+                        ),
+                      ),
+                    )
+                  : ListView(children: zlist),
+        );
+      },
+    );
   }
 
   Widget buildList(BuildContext context, CoreViewModel model) {
     final transactionsData = ref.watch(transactionsStreamProvider);
+    list.clear();
     return transactionsData.when(
       data: (value) {
         list = _normalTransactions(completedTransaction: value);
-
-        return Expanded(
-          child: ListView(
-            children: list,
-          ),
+        return ListView(
+          children: list,
         );
       },
       error: (error, stackTrace) {
         return Text(error.toString());
       },
       loading: () {
-        return Text("Loading transactions");
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }

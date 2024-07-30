@@ -60,29 +60,13 @@ mixin SharebleMethods {
     });
   }
 
-  //Transaction functions
-  // Stream<List<ITransaction>> getTransactions({String? transactionStatus}) {
-  //   return Stream.fromFuture(
-  //           ProxyService.realm.transactionsFuture(status: transactionStatus))
-  //       .asyncExpand((items) async* {
-  //     // log(items.toString());
-  //     yield items;
-  //   });
-  // }
-
   Stream<List<ITransaction>> getCashInTransactions() {
-    return Stream.fromFuture(
-            ProxyService.realm.transactionsFuture(isCashOut: false))
-        .asyncExpand((items) async* {
-      yield items;
-    });
+    final transactions = ProxyService.realm.transactions(isExpense: false);
+    return Stream.value(transactions);
   }
 
   Stream<List<ITransaction>> getCashOutTransactions() {
-    return Stream.fromFuture(
-            ProxyService.realm.transactionsFuture(isCashOut: true))
-        .asyncExpand((items) async* {
-      yield items;
-    });
+    final transactions = ProxyService.realm.transactions(isExpense: true);
+    return Stream.value(transactions);
   }
 }

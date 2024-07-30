@@ -10,6 +10,7 @@ import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
@@ -21,8 +22,10 @@ mixin IsolateHandler {
   static Realm? realm;
   static Realm? localRealm;
   static Future<void> flexibleSync(List<dynamic> args) async {
-    final dbPatch = args[3] as String;
-    String key = args[4] as String;
+    String? dbPatch = args[3] as String?;
+    String? key = args[4] as String?;
+
+    if (dbPatch == null || key == null) return;
     List<int> encryptionKey = key.toIntList();
 
     final app = App.getById(AppSecrets.appId);
@@ -40,11 +43,16 @@ mixin IsolateHandler {
     final sendPort = args[1] as SendPort;
     final dbPatch = args[3] as String;
     final branchId = args[2] as int;
-    String encryptionKey = args[4] as String;
-    int tinNumber = args[5] as int;
-    String bhfId = args[6] as String;
-    String URI = args[8] as String;
+    String? encryptionKey = args[4] as String?;
+    int? tinNumber = args[5] as int?;
+    String? bhfId = args[6] as String?;
+    String? URI = args[8] as String?;
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+
+    if (encryptionKey == null ||
+        tinNumber == null ||
+        bhfId == null ||
+        URI == null) return;
 
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
@@ -54,6 +62,9 @@ mixin IsolateHandler {
     realm?.close();
     realm = Realm(config);
     bool anythingUpdated = false;
+
+    /// handle missing value, part of self healing
+    _selfHeal(realm: realm);
 
     // await syncUnsynced(args);
     //log("This Track how often an isolate is running, helpful when we are crashing! ${branchId}");
@@ -132,7 +143,10 @@ mixin IsolateHandler {
           // }
 
           /// do not attempt saving a variant with missing fields
-          if (variant.qtyUnitCd == null || variant.taxTyCd == null) return;
+          if (variant.qtyUnitCd == null ||
+              variant.taxTyCd == null ||
+              variant.bhfId == null ||
+              variant.bhfId!.isEmpty) return;
           await RWTax().saveItem(variation: iVariant, URI: URI);
           gvariantIds.add(variant);
           talker.warning("Successfully saved Item.");
@@ -304,21 +318,36 @@ mixin IsolateHandler {
         Branch.schema,
         Drawers.schema,
         UnversalProduct.schema,
+        AppNotification.schema
       ],
       encryptionKey: encryptionKey,
       path: dbPatch,
+      schemaVersion: 2,
+      migrationCallback: (migration, oldSchemaVersion) {
+        if (oldSchemaVersion < 2) {
+          // This means we are migrating from version 1 to version 2
+          migration.deleteType('Drawers');
+        }
+      },
     );
     return config;
   }
 
   static Future<void> localData(List<dynamic> args) async {
     final dbPatch = args[3] as String;
-    String key = args[4] as String;
+    String? key = args[4] as String?;
+
+    int? branchId = args[2] as int?;
+    int? businessId = args[7] as int?;
+    String? bhfid = args[6] as String?;
+    String? URI = args[8] as String?;
+    if (key == null ||
+        branchId == null ||
+        businessId == null ||
+        bhfid == null ||
+        URI == null) return;
+
     List<int> encryptionKey = key.toIntList();
-    int branchId = args[2] as int;
-    int businessId = args[7] as int;
-    String bhfid = args[6] as String;
-    String URI = args[8] as String;
     LocalConfiguration config = localConfig(encryptionKey, dbPatch);
 
     localRealm?.close();
@@ -395,6 +424,28 @@ mixin IsolateHandler {
       }
     } catch (e) {
       talker.warning('Error fetching data: $e');
+    }
+  }
+
+  static void _selfHeal({Realm? realm}) {
+    /// first find any variant with empty itemClsCd add defaults
+    List<Variant> variants =
+        realm!.query<Variant>(r'itemClsCd == null OR itemClsCd == ""').toList();
+    talker.info("healed ${variants.length}");
+    for (Variant variant in variants) {
+      realm.write(() {
+        variant.itemClsCd = "5020230602";
+      });
+    }
+
+    List<TransactionItem> items = realm
+        .query<TransactionItem>(r'itemClsCd == null OR itemClsCd == ""')
+        .toList();
+    talker.info("healed ${variants.length}");
+    for (TransactionItem item in items) {
+      realm.write(() {
+        item.itemClsCd = "5020230602";
+      });
     }
   }
 }

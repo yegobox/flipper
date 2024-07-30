@@ -1,21 +1,18 @@
 import 'dart:developer';
-
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:stacked/stacked.dart';
-import 'divider.dart';
 
 class ListCategories extends StatefulHookConsumerWidget {
-  ListCategories({Key? key, required this.modeOfOperation}) : super(key: key);
+  const ListCategories({Key? key, required this.modeOfOperation})
+      : super(key: key);
   final String? modeOfOperation;
 
   @override
@@ -24,207 +21,130 @@ class ListCategories extends StatefulHookConsumerWidget {
 
 class ListCategoriesState extends ConsumerState<ListCategories> {
   final _routerService = locator<RouterService>();
+  String? _selectedCategoryId;
 
-  Wrap categoryListForProducts(
-      {required List<Category> categories,
-      required BuildContext context,
-      required ProductViewModel model}) {
-    final List<Widget> list = <Widget>[];
-
-    for (int i = 0; i < categories.length; i++) {
-      if (categories[i].name != 'custom') {
-        list.add(
-          GestureDetector(
-            onTap: () {
-              model.updateCategory(category: categories[i]);
-              log("Category name: " + categories[i].name!);
-            },
-            child: SingleChildScrollView(
-              child: ListTile(
-                title: Text(
-                  categories[i].name!,
-                  style: const TextStyle(color: Colors.black),
-                ),
-                trailing: Radio<String>(
-                  value: categories[i].id!.toString(),
-                  //This radio button is considered selected if its value matches the groupValue.
-                  groupValue: categories[i].focused == true
-                      ? categories[i].id.toString()
-                      : '0',
-                  onChanged: (value) {
-                    model.updateCategory(category: categories[i]);
-                    log("Category name: " + categories[i].name!);
-                  },
-                ),
-              ),
-            ),
-          ),
-        );
-      }
-      list.add(const Center(
-        child: SizedBox(
-          width: double.infinity,
-          child: CenterDivider(
-            width: double.infinity,
+  Widget buildCategoryItem({
+    required Category category,
+    required CoreViewModel model,
+    required String groupValue,
+  }) {
+    final isSelected = category.id.toString() == groupValue;
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      child: ListTile(
+        onTap: () {
+          setState(() {
+            _selectedCategoryId = category.id.toString();
+          });
+          model.updateCategory(category: category);
+          log("Category selected: ${category.name}");
+        },
+        title: Text(
+          category.name!,
+          style: TextStyle(
+            color: isSelected ? Theme.of(context).primaryColor : Colors.black,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-      ));
-    }
-    return Wrap(children: list);
+        trailing: Radio<String>(
+          value: category.id.toString(),
+          groupValue: groupValue,
+          activeColor: Theme.of(context).primaryColor,
+          onChanged: (value) {
+            setState(() {
+              _selectedCategoryId = value;
+            });
+            model.updateCategory(category: category);
+          },
+        ),
+        tileColor:
+            isSelected ? Theme.of(context).primaryColor.withOpacity(0.1) : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Colors.transparent,
+            width: 2,
+          ),
+        ),
+      ),
+    );
   }
 
-  Wrap categoryListForTransactions(
-      {required List<Category> categories,
-      required BuildContext context,
-      required CoreViewModel model}) {
-    final List<Widget> list = <Widget>[];
-
-    for (int i = 0; i < categories.length; i++) {
-      if (categories[i].name != 'custom') {
-        list.add(
-          GestureDetector(
-            onTap: () {
-              model.updateCategory(category: categories[i]);
-              log("Category name: " + categories[i].name!);
-            },
-            child: SingleChildScrollView(
-              child: ListTile(
-                title: Text(
-                  categories[i].name!,
-                  style: const TextStyle(color: Colors.black),
-                ),
-                trailing: Radio<String>(
-                  value: categories[i].id.toString(),
-                  //This radio button is considered selected if its value matches the groupValue.
-                  groupValue: categories[i].focused == true
-                      ? categories[i].id.toString()
-                      : '0',
-                  onChanged: (value) {
-                    model.updateCategory(category: categories[i]);
-                    log("Category name: " + categories[i].name!);
-                  },
-                ),
-              ),
-            ),
-          ),
+  Widget buildCategoryList({
+    required List<Category> categories,
+    required CoreViewModel model,
+    required String groupValue,
+  }) {
+    return ListView.builder(
+      itemCount: categories.length,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemBuilder: (context, index) {
+        if (categories[index].name == 'custom') {
+          return const SizedBox.shrink();
+        }
+        return buildCategoryItem(
+          category: categories[index],
+          model: model,
+          groupValue: groupValue,
         );
-      }
-      list.add(const Center(
-        child: SizedBox(
-          width: double.infinity,
-          child: CenterDivider(
-            width: double.infinity,
-          ),
-        ),
-      ));
-    }
-    return Wrap(children: list);
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.modeOfOperation == 'product') {
-      return ViewModelBuilder<ProductViewModel>.reactive(
-        viewModelBuilder: () => ProductViewModel(),
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              onPop: () {
-                log('back');
-                _routerService.back();
-              },
-              showActionButton: false,
-              title: 'Category',
-              icon: Icons.close,
-              multi: 3,
-              bottomSpacer: 52,
-            ),
-            body: FutureBuilder<List<Category>>(
-                future: ProxyService.realm
-                    .categories(branchId: ProxyService.box.getBranchId()!),
-                builder: (context, snapshot) {
-                  return Column(
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          log("on tap");
-                          _routerService.navigateTo(AddCategoryRoute());
-                        },
-                        child: ListTile(
-                          title: Text('Create Category ',
-                              style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400)),
-                          trailing: Wrap(
-                            children: const <Widget>[
-                              Icon(FluentIcons.arrow_forward_20_regular),
-                            ],
-                          ),
-                        ),
+    return ViewModelBuilder<CoreViewModel>.reactive(
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, child) {
+        return Scaffold(
+          appBar: CustomAppBar(
+            onPop: () {
+              log('back');
+              _routerService.back();
+            },
+            showActionButton: false,
+            title: 'Categories',
+            icon: Icons.arrow_back_ios,
+            multi: 3,
+            bottomSpacer: 80,
+          ),
+          body: FutureBuilder<List<Category>>(
+            future: ProxyService.realm
+                .categories(branchId: ProxyService.box.getBranchId()!),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    Card(
+                      margin: const EdgeInsets.all(8),
+                      child: ListTile(
+                        onTap: () =>
+                            _routerService.navigateTo(AddCategoryRoute()),
+                        title: const Text('Create Category',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                        trailing: const Icon(FluentIcons.add_24_regular),
                       ),
-                      categoryListForProducts(
-                        categories: snapshot.data ?? [],
-                        context: context,
-                        model: model,
-                      ),
-                    ],
-                  );
-                }),
-          );
-        },
-      );
-    } else {
-      return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, child) {
-          return Scaffold(
-            appBar: CustomAppBar(
-              onPop: () {
-                log('back');
-                _routerService.back();
-              },
-              showActionButton: false,
-              title: 'Category',
-              icon: Icons.close,
-              multi: 3,
-              bottomSpacer: 52,
-            ),
-            body: FutureBuilder<List<Category>>(
-                future: ProxyService.realm
-                    .categories(branchId: ProxyService.box.getBranchId()!),
-                builder: (context, snapshot) {
-                  return Column(
-                    children: <Widget>[
-                      GestureDetector(
-                        onTap: () {
-                          log("on tap");
-                          _routerService.navigateTo(AddCategoryRoute());
-                        },
-                        child: ListTile(
-                          title: Text('Create Category ',
-                              style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w400)),
-                          trailing: Wrap(
-                            children: const <Widget>[
-                              Icon(FluentIcons.arrow_forward_20_regular),
-                            ],
-                          ),
-                        ),
-                      ),
-                      categoryListForTransactions(
-                        categories: snapshot.data ?? [],
-                        context: context,
-                        model: model,
-                      ),
-                    ],
-                  );
-                }),
-          );
-        },
-      );
-    }
+                    ),
+                    const SizedBox(height: 16),
+                    buildCategoryList(
+                      categories: snapshot.data ?? [],
+                      model: model,
+                      groupValue: _selectedCategoryId ?? '',
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }

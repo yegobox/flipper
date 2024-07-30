@@ -1,7 +1,10 @@
 import 'package:realm/realm.dart';
 part 'schemas.realm.dart';
 
-// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
+// https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/
+
+/// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
+/// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 @RealmModel()
 class _Branch {
   @PrimaryKey()
@@ -276,9 +279,11 @@ class _Drawers {
   int? incompleteSale;
   int? otherTransactions;
   String? paymentMode;
-  int? cashierId;
+  int? cashierId; // the userId owning this drawer
   bool? open;
   DateTime? deletedAt;
+  int? businessId;
+  int? branchId;
 }
 
 @RealmModel()
@@ -953,4 +958,41 @@ class _Report {
   String? filename;
   String? s3Url;
   bool? downloaded = false;
+}
+
+/// because this model is computed, that is why we ar not mapping _id to realmId
+/// and we are using id as primary key, as we will not provide our own id
+/// because this computation will happen on atlas server
+
+@RealmModel()
+class _Computed {
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId id;
+  int? branchId;
+  int? businessId;
+  double? grossProfit = 0;
+  double? netProfit = 0;
+  double? totalStockValue = 0;
+  double? totalStockSoldValue = 0;
+  double? totalStockItems = 0;
+  // DateTime? createdAt = DateTime.now();
+}
+
+@RealmModel()
+class _Access {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? branchId;
+  int? businessId;
+  int? userId;
+  String? featureName;
+  String? userType;
+  String? accessLevel; // e.g., 'read', 'write', 'admin'
+  DateTime? createdAt;
+  DateTime? expiresAt; // Optional expiration date
+  String? status; // e.g., 'active', 'pending', 'revoked'
 }

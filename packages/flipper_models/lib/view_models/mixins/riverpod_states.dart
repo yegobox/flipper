@@ -98,11 +98,12 @@ final variantsProvider = FutureProvider.autoDispose
   return variants;
 });
 
-final pendingTransactionProvider =
-    Provider.autoDispose.family<AsyncValue<ITransaction>, String>((ref, mode) {
+final pendingTransactionProvider = Provider.autoDispose
+    .family<AsyncValue<ITransaction>, (String, bool)>((ref, params) {
+  final (mode, isExpense) = params;
   try {
-    ITransaction pendingTransaction =
-        ProxyService.realm.manageTransaction(transactionType: mode);
+    ITransaction pendingTransaction = ProxyService.realm
+        .manageTransaction(transactionType: mode, isExpense: isExpense);
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
@@ -132,7 +133,7 @@ class TransactionItemsNotifier
       state = AsyncLoading();
 
       // Await the future and store the result in a local variable
-      final items = await ProxyService.realm.transactionItems(
+      final items = ProxyService.realm.transactionItems(
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);
@@ -150,8 +151,8 @@ class TransactionItemsNotifier
   Future<void> updatePendingTransaction() async {
     try {
       // Await the future and store the result in a local variable
-      final transaction = await ProxyService.realm
-          .manageTransaction(transactionType: TransactionType.sale);
+      final transaction = await ProxyService.realm.manageTransaction(
+          transactionType: TransactionType.sale, isExpense: false);
       ProxyService.realm.realm!.write(() {
         transaction.subTotal = totalPayable;
       });
@@ -518,23 +519,29 @@ final transactionItemListProvider =
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange['startDate'];
   final endDate = dateRange['endDate'];
+  final isPluReport = ref.watch(toggleBooleanValueProvider);
 
-  // Check if startDate or endDate is null, and return an empty stream if either is null
+  // Use keepAlive to prevent the provider from being disposed immediately
+  ref.keepAlive();
+
   if (startDate == null || endDate == null) {
-    return Stream.value(
-        []); // Return an empty list stream instead of empty stream
+    return Stream.value([]);
   }
 
-  try {
-    final stream = ProxyService.realm
-        .transactionItemList(startDate: startDate, endDate: endDate);
-
-    // Use `switchMap` to handle potential changes in dateRangeProvider
-    return stream.switchMap((transactions) => Stream.value(transactions));
-  } catch (e, stackTrace) {
-    // Return an error stream if something goes wrong
-    return Stream.error(e, stackTrace);
-  }
+  return ProxyService.realm
+      .transactionItemList(
+    startDate: startDate,
+    endDate: endDate,
+    isPluReport: isPluReport,
+  )
+      .map((transactions) {
+    // talker.info("Transaction Item Data: $transactions");
+    return transactions;
+  }).handleError((e, stackTrace) {
+    talker.error("Error loading transaction items: $e");
+    talker.error(stackTrace);
+    throw e;
+  });
 });
 
 final transactionListProvider =
@@ -549,16 +556,22 @@ final transactionListProvider =
   }
 
   try {
-    final stream = ProxyService.realm
-        .transactionList(startDate: startDate, endDate: endDate);
+    final stream = ProxyService.realm.transactionList(
+      startDate: startDate,
+      endDate: endDate,
+    );
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
     return stream.switchMap((transactions) {
+      // Log the received data to the console
+      // talker.info("Transaction Data: $transactions");
+
       // Handle null or empty transactions if needed
       return Stream.value(transactions);
     });
   } catch (e, stackTrace) {
     // Return an error stream if something goes wrong
+    talker.info("Error loading transactions: $e");
     return Stream.error(e, stackTrace);
   }
 });
@@ -651,11 +664,19 @@ class KeypadNotifier extends StateNotifier<String> {
   KeypadNotifier() : super("0.00");
 
   void addKey(String key) {
-    state = state == "0.00" ? key : "$state$key";
+    if (key == 'C') {
+      state = 'C';
+    } else if (state == 'C') {
+      state = key;
+    } else {
+      state = state == "0.00" ? key : "$state$key";
+    }
   }
 
   void pop() {
-    if (state.length > 2) {
+    if (state == 'C') {
+      state = "0.00";
+    } else if (state.length > 2) {
       state = state.substring(0, state.length - 1);
     } else {
       state = "0.00";
@@ -663,8 +684,10 @@ class KeypadNotifier extends StateNotifier<String> {
   }
 
   void reset() {
-    state = "0.00"; // Directly set the state to "0.00"
+    state = "0.00";
   }
+
+  String get value => state == 'C' ? '' : state;
 }
 
 // State provider for managing loading state
@@ -709,9 +732,76 @@ final reportsProvider =
     return reports;
   });
 });
+final rowsPerPageProvider = StateProvider<int>((ref) => 100); // Default to 10
 
+class PluReportToggleNotifier extends StateNotifier<bool> {
+  PluReportToggleNotifier() : super(false); // Default to ZReport
+
+  void toggleReport() {
+    state = !state;
+  }
+}
+
+final toggleBooleanValueProvider =
+    StateNotifierProvider<PluReportToggleNotifier, bool>((ref) {
+  return PluReportToggleNotifier();
+});
+
+final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
+  (ref) => IsProcessingNotifier(),
+);
+
+class IsProcessingNotifier extends StateNotifier<bool> {
+  IsProcessingNotifier() : super(false); // Default to not processing
+
+  void startProcessing() {
+    state = true;
+  }
+
+  void stopProcessing() {
+    state = false;
+  }
+
+  void toggleProcessing() {
+    state = !state;
+  }
+}
+
+const int NO_SELECTION = -1;
+
+final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);
+
+final tenantProvider = Provider<Tenant?>((ref) {
+  final userId = ProxyService.box.getUserId();
+  return ProxyService.realm.tenant(userId: userId);
+});
+
+/// check if a user has either, admin,read,write on a given feature
 // StateNotifierProvider
+// Provider to get the list of user accesses
+final userAccessesProvider = Provider<List<Access>>((ref) {
+  final userId = ProxyService.box.getUserId()!;
+  return ProxyService.realm.access(userId: userId);
+});
 
+final branchesProvider = FutureProvider<List<Branch>>((ref) async {
+  final businessId = await ProxyService.box.getBusinessId();
+  return ProxyService.local.branches(businessId: businessId);
+});
+
+// Define a provider for the selected branch
+final selectedBranchProvider = StateProvider<Branch?>((ref) => null);
+
+// Provider to check if a user has access to a specific feature
+final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
+  final accesses = ref.watch(userAccessesProvider);
+  final now = DateTime.now();
+
+  return accesses.any((access) =>
+      access.featureName == featureName &&
+      access.status == 'active' &&
+      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+});
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

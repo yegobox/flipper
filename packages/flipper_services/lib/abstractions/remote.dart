@@ -38,4 +38,5 @@ abstract class Remote {
   bool isHttpSyncAvailable();
   String bcc();
   bool isEmailLogEnabled();
+  bool isMultiUserEnabled();
 }

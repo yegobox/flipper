@@ -1,5 +1,10 @@
+import 'dart:math';
+
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:realm/realm.dart';
 
 extension DateTimeExtensions on DateTime? {
   bool isNewDateCompareTo(DateTime? other) {
@@ -50,5 +55,135 @@ extension CurrencyFormatExtension on num {
       decimalDigits: 2,
     );
     return numberFormat.format(this);
+  }
+}
+
+extension DoubleExtension on double {
+  double toPrecision(int fractionDigits) {
+    final factor = pow(10, fractionDigits);
+    return (this * factor).round() / factor;
+  }
+}
+
+extension DateOnly on DateTime {
+  String get formattedDate {
+    final localDate = this.toLocal();
+    return "${localDate.year}-${localDate.month.toString().padLeft(2, '0')}-${localDate.day.toString().padLeft(2, '0')}";
+  }
+}
+
+extension TimeOnly on DateTime {
+  String get formattedTime {
+    final localDate = this.toLocal();
+    return "${localDate.hour.toString().padLeft(2, '0')}:${localDate.minute.toString().padLeft(2, '0')}:${localDate.second.toString().padLeft(2, '0')}";
+  }
+}
+
+extension DateTimeToDateTimeString on DateTime {
+  String toDateTimeString() {
+    final localDateTime = this.toLocal();
+    final dateFormat = DateFormat('dd/MM/yyyy');
+    final timeFormat = DateFormat('HH:mm:ss');
+    final dateString = dateFormat.format(localDateTime);
+    final timeString = timeFormat.format(localDateTime);
+    return '$dateString $timeString';
+  }
+}
+
+extension StringToDashedString on String {
+  String toDashedString() {
+    if (isEmpty) {
+      return '';
+    }
+    var x = 0;
+    final dashesInternalData = {2, 3, 4, 12, 6, 7};
+    final replacedInternalData = splitMapJoin(RegExp('....'),
+        onNonMatch: (s) => dashesInternalData.contains(x++) ? '-' : '');
+    return replacedInternalData;
+  }
+}
+
+extension RealmEJsonConverterExtension on EJsonValue {
+  /// Converts Realm EJson values to their corresponding Dart types and swaps 'id' and 'serverId'.
+  ///
+  /// **Usage:**
+  ///
+  /// ```dart
+  /// final myObject = realm.find<MyObject>('someObjectId')!;
+  /// final jsonObject = myObject.toEJson();
+  /// final convertedJson = jsonObject.convertRealmValues();
+  /// ```
+  dynamic convertRealmValues() {
+    return _convertValue(this);
+  }
+
+  dynamic _convertValue(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return _convertMap(value);
+    } else if (value is List) {
+      return value.map((item) => _convertValue(item)).toList();
+    } else if (value is ObjectId) {
+      return value.hexString;
+    } else if (value is DateTime) {
+      return value.toIso8601String();
+    }
+    return value;
+  }
+
+  Map<String, dynamic> _convertMap(Map<String, dynamic> map) {
+    final convertedMap = <String, dynamic>{};
+    map.forEach((key, value) {
+      if (value is Map<String, dynamic> && value.length == 1) {
+        final innerKey = value.keys.first;
+        final innerValue = value[innerKey];
+        switch (innerKey) {
+          case '\$numberInt':
+          case '\$numberLong':
+            convertedMap[key] = int.parse(innerValue);
+            break;
+          case '\$numberDouble':
+            convertedMap[key] = double.parse(innerValue);
+            break;
+          case '\$date':
+            if (innerValue is Map && innerValue.containsKey('\$numberLong')) {
+              convertedMap[key] = DateTime.fromMillisecondsSinceEpoch(
+                int.parse(innerValue['\$numberLong']),
+                isUtc: true,
+              ).toIso8601String();
+            } else {
+              convertedMap[key] = innerValue;
+            }
+            break;
+          case '\$oid':
+            convertedMap[key] = innerValue;
+            break;
+          default:
+            convertedMap[key] = _convertValue(value);
+        }
+      } else {
+        convertedMap[key] = _convertValue(value);
+      }
+    });
+
+    // Swap 'id' and 'serverId' if both exist
+    if (convertedMap.containsKey('id') &&
+        convertedMap.containsKey('serverId')) {
+      final temp = convertedMap['id'];
+      convertedMap['id'] = convertedMap['serverId'];
+      convertedMap['serverId'] = temp;
+    }
+
+    return convertedMap;
+  }
+}
+
+extension AccessControlWidget on Widget {
+  Widget shouldSeeTheApp(WidgetRef ref, String featureName) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final hasAccess = ref.watch(featureAccessProvider(featureName));
+        return hasAccess ? this : SizedBox.shrink();
+      },
+    );
   }
 }

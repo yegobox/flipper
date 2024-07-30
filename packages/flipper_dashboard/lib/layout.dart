@@ -1,3 +1,6 @@
+import 'package:flipper_dashboard/TenantWidget.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/apps.dart';
@@ -8,6 +11,10 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+
+extension on Widget {
+  Widget? showOrNull(bool isShow) => isShow ? this : null;
+}
 
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
@@ -64,6 +71,28 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // && kDebugMode
+            ProxyService.remoteConfig.isMultiUserEnabled()
+                ? Container(
+                    child: SideMenu(
+                      mode: SideMenuMode.compact,
+                      builder: (data) {
+                        return SideMenuData(
+                          header: Container(
+                            child: Image.asset(
+                              'assets/logo.png',
+                              package: 'flipper_dashboard',
+                              width: 40,
+                              height: 40,
+                            ),
+                          ),
+                          items: [],
+                          footer: TenantWidget(),
+                        );
+                      },
+                    ),
+                  )
+                : SizedBox.shrink(),
             const SizedBox(width: 20),
             Expanded(
               child: isScanningMode

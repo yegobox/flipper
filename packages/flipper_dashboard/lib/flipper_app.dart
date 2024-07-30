@@ -4,8 +4,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flipper_dashboard/NotificationWidget.dart';
 import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/realm_model_export.dart';
@@ -38,7 +36,6 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     with WidgetsBindingObserver {
   PageController page = PageController();
   final TextEditingController controller = TextEditingController();
-  SideMenuController sideMenu = SideMenuController();
   int tabSelected = 0;
   final formKey = GlobalKey<FormState>();
   FocusNode focusNode = FocusNode();
@@ -131,52 +128,22 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   @override
   Widget build(BuildContext context) {
-    return ViewModelBuilder<CoreViewModel>.reactive(
+    return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        ref.refresh(pendingTransactionProvider(TransactionType.sale));
+        ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
-        return Stack(
-          children: [
-            _buildScaffold(context, model),
-            // Directly access the notification stream provider using ref
-            ref.watch(notificationStreamProvider).when(
-              data: (notifications) {
-                // Data is available from the notification stream
-                if (notifications.isNotEmpty) {
-                  return NotificationWidget(
-                    notifications: notifications,
-                    onClearAll: () {},
-                    onAcknowledge: (id) {
-                      print('Notification acknowledged with id: $id');
-                    },
-                  );
-                } else {
-                  return SizedBox.shrink();
-                }
-              },
-              error: (error, stackTrace) {
-                // Handle errors from the notification stream
-                talker.error(stackTrace);
-                // return Text('Error: $error');
-                return SizedBox.shrink();
-              },
-              loading: () {
-                // Display a loading indicator while waiting for notifications
-                return CircularProgressIndicator();
-              },
-            ),
-          ],
-        );
+        return _buildScaffold(context, model);
       },
     );
   }
 
   void _viewModelReadyLogic(CoreViewModel model) {
     final currentTransaction =
-        ref.watch(pendingTransactionProvider(TransactionType.sale));
+        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
+    // ignore: duplicate_ignore
     // ignore: unused_result
     ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
     initializeApplicationIfRequired();
@@ -209,8 +176,8 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
       AppService.cleanedData.listen((data) async {
         log("listened to data");
-        final pendingTransaction =
-            ref.watch(pendingTransactionProvider(TransactionType.sale));
+        final pendingTransaction = ref
+            .watch(pendingTransactionProvider((TransactionType.sale, false)));
         log(data);
         List<String> parts = data.split(':');
         String firstPart = parts[0];

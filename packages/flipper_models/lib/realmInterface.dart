@@ -44,11 +44,13 @@ abstract class RealmApiInterface {
 
   Future<double> stocks({int? productId, int? variantId});
   Stream<double> getStockStream({int? productId, int? variantId});
-  Future<List<ITransaction>> transactionsFuture({
+  List<ITransaction> transactions({
+    DateTime? startDate,
+    DateTime? endDate,
     String? status,
     String? transactionType,
     int? branchId,
-    bool isCashOut = false,
+    bool isExpense = false,
     bool includePending = false,
   });
   Stream<List<Product>> productStreams({int? prodIndex});
@@ -60,7 +62,7 @@ abstract class RealmApiInterface {
       {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
   Future<List<Category>> categories({required int branchId});
-  Future<Category?> activeCategory({required int branchId});
+  Category? activeCategory({required int branchId});
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
@@ -95,6 +97,9 @@ abstract class RealmApiInterface {
   //this function for now figure out what is the business id on backend side.
   Future<Product?> createProduct(
       {required Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -102,31 +107,39 @@ abstract class RealmApiInterface {
       int itemSeq = 1,
       bool ebmSynced = false});
   Future<bool> logOut();
-  Future<void> logOutLight();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
   ITransaction manageTransaction(
-      {required String transactionType, bool? includeSubTotalCheck = false});
+      {required String transactionType,
+      required bool isExpense,
+      bool? includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType});
+      {required String transactionType, required bool isExpense});
 
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
   Future<TransactionItem?> getTransactionItemById({required int id});
   Stream<List<ITransaction>> transactionList(
       {DateTime? startDate, DateTime? endDate});
-  Future<Variant?> getCustomVariant();
+  Future<Variant?> getCustomVariant({
+    required int businessId,
+    required int branchId,
+    required int tinNumber,
+  });
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
-  Future<ITransaction> collectPayment({
+  ITransaction collectPayment({
     required double cashReceived,
     required ITransaction transaction,
     required String paymentType,
     required double discount,
+    required String transactionType,
+    String? categoryId,
     bool directlyHandleReceipt = false,
+    required bool isIncome,
   });
 
 // app settings and users settings
@@ -156,7 +169,7 @@ abstract class RealmApiInterface {
   List<Customer> getCustomers({String? key, int? id});
   Future<Customer?> getCustomerFuture({String? key, int? id});
 
-  Future<ITransaction?> getTransactionById({required int id});
+  ITransaction? getTransactionById({required int id});
   Future<List<ITransaction>> tickets();
   Stream<List<ITransaction>> ticketsStreams();
   Stream<List<ITransaction>> transactionStreamById(
@@ -183,7 +196,7 @@ abstract class RealmApiInterface {
 
   Future<List<Discount>> getDiscounts({required int branchId});
 
-  Future<void> addTransactionItem(
+  void addTransactionItem(
       {required ITransaction transaction,
       required TransactionItem item,
       required bool partOfComposite});
@@ -192,8 +205,6 @@ abstract class RealmApiInterface {
   bool suggestRestore();
 
   Future<int> userNameAvailable({required String name});
-
-  Future<LPermission?> permission({required int userId});
 
   Future<List<Tenant>> tenants({int? businessId});
   Future<Tenant?> getTenantBYUserId({required int userId});
@@ -246,7 +257,7 @@ abstract class RealmApiInterface {
       required bool active});
 
   Variant? getVariantById({required int id});
-  bool isTaxEnabled();
+  bool isTaxEnabled({required Business business});
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required ITransaction transaction,
@@ -372,7 +383,7 @@ abstract class RealmApiInterface {
 
   Future<Drawers?> openDrawer({required Drawers drawer});
   Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate});
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
   Future<Stream<double>> downloadAssetSave(
@@ -396,12 +407,25 @@ abstract class RealmApiInterface {
       required double supplierPrice,
       required double qty,
       required String color,
+      required int tinNumber,
       required int itemSeq,
       required String name});
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
   Future<RealmApiInterface> instance();
-  Future<Tenant?> tenant({required int businessId});
+  Tenant? tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});
+
+  Future<
+      ({
+        double grossProfit,
+        double netProfit,
+      })> getReportData();
+
+  /// determine if current running user is admin
+  bool isAdmin();
+  Future<LPermission?> permission({required int userId});
+  List<LPermission> permissions({required int userId});
+  List<Access> access({required int userId});
 }

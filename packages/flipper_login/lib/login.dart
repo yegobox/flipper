@@ -13,7 +13,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:device_type/device_type.dart';
+import 'package:flipper_services/DeviceType.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);

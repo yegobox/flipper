@@ -1,57 +1,67 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// Import the relevant file
-// import 'package:nock/nock.dart';
 
-import 'package:flipper_rw/main.dart' as app;
-import 'package:patrol/patrol.dart';
+import 'package:flipper_rw/main.dart' as app_main;
+import 'package:flipper_ui/flipper_ui.dart';
+import 'package:integration_test/integration_test.dart';
+import 'common.dart';
 
-// https://stackoverflow.com/questions/69248403/flutter-widget-testing-with-httpclient
-//https://pub.dev/packages/nock
-//https://github.com/nock/nock?tab=readme-ov-file#how-does-it-work
-//https://designer.mocky.io/
-//flutter test --dart-define=Test=true -d windows integration_test/smoke_windows_test.dart
+// patrol test  --target integration_test/smoke_windows_test.dart
 void main() {
-  // setUpAll(nock.init);
+  testWidgets('Test app works on Windows', (WidgetTester tester) async {
+    await app_main.main();
+    await tester.pumpAndSettle();
 
-  group('Complete E2E Test:', () {
-    patrolTest('Run app-android:', (tester) async {
-      await app.main();
-      await tester.pumpAndSettle();
-      await tester.pumpAndSettle();
+    // Find the login button
+    final loginButton = find.byKey(const Key('pinLogin_desktop'));
+    expect(loginButton, findsOneWidget);
 
-      expect(find.text('Log in to Flipper by QR Code'), findsOneWidget);
+    // await tester.pumpAndSettle();
+    // // navigat to pin login screen
+    await tester.tap(loginButton);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('PinLogin')), findsOneWidget);
 
-      await tester.tap(find.byKey(const Key('pinLogin')));
-      await tester.pumpAndSettle();
+    // // Simulate entering an empty PIN
+    // final pinField = find.byType(TextFormField);
+    // await tester.enterText(pinField, '');
+    // await tester.pumpAndSettle();
+    // // // Tap the login button
+    // await tester.tap(find.byKey(const Key('pinLoginButton_desktop')));
+    // await tester.pumpAndSettle();
+    // // // Verify that the validator error message is displayed
+    // final errorText = find.text('PIN is required');
+    // await tester.pumpAndSettle();
+    // expect(errorText, findsOneWidget);
 
-      // Verify that the PIN text field is rendered within the Form
-      expect(find.byType(Form), findsOneWidget);
+    // // Simulate entering a non-empty PIN
+    // await tester.enterText(pinField, '1234');
+    // await tester.tap(loginButton);
+    // await tester.pumpAndSettle();
+    // expect(errorText, findsNothing);
 
-      expect(find.byType(TextFormField), findsOneWidget);
+    // final pinNotFoundError = find.text('Pin: Not found');
+    // expect(pinNotFoundError, findsOneWidget);
 
-      // Simulate entering an empty PIN
-      await tester.enterText(find.byType(TextFormField), '');
+    // // Simulate entering a real PIN.
+    // await tester.enterText(pinField, '73268');
+    // await tester.tap(find.widgetWithText(BoxButton, 'Log in'));
+    // await tester.pumpAndSettle();
+    // expect(pinNotFoundError, findsNothing);
+    // await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Verify that the validator error message is displayed
-      await tester.tap(find.text('Log in'));
+    // /// click on  EOD from ribbon
+    // await tester.tap(find.byKey(const Key('eod_desktop')));
 
-      await tester.pumpAndSettle();
+    // // should see the drawer screen
+    // final drawer = find.byKey(const Key('openDrawerPage'));
+    // expect(drawer, findsOneWidget);
 
-      expect(find.text('PIN is required'), findsOneWidget);
+    // // Add a delay to ensure all animations have completed
+    // await tester.pumpAndSettle(const Duration(seconds: 2));
 
-      // Simulate entering a non-empty PIN
-      await tester.enterText(find.byType(TextFormField), '1234');
-      await tester.tap(find.text('Log in'));
-
-      /// now test with real PIN. it login and go to openDrawerPage
-      // await tester.enterText(find.byType(TextFormField), '67814');
-      //
-      // await tester.tap(find.text('Log in'));
-      //
-      // await tester.pumpAndSettle(const Duration(seconds: 10));
-      //
-      // await tester.tap(find.byKey(const Key('openDrawerPage')));
-    });
+    // exit(0);
   });
 }

@@ -30,12 +30,12 @@ class SessionException implements Exception {
   SessionException({required this.term});
 }
 
-class RemoteError implements Exception {
+class PinError implements Exception {
   String term;
 
-  String errMsg() => 'General error: $term';
+  String errMsg() => 'Pin: $term';
 
-  RemoteError({required this.term});
+  PinError({required this.term});
 }
 
 class BranchLoadingException implements Exception {
@@ -76,4 +76,12 @@ class TenantNotFoundException implements Exception {
   String errMsg() => 'SessionException: $term';
 
   TenantNotFoundException({required this.term});
+}
+
+class UnknownError implements Exception {
+  String term;
+
+  String errMsg() => 'Unknown error: $term';
+
+  UnknownError({required this.term});
 }
