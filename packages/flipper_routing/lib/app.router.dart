@@ -579,6 +579,14 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    AddBranchRoute.name: (routeData) {
+      return _i3.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.AddBranch(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -786,6 +794,10 @@ class StackedRouterWeb extends _i3.RootStackRouter {
         _i3.RouteConfig(
           AdminControlRoute.name,
           path: '/admin-control',
+        ),
+        _i3.RouteConfig(
+          AddBranchRoute.name,
+          path: '/add-branch',
         ),
       ];
 }
@@ -2186,6 +2198,18 @@ class AdminControlRoute extends _i3.PageRouteInfo<void> {
   static const String name = 'AdminControl';
 }
 
+/// generated route for
+/// [_i1.AddBranch]
+class AddBranchRoute extends _i3.PageRouteInfo<void> {
+  const AddBranchRoute()
+      : super(
+          AddBranchRoute.name,
+          path: '/add-branch',
+        );
+
+  static const String name = 'AddBranch';
+}
+
 extension RouterStateExtension on _i2.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i4.Key? key,
@@ -2832,6 +2856,14 @@ extension RouterStateExtension on _i2.RouterService {
     );
   }
 
+  Future<dynamic> navigateToAddBranch(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const AddBranchRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
     _i4.Key? key,
     bool? invokeLogin,
@@ -3473,6 +3505,14 @@ extension RouterStateExtension on _i2.RouterService {
       {void Function(_i3.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const AdminControlRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithAddBranch(
+      {void Function(_i3.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const AddBranchRoute(),
       onFailure: onFailure,
     );
   }

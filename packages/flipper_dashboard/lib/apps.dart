@@ -201,10 +201,10 @@ class _AppsState extends ConsumerState<Apps> {
                     mainAxisSpacing: 1,
                     padding: EdgeInsets.zero,
                     children: [
-                      // _buildCustomPaintWithIcon(
-                      //     iconData: "assets/flipper_keypad.svg",
-                      //     color: const Color(0xff006AFE),
-                      //     page: "POS"),
+                      _buildCustomPaintWithIcon(
+                          iconData: "assets/flipper_keypad.svg",
+                          color: const Color(0xff006AFE),
+                          page: "POS"),
                       _buildCustomPaintWithIcon(
                           iconData: FluentIcons.calculator_24_regular,
                           color: Color(0xFF66AAFF),
@@ -229,10 +229,10 @@ class _AppsState extends ConsumerState<Apps> {
                           iconData: Icons.call,
                           color: Colors.lightBlue,
                           page: "Support"),
-                      // _buildCustomPaintWithIcon(
-                      //     iconData: FluentIcons.cart_24_regular,
-                      //     color: Colors.amber,
-                      //     page: "Orders"),
+                      _buildCustomPaintWithIcon(
+                          iconData: FluentIcons.cart_24_regular,
+                          color: Colors.amber,
+                          page: "Orders"),
                     ],
                   ),
                 ),

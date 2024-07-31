@@ -22,6 +22,7 @@ export 'package:flipper_dashboard/TransactionList.dart';
 export 'package:flipper_dashboard/AdminControl.dart';
 //
 export 'package:flipper_dashboard/create/receive_stock.dart';
+export 'package:flipper_dashboard/AddBranch.dart';
 export 'package:flipper_dashboard/customers.dart';
 export 'package:flipper_dashboard/flipper_app.dart';
 export 'package:flipper_dashboard/tickets.dart';

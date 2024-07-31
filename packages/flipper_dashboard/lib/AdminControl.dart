@@ -1,10 +1,48 @@
 import 'package:flipper_dashboard/tenant_add.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class AdminControl extends StatelessWidget {
+class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
+
+  @override
+  State<AdminControl> createState() => _AdminControlState();
+}
+
+class _AdminControlState extends State<AdminControl> {
+  bool isPosDefault = false;
+  bool isOrdersDefault = true;
+  @override
+  void initState() {
+    super.initState();
+    isPosDefault = ProxyService.box.readBool(key: 'isPosDefault') ?? false;
+    isOrdersDefault = ProxyService.box.readBool(key: 'isOrdersDefault') ?? true;
+  }
+
+  void togglePos(bool value) {
+    setState(() {
+      isPosDefault = value;
+      if (value) {
+        isOrdersDefault = false;
+        ProxyService.box.writeBool(key: 'isOrdersDefault', value: false);
+      }
+      ProxyService.box.writeBool(key: 'isPosDefault', value: value);
+    });
+  }
+
+  void toggleOrders(bool value) {
+    setState(() {
+      isOrdersDefault = value;
+      if (value) {
+        isPosDefault = false;
+        ProxyService.box.writeBool(key: 'isPosDefault', value: false);
+      }
+      ProxyService.box.writeBool(key: 'isOrdersDefault', value: value);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,32 +100,41 @@ class AdminControl extends StatelessWidget {
                             );
                           },
                         ),
+                        SettingsCard(
+                          title: 'Branch Management',
+                          subtitle: 'Manage Branch (Locations)',
+                          icon: Icons.people,
+                          onTap: () {
+                            locator<RouterService>()
+                                .navigateTo(AddBranchRoute());
+                          },
+                        ),
                       ],
                     ),
                   ),
-                  // const SizedBox(width: 24),
-                  // Expanded(
-                  //   child: SettingsSection(
-                  //     title: 'Financial',
-                  //     children: [
-                  //       SettingsCard(
-                  //         title: 'Tax Control',
-                  //         subtitle: 'Manage tax settings and reports',
-                  //         icon: Icons.attach_money,
-                  //         onTap: () {},
-                  //       ),
-                  //       const SizedBox(height: 16),
-                  //       SettingsCard(
-                  //         title: 'Payment Methods',
-                  //         subtitle: 'Manage your payment options',
-                  //         icon: Icons.credit_card,
-                  //         onTap: () {
-                  //           // Navigate to Payment Methods page
-                  //         },
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: SettingsSection(
+                      title: 'Financial',
+                      children: [
+                        SettingsCard(
+                          title: 'Tax Control',
+                          subtitle: 'Manage tax settings and reports',
+                          icon: Icons.attach_money,
+                          onTap: () {},
+                        ),
+                        const SizedBox(height: 16),
+                        SettingsCard(
+                          title: 'Payment Methods',
+                          subtitle: 'Manage your payment options',
+                          icon: Icons.credit_card,
+                          onTap: () {
+                            // Navigate to Payment Methods page
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -99,24 +146,20 @@ class AdminControl extends StatelessWidget {
                       Expanded(
                         child: SwitchSettingsCard(
                           title: 'POS',
-                          subtitle: 'Make Pos default app',
-                          icon: Icons.dark_mode,
-                          value: false,
-                          onChanged: (value) {
-                            // Implement dark mode toggle
-                          },
+                          subtitle: 'Make POS default app',
+                          icon: Icons.shopping_cart,
+                          value: isPosDefault,
+                          onChanged: togglePos,
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: SwitchSettingsCard(
                           title: 'Orders',
-                          subtitle: 'Make Order default app',
-                          icon: Icons.notifications,
-                          value: true,
-                          onChanged: (value) {
-                            // Implement notifications toggle
-                          },
+                          subtitle: 'Make Orders default app',
+                          icon: Icons.receipt,
+                          value: isOrdersDefault,
+                          onChanged: toggleOrders,
                         ),
                       ),
                     ],

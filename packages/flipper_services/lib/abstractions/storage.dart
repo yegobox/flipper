@@ -43,4 +43,6 @@ abstract class LocalStorage {
   String? currentSaleCustomerPhoneNumber();
   String? getRefundReason();
   String? mrc();
+  bool? isPosDefault();
+  bool? isOrdersDefault();
 }

@@ -2,7 +2,7 @@
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
-import 'package:flipper_dashboard/home/pages/root_sheet_page.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
@@ -18,8 +18,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:badges/badges.dart' as badges;
 
 class SearchField extends StatefulHookConsumerWidget {
@@ -174,6 +172,11 @@ class SearchFieldState extends ConsumerState<SearchField>
   void _handleReceiveOrderToggle() {
     // ref.read(receivingOrdersModeProvider.notifier).toggleReceiveOrder();
     // _routerService.navigateTo(OrdersRoute());
+    final deviceType = _getDeviceType(context);
+    deviceType == 'Phone' || deviceType == 'Phablet'
+        ? _routerService.navigateTo(OrdersRoute())
+        : null;
+    // TODO: work on porting ordering feature in leftside sheet later (advanced)
     // WoltModalSheet.show(
     //   pageListBuilder: (BuildContext context) {
     //     return [RootSheetPage.build(context)];

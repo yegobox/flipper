@@ -201,4 +201,14 @@ class SharedPreferenceStorage implements LocalStorage {
   String? mrc() {
     return prefs.getString("mrc");
   }
+
+  @override
+  bool? isPosDefault() {
+    return prefs.getBool("isPosDefault") ?? true;
+  }
+
+  @override
+  bool? isOrdersDefault() {
+    return prefs.getBool("isOrdersDefault") ?? true;
+  }
 }

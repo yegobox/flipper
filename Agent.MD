@@ -1,12 +1,3 @@
-```mermaid
-graph TD
-    Product[Product] -->|has| Variant[Variant]
-    Variant -->|has| Stock[Stock]
-    Branch[Branch] -->|has| Stock
-    Branch -->|has| Agent[Agent]
-    Agent -->|makes| Request[Request]
-    Variant -->|includes| Request
-```
 
 
 
@@ -30,23 +21,21 @@ sequenceDiagram
     alt MainBranch has enough stock
         MainBranch->>System: Approve Request
         System->>Agent: Update status to Approved
-        System->>Agent: Adjust stock quantity
         MainBranch->>System: Adjust stock quantity
+        System->>Agent: Adjust stock quantity
+        MainBranch->>Agent: Ship requested quantity
         System->>Agent: Update request to Fulfilled
     else MainBranch does not have enough stock
         alt Partial Approval
             MainBranch->>System: Approve portion of request
             System->>Agent: Update status to Partially Approved
-            System->>Agent: Adjust stock quantity
             MainBranch->>System: Adjust stock quantity
+            System->>Agent: Adjust stock quantity
         else Full Rejection
             MainBranch->>System: Reject Request
             System->>Agent: Update status to Rejected
         end
     end
-    
-    MainBranch->>Agent: Ship requested quantity
-    System->>Agent: Adjust quantity in agent's branch
-    System->>Agent: Update request to Fulfilled
+
 
 ```

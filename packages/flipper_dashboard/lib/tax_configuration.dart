@@ -263,7 +263,6 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
                 ),
-                validator: _validaBhfid,
               ),
               const SizedBox(height: 16),
               ElevatedButton.icon(

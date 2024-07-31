@@ -227,4 +227,16 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement mrc
     throw UnimplementedError();
   }
+
+  @override
+  bool? isPosDefault() {
+    // TODO: implement isPosDefault
+    throw UnimplementedError();
+  }
+
+  @override
+  bool? isOrdersDefault() {
+    // TODO: implement isOrdersDefault
+    throw UnimplementedError();
+  }
 }

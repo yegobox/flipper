@@ -1,10 +1,12 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_dashboard/IncomingOrders.dart';
+import 'package:flipper_dashboard/product_view.dart';
+import 'package:flipper_dashboard/search_field.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
-import 'package:flipper_dashboard/favorites.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
@@ -13,12 +15,9 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'body.dart';
-import 'keypad_view.dart';
-import 'product_view.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 
@@ -313,60 +312,66 @@ class CheckOutState extends ConsumerState<CheckOut>
                             ),
                             // Placeholder for the SearchInputWithDropdown to maintain space
                             SizedBox(height: 60.0),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: QuickSellingView(
-                                formKey: _formKey,
-                                discountController: discountController,
-                                receivedAmountController:
-                                    receivedAmountController,
-                                customerPhoneNumberController:
-                                    customerPhoneNumberController,
-                                paymentTypeController: paymentTypeController,
+                            if (ProxyService.box.isPosDefault()!)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: QuickSellingView(
+                                  formKey: _formKey,
+                                  discountController: discountController,
+                                  receivedAmountController:
+                                      receivedAmountController,
+                                  customerPhoneNumberController:
+                                      customerPhoneNumberController,
+                                  paymentTypeController: paymentTypeController,
+                                ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: PaymentTicketManager(
-                                context: context,
-                                model: model,
-                                controller: textEditController,
-                                nodeDisabled: true,
-                                completeTransaction: () async {
-                                  ref.read(loadingProvider.notifier).state =
-                                      true;
-                                  Customer? customer = ProxyService.realm
-                                      .getCustomer(id: transaction.customerId);
+                            if (ProxyService.box.isPosDefault()!)
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: PaymentTicketManager(
+                                  context: context,
+                                  model: model,
+                                  controller: textEditController,
+                                  nodeDisabled: true,
+                                  completeTransaction: () async {
+                                    ref.read(loadingProvider.notifier).state =
+                                        true;
+                                    Customer? customer = ProxyService.realm
+                                        .getCustomer(
+                                            id: transaction.customerId);
 
-                                  final amount = double.tryParse(
-                                          receivedAmountController.text) ??
-                                      0;
-                                  final discount = double.tryParse(
-                                          discountController.text) ??
-                                      0;
+                                    final amount = double.tryParse(
+                                            receivedAmountController.text) ??
+                                        0;
+                                    final discount = double.tryParse(
+                                            discountController.text) ??
+                                        0;
 
-                                  if (_formKey.currentState!.validate() &&
-                                      customer == null) {
-                                    handlePayment(
-                                      model: model,
-                                      paymentType: "Cash",
-                                      transactionType: TransactionType.sale,
-                                      transaction: transaction,
-                                      amount: amount,
-                                      discount: discount,
-                                    );
-                                  } else {
-                                    confirmPayment(
-                                      amount: amount,
-                                      model: model,
-                                      discount: discount,
-                                      paymentType: paymentTypeController.text,
-                                      transaction: transaction,
-                                    );
-                                  }
-                                },
+                                    if (_formKey.currentState!.validate() &&
+                                        customer == null) {
+                                      handlePayment(
+                                        model: model,
+                                        paymentType: "Cash",
+                                        transactionType: TransactionType.sale,
+                                        transaction: transaction,
+                                        amount: amount,
+                                        discount: discount,
+                                      );
+                                    } else {
+                                      confirmPayment(
+                                        amount: amount,
+                                        model: model,
+                                        discount: discount,
+                                        paymentType: paymentTypeController.text,
+                                        transaction: transaction,
+                                      );
+                                    }
+                                  },
+                                ),
                               ),
-                            ),
+                            if (ProxyService.box.isOrdersDefault()!)
+                              SizedBox(
+                                  height: 800, child: IncomingOrdersWidget())
                           ],
                         ),
                       );
@@ -436,7 +441,7 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 }
 
-class MobileView extends StatelessWidget {
+class MobileView extends StatefulHookConsumerWidget {
   const MobileView({
     required this.widget,
     required this.tabController,
@@ -450,96 +455,38 @@ class MobileView extends StatelessWidget {
   final TextEditingController textEditController;
 
   @override
+  _MobileViewState createState() => _MobileViewState();
+}
+
+class _MobileViewState extends ConsumerState<MobileView> {
+  final TextEditingController textEditController = TextEditingController();
+  final TextEditingController searchContrroller = TextEditingController();
+  final TextEditingController discountController = TextEditingController();
+  final TextEditingController receivedAmountController =
+      TextEditingController();
+  final TextEditingController customerPhoneNumberController =
+      TextEditingController();
+  final TextEditingController paymentTypeController = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Center(
-          child: Text(
-            ProxyService.status.statusText.value ?? "",
-            style: GoogleFonts.poppins(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w300,
-              color: Colors.white,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SearchField(
+                controller: searchContrroller,
+                showAddButton: true,
+                showDatePicker: false,
+                showIncomingButton: true,
+                showOrderButton: true,
+              ),
             ),
-          ),
+            ProductView.normalMode(),
+          ],
         ),
-        backgroundColor: ProxyService.status.statusColor.value,
-        automaticallyImplyLeading: false,
-        toolbarHeight:
-            ProxyService.status.statusText.value?.isNotEmpty == true ? 25 : 0,
-      ),
-      body: Column(
-        children: [
-          Container(
-            height: 46,
-            decoration: BoxDecoration(
-              color: const Color(0xffE5E5E5),
-              borderRadius: BorderRadius.circular(4.0),
-            ),
-            child: LayoutBuilder(builder: (context, constraints) {
-              return Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: const Color(0xffE5E5E5),
-                  borderRadius: BorderRadius.circular(0.0),
-                ),
-                child: TabBar(
-                  onTap: (v) {
-                    FocusScope.of(context).unfocus();
-                  },
-                  controller: tabController,
-                  // give the indicator a decoration (color and border radius)
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(0.0),
-                    color: const Color(0xffFFFFFF),
-                  ),
-                  labelColor: Colors.black,
-                  tabs: [
-                    // first tab [you can add an icon using the icon property]
-                    Container(
-                      width: 150,
-                      child: Tab(
-                        text: 'Keypad',
-                      ),
-                    ),
-
-                    // second tab [you can add an icon using the icon property]
-                    Container(
-                      width: 150,
-                      child: Tab(
-                        text: 'Library',
-                      ),
-                    ),
-                    Container(
-                      width: 150,
-                      child: Tab(
-                        text: 'Favorites',
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-          // tab bar view here
-          Expanded(
-            child: TabBarView(
-              controller: tabController,
-              children: [
-                Column(
-                  children: [
-                    KeyPadView(model: model),
-                    SizedBox(
-                      height: 110,
-                    )
-                  ],
-                ),
-                ProductView.normalMode(),
-                Favorites(),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

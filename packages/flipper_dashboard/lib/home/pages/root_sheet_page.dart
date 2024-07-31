@@ -71,51 +71,6 @@ class RootSheetPage {
                       isSelected: false,
                     ),
                     WoltSelectionListItemData(
-                      title: 'Page with hero image',
-                      value: SheetPageWithHeroImage.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with lazy loading list',
-                      value: SheetPageWithLazyList.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with min height constraint',
-                      value: SheetPageWithMinHeight.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with auto-focus text field',
-                      value: SheetPageWithTextField.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with in-modal navigation',
-                      value: SheetPageWithInAppNavigation.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with custom top bar',
-                      value: SheetPageWithCustomTopBar.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with no title and no top bar',
-                      value: SheetPageWithNoPageTitleNoTopBar.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'Page with updateCurrentPage method',
-                      value: SheetPageWithUpdatePage.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
-                      title: 'NonScrollingWoltModalSheetPage example',
-                      value: SheetPageWithNonScrollingLayout.pageId,
-                      isSelected: false,
-                    ),
-                    WoltSelectionListItemData(
                       title: 'All the pages in one flow',
                       value: null,
                       isSelected: false,
