@@ -90,39 +90,39 @@ class AdminControl extends StatelessWidget {
                   // ),
                 ],
               ),
-              // const SizedBox(height: 24),
-              // SettingsSection(
-              //   title: 'Preferences',
-              //   children: [
-              //     Row(
-              //       children: [
-              //         Expanded(
-              //           child: SwitchSettingsCard(
-              //             title: 'Dark Mode',
-              //             subtitle: 'Toggle dark mode on/off',
-              //             icon: Icons.dark_mode,
-              //             value: false,
-              //             onChanged: (value) {
-              //               // Implement dark mode toggle
-              //             },
-              //           ),
-              //         ),
-              //         const SizedBox(width: 16),
-              //         Expanded(
-              //           child: SwitchSettingsCard(
-              //             title: 'Notifications',
-              //             subtitle: 'Enable or disable notifications',
-              //             icon: Icons.notifications,
-              //             value: true,
-              //             onChanged: (value) {
-              //               // Implement notifications toggle
-              //             },
-              //           ),
-              //         ),
-              //       ],
-              //     ),
-              //   ],
-              // ),
+              const SizedBox(height: 24),
+              SettingsSection(
+                title: 'Preferences',
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'POS',
+                          subtitle: 'Make Pos default app',
+                          icon: Icons.dark_mode,
+                          value: false,
+                          onChanged: (value) {
+                            // Implement dark mode toggle
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: SwitchSettingsCard(
+                          title: 'Orders',
+                          subtitle: 'Make Order default app',
+                          icon: Icons.notifications,
+                          value: true,
+                          onChanged: (value) {
+                            // Implement notifications toggle
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           ),
         ),

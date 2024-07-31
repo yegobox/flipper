@@ -14,6 +14,11 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     if (showPluReport) {
       return data.map((item) {
         if (item is TransactionItem) {
+          var taxConfig =
+              ProxyService.realm.getByTaxType(taxtype: item.taxTyCd ?? "B");
+          double taxPercentage = taxConfig.taxPercentage ?? 0;
+          double adjustedTaxPercentage = taxPercentage == 0 ? 1 : taxPercentage;
+
           String name = item.name!.split('(')[0];
           String number = ''; // Initialize number to an empty string
 
@@ -39,12 +44,17 @@ abstract class DynamicDataSource<T> extends DataGridSource {
                 columnName: 'TotalSales', value: (item.qty * item.price)),
             DataGridCell<double>(
                 columnName: 'CurrentStock', value: item.remainingStock),
+
+            ///taxTyCd
             DataGridCell<double>(
-                columnName: 'TaxPayable',
-                value: (((item.qty * item.price) - (item.qty * item.splyAmt)) *
-                        18 /
-                        118)
-                    .toPrecision(2)),
+              columnName: 'TaxPayable',
+              value: taxPercentage == 0
+                  ? 0
+                  : (((item.qty * item.price) - (item.qty * item.splyAmt)) *
+                          adjustedTaxPercentage /
+                          (100 + adjustedTaxPercentage))
+                      .toPrecision(2),
+            ),
             DataGridCell<double>(
                 columnName: 'GrossProfit',
                 value: ((((item.qty * item.price) - (item.qty * item.splyAmt)))

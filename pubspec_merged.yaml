@@ -299,7 +299,7 @@ dependencies:
   flutter_bloc: ^8.0.1
   form_bloc:
     path: "../"
-  flutter_keyboard_visibility: ^5.4.1
+  flutter_keyboard_visibility: ^6.0.0
   bloc: ^8.0.1
   # flipper_actionable: ^0.0.1
   amplify_api: ^2.1.0

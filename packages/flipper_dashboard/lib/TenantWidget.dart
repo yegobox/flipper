@@ -54,7 +54,7 @@ class TenantWidget extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.only(right: 12.0),
           child: CircleAvatarWidget(
-            text: tenant!.name!,
+            text: tenant?.name ?? "",
             size: 40,
           ),
         ),
