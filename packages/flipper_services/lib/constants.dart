@@ -2,6 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+List<String> features = [
+  'Sales',
+  'Inventory',
+  'Reports',
+  'Settings',
+  "Custom Amount",
+  "Add Product",
+  "Orders",
+  "Chat"
+];
+List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
+
 class AppFeature {
   static const String Sales = "Sales";
   static const String Inventory = "Inventory";

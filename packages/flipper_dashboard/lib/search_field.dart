@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/add_product_buttons.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -112,7 +113,8 @@ class SearchFieldState extends ConsumerState<SearchField>
                   calc(model: model),
                   if (widget.showOrderButton) orderButton(orders),
                   if (widget.showIncomingButton) incomingButton(),
-                  if (widget.showAddButton) addButton(),
+                  if (widget.showAddButton)
+                    addButton().shouldSeeTheApp(ref, AppFeature.Sales),
                   if (widget.showDatePicker) datePicker(),
                 ],
               ),

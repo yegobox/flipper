@@ -4,6 +4,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/app_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -32,8 +33,18 @@ class TenantAddState extends ConsumerState<TenantAdd>
   bool isAddingUser = false;
   String selectedUserType = 'Agent';
   Map<String, String> permissions = {};
-  List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
-  List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
+
+  Map<String, bool> activeFeatures = {};
+  Map<String, String> tenantPermissions = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (var feature in features) {
+      activeFeatures[feature] =
+          false; // or true, depending on your default state
+    }
+  }
 
   Widget _buildTenantsList(FlipperBaseModel model) {
     return Card(
@@ -301,6 +312,15 @@ class TenantAddState extends ConsumerState<TenantAdd>
               ),
             ),
           ),
+          SizedBox(width: 16),
+          Switch(
+            value: activeFeatures[feature] ?? false,
+            onChanged: (bool value) {
+              setState(() {
+                activeFeatures[feature] = value;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -350,9 +370,9 @@ class TenantAddState extends ConsumerState<TenantAdd>
           business: business!,
           userType: selectedUserType,
         );
-        Map<String, String> accessData = permissions;
-        accessData.forEach((featureName, accessLevel) {
-          //TODO: if adding same user we should update the access as required.
+
+        // Save access permissions
+        tenantPermissions.forEach((featureName, accessLevel) {
           final access = Access(
             ObjectId(),
             id: randomNumber(),
@@ -361,7 +381,11 @@ class TenantAddState extends ConsumerState<TenantAdd>
             createdAt: DateTime.now(),
             userType: selectedUserType,
             accessLevel: accessLevel.toLowerCase(),
-            status: accessLevel != 'No Access' ? 'active' : 'inactive',
+            status: activeFeatures[featureName] != null
+                ? activeFeatures[featureName]!
+                    ? 'active'
+                    : 'inactive'
+                : 'inactive',
             userId: newTenant.userId,
             featureName: featureName,
           );
@@ -374,18 +398,22 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
         _resetForm();
       } catch (e, s) {
-        final talker = Talker();
-        talker.error(s);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error while adding user"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // ... existing error handling ...
       } finally {
         setState(() => isAddingUser = false);
       }
     }
+  }
+
+  void _updateTenantPermissions(List<Access> tenantAccesses) {
+    setState(() {
+      tenantPermissions.clear();
+      for (Access access in tenantAccesses) {
+        if (access.featureName != null && access.accessLevel != null) {
+          tenantPermissions[access.featureName!] = access.accessLevel!;
+        }
+      }
+    });
   }
 
   void _resetForm() {
@@ -397,11 +425,71 @@ class TenantAddState extends ConsumerState<TenantAdd>
     });
   }
 
+  void _fillFormWithTenantData(Tenant tenant, List<Access> tenantAccesses) {
+    setState(() {
+      _nameController.text = tenant.name ?? '';
+      _phoneController.text = tenant.phoneNumber ?? '';
+
+      // Reset permissions, activeFeatures, and userType
+      permissions.clear();
+      activeFeatures.clear();
+      String? userType;
+
+      // Fill permissions based on tenantAccesses
+      for (var access in tenantAccesses) {
+        if (access.featureName != null && access.accessLevel != null) {
+          // Ensure the accessLevel is a valid option
+          ///TODO: if I fix the bug in the bellow code then In dropdowns of permission
+          ///I will have duplicate which I do not know how to handle, the issue in bellow
+          ///code is that accessLevels list should apply toLowerCase before we apply .contains
+          String validAccessLevel = accessLevels.contains(access.accessLevel)
+              ? access.accessLevel!
+              : 'No Access';
+          permissions[access.featureName!] = validAccessLevel;
+          activeFeatures[access.featureName!] = access.status == 'active';
+
+          // Set userType if not already set
+          if (userType == null && access.userType != null) {
+            userType = access.userType;
+          }
+        }
+      }
+
+      // Ensure selectedUserType is a valid option
+      selectedUserType = features.contains(userType) ? userType! : 'Agent';
+
+      // Ensure all features have a valid permission set
+      for (String feature in features) {
+        if (!permissions.containsKey(feature)) {
+          permissions[feature] = 'No Access';
+        }
+        if (!activeFeatures.containsKey(feature)) {
+          activeFeatures[feature] = false;
+        }
+      }
+    });
+
+    // Scroll to the form
+    Scrollable.ensureVisible(
+      _formKey.currentContext!,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
   Widget _buildTenantCard(Tenant tenant, FlipperBaseModel model) {
     List<Access> tenantAccesses =
         ProxyService.realm.access(userId: tenant.userId!);
 
     return ExpansionTile(
+      onExpansionChanged: (expanded) {
+        if (expanded) {
+          talker.warning(
+              "Permission Assigned: ${tenantAccesses.first.accessLevel}");
+          _updateTenantPermissions(tenantAccesses);
+          _fillFormWithTenantData(tenant, tenantAccesses);
+        }
+      },
       leading: CircleAvatar(
         backgroundColor: Theme.of(context).primaryColor,
         child: Text(

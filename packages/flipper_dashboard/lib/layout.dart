@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/TenantWidget.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
 import 'package:flipper_dashboard/bottom_sheets/preview_sale_bottom_sheet.dart';
@@ -98,7 +99,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
               child: isScanningMode
                   ? buildReceiptUI()
                   : CheckOut(isBigScreen: true),
-            ),
+            ).shouldSeeTheApp(ref, AppFeature.Sales),
             Flexible(
               child: ListView(
                 // Use ListView instead of SingleChildScrollView
