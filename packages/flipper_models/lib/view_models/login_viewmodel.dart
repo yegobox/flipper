@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -9,6 +7,10 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:flipper_services/locator.dart' as loc;
+
+import 'package:flipper_services/app_service.dart';
 import 'dart:async';
 
 import 'package:talker_flutter/talker_flutter.dart';
@@ -20,6 +22,7 @@ mixin TokenLogin {
 }
 
 class LoginViewModel extends FlipperBaseModel with TokenLogin {
+  final appService = loc.getIt<AppService>();
   LoginViewModel();
 
   bool loginStart = false;
@@ -90,6 +93,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       final auth = FirebaseAuth.instance;
       if (auth.currentUser != null) {
         final defaultApp = ProxyService.box.getDefaultApp();
+        await appService.appInit();
         if (defaultApp == "2") {
           if (!areDependenciesInitialized) {
             await initDependencies();
@@ -103,6 +107,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
           if (ProxyService.box.getDefaultApp() == 2) {
             locator<RouterService>().navigateTo(SocialHomeViewRoute());
           } else {
+            /// the appInit() trigger the auth flow before navigating to the app
             locator<RouterService>().navigateTo(FlipperAppRoute());
           }
         } else {
@@ -112,6 +117,8 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
         await FirebaseAuth.instance.signOut();
         throw UnknownError(term: "Failed to authenticate with Firebase");
       }
+    } on LoginChoicesException {
+      locator<RouterService>().navigateTo(LoginChoicesRoute());
     } catch (error, s) {
       talker.error("Login error: $error");
       talker.error("Login trace: $s");

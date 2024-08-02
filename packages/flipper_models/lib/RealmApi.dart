@@ -2119,11 +2119,13 @@ class RealmAPI<M extends IJsonSerializable>
         realm?.close();
         String path = await dbPath(path: 'synced', folder: businessId);
         await _configurePersistent(
-            user: user,
-            path: path,
-            businessId: businessId,
-            branchId: branchId!,
-            userId: userId!);
+          user: user,
+          path: path,
+          businessId: businessId,
+          branchId: branchId!,
+          userId: userId!,
+          app: app,
+        );
         return this;
       }
     } catch (e, s) {
@@ -2134,7 +2136,6 @@ class RealmAPI<M extends IJsonSerializable>
       logOut();
       rethrow;
     }
-    return this;
   }
 
   void _configureInMemory() {
@@ -2148,7 +2149,8 @@ class RealmAPI<M extends IJsonSerializable>
       required String path,
       required int businessId,
       required int branchId,
-      required int userId}) async {
+      required int userId,
+      required App app}) async {
     CancellationToken token = CancellationToken();
     Future<void>.delayed(
         const Duration(seconds: 30),
@@ -2160,7 +2162,7 @@ class RealmAPI<M extends IJsonSerializable>
     if (config == null) {
       throw Exception();
     }
-    realm = await _openRealm(config);
+    realm = await _openRealm(config: config, user: user, app: app);
 
     if (await ProxyService.status.isInternetAvailable()) {
       await updateSubscription(
@@ -2236,7 +2238,10 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Future<Realm> _openRealm(Configuration config) async {
+  Future<Realm> _openRealm(
+      {required Configuration config,
+      required User user,
+      required App app}) async {
     CancellationToken token = CancellationToken();
     Future<void>.delayed(
         const Duration(seconds: 30),
@@ -2261,6 +2266,7 @@ class RealmAPI<M extends IJsonSerializable>
       return Realm(config);
     } catch (e, s) {
       talker.error(s);
+      close();
       throw e;
       // return Realm(config);
     }

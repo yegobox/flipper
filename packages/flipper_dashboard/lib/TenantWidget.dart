@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -50,6 +52,7 @@ class TenantWidget extends ConsumerWidget {
     talker.info("Current BranchId:${ProxyService.box.getBranchId()}");
     talker.info("Current BusinessId:${ProxyService.box.getBusinessId()}");
     talker.info("Current UserId:${ProxyService.box.getUserId()}");
+    ref.refresh(tenantProvider);
     final tenant = ref.watch(tenantProvider);
 
     return Column(

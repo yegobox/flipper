@@ -11,6 +11,10 @@ import 'proxy.dart';
 import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.locator.dart';
+
 const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
@@ -141,12 +145,6 @@ class AppService with ListenableServiceMixin {
         !Platform.isWindows &&
         !authComplete) {
       throw LoginChoicesException(term: "Choose default business");
-    } else {
-      /// we have one business and one branch so we can set default tin and bhfid to be used during this session
-      // ProxyService.box
-      //     .writeString(key: 'bhfId', value: businesses.first.bhfId ?? "00");
-      ProxyService.box
-          .writeInt(key: 'tin', value: businesses.first.tinNumber ?? 0);
     }
   }
 

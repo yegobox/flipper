@@ -254,6 +254,8 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
 
   Future<void> chooseBranch({required Branch branch}) async {
     await setDefaultBranch(branch: branch);
+
+    /// This help when we restart the app do not come to auth flow for second time
     ProxyService.box.writeBool(key: "authComplete", value: true);
 
     if (ProxyService.realm.isDrawerOpen(
