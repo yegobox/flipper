@@ -2938,9 +2938,9 @@ class RealmAPI<M extends IJsonSerializable>
         ProxyService.box.getBusinessId() != null) {
       ProxyService.event.publish(loginDetails: {
         'channel': "${ProxyService.box.getUserId()!}-logout",
-        'userId': ProxyService.box.getUserId()!,
-        'businessId': ProxyService.box.getBusinessId()!,
-        'branchId': ProxyService.box.getBranchId()!,
+        'userId': ProxyService.box.getUserId(),
+        'businessId': ProxyService.box.getBusinessId(),
+        'branchId': ProxyService.box.getBranchId(),
         'phone': ProxyService.box.getUserPhone(),
         'defaultApp': ProxyService.box.getDefaultApp(),
         'deviceName': Platform.operatingSystem,

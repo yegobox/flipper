@@ -103,7 +103,7 @@ class ProductViewState extends ConsumerState<ProductView> {
             data: (variants) {
               // Ensure the list is updated correctly and length is checked
               if (variants.isEmpty) {
-                return Text('No variants available.');
+                return Text('No Products available.');
               }
 
               return GridView.builder(

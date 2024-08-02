@@ -845,6 +845,43 @@ final businessSelectionProvider =
   (ref) => BusinessSelectionNotifier(),
 );
 
+class BranchSelectionState {
+  final bool isLoading;
+  final Branch? selectedBranch;
+
+  BranchSelectionState({
+    required this.isLoading,
+    this.selectedBranch,
+  });
+
+  BranchSelectionState copyWith({
+    bool? isLoading,
+    Branch? selectedBranch,
+  }) {
+    return BranchSelectionState(
+      isLoading: isLoading ?? this.isLoading,
+      selectedBranch: selectedBranch ?? this.selectedBranch,
+    );
+  }
+}
+
+class BranchSelectionNotifier extends StateNotifier<BranchSelectionState> {
+  BranchSelectionNotifier() : super(BranchSelectionState(isLoading: false));
+
+  void setLoading(bool loading) {
+    state = state.copyWith(isLoading: loading);
+  }
+
+  void setSelectedBranch(Branch branch) {
+    state = state.copyWith(selectedBranch: branch);
+  }
+}
+
+final branchSelectionProvider =
+    StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
+  (ref) => BranchSelectionNotifier(),
+);
+
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

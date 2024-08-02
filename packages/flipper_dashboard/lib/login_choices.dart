@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class LoginChoices extends StatefulHookConsumerWidget {
   const LoginChoices({Key? key}) : super(key: key);
@@ -23,8 +24,10 @@ class LoginChoices extends StatefulHookConsumerWidget {
 class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   bool _isSelectingBranch = false;
   Business? _selectedBusiness; // Define selectedBusiness here
+  String? _loadingItemId; // New state to track which item is loading
 
   final _routerService = locator<RouterService>();
+  final talker = Talker();
 
   @override
   Widget build(BuildContext context) {
@@ -73,8 +76,7 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   Widget _buildBusinessList({required List<Business> businesses}) {
     return ListView.separated(
       itemCount: businesses.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: 24.0), // Increased spacing
+      separatorBuilder: (context, index) => const SizedBox(height: 24.0),
       itemBuilder: (context, index) {
         final business = businesses[index];
         return _buildSelectionTile(
@@ -82,11 +84,16 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
           isSelected: business == _selectedBusiness,
           onTap: () async {
             setState(() {
-              _selectedBusiness = business; // Update selectedBusiness
+              _selectedBusiness = business;
+              _loadingItemId = business.serverId?.toString();
             });
             await chooseBusiness(business: business);
+            setState(() {
+              _loadingItemId = null;
+            });
           },
           icon: Icons.business,
+          isLoading: _loadingItemId == business.serverId?.toString(),
         );
       },
     );
@@ -95,17 +102,23 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   Widget _buildBranchList({required List<Branch> branches}) {
     return ListView.separated(
       itemCount: branches.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: 24.0), // Increased spacing
+      separatorBuilder: (context, index) => const SizedBox(height: 24.0),
       itemBuilder: (context, index) {
         final branch = branches[index];
         return _buildSelectionTile(
           title: branch.name!,
           isSelected: branch.isDefault,
           onTap: () async {
+            setState(() {
+              _loadingItemId = branch.serverId?.toString();
+            });
             await chooseBranch(branch: branch);
+            setState(() {
+              _loadingItemId = null;
+            });
           },
           icon: Icons.location_on,
+          isLoading: _loadingItemId == branch.serverId?.toString(),
         );
       },
     );
@@ -116,16 +129,14 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     required bool isSelected,
     required VoidCallback onTap,
     required IconData icon,
+    required bool isLoading,
   }) {
-    final businessSelectionState = ref.watch(businessSelectionProvider);
-
     return GestureDetector(
       onTap: onTap,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: Container(
-          padding: const EdgeInsets.all(
-              20.0), // Increased padding for better touch targets
+          padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
             color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.grey[100],
             borderRadius: BorderRadius.circular(12.0),
@@ -140,9 +151,14 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
           ),
           child: Row(
             children: [
-              if (businessSelectionState
-                  .isLoading) // Show progress indicator if loading
-                const CircularProgressIndicator()
+              if (isLoading)
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                  ),
+                )
               else
                 Icon(icon, color: isSelected ? Colors.blue : Colors.grey[600]),
               const SizedBox(width: 16.0),
@@ -150,7 +166,7 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 20.0, // Adjusted font size for better readability
+                    fontSize: 20.0,
                     fontWeight: FontWeight.w500,
                     color: isSelected ? Colors.blue : Colors.black,
                   ),
@@ -171,6 +187,14 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     ref.read(businessSelectionProvider.notifier).setLoading(true);
 
     try {
+      ProxyService.local.localRealm!.write(() {
+        final branches = ProxyService.local
+            .businesses(userId: ProxyService.box.getUserId()!);
+        branches.forEach((buss) {
+          buss.isDefault = false;
+        });
+        business.isDefault = true;
+      });
       if (ProxyService.local.localRealm == null ||
           ProxyService.realm.realm == null) {
         await ProxyService.local.login(
@@ -182,6 +206,9 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
       ProxyService.box
           .writeString(key: 'bhfId', value: ProxyService.box.bhfId() ?? "00");
       ProxyService.box.writeInt(key: 'tin', value: business.tinNumber ?? 0);
+
+      ProxyService.box
+          .writeString(key: 'encryptionKey', value: business.encryptionKey!);
 
       ref.refresh(businessesProvider);
       ref.refresh(branchesProvider);
@@ -234,25 +261,45 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   }
 
   Future<void> setDefaultBranch({required Branch branch}) async {
+    talker.warning("The choosen branch:${branch.serverId}");
+    ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
     try {
-      List<Branch> branches = await ProxyService.local
-          .branches(businessId: ProxyService.box.getBusinessId());
-      for (Branch branch in branches) {
-        ProxyService.realm.realm!.write(() {
+      ProxyService.local.localRealm!.write(() {
+        final branches = ProxyService.local
+            .branches(businessId: ProxyService.box.getBusinessId());
+        branches.forEach((branch) {
           branch.isDefault = false;
         });
-      }
-      ProxyService.realm.realm!.write(() {
         branch.isDefault = true;
       });
-      ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      ref.refresh(businessesProvider);
+      ref.refresh(branchesProvider);
+
+      /// re-sync with database to get the data required for the choosen branch/business
+      await ProxyService.realm.configure(
+        useInMemoryDb: false,
+        useFallBack: false,
+        branchId: ProxyService.box.getBranchId(),
+        userId: ProxyService.box.getUserId(),
+        businessId: ProxyService.box.getBusinessId(),
+        encryptionKey: ProxyService.box.encryptionKey(),
+      );
+
+      ref.refresh(businessesProvider);
+      ref.refresh(branchesProvider);
     } catch (e, s) {
       log(e.toString());
       log(s.toString());
+    } finally {
+      ref.refresh(businessesProvider);
+      ref.refresh(branchesProvider);
+      ref.read(branchSelectionProvider.notifier).setLoading(false);
     }
   }
 
   Future<void> chooseBranch({required Branch branch}) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+
     await setDefaultBranch(branch: branch);
 
     /// This help when we restart the app do not come to auth flow for second time

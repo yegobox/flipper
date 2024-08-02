@@ -313,12 +313,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           term:
               "No tenant added to the user, if a business is added it should have one tenant");
     }
+
     await ProxyService.box.writeInt(
         key: 'branchId',
         value:
             user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!);
 
-    talker.info("UserId:" + user.id.toString());
     await ProxyService.box.writeInt(
         key: 'businessId',
         value:
