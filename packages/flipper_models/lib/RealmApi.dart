@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flipper_models/helper_models.dart' as extensions;
+import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/exceptions.dart';
@@ -2074,7 +2075,12 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<RealmApiInterface> configure(
-      {required bool useInMemoryDb, bool useFallBack = false}) async {
+      {required bool useInMemoryDb,
+      bool useFallBack = false,
+      String? encryptionKey,
+      int? businessId,
+      int? branchId,
+      int? userId}) async {
     _setApiEndpoints();
 
     realm?.close();
@@ -2097,18 +2103,13 @@ class RealmAPI<M extends IJsonSerializable>
       /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
       User user = app.currentUser ??
           await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
-      if (useInMemoryDb) {
+      if (useInMemoryDb || encryptionKey == null || encryptionKey.isEmpty) {
+        talker.error("Using in Memory db");
         realm?.close();
         _configureInMemory();
+        return this;
       } else {
-        if (ProxyService.box.encryptionKey().isEmpty) {
-          talker.error("Empty ncryption key provided");
-
-          realm?.close();
-          _configureInMemory();
-          return this;
-        }
-        if (ProxyService.box.getBusinessId() == null) {
+        if (businessId == null) {
           talker.error("There is no business found");
           // throw Exception("here is no business found");
           realm?.close();
@@ -2116,9 +2117,13 @@ class RealmAPI<M extends IJsonSerializable>
           return this;
         }
         realm?.close();
-        String path = await dbPath(
-            path: 'synced', folder: ProxyService.box.getBusinessId());
-        await _configurePersistent(user, path);
+        String path = await dbPath(path: 'synced', folder: businessId);
+        await _configurePersistent(
+            user: user,
+            path: path,
+            businessId: businessId,
+            branchId: branchId!,
+            userId: userId!);
         return this;
       }
     } catch (e, s) {
@@ -2138,7 +2143,12 @@ class RealmAPI<M extends IJsonSerializable>
     talker.info("Opened in-memory realm.");
   }
 
-  Future<void> _configurePersistent(User user, String path) async {
+  Future<void> _configurePersistent(
+      {required User user,
+      required String path,
+      required int businessId,
+      required int branchId,
+      required int userId}) async {
     CancellationToken token = CancellationToken();
     Future<void>.delayed(
         const Duration(seconds: 30),
@@ -2152,11 +2162,9 @@ class RealmAPI<M extends IJsonSerializable>
     }
     realm = await _openRealm(config);
 
-    int branchId = ProxyService.box.getBranchId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
-
     if (await ProxyService.status.isInternetAvailable()) {
-      await updateSubscription(branchId, businessId);
+      await updateSubscription(
+          branchId: branchId, businessId: businessId, userId: userId);
       await realm!.syncSession.waitForDownload();
       await realm!.subscriptions.waitForSynchronization(token);
     }
@@ -2268,12 +2276,16 @@ class RealmAPI<M extends IJsonSerializable>
     }
   }
 
-  Future<void> updateSubscription(int? branchId, int? businessId) async {
+  Future<void> updateSubscription(
+      {int? branchId, int? businessId, int? userId}) async {
     for (Subscription sub in realm!.subscriptions) {
       talker.warning(sub.name);
     }
 
-    if (realm == null || businessId == null || branchId == null) return;
+    if (realm == null ||
+        businessId == null ||
+        branchId == null ||
+        userId == null) return;
     //https://www.mongodb.com/docs/realm/sdk/flutter/sync/manage-sync-subscriptions/
     final transactionItem =
         realm!.query<TransactionItem>(r'branchId == $0', [branchId]);
@@ -2298,7 +2310,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
-    final permission = realm!.all<LPermission>();
+    // final permission = realm!.query<LPermission>(r'userId == $0', [userId]);
 
     final pin = realm!.query<Pin>(
         r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
@@ -2307,15 +2319,14 @@ class RealmAPI<M extends IJsonSerializable>
     final token = realm!.query<Token>(r'businessId == $0', [businessId]);
     final tenant = realm!.query<Tenant>(r'businessId == $0', [businessId]);
     final favorites = realm!.query<Favorite>(r'branchId == $0', [branchId]);
-    final drawers = realm!
-        .query<Drawers>(r'cashierId == $0', [ProxyService.box.getUserId()]);
+    final drawers = realm!.query<Drawers>(r'cashierId == $0', [userId]);
     final configs = realm!.query<Configurations>(r'branchId == $0', [branchId]);
     final assets = realm!.query<Assets>(r'branchId == $0', [branchId]);
     final composites = realm!.query<Composite>(r'branchId == $0', [branchId]);
     final skus = realm!.query<SKU>(r'branchId == $0', [branchId]);
     final report = realm!.query<Report>(r'branchId == $0', [branchId]);
     final computed = realm!.query<Computed>(r'branchId == $0', [branchId]);
-    final access = realm!.query<Access>(r'branchId == $0', [branchId]);
+    final access = realm!.query<Access>(r'businessId == $0', [businessId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2351,8 +2362,8 @@ class RealmAPI<M extends IJsonSerializable>
 
       mutableSubscriptions.add(tenant,
           name: "tenant-${businessId}", update: true);
-      mutableSubscriptions.add(permission,
-          name: "permission-${businessId}", update: true);
+      // mutableSubscriptions.add(permission,
+      //     name: "permission-${userId}", update: true);
       mutableSubscriptions.add(pin, name: "pin-${businessId}", update: true);
       mutableSubscriptions.add(units,
           name: "units-${businessId}", update: true);
@@ -2729,6 +2740,7 @@ class RealmAPI<M extends IJsonSerializable>
       talker.warning(error);
       PinError(term: "Not found");
     }
+    throw UnknownError(term: "Pin might be invalid!");
   }
 
   @override
@@ -2967,12 +2979,10 @@ class RealmAPI<M extends IJsonSerializable>
 
   /// because a drawer is open per the user logged in
   @override
-  Future<bool> isDrawerOpen({required int cashierId}) async {
-    // Business? activeBusinesses = await ProxyService.local
-    //     .activeBusinesses(userId: ProxyService.box.getUserId()!);
-    return realm!.query<Drawers>(
+  bool isDrawerOpen({required int cashierId, required int branchId}) {
+    return realm?.query<Drawers>(
             r'cashierId == $0 AND open == $1 && branchId == $2',
-            [cashierId, true, ProxyService.box.getBranchId()]).firstOrNull !=
+            [cashierId, true, branchId]).firstOrNull !=
         null;
   }
 
@@ -2983,12 +2993,11 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Drawers?> openDrawer({required Drawers drawer}) async {
-    await realm!.writeAsync(() {
+  Drawers? openDrawer({required Drawers drawer}) {
+    realm!.write(() {
       realm!.add<Drawers>(drawer);
     });
-    return realm!.query<Drawers>(
-        r'id == $0 AND deletedAt == nil', [drawer.id]).firstOrNull;
+    return realm!.query<Drawers>(r'id == $0 ', [drawer.id]).firstOrNull;
   }
 
   @override
@@ -3341,9 +3350,9 @@ class RealmAPI<M extends IJsonSerializable>
 
     if (businessId != null) {
       tenant =
-          realm?.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
+          realm!.query<Tenant>(r'businessId == $0', [businessId]).firstOrNull;
     } else {
-      tenant = realm?.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
+      tenant = realm!.query<Tenant>(r'userId == $0', [userId]).firstOrNull;
     }
 
     return tenant;
@@ -3405,10 +3414,16 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  bool isAdmin() {
-    LPermission? permission = realm!.query<LPermission>(
-        r'userId == $0', [ProxyService.box.getUserId()]).firstOrNull;
-    return permission?.name == "admin" ? true : false;
+  bool isAdmin({required int userId}) {
+    try {
+      final Access? permission =
+          realm!.query<Access>(r'userId == $0', [userId]).firstOrNull;
+      return permission?.accessLevel?.toLowerCase() == "admin";
+    } catch (e) {
+      // Handle database errors here
+      print("Error checking admin status: $e");
+      return false; // Or handle the error differently based on your requirements
+    }
   }
 
   @override

@@ -18,6 +18,7 @@ class _Branch {
   int? businessId;
   String? longitude;
   String? latitude;
+  String? location;
 
   bool isDefault = false;
 

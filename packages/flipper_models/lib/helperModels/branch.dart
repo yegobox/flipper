@@ -20,12 +20,14 @@ class IBranch extends IJsonSerializable {
     this.longitude,
     this.latitude,
     this.deletedAt,
+    this.location,
   });
   IBranch.copy(IBranch other, {bool? active, String? name})
       : isDefault = other.isDefault,
         action = other.action,
         name = name ?? other.name,
         id = other.id,
+        location = other.location,
         active = active ?? other.active;
   int? id;
   bool? active;
@@ -35,6 +37,7 @@ class IBranch extends IJsonSerializable {
   int? businessId;
   String? longitude;
   String? latitude;
+  String? location;
 
   late bool isDefault;
 

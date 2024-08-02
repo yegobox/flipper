@@ -14,7 +14,7 @@ abstract class LocalRealmInterface {
       {required String userPhone,
       required bool skipDefaultAppSetup,
       bool stopAfterConfigure = false});
-  Future<List<Business>> businesses({required int userId});
+  List<Business> businesses({required int userId});
   Future<Business?> activeBusinesses({required int userId});
   Future<Business> getOnlineBusiness({required int userId});
   List<Branch> branches({int? businessId});
@@ -36,4 +36,10 @@ abstract class LocalRealmInterface {
   Stream<List<AppNotification>> notificationStream({required int identifier});
   void notify({required AppNotification notification});
   AppNotification notification({required int id});
+  Future<Branch> addBranch(
+      {required String name,
+      required int businessId,
+      required String location,
+      required String userOwnerPhoneNumber});
+  Future<void> deleteBranch({required int branchId});
 }

@@ -132,9 +132,6 @@ class AppService with ListenableServiceMixin {
         rethrow;
       }
     }
-
-    await loadTenants(businesses);
-
     List<Branch> branches = await ProxyService.local
         .branches(businessId: ProxyService.box.getBusinessId());
 
@@ -150,27 +147,6 @@ class AppService with ListenableServiceMixin {
       //     .writeString(key: 'bhfId', value: businesses.first.bhfId ?? "00");
       ProxyService.box
           .writeInt(key: 'tin', value: businesses.first.tinNumber ?? 0);
-    }
-  }
-
-  Future<void> loadTenants(List<Business> businesses) async {
-    bool authComplete = await ProxyService.box.authComplete();
-    // Check for internet connectivity
-    var connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none || authComplete) {
-      // No internet connection, handle accordingly (e.g., show an error message)
-      print('No internet connection or no need to reaload tenants again');
-      return;
-    }
-
-    // Iterate over businesses and perform the operations
-    for (Business business in businesses) {
-      Tenant? tenant =
-          await ProxyService.realm.tenant(businessId: business.serverId!);
-      if (tenant == null) {
-        await ProxyService.local
-            .tenantsFromOnline(businessId: business.serverId!);
-      }
     }
   }
 

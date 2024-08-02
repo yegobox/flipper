@@ -19,6 +19,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     int? businessId,
     String? longitude,
     String? latitude,
+    String? location,
     bool isDefault = false,
     DateTime? lastTouched,
     String? action,
@@ -37,6 +38,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'businessId', businessId);
     RealmObjectBase.set(this, 'longitude', longitude);
     RealmObjectBase.set(this, 'latitude', latitude);
+    RealmObjectBase.set(this, 'location', location);
     RealmObjectBase.set(this, 'isDefault', isDefault);
     RealmObjectBase.set(this, 'lastTouched', lastTouched);
     RealmObjectBase.set(this, 'action', action);
@@ -90,6 +92,12 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
   set latitude(String? value) => RealmObjectBase.set(this, 'latitude', value);
 
   @override
+  String? get location =>
+      RealmObjectBase.get<String>(this, 'location') as String?;
+  @override
+  set location(String? value) => RealmObjectBase.set(this, 'location', value);
+
+  @override
   bool get isDefault => RealmObjectBase.get<bool>(this, 'isDefault') as bool;
   @override
   set isDefault(bool value) => RealmObjectBase.set(this, 'isDefault', value);
@@ -134,6 +142,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       'businessId': businessId.toEJson(),
       'longitude': longitude.toEJson(),
       'latitude': latitude.toEJson(),
+      'location': location.toEJson(),
       'isDefault': isDefault.toEJson(),
       'lastTouched': lastTouched.toEJson(),
       'action': action.toEJson(),
@@ -153,6 +162,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
         'businessId': EJsonValue businessId,
         'longitude': EJsonValue longitude,
         'latitude': EJsonValue latitude,
+        'location': EJsonValue location,
         'isDefault': EJsonValue isDefault,
         'lastTouched': EJsonValue lastTouched,
         'action': EJsonValue action,
@@ -167,6 +177,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
           businessId: fromEJson(businessId),
           longitude: fromEJson(longitude),
           latitude: fromEJson(latitude),
+          location: fromEJson(location),
           isDefault: fromEJson(isDefault),
           lastTouched: fromEJson(lastTouched),
           action: fromEJson(action),
@@ -188,6 +199,7 @@ class Branch extends _Branch with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('businessId', RealmPropertyType.int, optional: true),
       SchemaProperty('longitude', RealmPropertyType.string, optional: true),
       SchemaProperty('latitude', RealmPropertyType.string, optional: true),
+      SchemaProperty('location', RealmPropertyType.string, optional: true),
       SchemaProperty('isDefault', RealmPropertyType.bool),
       SchemaProperty('lastTouched', RealmPropertyType.timestamp,
           optional: true),

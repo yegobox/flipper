@@ -279,165 +279,176 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ref
-        .watch(pendingTransactionProvider((TransactionType.sale, false)))
-        .asData!
-        .value;
-    if (widget.isBigScreen) {
-      return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, child) {
-          return Stack(
-            children: [
-              Card(
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: IconRow(),
-                                  );
-                                },
-                              ),
-                            ),
-                            // Placeholder for the SearchInputWithDropdown to maintain space
-                            SizedBox(height: 60.0),
-                            if (ProxyService.box.isPosDefault()!)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: QuickSellingView(
-                                  formKey: _formKey,
-                                  discountController: discountController,
-                                  receivedAmountController:
-                                      receivedAmountController,
-                                  customerPhoneNumberController:
-                                      customerPhoneNumberController,
-                                  paymentTypeController: paymentTypeController,
-                                ),
-                              ),
-                            if (ProxyService.box.isPosDefault()!)
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: PaymentTicketManager(
-                                  context: context,
-                                  model: model,
-                                  controller: textEditController,
-                                  nodeDisabled: true,
-                                  completeTransaction: () async {
-                                    ref.read(loadingProvider.notifier).state =
-                                        true;
-                                    Customer? customer = ProxyService.realm
-                                        .getCustomer(
-                                            id: transaction.customerId);
+    // Watch the pendingTransactionProvider and handle its states safely
+    final transactionAsyncValue =
+        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
 
-                                    final amount = double.tryParse(
-                                            receivedAmountController.text) ??
-                                        0;
-                                    final discount = double.tryParse(
-                                            discountController.text) ??
-                                        0;
-
-                                    if (_formKey.currentState!.validate() &&
-                                        customer == null) {
-                                      handlePayment(
-                                        model: model,
-                                        paymentType: "Cash",
-                                        transactionType: TransactionType.sale,
-                                        transaction: transaction,
-                                        amount: amount,
-                                        discount: discount,
-                                      );
-                                    } else {
-                                      confirmPayment(
-                                        amount: amount,
-                                        model: model,
-                                        discount: discount,
-                                        paymentType: paymentTypeController.text,
-                                        transaction: transaction,
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            if (ProxyService.box.isOrdersDefault()!)
-                              SizedBox(
-                                  height: 800, child: IncomingOrdersWidget())
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 92.0,
-                left: 5.0,
-                right: 8.0,
-                child: SearchInputWithDropdown(
-                  transaction: ref
-                      .watch(pendingTransactionProvider(
-                          (TransactionType.sale, false)))
-                      .asData
-                      ?.value,
-                ),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      return ViewModelBuilder<CoreViewModel>.reactive(
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, child) {
-          return PopScope(
-            canPop: false,
-            onPopInvoked: (bool didPop) {
-              if (didPop) {
-                return;
-              }
-              onWillPop(
-                context: context,
-                navigationPurpose: NavigationPurpose.home,
-                message: 'Do you want to go home?',
-              );
-            },
-            child: Stack(
-              children: [
-                MobileView(
-                    widget: widget,
-                    tabController: tabController,
-                    textEditController: textEditController,
-                    model: model),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
+    return transactionAsyncValue.when(
+      data: (transaction) {
+        if (widget.isBigScreen) {
+          return ViewModelBuilder<CoreViewModel>.reactive(
+            viewModelBuilder: () => CoreViewModel(),
+            builder: (context, model, child) {
+              return Stack(
+                children: [
+                  Card(
                     color: Colors.white,
-                    child: PaymentTicketManager(
-                      context: context,
-                      model: model,
-                      controller: textEditController,
-                      nodeDisabled: true,
+                    surfaceTintColor: Colors.white,
+                    child: FadeTransition(
+                      opacity: _animation,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: IconRow(),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                SizedBox(height: 60.0),
+                                if (ProxyService.box.isPosDefault()!)
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: QuickSellingView(
+                                      formKey: _formKey,
+                                      discountController: discountController,
+                                      receivedAmountController:
+                                          receivedAmountController,
+                                      customerPhoneNumberController:
+                                          customerPhoneNumberController,
+                                      paymentTypeController:
+                                          paymentTypeController,
+                                    ),
+                                  ),
+                                if (ProxyService.box.isPosDefault()!)
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: PaymentTicketManager(
+                                      context: context,
+                                      model: model,
+                                      controller: textEditController,
+                                      nodeDisabled: true,
+                                      completeTransaction: () async {
+                                        ref
+                                            .read(loadingProvider.notifier)
+                                            .state = true;
+                                        Customer? customer = ProxyService.realm
+                                            .getCustomer(
+                                                id: transaction.customerId);
+
+                                        final amount = double.tryParse(
+                                                receivedAmountController
+                                                    .text) ??
+                                            0;
+                                        final discount = double.tryParse(
+                                                discountController.text) ??
+                                            0;
+
+                                        if (_formKey.currentState!.validate() &&
+                                            customer == null) {
+                                          handlePayment(
+                                            model: model,
+                                            paymentType: "Cash",
+                                            transactionType:
+                                                TransactionType.sale,
+                                            transaction: transaction,
+                                            amount: amount,
+                                            discount: discount,
+                                          );
+                                        } else {
+                                          confirmPayment(
+                                            amount: amount,
+                                            model: model,
+                                            discount: discount,
+                                            paymentType:
+                                                paymentTypeController.text,
+                                            transaction: transaction,
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                if (ProxyService.box.isOrdersDefault()!)
+                                  SizedBox(
+                                      height: 800,
+                                      child: IncomingOrdersWidget())
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                )
-              ],
-            ),
+                  Positioned(
+                    top: 92.0,
+                    left: 5.0,
+                    right: 8.0,
+                    child: SearchInputWithDropdown(
+                      transaction: transaction,
+                    ),
+                  ),
+                ],
+              );
+            },
           );
-        },
-      );
-    }
+        } else {
+          return ViewModelBuilder<CoreViewModel>.reactive(
+            viewModelBuilder: () => CoreViewModel(),
+            builder: (context, model, child) {
+              return PopScope(
+                canPop: false,
+                onPopInvoked: (bool didPop) {
+                  if (didPop) {
+                    return;
+                  }
+                  onWillPop(
+                    context: context,
+                    navigationPurpose: NavigationPurpose.home,
+                    message: 'Do you want to go home?',
+                  );
+                },
+                child: Stack(
+                  children: [
+                    MobileView(
+                        widget: widget,
+                        tabController: tabController,
+                        textEditController: textEditController,
+                        model: model),
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        color: Colors.white,
+                        child: PaymentTicketManager(
+                          context: context,
+                          model: model,
+                          controller: textEditController,
+                          nodeDisabled: true,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              );
+            },
+          );
+        }
+      },
+      loading: () {
+        return Center(child: CircularProgressIndicator());
+      },
+      error: (error, stackTrace) {
+        return Center(child: Text('Error: $error'));
+      },
+    );
   }
 }
 

@@ -187,10 +187,12 @@ class _DrawerScreenState extends State<DrawerScreen> {
   }
 
   Future<void> handleOpenDrawer() async {
+    Drawers drawer = widget.drawer;
+    drawer.cashierId = ProxyService.box.getUserId();
+    drawer.openingBalance = double.tryParse(_controller.text) ?? 0;
+    drawer.open = true;
     ProxyService.realm.openDrawer(
-      drawer: widget.drawer
-        ..cashierId = ProxyService.box.getUserId()
-        ..openingBalance = double.tryParse(_controller.text) ?? 0,
+      drawer: drawer,
     );
 
     LoginInfo().isLoggedIn = true;
@@ -203,6 +205,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
     if (drawers != null) {
       ProxyService.realm.realm!.write(() {
         drawers.open = false;
+        drawers.cashierId = ProxyService.box.getUserId()!;
         drawers.closingBalance = double.parse(_controller.text);
         drawers.closingDateTime = DateTime.now().toIso8601String();
       });

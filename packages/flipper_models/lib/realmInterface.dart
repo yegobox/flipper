@@ -356,7 +356,12 @@ abstract class RealmApiInterface {
       required bool active});
 
   Future<RealmApiInterface> configure(
-      {required bool useInMemoryDb, bool useFallBack = false});
+      {required bool useInMemoryDb,
+      bool useFallBack = false,
+      String? encryptionKey,
+      int? businessId,
+      int? branchId,
+      int? userId});
   Realm? realm;
   bool isRealmClosed();
 
@@ -378,10 +383,10 @@ abstract class RealmApiInterface {
   });
 
   /// drawers
-  Future<bool> isDrawerOpen({required int cashierId});
+  bool isDrawerOpen({required int cashierId, required int branchId});
   Future<Drawers?> getDrawer({required int cashierId});
 
-  Future<Drawers?> openDrawer({required Drawers drawer});
+  Drawers? openDrawer({required Drawers drawer});
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 
@@ -424,7 +429,7 @@ abstract class RealmApiInterface {
       })> getReportData();
 
   /// determine if current running user is admin
-  bool isAdmin();
+  bool isAdmin({required int userId});
   Future<LPermission?> permission({required int userId});
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});

@@ -49,7 +49,12 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
     try {
       setIsprocessing(value: true);
       if (ProxyService.realm.realm == null) {
-        await ProxyService.realm.configure(useInMemoryDb: false);
+        await ProxyService.realm.configure(
+            useInMemoryDb: false,
+            businessId: ProxyService.box.getBusinessId(),
+            encryptionKey: ProxyService.box.encryptionKey(),
+            branchId: ProxyService.box.getBranchId(),
+            userId: ProxyService.box.getUserId());
       }
 
       IPin? pin = await ProxyService.realm.getPin(pin: pinCode);
@@ -91,6 +96,15 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
           }
           final _routerService = locator<RouterService>();
           _routerService.navigateTo(SocialHomeViewRoute());
+        } else if (ProxyService.realm.isDrawerOpen(
+            cashierId: ProxyService.box.getUserId()!,
+            branchId: ProxyService.box.getBranchId()!)) {
+          ProxyService.forceDateEntry.dataBootstrapper();
+          if (ProxyService.box.getDefaultApp() == 2) {
+            locator<RouterService>().navigateTo(SocialHomeViewRoute());
+          } else {
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+          }
         } else {
           openDrawer();
         }

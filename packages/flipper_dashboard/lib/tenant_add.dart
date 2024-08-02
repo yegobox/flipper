@@ -123,40 +123,33 @@ class TenantAddState extends ConsumerState<TenantAdd>
   }
 
   Widget _buildBranchDropdown() {
-    final branchesAsyncValue = ref.watch(branchesProvider);
+    final branches = ref.watch(branchesProvider); // No more 'when' needed
     final selectedBranch = ref.watch(selectedBranchProvider);
 
-    return branchesAsyncValue.when(
-      data: (branches) {
-        if (branches.isEmpty) {
-          return Text("No branches available");
-        }
+    if (branches.isEmpty) {
+      return Text("No branches available");
+    }
 
-        return DropdownButtonFormField<Branch>(
-          value: selectedBranch ?? branches.first,
-          onChanged: (Branch? newValue) {
-            ref.read(selectedBranchProvider.notifier).state = newValue;
-          },
-          items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
-            return DropdownMenuItem<Branch>(
-              value: branch,
-              child: Text(branch.name ?? 'Unnamed Branch'),
-            );
-          }).toList(),
-          decoration: InputDecoration(
-            labelText: "Select Branch",
-            prefixIcon:
-                Icon(Icons.business, color: Theme.of(context).primaryColor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            filled: true,
-            fillColor: Colors.grey[100],
-          ),
-        );
+    return DropdownButtonFormField<Branch>(
+      value: selectedBranch ?? branches.first,
+      onChanged: (Branch? newValue) {
+        ref.read(selectedBranchProvider.notifier).state = newValue;
       },
-      loading: () => CircularProgressIndicator(),
-      error: (error, stack) => Text("Error loading branches: $error"),
+      items: branches.map<DropdownMenuItem<Branch>>((Branch branch) {
+        return DropdownMenuItem<Branch>(
+          value: branch,
+          child: Text(branch.name ?? 'Unnamed Branch'),
+        );
+      }).toList(),
+      decoration: InputDecoration(
+        labelText: "Select Branch",
+        prefixIcon: Icon(Icons.business, color: Theme.of(context).primaryColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        filled: true,
+        fillColor: Colors.grey[100],
+      ),
     );
   }
 

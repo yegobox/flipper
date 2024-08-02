@@ -752,7 +752,7 @@ final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
 );
 
 class IsProcessingNotifier extends StateNotifier<bool> {
-  IsProcessingNotifier() : super(false); // Default to not processing
+  IsProcessingNotifier() : super(false);
 
   void startProcessing() {
     state = true;
@@ -784,9 +784,14 @@ final userAccessesProvider = Provider<List<Access>>((ref) {
   return ProxyService.realm.access(userId: userId);
 });
 
-final branchesProvider = FutureProvider<List<Branch>>((ref) async {
-  final businessId = await ProxyService.box.getBusinessId();
+final branchesProvider = Provider<List<Branch>>((ref) {
+  final businessId = ProxyService.box.getBusinessId();
   return ProxyService.local.branches(businessId: businessId);
+});
+
+final businessesProvider = Provider<List<Business>>((ref) {
+  final userId = ProxyService.box.getUserId();
+  return ProxyService.local.businesses(userId: userId!);
 });
 
 // Define a provider for the selected branch
@@ -802,6 +807,44 @@ final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
       access.status == 'active' &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 });
+
+class BusinessSelectionState {
+  final bool isLoading;
+  final Business? selectedBusiness;
+
+  BusinessSelectionState({
+    required this.isLoading,
+    this.selectedBusiness,
+  });
+
+  BusinessSelectionState copyWith({
+    bool? isLoading,
+    Business? selectedBusiness,
+  }) {
+    return BusinessSelectionState(
+      isLoading: isLoading ?? this.isLoading,
+      selectedBusiness: selectedBusiness ?? this.selectedBusiness,
+    );
+  }
+}
+
+class BusinessSelectionNotifier extends StateNotifier<BusinessSelectionState> {
+  BusinessSelectionNotifier() : super(BusinessSelectionState(isLoading: false));
+
+  void setLoading(bool loading) {
+    state = state.copyWith(isLoading: loading);
+  }
+
+  void setSelectedBusiness(Business business) {
+    state = state.copyWith(selectedBusiness: business);
+  }
+}
+
+final businessSelectionProvider =
+    StateNotifierProvider<BusinessSelectionNotifier, BusinessSelectionState>(
+  (ref) => BusinessSelectionNotifier(),
+);
+
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   customerSearchStringProvider,

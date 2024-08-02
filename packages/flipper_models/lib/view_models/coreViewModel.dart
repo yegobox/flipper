@@ -768,32 +768,6 @@ class CoreViewModel extends FlipperBaseModel
     app.setActiveBranch(branch: branch);
   }
 
-  Future<void> setDefaultBusiness({required Business business}) async {
-    app.setBusiness(business: business);
-    List<Business> businesses = await ProxyService.local
-        .businesses(userId: ProxyService.box.getUserId()!);
-    ProxyService.realm.realm!.writeAsync(() async {
-      for (Business business in businesses) {
-        business..isDefault = false;
-      }
-      business..isDefault = true;
-      ProxyService.box.writeInt(key: 'businessId', value: business.serverId!);
-    });
-  }
-
-  Future<void> setDefaultBranch({required Branch branch}) async {
-    //first set other branch to not active
-    List<Branch> branches = await ProxyService.local
-        .branches(businessId: ProxyService.box.getBusinessId());
-    ProxyService.realm.realm!.writeAsync(() async {
-      for (Branch branch in branches) {
-        branch..isDefault = false;
-      }
-      branch..isDefault = true;
-      ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
-    });
-  }
-
   /// a method that listen on given tenantId and perform a sale to a POS
   /// this work with nfc card tapped on supported devices to perform sales
   /// []

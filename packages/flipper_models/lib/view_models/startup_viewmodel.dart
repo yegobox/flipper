@@ -41,8 +41,16 @@ class StartupViewModel extends FlipperBaseModel {
       /// for performance this is supposed to take a time to configure the db and get data in sync
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
       /// which sync data later...i.e not wait for synchronizations
-      if (ProxyService.box.encryptionKey().isEmpty) {
-        ProxyService.realm.configure(useInMemoryDb: false, useFallBack: false);
+      if (ProxyService.box.encryptionKey().isEmpty ||
+          ProxyService.realm.realm == null) {
+        await ProxyService.realm.configure(
+          useInMemoryDb: false,
+          useFallBack: false,
+          branchId: ProxyService.box.getBranchId(),
+          userId: ProxyService.box.getUserId(),
+          businessId: ProxyService.box.getBusinessId(),
+          encryptionKey: ProxyService.box.encryptionKey(),
+        );
       }
 
       /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
@@ -51,10 +59,10 @@ class StartupViewModel extends FlipperBaseModel {
         await appService.isLoggedIn();
       }
       await appService.appInit();
-
+      int userId = ProxyService.box.getUserId()!;
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (await ProxyService.realm
-          .isDrawerOpen(cashierId: ProxyService.box.getUserId()!)) {
+      if (ProxyService.realm.isDrawerOpen(
+          cashierId: userId, branchId: ProxyService.box.getBranchId()!)) {
         /// if there is missing initial data, this is the right time to add them
         /// this is the case when a user login to a different device and the data does not exist there
         /// or has not been synced! though we don't expect this scenario to happen mostly because

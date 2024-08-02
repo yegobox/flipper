@@ -148,19 +148,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  Future<void> updateSubscription(int? branchId, int? businessId) async {
-    if (localRealm == null) return;
-
-    /// subscriptions are not supported in local realm
-    // final notification =
-    //     localRealm!.query<AppNotification>(r'identifier == $0', [branchId]);
-    // localRealm!.subscriptions
-    //     .update((MutableSubscriptionSet mutableSubscriptions) {
-    //   mutableSubscriptions.add(notification,
-    //       name: "notification", update: true);
-    // });
-  }
-
   @override
   Future<LocalRealmInterface> configureLocal(
       {required bool useInMemory}) async {
@@ -211,8 +198,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       );
       localRealm = Realm(config);
       updateSubscription(
-        ProxyService.box.getBranchId(),
-        ProxyService.box.getBusinessId(),
+        branchId: ProxyService.box.getBranchId(),
+        businessId: ProxyService.box.getBusinessId(),
+        userId: ProxyService.box.getUserId(),
       );
     } catch (e) {
       String path =
@@ -378,8 +366,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
   Future<void> _initializeRealms() async {
     if (ProxyService.realm.realm == null) {
-      await ProxyService.realm
-          .configure(useInMemoryDb: false, useFallBack: false);
+      await ProxyService.realm.configure(
+        useInMemoryDb: false,
+        useFallBack: false,
+        businessId: ProxyService.box.getBusinessId(),
+        encryptionKey: ProxyService.box.encryptionKey(),
+        branchId: ProxyService.box.getBranchId(),
+        userId: ProxyService.box.getUserId(),
+      );
     }
     if (ProxyService.local.localRealm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
@@ -398,8 +392,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   Future<void> _configureApp(String userPhone, IUser user) async {
     await _configureTheBox(userPhone, user);
 
-    await ProxyService.realm
-        .configure(useInMemoryDb: false, useFallBack: false);
+    await ProxyService.realm.configure(
+      useInMemoryDb: false,
+      useFallBack: false,
+      businessId: ProxyService.box.getBusinessId(),
+      encryptionKey: ProxyService.box.encryptionKey(),
+      branchId: ProxyService.box.getBranchId(),
+      userId: ProxyService.box.getUserId(),
+    );
     await configureLocal(useInMemory: false);
     await ProxyService.realm.downloadAssetSave();
   }
@@ -610,7 +610,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<List<Business>> businesses({int? userId}) async {
+  List<Business> businesses({int? userId}) {
     List<Business> businesses = [];
     if (userId != null) {
       businesses =
@@ -623,7 +623,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  List<Branch> branches({int? businessId})  {
+  List<Branch> branches({int? businessId}) {
     if (businessId != null) {
       return localRealm!
           .query<Branch>(r'businessId == $0 ', [businessId]).toList();
@@ -731,7 +731,13 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
           userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
 
       await configureLocal(useInMemory: false);
-      await ProxyService.realm.configure(useInMemoryDb: false);
+      await ProxyService.realm.configure(
+        useInMemoryDb: false,
+        businessId: ProxyService.box.getBusinessId(),
+        encryptionKey: ProxyService.box.encryptionKey(),
+        branchId: ProxyService.box.getBranchId(),
+        userId: ProxyService.box.getUserId(),
+      );
       final tenantToAdd = <Tenant>[];
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
@@ -886,8 +892,14 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
       if (ProxyService.realm.realm == null) {
-        await ProxyService.realm
-            .configure(useInMemoryDb: false, useFallBack: false);
+        await ProxyService.realm.configure(
+          useInMemoryDb: false,
+          useFallBack: false,
+          businessId: ProxyService.box.getBusinessId(),
+          branchId: ProxyService.box.getBranchId(),
+          userId: ProxyService.box.getUserId(),
+          encryptionKey: ProxyService.box.encryptionKey(),
+        );
       }
       if (ProxyService.local.localRealm == null) {
         await ProxyService.local.configureLocal(useInMemory: false);
@@ -1241,5 +1253,60 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   @override
   AppNotification notification({required int id}) {
     return localRealm!.query<AppNotification>(r'id == $0', [id]).first;
+  }
+
+  @override
+  Future<Branch> addBranch(
+      {required String name,
+      required int businessId,
+      required String location,
+      required String userOwnerPhoneNumber}) async {
+    final response = await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/branch/${userOwnerPhoneNumber}'),
+      body: jsonEncode(<String, dynamic>{
+        "name": name,
+        "businessId": businessId,
+        "location": location
+      }),
+    );
+    if (response.statusCode == 201) {
+      IBranch branchLocal = IBranch.fromJson(json.decode(response.body));
+      localRealm!.write(() {
+        localRealm!.add<Branch>(
+          Branch(
+            ObjectId(),
+            location: branchLocal.location,
+            lastTouched: DateTime.now(),
+            latitude: branchLocal.latitude,
+            name: branchLocal.name,
+            longitude: branchLocal.longitude,
+            businessId: branchLocal.businessId,
+            isDefault: branchLocal.isDefault,
+            active: branchLocal.active,
+            serverId: branchLocal.id,
+          ),
+        );
+      });
+      return localRealm!
+          .query<Branch>(r'serverId == $0', [branchLocal.id]).first;
+    }
+    throw UnknownError(term: "unknown error happened");
+  }
+
+  @override
+  Future<void> deleteBranch({required int branchId}) async {
+    try {
+      await flipperHttpClient
+          .delete(Uri.parse(apihub + '/v2/api/branch/${branchId}'));
+      Branch? branch =
+          localRealm!.query<Branch>(r'serverId == $0', [branchId]).firstOrNull;
+      localRealm!.write(() {
+        localRealm!.delete(branch!);
+      });
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+      rethrow;
+    }
   }
 }

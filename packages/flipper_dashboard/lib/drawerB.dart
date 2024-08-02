@@ -54,59 +54,60 @@ class MyDrawer extends StatelessWidget {
                   ),
                 );
               }),
-          FutureBuilder<List<Business>>(
-            future: ProxyService.local
-                .businesses(userId: ProxyService.box.getUserId()!),
-            builder: (context, businessSnapshot) {
-              if (businessSnapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-              }
+          // FIXME: fixme later.
+          // FutureBuilder<List<Business>>(
+          //   future: ProxyService.local
+          //       .businesses(userId: ProxyService.box.getUserId()!),
+          //   builder: (context, businessSnapshot) {
+          //     if (businessSnapshot.connectionState == ConnectionState.waiting) {
+          //       return CircularProgressIndicator();
+          //     }
 
-              if (businessSnapshot.hasError) {
-                return Text(
-                    'Error loading businesses: ${businessSnapshot.error}');
-              }
+          //     if (businessSnapshot.hasError) {
+          //       return Text(
+          //           'Error loading businesses: ${businessSnapshot.error}');
+          //     }
 
-              final List<Business> businesses = businessSnapshot.data ?? [];
-              return SizedBox.shrink();
-              // FIXME: uncomment this code.
-              // return FutureBuilder<List<Branch>>(
-              //   future: ProxyService.local
-              //       .branches(businessId: businesses.first.serverId),
-              //   builder: (context, branchSnapshot) {
-              //     if (branchSnapshot.connectionState ==
-              //         ConnectionState.waiting) {
-              //       return CircularProgressIndicator();
-              //     }
+          //     final List<Business> businesses = businessSnapshot.data ?? [];
 
-              //     if (branchSnapshot.hasError) {
-              //       return Text(
-              //           'Error loading branches: ${branchSnapshot.error}');
-              //     }
+          //     // FIXME: uncomment this code.
+          //     return FutureBuilder<List<Branch>>(
+          //       future: ProxyService.local
+          //           .branches(businessId: businesses.first.serverId),
+          //       builder: (context, branchSnapshot) {
+          //         if (branchSnapshot.connectionState ==
+          //             ConnectionState.waiting) {
+          //           return CircularProgressIndicator();
+          //         }
 
-              //     final List<Branch> branches = branchSnapshot.data ?? [];
+          //         if (branchSnapshot.hasError) {
+          //           return Text(
+          //               'Error loading branches: ${branchSnapshot.error}');
+          //         }
 
-              //     // Extract business names and filter out null values
-              //     final List<String> businessNames = businesses
-              //         .map((business) => business.name ?? '')
-              //         .toList();
+          //         final List<Branch> branches = branchSnapshot.data ?? [];
 
-              //     // Extract branch names and filter out null values
-              //     final List<String> branchNames =
-              //         branches.map((branch) => branch.name ?? '').toList();
+          //         // Extract business names and filter out null values
+          //         final List<String> businessNames = businesses
+          //             .map((business) => business.name ?? '')
+          //             .toList();
 
-              //     return BusinessTile(
-              //       businessName: businessNames.isNotEmpty
-              //           ? businessNames.first
-              //           : 'Default Business',
-              //       branches: branchNames.isNotEmpty
-              //           ? branchNames
-              //           : ['Default Branch'],
-              //     );
-              //   },
-              // );
-            },
-          )
+          //         // Extract branch names and filter out null values
+          //         final List<String> branchNames =
+          //             branches.map((branch) => branch.name ?? '').toList();
+
+          //         return BusinessTile(
+          //           businessName: businessNames.isNotEmpty
+          //               ? businessNames.first
+          //               : 'Default Business',
+          //           branches: branchNames.isNotEmpty
+          //               ? branchNames
+          //               : ['Default Branch'],
+          //         );
+          //       },
+          //     );
+          //   },
+          // )
         ],
       ),
     );
