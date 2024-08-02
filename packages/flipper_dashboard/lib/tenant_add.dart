@@ -36,6 +36,7 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantPermissions = {};
+  int? userId;
 
   @override
   void initState() {
@@ -360,10 +361,11 @@ class TenantAddState extends ConsumerState<TenantAdd>
       setState(() => isAddingUser = true);
       try {
         Business? business = await ProxyService.local.defaultBusiness();
-        Branch? branch = await ProxyService.local.defaultBranch();
+        Branch? branch = ref.read(selectedBranchProvider) ??
+            ProxyService.local.defaultBranch();
 
-        // Save tenant
-        Tenant newTenant = await ProxyService.local.saveTenant(
+        // Save tenant, is tenant is not already saved in the backend
+        Tenant? newTenant = await ProxyService.local.saveTenant(
           _phoneController.text,
           _nameController.text,
           branch: branch!,
@@ -373,32 +375,52 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
         // Save access permissions
         tenantPermissions.forEach((featureName, accessLevel) {
-          final access = Access(
-            ObjectId(),
-            id: randomNumber(),
-            branchId: branch.serverId!,
-            businessId: business.serverId,
-            createdAt: DateTime.now(),
-            userType: selectedUserType,
-            accessLevel: accessLevel.toLowerCase(),
-            status: activeFeatures[featureName] != null
-                ? activeFeatures[featureName]!
-                    ? 'active'
-                    : 'inactive'
-                : 'inactive',
-            userId: newTenant.userId,
-            featureName: featureName,
-          );
-          ProxyService.realm.realm!.write(() {
-            ProxyService.realm.realm!.add<Access>(access);
-          });
+          // Query for existing Access object
+          Access? existingAccess = ProxyService.realm.realm!.query<Access>(
+              r'userId == $0 AND featureName == $1',
+              [newTenant?.userId ?? userId, featureName]).firstOrNull;
+
+          if (existingAccess != null) {
+            // Update existing Access object
+            ProxyService.realm.realm!.write(() {
+              existingAccess.accessLevel = accessLevel.toLowerCase();
+              existingAccess.status = activeFeatures[featureName] != null
+                  ? activeFeatures[featureName]!
+                      ? 'active'
+                      : 'inactive'
+                  : 'inactive';
+              existingAccess.userType = selectedUserType;
+            });
+          } else {
+            // Create new Access object if it doesn't exist
+            final access = Access(
+              ObjectId(),
+              id: randomNumber(),
+              branchId: branch.serverId!,
+              businessId: business.serverId,
+              createdAt: DateTime.now(),
+              userType: selectedUserType,
+              accessLevel: accessLevel.toLowerCase(),
+              status: activeFeatures[featureName] != null
+                  ? activeFeatures[featureName]!
+                      ? 'active'
+                      : 'inactive'
+                  : 'inactive',
+              userId: newTenant?.userId,
+              featureName: featureName,
+            );
+            ProxyService.realm.realm!.write(() {
+              ProxyService.realm.realm!.add<Access>(access);
+            });
+          }
         });
 
         await model.loadTenants();
 
         _resetForm();
       } catch (e, s) {
-        // ... existing error handling ...
+        talker.error(s);
+        rethrow;
       } finally {
         setState(() => isAddingUser = false);
       }
@@ -484,6 +506,9 @@ class TenantAddState extends ConsumerState<TenantAdd>
     return ExpansionTile(
       onExpansionChanged: (expanded) {
         if (expanded) {
+          setState(() {
+            userId = tenant.userId!;
+          });
           talker.warning(
               "Permission Assigned: ${tenantAccesses.first.accessLevel}");
           _updateTenantPermissions(tenantAccesses);

@@ -22,13 +22,13 @@ abstract class LocalRealmInterface {
   Business getBusiness({int? businessId});
   Future<Business> getBusinessFuture({int? businessId});
   Future<Business?> defaultBusiness();
-  Future<Branch?> defaultBranch();
+  Branch? defaultBranch();
   Future<Branch> activeBranch();
 
   Future<List<ITenant>> tenantsFromOnline({required int businessId});
   Future<Business?> getBusinessFromOnlineGivenId({required int id});
   Future<List<Business>> getContacts();
-  Future<Tenant> saveTenant(String phoneNumber, String name,
+  Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
       required String userType});
@@ -42,4 +42,5 @@ abstract class LocalRealmInterface {
       required String location,
       required String userOwnerPhoneNumber});
   Future<void> deleteBranch({required int branchId});
+  Branch? branch({required int serverId});
 }

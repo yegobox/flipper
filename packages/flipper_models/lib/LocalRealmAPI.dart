@@ -871,7 +871,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<Branch?> defaultBranch() async {
+  Branch? defaultBranch()  {
     return localRealm!.query<Branch>(r'isDefault == $0 ', [true]).firstOrNull;
   }
 
@@ -1056,7 +1056,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<Tenant> saveTenant(String phoneNumber, String name,
+  Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
       required String userType}) async {
@@ -1205,8 +1205,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
           });
         });
-
-        return tenantToAdd!;
+        
+        return tenantToAdd;
       } catch (e) {
         talker.error(e);
         rethrow;
@@ -1308,5 +1308,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       talker.error(s);
       rethrow;
     }
+  }
+
+  @override
+  Branch? branch({required int serverId}) {
+    return realm!.query<Branch>(r'serverId == $0', [serverId]).firstOrNull;
   }
 }
