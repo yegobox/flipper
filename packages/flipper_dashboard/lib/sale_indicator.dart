@@ -29,8 +29,8 @@ class SaleIndicator extends StatefulHookConsumerWidget {
 class SaleIndicatorState extends ConsumerState<SaleIndicator> {
   @override
   Widget build(BuildContext context) {
-    final transaction =
-        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
+    final transaction = ref.watch(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
     return ViewModelBuilder<CoreViewModel>.reactive(
         viewModelBuilder: () => CoreViewModel(),
         builder: (a, model, b) {

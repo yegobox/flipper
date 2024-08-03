@@ -6,6 +6,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
 
 /// TODO: adapt to some change in this flutter release https://medium.com/flutter/whats-new-in-flutter-3-19-58b1aae242d2
+/// https://dart.dev/language/pattern-types#parenthesized (Know the dart)
 @StackedApp(
   routes: [
     CustomRoute(page: StartUpView, initial: true),

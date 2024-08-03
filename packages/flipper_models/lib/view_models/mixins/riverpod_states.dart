@@ -99,8 +99,8 @@ final variantsProvider = FutureProvider.autoDispose
 });
 
 final pendingTransactionProvider = Provider.autoDispose
-    .family<AsyncValue<ITransaction>, (String, bool)>((ref, params) {
-  final (mode, isExpense) = params;
+    .family<AsyncValue<ITransaction>, ({String mode, bool isExpense})>((ref, params) {
+  final (:mode, :isExpense) = params;
   try {
     ITransaction pendingTransaction = ProxyService.realm
         .manageTransaction(transactionType: mode, isExpense: isExpense);

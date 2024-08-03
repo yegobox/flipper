@@ -190,13 +190,13 @@ class _RowItemState extends ConsumerState<RowItem> {
       if (isOrdering) {
         /// update is ordering to true
         ref.read(isOrderingProvider.notifier).startOrdering();
-        pendingTransaction = ref
-            .watch(pendingTransactionProvider((TransactionType.cashOut, true)));
+        pendingTransaction = ref.watch(pendingTransactionProvider(
+            (mode: TransactionType.cashOut, isExpense: true)));
       } else {
         /// update is ordering to true
         ref.read(isOrderingProvider.notifier).stopOrdering();
-        pendingTransaction = ref
-            .watch(pendingTransactionProvider((TransactionType.sale, false)));
+        pendingTransaction = ref.watch(pendingTransactionProvider(
+            (mode: TransactionType.sale, isExpense: false)));
       }
 
       /// first check if this item is a composite

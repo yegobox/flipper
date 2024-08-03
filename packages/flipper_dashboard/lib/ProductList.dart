@@ -43,8 +43,8 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
       final isOrdering = ref.watch(isOrderingProvider);
       final transactionType =
           isOrdering ? TransactionType.cashOut : TransactionType.sale;
-      final transaction =
-          ref.watch(pendingTransactionProvider((transactionType, isOrdering)));
+      final transaction = ref.watch(pendingTransactionProvider(
+          (mode: transactionType, isExpense: isOrdering)));
 
       final items = ProxyService.realm.transactionItems(
         transactionId: transaction.value!.id!,

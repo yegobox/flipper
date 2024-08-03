@@ -97,8 +97,8 @@ class CheckOutState extends ConsumerState<CheckOut>
           ref.read(loadingProvider.notifier).state = false;
           ref.refresh(loadingProvider.notifier);
           ref.read(isProcessingProvider.notifier).stopProcessing();
-          ref.refresh(
-              pendingTransactionProvider((TransactionType.sale, false)));
+          ref.refresh(pendingTransactionProvider(
+              (mode: TransactionType.sale, isExpense: false)));
 
           await printing(bytes);
         },
@@ -241,7 +241,8 @@ class CheckOutState extends ConsumerState<CheckOut>
     }
 
     /// refresh and go home
-    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
+    ref.refresh(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
 
     model.handlingConfirm = false;
   }
@@ -273,15 +274,16 @@ class CheckOutState extends ConsumerState<CheckOut>
       await handleReceiptGeneration(
           transaction: trans, purchaseCode: purchaseCode);
     }
-    ref.refresh(pendingTransactionProvider((TransactionType.sale, false)));
+    ref.refresh(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
     ref.read(loadingProvider.notifier).state = false;
   }
 
   @override
   Widget build(BuildContext context) {
     // Watch the pendingTransactionProvider and handle its states safely
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
+    final transactionAsyncValue = ref.watch(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
 
     return transactionAsyncValue.when(
       data: (transaction) {

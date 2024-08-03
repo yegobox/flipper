@@ -42,7 +42,7 @@ class SellState extends ConsumerState<Sell> {
       builder: (context, model, child) {
         final pendingTransaction = ref.watch(pendingTransactionProvider(
           /// defind this is an income by setting isExpense to false
-          (TransactionType.sale, false),
+          (mode: TransactionType.sale, isExpense: false),
         ));
         return Scaffold(
           backgroundColor: Colors.white,
@@ -77,10 +77,10 @@ class SellState extends ConsumerState<Sell> {
 
               /// when we are ordering transaction type is cashOut
               ref.refresh(pendingTransactionProvider(
-                (TransactionType.cashOut, true),
+                (mode: TransactionType.cashOut, isExpense: true),
               ));
               ref.refresh(pendingTransactionProvider(
-                (TransactionType.sale, false),
+                (mode: TransactionType.sale, isExpense: false),
               ));
               _routerService.pop();
             },

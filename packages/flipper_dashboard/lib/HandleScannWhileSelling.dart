@@ -45,8 +45,8 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               pendingTransaction: currentTransaction,
               currentStock: stock!.currentStock,
               partOfComposite: false);
-          final pendingTransaction = ref
-              .watch(pendingTransactionProvider((TransactionType.sale, false)));
+          final pendingTransaction = ref.watch(pendingTransactionProvider(
+              (mode: TransactionType.sale, isExpense: false)));
 
           await Future.delayed(Duration(microseconds: 500));
           ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));

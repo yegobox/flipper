@@ -36,7 +36,8 @@ class _TicketsListState extends ConsumerState<TicketsList> {
             /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
             /// cart preview
             ref.refresh(
-              pendingTransactionProvider((TransactionType.sale, false)),
+              pendingTransactionProvider(
+                  (mode: TransactionType.sale, isExpense: false)),
             );
             _routerService.back();
           },
@@ -166,7 +167,7 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                                     for (var i = 0; i < 120; i++) {
                                       final transaction = ref.refresh(
                                           pendingTransactionProvider(
-                                              (TransactionType.sale, false)));
+                                              (mode:TransactionType.sale,isExpense: false)));
                                       ref.refresh(transactionItemsProvider(
                                               transaction.value?.id!)
                                           .notifier);

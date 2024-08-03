@@ -123,8 +123,8 @@ class PreviewSaleBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final transaction =
-        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
+    final transaction = ref.watch(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
     final transactionItemsNotifier =
         ref.watch(transactionItemsProvider(transaction.value?.id!).notifier);
 

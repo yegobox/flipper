@@ -215,8 +215,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
     ref.refresh(transactionItemsProvider(ref
         .read(pendingTransactionProvider((
-          widget.transactionType,
-          widget.transactionType == TransactionType.cashOut ? true : false
+          mode: widget.transactionType,
+          isExpense:
+              widget.transactionType == TransactionType.cashOut ? true : false
         )))
         .value
         ?.id));
@@ -224,8 +225,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
   Future<void> _handleSpecialKey(String key) async {
     final transaction = ref.read(pendingTransactionProvider((
-      widget.transactionType,
-      widget.transactionType == TransactionType.cashOut ? true : false
+      mode: widget.transactionType,
+      isExpense:
+          widget.transactionType == TransactionType.cashOut ? true : false
     )));
 
     if (key == 'C') {
@@ -339,8 +341,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     widget.model.newTransactionPressed = false;
     final isExpense = (TransactionType.cashOut == widget.transactionType);
     final transaction = ref.watch(pendingTransactionProvider((
-      widget.transactionType,
-      isExpense,
+      mode: widget.transactionType,
+      isExpense: isExpense,
     )));
     widget.model.keyboardKeyPressed(
       isExpense: widget.transactionType == TransactionType.cashOut,
