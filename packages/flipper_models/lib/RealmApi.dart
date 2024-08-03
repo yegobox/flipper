@@ -3197,8 +3197,13 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Assets? getAsset({required String assetName}) {
-    return realm!.query<Assets>(r'assetName == $0', [assetName]).firstOrNull;
+  Assets? getAsset({String? assetName, int? productId}) {
+    if (assetName != null) {
+      return realm!.query<Assets>(r'assetName == $0', [assetName]).firstOrNull;
+    } else if (productId != null) {
+      return realm!.query<Assets>(r'productId == $0', [productId]).firstOrNull;
+    }
+    throw Exception("no asset");
   }
 
   @override

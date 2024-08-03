@@ -156,18 +156,29 @@ mixin TransactionMixin {
           doneWithTransaction: false,
           active: false);
 
-      if (inactiveItems.isNotEmpty) {
-        ProxyService.realm.realm!.write(() {
-          for (TransactionItem inactiveItem in inactiveItems) {
-            inactiveItem.active = true;
-          }
-          updatePendingTransactionTotals(pendingTransaction);
-        });
-      }
+      markItemAsDoneWithTransaction(
+          inactiveItems: inactiveItems, pendingTransaction: pendingTransaction);
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
       rethrow;
+    }
+  }
+
+  void markItemAsDoneWithTransaction(
+      {required List<TransactionItem> inactiveItems,
+      required ITransaction pendingTransaction,
+      bool isDoneWithTransaction = false}) {
+    if (inactiveItems.isNotEmpty) {
+      ProxyService.realm.realm!.write(() {
+        for (TransactionItem inactiveItem in inactiveItems) {
+          inactiveItem.active = true;
+          if (isDoneWithTransaction) {
+            inactiveItem.doneWithTransaction = true;
+          }
+        }
+        updatePendingTransactionTotals(pendingTransaction);
+      });
     }
   }
 

@@ -1,7 +1,6 @@
 // ignore_for_file: unused_result
 
 import 'dart:io';
-import 'package:collection/collection.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -13,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -92,8 +90,6 @@ class _RowItemState extends ConsumerState<RowItem> {
 
   @override
   Widget build(BuildContext context) {
-    final variantStream = ref.watch(variantStreamProvider(
-        widget.product?.id ?? widget.variant?.productId ?? 0));
     final selectedItem = ref.watch(selectedItemIdProvider);
     final isSelected = selectedItem == widget.variant?.id ||
         widget.product?.id == selectedItem;
@@ -146,8 +142,7 @@ class _RowItemState extends ConsumerState<RowItem> {
                       child: _buildImage(),
                     ),
                     SizedBox(height: 8.0),
-                    _buildProductDetails(variantStream,
-                        isComposite: widget.isComposite),
+                    _buildProductDetails(isComposite: widget.isComposite),
                   ],
                 ),
               ),
@@ -338,8 +333,7 @@ class _RowItemState extends ConsumerState<RowItem> {
     }
   }
 
-  Widget _buildProductDetails(AsyncValue<List<Variant>> variantStream,
-      {required bool isComposite}) {
+  Widget _buildProductDetails({required bool isComposite}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -348,33 +342,32 @@ class _RowItemState extends ConsumerState<RowItem> {
           style: const TextStyle(color: Colors.black, fontSize: 16.0),
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: 4.0),
-        Text(
-          "Stock: ${isComposite ? '-' : widget.stock}",
-          style: const TextStyle(color: Colors.black, fontSize: 14.0),
+        Visibility(
+            visible: !isComposite || widget.stock != 0,
+            child: SizedBox(height: 4.0)),
+        Visibility(
+          visible: !isComposite || widget.stock != 0 || widget.stock != 0.0,
+          child: Text(
+            "Stock: ${isComposite ? '-' : widget.stock}",
+            style: const TextStyle(color: Colors.black, fontSize: 14.0),
+          ),
         ),
-        SizedBox(height: 4.0),
-        _buildPrices(variantStream),
+        Visibility(
+            visible: widget.variant?.retailPrice != 0,
+            child: SizedBox(height: 4.0)),
+        Visibility(
+            visible: widget.variant?.retailPrice != 0, child: _buildPrices()),
       ],
     );
   }
 
-  Widget _buildPrices(AsyncValue<List<Variant>> variantStream) {
+  Widget _buildPrices() {
     return Container(
       width: 80,
-      child: variantStream.when(
-        data: (variants) {
-          final nonZeroPrice =
-              variants.firstWhereOrNull((variant) => variant.retailPrice != 0);
-
-          return Text(
-            'RWF ${NumberFormat('#,###').format(nonZeroPrice?.retailPrice ?? 0)}',
-            style: const TextStyle(color: Colors.black, fontSize: 14.0),
-            overflow: TextOverflow.ellipsis,
-          );
-        },
-        error: (error, stackTrace) => const SizedBox.shrink(),
-        loading: () => Text("loading.."),
+      child: Text(
+        (widget.variant?.retailPrice ?? 0).toRwf(),
+        style: const TextStyle(color: Colors.black, fontSize: 14.0),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

@@ -394,7 +394,7 @@ abstract class RealmApiInterface {
   Future<Stream<double>> downloadAssetSave(
       {String? assetName, String? subPath = "branch"});
   Future<bool> removeS3File({required String fileName});
-  Assets? getAsset({required String assetName});
+  Assets? getAsset({String? assetName, int? productId});
   Future<void> amplifyLogout();
   List<Product> getProducts({String? key});
   List<Variant> getVariants({String? key});

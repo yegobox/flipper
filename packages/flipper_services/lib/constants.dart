@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-const String requestStatusPending = 'pending';
-const String requestStatusApproved = 'approved';
-const String requestStatusPartiallyApproved = 'partiallyApproved';
-const String requestStatusRejected = 'rejected';
-const String requestStatusFulfilled = 'fulfilled';
+class RequestStatus {
+  static const String pending = 'pending';
+  static const String approved = 'approved';
+  static const String partiallyApproved = 'partiallyApproved';
+  static const String rejected = 'rejected';
+  static const String fulfilled = 'fulfilled';
+}
+
 const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
 List<String> features = [
   'Sales',

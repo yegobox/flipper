@@ -3,7 +3,6 @@
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
-import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -25,7 +24,15 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     return stockStream.when(
       data: (double stock) {
-        return buildRowItem(context, model, variant, stock, isOrdering);
+        return buildRowItem(
+            context: context,
+            model: model,
+            variant: variant,
+
+            /// when we are ordering we have no way knowing the stock from supplier
+            /// nor we care in this case, we just place order and wait for supplier to fullfill it.
+            stock: isOrdering ? 0.0 : stock,
+            isOrdering: isOrdering);
       },
       error: (dynamic error, stackTrace) => SizedBox.shrink(),
       loading: () =>
@@ -73,10 +80,18 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  Widget buildRowItem(BuildContext context, ProductViewModel model,
-      Variant variant, double stock, bool isOrdering) {
-    Product? product =
-        ProxyService.realm.getProduct(id: variant.productId ?? 0);
+  Widget buildRowItem(
+      {required BuildContext context,
+      required ProductViewModel model,
+      required Variant variant,
+      required double stock,
+      required bool isOrdering}) {
+    Product? product;
+    if (!isOrdering) {
+      product = ProxyService.realm.getProduct(id: variant.productId ?? 0);
+    }
+    Assets? asset = ProxyService.realm.getAsset(productId: variant.productId);
+
     return RowItem(
       isOrdering: isOrdering,
       color: variant.color ?? "#673AB7",
@@ -85,8 +100,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       variant: variant,
       productName: variant.productName ?? "",
       variantName: variant.name ?? "",
-      imageUrl: product?.imageUrl,
-      isComposite: product?.isComposite ?? false,
+      imageUrl: asset?.assetName,
+      isComposite: !isOrdering ? product?.isComposite ?? false : false,
       orderItem: (int productId) {
         // ref.read(cartListProvider.notifier).addToCart(variant);
         // ref.refresh(cartListProvider);

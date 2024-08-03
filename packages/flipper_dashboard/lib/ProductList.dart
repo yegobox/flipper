@@ -2,12 +2,17 @@
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/states/selectedSupplierProvider.dart';
+import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flipper_models/states/productListProvider.dart';
+import 'package:realm/realm.dart';
 import 'package:stacked/stacked.dart';
 import 'preview_sale_button.dart';
 
@@ -19,7 +24,7 @@ class ProductListScreen extends StatefulHookConsumerWidget {
 }
 
 class ProductListScreenState extends ConsumerState<ProductListScreen>
-    with Datamixer {
+    with Datamixer, TransactionMixin {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController receivedAmountController =
       TextEditingController();
@@ -28,6 +33,74 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
       TextEditingController();
   final TextEditingController paymentTypeController = TextEditingController();
   bool showCart = false;
+  Future<void> previewCart() async {
+    if (!showCart) {
+      setState(() => showCart = true);
+      return;
+    }
+
+    try {
+      final isOrdering = ref.watch(isOrderingProvider);
+      final transactionType =
+          isOrdering ? TransactionType.cashOut : TransactionType.sale;
+      final transaction =
+          ref.watch(pendingTransactionProvider((transactionType, isOrdering)));
+
+      final items = ProxyService.realm.transactionItems(
+        transactionId: transaction.value!.id!,
+        doneWithTransaction: false,
+        active: true,
+      );
+
+      if (items.isEmpty) {
+        setState(() => showCart = false);
+        return;
+      }
+
+      await _createStockRequest(items);
+      await _markItemsAsDone(items, transaction.value!);
+      await _refreshTransactionItems(transaction.value?.id);
+
+      print("Order placed with ${items.length} items in basket");
+    } catch (e, s) {
+      talker.info(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
+
+  Future<void> _createStockRequest(List<TransactionItem> items) async {
+    final realm = ProxyService.realm.realm!;
+    realm.write(() {
+      final stockRequest = StockRequest(
+        ObjectId(),
+        mainBranchId: ref.read(selectedSupplierProvider).value!.serverId,
+        subBranchId: ProxyService.box.getBranchId(),
+        status: RequestStatus.pending,
+        items: items,
+        updatedAt: DateTime.now().toUtc().toLocal(),
+        createdAt: DateTime.now().toUtc().toLocal(),
+      );
+      realm.add<StockRequest>(stockRequest);
+    });
+  }
+
+  Future<void> _markItemsAsDone(
+      List<TransactionItem> items, dynamic pendingTransaction) async {
+    markItemAsDoneWithTransaction(
+      isDoneWithTransaction: true,
+      inactiveItems: items,
+      pendingTransaction: pendingTransaction,
+    );
+  }
+
+  Future<void> _refreshTransactionItems(int? transactionId) async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    ref.refresh(transactionItemsProvider(transactionId));
+    await Future.delayed(const Duration(milliseconds: 200));
+    ref.refresh(transactionItemsProvider(transactionId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
@@ -80,12 +153,10 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
             floatingActionButton: SizedBox(
               width: 200,
               child: PreviewSaleButton(
-                wording: "Preview Cart",
+                wording: showCart ? "Place order" : "Preview Cart",
                 mode: SellingMode.forOrdering,
-                previewCart: () {
-                  setState(() {
-                    showCart = !showCart;
-                  });
+                previewCart: () async {
+                  previewCart();
                 },
               ),
             ),
