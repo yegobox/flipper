@@ -30,7 +30,6 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   bool showCart = false;
   @override
   Widget build(BuildContext context) {
-    final itemOnCart = ref.watch(cartListProvider);
     final items = ref.watch(productFromSupplier);
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => ProductViewModel(),

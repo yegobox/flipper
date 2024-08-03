@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:feather_icons/feather_icons.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm/schemas.dart';
@@ -33,11 +35,6 @@ class QuickSellingView extends StatefulHookConsumerWidget {
 }
 
 class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
-  final List<String> _customerTypes = [
-    'Cash',
-    'MOMO MTN',
-    'Card',
-  ];
   String _selectedPaymentMethod = 'Cash';
 
   // Move the calculation functions outside of build method
@@ -72,8 +69,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
 
   @override
   Widget build(BuildContext context) {
-    final transaction =
-        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
+    final isOrdering = ref.watch(isOrderingProvider);
+    final transaction = ref.watch(pendingTransactionProvider((isOrdering
+        ? (TransactionType.cashOut, true)
+        : (TransactionType.sale, false))));
+
     final transactionItemsAsyncValue =
         ref.watch(transactionItemsProvider(transaction.value?.id));
 
@@ -217,6 +217,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                         item.qty--;
                                       }
                                     });
+                                    // ignore: unused_result
                                     ref.refresh(transactionItemsProvider(
                                         transaction.value?.id));
                                   }
@@ -325,142 +326,162 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.discountController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Discount',
-                            labelStyle: const TextStyle(
-                              color: Colors.black,
+                      Visibility(
+                        visible: !isOrdering,
+                        child: Expanded(
+                          child: TextFormField(
+                            controller: widget.discountController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Discount',
+                              labelStyle: const TextStyle(
+                                color: Colors.black,
+                              ),
+                              suffixIcon: Icon(
+                                FluentIcons.shopping_bag_percent_24_regular,
+                                color: Colors.blue,
+                              ),
+                              border: OutlineInputBorder(),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
                             ),
-                            suffixIcon: Icon(
-                              FluentIcons.shopping_bag_percent_24_regular,
-                              color: Colors.blue,
-                            ),
-                            border: OutlineInputBorder(),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
-                          ),
-                          onChanged: (value) => null,
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
+                            onChanged: (value) => null,
+                            validator: (String? value) {
+                              if (value == null || value.isEmpty) {
+                                return null;
+                              }
+                              final number = double.tryParse(value);
+                              if (number == null) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Please enter a valid number';
+                              }
+                              if (number < 0 || number > 100) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Discount must be between 0 and 100';
+                              }
                               return null;
-                            }
-                            final number = double.tryParse(value);
-                            if (number == null) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Please enter a valid number';
-                            }
-                            if (number < 0 || number > 100) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Discount must be between 0 and 100';
-                            }
-                            return null;
-                          },
+                            },
+                          ),
                         ),
                       ),
-                      SizedBox(width: 16.0),
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.receivedAmountController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Received Amount',
-                            labelStyle: const TextStyle(
-                              color: Colors.black,
+                      Visibility(
+                          visible: !isOrdering, child: SizedBox(width: 16.0)),
+                      Visibility(
+                        visible: !isOrdering,
+                        child: Expanded(
+                          child: TextFormField(
+                            controller: widget.receivedAmountController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Received Amount',
+                              labelStyle: const TextStyle(
+                                color: Colors.black,
+                              ),
+                              suffixIcon: Icon(
+                                FeatherIcons.dollarSign,
+                                color: Colors.blue,
+                              ),
+                              border: OutlineInputBorder(),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
                             ),
-                            suffixIcon: Icon(
-                              FeatherIcons.dollarSign,
-                              color: Colors.blue,
-                            ),
-                            border: OutlineInputBorder(),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
+                            onChanged: (value) => null,
+                            validator: (String? value) {
+                              if (value == null || value.isEmpty) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Please enter received amount';
+                              }
+                              final number = double.tryParse(value);
+                              if (number == null) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Please enter a valid number';
+                              }
+                              if (number < grandTotal) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'You are receiving less compared';
+                              }
+                              return null;
+                            },
                           ),
-                          onChanged: (value) => null,
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Please enter received amount';
-                            }
-                            final number = double.tryParse(value);
-                            if (number == null) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Please enter a valid number';
-                            }
-                            if (number < grandTotal) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'You are receiving less compared';
-                            }
-                            return null;
-                          },
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(
-                    width: 6.0,
-                    height: 6,
+                  Visibility(
+                    visible: !isOrdering,
+                    child: SizedBox(
+                      width: 6.0,
+                      height: 6,
+                    ),
                   ),
                   Row(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: widget.customerPhoneNumberController,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            labelText: 'Customer Phone number',
-                            labelStyle: const TextStyle(
-                              color: Colors.black,
+                      Visibility(
+                        visible: !isOrdering,
+                        child: Expanded(
+                          child: TextFormField(
+                            controller: widget.customerPhoneNumberController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Customer Phone number',
+                              labelStyle: const TextStyle(
+                                color: Colors.black,
+                              ),
+                              suffixIcon: Icon(
+                                FluentIcons.call_20_regular,
+                                color: Colors.blue,
+                              ),
+                              border: OutlineInputBorder(),
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
+                              focusedErrorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                                borderSide: BorderSide(
+                                    color: Theme.of(context).colorScheme.error),
+                              ),
                             ),
-                            suffixIcon: Icon(
-                              FluentIcons.call_20_regular,
-                              color: Colors.blue,
-                            ),
-                            border: OutlineInputBorder(),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: BorderSide(
-                                  color: Theme.of(context).colorScheme.error),
-                            ),
+                            onChanged: (value) => ProxyService.box.writeString(
+                                key: 'currentSaleCustomerPhoneNumber',
+                                value: value),
+                            validator: (String? value) {
+                              if (value == null || value.isEmpty) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Please enter a phone number';
+                              }
+                              final phoneExp = RegExp(r'^[1-9]\d{8}$');
+                              if (!phoneExp.hasMatch(value)) {
+                                ref.read(loadingProvider.notifier).state =
+                                    false;
+                                return 'Please enter a valid 9-digit phone number without a leading zero';
+                              }
+                              return null;
+                            },
                           ),
-                          onChanged: (value) => ProxyService.box.writeString(
-                              key: 'currentSaleCustomerPhoneNumber',
-                              value: value),
-                          validator: (String? value) {
-                            if (value == null || value.isEmpty) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Please enter a phone number';
-                            }
-                            final phoneExp = RegExp(r'^[1-9]\d{8}$');
-                            if (!phoneExp.hasMatch(value)) {
-                              ref.read(loadingProvider.notifier).state = false;
-                              return 'Please enter a valid 9-digit phone number without a leading zero';
-                            }
-                            return null;
-                          },
                         ),
                       ),
                       SizedBox(width: 16.0),
@@ -505,7 +526,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                           newValue;
                                     });
                                   },
-                                  items: _customerTypes
+                                  items: paymentTypes
                                       .map<DropdownMenuItem<String>>(
                                     (String value) {
                                       return DropdownMenuItem<String>(

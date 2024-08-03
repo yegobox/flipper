@@ -7,6 +7,7 @@ const String requestStatusApproved = 'approved';
 const String requestStatusPartiallyApproved = 'partiallyApproved';
 const String requestStatusRejected = 'rejected';
 const String requestStatusFulfilled = 'fulfilled';
+const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
 List<String> features = [
   'Sales',
   'Inventory',

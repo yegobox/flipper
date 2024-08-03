@@ -26,44 +26,80 @@ onWillPop(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Confirm'),
-        content: Text(message),
-        actions: <Widget>[
-          OutlinedButton(
-            child: Text('No',
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                )),
-            style: primaryButtonStyle,
-            onPressed: () {
-              Navigator.pop(context);
-              ProviderScope.containerOf(context)
-                  .read(willPopProvider.notifier)
-                  .canGoBack(condition: false);
-            },
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
+          'Confirm',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
-          OutlinedButton(
-            child: Text('Yes',
-                style: GoogleFonts.poppins(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                )),
-            style: primaryButtonStyle,
-            onPressed: () {
-              final _routerService = locator<RouterService>();
-              if (navigationPurpose == NavigationPurpose.home) {
-                _routerService.navigateTo(FlipperAppRoute());
-                return;
-              }
-              Navigator.pop(context);
-              Navigator.pop(context);
-              ProviderScope.containerOf(context)
-                  .read(willPopProvider.notifier)
-                  .canGoBack(condition: true);
-            },
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+        actions: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Expanded(
+                child: FilledButton.tonal(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'No',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ProviderScope.containerOf(context)
+                        .read(willPopProvider.notifier)
+                        .canGoBack(condition: false);
+                  },
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  child: Text(
+                    'Yes',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onPressed: () {
+                    if (navigationPurpose == NavigationPurpose.home) {
+                      locator<RouterService>().replaceWithFlipperApp();
+                      return;
+                    }
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                    ProviderScope.containerOf(context)
+                        .read(willPopProvider.notifier)
+                        .canGoBack(condition: true);
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       );

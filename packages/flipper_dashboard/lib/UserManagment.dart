@@ -64,12 +64,7 @@ class _UserManagementState extends State<UserManagement> {
     }
   }
 
-  void _addNewUser(User newUser) {
-    setState(() {
-      users.add(newUser);
-      _filteredUsers = users;
-    });
-  }
+  
 
   @override
   Widget build(BuildContext context) {

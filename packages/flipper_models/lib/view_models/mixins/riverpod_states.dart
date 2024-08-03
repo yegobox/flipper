@@ -767,6 +767,26 @@ class IsProcessingNotifier extends StateNotifier<bool> {
   }
 }
 
+final isOrderingProvider = StateNotifierProvider<IsOrderingNotifier, bool>(
+  (ref) => IsOrderingNotifier(),
+);
+
+class IsOrderingNotifier extends StateNotifier<bool> {
+  IsOrderingNotifier() : super(false);
+
+  void startOrdering() {
+    state = true;
+  }
+
+  void stopOrdering() {
+    state = false;
+  }
+
+  void toggleOrdering() {
+    state = !state;
+  }
+}
+
 const int NO_SELECTION = -1;
 
 final selectedItemIdProvider = StateProvider<int?>((ref) => NO_SELECTION);

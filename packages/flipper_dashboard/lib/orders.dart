@@ -22,13 +22,13 @@ class OrdersState extends ConsumerState<Orders> {
   @override
   Widget build(BuildContext context) {
     final suppliers = ref.watch(branchesProvider);
-    // talker.warning("Branches ${suppliers}");
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
         if (didPop) {
           return;
         }
+        ref.read(isOrderingProvider.notifier).toggleOrdering();
         onWillPop(
           context: context,
           navigationPurpose: NavigationPurpose.back,
@@ -72,6 +72,7 @@ class OrdersState extends ConsumerState<Orders> {
                 onTap: selectedSupplier == null
                     ? null
                     : () {
+                        ref.read(isOrderingProvider.notifier).startOrdering();
                         Navigator.push(
                           context,
                           MaterialPageRoute(

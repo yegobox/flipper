@@ -193,9 +193,13 @@ class _RowItemState extends ConsumerState<RowItem> {
     try {
       var pendingTransaction = null;
       if (isOrdering) {
+        /// update is ordering to true
+        ref.read(isOrderingProvider.notifier).startOrdering();
         pendingTransaction = ref
             .watch(pendingTransactionProvider((TransactionType.cashOut, true)));
       } else {
+        /// update is ordering to true
+        ref.read(isOrderingProvider.notifier).stopOrdering();
         pendingTransaction = ref
             .watch(pendingTransactionProvider((TransactionType.sale, false)));
       }
