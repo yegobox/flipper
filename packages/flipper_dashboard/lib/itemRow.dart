@@ -343,10 +343,10 @@ class _RowItemState extends ConsumerState<RowItem> {
           overflow: TextOverflow.ellipsis,
         ),
         Visibility(
-            visible: !isComposite || widget.stock != 0,
+            visible: (!isComposite && widget.stock != 0),
             child: SizedBox(height: 4.0)),
         Visibility(
-          visible: !isComposite || widget.stock != 0 || widget.stock != 0.0,
+          visible: (!isComposite && widget.stock != 0), // Use && here
           child: Text(
             "Stock: ${isComposite ? '-' : widget.stock}",
             style: const TextStyle(color: Colors.black, fontSize: 14.0),
