@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:universal_platform/universal_platform.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+const String requestStatusPending = 'pending';
+const String requestStatusApproved = 'approved';
+const String requestStatusPartiallyApproved = 'partiallyApproved';
+const String requestStatusRejected = 'rejected';
+const String requestStatusFulfilled = 'fulfilled';
 List<String> features = [
   'Sales',
   'Inventory',

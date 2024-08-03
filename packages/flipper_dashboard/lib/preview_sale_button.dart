@@ -1,28 +1,28 @@
-import 'package:flipper_dashboard/Comfirm.dart';
 import 'package:flipper_models/realm_model_export.dart';
-import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_loading/indicator/ball_pulse_indicator.dart';
 import 'package:flipper_loading/loading.dart';
 
 typedef void CompleteTransaction();
+typedef void PreviewCart();
 
 class PreviewSaleButton extends StatefulHookConsumerWidget {
   const PreviewSaleButton({
     Key? key,
     this.wording,
     this.mode = SellingMode.forSelling,
-    required this.completeTransaction,
+    this.completeTransaction,
+    this.previewCart,
   }) : super(key: key);
   final String? wording;
   final SellingMode mode;
   final CompleteTransaction? completeTransaction;
+  final PreviewCart? previewCart;
   @override
   PreviewSaleButtonState createState() => PreviewSaleButtonState();
 }
@@ -47,22 +47,10 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
     ).animate(_controller);
   }
 
-  void _handleOrderFlow(BuildContext context, CoreViewModel model) {
-    final cartItem = ref.watch(productFromSupplier); // Use watch here
-
-    if (cartItem.value != null && cartItem.value!.isNotEmpty) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => Comfirm(),
-        ),
-      );
-    } else {
-      toast("There is no item on cart");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(loadingProvider);
+    final finalWording = widget.wording ?? "Pay";
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -83,20 +71,26 @@ class PreviewSaleButtonState extends ConsumerState<PreviewSaleButton>
                     },
                   ),
                 ),
-                onPressed: ref.watch(loadingProvider)
+                onPressed: isLoading
                     ? null
                     : () async {
-                        talker.info("init callback to complete transaction");
-                        widget.completeTransaction!();
+                        if (widget.mode == SellingMode.forSelling) {
+                          talker.info("init callback to complete transaction");
+                          widget.completeTransaction!();
+                        }
+                        if (widget.mode == SellingMode.forOrdering) {
+                          talker.info("init callback to complete transaction");
+                          widget.previewCart!();
+                        }
                       },
-                child: ref.watch(loadingProvider)
+                child: isLoading
                     ? Loading(
                         indicator: BallPulseIndicator(),
                         size: 50.0,
                         color: Colors.white,
                       )
                     : Text(
-                        "Pay",
+                        finalWording,
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,

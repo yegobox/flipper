@@ -4771,6 +4771,156 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
 
+class StockRequest extends _StockRequest
+    with RealmEntity, RealmObjectBase, RealmObject {
+  StockRequest(
+    ObjectId realmId, {
+    int? id,
+    int? mainBranchId,
+    int? subBranchId,
+    DateTime? createdAt,
+    String? status,
+    Iterable<TransactionItem> items = const [],
+    DateTime? updatedAt,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'mainBranchId', mainBranchId);
+    RealmObjectBase.set(this, 'subBranchId', subBranchId);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+    RealmObjectBase.set(this, 'status', status);
+    RealmObjectBase.set<RealmList<TransactionItem>>(
+        this, 'items', RealmList<TransactionItem>(items));
+    RealmObjectBase.set(this, 'updatedAt', updatedAt);
+  }
+
+  StockRequest._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get mainBranchId =>
+      RealmObjectBase.get<int>(this, 'mainBranchId') as int?;
+  @override
+  set mainBranchId(int? value) =>
+      RealmObjectBase.set(this, 'mainBranchId', value);
+
+  @override
+  int? get subBranchId => RealmObjectBase.get<int>(this, 'subBranchId') as int?;
+  @override
+  set subBranchId(int? value) =>
+      RealmObjectBase.set(this, 'subBranchId', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  String? get status => RealmObjectBase.get<String>(this, 'status') as String?;
+  @override
+  set status(String? value) => RealmObjectBase.set(this, 'status', value);
+
+  @override
+  RealmList<TransactionItem> get items =>
+      RealmObjectBase.get<TransactionItem>(this, 'items')
+          as RealmList<TransactionItem>;
+  @override
+  set items(covariant RealmList<TransactionItem> value) =>
+      throw RealmUnsupportedSetError();
+
+  @override
+  DateTime? get updatedAt =>
+      RealmObjectBase.get<DateTime>(this, 'updatedAt') as DateTime?;
+  @override
+  set updatedAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'updatedAt', value);
+
+  @override
+  Stream<RealmObjectChanges<StockRequest>> get changes =>
+      RealmObjectBase.getChanges<StockRequest>(this);
+
+  @override
+  Stream<RealmObjectChanges<StockRequest>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<StockRequest>(this, keyPaths);
+
+  @override
+  StockRequest freeze() => RealmObjectBase.freezeObject<StockRequest>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'mainBranchId': mainBranchId.toEJson(),
+      'subBranchId': subBranchId.toEJson(),
+      'createdAt': createdAt.toEJson(),
+      'status': status.toEJson(),
+      'items': items.toEJson(),
+      'updatedAt': updatedAt.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(StockRequest value) => value.toEJson();
+  static StockRequest _fromEJson(EJsonValue ejson) {
+    return switch (ejson) {
+      {
+        'id': EJsonValue id,
+        '_id': EJsonValue realmId,
+        'mainBranchId': EJsonValue mainBranchId,
+        'subBranchId': EJsonValue subBranchId,
+        'createdAt': EJsonValue createdAt,
+        'status': EJsonValue status,
+        'items': EJsonValue items,
+        'updatedAt': EJsonValue updatedAt,
+      } =>
+        StockRequest(
+          fromEJson(realmId),
+          id: fromEJson(id),
+          mainBranchId: fromEJson(mainBranchId),
+          subBranchId: fromEJson(subBranchId),
+          createdAt: fromEJson(createdAt),
+          status: fromEJson(status),
+          items: fromEJson(items),
+          updatedAt: fromEJson(updatedAt),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(StockRequest._);
+    register(_toEJson, _fromEJson);
+    return SchemaObject(ObjectType.realmObject, StockRequest, 'StockRequest', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('mainBranchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('subBranchId', RealmPropertyType.int, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+      SchemaProperty('status', RealmPropertyType.string, optional: true),
+      SchemaProperty('items', RealmPropertyType.object,
+          linkTarget: 'TransactionItem',
+          collectionType: RealmCollectionType.list),
+      SchemaProperty('updatedAt', RealmPropertyType.timestamp, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}
+
 class TransactionItem extends _TransactionItem
     with RealmEntity, RealmObjectBase, RealmObject {
   static var _defaultsSet = false;
@@ -4779,6 +4929,9 @@ class TransactionItem extends _TransactionItem
     ObjectId realmId, {
     int? id,
     String? name,
+    int? quantityRequested,
+    int? quantityApproved,
+    int? quantityShipped,
     int? transactionId,
     int? variantId,
     double qty = 0.0,
@@ -4861,6 +5014,9 @@ class TransactionItem extends _TransactionItem
     RealmObjectBase.set(this, 'id', id);
     RealmObjectBase.set(this, '_id', realmId);
     RealmObjectBase.set(this, 'name', name);
+    RealmObjectBase.set(this, 'quantityRequested', quantityRequested);
+    RealmObjectBase.set(this, 'quantityApproved', quantityApproved);
+    RealmObjectBase.set(this, 'quantityShipped', quantityShipped);
     RealmObjectBase.set(this, 'transactionId', transactionId);
     RealmObjectBase.set(this, 'variantId', variantId);
     RealmObjectBase.set(this, 'qty', qty);
@@ -4933,6 +5089,27 @@ class TransactionItem extends _TransactionItem
   String? get name => RealmObjectBase.get<String>(this, 'name') as String?;
   @override
   set name(String? value) => RealmObjectBase.set(this, 'name', value);
+
+  @override
+  int? get quantityRequested =>
+      RealmObjectBase.get<int>(this, 'quantityRequested') as int?;
+  @override
+  set quantityRequested(int? value) =>
+      RealmObjectBase.set(this, 'quantityRequested', value);
+
+  @override
+  int? get quantityApproved =>
+      RealmObjectBase.get<int>(this, 'quantityApproved') as int?;
+  @override
+  set quantityApproved(int? value) =>
+      RealmObjectBase.set(this, 'quantityApproved', value);
+
+  @override
+  int? get quantityShipped =>
+      RealmObjectBase.get<int>(this, 'quantityShipped') as int?;
+  @override
+  set quantityShipped(int? value) =>
+      RealmObjectBase.set(this, 'quantityShipped', value);
 
   @override
   int? get transactionId =>
@@ -5249,6 +5426,9 @@ class TransactionItem extends _TransactionItem
       'id': id.toEJson(),
       '_id': realmId.toEJson(),
       'name': name.toEJson(),
+      'quantityRequested': quantityRequested.toEJson(),
+      'quantityApproved': quantityApproved.toEJson(),
+      'quantityShipped': quantityShipped.toEJson(),
       'transactionId': transactionId.toEJson(),
       'variantId': variantId.toEJson(),
       'qty': qty.toEJson(),
@@ -5312,6 +5492,9 @@ class TransactionItem extends _TransactionItem
         'id': EJsonValue id,
         '_id': EJsonValue realmId,
         'name': EJsonValue name,
+        'quantityRequested': EJsonValue quantityRequested,
+        'quantityApproved': EJsonValue quantityApproved,
+        'quantityShipped': EJsonValue quantityShipped,
         'transactionId': EJsonValue transactionId,
         'variantId': EJsonValue variantId,
         'qty': EJsonValue qty,
@@ -5370,6 +5553,9 @@ class TransactionItem extends _TransactionItem
           fromEJson(realmId),
           id: fromEJson(id),
           name: fromEJson(name),
+          quantityRequested: fromEJson(quantityRequested),
+          quantityApproved: fromEJson(quantityApproved),
+          quantityShipped: fromEJson(quantityShipped),
           transactionId: fromEJson(transactionId),
           variantId: fromEJson(variantId),
           qty: fromEJson(qty),
@@ -5437,6 +5623,10 @@ class TransactionItem extends _TransactionItem
       SchemaProperty('realmId', RealmPropertyType.objectid,
           mapTo: '_id', primaryKey: true),
       SchemaProperty('name', RealmPropertyType.string, optional: true),
+      SchemaProperty('quantityRequested', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('quantityApproved', RealmPropertyType.int, optional: true),
+      SchemaProperty('quantityShipped', RealmPropertyType.int, optional: true),
       SchemaProperty('transactionId', RealmPropertyType.int, optional: true),
       SchemaProperty('variantId', RealmPropertyType.int, optional: true),
       SchemaProperty('qty', RealmPropertyType.double),

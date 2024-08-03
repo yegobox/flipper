@@ -18,6 +18,7 @@ class _UserManagementState extends State<UserManagement> {
   ];
 
   List<User> _filteredUsers = [];
+  // ignore: unused_field
   String _searchQuery = '';
   bool _isSearchExpanded = false;
   User? _selectedUser;

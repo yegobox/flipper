@@ -2,6 +2,7 @@
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
+import 'package:flipper_dashboard/home/pages/root_sheet_page.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
@@ -20,6 +21,7 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({
@@ -172,29 +174,29 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleReceiveOrderToggle() {
-    // ref.read(receivingOrdersModeProvider.notifier).toggleReceiveOrder();
-    // _routerService.navigateTo(OrdersRoute());
     final deviceType = _getDeviceType(context);
-    deviceType == 'Phone' || deviceType == 'Phablet'
-        ? _routerService.navigateTo(OrdersRoute())
-        : null;
-    // TODO: work on porting ordering feature in leftside sheet later (advanced)
-    // WoltModalSheet.show(
-    //   pageListBuilder: (BuildContext context) {
-    //     return [RootSheetPage.build(context)];
-    //   },
-    //   context: context,
-    //   modalTypeBuilder: (BuildContext context) {
-    //     final width = MediaQuery.sizeOf(context).width;
-    //     if (width < 523) {
-    //       return WoltModalType.bottomSheet();
-    //     } else if (width < 800) {
-    //       return WoltModalType.dialog();
-    //     } else {
-    //       return WoltModalType.sideSheet();
-    //     }
-    //   },
-    // );
+
+    if (deviceType == 'Phone' || deviceType == 'Phablet') {
+      _routerService.navigateTo(OrdersRoute());
+    } else {
+      _routerService.navigateTo(OrdersRoute());
+      //    WoltModalSheet.show(
+      //   pageListBuilder: (BuildContext context) {
+      //     return [RootSheetPage.build(context)];
+      //   },
+      //   context: context,
+      //   modalTypeBuilder: (BuildContext context) {
+      //     final width = MediaQuery.sizeOf(context).width;
+      //     if (width < 523) {
+      //       return WoltModalType.bottomSheet();
+      //     } else if (width < 800) {
+      //       return WoltModalType.dialog();
+      //     } else {
+      //       return WoltModalType.sideSheet();
+      //     }
+      //   },
+      // );
+    }
   }
 
   Widget _buildOrderIcon(AsyncValue<List<ITransaction>> orders) {

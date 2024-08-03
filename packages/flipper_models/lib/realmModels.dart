@@ -31,4 +31,5 @@ final realmModels = [
   Report.schema,
   Computed.schema,
   Access.schema,
+  StockRequest.schema,
 ];

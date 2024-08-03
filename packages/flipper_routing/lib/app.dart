@@ -1,5 +1,6 @@
 library flipper_routing;
 
+import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'all_routes.dart';
@@ -65,6 +66,7 @@ import 'all_routes.dart';
     CustomRoute(page: Reports),
     CustomRoute(page: AdminControl),
     CustomRoute(page: AddBranch),
+    CustomRoute(page: QuickSellingView),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

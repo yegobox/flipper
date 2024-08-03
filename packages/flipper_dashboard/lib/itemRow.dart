@@ -53,9 +53,10 @@ class RowItem extends StatefulHookConsumerWidget {
   final Product? product;
   final bool? addFavoriteMode;
   final int? favIndex;
-  final Function? addToMenu;
+  final Function? orderItem;
   final String variantName;
   final bool isComposite;
+  final bool isOrdering;
 
   RowItem({
     Key? key,
@@ -63,7 +64,7 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.productName,
     required this.variantName,
     required this.stock,
-    this.addToMenu = _defaultFunction,
+    this.orderItem = _defaultFunction,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -75,6 +76,7 @@ class RowItem extends StatefulHookConsumerWidget {
     this.addFavoriteMode,
     this.favIndex,
     required this.isComposite,
+    required this.isOrdering,
   }) : super(key: key);
 
   static _defaultFunction(int? id, String type) {
@@ -104,7 +106,11 @@ class _RowItemState extends ConsumerState<RowItem> {
             if (isSelected) {
               ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
             } else {
-              await onTapItem(model);
+              await onTapItem(model: model, isOrdering: widget.isOrdering);
+              if (widget.orderItem != null && widget.isOrdering) {
+                widget.orderItem!(widget.variant!.productId);
+                return;
+              }
             }
           },
           onLongPress: () {
@@ -182,59 +188,76 @@ class _RowItemState extends ConsumerState<RowItem> {
     );
   }
 
-  Future<void> onTapItem(CoreViewModel model) async {
-    final pendingTransaction =
-        ref.watch(pendingTransactionProvider((TransactionType.sale, false)));
-
-    /// first check if this item is a composite
-    Product? product =
-        ProxyService.realm.getProduct(id: widget.variant!.productId!);
-    if (product != null &&
-        product.isComposite != null &&
-        product.isComposite!) {
-      /// get items of this composite
-      List<Composite> composites =
-          ProxyService.realm.composites(productId: product.id!);
-      for (Composite composite in composites) {
-        /// find a stock for a given variant
-        Stock? stock = ProxyService.realm
-            .stockByVariantId(variantId: composite.variantId!);
-        Variant? variant =
-            ProxyService.realm.getVariantById(id: composite.variantId!);
-        model.saveTransaction(
-          variation: variant!,
-          amountTotal: variant.retailPrice,
-          customItem: false,
-          currentStock: stock!.currentStock,
-          pendingTransaction: pendingTransaction.value!,
-          partOfComposite: true,
-          compositePrice: composite.actualPrice,
-        );
+  Future<void> onTapItem(
+      {required CoreViewModel model, required isOrdering}) async {
+    try {
+      var pendingTransaction = null;
+      if (isOrdering) {
+        pendingTransaction = ref
+            .watch(pendingTransactionProvider((TransactionType.cashOut, true)));
+      } else {
+        pendingTransaction = ref
+            .watch(pendingTransactionProvider((TransactionType.sale, false)));
       }
 
-      await Future.delayed(Duration(microseconds: 1000));
-      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+      /// first check if this item is a composite
+      Product? product =
+          ProxyService.realm.getProduct(id: widget.variant!.productId!);
+      if (product != null &&
+          product.isComposite != null &&
+          product.isComposite!) {
+        /// get items of this composite
+        List<Composite> composites =
+            ProxyService.realm.composites(productId: product.id!);
+        for (Composite composite in composites) {
+          /// find a stock for a given variant
+          Stock? stock = ProxyService.realm
+              .stockByVariantId(variantId: composite.variantId!);
+          Variant? variant =
+              ProxyService.realm.getVariantById(id: composite.variantId!);
+          model.saveTransaction(
+            variation: variant!,
+            amountTotal: variant.retailPrice,
+            customItem: false,
+            currentStock: stock!.currentStock,
+            pendingTransaction: pendingTransaction.value!,
+            partOfComposite: true,
+            compositePrice: composite.actualPrice,
+          );
+        }
 
-      await Future.delayed(Duration(microseconds: 200));
-      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
-    } else {
-      Stock? stock = ProxyService.realm
-          .stockByVariantId(variantId: widget.variant?.id ?? 0);
+        await Future.delayed(Duration(microseconds: 1000));
+        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
 
-      model.saveTransaction(
-        variation: widget.variant!,
-        amountTotal: widget.variant?.retailPrice ?? 0,
-        customItem: false,
-        currentStock: stock!.currentStock,
-        pendingTransaction: pendingTransaction.value!,
-        partOfComposite: false,
-      );
+        await Future.delayed(Duration(microseconds: 200));
+        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+      } else {
+        double stockQty = 0;
+        if (!widget.isOrdering) {
+          Stock? stock = ProxyService.realm
+              .stockByVariantId(variantId: widget.variant?.id ?? 0);
+          stockQty = stock?.currentStock ?? 0.0;
+        }
 
-      await Future.delayed(Duration(microseconds: 1000));
-      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        model.saveTransaction(
+          variation: widget.variant!,
+          amountTotal: widget.variant?.retailPrice ?? 0,
+          customItem: false,
+          currentStock: stockQty,
+          pendingTransaction: pendingTransaction.value!,
+          partOfComposite: false,
+        );
 
-      await Future.delayed(Duration(microseconds: 200));
-      ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        await Future.delayed(Duration(microseconds: 1000));
+        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+
+        await Future.delayed(Duration(microseconds: 200));
+        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+      }
+    } catch (e, s) {
+      talker.warning("Error while clicking ${e}");
+      talker.error(s);
+      rethrow;
     }
   }
 

@@ -1,7 +1,14 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:flipper_models/helperModels/IVariant.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:realm/realm.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 final productColorsProvider =
     StateNotifierProvider<ProductColorsNotifier, List<Color>>((ref) {
@@ -47,44 +54,59 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
 }
 
 final productFromSupplier =
-    FutureProvider.autoDispose<List<Variant>?>((ref) async {
+    FutureProvider.autoDispose<List<Variant>>((ref) async {
   final supplier = ref.watch(selectedSupplierProvider);
-  // String? token;
-  // String? url;
-  // if (found.kDebugMode) {
-  //   token = await ProxyService.remote.getToken(AppSecrets.apiUrlDebug,
-  //       AppSecrets.debugPassword, AppSecrets.debugEmail);
-  //   url = AppSecrets.apiUrlDebug;
-  // } else {
-  //   token = await ProxyService.remote.getToken(
-  //       AppSecrets.apiUrlProd, AppSecrets.prodPassword, AppSecrets.prodEmail);
-  //   url = AppSecrets.apiUrlProd;
-  // }
-  // final response = await http.get(
-  //   Uri.parse(
-  //       '${url}/api/collections/variants/records?filter=(branchId=\'${supplier.value!.branchId}\')'),
-  //   headers: {
-  //     'Authorization': 'Bearer ${token}',
-  //   },
-  // );
-  // if (response.statusCode == 200) {
-  //   // Successful response with status code 200
-  //   final Map<String, dynamic> data = jsonDecode(response.body);
-  //   if (data['items'] is List && data['items']?.isEmpty) {
-  //     throw Exception('No product added yet for this supplier');
-  //   }
-  //   final List<dynamic> items = data['items'];
+  var headers = {
+    'api-key': AppSecrets.apikey,
+    'Content-Type': 'application/json'
+  };
+  var data = json.encode({
+    "collection": "Variant",
+    "database": "flipper",
+    "dataSource": "Cluster0",
+    "filter": {"branchId": supplier.value?.serverId}
+  });
 
-  //   // Map the list of items to Variant objects using Variant.fromJson
-  //   List<Variant> variants = items.map<Variant>((item) {
-  //     print(item);
-  //     return Variant.fromJson(item);
-  //   }).toList();
-  //   // Return the list of Variant objects
-  //   return variants;
-  // } else {
-  //   // Failed response with a status code other than 200
-  //   throw Exception(
-  //       'Failed to load products. Status Code: ${response.statusCode}');
-  // }
+  var dio = Dio();
+  try {
+    var response = await dio.post(
+      'https://ap-south-1.aws.data.mongodb-api.com/app/data-kbpgj/endpoint/data/v1/action/find',
+      options: Options(headers: headers),
+      data: data,
+    );
+
+    final List<dynamic> documents = response.data['documents'] ?? [];
+
+    List<Variant> variants = documents.map<Variant>((item) {
+      print("retailPrice ${item['retailPrice']}");
+      print("supplyPrice ${item['supplyPrice']}");
+
+      // Check data types if known to be integers
+
+      // Handle potential decimals otherwise
+      double retailPrice = item['retailPrice'].toDouble();
+      double supplyPrice = item['supplyPrice'].toDouble();
+
+      return Variant(
+        ObjectId(),
+        name: item['name'],
+        productName: item['productName'],
+        productId: item['productId'],
+        branchId: item['branchId'],
+        id: item['id'] as int,
+        color: item['color'],
+        retailPrice: retailPrice,
+        supplyPrice: supplyPrice,
+      );
+    }).toList();
+
+    return variants;
+  } on DioException catch (e) {
+    Talker().error('DioException in productFromSupplier: ${e.message}');
+    return []; // Return an empty list instead of throwing
+  } catch (e, s) {
+    Talker().error('Error in productFromSupplier: $e');
+    Talker().error('Stack trace: $s');
+    return []; // Return an empty list for any other errors
+  }
 });

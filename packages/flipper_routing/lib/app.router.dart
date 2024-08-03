@@ -5,30 +5,32 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:ui' as _i7;
+import 'dart:ui' as _i8;
 
-import 'package:firebase_auth/firebase_auth.dart' as _i6;
-import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i5;
-import 'package:flipper_models/realm_model_export.dart' as _i8;
-import 'package:flutter/material.dart' as _i4;
-import 'package:stacked/stacked.dart' as _i3;
-import 'package:stacked_services/stacked_services.dart' as _i2;
+import 'package:firebase_auth/firebase_auth.dart' as _i7;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i6;
+import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
+import 'package:flipper_models/realm/schemas.dart' as _i9;
+import 'package:flipper_models/realm_model_export.dart' as _i10;
+import 'package:flutter/material.dart' as _i5;
+import 'package:stacked/stacked.dart' as _i4;
+import 'package:stacked_services/stacked_services.dart' as _i3;
 
 import 'all_routes.dart' as _i1;
 
 final stackedRouter =
-    StackedRouterWeb(navigatorKey: _i2.StackedService.navigatorKey);
+    StackedRouterWeb(navigatorKey: _i3.StackedService.navigatorKey);
 
-class StackedRouterWeb extends _i3.RootStackRouter {
-  StackedRouterWeb({_i4.GlobalKey<_i4.NavigatorState>? navigatorKey})
+class StackedRouterWeb extends _i4.RootStackRouter {
+  StackedRouterWeb({_i5.GlobalKey<_i5.NavigatorState>? navigatorKey})
       : super(navigatorKey);
 
   @override
-  final Map<String, _i3.PageFactory> pagesMap = {
+  final Map<String, _i4.PageFactory> pagesMap = {
     StartUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<StartUpViewArgs>(
           orElse: () => const StartUpViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.StartUpView(
           key: args.key,
@@ -41,7 +43,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SignUpViewRoute.name: (routeData) {
       final args = routeData.argsAs<SignUpViewArgs>(
           orElse: () => const SignUpViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SignUpView(
           key: args.key,
@@ -52,7 +54,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     FlipperAppRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.FlipperApp(),
         opaque: true,
@@ -60,7 +62,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     LoginViewRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.LoginView(),
         opaque: true,
@@ -70,7 +72,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     LandingRoute.name: (routeData) {
       final args =
           routeData.argsAs<LandingArgs>(orElse: () => const LandingArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Landing(key: args.key),
         opaque: true,
@@ -78,7 +80,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     AuthOptionPageRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AuthOptionPage(),
         opaque: true,
@@ -86,7 +88,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     CountryPickerRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.CountryPicker(),
         opaque: true,
@@ -95,7 +97,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     PhoneInputScreenRoute.name: (routeData) {
       final args = routeData.argsAs<PhoneInputScreenArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PhoneInputScreen(
           key: args.key,
@@ -120,7 +122,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     AddProductViewRoute.name: (routeData) {
       final args = routeData.argsAs<AddProductViewArgs>(
           orElse: () => const AddProductViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddProductView(
           key: args.key,
@@ -132,7 +134,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     AddToFavoritesRoute.name: (routeData) {
       final args = routeData.argsAs<AddToFavoritesArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddToFavorites(
           key: args.key,
@@ -146,7 +148,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     AddDiscountRoute.name: (routeData) {
       final args = routeData.argsAs<AddDiscountArgs>(
           orElse: () => const AddDiscountArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddDiscount(
           key: args.key,
@@ -158,7 +160,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     ListCategoriesRoute.name: (routeData) {
       final args = routeData.argsAs<ListCategoriesArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ListCategories(
           key: args.key,
@@ -171,7 +173,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     ColorTileRoute.name: (routeData) {
       final args =
           routeData.argsAs<ColorTileArgs>(orElse: () => const ColorTileArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ColorTile(key: args.key),
         opaque: true,
@@ -180,7 +182,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     ReceiveStockRoute.name: (routeData) {
       final args = routeData.argsAs<ReceiveStockArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ReceiveStock(
           key: args.key,
@@ -193,7 +195,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     AddVariationRoute.name: (routeData) {
       final args = routeData.argsAs<AddVariationArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddVariation(
           key: args.key,
@@ -206,7 +208,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     AddCategoryRoute.name: (routeData) {
       final args = routeData.argsAs<AddCategoryArgs>(
           orElse: () => const AddCategoryArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddCategory(key: args.key),
         opaque: true,
@@ -215,7 +217,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     ListUnitsRoute.name: (routeData) {
       final args = routeData.argsAs<ListUnitsArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ListUnits(
           key: args.key,
@@ -227,7 +229,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     SellRoute.name: (routeData) {
       final args = routeData.argsAs<SellArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Sell(
           key: args.key,
@@ -239,7 +241,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     PaymentsRoute.name: (routeData) {
       final args = routeData.argsAs<PaymentsArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Payments(
           key: args.key,
@@ -254,7 +256,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     PaymentConfirmationRoute.name: (routeData) {
       final args = routeData.argsAs<PaymentConfirmationArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PaymentConfirmation(
           key: args.key,
@@ -266,7 +268,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     TransactionDetailRoute.name: (routeData) {
       final args = routeData.argsAs<TransactionDetailArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.TransactionDetail(
           key: args.key,
@@ -277,7 +279,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     SettingsScreenRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SettingsScreen(),
         opaque: true,
@@ -287,7 +289,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SwitchBranchViewRoute.name: (routeData) {
       final args = routeData.argsAs<SwitchBranchViewArgs>(
           orElse: () => const SwitchBranchViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SwitchBranchView(key: args.key),
         opaque: true,
@@ -297,7 +299,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     ScannViewRoute.name: (routeData) {
       final args =
           routeData.argsAs<ScannViewArgs>(orElse: () => const ScannViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ScannView(
           key: args.key,
@@ -311,7 +313,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     OrderViewRoute.name: (routeData) {
       final args =
           routeData.argsAs<OrderViewArgs>(orElse: () => const OrderViewArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.OrderView(key: args.key),
         opaque: true,
@@ -319,7 +321,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     OrdersRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Orders(),
         opaque: true,
@@ -327,7 +329,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     InAppBrowserRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.InAppBrowser(),
         opaque: true,
@@ -337,7 +339,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     CustomersRoute.name: (routeData) {
       final args =
           routeData.argsAs<CustomersArgs>(orElse: () => const CustomersArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Customers(
           key: args.key,
@@ -349,7 +351,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     NoNetRoute.name: (routeData) {
       final args = routeData.argsAs<NoNetArgs>(orElse: () => const NoNetArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.NoNet(key: args.key),
         opaque: true,
@@ -359,7 +361,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     PinLoginRoute.name: (routeData) {
       final args =
           routeData.argsAs<PinLoginArgs>(orElse: () => const PinLoginArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.PinLogin(key: args.key),
         opaque: true,
@@ -369,7 +371,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     DevicesRoute.name: (routeData) {
       final args =
           routeData.argsAs<DevicesArgs>(orElse: () => const DevicesArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Devices(
           key: args.key,
@@ -381,7 +383,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     TaxConfigurationRoute.name: (routeData) {
       final args = routeData.argsAs<TaxConfigurationArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.TaxConfiguration(
           key: args.key,
@@ -392,7 +394,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     PrintingRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Printing(),
         opaque: true,
@@ -400,7 +402,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     BackUpRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.BackUp(),
         opaque: true,
@@ -408,7 +410,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     LoginChoicesRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.LoginChoices(),
         opaque: true,
@@ -416,7 +418,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TenantAddRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.TenantAdd(),
         opaque: true,
@@ -424,7 +426,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     SocialHomeViewRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.SocialHomeView(),
         opaque: true,
@@ -433,7 +435,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     DrawerScreenRoute.name: (routeData) {
       final args = routeData.argsAs<DrawerScreenArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.DrawerScreen(
           key: args.key,
@@ -445,7 +447,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     ChatListViewRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.ChatListView(),
         opaque: true,
@@ -454,7 +456,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     ConversationHistoryRoute.name: (routeData) {
       final args = routeData.argsAs<ConversationHistoryArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.ConversationHistory(
           key: args.key,
@@ -466,7 +468,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     TicketsListRoute.name: (routeData) {
       final args = routeData.argsAs<TicketsListArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.TicketsList(
           key: args.key,
@@ -478,7 +480,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     NewTicketRoute.name: (routeData) {
       final args = routeData.argsAs<NewTicketArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.NewTicket(
           key: args.key,
@@ -491,7 +493,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     AppsRoute.name: (routeData) {
       final args = routeData.argsAs<AppsArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Apps(
           key: args.key,
@@ -505,7 +507,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     CheckOutRoute.name: (routeData) {
       final args = routeData.argsAs<CheckOutArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.CheckOut(
           key: args.key,
@@ -517,7 +519,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     },
     CashbookRoute.name: (routeData) {
       final args = routeData.argsAs<CashbookArgs>();
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Cashbook(
           key: args.key,
@@ -530,7 +532,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SettingPageRoute.name: (routeData) {
       final args = routeData.argsAs<SettingPageArgs>(
           orElse: () => const SettingPageArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.SettingPage(key: args.key),
         opaque: true,
@@ -538,7 +540,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     TransactionsRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Transactions(),
         opaque: true,
@@ -548,7 +550,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
     SecurityRoute.name: (routeData) {
       final args =
           routeData.argsAs<SecurityArgs>(orElse: () => const SecurityArgs());
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.Security(key: args.key),
         opaque: true,
@@ -556,7 +558,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     ComfirmRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Comfirm(),
         opaque: true,
@@ -564,7 +566,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     ReportsRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.Reports(),
         opaque: true,
@@ -572,7 +574,7 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     AdminControlRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: const _i1.AdminControl(),
         opaque: true,
@@ -580,9 +582,25 @@ class StackedRouterWeb extends _i3.RootStackRouter {
       );
     },
     AddBranchRoute.name: (routeData) {
-      return _i3.CustomPage<dynamic>(
+      return _i4.CustomPage<dynamic>(
         routeData: routeData,
         child: _i1.AddBranch(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
+    QuickSellingViewRoute.name: (routeData) {
+      final args = routeData.argsAs<QuickSellingViewArgs>();
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i2.QuickSellingView(
+          key: args.key,
+          formKey: args.formKey,
+          discountController: args.discountController,
+          receivedAmountController: args.receivedAmountController,
+          customerPhoneNumberController: args.customerPhoneNumberController,
+          paymentTypeController: args.paymentTypeController,
+        ),
         opaque: true,
         barrierDismissible: false,
       );
@@ -590,223 +608,227 @@ class StackedRouterWeb extends _i3.RootStackRouter {
   };
 
   @override
-  List<_i3.RouteConfig> get routes => [
-        _i3.RouteConfig(
+  List<_i4.RouteConfig> get routes => [
+        _i4.RouteConfig(
           StartUpViewRoute.name,
           path: '/',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SignUpViewRoute.name,
           path: '/sign-up-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           FlipperAppRoute.name,
           path: '/flipper-app',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           LoginViewRoute.name,
           path: '/login-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           LandingRoute.name,
           path: '/Landing',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AuthOptionPageRoute.name,
           path: '/auth-option-page',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           CountryPickerRoute.name,
           path: '/country-picker',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddProductViewRoute.name,
           path: '/add-product-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddToFavoritesRoute.name,
           path: '/add-to-favorites',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddDiscountRoute.name,
           path: '/add-discount',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ListCategoriesRoute.name,
           path: '/list-categories',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ColorTileRoute.name,
           path: '/color-tile',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ReceiveStockRoute.name,
           path: '/receive-stock',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddVariationRoute.name,
           path: '/add-variation',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddCategoryRoute.name,
           path: '/add-category',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ListUnitsRoute.name,
           path: '/list-units',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SellRoute.name,
           path: '/Sell',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           PaymentsRoute.name,
           path: '/Payments',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           PaymentConfirmationRoute.name,
           path: '/payment-confirmation',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SettingsScreenRoute.name,
           path: '/settings-screen',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SwitchBranchViewRoute.name,
           path: '/switch-branch-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ScannViewRoute.name,
           path: '/scann-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           OrderViewRoute.name,
           path: '/order-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           OrdersRoute.name,
           path: '/Orders',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           InAppBrowserRoute.name,
           path: '/in-app-browser',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           CustomersRoute.name,
           path: '/Customers',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           NoNetRoute.name,
           path: '/no-net',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           PinLoginRoute.name,
           path: '/pin-login',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           DevicesRoute.name,
           path: '/Devices',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           TaxConfigurationRoute.name,
           path: '/tax-configuration',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           PrintingRoute.name,
           path: '/Printing',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           BackUpRoute.name,
           path: '/back-up',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           LoginChoicesRoute.name,
           path: '/login-choices',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           TenantAddRoute.name,
           path: '/tenant-add',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SocialHomeViewRoute.name,
           path: '/social-home-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ChatListViewRoute.name,
           path: '/chat-list-view',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ConversationHistoryRoute.name,
           path: '/conversation-history',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           TicketsListRoute.name,
           path: '/tickets-list',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           NewTicketRoute.name,
           path: '/new-ticket',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AppsRoute.name,
           path: '/Apps',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           CheckOutRoute.name,
           path: '/check-out',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           CashbookRoute.name,
           path: '/Cashbook',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SettingPageRoute.name,
           path: '/setting-page',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           TransactionsRoute.name,
           path: '/Transactions',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           SecurityRoute.name,
           path: '/Security',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ComfirmRoute.name,
           path: '/Comfirm',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           ReportsRoute.name,
           path: '/Reports',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AdminControlRoute.name,
           path: '/admin-control',
         ),
-        _i3.RouteConfig(
+        _i4.RouteConfig(
           AddBranchRoute.name,
           path: '/add-branch',
+        ),
+        _i4.RouteConfig(
+          QuickSellingViewRoute.name,
+          path: '/quick-selling-view',
         ),
       ];
 }
 
 /// generated route for
 /// [_i1.StartUpView]
-class StartUpViewRoute extends _i3.PageRouteInfo<StartUpViewArgs> {
+class StartUpViewRoute extends _i4.PageRouteInfo<StartUpViewArgs> {
   StartUpViewRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     bool? invokeLogin,
   }) : super(
           StartUpViewRoute.name,
@@ -826,7 +848,7 @@ class StartUpViewArgs {
     this.invokeLogin,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final bool? invokeLogin;
 
@@ -838,9 +860,9 @@ class StartUpViewArgs {
 
 /// generated route for
 /// [_i1.SignUpView]
-class SignUpViewRoute extends _i3.PageRouteInfo<SignUpViewArgs> {
+class SignUpViewRoute extends _i4.PageRouteInfo<SignUpViewArgs> {
   SignUpViewRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     String? countryNm = "Rwanda",
   }) : super(
           SignUpViewRoute.name,
@@ -860,7 +882,7 @@ class SignUpViewArgs {
     this.countryNm = "Rwanda",
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String? countryNm;
 
@@ -872,7 +894,7 @@ class SignUpViewArgs {
 
 /// generated route for
 /// [_i1.FlipperApp]
-class FlipperAppRoute extends _i3.PageRouteInfo<void> {
+class FlipperAppRoute extends _i4.PageRouteInfo<void> {
   const FlipperAppRoute()
       : super(
           FlipperAppRoute.name,
@@ -884,7 +906,7 @@ class FlipperAppRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.LoginView]
-class LoginViewRoute extends _i3.PageRouteInfo<void> {
+class LoginViewRoute extends _i4.PageRouteInfo<void> {
   const LoginViewRoute()
       : super(
           LoginViewRoute.name,
@@ -896,8 +918,8 @@ class LoginViewRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.Landing]
-class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
-  LandingRoute({_i4.Key? key})
+class LandingRoute extends _i4.PageRouteInfo<LandingArgs> {
+  LandingRoute({_i5.Key? key})
       : super(
           LandingRoute.name,
           path: '/Landing',
@@ -910,7 +932,7 @@ class LandingRoute extends _i3.PageRouteInfo<LandingArgs> {
 class LandingArgs {
   const LandingArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -920,7 +942,7 @@ class LandingArgs {
 
 /// generated route for
 /// [_i1.AuthOptionPage]
-class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
+class AuthOptionPageRoute extends _i4.PageRouteInfo<void> {
   const AuthOptionPageRoute()
       : super(
           AuthOptionPageRoute.name,
@@ -932,7 +954,7 @@ class AuthOptionPageRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.CountryPicker]
-class CountryPickerRoute extends _i3.PageRouteInfo<void> {
+class CountryPickerRoute extends _i4.PageRouteInfo<void> {
   const CountryPickerRoute()
       : super(
           CountryPickerRoute.name,
@@ -944,29 +966,29 @@ class CountryPickerRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.PhoneInputScreen]
-class PhoneInputScreenRoute extends _i3.PageRouteInfo<PhoneInputScreenArgs> {
+class PhoneInputScreenRoute extends _i4.PageRouteInfo<PhoneInputScreenArgs> {
   PhoneInputScreenRoute({
-    _i4.Key? key,
-    _i5.AuthAction? action,
-    List<_i5.FirebaseUIAction>? actions,
-    _i6.FirebaseAuth? auth,
+    _i5.Key? key,
+    _i6.AuthAction? action,
+    List<_i6.FirebaseUIAction>? actions,
+    _i7.FirebaseAuth? auth,
     required String countryCode,
-    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
-    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
+    _i5.Widget Function(_i5.BuildContext)? footerBuilder,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
       double,
     )? headerBuilder,
     double? headerMaxExtent,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
     )? sideBuilder,
-    _i7.TextDirection? desktopLayoutDirection,
+    _i8.TextDirection? desktopLayoutDirection,
     double breakpoint = 500,
-    _i6.MultiFactorSession? multiFactorSession,
-    _i6.PhoneMultiFactorInfo? mfaHint,
+    _i7.MultiFactorSession? multiFactorSession,
+    _i7.PhoneMultiFactorInfo? mfaHint,
   }) : super(
           PhoneInputScreenRoute.name,
           path: '/phone-input-screen',
@@ -1009,40 +1031,40 @@ class PhoneInputScreenArgs {
     this.mfaHint,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i5.AuthAction? action;
+  final _i6.AuthAction? action;
 
-  final List<_i5.FirebaseUIAction>? actions;
+  final List<_i6.FirebaseUIAction>? actions;
 
-  final _i6.FirebaseAuth? auth;
+  final _i7.FirebaseAuth? auth;
 
   final String countryCode;
 
-  final _i4.Widget Function(_i4.BuildContext)? subtitleBuilder;
+  final _i5.Widget Function(_i5.BuildContext)? subtitleBuilder;
 
-  final _i4.Widget Function(_i4.BuildContext)? footerBuilder;
+  final _i5.Widget Function(_i5.BuildContext)? footerBuilder;
 
-  final _i4.Widget Function(
-    _i4.BuildContext,
-    _i4.BoxConstraints,
+  final _i5.Widget Function(
+    _i5.BuildContext,
+    _i5.BoxConstraints,
     double,
   )? headerBuilder;
 
   final double? headerMaxExtent;
 
-  final _i4.Widget Function(
-    _i4.BuildContext,
-    _i4.BoxConstraints,
+  final _i5.Widget Function(
+    _i5.BuildContext,
+    _i5.BoxConstraints,
   )? sideBuilder;
 
-  final _i7.TextDirection? desktopLayoutDirection;
+  final _i8.TextDirection? desktopLayoutDirection;
 
   final double breakpoint;
 
-  final _i6.MultiFactorSession? multiFactorSession;
+  final _i7.MultiFactorSession? multiFactorSession;
 
-  final _i6.PhoneMultiFactorInfo? mfaHint;
+  final _i7.PhoneMultiFactorInfo? mfaHint;
 
   @override
   String toString() {
@@ -1052,9 +1074,9 @@ class PhoneInputScreenArgs {
 
 /// generated route for
 /// [_i1.AddProductView]
-class AddProductViewRoute extends _i3.PageRouteInfo<AddProductViewArgs> {
+class AddProductViewRoute extends _i4.PageRouteInfo<AddProductViewArgs> {
   AddProductViewRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     int? productId,
   }) : super(
           AddProductViewRoute.name,
@@ -1074,7 +1096,7 @@ class AddProductViewArgs {
     this.productId,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int? productId;
 
@@ -1086,9 +1108,9 @@ class AddProductViewArgs {
 
 /// generated route for
 /// [_i1.AddToFavorites]
-class AddToFavoritesRoute extends _i3.PageRouteInfo<AddToFavoritesArgs> {
+class AddToFavoritesRoute extends _i4.PageRouteInfo<AddToFavoritesArgs> {
   AddToFavoritesRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required int favoriteIndex,
     required List<int> existingFavs,
   }) : super(
@@ -1111,7 +1133,7 @@ class AddToFavoritesArgs {
     required this.existingFavs,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int favoriteIndex;
 
@@ -1125,10 +1147,10 @@ class AddToFavoritesArgs {
 
 /// generated route for
 /// [_i1.AddDiscount]
-class AddDiscountRoute extends _i3.PageRouteInfo<AddDiscountArgs> {
+class AddDiscountRoute extends _i4.PageRouteInfo<AddDiscountArgs> {
   AddDiscountRoute({
-    _i4.Key? key,
-    _i8.Discount? discount,
+    _i5.Key? key,
+    _i9.Discount? discount,
   }) : super(
           AddDiscountRoute.name,
           path: '/add-discount',
@@ -1147,9 +1169,9 @@ class AddDiscountArgs {
     this.discount,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.Discount? discount;
+  final _i9.Discount? discount;
 
   @override
   String toString() {
@@ -1159,9 +1181,9 @@ class AddDiscountArgs {
 
 /// generated route for
 /// [_i1.ListCategories]
-class ListCategoriesRoute extends _i3.PageRouteInfo<ListCategoriesArgs> {
+class ListCategoriesRoute extends _i4.PageRouteInfo<ListCategoriesArgs> {
   ListCategoriesRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required String? modeOfOperation,
   }) : super(
           ListCategoriesRoute.name,
@@ -1181,7 +1203,7 @@ class ListCategoriesArgs {
     required this.modeOfOperation,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String? modeOfOperation;
 
@@ -1193,8 +1215,8 @@ class ListCategoriesArgs {
 
 /// generated route for
 /// [_i1.ColorTile]
-class ColorTileRoute extends _i3.PageRouteInfo<ColorTileArgs> {
-  ColorTileRoute({_i4.Key? key})
+class ColorTileRoute extends _i4.PageRouteInfo<ColorTileArgs> {
+  ColorTileRoute({_i5.Key? key})
       : super(
           ColorTileRoute.name,
           path: '/color-tile',
@@ -1207,7 +1229,7 @@ class ColorTileRoute extends _i3.PageRouteInfo<ColorTileArgs> {
 class ColorTileArgs {
   const ColorTileArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1217,9 +1239,9 @@ class ColorTileArgs {
 
 /// generated route for
 /// [_i1.ReceiveStock]
-class ReceiveStockRoute extends _i3.PageRouteInfo<ReceiveStockArgs> {
+class ReceiveStockRoute extends _i4.PageRouteInfo<ReceiveStockArgs> {
   ReceiveStockRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required int variantId,
     String? existingStock,
   }) : super(
@@ -1242,7 +1264,7 @@ class ReceiveStockArgs {
     this.existingStock,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int variantId;
 
@@ -1256,9 +1278,9 @@ class ReceiveStockArgs {
 
 /// generated route for
 /// [_i1.AddVariation]
-class AddVariationRoute extends _i3.PageRouteInfo<AddVariationArgs> {
+class AddVariationRoute extends _i4.PageRouteInfo<AddVariationArgs> {
   AddVariationRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required int productId,
   }) : super(
           AddVariationRoute.name,
@@ -1278,7 +1300,7 @@ class AddVariationArgs {
     required this.productId,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int productId;
 
@@ -1290,8 +1312,8 @@ class AddVariationArgs {
 
 /// generated route for
 /// [_i1.AddCategory]
-class AddCategoryRoute extends _i3.PageRouteInfo<AddCategoryArgs> {
-  AddCategoryRoute({_i4.Key? key})
+class AddCategoryRoute extends _i4.PageRouteInfo<AddCategoryArgs> {
+  AddCategoryRoute({_i5.Key? key})
       : super(
           AddCategoryRoute.name,
           path: '/add-category',
@@ -1304,7 +1326,7 @@ class AddCategoryRoute extends _i3.PageRouteInfo<AddCategoryArgs> {
 class AddCategoryArgs {
   const AddCategoryArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1314,9 +1336,9 @@ class AddCategoryArgs {
 
 /// generated route for
 /// [_i1.ListUnits]
-class ListUnitsRoute extends _i3.PageRouteInfo<ListUnitsArgs> {
+class ListUnitsRoute extends _i4.PageRouteInfo<ListUnitsArgs> {
   ListUnitsRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required String type,
   }) : super(
           ListUnitsRoute.name,
@@ -1336,7 +1358,7 @@ class ListUnitsArgs {
     required this.type,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String type;
 
@@ -1348,10 +1370,10 @@ class ListUnitsArgs {
 
 /// generated route for
 /// [_i1.Sell]
-class SellRoute extends _i3.PageRouteInfo<SellArgs> {
+class SellRoute extends _i4.PageRouteInfo<SellArgs> {
   SellRoute({
-    _i4.Key? key,
-    required _i8.Product product,
+    _i5.Key? key,
+    required _i9.Product product,
   }) : super(
           SellRoute.name,
           path: '/Sell',
@@ -1370,9 +1392,9 @@ class SellArgs {
     required this.product,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.Product product;
+  final _i9.Product product;
 
   @override
   String toString() {
@@ -1382,10 +1404,10 @@ class SellArgs {
 
 /// generated route for
 /// [_i1.Payments]
-class PaymentsRoute extends _i3.PageRouteInfo<PaymentsArgs> {
+class PaymentsRoute extends _i4.PageRouteInfo<PaymentsArgs> {
   PaymentsRoute({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
@@ -1413,9 +1435,9 @@ class PaymentsArgs {
     required this.transactionType,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.ITransaction transaction;
+  final _i9.ITransaction transaction;
 
   final bool isIncome;
 
@@ -1432,10 +1454,10 @@ class PaymentsArgs {
 /// generated route for
 /// [_i1.PaymentConfirmation]
 class PaymentConfirmationRoute
-    extends _i3.PageRouteInfo<PaymentConfirmationArgs> {
+    extends _i4.PageRouteInfo<PaymentConfirmationArgs> {
   PaymentConfirmationRoute({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
   }) : super(
           PaymentConfirmationRoute.name,
           path: '/payment-confirmation',
@@ -1454,9 +1476,9 @@ class PaymentConfirmationArgs {
     required this.transaction,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.ITransaction transaction;
+  final _i9.ITransaction transaction;
 
   @override
   String toString() {
@@ -1466,10 +1488,10 @@ class PaymentConfirmationArgs {
 
 /// generated route for
 /// [_i1.TransactionDetail]
-class TransactionDetailRoute extends _i3.PageRouteInfo<TransactionDetailArgs> {
+class TransactionDetailRoute extends _i4.PageRouteInfo<TransactionDetailArgs> {
   TransactionDetailRoute({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
   }) : super(
           TransactionDetailRoute.name,
           path: '/transaction-detail',
@@ -1488,9 +1510,9 @@ class TransactionDetailArgs {
     required this.transaction,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.ITransaction transaction;
+  final _i9.ITransaction transaction;
 
   @override
   String toString() {
@@ -1500,7 +1522,7 @@ class TransactionDetailArgs {
 
 /// generated route for
 /// [_i1.SettingsScreen]
-class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
+class SettingsScreenRoute extends _i4.PageRouteInfo<void> {
   const SettingsScreenRoute()
       : super(
           SettingsScreenRoute.name,
@@ -1512,8 +1534,8 @@ class SettingsScreenRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.SwitchBranchView]
-class SwitchBranchViewRoute extends _i3.PageRouteInfo<SwitchBranchViewArgs> {
-  SwitchBranchViewRoute({_i4.Key? key})
+class SwitchBranchViewRoute extends _i4.PageRouteInfo<SwitchBranchViewArgs> {
+  SwitchBranchViewRoute({_i5.Key? key})
       : super(
           SwitchBranchViewRoute.name,
           path: '/switch-branch-view',
@@ -1526,7 +1548,7 @@ class SwitchBranchViewRoute extends _i3.PageRouteInfo<SwitchBranchViewArgs> {
 class SwitchBranchViewArgs {
   const SwitchBranchViewArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1536,9 +1558,9 @@ class SwitchBranchViewArgs {
 
 /// generated route for
 /// [_i1.ScannView]
-class ScannViewRoute extends _i3.PageRouteInfo<ScannViewArgs> {
+class ScannViewRoute extends _i4.PageRouteInfo<ScannViewArgs> {
   ScannViewRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     String intent = 'selling',
     bool useLatestImplementation = false,
   }) : super(
@@ -1561,7 +1583,7 @@ class ScannViewArgs {
     this.useLatestImplementation = false,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String intent;
 
@@ -1575,8 +1597,8 @@ class ScannViewArgs {
 
 /// generated route for
 /// [_i1.OrderView]
-class OrderViewRoute extends _i3.PageRouteInfo<OrderViewArgs> {
-  OrderViewRoute({_i4.Key? key})
+class OrderViewRoute extends _i4.PageRouteInfo<OrderViewArgs> {
+  OrderViewRoute({_i5.Key? key})
       : super(
           OrderViewRoute.name,
           path: '/order-view',
@@ -1589,7 +1611,7 @@ class OrderViewRoute extends _i3.PageRouteInfo<OrderViewArgs> {
 class OrderViewArgs {
   const OrderViewArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1599,7 +1621,7 @@ class OrderViewArgs {
 
 /// generated route for
 /// [_i1.Orders]
-class OrdersRoute extends _i3.PageRouteInfo<void> {
+class OrdersRoute extends _i4.PageRouteInfo<void> {
   const OrdersRoute()
       : super(
           OrdersRoute.name,
@@ -1611,7 +1633,7 @@ class OrdersRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.InAppBrowser]
-class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
+class InAppBrowserRoute extends _i4.PageRouteInfo<void> {
   const InAppBrowserRoute()
       : super(
           InAppBrowserRoute.name,
@@ -1623,9 +1645,9 @@ class InAppBrowserRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.Customers]
-class CustomersRoute extends _i3.PageRouteInfo<CustomersArgs> {
+class CustomersRoute extends _i4.PageRouteInfo<CustomersArgs> {
   CustomersRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     int? transactionId,
   }) : super(
           CustomersRoute.name,
@@ -1645,7 +1667,7 @@ class CustomersArgs {
     this.transactionId,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int? transactionId;
 
@@ -1657,8 +1679,8 @@ class CustomersArgs {
 
 /// generated route for
 /// [_i1.NoNet]
-class NoNetRoute extends _i3.PageRouteInfo<NoNetArgs> {
-  NoNetRoute({_i4.Key? key})
+class NoNetRoute extends _i4.PageRouteInfo<NoNetArgs> {
+  NoNetRoute({_i5.Key? key})
       : super(
           NoNetRoute.name,
           path: '/no-net',
@@ -1671,7 +1693,7 @@ class NoNetRoute extends _i3.PageRouteInfo<NoNetArgs> {
 class NoNetArgs {
   const NoNetArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1681,8 +1703,8 @@ class NoNetArgs {
 
 /// generated route for
 /// [_i1.PinLogin]
-class PinLoginRoute extends _i3.PageRouteInfo<PinLoginArgs> {
-  PinLoginRoute({_i4.Key? key})
+class PinLoginRoute extends _i4.PageRouteInfo<PinLoginArgs> {
+  PinLoginRoute({_i5.Key? key})
       : super(
           PinLoginRoute.name,
           path: '/pin-login',
@@ -1695,7 +1717,7 @@ class PinLoginRoute extends _i3.PageRouteInfo<PinLoginArgs> {
 class PinLoginArgs {
   const PinLoginArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -1705,9 +1727,9 @@ class PinLoginArgs {
 
 /// generated route for
 /// [_i1.Devices]
-class DevicesRoute extends _i3.PageRouteInfo<DevicesArgs> {
+class DevicesRoute extends _i4.PageRouteInfo<DevicesArgs> {
   DevicesRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     int? pin,
   }) : super(
           DevicesRoute.name,
@@ -1727,7 +1749,7 @@ class DevicesArgs {
     this.pin,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final int? pin;
 
@@ -1739,9 +1761,9 @@ class DevicesArgs {
 
 /// generated route for
 /// [_i1.TaxConfiguration]
-class TaxConfigurationRoute extends _i3.PageRouteInfo<TaxConfigurationArgs> {
+class TaxConfigurationRoute extends _i4.PageRouteInfo<TaxConfigurationArgs> {
   TaxConfigurationRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool showheader,
   }) : super(
           TaxConfigurationRoute.name,
@@ -1761,7 +1783,7 @@ class TaxConfigurationArgs {
     required this.showheader,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final bool showheader;
 
@@ -1773,7 +1795,7 @@ class TaxConfigurationArgs {
 
 /// generated route for
 /// [_i1.Printing]
-class PrintingRoute extends _i3.PageRouteInfo<void> {
+class PrintingRoute extends _i4.PageRouteInfo<void> {
   const PrintingRoute()
       : super(
           PrintingRoute.name,
@@ -1785,7 +1807,7 @@ class PrintingRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.BackUp]
-class BackUpRoute extends _i3.PageRouteInfo<void> {
+class BackUpRoute extends _i4.PageRouteInfo<void> {
   const BackUpRoute()
       : super(
           BackUpRoute.name,
@@ -1797,7 +1819,7 @@ class BackUpRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.LoginChoices]
-class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
+class LoginChoicesRoute extends _i4.PageRouteInfo<void> {
   const LoginChoicesRoute()
       : super(
           LoginChoicesRoute.name,
@@ -1809,7 +1831,7 @@ class LoginChoicesRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.TenantAdd]
-class TenantAddRoute extends _i3.PageRouteInfo<void> {
+class TenantAddRoute extends _i4.PageRouteInfo<void> {
   const TenantAddRoute()
       : super(
           TenantAddRoute.name,
@@ -1821,7 +1843,7 @@ class TenantAddRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.SocialHomeView]
-class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
+class SocialHomeViewRoute extends _i4.PageRouteInfo<void> {
   const SocialHomeViewRoute()
       : super(
           SocialHomeViewRoute.name,
@@ -1833,11 +1855,11 @@ class SocialHomeViewRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.DrawerScreen]
-class DrawerScreenRoute extends _i3.PageRouteInfo<DrawerScreenArgs> {
+class DrawerScreenRoute extends _i4.PageRouteInfo<DrawerScreenArgs> {
   DrawerScreenRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required String open,
-    required _i8.Drawers drawer,
+    required _i9.Drawers drawer,
   }) : super(
           DrawerScreenRoute.name,
           path: '/drawer-screen',
@@ -1858,11 +1880,11 @@ class DrawerScreenArgs {
     required this.drawer,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String open;
 
-  final _i8.Drawers drawer;
+  final _i9.Drawers drawer;
 
   @override
   String toString() {
@@ -1872,7 +1894,7 @@ class DrawerScreenArgs {
 
 /// generated route for
 /// [_i1.ChatListView]
-class ChatListViewRoute extends _i3.PageRouteInfo<void> {
+class ChatListViewRoute extends _i4.PageRouteInfo<void> {
   const ChatListViewRoute()
       : super(
           ChatListViewRoute.name,
@@ -1885,9 +1907,9 @@ class ChatListViewRoute extends _i3.PageRouteInfo<void> {
 /// generated route for
 /// [_i1.ConversationHistory]
 class ConversationHistoryRoute
-    extends _i3.PageRouteInfo<ConversationHistoryArgs> {
+    extends _i4.PageRouteInfo<ConversationHistoryArgs> {
   ConversationHistoryRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required String conversationId,
   }) : super(
           ConversationHistoryRoute.name,
@@ -1907,7 +1929,7 @@ class ConversationHistoryArgs {
     required this.conversationId,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final String conversationId;
 
@@ -1919,10 +1941,10 @@ class ConversationHistoryArgs {
 
 /// generated route for
 /// [_i1.TicketsList]
-class TicketsListRoute extends _i3.PageRouteInfo<TicketsListArgs> {
+class TicketsListRoute extends _i4.PageRouteInfo<TicketsListArgs> {
   TicketsListRoute({
-    _i4.Key? key,
-    required _i8.ITransaction? transaction,
+    _i5.Key? key,
+    required _i9.ITransaction? transaction,
   }) : super(
           TicketsListRoute.name,
           path: '/tickets-list',
@@ -1941,9 +1963,9 @@ class TicketsListArgs {
     required this.transaction,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.ITransaction? transaction;
+  final _i9.ITransaction? transaction;
 
   @override
   String toString() {
@@ -1953,10 +1975,10 @@ class TicketsListArgs {
 
 /// generated route for
 /// [_i1.NewTicket]
-class NewTicketRoute extends _i3.PageRouteInfo<NewTicketArgs> {
+class NewTicketRoute extends _i4.PageRouteInfo<NewTicketArgs> {
   NewTicketRoute({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required void Function() onClose,
   }) : super(
           NewTicketRoute.name,
@@ -1978,9 +2000,9 @@ class NewTicketArgs {
     required this.onClose,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i8.ITransaction transaction;
+  final _i9.ITransaction transaction;
 
   final void Function() onClose;
 
@@ -1992,12 +2014,12 @@ class NewTicketArgs {
 
 /// generated route for
 /// [_i1.Apps]
-class AppsRoute extends _i3.PageRouteInfo<AppsArgs> {
+class AppsRoute extends _i4.PageRouteInfo<AppsArgs> {
   AppsRoute({
-    _i4.Key? key,
-    required _i4.TextEditingController controller,
+    _i5.Key? key,
+    required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i8.CoreViewModel model,
+    required _i10.CoreViewModel model,
   }) : super(
           AppsRoute.name,
           path: '/Apps',
@@ -2020,13 +2042,13 @@ class AppsArgs {
     required this.model,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
-  final _i4.TextEditingController controller;
+  final _i5.TextEditingController controller;
 
   final bool isBigScreen;
 
-  final _i8.CoreViewModel model;
+  final _i10.CoreViewModel model;
 
   @override
   String toString() {
@@ -2036,9 +2058,9 @@ class AppsArgs {
 
 /// generated route for
 /// [_i1.CheckOut]
-class CheckOutRoute extends _i3.PageRouteInfo<CheckOutArgs> {
+class CheckOutRoute extends _i4.PageRouteInfo<CheckOutArgs> {
   CheckOutRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
   }) : super(
           CheckOutRoute.name,
@@ -2058,7 +2080,7 @@ class CheckOutArgs {
     required this.isBigScreen,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final bool isBigScreen;
 
@@ -2070,9 +2092,9 @@ class CheckOutArgs {
 
 /// generated route for
 /// [_i1.Cashbook]
-class CashbookRoute extends _i3.PageRouteInfo<CashbookArgs> {
+class CashbookRoute extends _i4.PageRouteInfo<CashbookArgs> {
   CashbookRoute({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
   }) : super(
           CashbookRoute.name,
@@ -2092,7 +2114,7 @@ class CashbookArgs {
     required this.isBigScreen,
   });
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   final bool isBigScreen;
 
@@ -2104,8 +2126,8 @@ class CashbookArgs {
 
 /// generated route for
 /// [_i1.SettingPage]
-class SettingPageRoute extends _i3.PageRouteInfo<SettingPageArgs> {
-  SettingPageRoute({_i4.Key? key})
+class SettingPageRoute extends _i4.PageRouteInfo<SettingPageArgs> {
+  SettingPageRoute({_i5.Key? key})
       : super(
           SettingPageRoute.name,
           path: '/setting-page',
@@ -2118,7 +2140,7 @@ class SettingPageRoute extends _i3.PageRouteInfo<SettingPageArgs> {
 class SettingPageArgs {
   const SettingPageArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -2128,7 +2150,7 @@ class SettingPageArgs {
 
 /// generated route for
 /// [_i1.Transactions]
-class TransactionsRoute extends _i3.PageRouteInfo<void> {
+class TransactionsRoute extends _i4.PageRouteInfo<void> {
   const TransactionsRoute()
       : super(
           TransactionsRoute.name,
@@ -2140,8 +2162,8 @@ class TransactionsRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.Security]
-class SecurityRoute extends _i3.PageRouteInfo<SecurityArgs> {
-  SecurityRoute({_i4.Key? key})
+class SecurityRoute extends _i4.PageRouteInfo<SecurityArgs> {
+  SecurityRoute({_i5.Key? key})
       : super(
           SecurityRoute.name,
           path: '/Security',
@@ -2154,7 +2176,7 @@ class SecurityRoute extends _i3.PageRouteInfo<SecurityArgs> {
 class SecurityArgs {
   const SecurityArgs({this.key});
 
-  final _i4.Key? key;
+  final _i5.Key? key;
 
   @override
   String toString() {
@@ -2164,7 +2186,7 @@ class SecurityArgs {
 
 /// generated route for
 /// [_i1.Comfirm]
-class ComfirmRoute extends _i3.PageRouteInfo<void> {
+class ComfirmRoute extends _i4.PageRouteInfo<void> {
   const ComfirmRoute()
       : super(
           ComfirmRoute.name,
@@ -2176,7 +2198,7 @@ class ComfirmRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.Reports]
-class ReportsRoute extends _i3.PageRouteInfo<void> {
+class ReportsRoute extends _i4.PageRouteInfo<void> {
   const ReportsRoute()
       : super(
           ReportsRoute.name,
@@ -2188,7 +2210,7 @@ class ReportsRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.AdminControl]
-class AdminControlRoute extends _i3.PageRouteInfo<void> {
+class AdminControlRoute extends _i4.PageRouteInfo<void> {
   const AdminControlRoute()
       : super(
           AdminControlRoute.name,
@@ -2200,7 +2222,7 @@ class AdminControlRoute extends _i3.PageRouteInfo<void> {
 
 /// generated route for
 /// [_i1.AddBranch]
-class AddBranchRoute extends _i3.PageRouteInfo<void> {
+class AddBranchRoute extends _i4.PageRouteInfo<void> {
   const AddBranchRoute()
       : super(
           AddBranchRoute.name,
@@ -2210,11 +2232,65 @@ class AddBranchRoute extends _i3.PageRouteInfo<void> {
   static const String name = 'AddBranch';
 }
 
-extension RouterStateExtension on _i2.RouterService {
+/// generated route for
+/// [_i2.QuickSellingView]
+class QuickSellingViewRoute extends _i4.PageRouteInfo<QuickSellingViewArgs> {
+  QuickSellingViewRoute({
+    _i5.Key? key,
+    required _i5.GlobalKey<_i5.FormState> formKey,
+    required _i5.TextEditingController discountController,
+    required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController paymentTypeController,
+  }) : super(
+          QuickSellingViewRoute.name,
+          path: '/quick-selling-view',
+          args: QuickSellingViewArgs(
+            key: key,
+            formKey: formKey,
+            discountController: discountController,
+            receivedAmountController: receivedAmountController,
+            customerPhoneNumberController: customerPhoneNumberController,
+            paymentTypeController: paymentTypeController,
+          ),
+        );
+
+  static const String name = 'QuickSellingView';
+}
+
+class QuickSellingViewArgs {
+  const QuickSellingViewArgs({
+    this.key,
+    required this.formKey,
+    required this.discountController,
+    required this.receivedAmountController,
+    required this.customerPhoneNumberController,
+    required this.paymentTypeController,
+  });
+
+  final _i5.Key? key;
+
+  final _i5.GlobalKey<_i5.FormState> formKey;
+
+  final _i5.TextEditingController discountController;
+
+  final _i5.TextEditingController receivedAmountController;
+
+  final _i5.TextEditingController customerPhoneNumberController;
+
+  final _i5.TextEditingController paymentTypeController;
+
+  @override
+  String toString() {
+    return 'QuickSellingViewArgs{key: $key, formKey: $formKey, discountController: $discountController, receivedAmountController: $receivedAmountController, customerPhoneNumberController: $customerPhoneNumberController, paymentTypeController: $paymentTypeController}';
+  }
+}
+
+extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToStartUpView({
-    _i4.Key? key,
+    _i5.Key? key,
     bool? invokeLogin,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       StartUpViewRoute(
@@ -2226,9 +2302,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSignUpView({
-    _i4.Key? key,
+    _i5.Key? key,
     String? countryNm = "Rwanda",
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       SignUpViewRoute(
@@ -2240,7 +2316,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToFlipperApp(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const FlipperAppRoute(),
       onFailure: onFailure,
@@ -2248,7 +2324,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToLoginView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const LoginViewRoute(),
       onFailure: onFailure,
@@ -2256,8 +2332,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToLanding({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       LandingRoute(
@@ -2268,7 +2344,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAuthOptionPage(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const AuthOptionPageRoute(),
       onFailure: onFailure,
@@ -2276,7 +2352,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToCountryPicker(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const CountryPickerRoute(),
       onFailure: onFailure,
@@ -2284,28 +2360,28 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToPhoneInputScreen({
-    _i4.Key? key,
-    _i5.AuthAction? action,
-    List<_i5.FirebaseUIAction>? actions,
-    _i6.FirebaseAuth? auth,
+    _i5.Key? key,
+    _i6.AuthAction? action,
+    List<_i6.FirebaseUIAction>? actions,
+    _i7.FirebaseAuth? auth,
     required String countryCode,
-    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
-    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
+    _i5.Widget Function(_i5.BuildContext)? footerBuilder,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
       double,
     )? headerBuilder,
     double? headerMaxExtent,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
     )? sideBuilder,
-    _i7.TextDirection? desktopLayoutDirection,
+    _i8.TextDirection? desktopLayoutDirection,
     double breakpoint = 500,
-    _i6.MultiFactorSession? multiFactorSession,
-    _i6.PhoneMultiFactorInfo? mfaHint,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i7.MultiFactorSession? multiFactorSession,
+    _i7.PhoneMultiFactorInfo? mfaHint,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PhoneInputScreenRoute(
@@ -2329,9 +2405,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddProductView({
-    _i4.Key? key,
+    _i5.Key? key,
     int? productId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AddProductViewRoute(
@@ -2343,10 +2419,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddToFavorites({
-    _i4.Key? key,
+    _i5.Key? key,
     required int favoriteIndex,
     required List<int> existingFavs,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AddToFavoritesRoute(
@@ -2359,9 +2435,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddDiscount({
-    _i4.Key? key,
-    _i8.Discount? discount,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    _i9.Discount? discount,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AddDiscountRoute(
@@ -2373,9 +2449,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToListCategories({
-    _i4.Key? key,
+    _i5.Key? key,
     required String? modeOfOperation,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ListCategoriesRoute(
@@ -2387,8 +2463,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToColorTile({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ColorTileRoute(
@@ -2399,10 +2475,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToReceiveStock({
-    _i4.Key? key,
+    _i5.Key? key,
     required int variantId,
     String? existingStock,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ReceiveStockRoute(
@@ -2415,9 +2491,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddVariation({
-    _i4.Key? key,
+    _i5.Key? key,
     required int productId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AddVariationRoute(
@@ -2429,8 +2505,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddCategory({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AddCategoryRoute(
@@ -2441,9 +2517,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToListUnits({
-    _i4.Key? key,
+    _i5.Key? key,
     required String type,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ListUnitsRoute(
@@ -2455,9 +2531,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSell({
-    _i4.Key? key,
-    required _i8.Product product,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.Product product,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       SellRoute(
@@ -2469,12 +2545,12 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToPayments({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PaymentsRoute(
@@ -2489,9 +2565,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToPaymentConfirmation({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PaymentConfirmationRoute(
@@ -2503,9 +2579,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToTransactionDetail({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       TransactionDetailRoute(
@@ -2517,7 +2593,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSettingsScreen(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const SettingsScreenRoute(),
       onFailure: onFailure,
@@ -2525,8 +2601,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSwitchBranchView({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       SwitchBranchViewRoute(
@@ -2537,10 +2613,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToScannView({
-    _i4.Key? key,
+    _i5.Key? key,
     String intent = 'selling',
     bool useLatestImplementation = false,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ScannViewRoute(
@@ -2553,8 +2629,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToOrderView({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       OrderViewRoute(
@@ -2565,7 +2641,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToOrders(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const OrdersRoute(),
       onFailure: onFailure,
@@ -2573,7 +2649,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToInAppBrowser(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const InAppBrowserRoute(),
       onFailure: onFailure,
@@ -2581,9 +2657,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToCustomers({
-    _i4.Key? key,
+    _i5.Key? key,
     int? transactionId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       CustomersRoute(
@@ -2595,8 +2671,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToNoNet({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       NoNetRoute(
@@ -2607,8 +2683,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToPinLogin({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       PinLoginRoute(
@@ -2619,9 +2695,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToDevices({
-    _i4.Key? key,
+    _i5.Key? key,
     int? pin,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       DevicesRoute(
@@ -2633,9 +2709,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToTaxConfiguration({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool showheader,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       TaxConfigurationRoute(
@@ -2647,7 +2723,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToPrinting(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const PrintingRoute(),
       onFailure: onFailure,
@@ -2655,7 +2731,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToBackUp(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const BackUpRoute(),
       onFailure: onFailure,
@@ -2663,7 +2739,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToLoginChoices(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const LoginChoicesRoute(),
       onFailure: onFailure,
@@ -2671,7 +2747,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToTenantAdd(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const TenantAddRoute(),
       onFailure: onFailure,
@@ -2679,7 +2755,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSocialHomeView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const SocialHomeViewRoute(),
       onFailure: onFailure,
@@ -2687,10 +2763,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToDrawerScreen({
-    _i4.Key? key,
+    _i5.Key? key,
     required String open,
-    required _i8.Drawers drawer,
-    void Function(_i3.NavigationFailure)? onFailure,
+    required _i9.Drawers drawer,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       DrawerScreenRoute(
@@ -2703,7 +2779,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToChatListView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const ChatListViewRoute(),
       onFailure: onFailure,
@@ -2711,9 +2787,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToConversationHistory({
-    _i4.Key? key,
+    _i5.Key? key,
     required String conversationId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       ConversationHistoryRoute(
@@ -2725,9 +2801,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToTicketsList({
-    _i4.Key? key,
-    required _i8.ITransaction? transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction? transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       TicketsListRoute(
@@ -2739,10 +2815,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToNewTicket({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required void Function() onClose,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       NewTicketRoute(
@@ -2755,11 +2831,11 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToApps({
-    _i4.Key? key,
-    required _i4.TextEditingController controller,
+    _i5.Key? key,
+    required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i8.CoreViewModel model,
-    void Function(_i3.NavigationFailure)? onFailure,
+    required _i10.CoreViewModel model,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       AppsRoute(
@@ -2773,9 +2849,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToCheckOut({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       CheckOutRoute(
@@ -2787,9 +2863,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToCashbook({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       CashbookRoute(
@@ -2801,8 +2877,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSettingPage({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       SettingPageRoute(
@@ -2813,7 +2889,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToTransactions(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const TransactionsRoute(),
       onFailure: onFailure,
@@ -2821,8 +2897,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToSecurity({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       SecurityRoute(
@@ -2833,7 +2909,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToComfirm(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const ComfirmRoute(),
       onFailure: onFailure,
@@ -2841,7 +2917,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToReports(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const ReportsRoute(),
       onFailure: onFailure,
@@ -2849,7 +2925,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAdminControl(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const AdminControlRoute(),
       onFailure: onFailure,
@@ -2857,17 +2933,39 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> navigateToAddBranch(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
       const AddBranchRoute(),
       onFailure: onFailure,
     );
   }
 
+  Future<dynamic> navigateToQuickSellingView({
+    _i5.Key? key,
+    required _i5.GlobalKey<_i5.FormState> formKey,
+    required _i5.TextEditingController discountController,
+    required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController paymentTypeController,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return navigateTo(
+      QuickSellingViewRoute(
+        key: key,
+        formKey: formKey,
+        discountController: discountController,
+        receivedAmountController: receivedAmountController,
+        customerPhoneNumberController: customerPhoneNumberController,
+        paymentTypeController: paymentTypeController,
+      ),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
-    _i4.Key? key,
+    _i5.Key? key,
     bool? invokeLogin,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       StartUpViewRoute(
@@ -2879,9 +2977,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSignUpView({
-    _i4.Key? key,
+    _i5.Key? key,
     String? countryNm = "Rwanda",
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       SignUpViewRoute(
@@ -2893,7 +2991,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithFlipperApp(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const FlipperAppRoute(),
       onFailure: onFailure,
@@ -2901,7 +2999,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithLoginView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const LoginViewRoute(),
       onFailure: onFailure,
@@ -2909,8 +3007,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithLanding({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       LandingRoute(
@@ -2921,7 +3019,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAuthOptionPage(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const AuthOptionPageRoute(),
       onFailure: onFailure,
@@ -2929,7 +3027,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithCountryPicker(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const CountryPickerRoute(),
       onFailure: onFailure,
@@ -2937,28 +3035,28 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithPhoneInputScreen({
-    _i4.Key? key,
-    _i5.AuthAction? action,
-    List<_i5.FirebaseUIAction>? actions,
-    _i6.FirebaseAuth? auth,
+    _i5.Key? key,
+    _i6.AuthAction? action,
+    List<_i6.FirebaseUIAction>? actions,
+    _i7.FirebaseAuth? auth,
     required String countryCode,
-    _i4.Widget Function(_i4.BuildContext)? subtitleBuilder,
-    _i4.Widget Function(_i4.BuildContext)? footerBuilder,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(_i5.BuildContext)? subtitleBuilder,
+    _i5.Widget Function(_i5.BuildContext)? footerBuilder,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
       double,
     )? headerBuilder,
     double? headerMaxExtent,
-    _i4.Widget Function(
-      _i4.BuildContext,
-      _i4.BoxConstraints,
+    _i5.Widget Function(
+      _i5.BuildContext,
+      _i5.BoxConstraints,
     )? sideBuilder,
-    _i7.TextDirection? desktopLayoutDirection,
+    _i8.TextDirection? desktopLayoutDirection,
     double breakpoint = 500,
-    _i6.MultiFactorSession? multiFactorSession,
-    _i6.PhoneMultiFactorInfo? mfaHint,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i7.MultiFactorSession? multiFactorSession,
+    _i7.PhoneMultiFactorInfo? mfaHint,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PhoneInputScreenRoute(
@@ -2982,9 +3080,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddProductView({
-    _i4.Key? key,
+    _i5.Key? key,
     int? productId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AddProductViewRoute(
@@ -2996,10 +3094,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddToFavorites({
-    _i4.Key? key,
+    _i5.Key? key,
     required int favoriteIndex,
     required List<int> existingFavs,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AddToFavoritesRoute(
@@ -3012,9 +3110,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddDiscount({
-    _i4.Key? key,
-    _i8.Discount? discount,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    _i9.Discount? discount,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AddDiscountRoute(
@@ -3026,9 +3124,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithListCategories({
-    _i4.Key? key,
+    _i5.Key? key,
     required String? modeOfOperation,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ListCategoriesRoute(
@@ -3040,8 +3138,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithColorTile({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ColorTileRoute(
@@ -3052,10 +3150,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithReceiveStock({
-    _i4.Key? key,
+    _i5.Key? key,
     required int variantId,
     String? existingStock,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ReceiveStockRoute(
@@ -3068,9 +3166,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddVariation({
-    _i4.Key? key,
+    _i5.Key? key,
     required int productId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AddVariationRoute(
@@ -3082,8 +3180,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddCategory({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AddCategoryRoute(
@@ -3094,9 +3192,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithListUnits({
-    _i4.Key? key,
+    _i5.Key? key,
     required String type,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ListUnitsRoute(
@@ -3108,9 +3206,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSell({
-    _i4.Key? key,
-    required _i8.Product product,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.Product product,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       SellRoute(
@@ -3122,12 +3220,12 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithPayments({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required bool isIncome,
     required String categoryId,
     required String transactionType,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PaymentsRoute(
@@ -3142,9 +3240,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithPaymentConfirmation({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PaymentConfirmationRoute(
@@ -3156,9 +3254,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithTransactionDetail({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       TransactionDetailRoute(
@@ -3170,7 +3268,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSettingsScreen(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const SettingsScreenRoute(),
       onFailure: onFailure,
@@ -3178,8 +3276,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSwitchBranchView({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       SwitchBranchViewRoute(
@@ -3190,10 +3288,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithScannView({
-    _i4.Key? key,
+    _i5.Key? key,
     String intent = 'selling',
     bool useLatestImplementation = false,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ScannViewRoute(
@@ -3206,8 +3304,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithOrderView({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       OrderViewRoute(
@@ -3218,7 +3316,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithOrders(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const OrdersRoute(),
       onFailure: onFailure,
@@ -3226,7 +3324,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithInAppBrowser(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const InAppBrowserRoute(),
       onFailure: onFailure,
@@ -3234,9 +3332,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithCustomers({
-    _i4.Key? key,
+    _i5.Key? key,
     int? transactionId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       CustomersRoute(
@@ -3248,8 +3346,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithNoNet({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       NoNetRoute(
@@ -3260,8 +3358,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithPinLogin({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       PinLoginRoute(
@@ -3272,9 +3370,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithDevices({
-    _i4.Key? key,
+    _i5.Key? key,
     int? pin,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       DevicesRoute(
@@ -3286,9 +3384,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithTaxConfiguration({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool showheader,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       TaxConfigurationRoute(
@@ -3300,7 +3398,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithPrinting(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const PrintingRoute(),
       onFailure: onFailure,
@@ -3308,7 +3406,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithBackUp(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const BackUpRoute(),
       onFailure: onFailure,
@@ -3316,7 +3414,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithLoginChoices(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const LoginChoicesRoute(),
       onFailure: onFailure,
@@ -3324,7 +3422,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithTenantAdd(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const TenantAddRoute(),
       onFailure: onFailure,
@@ -3332,7 +3430,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSocialHomeView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const SocialHomeViewRoute(),
       onFailure: onFailure,
@@ -3340,10 +3438,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithDrawerScreen({
-    _i4.Key? key,
+    _i5.Key? key,
     required String open,
-    required _i8.Drawers drawer,
-    void Function(_i3.NavigationFailure)? onFailure,
+    required _i9.Drawers drawer,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       DrawerScreenRoute(
@@ -3356,7 +3454,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithChatListView(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const ChatListViewRoute(),
       onFailure: onFailure,
@@ -3364,9 +3462,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithConversationHistory({
-    _i4.Key? key,
+    _i5.Key? key,
     required String conversationId,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       ConversationHistoryRoute(
@@ -3378,9 +3476,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithTicketsList({
-    _i4.Key? key,
-    required _i8.ITransaction? transaction,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    required _i9.ITransaction? transaction,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       TicketsListRoute(
@@ -3392,10 +3490,10 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithNewTicket({
-    _i4.Key? key,
-    required _i8.ITransaction transaction,
+    _i5.Key? key,
+    required _i9.ITransaction transaction,
     required void Function() onClose,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       NewTicketRoute(
@@ -3408,11 +3506,11 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithApps({
-    _i4.Key? key,
-    required _i4.TextEditingController controller,
+    _i5.Key? key,
+    required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i8.CoreViewModel model,
-    void Function(_i3.NavigationFailure)? onFailure,
+    required _i10.CoreViewModel model,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       AppsRoute(
@@ -3426,9 +3524,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithCheckOut({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       CheckOutRoute(
@@ -3440,9 +3538,9 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithCashbook({
-    _i4.Key? key,
+    _i5.Key? key,
     required bool isBigScreen,
-    void Function(_i3.NavigationFailure)? onFailure,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       CashbookRoute(
@@ -3454,8 +3552,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSettingPage({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       SettingPageRoute(
@@ -3466,7 +3564,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithTransactions(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const TransactionsRoute(),
       onFailure: onFailure,
@@ -3474,8 +3572,8 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithSecurity({
-    _i4.Key? key,
-    void Function(_i3.NavigationFailure)? onFailure,
+    _i5.Key? key,
+    void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       SecurityRoute(
@@ -3486,7 +3584,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithComfirm(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const ComfirmRoute(),
       onFailure: onFailure,
@@ -3494,7 +3592,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithReports(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const ReportsRoute(),
       onFailure: onFailure,
@@ -3502,7 +3600,7 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAdminControl(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const AdminControlRoute(),
       onFailure: onFailure,
@@ -3510,9 +3608,31 @@ extension RouterStateExtension on _i2.RouterService {
   }
 
   Future<dynamic> replaceWithAddBranch(
-      {void Function(_i3.NavigationFailure)? onFailure}) async {
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const AddBranchRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithQuickSellingView({
+    _i5.Key? key,
+    required _i5.GlobalKey<_i5.FormState> formKey,
+    required _i5.TextEditingController discountController,
+    required _i5.TextEditingController receivedAmountController,
+    required _i5.TextEditingController customerPhoneNumberController,
+    required _i5.TextEditingController paymentTypeController,
+    void Function(_i4.NavigationFailure)? onFailure,
+  }) async {
+    return replaceWith(
+      QuickSellingViewRoute(
+        key: key,
+        formKey: formKey,
+        discountController: discountController,
+        receivedAmountController: receivedAmountController,
+        customerPhoneNumberController: customerPhoneNumberController,
+        paymentTypeController: paymentTypeController,
+      ),
       onFailure: onFailure,
     );
   }

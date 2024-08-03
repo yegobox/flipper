@@ -1,11 +1,8 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flipper_rw/main.dart' as app_main;
-import 'package:flipper_ui/flipper_ui.dart';
-import 'package:integration_test/integration_test.dart';
 import 'common.dart';
 
 // patrol test  --target integration_test/smoke_windows_test.dart

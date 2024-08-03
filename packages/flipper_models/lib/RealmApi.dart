@@ -7,7 +7,6 @@ import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -16,7 +15,6 @@ import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/mocks.dart';
-import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/realmExtension.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/realmModels.dart';
@@ -2217,7 +2215,7 @@ class RealmAPI<M extends IJsonSerializable>
               File realmFile = File(realm!.config.path);
               if (await realmFile.exists()) {
                 await realmFile.delete();
-                print('Realm file deleted successfully.');
+                talker.warning('Realm file deleted successfully.');
               }
               await logOut();
             } catch (e) {
@@ -2225,7 +2223,7 @@ class RealmAPI<M extends IJsonSerializable>
             }
 
             // 3. Restart the app
-            print('Restarting the app...');
+            talker.warning('Restarting the app...');
             // exit(0);
             await logOut();
 
@@ -2316,7 +2314,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     final receipts = realm!.query<Receipt>(r'branchId == $0', [branchId]);
     final units = realm!.query<IUnit>(r'branchId == $0', [branchId]);
-    // final permission = realm!.query<LPermission>(r'userId == $0', [userId]);
+    final permission = realm!.query<LPermission>(r'userId == $0', [userId]);
 
     final pin = realm!.query<Pin>(
         r'userId == $0', [ProxyService.box.getUserId()?.toString()]);
@@ -2333,6 +2331,8 @@ class RealmAPI<M extends IJsonSerializable>
     final report = realm!.query<Report>(r'branchId == $0', [branchId]);
     final computed = realm!.query<Computed>(r'branchId == $0', [branchId]);
     final access = realm!.query<Access>(r'businessId == $0', [businessId]);
+    final requests =
+        realm!.query<StockRequest>(r'mainBranchId == $0', [branchId]);
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2365,6 +2365,8 @@ class RealmAPI<M extends IJsonSerializable>
       mutableSubscriptions.add(assets, name: "assets", update: true);
       mutableSubscriptions.add(skus, name: "skus", update: true);
       mutableSubscriptions.add(report, name: "report", update: true);
+      mutableSubscriptions.add(requests, name: "requests", update: true);
+      mutableSubscriptions.add(permission, name: "permission", update: true);
 
       mutableSubscriptions.add(tenant,
           name: "tenant-${businessId}", update: true);

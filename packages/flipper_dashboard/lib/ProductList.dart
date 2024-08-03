@@ -1,9 +1,8 @@
 // ignore_for_file: unused_result
-import 'package:flipper_dashboard/itemRow.dart';
+import 'package:flipper_dashboard/QuickSellingView.dart';
+import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -19,82 +18,79 @@ class ProductListScreen extends StatefulHookConsumerWidget {
   ProductListScreenState createState() => ProductListScreenState();
 }
 
-class ProductListScreenState extends ConsumerState<ProductListScreen> {
+class ProductListScreenState extends ConsumerState<ProductListScreen>
+    with Datamixer {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController receivedAmountController =
+      TextEditingController();
+  final TextEditingController discountController = TextEditingController();
+  final TextEditingController customerPhoneNumberController =
+      TextEditingController();
+  final TextEditingController paymentTypeController = TextEditingController();
+  bool showCart = false;
   @override
   Widget build(BuildContext context) {
     final itemOnCart = ref.watch(cartListProvider);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Products'),
-      ),
-      body: ref.watch(productFromSupplier).when(
-            data: (products) {
-              return ViewModelBuilder.reactive(
-                  viewModelBuilder: () => ProductViewModel(),
-                  builder: (context, model, child) {
-                    return ListView.builder(
-                      itemCount: products!.length,
-                      itemBuilder: (context, index) {
-                        return RowItem(
-                          isComposite: false,
-                          variant: products[index],
-                          color: products[index].color!,
-                          productName: products[index].name!,
-                          variantName: products[index].name!,
-                          stock: 1,
-                          model: model,
-                          addToMenu: (item) async {
-                            Variant variant = item as Variant;
-
-                            /// get a cash out pending transaction
-                            /// because after this is approved by supplier it will be in
-                            /// cash out for retailer and cash in for supplier
-
-                            ITransaction? iTransaction = ref
-                                .read(pendingTransactionProvider(
-                                  /// define that his is an expense
-                                  (TransactionType.cashOut, true),
-                                ))
-                                .value;
-
-                            ProxyService.realm.realm!.write(() {
-                              iTransaction!.supplierId = variant.branchId;
-                            });
-
-                            // add item to cart
-                            ref
-                                .read(cartListProvider.notifier)
-                                .addToCart(variant);
-                            // add colors
-                            ref
-                                .read(productColorsProvider.notifier)
-                                .fetchColors(itemOnCart);
-                            await model.saveTransaction(
-                                variation: variant,
-                                currentStock: 1.0,
-                                amountTotal: variant.retailPrice,
-                                partOfComposite: false,
-                                customItem: false,
-                                pendingTransaction: iTransaction!);
-                            ref.refresh(
-                                transactionItemsProvider(iTransaction.id));
-                          },
-                        );
-                      },
-                    );
+    final items = ref.watch(productFromSupplier);
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => ProductViewModel(),
+        builder: (context, model, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Products'),
+            ),
+            body: items.when(
+              data: (products) {
+                if (products.isEmpty) {
+                  return Center(child: Text('No products available'));
+                }
+                return !showCart
+                    ? GridView.builder(
+                        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 200,
+                          mainAxisSpacing: 5.0,
+                          crossAxisSpacing: 2.0,
+                        ),
+                        itemCount: products.length,
+                        itemBuilder: (context, index) {
+                          // Double-check the index before accessing the list
+                          if (index < 0 || index >= products.length) {
+                            return SizedBox.shrink();
+                          }
+                          return buildVariantRow(
+                            context: context,
+                            model: model,
+                            variant: products[index],
+                            isOrdering: true,
+                          );
+                        },
+                        shrinkWrap: true,
+                      )
+                    : QuickSellingView(
+                        formKey: _formKey,
+                        discountController: discountController,
+                        receivedAmountController: receivedAmountController,
+                        customerPhoneNumberController:
+                            customerPhoneNumberController,
+                        paymentTypeController: paymentTypeController,
+                      );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => Center(child: Text('Error: $stack')),
+            ),
+            floatingActionButton: SizedBox(
+              width: 200,
+              child: PreviewSaleButton(
+                wording: "Preview Cart",
+                mode: SellingMode.forOrdering,
+                previewCart: () {
+                  setState(() {
+                    showCart = !showCart;
                   });
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(child: Text('Error: $error')),
-          ),
-      floatingActionButton: SizedBox(
-        width: 200,
-        child: PreviewSaleButton(
-          wording: "Preview Cart",
-          mode: SellingMode.forOrdering,
-          completeTransaction: () {},
-        ),
-      ),
-    );
+                },
+              ),
+            ),
+          );
+        });
   }
 }

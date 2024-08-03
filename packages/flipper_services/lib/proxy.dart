@@ -80,7 +80,6 @@ abstract class ProxyService {
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
-  // static IsarApiInterface get isar => _isar;
   static RealmApiInterface get realm => _realm;
 
   static EventInterface get event => _event;
@@ -105,7 +104,6 @@ abstract class ProxyService {
   static Review get review => _review;
   static Sync get sync => _syncApi;
   static SyncFirestore get syncFirestore => _syncFirestore;
-  // static SyncReaml get synci => _syncRealm;
   static SystemTime get systemTime => _systemTime;
   static BillingService get billing => _billingService;
   static WhatsApp get whatsApp => _whatsApp;

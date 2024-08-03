@@ -1,12 +1,12 @@
-// ignore_for_file: unused_result
+import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/ProductList.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
-
-import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
-import 'package:flipper_models/states/supplierListProvider.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class Orders extends StatefulHookConsumerWidget {
   const Orders({Key? key}) : super(key: key);
@@ -15,15 +15,14 @@ class Orders extends StatefulHookConsumerWidget {
   OrdersState createState() => OrdersState();
 }
 
-/// note: when creating a transaction, it is created as my transaction
-/// when it is received on other hand it will be cloned or copied so that it appear on both end
-
 class OrdersState extends ConsumerState<Orders> {
+  Branch? selectedSupplier;
+
+  final talker = Talker();
   @override
   Widget build(BuildContext context) {
-    final searchController = ref.read(searchQueryControllerProvider);
-    final suppliers = ref.watch(supplierListProvider);
-
+    final suppliers = ref.watch(branchesProvider);
+    // talker.warning("Branches ${suppliers}");
     return PopScope(
       canPop: false,
       onPopInvoked: (bool didPop) {
@@ -40,50 +39,76 @@ class OrdersState extends ConsumerState<Orders> {
         appBar: AppBar(
           title: const Text('Select Supplier'),
         ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: searchController,
-                onChanged: (value) {
-                  ref.read(searchQueryProvider.notifier).state = value;
-                  ref.refresh(supplierListProvider);
-                },
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<Branch>(
+                value: selectedSupplier,
                 decoration: const InputDecoration(
-                  labelText: 'Search Supplier',
-                  prefixIcon: Icon(Icons.search),
+                  labelText: 'Select Supplier',
+                  border: OutlineInputBorder(),
+                ),
+                items: suppliers.map((Branch supplier) {
+                  return DropdownMenuItem<Branch>(
+                    value: supplier,
+                    child: Text(supplier.name ?? "-"),
+                  );
+                }).toList(),
+                onChanged: (Branch? newValue) {
+                  setState(() {
+                    selectedSupplier = newValue;
+                  });
+                  if (newValue != null) {
+                    ref
+                        .read(selectedSupplierProvider.notifier)
+                        .setSupplier(supplier: newValue);
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: selectedSupplier == null
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProductListScreen(),
+                          ),
+                        );
+                      },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  decoration: BoxDecoration(
+                    color: selectedSupplier == null
+                        ? Colors.grey
+                        : Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      'View Products',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
-            Expanded(
-              child: suppliers.when(
-                data: (suppliers) {
-                  return ListView.builder(
-                    itemCount: suppliers.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(suppliers[index].name),
-                        onTap: () {
-                          ref
-                              .read(selectedSupplierProvider.notifier)
-                              .setSupplier(supplier: suppliers[index]);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProductListScreen(),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-                loading: () => const Center(child: Text("No supplier choosen")),
-                error: (error, stack) => Text('Error: $error'),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

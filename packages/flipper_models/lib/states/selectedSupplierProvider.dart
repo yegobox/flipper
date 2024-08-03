@@ -1,25 +1,14 @@
+import 'package:flipper_models/realm/schemas.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class Supplier {
-  final int businessId;
-  final int branchId;
-  final String name;
-
-  Supplier({
-    required this.businessId,
-    required this.branchId,
-    required this.name,
-  });
-}
-
 final selectedSupplierProvider =
-    StateNotifierProvider<SelectedItemNotifier, AsyncValue<Supplier>>((ref) {
+    StateNotifierProvider<SelectedItemNotifier, AsyncValue<Branch>>((ref) {
   return SelectedItemNotifier();
 });
 
-class SelectedItemNotifier extends StateNotifier<AsyncValue<Supplier>> {
+class SelectedItemNotifier extends StateNotifier<AsyncValue<Branch>> {
   SelectedItemNotifier() : super(const AsyncLoading());
-  void setSupplier({required Supplier supplier}) {
+  void setSupplier({required Branch supplier}) {
     state = AsyncData(supplier);
   }
 }

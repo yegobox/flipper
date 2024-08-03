@@ -5,6 +5,7 @@ part 'schemas.realm.dart';
 
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
 /// https://www.mongodb.com/docs/atlas/app-services/sync/data-model/update-schema/#std-label-synced-schema-overview
+/// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/realm-database/model-data/data-types/#realmlist
 @RealmModel()
 class _Branch {
   @PrimaryKey()
@@ -574,6 +575,21 @@ class _Variant {
 }
 
 @RealmModel()
+class _StockRequest {
+  int? id;
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+  int? mainBranchId;
+  int? subBranchId;
+  DateTime? createdAt;
+  // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"
+  String? status;
+  late List<_TransactionItem> items;
+  DateTime? updatedAt; // Optional field for tracking last update
+}
+
+@RealmModel()
 class _TransactionItem {
   int? id;
   @PrimaryKey()
@@ -581,7 +597,9 @@ class _TransactionItem {
   late ObjectId realmId;
 
   String? name;
-
+  int? quantityRequested;
+  int? quantityApproved;
+  int? quantityShipped;
   int? transactionId;
   int? variantId;
   // quantity

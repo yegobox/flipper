@@ -145,5 +145,7 @@ class IVariant {
     this.ebmSynced = false,
   });
 
+  factory IVariant.fromJson(Map<String, dynamic> json) =>
+      _$IVariantFromJson(json);
   Map<String, dynamic> toJson() => _$IVariantToJson(this);
 }

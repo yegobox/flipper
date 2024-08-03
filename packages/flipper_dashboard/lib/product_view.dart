@@ -2,6 +2,7 @@
 
 // import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/dataMixer.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/profile.dart';
@@ -40,7 +41,7 @@ class ProductView extends StatefulHookConsumerWidget {
   ProductViewState createState() => ProductViewState();
 }
 
-class ProductViewState extends ConsumerState<ProductView> {
+class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final _routerService = locator<RouterService>();
@@ -120,7 +121,12 @@ class ProductViewState extends ConsumerState<ProductView> {
                     return SizedBox
                         .shrink(); // Or handle the out-of-bound case appropriately
                   }
-                  return buildVariantRow(context, model, variants[index]);
+                  return buildVariantRow(
+                    context: context,
+                    model: model,
+                    variant: variants[index],
+                    isOrdering: false,
+                  );
                 },
                 shrinkWrap: true,
               );
@@ -129,65 +135,6 @@ class ProductViewState extends ConsumerState<ProductView> {
             loading: () =>
                 SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
           ),
-    );
-  }
-
-  Widget buildVariantRow(
-    BuildContext context,
-    ProductViewModel model,
-    Variant variant,
-  ) {
-    final stockStream = ref.watch(stockByVariantIdProvider(variant.id ?? 0));
-
-    return stockStream.when(
-      data: (double stock) {
-        return buildRowItem(context, model, variant, stock);
-      },
-      error: (dynamic error, stackTrace) => SizedBox.shrink(),
-      loading: () =>
-          SizedBox(width: 20, height: 20, child: const SizedBox.shrink()),
-    );
-  }
-
-  Widget buildRowItem(
-    BuildContext context,
-    ProductViewModel model,
-    Variant variant,
-    double stock,
-  ) {
-    Product? product =
-        ProxyService.realm.getProduct(id: variant.productId ?? 0);
-    return RowItem(
-      color: variant.color ?? "#673AB7",
-      stock: stock,
-      model: model,
-      variant: variant,
-      productName: variant.productName ?? "",
-      variantName: variant.name ?? "",
-      imageUrl: product?.imageUrl,
-      isComposite: product?.isComposite ?? false,
-      edit: (productId, type) {
-        talker.info("navigating to Edit!");
-        if (_getDeviceType(context) != "Phone") {
-          showDialog(
-            barrierDismissible: false,
-            context: context,
-            builder: (context) => OptionModal(
-              child: ProductEntryScreen(productId: productId),
-            ),
-          );
-        } else {
-          _routerService.navigateTo(
-            AddProductViewRoute(productId: productId),
-          );
-        }
-      },
-      delete: (productId, type) async {
-        await deleteFunc(productId, model);
-      },
-      enableNfc: (product) {
-        // Handle NFC functionality
-      },
     );
   }
 
@@ -285,6 +232,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                     future: ProxyService.realm.stocks(productId: product.id),
                     builder: (BuildContext context, stock) {
                       return RowItem(
+                        isOrdering: false,
                         isComposite: product.isComposite ?? false,
                         color: product.color,
                         stock: stock.data ?? 0.0,
@@ -292,7 +240,7 @@ class ProductViewState extends ConsumerState<ProductView> {
                         product: product,
                         productName: product.name ?? "",
                         variantName: product.name ?? "",
-                        addToMenu: null,
+                        orderItem: null,
                         imageUrl: product.imageUrl,
                         addFavoriteMode:
                             (widget.favIndex != null) ? true : false,
@@ -366,75 +314,5 @@ class ProductViewState extends ConsumerState<ProductView> {
           ),
       ],
     );
-  }
-
-  Future<void> deleteFunc(int? productId, ProductViewModel model) async {
-    // try {
-    //       /// first if there is image attached delete if first
-    //       Product? product = ProxyService.realm.getProduct(id: productId!);
-    //       if (product!.isComposite!) {
-    //         /// search composite and delete them as well
-    //         List<Composite> composites =
-    //             ProxyService.realm.composites(productId: productId);
-    //         ProxyService.realm.realm!.write(() {
-    //           for (Composite composite in composites) {
-    //             ProxyService.realm.realm!.delete(composite);
-    //           }
-    //         });
-    //       }
-    //       if (product.imageUrl != null) {
-    //         if (await ProxyService.realm
-    //             .removeS3File(fileName: product.imageUrl!)) {
-    //           await model.deleteProduct(productId: productId);
-    //           ref.refresh(
-    //               outerVariantsProvider(ProxyService.box.getBranchId()!));
-
-    //           /// delete assets related to a product
-    //           Assets? asset =
-    //               ProxyService.realm.getAsset(assetName: product.imageUrl!);
-    //           ProxyService.realm.delete(id: asset?.id ?? 0);
-    //         }
-    //       } else {
-    //         await model.deleteProduct(productId: productId);
-    //         ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-    //       }
-    //     } catch (e, s) {
-    //       talker.error("ProductViewClass:" + s.toString());
-    //       talker.error("ProductViewClass:" + e.toString());
-    //       ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-    //     }
-    try {
-      /// first if there is image attached delete if first
-      Product? product = ProxyService.realm.getProduct(id: productId!);
-      if (product!.isComposite!) {
-        /// search composite and delete them as well
-        List<Composite> composites =
-            ProxyService.realm.composites(productId: productId);
-        ProxyService.realm.realm!.write(() {
-          for (Composite composite in composites) {
-            ProxyService.realm.realm!.delete(composite);
-          }
-        });
-      }
-      if (product.imageUrl != null) {
-        if (await ProxyService.realm
-            .removeS3File(fileName: product.imageUrl!)) {
-          await model.deleteProduct(productId: productId);
-          ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-
-          /// delete assets related to a product
-          Assets? asset =
-              ProxyService.realm.getAsset(assetName: product.imageUrl!);
-          ProxyService.realm.delete(id: asset?.id ?? 0);
-        }
-      } else {
-        await model.deleteProduct(productId: productId);
-        ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-      }
-    } catch (e, s) {
-      talker.error("ProductViewClass:" + s.toString());
-      talker.error("ProductViewClass:" + e.toString());
-      ref.refresh(outerVariantsProvider(ProxyService.box.getBranchId()!));
-    }
   }
 }
