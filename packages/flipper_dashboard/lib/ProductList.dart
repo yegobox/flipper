@@ -59,6 +59,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
 
       await _createStockRequest(items);
       await _markItemsAsDone(items, transaction.value!);
+      _changeTransactionStatus(transaction: transaction.value!);
       await _refreshTransactionItems(transaction.value?.id);
 
       print("Order placed with ${items.length} items in basket");
@@ -162,5 +163,13 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
             ),
           );
         });
+  }
+
+  void _changeTransactionStatus({required ITransaction transaction}) {
+    ProxyService.realm.realm!.write(() {
+      /// we mark the status so next time we query pending transaction we don't
+      /// accidently query this PENDING transaction and avoid mixxing things up
+      transaction.status = ORDERING;
+    });
   }
 }

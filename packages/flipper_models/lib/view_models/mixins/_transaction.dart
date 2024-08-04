@@ -99,7 +99,7 @@ mixin TransactionMixin {
           quantityApproved: 0,
           quantityRequested: computedQty.toInt(),
           quantityShipped: 0,
-          branchId: variation.branchId,
+          branchId: ProxyService.box.getBranchId(),
           discount: 0.0,
           prc: variation.retailPrice,
           doneWithTransaction: false,

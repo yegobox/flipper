@@ -78,9 +78,6 @@ final productFromSupplier =
     final List<dynamic> documents = response.data['documents'] ?? [];
 
     List<Variant> variants = documents.map<Variant>((item) {
-      print("retailPrice ${item['retailPrice']}");
-      print("supplyPrice ${item['supplyPrice']}");
-
       // Check data types if known to be integers
 
       // Handle potential decimals otherwise

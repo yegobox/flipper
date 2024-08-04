@@ -4140,6 +4140,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     String? spplrItemNm,
     bool ebmSynced = false,
     String taxType = "B",
+    Iterable<int> branchIds = const [],
   }) {
     if (!_defaultsSet) {
       _defaultsSet = RealmObjectBase.setDefaults<Variant>({
@@ -4224,6 +4225,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
     RealmObjectBase.set(this, 'spplrItemNm', spplrItemNm);
     RealmObjectBase.set(this, 'ebmSynced', ebmSynced);
     RealmObjectBase.set(this, 'taxType', taxType);
+    RealmObjectBase.set<RealmList<int>>(
+        this, 'branchIds', RealmList<int>(branchIds));
   }
 
   Variant._();
@@ -4523,6 +4526,13 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
   set taxType(String value) => RealmObjectBase.set(this, 'taxType', value);
 
   @override
+  RealmList<int> get branchIds =>
+      RealmObjectBase.get<int>(this, 'branchIds') as RealmList<int>;
+  @override
+  set branchIds(covariant RealmList<int> value) =>
+      throw RealmUnsupportedSetError();
+
+  @override
   Stream<RealmObjectChanges<Variant>> get changes =>
       RealmObjectBase.getChanges<Variant>(this);
 
@@ -4587,6 +4597,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       'spplrItemNm': spplrItemNm.toEJson(),
       'ebmSynced': ebmSynced.toEJson(),
       'taxType': taxType.toEJson(),
+      'branchIds': branchIds.toEJson(),
     };
   }
 
@@ -4646,6 +4657,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
         'spplrItemNm': EJsonValue spplrItemNm,
         'ebmSynced': EJsonValue ebmSynced,
         'taxType': EJsonValue taxType,
+        'branchIds': EJsonValue branchIds,
       } =>
         Variant(
           fromEJson(realmId),
@@ -4700,6 +4712,7 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
           spplrItemNm: fromEJson(spplrItemNm),
           ebmSynced: fromEJson(ebmSynced),
           taxType: fromEJson(taxType),
+          branchIds: fromEJson(branchIds),
         ),
       _ => raiseInvalidEJson(ejson),
     };
@@ -4764,6 +4777,8 @@ class Variant extends _Variant with RealmEntity, RealmObjectBase, RealmObject {
       SchemaProperty('spplrItemNm', RealmPropertyType.string, optional: true),
       SchemaProperty('ebmSynced', RealmPropertyType.bool),
       SchemaProperty('taxType', RealmPropertyType.string),
+      SchemaProperty('branchIds', RealmPropertyType.int,
+          collectionType: RealmCollectionType.list),
     ]);
   }();
 

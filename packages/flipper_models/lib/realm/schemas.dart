@@ -572,6 +572,8 @@ class _Variant {
   String taxType = "B";
 
   /// it can be A for exempted, B, C or D
+  /// we want to assign this variant to multiple branch
+  late List<int> branchIds;
 }
 
 @RealmModel()
