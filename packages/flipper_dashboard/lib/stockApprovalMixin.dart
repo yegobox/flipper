@@ -117,9 +117,10 @@ mixin StockRequestApprovalLogic {
       required TransactionItem item,
       required Variant variant}) {
     stock.lastTouched = DateTime.now();
-    stock.currentStock += item.quantityRequested!.toDouble();
-    stock.rsdQty += item.quantityRequested!.toDouble();
-    stock.value += (item.quantityRequested! * variant.retailPrice);
+    stock.currentStock =
+        stock.currentStock + item.quantityRequested!.toDouble();
+    stock.rsdQty = stock.rsdQty + item.quantityRequested!.toDouble();
+    stock.value = (stock.currentStock * variant.retailPrice);
     stock.action = AppActions.updated;
   }
 
@@ -349,12 +350,6 @@ mixin StockRequestApprovalLogic {
 
     _updateMainBranchStock(
         variantId: item.variantId!, approvedQuantity: approvedQuantity);
-    Stock? mainBranchStock = ProxyService.realm.stockByVariantId(
-        variantId: item.variantId!, branchId: ProxyService.box.getBranchId()!);
-    ProxyService.realm.realm!.write(() {
-      mainBranchStock!.currentStock =
-          mainBranchStock.currentStock - approvedQuantity;
-    });
   }
 
   void _createNewStockForApprovedItem(
@@ -397,10 +392,16 @@ mixin StockRequestApprovalLogic {
       variantId: variantId,
       branchId: ProxyService.box.getBranchId()!,
     );
-    if (mainBranchStock != null) {
-      mainBranchStock.currentStock -= approvedQuantity.toDouble();
-      mainBranchStock.lastTouched = DateTime.now();
-      mainBranchStock.action = AppActions.updated;
-    }
+    Variant? variant = ProxyService.realm.getVariantById(id: variantId);
+    ProxyService.realm.realm!.write(() {
+      if (mainBranchStock != null) {
+        mainBranchStock.currentStock =
+            mainBranchStock.currentStock - approvedQuantity.toDouble();
+        mainBranchStock.lastTouched = DateTime.now();
+        mainBranchStock.action = AppActions.updated;
+        variant!.qty = mainBranchStock.currentStock;
+        variant.rsdQty = mainBranchStock.currentStock;
+      }
+    });
   }
 }

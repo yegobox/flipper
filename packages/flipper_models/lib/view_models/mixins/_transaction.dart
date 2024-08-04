@@ -73,8 +73,8 @@ mixin TransactionMixin {
           item.totAmt = variation.retailPrice * quantity;
           item.splyAmt = variation.supplyPrice;
           item.active = true;
+          item.quantityRequested = (item.qty + quantity).toInt();
           item.quantityApproved = 0;
-          item.quantityRequested = ((item.qty) + quantity).toInt();
           item.quantityShipped = 0;
 
           updatePendingTransactionTotals(pendingTransaction);
