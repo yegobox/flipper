@@ -493,8 +493,9 @@ class RWTax implements TaxApi {
         for (TransactionItem item in items) {
           /// here we update stock, so it is updated back to rra backoffice as we have new!
 
-          Stock? stock =
-              ProxyService.realm.stockByVariantId(variantId: item.variantId!);
+          Stock? stock = ProxyService.realm.stockByVariantId(
+              variantId: item.variantId!,
+              branchId: ProxyService.box.getBranchId()!);
 
           ProxyService.realm.realm!.write(() {
             item.ebmSynced = true;

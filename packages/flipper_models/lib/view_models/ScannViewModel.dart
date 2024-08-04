@@ -146,8 +146,8 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
         variant.ebmSynced = false;
       });
 
-      Stock? stock =
-          ProxyService.realm.stockByVariantId(variantId: variant.id!);
+      Stock? stock = ProxyService.realm.stockByVariantId(
+          variantId: variant.id!, branchId: ProxyService.box.getBranchId()!);
       ProxyService.realm.realm!.write(() {
         stock!.rsdQty = newQuantity;
         stock.ebmSynced = false;

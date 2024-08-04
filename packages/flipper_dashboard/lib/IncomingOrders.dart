@@ -1,109 +1,34 @@
-import 'package:flipper_models/realm_model_export.dart';
+// ignore_for_file: unused_result
+
+import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class OrderItem {
-  final String name;
-  final int quantity;
-
-  OrderItem({required this.name, required this.quantity});
-}
-
-class Order {
-  final int id;
-  final String customer;
-  final List<OrderItem> items;
-  final double total;
-  bool isApproved;
-
-  Order({
-    required this.id,
-    required this.customer,
-    required this.items,
-    required this.total,
-    this.isApproved = false,
-  });
-
-  int get totalQuantity => items.fold(0, (sum, item) => sum + item.quantity);
-}
-
-class IncomingOrdersWidget extends StatefulWidget {
+class IncomingOrdersWidget extends HookConsumerWidget
+    with StockRequestApprovalLogic {
   const IncomingOrdersWidget({Key? key}) : super(key: key);
 
   @override
-  _IncomingOrdersWidgetState createState() => _IncomingOrdersWidgetState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.refresh(stockRequestsProvider);
+    final stockRequests = ref.watch(stockRequestsProvider);
+    ref.refresh(stockRequestsProvider);
 
-class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
-  final List<Order> orders = [
-    Order(
-        id: 1,
-        customer: "Alice Johnson",
-        items: [
-          OrderItem(name: "Laptop", quantity: 1),
-          OrderItem(name: "Mouse", quantity: 2)
-        ],
-        total: 1299.99),
-    Order(
-        id: 2,
-        customer: "Bob Smith",
-        items: [
-          OrderItem(name: "Headphones", quantity: 1),
-          OrderItem(name: "Keyboard", quantity: 1)
-        ],
-        total: 199.98),
-    Order(
-        id: 3,
-        customer: "Charlie Brown",
-        items: [
-          OrderItem(name: "Monitor", quantity: 2),
-          OrderItem(name: "Webcam", quantity: 1)
-        ],
-        total: 449.97),
-    Order(
-        id: 4,
-        customer: "Diana Prince",
-        items: [
-          OrderItem(name: "Smartphone", quantity: 1),
-          OrderItem(name: "Case", quantity: 2)
-        ],
-        total: 899.99),
-    Order(
-        id: 5,
-        customer: "Ethan Hunt",
-        items: [
-          OrderItem(name: "Tablet", quantity: 1),
-          OrderItem(name: "Stylus", quantity: 3)
-        ],
-        total: 599.98),
-  ];
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: stockRequests.asMap().entries.map((entry) {
+          int index = entry.key;
+          var request = entry.value;
 
-  void _approveOrder(int id) {
-    setState(() {
-      final orderIndex = orders.indexWhere((order) => order.id == id);
-      if (orderIndex != -1) {
-        orders[orderIndex].isApproved = true;
-      }
-    });
-  }
+          int totalQuantity = request.items.fold<int>(
+            0,
+            (sum, item) => sum + (item.quantityRequested ?? 0),
+          );
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: Text('Incoming Orders',
-            style:
-                TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
-      body: ListView.builder(
-        padding: EdgeInsets.all(16.0),
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          final order = orders[index];
           return Card(
             elevation: 4,
             shape:
@@ -118,14 +43,14 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Order #${order.id}',
+                        'Request #${request.id ?? index}',
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.blue[700]),
                       ),
                       Text(
-                        order.total.toRwf(),
+                        totalQuantity.toString(),
                         style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -135,7 +60,7 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                   ),
                   SizedBox(height: 8.0),
                   Text(
-                    '${order.customer}',
+                    'Branch ID: ${request.mainBranchId}-${request.subBranchId}',
                     style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                   ),
                   SizedBox(height: 12.0),
@@ -144,7 +69,7 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 4.0),
-                  ...order.items.map((item) => Padding(
+                  ...request.items.map((item) => Padding(
                         padding: EdgeInsets.symmetric(vertical: 2.0),
                         child: Row(
                           children: [
@@ -152,8 +77,7 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                                 size: 8, color: Colors.blue[700]),
                             SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                  '${item.name} (Qty: ${item.quantity})',
+                              child: Text('${item.name} (Qty: ${item.qty})',
                                   style: TextStyle(fontSize: 14)),
                             ),
                           ],
@@ -161,7 +85,7 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                       )),
                   SizedBox(height: 8.0),
                   Text(
-                    'Total Quantity: ${order.totalQuantity}',
+                    'Status: ${request.status ?? "Unknown"}',
                     style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -175,51 +99,71 @@ class _IncomingOrdersWidgetState extends State<IncomingOrdersWidget> {
                         padding:
                             EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: order.isApproved
-                              ? Colors.green[100]
-                              : Colors.orange[100],
+                          color: _getStatusColor(request.status),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          order.isApproved ? 'Approved' : 'Pending',
+                          '${request.status ?? "Unknown"}',
                           style: TextStyle(
-                            color: order.isApproved
-                                ? Colors.green[700]
-                                : Colors.orange[700],
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (!order.isApproved)
-                        ElevatedButton(
-                          onPressed: () => _approveOrder(order.id),
-                          child: Text(
-                            'Approve Order',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                      ElevatedButton(
+                        onPressed: request.status == RequestStatus.approved
+                            ? null
+                            : () {
+                                approveRequest(
+                                    request: request, context: context);
+                                ref.refresh(stockRequestsProvider);
+                              },
+                        child: Text(
+                          'Approve Request',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ButtonStyle(
+                          backgroundColor:
+                              WidgetStateProperty.resolveWith<Color?>(
+                            (Set<WidgetState> states) {
+                              if (states.contains(WidgetState.disabled)) {
+                                return Colors.grey[400];
+                              }
+                              return Colors.blue[700];
+                            },
                           ),
-                          style: ButtonStyle(
-                            backgroundColor:
-                                WidgetStateProperty.all(Colors.blue[700]),
-                            foregroundColor:
-                                WidgetStateProperty.all(Colors.white),
-                            shape: WidgetStateProperty.all(
-                              RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20)),
-                            ),
-                            padding: WidgetStateProperty.all(
-                              EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 12),
-                            ),
+                          foregroundColor:
+                              WidgetStateProperty.all(Colors.white),
+                          shape: WidgetStateProperty.all(
+                            RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                          ),
+                          padding: WidgetStateProperty.all(
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
           );
-        },
+        }).toList(),
       ),
     );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status) {
+      case 'pending':
+        return Colors.orange[100]!;
+      case 'approved':
+        return Colors.green[100]!;
+      case 'rejected':
+        return Colors.red[100]!;
+      default:
+        return Colors.grey[300]!;
+    }
   }
 }

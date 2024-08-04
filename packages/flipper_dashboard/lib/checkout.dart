@@ -302,6 +302,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                         builder: (context, constraints) {
                           return SingleChildScrollView(
                             child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -378,9 +379,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                     ),
                                   ),
                                 if (ProxyService.box.isOrdersDefault()!)
-                                  SizedBox(
-                                      height: 800,
-                                      child: IncomingOrdersWidget())
+                                  IncomingOrdersWidget()
                               ],
                             ),
                           );

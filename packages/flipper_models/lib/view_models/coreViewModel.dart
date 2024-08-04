@@ -215,8 +215,8 @@ class CoreViewModel extends FlipperBaseModel
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
 
-    Stock? stock =
-        await ProxyService.realm.stockByVariantId(variantId: variation.id!);
+    Stock? stock = await ProxyService.realm.stockByVariantId(
+        variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
 
     String name = variation.productName != 'Custom Amount'
         ? '${variation.productName}(${variation.name})'
@@ -262,8 +262,8 @@ class CoreViewModel extends FlipperBaseModel
     if (variation == null) return;
 
     if (items.isEmpty) {
-      Stock? stock =
-          await ProxyService.realm.stockByVariantId(variantId: variation.id!);
+      Stock? stock = await ProxyService.realm.stockByVariantId(
+          variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
 
       String name = variation.productName != 'Custom Amount'
           ? '${variation.productName}(${variation.name})'
@@ -787,8 +787,8 @@ class CoreViewModel extends FlipperBaseModel
     toggleCheckbox(variantId: variants.first.id!);
     increaseQty(callback: (quantity) {}, custom: true);
     Variant? variant = ProxyService.realm.getVariantById(id: checked);
-    Stock? stock =
-        await ProxyService.realm.stockByVariantId(variantId: checked);
+    Stock? stock = await ProxyService.realm.stockByVariantId(
+        variantId: checked, branchId: ProxyService.box.getBranchId()!);
     await saveTransaction(
         partOfComposite: false,
         variation: variant!,

@@ -43,7 +43,8 @@ abstract class RealmApiInterface {
       {String? phoneNumberOrEmail, String? password});
 
   Future<double> stocks({int? productId, int? variantId});
-  Stream<double> getStockStream({int? productId, int? variantId});
+  Stream<double> getStockStream(
+      {int? productId, int? variantId, required int branchId});
   List<ITransaction> transactions({
     DateTime? startDate,
     DateTime? endDate,
@@ -57,7 +58,10 @@ abstract class RealmApiInterface {
 
   Stream<List<ITransaction>> orders({required int branchId});
   Future<List<Product>> getProductList({int? prodIndex});
-  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false});
+  Stock? stockByVariantId(
+      {required int variantId,
+      required int branchId,
+      bool nonZeroValue = false});
   Future<Stock?> stockByVariantIdFuture(
       {required int variantId, bool nonZeroValue = false});
   Future<List<PColor>> colors({required int branchId});
@@ -433,4 +437,5 @@ abstract class RealmApiInterface {
   Future<LPermission?> permission({required int userId});
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});
+  List<StockRequest> requests({required int branchId});
 }

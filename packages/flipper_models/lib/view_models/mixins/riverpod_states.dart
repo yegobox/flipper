@@ -86,7 +86,9 @@ final soldStockValueProvider =
 
 final stockByVariantIdProvider =
     StreamProvider.autoDispose.family<double, int>((ref, variantId) {
-  return ProxyService.realm.getStockStream(variantId: variantId);
+  int branchId = ProxyService.box.getBranchId()!;
+  return ProxyService.realm
+      .getStockStream(variantId: variantId, branchId: branchId);
 });
 
 final variantsProvider = FutureProvider.autoDispose
@@ -99,7 +101,8 @@ final variantsProvider = FutureProvider.autoDispose
 });
 
 final pendingTransactionProvider = Provider.autoDispose
-    .family<AsyncValue<ITransaction>, ({String mode, bool isExpense})>((ref, params) {
+    .family<AsyncValue<ITransaction>, ({String mode, bool isExpense})>(
+        (ref, params) {
   final (:mode, :isExpense) = params;
   try {
     ITransaction pendingTransaction = ProxyService.realm
@@ -901,6 +904,10 @@ final branchSelectionProvider =
     StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
   (ref) => BranchSelectionNotifier(),
 );
+final stockRequestsProvider = Provider<List<StockRequest>>((ref) {
+  // Assuming ProxyService.realm.requests(branchId: 1) is synchronous
+  return ProxyService.realm.requests(branchId: ProxyService.box.getBranchId()!);
+});
 
 List<ProviderBase> allProviders = [
   unsavedProductProvider,

@@ -262,7 +262,7 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
 
   Future<void> setDefaultBranch({required Branch branch}) async {
     talker.warning("The choosen branch:${branch.serverId}");
-    ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+    await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
     try {
       ProxyService.local.localRealm!.write(() {
         final branches = ProxyService.local

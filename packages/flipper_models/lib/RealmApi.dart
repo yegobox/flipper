@@ -426,7 +426,9 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.delete(item);
           }
           talker.warning("VariantSoldId for debug: ${item.variantId!}");
-          Stock? stock = stockByVariantId(variantId: item.variantId!);
+          Stock? stock = stockByVariantId(
+              variantId: item.variantId!,
+              branchId: ProxyService.box.getBranchId()!);
           final finalStock = (stock!.currentStock - item.qty);
           realm!.write(() {
             item.dcAmt = discount;
@@ -1169,15 +1171,18 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stream<double> getStockStream({int? productId, int? variantId}) async* {
+  Stream<double> getStockStream(
+      {int? productId, int? variantId, required int branchId}) async* {
     while (true) {
       double totalStock = 0.0;
       if (productId != null) {
-        final query = realm!.query<Stock>(r'productId == $0', [productId]);
+        final query = realm!.query<Stock>(
+            r'productId == $0 && branchId ==$1', [productId, branchId]);
         totalStock = query.fold<double>(
             0.0, (sum, stock) => sum + stock.currentStock.toDouble());
       } else if (variantId != null) {
-        final query = realm!.query<Stock>(r'variantId == $0', [variantId]);
+        final query = realm!.query<Stock>(
+            r'variantId == $0 && branchId==$1', [variantId, branchId]);
         totalStock = query.fold<double>(
             0.0, (sum, stock) => sum + stock.currentStock.toDouble());
       }
@@ -1647,16 +1652,17 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Stock? stockByVariantId({required int variantId, bool nonZeroValue = false}) {
-    int branchId = ProxyService.box.getBranchId()!;
+  Stock? stockByVariantId(
+      {required int variantId,
+      required int branchId,
+      bool nonZeroValue = false}) {
     Stock? stock;
     if (nonZeroValue) {
       stock = realm!.query<Stock>(
-          r'variantId ==$0 && branchId == $1 && retailPrice > 0 && deletedAt ==nil',
+          r'variantId ==$0 && branchId == $1 && retailPrice > 0',
           [variantId, branchId]).firstOrNull;
     } else {
-      stock = realm!.query<Stock>(
-          r'variantId ==$0 && branchId == $1  && deletedAt ==nil',
+      stock = realm!.query<Stock>(r'variantId ==$0 && branchId == $1',
           [variantId, branchId]).firstOrNull;
     }
     return stock;
@@ -2021,6 +2027,15 @@ class RealmAPI<M extends IJsonSerializable>
       variants = realm!.query<Variant>(
           r'branchId == $0 && retailPrice >0', [branchId]).toList();
     }
+
+    /// this is the case where a branch does not own the product the above query will not
+    /// find the matching variant using branchId as branchId is the Id of the branch who created variant
+    /// for that we search there in a list of branchids to see where we have assigned this variant
+    /// it is important to know that only variant is shared but stock is independent per branch
+    if (variants.isEmpty) {
+      variants = realm!.query<Variant>(
+          r'ANY branchIds == $0 && retailPrice > 0', [branchId]).toList();
+    }
     return variants;
   }
 
@@ -2295,7 +2310,7 @@ class RealmAPI<M extends IJsonSerializable>
         realm!.query<TransactionItem>(r'branchId == $0', [branchId]);
     final product = realm!.query<Product>(r'branchId == $0', [branchId]);
     final variant = realm!.query<Variant>(r'branchId == $0', [branchId]);
-    final stock = realm!.query<Stock>(r'branchId == $0', [branchId]);
+
     final unit = realm!.query<IUnit>(r'branchId == $0', [branchId]);
     final counter = realm!.query<Counter>(r'branchId == $0', [branchId]);
 
@@ -2331,8 +2346,27 @@ class RealmAPI<M extends IJsonSerializable>
     final report = realm!.query<Report>(r'branchId == $0', [branchId]);
     final computed = realm!.query<Computed>(r'branchId == $0', [branchId]);
     final access = realm!.query<Access>(r'businessId == $0', [businessId]);
-    final requests =
-        realm!.query<StockRequest>(r'mainBranchId == $0', [branchId]);
+    final requests = realm!.query<StockRequest>(
+        r'mainBranchId == $0 || subBranchId == $1', [branchId, branchId]);
+
+    /// because we receive stock request from sub branches and
+    /// in the process of giving stock to a sub branches we assign new stock object
+    /// to a sub branch if the sub branch does not have stock with same variantId
+    /// and we don't want to create new object everytime a sub branch request new stock
+    /// we want to maintain the stock object with same variant then we need to update the existing stock object
+    /// hence because at main branch we might now have stocks of sub branches it is the reason why we need to subscribe
+    /// to all sub branches and main branch stock
+    List<Branch> branches = ProxyService.local.branches(businessId: businessId);
+    for (Branch branch in branches) {
+      final branchStock =
+          realm!.query<Stock>(r'branchId == $0', [branch.serverId]);
+      realm!.subscriptions.update((mutableSubscriptions) {
+        mutableSubscriptions.add(branchStock,
+            name: 'branch_${branch.serverId}_stock', update: true);
+      });
+    }
+
+    requests.unsubscribe();
 
     /// https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/manage-sync-subscriptions/
     /// First unsubscribe
@@ -2396,7 +2430,7 @@ class RealmAPI<M extends IJsonSerializable>
           name: "iCounter-${branchId}", update: true);
       mutableSubscriptions.add(variant,
           name: "iVariant-${branchId}", update: true);
-      mutableSubscriptions.add(stock, name: "iStock-${branchId}", update: true);
+
       mutableSubscriptions.add(unit, name: "iUnit-${branchId}", update: true);
       mutableSubscriptions.add(transaction,
           name: "transaction-${branchId}", update: true);
@@ -3447,5 +3481,13 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   List<LPermission> permissions({required int userId}) {
     return realm!.query<LPermission>(r'userId == $0 ', [userId]).toList();
+  }
+
+  @override
+  List<StockRequest> requests({required int branchId}) {
+    final data = realm!.query<StockRequest>(
+        r'mainBranchId == $0 && status== $1 ',
+        [branchId, RequestStatus.pending]).toList();
+    return data;
   }
 }

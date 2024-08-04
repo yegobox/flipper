@@ -210,8 +210,9 @@ class _RowItemState extends ConsumerState<RowItem> {
             ProxyService.realm.composites(productId: product.id!);
         for (Composite composite in composites) {
           /// find a stock for a given variant
-          Stock? stock = ProxyService.realm
-              .stockByVariantId(variantId: composite.variantId!);
+          Stock? stock = ProxyService.realm.stockByVariantId(
+              variantId: composite.variantId!,
+              branchId: ProxyService.box.getBranchId()!);
           Variant? variant =
               ProxyService.realm.getVariantById(id: composite.variantId!);
           model.saveTransaction(
@@ -233,8 +234,9 @@ class _RowItemState extends ConsumerState<RowItem> {
       } else {
         double stockQty = 0;
         if (!widget.isOrdering) {
-          Stock? stock = ProxyService.realm
-              .stockByVariantId(variantId: widget.variant?.id ?? 0);
+          Stock? stock = ProxyService.realm.stockByVariantId(
+              variantId: widget.variant?.id ?? 0,
+              branchId: ProxyService.box.getBranchId()!);
           stockQty = stock?.currentStock ?? 0.0;
         }
 

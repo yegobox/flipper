@@ -71,7 +71,8 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   Widget build(BuildContext context) {
-    final orders = ref.watch(ordersStreamProvider);
+    // final orders = ref.watch(ordersStreamProvider);
+    final orders = ref.watch(stockRequestsProvider);
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
 
@@ -166,7 +167,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(AsyncValue<List<ITransaction>> orders) {
+  IconButton orderButton(List<StockRequest> orders) {
     return IconButton(
       onPressed: () => _handleReceiveOrderToggle(),
       icon: _buildOrderIcon(orders),
@@ -199,22 +200,12 @@ class SearchFieldState extends ConsumerState<SearchField>
     }
   }
 
-  Widget _buildOrderIcon(AsyncValue<List<ITransaction>> orders) {
-    return switch (orders) {
-      AsyncData(:final value) => badges.Badge(
-          badgeContent: Text(value.length.toString(),
-              style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
-        ),
-      AsyncError() => badges.Badge(
-          badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
-        ),
-      _ => const badges.Badge(
-          badgeContent: Text("0", style: TextStyle(color: Colors.white)),
-          child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
-        ),
-    };
+  Widget _buildOrderIcon(List<StockRequest> orders) {
+    return badges.Badge(
+      badgeContent:
+          Text(orders.length.toString(), style: TextStyle(color: Colors.white)),
+      child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
+    );
   }
 
   void _clearSearchText() {

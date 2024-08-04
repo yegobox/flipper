@@ -221,8 +221,8 @@ class ProductViewModel extends FlipperBaseModel
 
   void updateStock({required int variantId}) async {
     if (_stockValue != null) {
-      Stock? stock =
-          await ProxyService.realm.stockByVariantId(variantId: variantId);
+      Stock? stock = await ProxyService.realm.stockByVariantId(
+          variantId: variantId, branchId: ProxyService.box.getBranchId()!);
       ProxyService.realm.realm!.writeAsync(() async {
         stock!.currentStock = _stockValue!;
       });
@@ -307,8 +307,9 @@ class ProductViewModel extends FlipperBaseModel
             variation.action =
                 inUpdateProcess ? AppActions.updated : AppActions.created;
             variation.productId = variation.productId;
-            Stock? stock = await ProxyService.realm
-                .stockByVariantId(variantId: variation.id!);
+            Stock? stock = await ProxyService.realm.stockByVariantId(
+                variantId: variation.id!,
+                branchId: ProxyService.box.getBranchId()!);
 
             stock!.supplyPrice = supplyPrice;
             stock.action =
@@ -326,8 +327,9 @@ class ProductViewModel extends FlipperBaseModel
             variation.action =
                 inUpdateProcess ? AppActions.updated : AppActions.created;
             variation.productName = product!.name;
-            Stock? stock = await ProxyService.realm
-                .stockByVariantId(variantId: variation.id!);
+            Stock? stock = await ProxyService.realm.stockByVariantId(
+                variantId: variation.id!,
+                branchId: ProxyService.box.getBranchId()!);
 
             stock!.retailPrice = retailPrice;
             stock.action =
@@ -363,8 +365,8 @@ class ProductViewModel extends FlipperBaseModel
     for (Variant variation in variations) {
       await ProxyService.realm.delete(id: variation.id!, endPoint: 'variant');
       //get stock->delete
-      Stock? stock =
-          await ProxyService.realm.stockByVariantId(variantId: variation.id!);
+      Stock? stock = await ProxyService.realm.stockByVariantId(
+          variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
 
       await ProxyService.realm.delete(id: stock!.id!, endPoint: 'stock');
 

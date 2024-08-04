@@ -32,8 +32,10 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       if (value.isNotEmpty) {
         Variant? variant = ProxyService.realm.variant(name: value);
         if (variant != null && variant.id != null) {
-          Stock? stock = ProxyService.realm
-              .stockByVariantId(variantId: variant.id!, nonZeroValue: false);
+          Stock? stock = ProxyService.realm.stockByVariantId(
+              variantId: variant.id!,
+              nonZeroValue: false,
+              branchId: ProxyService.box.getBranchId()!);
           ITransaction currentTransaction = ProxyService.realm
               .manageTransaction(
                   transactionType: TransactionType.sale, isExpense: false);
