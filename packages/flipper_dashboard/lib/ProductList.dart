@@ -105,6 +105,11 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
+    final isOrdering = ref.watch(isOrderingProvider);
+    final transaction = ref.watch(pendingTransactionProvider((isOrdering
+        ? (mode: TransactionType.cashOut, isExpense: true)
+        : (mode: TransactionType.sale, isExpense: false))));
+
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => ProductViewModel(),
         builder: (context, model, child) {
@@ -154,7 +159,9 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
             floatingActionButton: SizedBox(
               width: 200,
               child: PreviewSaleButton(
-                wording: showCart ? "Place order" : "Preview Cart",
+                wording: showCart
+                    ? "Place order"
+                    : "Preview Cart (${ref.watch(transactionItemsProvider(transaction.value?.id)).value?.length})",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
                   previewCart();
