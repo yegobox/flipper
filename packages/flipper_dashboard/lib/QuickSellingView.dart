@@ -215,6 +215,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                     ProxyService.realm.realm!.write(() {
                                       if (item.qty > 0) {
                                         item.qty--;
+                                        item.quantityRequested =
+                                            item.qty.toInt();
                                       }
                                     });
                                     // ignore: unused_result
@@ -239,6 +241,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                     ProxyService.realm.realm!.write(() {
                                       if (item.qty > 0) {
                                         item.qty++;
+                                        item.quantityRequested =
+                                            item.qty.toInt();
                                       }
                                     });
                                     ref.refresh(transactionItemsProvider(
