@@ -27,7 +27,7 @@ jobs:
     name: "Build windows app"
     if: github.event_name == 'push'  && contains(github.event.head_commit.message, 'direct-build-windows')
     runs-on: windows-2022
-    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils!
+    #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to buils!!
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019
     steps:
       - name: Export pub environment variable on Windows
