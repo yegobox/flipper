@@ -2356,14 +2356,17 @@ class RealmAPI<M extends IJsonSerializable>
     /// we want to maintain the stock object with same variant then we need to update the existing stock object
     /// hence because at main branch we might now have stocks of sub branches it is the reason why we need to subscribe
     /// to all sub branches and main branch stock
-    List<Branch> branches = ProxyService.local.branches(businessId: businessId);
-    for (Branch branch in branches) {
-      final branchStock =
-          realm!.query<Stock>(r'branchId == $0', [branch.serverId]);
-      realm!.subscriptions.update((mutableSubscriptions) {
-        mutableSubscriptions.add(branchStock,
-            name: 'branch_${branch.serverId}_stock', update: true);
-      });
+    if (ProxyService.local.localRealm != null) {
+      List<Branch> branches =
+          ProxyService.local.branches(businessId: businessId);
+      for (Branch branch in branches) {
+        final branchStock =
+            realm!.query<Stock>(r'branchId == $0', [branch.serverId]);
+        realm!.subscriptions.update((mutableSubscriptions) {
+          mutableSubscriptions.add(branchStock,
+              name: 'branch_${branch.serverId}_stock', update: true);
+        });
+      }
     }
 
     requests.unsubscribe();
