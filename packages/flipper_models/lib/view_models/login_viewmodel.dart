@@ -76,7 +76,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
-      await appService.isLoggedIn();
+      await appService.appInit();
 
       // Get the UID after login
       String uid = ProxyService.box.uid();
