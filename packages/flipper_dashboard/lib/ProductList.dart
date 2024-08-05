@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -75,6 +76,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
     realm.write(() {
       final stockRequest = StockRequest(
         ObjectId(),
+        id: randomNumber(),
         mainBranchId: ref.read(selectedSupplierProvider).value!.serverId,
         subBranchId: ProxyService.box.getBranchId(),
         status: RequestStatus.pending,

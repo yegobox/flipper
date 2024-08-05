@@ -208,7 +208,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              // Use GestureDetector instead of IconButton for better control
                               GestureDetector(
                                 onTap: () {
                                   if (!item.partOfComposite) {
@@ -219,40 +218,78 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                             item.qty.toInt();
                                       }
                                     });
-                                    // ignore: unused_result
                                     ref.refresh(transactionItemsProvider(
                                         transaction.value?.id));
+                                    // Update the TextFormField
+                                    setState(() {});
                                   }
                                 },
                                 child: Container(
-                                  color: Colors.red,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                   child: Icon(Icons.remove,
-                                      color: Colors.white, size: 30),
+                                      color: Colors.white, size: 24),
                                 ),
                               ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 1.0),
-                                child: Text(item.qty.toString()),
+                              SizedBox(width: 8),
+                              SizedBox(
+                                width: 50,
+                                child: TextFormField(
+                                  key: ValueKey(item.qty),
+                                  initialValue: item.qty.toString(),
+                                  keyboardType: TextInputType.number,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 16),
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 4),
+                                    border: OutlineInputBorder(
+                                      borderSide: BorderSide.none,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    fillColor: Colors.grey[200],
+                                    filled: true,
+                                  ),
+                                  onChanged: (value) {
+                                    if (!item.partOfComposite) {
+                                      int? newQty = int.tryParse(value);
+                                      if (newQty != null && newQty >= 0) {
+                                        ProxyService.realm.realm!.write(() {
+                                          item.qty = newQty.toDouble();
+                                          item.quantityRequested = newQty;
+                                        });
+                                        ref.refresh(transactionItemsProvider(
+                                            transaction.value?.id));
+                                      }
+                                    }
+                                  },
+                                ),
                               ),
+                              SizedBox(width: 8),
                               GestureDetector(
                                 onTap: () {
                                   if (!item.partOfComposite) {
                                     ProxyService.realm.realm!.write(() {
-                                      if (item.qty > 0) {
-                                        item.qty++;
-                                        item.quantityRequested =
-                                            item.qty.toInt();
-                                      }
+                                      item.qty++;
+                                      item.quantityRequested = item.qty.toInt();
                                     });
                                     ref.refresh(transactionItemsProvider(
                                         transaction.value?.id));
+                                    // Update the TextFormField
+                                    setState(() {});
                                   }
                                 },
                                 child: Container(
-                                  color: Colors.blue,
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                   child: Icon(Icons.add,
-                                      color: Colors.white, size: 30),
+                                      color: Colors.white, size: 24),
                                 ),
                               ),
                             ],

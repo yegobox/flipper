@@ -182,18 +182,24 @@ mixin StockRequestApprovalLogic {
                 child: Text('Cancel'),
                 onPressed: () => Navigator.of(context).pop(false),
               ),
-              FilledButton(
+              FilledButton.tonal(
                 style: FilledButton.styleFrom(
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                  padding: EdgeInsets.symmetric(vertical: 12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  minimumSize: Size(100, 40),
                 ),
-                child: Text('Approve'),
+                child: Text(
+                  'Approve',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
                 onPressed: () => _handleApproveButtonPress(
-                    items: items,
-                    approvedQuantities: approvedQuantities,
-                    request: request,
-                    context: context),
+                  items: items,
+                  approvedQuantities: approvedQuantities,
+                  request: request,
+                  context: context,
+                ),
               ),
             ],
           ),
@@ -251,9 +257,16 @@ mixin StockRequestApprovalLogic {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Requested: ${item.quantityRequested}'),
+                // A Row to contain "Requested" and "Approved" texts
+                Row(
+                  children: [
+                    Text('Requested: ${item.quantityRequested}'),
+                    SizedBox(width: 16),
+                    Text('Approved: ${item.quantityApproved}'),
+                  ],
+                ),
+                Spacer(),
                 Text('Available: $availableStock'),
               ],
             ),
