@@ -2264,13 +2264,14 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (await ProxyService.status.isInternetAvailable()) {
         talker.info("Opened realm with internet access.");
-        return await Realm.open(config, cancellationToken: token,
-            onProgressCallback: (syncProgress) {
-          if (syncProgress.progressEstimate == 1.0) {
-            talker.info('All bytes transferred!');
-          }
-        });
-        // return Realm(config);
+        // return await Realm.open(config, cancellationToken: token,
+        //     onProgressCallback: (syncProgress) {
+        //   if (syncProgress.progressEstimate == 1.0) {
+        //     talker.info('All bytes transferred!');
+        //   }
+        // });
+        /// because we might open the db in startup model then requiring internet might make app fail to start in first place
+        return Realm(config);
       } else {
         talker.info("Opened realm with no internet access.");
         return Realm(config);
