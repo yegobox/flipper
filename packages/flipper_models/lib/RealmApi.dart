@@ -2178,10 +2178,10 @@ class RealmAPI<M extends IJsonSerializable>
     realm = await _openRealm(config: config, user: user, app: app);
 
     if (await ProxyService.status.isInternetAvailable()) {
-      await updateSubscription(
+      updateSubscription(
           branchId: branchId, businessId: businessId, userId: userId);
-      await realm!.syncSession.waitForDownload();
-      await realm!.subscriptions.waitForSynchronization(token);
+      realm!.syncSession.waitForDownload();
+      realm!.subscriptions.waitForSynchronization(token);
     }
   }
 
