@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:isolate';
 
+import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helperModels/ICustomer.dart';
 import 'package:flipper_models/helperModels/IStock.dart';
 import 'package:flipper_models/helperModels/IVariant.dart';
@@ -18,22 +19,26 @@ import 'package:realm/realm.dart';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-mixin IsolateHandler {
+mixin IsolateHandler on Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
   static Future<void> flexibleSync(List<dynamic> args) async {
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
+    // final branchId = args[2] as int;
+    // final businessId = args[7] as int;
+    String? encryptionKey = args[4] as String?;
 
     if (dbPatch == null || key == null) return;
-    List<int> encryptionKey = key.toIntList();
 
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
-        flexibleConfig(user, encryptionKey, dbPatch);
+        flexibleConfig(user, encryptionKey!.toIntList(), dbPatch);
 
     final realm = Realm(config);
+
+    // await updateSubscription(branchId: branchId, businessId: businessId);
 
     await realm.subscriptions.waitForSynchronization();
   }
