@@ -64,7 +64,6 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
       if (pin == null) {
         throw PinError(term: "Not found");
       }
-      await appService.isLoggedIn();
 
       ProxyService.box.writeBool(key: 'isAnonymous', value: true);
       talker.info("${pin.toJson().toString()}");
@@ -77,6 +76,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );
+      await appService.isLoggedIn();
 
       // Get the UID after login
       String uid = ProxyService.box.uid();
