@@ -197,24 +197,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         },
       );
       localRealm = Realm(config);
-      updateSubscription(
-        branchId: ProxyService.box.getBranchId(),
-        businessId: ProxyService.box.getBusinessId(),
-        userId: ProxyService.box.getUserId(),
-      );
+      return this;
     } catch (e) {
-      String path =
-          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
-      talker.warning(e);
-      localRealm?.close();
-      config = Configuration.inMemory(
-        [UserActivity.schema],
-        path: path,
-      );
-      localRealm = Realm(config);
+      rethrow;
     }
-
-    return this;
   }
 
   @override
@@ -391,7 +377,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
 
   Future<void> _configureApp(String userPhone, IUser user) async {
     await _configureTheBox(userPhone, user);
-
+    await configureLocal(useInMemory: false);
     await ProxyService.realm.configure(
       useInMemoryDb: false,
       useFallBack: false,
@@ -400,7 +386,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       branchId: ProxyService.box.getBranchId(),
       userId: ProxyService.box.getUserId(),
     );
-    await configureLocal(useInMemory: false);
+
     await ProxyService.realm.downloadAssetSave();
   }
 
@@ -871,7 +857,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Branch? defaultBranch()  {
+  Branch? defaultBranch() {
     return localRealm!.query<Branch>(r'isDefault == $0 ', [true]).firstOrNull;
   }
 
@@ -1205,7 +1191,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
             ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
           });
         });
-        
+
         return tenantToAdd;
       } catch (e) {
         talker.error(e);

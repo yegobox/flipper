@@ -782,12 +782,12 @@ class RealmAPI<M extends IJsonSerializable>
           realm!.delete(business!);
         });
         break;
-      case 'branch':
-        final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
-        realm!.write(() {
-          realm!.delete(business!);
-        });
-        break;
+      // case 'branch':
+      //   final business = realm!.query<Branch>(r'id == $0 ', [id]).firstOrNull;
+      //   realm!.write(() {
+      //     realm!.delete(business!);
+      //   });
+      //   break;
 
       case 'voucher':
         final business = realm!.query<Voucher>(r'id == $0 ', [id]).firstOrNull;
