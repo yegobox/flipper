@@ -56,9 +56,10 @@ class StartupViewModel extends FlipperBaseModel {
       /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {
         log("refreshCredentials");
+        await appService.appInit();
         await appService.isLoggedIn();
       }
-      await appService.appInit();
+
       int userId = ProxyService.box.getUserId()!;
       //if we reached this far then it means we have a default business/branch make sence to check drawer
       if (ProxyService.realm.isDrawerOpen(
