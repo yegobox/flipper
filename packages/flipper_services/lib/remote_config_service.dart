@@ -291,18 +291,18 @@ class RemoteConfigService implements Remote {
 class RemoteConfigWindows implements Remote {
   FlagsmithClient? flagsmithClient;
   @override
-  void config() async {
+  void config() {
     /// I reset everytime so the config can work
-    //
-    flagsmithClient = FlagsmithClient(
-      apiKey: AppSecrets.flagSmithApiKey,
-      config: FlagsmithConfig(caches: true, enableRealtimeUpdates: false),
-      seeds: <Flag>[
-        Flag.seed('multiple-users', enabled: true),
-      ],
-    );
-    await flagsmithClient?.initialize();
-    await flagsmithClient?.getFeatureFlags(reload: true);
+    // //
+    // flagsmithClient = FlagsmithClient(
+    //   apiKey: AppSecrets.flagSmithApiKey,
+    //   config: FlagsmithConfig(caches: true, enableRealtimeUpdates: false),
+    //   seeds: <Flag>[
+    //     Flag.seed('multiple-users', enabled: true),
+    //   ],
+    // );
+    // await flagsmithClient?.initialize();
+    // await flagsmithClient?.getFeatureFlags(reload: true);
     // await flagsmithClient?.reset();
   }
 
