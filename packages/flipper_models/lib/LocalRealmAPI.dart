@@ -369,6 +369,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await ProxyService.realm.configure(
         useInMemoryDb: false,
         useFallBack: false,
+        localRealm: ProxyService.local.localRealm,
         businessId: ProxyService.box.getBusinessId(),
         encryptionKey: ProxyService.box.encryptionKey(),
         branchId: ProxyService.box.getBranchId(),
@@ -395,6 +396,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     await ProxyService.realm.configure(
       useInMemoryDb: false,
       useFallBack: false,
+      localRealm: ProxyService.local.localRealm,
       businessId: ProxyService.box.getBusinessId(),
       encryptionKey: ProxyService.box.encryptionKey(),
       branchId: ProxyService.box.getBranchId(),
@@ -733,6 +735,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       await configureLocal(useInMemory: false);
       await ProxyService.realm.configure(
         useInMemoryDb: false,
+        localRealm: ProxyService.local.localRealm,
         businessId: ProxyService.box.getBusinessId(),
         encryptionKey: ProxyService.box.encryptionKey(),
         branchId: ProxyService.box.getBranchId(),
@@ -895,6 +898,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         await ProxyService.realm.configure(
           useInMemoryDb: false,
           useFallBack: false,
+          localRealm: ProxyService.local.localRealm,
           businessId: ProxyService.box.getBusinessId(),
           branchId: ProxyService.box.getBranchId(),
           userId: ProxyService.box.getUserId(),

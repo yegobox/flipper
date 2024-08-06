@@ -57,7 +57,7 @@ abstract class RealmApiInterface {
   Stream<List<Product>> productStreams({int? prodIndex});
 
   Stream<List<ITransaction>> orders({required int branchId});
-  Future<List<Product>> getProductList({int? prodIndex});
+  Future<List<Product>> getProductList({int? prodIndex, required int branchId});
   Stock? stockByVariantId(
       {required int variantId,
       required int branchId,
@@ -83,7 +83,8 @@ abstract class RealmApiInterface {
   Variant? variant({int? variantId, String? name});
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
 
-  Future<int> addVariant({required List<Variant> variations});
+  Future<int> addVariant(
+      {required List<Variant> variations, required int branchId});
 
   Future<int> addFavorite({required Favorite data});
   Future<List<Favorite>> getFavorites();
@@ -95,8 +96,10 @@ abstract class RealmApiInterface {
   Future<int> deleteFavoriteByIndex({required int favIndex});
 
   Product? getProduct({required int id});
-  Future<Product?> getProductByBarCode({required String barCode});
-  Future<List<Product?>> getProductByName({required String name});
+  Future<Product?> getProductByBarCode(
+      {required String barCode, required int branchId});
+  Future<List<Product?>> getProductByName(
+      {required String name, required int branchId});
   // Future
   //this function for now figure out what is the business id on backend side.
   Future<Product?> createProduct(
@@ -104,6 +107,7 @@ abstract class RealmApiInterface {
       required int businessId,
       required int branchId,
       required int tinNumber,
+      required String bhFId,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -119,10 +123,13 @@ abstract class RealmApiInterface {
   ITransaction manageTransaction(
       {required String transactionType,
       required bool isExpense,
+      required int branchId,
       bool? includeSubTotalCheck = false});
 
   Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType, required bool isExpense});
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId});
 
   Future<List<ITransaction>> completedTransactions(
       {required int branchId, String? status = COMPLETE});
@@ -133,6 +140,7 @@ abstract class RealmApiInterface {
     required int businessId,
     required int branchId,
     required int tinNumber,
+    required String bhFId,
   });
   // Future<Spenn> spennPayment({required double amount, required phoneNumber});
   ITransaction collectPayment({
@@ -140,6 +148,10 @@ abstract class RealmApiInterface {
     required ITransaction transaction,
     required String paymentType,
     required double discount,
+    required int branchId,
+    required String bhfId,
+    required bool isProformaMode,
+    required bool isTrainingMode,
     required String transactionType,
     String? categoryId,
     bool directlyHandleReceipt = false,
@@ -253,6 +265,7 @@ abstract class RealmApiInterface {
   List<TransactionItem> transactionItems(
       {required int transactionId,
       required bool doneWithTransaction,
+      required int branchId,
       required bool active});
 
   Future<List<TransactionItem>> transactionItemsFuture(
@@ -362,6 +375,7 @@ abstract class RealmApiInterface {
   Future<RealmApiInterface> configure(
       {required bool useInMemoryDb,
       bool useFallBack = false,
+      Realm? localRealm,
       String? encryptionKey,
       int? businessId,
       int? branchId,
@@ -412,6 +426,7 @@ abstract class RealmApiInterface {
       {required String barCode,
       required String sku,
       required int productId,
+      required int branchId,
       required double retailPrice,
       required double supplierPrice,
       required double qty,

@@ -79,8 +79,7 @@ mixin ProductMixin {
         }
 
         ProxyService.realm.addVariant(
-          variations: updatables,
-        );
+            variations: updatables, branchId: ProxyService.box.getBranchId()!);
       });
     } catch (e, s) {
       talker.error(e);

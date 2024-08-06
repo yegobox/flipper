@@ -33,7 +33,9 @@ Widget PaymentTicketManager(
       model: model,
       onClick: () async {
         final transaction = await ProxyService.realm.manageTransaction(
-            transactionType: TransactionType.sale, isExpense: false);
+            branchId: ProxyService.box.getBranchId()!,
+            transactionType: TransactionType.sale,
+            isExpense: false);
         if (transaction.subTotal == 0) {
           // _routerService.navigateTo(PaymentsRoute(transaction: transaction));
           completeTransaction?.call();
@@ -47,7 +49,9 @@ Widget PaymentTicketManager(
       },
       ticketHandler: () async {
         ITransaction transaction = await ProxyService.realm.manageTransaction(
-            transactionType: TransactionType.sale, isExpense: false);
+            branchId: ProxyService.box.getBranchId()!,
+            transactionType: TransactionType.sale,
+            isExpense: false);
 
         _routerService.navigateTo(TicketsListRoute(transaction: transaction));
       },

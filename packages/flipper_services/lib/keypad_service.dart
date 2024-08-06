@@ -70,12 +70,14 @@ class KeyPadService with ListenableServiceMixin {
   /// it is in this recard in application anywhere else it's okay to access transactions[0]
   Future<ITransaction?> getPendingTransaction({required int branchId}) async {
     ITransaction? transaction = await ProxyService.realm.manageTransaction(
+      branchId: ProxyService.box.getBranchId()!,
       transactionType: TransactionType.sale,
       isExpense: false,
       includeSubTotalCheck: false,
     );
 
     List<TransactionItem> items = ProxyService.realm.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true);

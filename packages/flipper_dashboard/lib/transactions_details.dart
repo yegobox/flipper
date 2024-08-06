@@ -147,6 +147,7 @@ class TransactionDetailState extends ConsumerState<TransactionDetail> {
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
         List<TransactionItem> items = ProxyService.realm.transactionItems(
+          branchId: ProxyService.box.getBranchId()!,
           transactionId: widget.transaction.id!,
           doneWithTransaction: true,
           active: true,

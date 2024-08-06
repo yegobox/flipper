@@ -653,6 +653,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen> {
                           /// has a default variant
                           ProxyService.realm.createVariant(
                             tinNumber: ProxyService.box.tin(),
+                            branchId: ProxyService.box.getBranchId()!,
                             itemSeq: 1,
 
                             /// because this is a placeholder variant, then qty does not matter in this scenario

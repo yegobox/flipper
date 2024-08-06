@@ -105,8 +105,11 @@ final pendingTransactionProvider = Provider.autoDispose
         (ref, params) {
   final (:mode, :isExpense) = params;
   try {
-    ITransaction pendingTransaction = ProxyService.realm
-        .manageTransaction(transactionType: mode, isExpense: isExpense);
+    ITransaction pendingTransaction = ProxyService.realm.manageTransaction(
+      transactionType: mode,
+      isExpense: isExpense,
+      branchId: ProxyService.box.getBranchId()!,
+    );
     return AsyncData(pendingTransaction);
   } catch (error) {
     return AsyncError(error, StackTrace.current);
@@ -137,6 +140,7 @@ class TransactionItemsNotifier
 
       // Await the future and store the result in a local variable
       final items = ProxyService.realm.transactionItems(
+          branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);
@@ -155,7 +159,9 @@ class TransactionItemsNotifier
     try {
       // Await the future and store the result in a local variable
       final transaction = await ProxyService.realm.manageTransaction(
-          transactionType: TransactionType.sale, isExpense: false);
+          branchId: ProxyService.box.getBranchId()!,
+          transactionType: TransactionType.sale,
+          isExpense: false);
       ProxyService.realm.realm!.write(() {
         transaction.subTotal = totalPayable;
       });
@@ -310,8 +316,9 @@ class ProductsNotifier extends StateNotifier<AsyncValue<List<Product>>>
 
       // Fetch additional products beyond the initial 20 items
       if (searchString.isNotEmpty) {
-        List<Product?> additionalProducts =
-            await ProxyService.realm.getProductByName(name: searchString);
+        List<Product?> additionalProducts = await ProxyService.realm
+            .getProductByName(
+                name: searchString, branchId: ProxyService.box.getBranchId()!);
 
         // Filter out null products and cast non-null products to Product type
         products.addAll(additionalProducts

@@ -736,6 +736,7 @@ class RWTax implements TaxApi {
         /// that way we will be updating the product's variant with no question
         /// otherwise then create a complete new product.
         ProxyService.realm.createProduct(
+          bhFId: ProxyService.box.bhfId() ?? "00",
           tinNumber: ProxyService.box.tin(),
           businessId: ProxyService.box.getBusinessId()!,
           branchId: ProxyService.box.getBranchId()!,

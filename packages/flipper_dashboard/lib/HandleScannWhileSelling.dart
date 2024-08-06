@@ -38,7 +38,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
               branchId: ProxyService.box.getBranchId()!);
           ITransaction currentTransaction = ProxyService.realm
               .manageTransaction(
-                  transactionType: TransactionType.sale, isExpense: false);
+                  branchId: ProxyService.box.getBranchId()!,
+                  transactionType: TransactionType.sale,
+                  isExpense: false);
 
           await model.saveTransaction(
               variation: variant,

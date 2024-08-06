@@ -359,6 +359,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     !useMobileLayout
         ? ProxyService.realm.collectPayment(
             cashReceived: cashReceived,
+            branchId: ProxyService.box.getBranchId()!,
+            bhfId: ProxyService.box.bhfId() ?? "00",
+            isProformaMode: ProxyService.box.isPoroformaMode(),
+            isTrainingMode: ProxyService.box.isTrainingMode(),
             transaction: transaction.value!,
             paymentType: paymentType,
             discount: discount.toDouble(),
@@ -369,6 +373,10 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             categoryId: "0",
             isIncome: isIncome)
         : ProxyService.realm.collectPayment(
+            branchId: ProxyService.box.getBranchId()!,
+            bhfId: ProxyService.box.bhfId() ?? "00",
+            isProformaMode: ProxyService.box.isPoroformaMode(),
+            isTrainingMode: ProxyService.box.isTrainingMode(),
             cashReceived: cashReceived,
             transaction: transaction.value!,
             paymentType: paymentType,

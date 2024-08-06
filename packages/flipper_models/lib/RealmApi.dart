@@ -374,12 +374,17 @@ class RealmAPI<M extends IJsonSerializable>
       required ITransaction transaction,
       required String paymentType,
       required bool isIncome,
+      required String bhfId,
       required double discount,
       String? categoryId,
+      required int branchId,
+      required bool isProformaMode,
+      required bool isTrainingMode,
       required String transactionType,
       bool directlyHandleReceipt = true}) {
     try {
       List<TransactionItem> items = transactionItems(
+          branchId: branchId,
           transactionId: transaction.id!,
           doneWithTransaction: false,
           active: true);
@@ -402,10 +407,10 @@ class RealmAPI<M extends IJsonSerializable>
         /// this ofcause has limitation that if more than two users are using device
         /// one user will use configuration set by probably a different user, this need to change soon.
         String receiptType = TransactionReceptType.NS;
-        if (ProxyService.box.isPoroformaMode()) {
+        if (isProformaMode) {
           receiptType = TransactionReceptType.PS;
         }
-        if (ProxyService.box.isTrainingMode()) {
+        if (isTrainingMode) {
           receiptType = TransactionReceptType.TS;
         }
         transaction.receiptType = receiptType;
@@ -428,9 +433,8 @@ class RealmAPI<M extends IJsonSerializable>
             realm!.delete(item);
           }
           talker.warning("VariantSoldId for debug: ${item.variantId!}");
-          Stock? stock = stockByVariantId(
-              variantId: item.variantId!,
-              branchId: ProxyService.box.getBranchId()!);
+          Stock? stock =
+              stockByVariantId(variantId: item.variantId!, branchId: branchId);
           final finalStock = (stock!.currentStock - item.qty);
           realm!.write(() {
             item.dcAmt = discount;
@@ -617,6 +621,7 @@ class RealmAPI<M extends IJsonSerializable>
       required int businessId,
       required int branchId,
       required int tinNumber,
+      required String bhFId,
       bool skipRegularVariant = false,
       double qty = 1,
       double supplyPrice = 0,
@@ -643,6 +648,7 @@ class RealmAPI<M extends IJsonSerializable>
       final Variant newVariant = _createRegularVariant(branchId, tinNumber,
           qty: qty,
           product: product,
+          bhFId: bhFId,
           supplierPrice: supplyPrice,
           retailPrice: retailPrice,
           name: product.name!,
@@ -927,6 +933,7 @@ class RealmAPI<M extends IJsonSerializable>
     required int businessId,
     required int branchId,
     required int tinNumber,
+    required String bhFId,
   }) async {
     /// Find product with name CUSTOM_PRODUCT
     Product? product = realm!.query<Product>(
@@ -937,6 +944,7 @@ class RealmAPI<M extends IJsonSerializable>
       // Create a new custom product if it doesn't exist
       product = await createProduct(
           tinNumber: tinNumber,
+          bhFId: bhFId,
           branchId: branchId,
           businessId: businessId,
           product: Product(ObjectId(),
@@ -1107,8 +1115,10 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Product?> getProductByBarCode({required String barCode}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+  Future<Product?> getProductByBarCode({
+    required String barCode,
+    required int branchId,
+  }) async {
     return realm!.query<Product>(
         r'barCode == $0 AND deletedAt == null AND branchId ==$1',
         [barCode, branchId]).firstOrNull;
@@ -1116,17 +1126,16 @@ class RealmAPI<M extends IJsonSerializable>
 
   /// This is dealing with search when searching the product!.
   @override
-  Future<List<Product?>> getProductByName({required String name}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+  Future<List<Product?>> getProductByName(
+      {required String name, required int branchId}) async {
     return realm!.query<Product>(
         r'name BEGINSWITH[c] $0 OR name CONTAINS[c] $0 OR name ENDSWITH[c] $0  AND branchId == $1',
         [name, branchId]).toList();
   }
 
   @override
-  Future<List<Product>> getProductList({int? prodIndex}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-
+  Future<List<Product>> getProductList(
+      {int? prodIndex, required int branchId}) async {
     // No need for completer as Realm provides built-in async support
     final queryBuilder = realm!.query<Product>(
         r'branchId == $0  AND id =  $1 AND deletedAt == nil',
@@ -1353,9 +1362,9 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<ITransaction> manageCashInOutTransaction(
-      {required String transactionType, required bool isExpense}) async {
-    int branchId = ProxyService.box.getBranchId()!;
-
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId}) async {
     ITransaction? existTransaction =
         await _pendingTransaction(branchId: branchId, isExpense: isExpense);
 
@@ -1383,8 +1392,6 @@ class RealmAPI<M extends IJsonSerializable>
       realm!.write(() {
         realm!.put<ITransaction>(transaction);
       });
-
-      ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
       return transaction;
     } else {
       return existTransaction;
@@ -1395,12 +1402,12 @@ class RealmAPI<M extends IJsonSerializable>
   ITransaction manageTransaction(
       {required String transactionType,
       required bool isExpense,
+      required int branchId,
       bool? includeSubTotalCheck = false}) {
     /// check if realm is not closed
     if (realm == null) {
       throw Exception("realm is empty");
     }
-    int branchId = ProxyService.box.getBranchId()!;
     ITransaction? existTransaction = _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
@@ -1428,7 +1435,6 @@ class RealmAPI<M extends IJsonSerializable>
       // save transaction to isar
       realm!.put<ITransaction>(transaction);
 
-      ProxyService.box.writeInt(key: 'currentTransactionId', value: id);
       return transaction;
     } else {
       return existTransaction;
@@ -1475,8 +1481,8 @@ class RealmAPI<M extends IJsonSerializable>
   List<TransactionItem> transactionItems(
       {required int transactionId,
       required bool doneWithTransaction,
+      required int branchId,
       required bool active}) {
-    int branchId = ProxyService.box.getBranchId()!;
     String queryString = "";
 
     queryString =
@@ -1510,6 +1516,7 @@ class RealmAPI<M extends IJsonSerializable>
 
     for (ITransaction transaction in transactions) {
       List<TransactionItem> items = transactionItems(
+        branchId: branchId,
         transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true,
@@ -2094,6 +2101,7 @@ class RealmAPI<M extends IJsonSerializable>
       bool useFallBack = false,
       String? encryptionKey,
       int? businessId,
+      Realm? localRealm,
       int? branchId,
       int? userId}) async {
     _setApiEndpoints();
@@ -2134,13 +2142,14 @@ class RealmAPI<M extends IJsonSerializable>
         realm?.close();
         String path = await dbPath(path: 'synced', folder: businessId);
         await _configurePersistent(
-          user: user,
-          path: path,
-          businessId: businessId,
-          branchId: branchId!,
-          userId: userId!,
-          app: app,
-        );
+            user: user,
+            path: path,
+            businessId: businessId,
+            branchId: branchId!,
+            userId: userId!,
+            app: app,
+            encryptions: encryptionKey.toIntList(),
+            localRealm: localRealm);
         return this;
       }
     } catch (e, s) {
@@ -2165,6 +2174,8 @@ class RealmAPI<M extends IJsonSerializable>
       required int businessId,
       required int branchId,
       required int userId,
+      required List<int> encryptions,
+      Realm? localRealm,
       required App app}) async {
     CancellationToken token = CancellationToken();
     Future<void>.delayed(
@@ -2173,31 +2184,22 @@ class RealmAPI<M extends IJsonSerializable>
             cancellationReason: "Realm took too long to open")));
     talker.warning("opening persistent");
     // Sentry.captureMessage("opening persistent");
-    Configuration? config = await _createPersistentConfig(user, path);
+    Configuration? config =
+        await _createPersistentConfig(user, path, encryptions: encryptions);
     if (config == null) {
       throw Exception();
     }
     realm = await _openRealm(config: config, user: user, app: app);
-
-    if (await ProxyService.status.isInternetAvailable()) {
-      updateSubscription(
-        branchId: branchId,
-        businessId: businessId,
-        userId: userId,
-        realm: realm,
-        localRealm: ProxyService.local.localRealm,
-      );
-    }
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
-  Future<Configuration?> _createPersistentConfig(User user, String path) async {
+  Future<Configuration?> _createPersistentConfig(User user, String path,
+      {required List<int> encryptions}) async {
     try {
-      talker.warning("using key: ${ProxyService.box.encryptionKey()}");
       return Configuration.flexibleSync(
         user,
         realmModels,
-        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+        encryptionKey: encryptions,
         path: path,
         shouldCompactCallback: (totalSize, usedSize) {
           const tenMB = 10 * 1048576;
@@ -2267,20 +2269,7 @@ class RealmAPI<M extends IJsonSerializable>
             cancellationReason: "Realm took too long to open")));
 
     try {
-      if (await ProxyService.status.isInternetAvailable()) {
-        talker.info("Opened realm with internet access.");
-        // return await Realm.open(config, cancellationToken: token,
-        //     onProgressCallback: (syncProgress) {
-        //   if (syncProgress.progressEstimate == 1.0) {
-        //     talker.info('All bytes transferred!');
-        //   }
-        // });
-        /// because we might open the db in startup model then requiring internet might make app fail to start in first place
-        return Realm(config);
-      } else {
-        talker.info("Opened realm with no internet access.");
-        return Realm(config);
-      }
+      return Realm(config);
     } on CancelledException catch (_) {
       return Realm(config);
     } catch (e, s) {
@@ -2302,8 +2291,8 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> addVariant({required List<Variant> variations}) async {
-    final branchId = ProxyService.box.getBranchId()!;
+  Future<int> addVariant(
+      {required List<Variant> variations, required int branchId}) async {
     try {
       for (final variation in variations) {
         await _processVariant(branchId, variation);
@@ -2393,11 +2382,11 @@ class RealmAPI<M extends IJsonSerializable>
       required double supplierPrice,
       required String color,
       required double qty,
+      required int branchId,
       required int itemSeq,
       required int tinNumber,
       required String name}) {
-    Variant variant = _createRegularVariant(
-        ProxyService.box.getBranchId()!, tinNumber,
+    Variant variant = _createRegularVariant(branchId, tinNumber,
         qty: qty,
         supplierPrice: supplierPrice,
         retailPrice: retailPrice,
@@ -2416,6 +2405,7 @@ class RealmAPI<M extends IJsonSerializable>
       required double supplierPrice,
       required double retailPrice,
       required int itemSeq,
+      String? bhFId,
       required bool ebmSynced,
       Product? product,
       required int productId,
@@ -2440,7 +2430,7 @@ class RealmAPI<M extends IJsonSerializable>
         retailPrice: retailPrice,
         id: variantId,
         isTaxExempted: false,
-        bhfId: ProxyService.box.bhfId() ?? '00',
+        bhfId: bhFId ?? '00',
         itemStdNm: "Regular",
         addInfo: "A",
         pkg: "1",
@@ -2830,6 +2820,7 @@ class RealmAPI<M extends IJsonSerializable>
 
   @override
   Future<bool> logOut() async {
+    ProxyService.box.remove(key: 'authComplete');
     if (ProxyService.box.getUserId() != null &&
         ProxyService.box.getBusinessId() != null) {
       ProxyService.event.publish(loginDetails: {
@@ -2855,7 +2846,7 @@ class RealmAPI<M extends IJsonSerializable>
     ProxyService.box.remove(key: 'UToken');
     ProxyService.box.remove(key: 'businessId');
     ProxyService.box.remove(key: 'defaultApp');
-    ProxyService.box.remove(key: 'authComplete');
+
     // but for shared preference we can just clear them all
     /// We do not clear all variable, this is because even on logout
     /// a user log in back and there is values such as tinNumber,bhfId,URI that we will still need to re-use

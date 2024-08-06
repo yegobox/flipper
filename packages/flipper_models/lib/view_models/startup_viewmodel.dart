@@ -48,6 +48,7 @@ class StartupViewModel extends FlipperBaseModel {
         await ProxyService.realm.configure(
           useInMemoryDb: false,
           useFallBack: false,
+          localRealm: ProxyService.local.localRealm,
           branchId: ProxyService.box.getBranchId(),
           userId: ProxyService.box.getUserId(),
           businessId: ProxyService.box.getBusinessId(),

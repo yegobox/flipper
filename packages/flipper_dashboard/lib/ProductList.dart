@@ -48,6 +48,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
           (mode: transactionType, isExpense: isOrdering)));
 
       final items = ProxyService.realm.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
         transactionId: transaction.value!.id!,
         doneWithTransaction: false,
         active: true,

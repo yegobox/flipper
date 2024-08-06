@@ -48,12 +48,14 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
   final talker = TalkerFlutter.init();
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({required String pinCode}) async {
+    ProxyService.box.remove(key: 'authComplete');
     ProxyService.realm.logOut();
     try {
       setIsprocessing(value: true);
       if (ProxyService.realm.realm == null) {
         await ProxyService.realm.configure(
             useInMemoryDb: false,
+            localRealm: ProxyService.local.localRealm,
             businessId: ProxyService.box.getBusinessId(),
             encryptionKey: ProxyService.box.encryptionKey(),
             branchId: ProxyService.box.getBranchId(),

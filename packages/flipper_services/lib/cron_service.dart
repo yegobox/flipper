@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
+import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
@@ -12,7 +13,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-class CronService {
+class CronService with Subscriptions {
   final drive = GoogleDrive();
 
   Future<void> companyWideReport() async {
@@ -128,7 +129,15 @@ class CronService {
   /// The durations of these tasks are determined by the corresponding private methods.
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
-
+    if (await ProxyService.status.isInternetAvailable()) {
+      updateSubscription(
+        branchId: ProxyService.box.getBranchId(),
+        businessId: ProxyService.box.getBusinessId(),
+        userId: ProxyService.box.getUserId(),
+        realm: ProxyService.realm.realm,
+        localRealm: ProxyService.local.localRealm,
+      );
+    }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;

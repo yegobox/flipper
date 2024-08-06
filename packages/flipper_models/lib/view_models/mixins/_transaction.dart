@@ -152,6 +152,7 @@ mixin TransactionMixin {
 
       // Handle activation of inactive items
       List<TransactionItem> inactiveItems = ProxyService.realm.transactionItems(
+          branchId: ProxyService.box.getBranchId()!,
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: false);
@@ -184,6 +185,7 @@ mixin TransactionMixin {
 
   void updatePendingTransactionTotals(ITransaction pendingTransaction) {
     List<TransactionItem> items = ProxyService.realm.transactionItems(
+      branchId: ProxyService.box.getBranchId()!,
       transactionId: pendingTransaction.id!,
       doneWithTransaction: false,
       active: true,

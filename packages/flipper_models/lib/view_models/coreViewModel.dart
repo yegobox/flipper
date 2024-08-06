@@ -124,12 +124,15 @@ class CoreViewModel extends FlipperBaseModel
       required bool isExpense,
       String? transactionType = "Sale"}) {
     ITransaction? pendingTransaction = ProxyService.realm.manageTransaction(
-        transactionType: transactionType!, isExpense: isExpense);
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: transactionType!,
+        isExpense: isExpense);
 
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
     List<TransactionItem> items = ProxyService.realm.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
         transactionId: pendingTransaction.id!,
         doneWithTransaction: false,
         active: false);
@@ -186,6 +189,7 @@ class CoreViewModel extends FlipperBaseModel
 
       List<TransactionItem> updatedItems = await ProxyService.realm
           .transactionItems(
+              branchId: ProxyService.box.getBranchId()!,
               transactionId: pendingTransaction.id!,
               doneWithTransaction: false,
               active: true);
@@ -211,6 +215,7 @@ class CoreViewModel extends FlipperBaseModel
 
     Variant? variation = await ProxyService.realm.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
+        bhFId: ProxyService.box.bhfId() ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
@@ -257,6 +262,7 @@ class CoreViewModel extends FlipperBaseModel
     // double amount = double.parse(ProxyService.keypad.key);
     Variant? variation = await ProxyService.realm.getCustomVariant(
         tinNumber: ProxyService.box.tin(),
+        bhFId: ProxyService.box.bhfId() ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
     if (variation == null) return;
@@ -274,6 +280,7 @@ class CoreViewModel extends FlipperBaseModel
               variantId: variation.id!, transactionId: pendingTransaction.id);
 
       List<TransactionItem> items = ProxyService.realm.transactionItems(
+          branchId: ProxyService.box.getBranchId()!,
           transactionId: pendingTransaction.id!,
           doneWithTransaction: false,
           active: true);
@@ -310,6 +317,7 @@ class CoreViewModel extends FlipperBaseModel
         );
 
         List<TransactionItem> items = ProxyService.realm.transactionItems(
+            branchId: ProxyService.box.getBranchId()!,
             transactionId: pendingTransaction.id!,
             doneWithTransaction: false,
             active: true);
@@ -468,9 +476,15 @@ class CoreViewModel extends FlipperBaseModel
       required String transactionType,
       required double discount}) async {
     final transaction = await ProxyService.realm.manageTransaction(
-        transactionType: TransactionType.sale, isExpense: false);
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: TransactionType.sale,
+        isExpense: false);
 
     await ProxyService.realm.collectPayment(
+        branchId: ProxyService.box.getBranchId()!,
+        isProformaMode: ProxyService.box.isTrainingMode(),
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        bhfId: ProxyService.box.bhfId() ?? "00",
         cashReceived: cashReceived,
         transaction: transaction,
         categoryId: categoryId,
@@ -491,6 +505,10 @@ class CoreViewModel extends FlipperBaseModel
       bool directlyHandleReceipt = true,
       required bool isIncome}) {
     return ProxyService.realm.collectPayment(
+      branchId: ProxyService.box.getBranchId()!,
+      isProformaMode: ProxyService.box.isTrainingMode(),
+      isTrainingMode: ProxyService.box.isTrainingMode(),
+      bhfId: ProxyService.box.bhfId() ?? "00",
       cashReceived: amountReceived,
       transaction: transaction,
       categoryId: categoryId,
@@ -577,7 +595,9 @@ class CoreViewModel extends FlipperBaseModel
 
   void addNoteToSale({required String note, required Function callback}) async {
     final currentTransaction = await ProxyService.realm.manageTransaction(
-        transactionType: TransactionType.sale, isExpense: false);
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: TransactionType.sale,
+        isExpense: false);
     ITransaction? transaction =
         await ProxyService.realm.getTransactionById(id: currentTransaction.id!);
     // Map map = transaction!;
@@ -634,6 +654,7 @@ class CoreViewModel extends FlipperBaseModel
     if (keypad.transaction == null) return 0.0;
 
     List<TransactionItem> items = ProxyService.realm.transactionItems(
+        branchId: ProxyService.box.getBranchId()!,
         transactionId: keypad.transaction!.id!,
         doneWithTransaction: false,
         active: true);
@@ -740,7 +761,9 @@ class CoreViewModel extends FlipperBaseModel
   // transaction need to be deleted or completed first.
   Future<void> deleteCustomer(int id, Function callback) async {
     final transaction = await ProxyService.realm.manageTransaction(
-        transactionType: TransactionType.sale, isExpense: false);
+        branchId: ProxyService.box.getBranchId()!,
+        transactionType: TransactionType.sale,
+        isExpense: false);
     if (transaction.customerId == null) {
       await ProxyService.realm.delete(id: id, endPoint: 'customer');
       callback("customer deleted");

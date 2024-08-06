@@ -207,7 +207,9 @@ class PreviewSaleBottomSheetState
           /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
           Navigator.of(context).pop();
           final transaction = await ProxyService.realm.manageTransaction(
-              transactionType: TransactionType.sale, isExpense: false);
+              branchId: ProxyService.box.getBranchId()!,
+              transactionType: TransactionType.sale,
+              isExpense: false);
           _routerService.navigateTo(
             PaymentsRoute(
               transactionType: TransactionType.sale,

@@ -33,7 +33,8 @@ class ProductService with ListenableServiceMixin {
   }
 
   Stream<List<Product>> productStream({required int branchId}) {
-    return Stream.fromFuture(ProxyService.realm.getProductList())
+    return Stream.fromFuture(ProxyService.realm
+            .getProductList(branchId: ProxyService.box.getBranchId()!))
         .asyncExpand((products) async* {
       // Yield the products as they become available
       yield products;
@@ -57,7 +58,8 @@ class ProductService with ListenableServiceMixin {
 
   Future<Product?> getProductByBarCode({required String? code}) async {
     if (code == null) return null;
-    return await ProxyService.realm.getProductByBarCode(barCode: code);
+    return await ProxyService.realm.getProductByBarCode(
+        barCode: code, branchId: ProxyService.box.getBranchId()!);
   }
 
   ProductService() {
