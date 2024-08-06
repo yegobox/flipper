@@ -172,9 +172,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     localRealm?.close();
 
     try {
-      if (ProxyService.box.encryptionKey().isEmpty) {
-        throw Exception("null encryption");
-      }
+     
       String path =
           await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       config = Configuration.local(
