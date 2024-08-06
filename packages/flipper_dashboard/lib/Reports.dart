@@ -11,7 +11,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-import 'TransactionList.dart';
+import 'package:flipper_dashboard/TransactionList.dart';
 
 class Reports extends StatefulHookConsumerWidget {
   const Reports({super.key});

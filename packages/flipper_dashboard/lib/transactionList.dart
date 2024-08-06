@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/realm/schemas.dart';
