@@ -35,14 +35,14 @@ class IsolateHandler with Subscriptions {
     final user = app?.currentUser!;
     FlexibleSyncConfiguration config =
         flexibleConfig(user, encryptionKey!.toIntList(), dbPatch);
+    realm?.close();
+    realm = Realm(config);
 
-    final realm = Realm(config);
+    await IsolateHandler().updateSubscription(
+        branchId: branchId, businessId: businessId, realm: realm);
 
-    await IsolateHandler()
-        .updateSubscription(branchId: branchId, businessId: businessId);
-
-    await realm.syncSession.waitForDownload();
-    await realm.subscriptions.waitForSynchronization();
+    await realm?.syncSession.waitForDownload();
+    await realm?.subscriptions.waitForSynchronization();
   }
 
   static Future<void> handleEBMTrigger(List<dynamic> args) async {

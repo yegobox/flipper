@@ -182,16 +182,17 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     /// net profit
     Configuration config;
 
-    // Close any existing local realm instance   
+    // Close any existing local realm instance
     localRealm?.close();
 
     try {
       if (useInMemory || ProxyService.box.encryptionKey().isEmpty) {
         talker.error("Using in Memory db");
-        realm?.close();
+        localRealm?.close();
         _configureInMemory();
         return this;
       }
+      localRealm?.close();
       String path =
           await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       config = Configuration.local(
