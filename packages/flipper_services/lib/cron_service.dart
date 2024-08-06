@@ -136,6 +136,7 @@ class CronService {
       /// bootstrap data for universal Product names;
 
       await _spawnIsolate("local", IsolateHandler.localData);
+      await _spawnIsolate("local", IsolateHandler.flexibleSync);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });

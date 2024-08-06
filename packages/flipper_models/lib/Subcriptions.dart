@@ -7,6 +7,7 @@ import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 mixin Subscriptions {
+  
   Future<void> updateSubscription(
       {int? branchId,
       int? businessId,

@@ -19,14 +19,14 @@ import 'package:realm/realm.dart';
 import 'package:flutter/services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-mixin IsolateHandler on Subscriptions {
+class IsolateHandler with Subscriptions {
   static Realm? realm;
   static Realm? localRealm;
   static Future<void> flexibleSync(List<dynamic> args) async {
     String? dbPatch = args[3] as String?;
     String? key = args[4] as String?;
-    // final branchId = args[2] as int;
-    // final businessId = args[7] as int;
+    final branchId = args[2] as int;
+    final businessId = args[7] as int;
     String? encryptionKey = args[4] as String?;
 
     if (dbPatch == null || key == null) return;
@@ -38,8 +38,10 @@ mixin IsolateHandler on Subscriptions {
 
     final realm = Realm(config);
 
-    // await updateSubscription(branchId: branchId, businessId: businessId);
+    await IsolateHandler()
+        .updateSubscription(branchId: branchId, businessId: businessId);
 
+    await realm.syncSession.waitForDownload();
     await realm.subscriptions.waitForSynchronization();
   }
 

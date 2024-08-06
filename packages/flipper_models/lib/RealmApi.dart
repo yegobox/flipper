@@ -2187,8 +2187,6 @@ class RealmAPI<M extends IJsonSerializable>
         realm: realm,
         localRealm: ProxyService.local.localRealm,
       );
-      realm!.syncSession.waitForDownload();
-      realm!.subscriptions.waitForSynchronization(token);
     }
   }
 

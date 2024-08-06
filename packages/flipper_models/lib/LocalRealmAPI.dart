@@ -182,7 +182,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     /// net profit
     Configuration config;
 
-    // Close any existing local realm instance
+    // Close any existing local realm instance   
     localRealm?.close();
 
     try {
