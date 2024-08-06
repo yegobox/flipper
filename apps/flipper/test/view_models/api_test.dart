@@ -1,20 +1,20 @@
-import 'package:flipper_models/RealmApi.dart';
-import 'package:flipper_models/helperModels/random.dart';
-import 'package:flipper_models/realm/schemas.dart';
+// import 'package:flipper_models/RealmApi.dart';
+// import 'package:flipper_models/helperModels/random.dart';
+// import 'package:flipper_models/realm/schemas.dart';
 // import 'package:flipper_services/locator.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:realm/realm.dart';
+// import 'package:flipper_services/proxy.dart';
+// import 'package:realm/realm.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Isar Realm API!', () {
-    RealmAPI realm = RealmAPI();
-    setUpAll(() async {
-      // await initDependencies();
-      await realm.configure(
-          useInMemoryDb: true, encryptionKey: "", businessId: 1);
-      // create sku to use while testing
-    });
+    // RealmAPI realm = RealmAPI();
+    // setUpAll(() async {
+    //   // await initDependencies();
+    //   await realm.configure(
+    //       useInMemoryDb: true, encryptionKey: "", businessId: 1);
+    //   // create sku to use while testing
+    // });
 
     tearDownAll(() {});
 
