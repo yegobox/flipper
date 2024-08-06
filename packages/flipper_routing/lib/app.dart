@@ -551,6 +551,10 @@ class App {}
 /// https://github.com/fluttergems/awesome-open-source-flutter-apps?tab=readme-ov-file
 /// https://github.com/localsend/localsend
 /// https://github.com/tejasbadone/flutterzon_bloc
+/// Bellow project is good in terms of UI, code organization, Design system start with Figma, this is something
+/// I will consider surely in future!
+/// https://github.com/openfoodfacts/smooth-app
+/// https://github.com/smaranjitghose/DocLense
 /// 
 /// TODO: learn about integeation test or get some ideas
 /// https://github.com/ubuntu/app-center/blob/main/packages/app_center/integration_test/app_center_test.dart
