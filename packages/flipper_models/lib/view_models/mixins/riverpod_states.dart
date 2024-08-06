@@ -663,7 +663,8 @@ final universalProductsNames =
 
 final skuProvider =
     StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
-  return ProxyService.realm.sku(branchId: branchId);
+  return ProxyService.realm
+      .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
 
 final keypadProvider = StateNotifierProvider<KeypadNotifier, String>((ref) {

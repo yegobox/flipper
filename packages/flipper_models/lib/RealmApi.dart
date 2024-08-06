@@ -616,64 +616,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<Product?> createProduct(
-      {required Product product,
-      required int businessId,
-      required int branchId,
-      required int tinNumber,
-      required String bhFId,
-      bool skipRegularVariant = false,
-      double qty = 1,
-      double supplyPrice = 0,
-      double retailPrice = 0,
-      int itemSeq = 1,
-      bool ebmSynced = false}) async {
-    // Check if the product created (custom or temp) already exists and return it
-    final String productName = product.name!;
-    if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
-      final Product? existingProduct = await _findProductByBusinessId(
-          name: productName, businessId: businessId);
-      if (existingProduct != null) {
-        return existingProduct;
-      }
-    }
-
-    await realm!.putAsync<Product>(product);
-
-    if (!skipRegularVariant) {
-      Product kProduct =
-          realm!.query<Product>(r'id == $0 ', [product.id]).first;
-
-      // Create a Regular Variant
-      final Variant newVariant = _createRegularVariant(branchId, tinNumber,
-          qty: qty,
-          product: product,
-          bhFId: bhFId,
-          supplierPrice: supplyPrice,
-          retailPrice: retailPrice,
-          name: product.name!,
-          sku: _getSku(branchId: branchId)!.sku.toString(),
-          productId: product.id!,
-          itemSeq: itemSeq,
-          ebmSynced: ebmSynced);
-      await realm!.putAsync<Variant>(newVariant);
-
-      // Create a Stock for the Regular Variant
-      final Stock stock = Stock(ObjectId(),
-          lastTouched: DateTime.now(),
-          id: randomNumber(),
-          action: 'create',
-          branchId: branchId,
-          variantId: newVariant.id!,
-          currentStock: qty,
-          productId: kProduct.id!);
-      await realm!.putAsync<Stock>(stock);
-    }
-
-    return realm!.query<Product>(r'id == $0 ', [product.id]).firstOrNull;
-  }
-
-  @override
   Future<Receipt?> createReceipt(
       {required RwApiResponse signature,
       required ITransaction transaction,
@@ -2127,7 +2069,7 @@ class RealmAPI<M extends IJsonSerializable>
       User user = app.currentUser ??
           await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
       if (useInMemoryDb || encryptionKey == null || encryptionKey.isEmpty) {
-        talker.error("Using in Memory db");
+        talker.warning("Using in Memory db");
         realm?.close();
         _configureInMemory();
         return this;
@@ -3118,43 +3060,48 @@ class RealmAPI<M extends IJsonSerializable>
     });
   }
 
-  // Function to create a new SKU
-  SKU _createNewSku() {
-    return SKU(
-      ObjectId(),
-      id: randomNumber(),
-      sku: 1000,
-      branchId: ProxyService.box.getBranchId(),
-      businessId: ProxyService.box.getBusinessId(),
-      consumed: false,
-    );
+  int _getNextSku(int branchId) {
+    List<SKU> skus = realm!.query<SKU>(
+        r'consumed == $0 && branchId == $1', [false, branchId]).toList();
+
+    // Find the highest SKU value in the database
+    int highestSku = skus.isEmpty
+        ? 0
+        : skus
+            .map((sku) => sku.sku!)
+            .reduce((max, sku) => max > sku ? max : sku);
+
+    // Log the next SKU to be generated
+    talker.info('Generated next SKU: ${highestSku + 1}');
+
+    // Return the next SKU value
+    return highestSku + 1;
   }
 
-  SKU? _getSku({required int branchId}) {
-    if (realm == null) {
-      throw Exception('Realm is null!');
-    }
+  SKU _createNewSku({required int branchId, required int businessId}) {
+    SKU newSku = SKU(
+      ObjectId(),
+      id: randomNumber(),
+      sku: _getNextSku(branchId),
+      branchId: branchId,
+      businessId: businessId,
+      consumed: false,
+    );
+    realm!.write(() {
+      realm!.add<SKU>(newSku);
+    });
+    // Log the new SKU creation
+    talker.info('Created new SKU: ${newSku.sku} for branch $branchId');
 
-    // Check for existing non-consumed SKU
-    SKU? existingSku = realm!.query<SKU>(
-        r'branchId == $0 AND consumed == false', [branchId]).firstOrNull;
+    return newSku;
+  }
 
-    try {
-      if (existingSku == null) {
-        realm!.write(() {
-          existingSku = _createNewSku();
-          realm!.add<SKU>(existingSku!);
-        });
-      }
-    } catch (e) {
-      talker.error(e);
-    }
-
-    return existingSku;
+  SKU _getSku({required int branchId, required int businessId}) {
+    return _createNewSku(branchId: branchId, businessId: businessId);
   }
 
   @override
-  Stream<SKU?> sku({required int branchId}) async* {
+  Stream<SKU?> sku({required int branchId, required int businessId}) async* {
     if (realm == null) {
       throw Exception('Realm is null!');
     }
@@ -3166,9 +3113,13 @@ class RealmAPI<M extends IJsonSerializable>
     try {
       if (existingSku == null) {
         realm!.write(() {
-          existingSku = _createNewSku();
+          existingSku =
+              _createNewSku(branchId: branchId, businessId: businessId);
           realm!.add<SKU>(existingSku!);
         });
+
+        // Log the SKU creation
+        talker.info('Added new SKU: ${existingSku!.sku} for branch $branchId');
       }
     } catch (e) {
       talker.error(e);
@@ -3178,19 +3129,91 @@ class RealmAPI<M extends IJsonSerializable>
     final results =
         realm!.query<SKU>(r'branchId == $0 AND consumed == false', [branchId]);
 
-    yield* results.changes.map((event) {
+    await for (var event in results.changes) {
       if (event.results.isEmpty) {
-        // If there are no non-consumed SKUs, create a new one
         late SKU newSku;
         realm!.write(() {
-          newSku = _createNewSku();
+          newSku = _createNewSku(branchId: branchId, businessId: businessId);
           realm!.add<SKU>(newSku);
         });
-        return newSku;
+        // Log the SKU creation
+        talker.info('Created new SKU: ${newSku.sku} for branch $branchId');
+        yield newSku;
       } else {
-        return event.results.first;
+        final sku = event.results.first;
+        realm!.write(() {
+          sku.consumed = true; // Mark as consumed
+          realm!.add<SKU>(sku); // Update the SKU
+        });
+        // Log the SKU consumption
+        talker.info('Marked SKU: ${sku.sku} as consumed for branch $branchId');
+        yield sku;
       }
+    }
+  }
+
+  @override
+  Future<Product?> createProduct(
+      {required Product product,
+      required int businessId,
+      required int branchId,
+      required int tinNumber,
+      required String bhFId,
+      bool skipRegularVariant = false,
+      double qty = 1,
+      double supplyPrice = 0,
+      double retailPrice = 0,
+      int itemSeq = 1,
+      bool ebmSynced = false}) async {
+    // Check if the product created (custom or temp) already exists and return it
+    final String productName = product.name!;
+    if (productName == CUSTOM_PRODUCT || productName == TEMP_PRODUCT) {
+      final Product? existingProduct = await _findProductByBusinessId(
+          name: productName, businessId: businessId);
+      if (existingProduct != null) {
+        return existingProduct;
+      }
+    }
+    SKU sku = _getSku(branchId: branchId, businessId: businessId);
+
+    /// update it to consumed
+    realm!.write(() {
+      sku.consumed = true;
     });
+
+    realm!.put<Product>(product);
+
+    if (!skipRegularVariant) {
+      Product kProduct =
+          realm!.query<Product>(r'id == $0 ', [product.id]).first;
+
+      // Create a Regular Variant
+      Variant newVariant = _createRegularVariant(branchId, tinNumber,
+          qty: qty,
+          product: product,
+          bhFId: bhFId,
+          supplierPrice: supplyPrice,
+          retailPrice: retailPrice,
+          name: product.name!,
+          sku: sku.sku.toString(),
+          productId: product.id!,
+          itemSeq: itemSeq,
+          ebmSynced: ebmSynced);
+      await realm!.putAsync<Variant>(newVariant);
+
+      // Create a Stock for the Regular Variant
+      final Stock stock = Stock(ObjectId(),
+          lastTouched: DateTime.now(),
+          id: randomNumber(),
+          action: 'create',
+          branchId: branchId,
+          variantId: newVariant.id!,
+          currentStock: qty,
+          productId: kProduct.id!);
+      await realm!.putAsync<Stock>(stock);
+    }
+
+    return realm!.query<Product>(r'id == $0 ', [product.id]).firstOrNull;
   }
 
   @override

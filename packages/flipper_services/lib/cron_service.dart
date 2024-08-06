@@ -130,13 +130,13 @@ class CronService with Subscriptions {
   Future<void> schedule() async {
     // create a compute function to keep track of unsaved data back to EBM do this in background
     if (await ProxyService.status.isInternetAvailable()) {
-      updateSubscription(
-        branchId: ProxyService.box.getBranchId(),
-        businessId: ProxyService.box.getBusinessId(),
-        userId: ProxyService.box.getUserId(),
-        realm: ProxyService.realm.realm,
-        localRealm: ProxyService.local.localRealm,
-      );
+      // updateSubscription(
+      //   branchId: ProxyService.box.getBranchId(),
+      //   businessId: ProxyService.box.getBusinessId(),
+      //   userId: ProxyService.box.getUserId(),
+      //   realm: ProxyService.realm.realm,
+      //   localRealm: ProxyService.local.localRealm,
+      // );
     }
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||

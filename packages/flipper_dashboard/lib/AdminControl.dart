@@ -53,7 +53,8 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black87,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => locator<RouterService>().replaceWithFlipperApp(),
+          onPressed: () =>
+              locator<RouterService>().navigateTo(FlipperAppRoute()),
           tooltip: 'Back',
         ),
         title: Text(
