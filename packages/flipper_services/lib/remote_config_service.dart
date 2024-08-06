@@ -496,6 +496,7 @@ class RemoteConfigWindows implements Remote {
 
   @override
   bool isMultiUserEnabled() {
-    return flagsmithClient?.hasCachedFeatureFlag('multiple-users') ?? false;
+    // flagsmithClient?.hasCachedFeatureFlag('multiple-users') ?? false
+    return true;
   }
 }
