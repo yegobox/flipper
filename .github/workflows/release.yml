@@ -66,6 +66,7 @@ jobs:
 
       - run: |
           dart pub global activate melos
+          melos clean
           melos bootstrap
           cd apps/flipper
           flutter test --dart-define=Test=true
