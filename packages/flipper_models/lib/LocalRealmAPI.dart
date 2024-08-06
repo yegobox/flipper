@@ -20,6 +20,14 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
 
+final localModels = [
+  UserActivity.schema,
+  Business.schema,
+  Branch.schema,
+  UnversalProduct.schema,
+  AppNotification.schema
+];
+
 class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
   @override
@@ -148,6 +156,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
+  void _configureInMemory() {
+    Configuration config = Configuration.inMemory(localModels);
+    realm = Realm(config);
+    talker.info("Opened in-memory realm.");
+  }
+
   @override
   Future<LocalRealmInterface> configureLocal(
       {required bool useInMemory}) async {
@@ -172,20 +186,21 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     localRealm?.close();
 
     try {
-     
+      if (useInMemory || ProxyService.box.encryptionKey().isEmpty) {
+        talker.error("Using in Memory db");
+        realm?.close();
+        _configureInMemory();
+        return this;
+      }
       String path =
           await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
       config = Configuration.local(
-        [
-          UserActivity.schema,
-          Business.schema,
-          Branch.schema,
-          UnversalProduct.schema,
-          AppNotification.schema
-        ],
+        localModels,
         initialDataCallback: dataCb,
         path: path,
-        encryptionKey: ProxyService.box.encryptionKey().toIntList(),
+        encryptionKey: ProxyService.box.encryptionKey().isEmpty == true
+            ? []
+            : ProxyService.box.encryptionKey().toIntList(),
         schemaVersion: 2,
         migrationCallback: (migration, oldSchemaVersion) {
           if (oldSchemaVersion < 2) {
