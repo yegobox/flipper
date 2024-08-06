@@ -18,7 +18,7 @@ export 'package:flipper_dashboard/create/add_variation.dart';
 export 'package:flipper_dashboard/create/color_tile.dart';
 export 'package:flipper_dashboard/create/list_categories.dart';
 export 'package:flipper_dashboard/create/list_units.dart';
-export 'package:flipper_dashboard/TransactionList.dart';
+
 export 'package:flipper_dashboard/AdminControl.dart';
 //
 export 'package:flipper_dashboard/create/receive_stock.dart';
@@ -61,4 +61,5 @@ export 'package:flipper_socials/ui/dialogs/app_center/app_center.dart';
 export 'package:flipper_dashboard/logout/logout.dart';
 export 'package:flipper_socials/ui/dialogs/info_alert/info_alert_dialog.dart';
 export 'package:flipper_dashboard/Reports.dart';
+export 'package:flipper_dashboard/TransactionList.dart';
 // export 'package'
