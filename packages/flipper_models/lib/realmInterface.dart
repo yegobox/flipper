@@ -114,7 +114,6 @@ abstract class RealmApiInterface {
       double retailPrice = 0,
       int itemSeq = 1,
       bool ebmSynced = false});
-  Future<bool> logOut();
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
@@ -359,7 +358,7 @@ abstract class RealmApiInterface {
       {required int userId, required String activity});
 
   Future<List<Customer>> customers({required int branchId});
-
+  void close();
   void clear();
   // Future<List<SyncRecord>> syncedModels({required int branchId});
   // Future<Permission?> permission({required int userId});

@@ -9,7 +9,7 @@ class SharedPreferenceStorageMock implements LocalStorage {
 
   @override
   String encryptionKey() {
-    throw UnimplementedError();
+    return "1,2,3,4";
   }
 
   @override

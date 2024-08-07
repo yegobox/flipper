@@ -1,9 +1,7 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flutter/foundation.dart';
 import 'abstractions/remote.dart';
 import 'package:flutter/material.dart';
-import 'package:flagsmith/flagsmith.dart';
 
 class RemoteConfigService implements Remote {
   FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
@@ -289,7 +287,6 @@ class RemoteConfigService implements Remote {
 }
 
 class RemoteConfigWindows implements Remote {
-  FlagsmithClient? flagsmithClient;
   @override
   void config() {
     /// I reset everytime so the config can work

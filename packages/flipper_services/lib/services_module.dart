@@ -1,10 +1,7 @@
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
-import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/RealmApi.dart';
-import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/http_client_interface.dart';
 import 'package:flipper_models/marketing.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
@@ -55,7 +52,6 @@ import 'local_storage.dart';
 import 'location_service.dart';
 import 'package:universal_platform/universal_platform.dart';
 
-import 'package:http/http.dart' as http;
 import 'package:flipper_services/DeviceIdService.dart' as dev;
 
 @module
@@ -79,15 +75,6 @@ abstract class ServicesModule {
   //     return await Future.error(e);
   //   }
   // }
-
-  @preResolve
-  Future<HttpClientInterface> httpClient() async {
-    if ((const bool.fromEnvironment('Test') == true)) {
-      return MockHttpClient();
-    } else {
-      return FlipperHttpClient(http.Client());
-    }
-  }
 
   @LazySingleton()
   UploadT get upload {

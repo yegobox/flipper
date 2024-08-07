@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -21,7 +22,8 @@ mixin TokenLogin {
   }
 }
 
-class LoginViewModel extends FlipperBaseModel with TokenLogin {
+class LoginViewModel extends FlipperBaseModel
+    with TokenLogin, CoreMiscellaneous {
   final appService = loc.getIt<AppService>();
   LoginViewModel();
 
@@ -49,7 +51,7 @@ class LoginViewModel extends FlipperBaseModel with TokenLogin {
   get isProcessing => _isProceeding;
   Future<void> desktopLogin({required String pinCode}) async {
     ProxyService.box.remove(key: 'authComplete');
-    ProxyService.realm.logOut();
+    logOut();
     try {
       setIsprocessing(value: true);
       if (ProxyService.realm.realm == null) {

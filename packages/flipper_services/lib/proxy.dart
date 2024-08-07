@@ -58,25 +58,19 @@ final LNotification _notification = getIt<LNotification>();
 final Review _review = getIt<Review>();
 final Sync _syncApi = getIt<Sync>();
 final SyncFirestore _syncFirestore = getIt<SyncFirestore>();
-final SyncReaml _syncRealm = getIt<SyncReaml>();
 final SystemTime _systemTime = getIt<SystemTime>();
 final EventInterface _event = getIt<EventInterface>();
 final BillingService _billingService = getIt<BillingService>();
-// final IsarApiInterface _isar = getIt<IsarApiInterface>();
 final RealmApiInterface _realm = getIt<RealmApiInterface>();
 final TaxApi _tax = getIt<TaxApi>();
 final WhatsApp _whatsApp = getIt<WhatsApp>();
 final Messaging _messaging = getIt<Messaging>();
 final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
-// final RemoteInterface _remote = getIt<RemoteInterface>();
-final HttpClientInterface _httpClient = getIt<HttpClientInterface>();
 final Device _device = getIt<Device>();
 final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
 
 abstract class ProxyService {
-  // static RemoteInterface get remote => _remote;
-  static HttpClientInterface get httpClient => _httpClient;
   static LocalStorage get box => _box;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;

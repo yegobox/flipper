@@ -224,7 +224,7 @@ dependencies:
   
   # TODO: take advantage of pb.backups.upload(file) for backup of database
   pocketbase: ^0.17.0
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.3.1
   newrelic_mobile: ^1.0.5
   flutter_local_notifications: ^14.1.1
   local_notifier:

@@ -1,5 +1,6 @@
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/ui/common/ui_helpers.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -8,7 +9,7 @@ import 'logout_model.dart';
 
 const double _graphicSize = 60;
 
-class LogOut extends StackedView<LogoutModel> {
+class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
   final DialogRequest request;
   final Function(DialogResponse) completer;
   const LogOut({
@@ -112,7 +113,7 @@ class LogOut extends StackedView<LogoutModel> {
                         }
                       } else {
                         //this is mobile client we can safely logout without deleting devices
-                        await ProxyService.realm.logOut();
+                        await logOut();
 
                         viewModel.runStartupLogic(refreshCredentials: true);
                         completer(DialogResponse(confirmed: true));

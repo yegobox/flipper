@@ -1,3 +1,4 @@
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/gate.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -5,6 +6,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -13,16 +15,17 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:intl/intl.dart';
 
-class DrawerScreen extends StatefulWidget {
+class DrawerScreen extends StatefulHookConsumerWidget {
   const DrawerScreen({Key? key, required this.open, required this.drawer})
       : super(key: key);
   final String open;
   final Drawers drawer;
   @override
-  State<DrawerScreen> createState() => _DrawerScreenState();
+  _DrawerScreenState createState() => _DrawerScreenState();
 }
 
-class _DrawerScreenState extends State<DrawerScreen> {
+class _DrawerScreenState extends ConsumerState<DrawerScreen>
+    with CoreMiscellaneous {
   final _controller = TextEditingController();
   final _sub = GlobalKey<FormState>();
   final _routerService = locator<RouterService>();
@@ -210,7 +213,7 @@ class _DrawerScreenState extends State<DrawerScreen> {
         drawers.closingDateTime = DateTime.now().toIso8601String();
       });
     }
-    await ProxyService.realm.logOut();
+    await logOut();
     // _routerService.replaceWithLoginView();
     _routerService.navigateTo(LoginViewRoute());
   }

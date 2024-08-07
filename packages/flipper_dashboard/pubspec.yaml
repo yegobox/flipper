@@ -118,7 +118,7 @@ dependencies:
   amplify_flutter: ^2.1.0
   amplify_auth_cognito: ^2.1.0
   flutter_side_menu: ^0.5.3
-  flagsmith: ^5.0.1
+  
   phone_numbers_parser: ^8.3.0
   wolt_modal_sheet: ^0.8.0
   demo_ui_components: 1.0.0

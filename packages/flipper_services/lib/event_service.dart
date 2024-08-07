@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helper_models.dart' as helper;
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_interface.dart';
 import 'package:pubnub/pubnub.dart' as nub;
@@ -23,7 +24,9 @@ String loginDataToMap(LoginData data) => json.encode(data.toMap());
 /// [LOGIN] this channel is used to send login details to other end
 /// [logout] this channel is used to send logout details to other end
 /// [device] this channel is used to send device details to other end
-class EventService with TokenLogin implements EventInterface {
+class EventService
+    with TokenLogin, CoreMiscellaneous
+    implements EventInterface {
   final _routerService = locator<RouterService>();
   final nub.Keyset keySet;
   nub.PubNub? pubnub;
@@ -65,7 +68,7 @@ class EventService with TokenLogin implements EventInterface {
           ///TODO: work on making sure only specific device with specific linkingCode
           ///is the one logged out not all device, but leaving it now as it is not top priority
           await FirebaseAuth.instance.signOut();
-          ProxyService.realm.logOut();
+          logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         }
       });

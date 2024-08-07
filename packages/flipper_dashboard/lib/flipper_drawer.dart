@@ -1,17 +1,19 @@
 import 'dart:ui';
 
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/atoms.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-class FlipperDrawer extends StatefulWidget {
+class FlipperDrawer extends StatefulHookConsumerWidget {
   const FlipperDrawer(
       {Key? key,
       required this.preferenceController,
@@ -26,10 +28,11 @@ class FlipperDrawer extends StatefulWidget {
   final List<Business> businesses;
 
   @override
-  State<FlipperDrawer> createState() => _FlipperDrawerState();
+  _FlipperDrawerState createState() => _FlipperDrawerState();
 }
 
-class _FlipperDrawerState extends State<FlipperDrawer> {
+class _FlipperDrawerState extends ConsumerState<FlipperDrawer>
+    with CoreMiscellaneous {
   final _routerService = locator<RouterService>();
   @override
   void dispose() {
@@ -130,8 +133,7 @@ class _FlipperDrawerState extends State<FlipperDrawer> {
                                                     top: 40.0),
                                                 child: InkWell(
                                                   onTap: () async {
-                                                    await ProxyService.realm
-                                                        .logOut();
+                                                    await logOut();
                                                     _routerService.navigateTo(
                                                         StartUpViewRoute());
                                                   },

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/app_service.dart';
@@ -12,7 +13,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
-class StartupViewModel extends FlipperBaseModel {
+class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
   final _routerService = locator<RouterService>();
@@ -99,7 +100,7 @@ class StartupViewModel extends FlipperBaseModel {
         _routerService.navigateTo(LoginChoicesRoute());
       } else if (e is SessionException || e is PinError) {
         log(stackTrace.toString(), name: 'runStartupLogic');
-        await ProxyService.realm.logOut();
+        await logOut();
         _routerService.clearStackAndShow(LoginViewRoute());
       } else if (e is BusinessNotFoundException) {
         if (Platform.isWindows) {
@@ -110,7 +111,7 @@ class StartupViewModel extends FlipperBaseModel {
 
           ProxyService.notie.sendData(
               'Could not login business with user ${ProxyService.box.getUserId()} not found!');
-          await ProxyService.realm.logOut();
+          await logOut();
           _routerService.clearStackAndShow(LoginViewRoute());
         } else {
           _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
@@ -118,7 +119,7 @@ class StartupViewModel extends FlipperBaseModel {
       } else {
         // log(e.toString(), name: 'runStartupLogic');
         // log(stackTrace.toString(), name: 'runStartupLogic');
-        await ProxyService.realm.logOut();
+        await logOut();
         //remove startup view from the stack
         _routerService.clearStackAndShow(LoginViewRoute());
       }

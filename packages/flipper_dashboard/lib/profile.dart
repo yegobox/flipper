@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +103,7 @@ class _ProfileWidgetState extends State<ProfileWidget>
   }
 }
 
-class PDesktop extends StatelessWidget {
+class PDesktop extends StatelessWidget with CoreMiscellaneous {
   const PDesktop({
     Key? key,
     required this.widget,
@@ -125,7 +126,7 @@ class PDesktop extends StatelessWidget {
           onSelected: (value) async {
             if (value == 'logOut') {
               log('logout selected');
-              await ProxyService.realm.logOut();
+              await logOut();
               routeService.clearStackAndShow(LoginViewRoute());
             }
           },
