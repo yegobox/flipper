@@ -13,14 +13,14 @@ dependencies:
   #  flutter:
   #    sdk: flutter
 
-  firebase_ui_auth: ^1.14.0
+  firebase_ui_auth: ^1.15.0
   flutter_form_bloc:
     0.31.0-dev
     # git:
     #   url: https://github.com/Cavin6080/form_bloc.git
     #   path: packages/flutter_form_bloc
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^2.31.1
+  firebase_core: ^3.3.0
   # firebase_core_desktop: ^1.0.2-dev
   flipper_services: ^1.0.0-dev
   flipper_dashboard: ^0.0.1-dev.5
@@ -33,12 +33,12 @@ dependencies:
   stacked: ^3.4.2
   google_fonts: ^6.1.0
   # Do not update firebase_auth https://github.com/firebase/flutterfire/issues/5964
-  firebase_auth: ^4.19.6
+  firebase_auth: ^5.1.4
   flipper_routing: ^0.0.1-dev.3
   connectivity_plus: ^6.0.3
   firebase_ui_localizations: ^1.9.0
-  firebase_ui_oauth: ^1.4.13
-  firebase_ui_oauth_google: ^1.2.13
+  firebase_ui_oauth: ^1.5.3
+  firebase_ui_oauth_google: ^1.3.3
   flutter_svg: ^2.0.0
   gap: ^2.0.0
   qr_flutter: ^4.1.0

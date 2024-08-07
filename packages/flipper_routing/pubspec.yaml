@@ -17,7 +17,7 @@ dependencies:
   stacked: ^3.4.2
   url_strategy: ^0.2.0
   logger: ^1.1.0
-  firebase_ui_auth: ^1.14.0
+  firebase_ui_auth: ^1.15.0
   flipper_actionable: 0.0.1
 dependency_overrides:
   http: ^1.2.1

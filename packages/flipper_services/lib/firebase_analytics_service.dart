@@ -19,8 +19,9 @@ class FirebaseAnalyticsService with ListenableServiceMixin implements Analytic {
   @override
   void trackEvent(String eventName, Map<String, dynamic> parameters) {
     addContext();
-    FirebaseAnalytics.instance
-        .logEvent(name: eventName, parameters: parameters);
+    // FIXME: the bellow commented code is broken
+    // FirebaseAnalytics.instance
+    //     .logEvent(name: eventName, parameters: parameters);
   }
 
   @override
