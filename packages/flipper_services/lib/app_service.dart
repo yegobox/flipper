@@ -124,18 +124,8 @@ class AppService with ListenableServiceMixin {
 
     if (userId == null) return;
 
-    List<Business> businesses = await ProxyService.local
-        .businesses(userId: ProxyService.box.getUserId()!);
+    List<Business> businesses = await ProxyService.local.businesses();
 
-    if (businesses.isEmpty) {
-      try {
-        Business business =
-            await ProxyService.local.getOnlineBusiness(userId: userId);
-        businesses.add(business);
-      } catch (e) {
-        rethrow;
-      }
-    }
     List<Branch> branches = await ProxyService.local
         .branches(businessId: ProxyService.box.getBusinessId());
 

@@ -3,8 +3,9 @@ import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:flutter/material.dart';
 
 mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {

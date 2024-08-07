@@ -821,8 +821,7 @@ final branchesProvider = Provider<List<Branch>>((ref) {
 });
 
 final businessesProvider = Provider<List<Business>>((ref) {
-  final userId = ProxyService.box.getUserId();
-  return ProxyService.local.businesses(userId: userId!);
+  return ProxyService.local.businesses();
 });
 
 // Define a provider for the selected branch

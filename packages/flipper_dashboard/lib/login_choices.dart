@@ -188,12 +188,13 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
 
     try {
       ProxyService.local.localRealm!.write(() {
-        final branches = ProxyService.local
-            .businesses(userId: ProxyService.box.getUserId()!);
+        final branches = ProxyService.local.businesses();
         branches.forEach((buss) {
           buss.isDefault = false;
+          buss.active = false;
         });
         business.isDefault = true;
+        business.active = true;
       });
       if (ProxyService.local.localRealm == null ||
           ProxyService.realm.realm == null) {
@@ -228,8 +229,7 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
       await setDefaultBusiness(business: business);
 
       // Check if there is only one business
-      List<Business> businesses =
-          ProxyService.local.businesses(userId: ProxyService.box.getUserId()!);
+      List<Business> businesses = ProxyService.local.businesses();
       if (businesses.length == 1) {
         // Automatically proceed to branch selection
         await _navigateToBranchSelection();

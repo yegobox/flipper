@@ -611,17 +611,12 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  @override
-  List<Business> businesses({int? userId}) {
-    List<Business> businesses = [];
-    if (userId != null) {
-      businesses =
-          localRealm!.query<Business>(r'userId == $0 ', [userId]).toList();
-    } else {
-      throw Exception("userId is required");
-    }
+  /// since when we log in we get all business in login response object
+  /// it is assumed that this business/branches are for user access
 
-    return businesses;
+  @override
+  List<Business> businesses() {
+    return localRealm!.all<Business>().toList();
   }
 
   @override
@@ -634,91 +629,91 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  @override
-  Future<Business> getOnlineBusiness({required int userId}) async {
-    final response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
+  // @override
+  // Future<Business> getOnlineBusiness({required int userId}) async {
+  //   final response = await flipperHttpClient
+  //       .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
 
-    if (response.statusCode == 401) {
-      throw SessionException(term: "session expired");
-    }
-    if (response.statusCode == 404) {
-      throw BusinessNotFoundException(term: "IBusiness not found");
-    }
+  //   if (response.statusCode == 401) {
+  //     throw SessionException(term: "session expired");
+  //   }
+  //   if (response.statusCode == 404) {
+  //     throw BusinessNotFoundException(term: "IBusiness not found");
+  //   }
 
-    Business? business = localRealm!.query<Business>(r'serverId == $0',
-        [IBusiness.fromJson(json.decode(response.body)).id!]).firstOrNull;
+  //   Business? business = localRealm!.query<Business>(r'serverId == $0',
+  //       [IBusiness.fromJson(json.decode(response.body)).id!]).firstOrNull;
 
-    if (business == null) {
-      localRealm!.write(() {
-        localRealm!.add<Business>(Business(ObjectId(),
-            serverId: IBusiness.fromJson(json.decode(response.body)).id,
-            userId: IBusiness.fromJson(json.decode(response.body)).userId,
-            name: IBusiness.fromJson(json.decode(response.body)).name,
-            currency: IBusiness.fromJson(json.decode(response.body)).currency,
-            categoryId:
-                IBusiness.fromJson(json.decode(response.body)).categoryId,
-            latitude: IBusiness.fromJson(json.decode(response.body)).latitude,
-            longitude: IBusiness.fromJson(json.decode(response.body)).longitude,
-            timeZone: IBusiness.fromJson(json.decode(response.body)).timeZone,
-            country: IBusiness.fromJson(json.decode(response.body)).country,
-            businessUrl:
-                IBusiness.fromJson(json.decode(response.body)).businessUrl,
-            hexColor: IBusiness.fromJson(json.decode(response.body)).hexColor,
-            imageUrl: IBusiness.fromJson(json.decode(response.body)).imageUrl,
-            type: IBusiness.fromJson(json.decode(response.body)).type,
-            active: IBusiness.fromJson(json.decode(response.body)).active,
-            chatUid: IBusiness.fromJson(json.decode(response.body)).chatUid,
-            metadata: IBusiness.fromJson(json.decode(response.body)).metadata,
-            role: IBusiness.fromJson(json.decode(response.body)).role,
-            lastSeen: IBusiness.fromJson(json.decode(response.body)).lastSeen,
-            firstName: IBusiness.fromJson(json.decode(response.body)).firstName,
-            lastName: IBusiness.fromJson(json.decode(response.body)).lastName,
-            createdAt: IBusiness.fromJson(json.decode(response.body)).createdAt,
-            deviceToken:
-                IBusiness.fromJson(json.decode(response.body)).deviceToken,
-            backUpEnabled:
-                IBusiness.fromJson(json.decode(response.body)).backUpEnabled,
-            subscriptionPlan:
-                IBusiness.fromJson(json.decode(response.body)).subscriptionPlan,
-            nextBillingDate:
-                IBusiness.fromJson(json.decode(response.body)).nextBillingDate,
-            previousBillingDate: IBusiness.fromJson(json.decode(response.body))
-                .previousBillingDate,
-            isLastSubscriptionPaymentSucceeded:
-                IBusiness.fromJson(json.decode(response.body))
-                    .isLastSubscriptionPaymentSucceeded,
-            backupFileId:
-                IBusiness.fromJson(json.decode(response.body)).backupFileId,
-            email: IBusiness.fromJson(json.decode(response.body)).email,
-            lastDbBackup:
-                IBusiness.fromJson(json.decode(response.body)).lastDbBackup,
-            fullName: IBusiness.fromJson(json.decode(response.body)).fullName,
-            tinNumber: IBusiness.fromJson(json.decode(response.body)).tinNumber,
-            bhfId: IBusiness.fromJson(json.decode(response.body)).bhfId,
-            dvcSrlNo: IBusiness.fromJson(json.decode(response.body)).dvcSrlNo,
-            adrs: IBusiness.fromJson(json.decode(response.body)).adrs,
-            taxEnabled:
-                IBusiness.fromJson(json.decode(response.body)).taxEnabled,
-            taxServerUrl:
-                IBusiness.fromJson(json.decode(response.body)).taxServerUrl,
-            isDefault: IBusiness.fromJson(json.decode(response.body)).isDefault,
-            businessTypeId:
-                IBusiness.fromJson(json.decode(response.body)).businessTypeId,
-            lastTouched:
-                IBusiness.fromJson(json.decode(response.body)).lastTouched,
-            action: IBusiness.fromJson(json.decode(response.body)).action,
-            deletedAt: IBusiness.fromJson(json.decode(response.body)).deletedAt,
-            encryptionKey:
-                IBusiness.fromJson(json.decode(response.body)).encryptionKey));
-      });
-    }
-    business =
-        localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
-    ProxyService.box.writeInt(key: 'businessId', value: business!.serverId!);
+  //   if (business == null) {
+  //     localRealm!.write(() {
+  //       localRealm!.add<Business>(Business(ObjectId(),
+  //           serverId: IBusiness.fromJson(json.decode(response.body)).id,
+  //           userId: IBusiness.fromJson(json.decode(response.body)).userId,
+  //           name: IBusiness.fromJson(json.decode(response.body)).name,
+  //           currency: IBusiness.fromJson(json.decode(response.body)).currency,
+  //           categoryId:
+  //               IBusiness.fromJson(json.decode(response.body)).categoryId,
+  //           latitude: IBusiness.fromJson(json.decode(response.body)).latitude,
+  //           longitude: IBusiness.fromJson(json.decode(response.body)).longitude,
+  //           timeZone: IBusiness.fromJson(json.decode(response.body)).timeZone,
+  //           country: IBusiness.fromJson(json.decode(response.body)).country,
+  //           businessUrl:
+  //               IBusiness.fromJson(json.decode(response.body)).businessUrl,
+  //           hexColor: IBusiness.fromJson(json.decode(response.body)).hexColor,
+  //           imageUrl: IBusiness.fromJson(json.decode(response.body)).imageUrl,
+  //           type: IBusiness.fromJson(json.decode(response.body)).type,
+  //           active: IBusiness.fromJson(json.decode(response.body)).active,
+  //           chatUid: IBusiness.fromJson(json.decode(response.body)).chatUid,
+  //           metadata: IBusiness.fromJson(json.decode(response.body)).metadata,
+  //           role: IBusiness.fromJson(json.decode(response.body)).role,
+  //           lastSeen: IBusiness.fromJson(json.decode(response.body)).lastSeen,
+  //           firstName: IBusiness.fromJson(json.decode(response.body)).firstName,
+  //           lastName: IBusiness.fromJson(json.decode(response.body)).lastName,
+  //           createdAt: IBusiness.fromJson(json.decode(response.body)).createdAt,
+  //           deviceToken:
+  //               IBusiness.fromJson(json.decode(response.body)).deviceToken,
+  //           backUpEnabled:
+  //               IBusiness.fromJson(json.decode(response.body)).backUpEnabled,
+  //           subscriptionPlan:
+  //               IBusiness.fromJson(json.decode(response.body)).subscriptionPlan,
+  //           nextBillingDate:
+  //               IBusiness.fromJson(json.decode(response.body)).nextBillingDate,
+  //           previousBillingDate: IBusiness.fromJson(json.decode(response.body))
+  //               .previousBillingDate,
+  //           isLastSubscriptionPaymentSucceeded:
+  //               IBusiness.fromJson(json.decode(response.body))
+  //                   .isLastSubscriptionPaymentSucceeded,
+  //           backupFileId:
+  //               IBusiness.fromJson(json.decode(response.body)).backupFileId,
+  //           email: IBusiness.fromJson(json.decode(response.body)).email,
+  //           lastDbBackup:
+  //               IBusiness.fromJson(json.decode(response.body)).lastDbBackup,
+  //           fullName: IBusiness.fromJson(json.decode(response.body)).fullName,
+  //           tinNumber: IBusiness.fromJson(json.decode(response.body)).tinNumber,
+  //           bhfId: IBusiness.fromJson(json.decode(response.body)).bhfId,
+  //           dvcSrlNo: IBusiness.fromJson(json.decode(response.body)).dvcSrlNo,
+  //           adrs: IBusiness.fromJson(json.decode(response.body)).adrs,
+  //           taxEnabled:
+  //               IBusiness.fromJson(json.decode(response.body)).taxEnabled,
+  //           taxServerUrl:
+  //               IBusiness.fromJson(json.decode(response.body)).taxServerUrl,
+  //           isDefault: IBusiness.fromJson(json.decode(response.body)).isDefault,
+  //           businessTypeId:
+  //               IBusiness.fromJson(json.decode(response.body)).businessTypeId,
+  //           lastTouched:
+  //               IBusiness.fromJson(json.decode(response.body)).lastTouched,
+  //           action: IBusiness.fromJson(json.decode(response.body)).action,
+  //           deletedAt: IBusiness.fromJson(json.decode(response.body)).deletedAt,
+  //           encryptionKey:
+  //               IBusiness.fromJson(json.decode(response.body)).encryptionKey));
+  //     });
+  //   }
+  //   business =
+  //       localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
+  //   ProxyService.box.writeInt(key: 'businessId', value: business!.serverId!);
 
-    return business;
-  }
+  //   return business;
+  // }
 
   @override
   Future<List<ITenant>> signup({required Map business}) async {
@@ -849,10 +844,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     if (businessId != null) {
       return localRealm!.query<Business>(r'serverId == $0', [businessId]).first;
     } else {
-      ///FIXME: what will happen if a user has multiple business associated to him
-      ///the code bellow suggest that the first in row will be returned which can be wrong.
-      int? userId = ProxyService.box.getUserId();
-      return localRealm!.query<Business>(r'userId == $0', [userId]).first;
+      return localRealm!.query<Business>(r'isDefault == $0', [true]).first;
     }
   }
 
