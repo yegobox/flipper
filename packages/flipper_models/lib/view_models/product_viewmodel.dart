@@ -241,7 +241,8 @@ class ProductViewModel extends FlipperBaseModel
     Variant? variant = await ProxyService.realm.variant(variantId: id);
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
-      ProxyService.realm.delete(id: id, endPoint: 'variation');
+      ProxyService.realm.delete(
+          id: id, endPoint: 'variation', flipperHttpClient: ProxyService.http);
       //this will reload the variations remain
       getProduct();
     }
@@ -364,12 +365,18 @@ class ProductViewModel extends FlipperBaseModel
     List<Variant> variations = await ProxyService.realm
         .variants(branchId: branchId, productId: productId);
     for (Variant variation in variations) {
-      await ProxyService.realm.delete(id: variation.id!, endPoint: 'variant');
+      await ProxyService.realm.delete(
+          id: variation.id!,
+          endPoint: 'variant',
+          flipperHttpClient: ProxyService.http);
       //get stock->delete
       Stock? stock = await ProxyService.realm.stockByVariantId(
           variantId: variation.id!, branchId: ProxyService.box.getBranchId()!);
 
-      await ProxyService.realm.delete(id: stock!.id!, endPoint: 'stock');
+      await ProxyService.realm.delete(
+          id: stock!.id!,
+          endPoint: 'stock',
+          flipperHttpClient: ProxyService.http);
 
       Favorite? fav =
           await ProxyService.realm.getFavoriteByProdId(prodId: productId);
@@ -378,7 +385,10 @@ class ProductViewModel extends FlipperBaseModel
       }
     }
     //then delete the product
-    await ProxyService.realm.delete(id: productId, endPoint: 'product');
+    await ProxyService.realm.delete(
+        id: productId,
+        endPoint: 'product',
+        flipperHttpClient: ProxyService.http);
   }
 
   void updateExpiryDate(DateTime date) async {
@@ -395,7 +405,8 @@ class ProductViewModel extends FlipperBaseModel
   }
 
   void deleteDiscount({id}) {
-    ProxyService.realm.delete(id: id, endPoint: 'discount');
+    ProxyService.realm.delete(
+        id: id, endPoint: 'discount', flipperHttpClient: ProxyService.http);
   }
 
   /// loop through transaction's items and update item with discount in consideration

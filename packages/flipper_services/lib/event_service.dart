@@ -116,8 +116,10 @@ class EventService
         Device? device = await ProxyService.realm.getDevice(
             phone: loginData.phone, linkingCode: loginData.linkingCode);
         try {
-          await ProxyService.local
-              .login(userPhone: loginData.phone, skipDefaultAppSetup: true);
+          await ProxyService.local.login(
+              userPhone: loginData.phone,
+              skipDefaultAppSetup: true,
+              flipperHttpClient: ProxyService.http);
           if (device == null) {
             await ProxyService.realm.create(
                 data: Device(ObjectId(),

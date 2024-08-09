@@ -2,13 +2,16 @@ import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
 import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
+import 'package:flipper_models/MockHttpClient.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
 
+import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:flipper_services/abstractions/analytic.dart';
 import 'package:flipper_services/abstractions/printer.dart';
@@ -144,6 +147,17 @@ abstract class ServicesModule {
       dynamicLink = UnSupportedDynamicLink();
     }
     return dynamicLink;
+  }
+
+  @LazySingleton()
+  HttpClientInterface http() {
+    late HttpClientInterface https;
+    if ((const bool.fromEnvironment('Test') == true)) {
+      https = MockHttpClient();
+    } else {
+      https = FlipperHttpClient(httP.Client());
+    }
+    return https;
   }
 
   // @preResolve

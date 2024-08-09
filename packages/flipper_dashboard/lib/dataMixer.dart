@@ -67,7 +67,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           /// delete assets related to a product
           Assets? asset =
               ProxyService.realm.getAsset(assetName: product.imageUrl!);
-          ProxyService.realm.delete(id: asset?.id ?? 0);
+          ProxyService.realm
+              .delete(id: asset?.id ?? 0, flipperHttpClient: ProxyService.http);
         }
       } else {
         await model.deleteProduct(productId: productId);

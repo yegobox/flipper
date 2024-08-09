@@ -215,7 +215,8 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
           ProxyService.realm.realm == null) {
         await ProxyService.local.login(
             userPhone: ProxyService.box.getUserPhone()!,
-            skipDefaultAppSetup: false);
+            skipDefaultAppSetup: false,
+            flipperHttpClient: ProxyService.http);
       }
 
       ProxyService.box.writeInt(key: 'businessId', value: business.serverId!);

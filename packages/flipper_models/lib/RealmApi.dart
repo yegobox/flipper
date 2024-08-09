@@ -664,10 +664,13 @@ class RealmAPI<M extends IJsonSerializable>
     return realm!.query<Customer>(r'branchId == $0 ', [branchId]).toList();
   }
 
-  FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
+  // FlipperHttpClient flipperHttpClient = FlipperHttpClient(http.Client());
 
   @override
-  Future<bool> delete({required int id, String? endPoint}) async {
+  Future<bool> delete(
+      {required int id,
+      String? endPoint,
+      required HttpClientInterface flipperHttpClient}) async {
     switch (endPoint) {
       case 'color':
         PColor color = realm!.query<PColor>(r'id == $0 ', [id]).first;
@@ -1903,7 +1906,8 @@ class RealmAPI<M extends IJsonSerializable>
   /// that we modify the object and pass in the final object to be updated here later and that will not work with realm
   /// therefore we do the update within write function where the actual update is taking place to avoid crazy error or illusion
   @override
-  Future<int> updateNonRealm<T>({required T data}) async {
+  Future<int> updateNonRealm<T>(
+      {required T data, required HttpClientInterface flipperHttpClient}) async {
     /// update user activity
     int userId = ProxyService.box.getUserId() ?? 0;
     if (userId == 0) return 0;
@@ -1951,7 +1955,9 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<int> userNameAvailable({required String name}) async {
+  Future<int> userNameAvailable(
+      {required String name,
+      required HttpClientInterface flipperHttpClient}) async {
     final response =
         await flipperHttpClient.get(Uri.parse("$apihub/search?name=$name"));
     return response.statusCode;
@@ -2564,11 +2570,13 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<IPin?> getPin({required String pin}) async {
+  Future<IPin?> getPin(
+      {required String pin,
+      required HttpClientInterface flipperHttpClient}) async {
     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pin");
 
     try {
-      final http.Response response = await http.get(uri);
+      final response = await flipperHttpClient.get(uri);
 
       if (response.statusCode == 200) {
         return IPin.fromJson(json.decode(response.body));
@@ -2581,7 +2589,7 @@ class RealmAPI<M extends IJsonSerializable>
       talker.warning(error);
       PinError(term: "Not found");
     }
-    throw UnknownError(term: "Pin might be invalid!");
+    throw UnknownError(term: "Check your internet if is connected 😳");
   }
 
   @override

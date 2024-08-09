@@ -128,8 +128,10 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');
-      await ProxyService.local
-          .login(userPhone: phone!, skipDefaultAppSetup: false);
+      await ProxyService.local.login(
+          userPhone: phone!,
+          skipDefaultAppSetup: false,
+          flipperHttpClient: ProxyService.http);
     }
   }
 
@@ -163,8 +165,10 @@ class MobileUpload implements UploadT {
     } catch (e) {
       //refresh to token
       String? phone = ProxyService.box.readString(key: 'userPhone');
-      await ProxyService.local
-          .login(userPhone: phone!, skipDefaultAppSetup: false);
+      await ProxyService.local.login(
+          userPhone: phone!,
+          skipDefaultAppSetup: false,
+          flipperHttpClient: ProxyService.http);
     }
   }
 }

@@ -71,7 +71,8 @@ class AppService with ListenableServiceMixin {
         businessId == null) {
       await ProxyService.local.login(
           userPhone: user.phoneNumber ?? user.email!,
-          skipDefaultAppSetup: false);
+          skipDefaultAppSetup: false,
+          flipperHttpClient: ProxyService.http);
     }
 
     bool value = await isSocialLoggedin();

@@ -1,6 +1,6 @@
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealm.dart';
-import 'package:flipper_models/http_client_interface.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
 import 'package:flipper_models/whatsapp.dart';
@@ -69,9 +69,11 @@ final Status _status = getIt<Status>();
 final SentryServiceInterface _sentry = getIt<SentryServiceInterface>();
 final Device _device = getIt<Device>();
 final LocalRealmInterface _localRealm = getIt<LocalRealmInterface>();
+final HttpClientInterface _http = getIt<HttpClientInterface>();
 
 abstract class ProxyService {
   static LocalStorage get box => _box;
+  static HttpClientInterface get http => _http;
   static Api get api => _apiService;
   static TaxApi get tax => _tax;
   static RealmApiInterface get realm => _realm;

@@ -114,7 +114,10 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
       // If the variant is found, remove it from the list
       Variant matchedVariant = scannedVariants[index];
       try {
-        ProxyService.realm.delete(id: matchedVariant.id!, endPoint: 'variant');
+        ProxyService.realm.delete(
+            id: matchedVariant.id!,
+            endPoint: 'variant',
+            flipperHttpClient: ProxyService.http);
       } catch (e) {}
       scannedVariants.removeAt(index);
       notifyListeners();
@@ -165,7 +168,10 @@ class ScannViewModel extends ProductViewModel with ProductMixin, RRADEFAULTS {
   Future<void> deleteAllVariants() async {
     // Assuming that each variant has a unique ID
     for (var variant in scannedVariants) {
-      await ProxyService.realm.delete(id: variant.id!, endPoint: 'variant');
+      await ProxyService.realm.delete(
+          id: variant.id!,
+          endPoint: 'variant',
+          flipperHttpClient: ProxyService.http);
     }
 
     scannedVariants.clear();

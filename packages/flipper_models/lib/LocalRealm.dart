@@ -1,3 +1,4 @@
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
@@ -13,7 +14,8 @@ abstract class LocalRealmInterface {
   Future<IUser> login(
       {required String userPhone,
       required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false});
+      bool stopAfterConfigure = false,
+      required HttpClientInterface flipperHttpClient});
 
   /// since when we log in we get all business in login response object
   /// it is assumed that this business/branches are for user access
@@ -21,19 +23,24 @@ abstract class LocalRealmInterface {
   Future<Business?> activeBusinesses({required int userId});
   // Future<Business> getOnlineBusiness({required int userId});
   List<Branch> branches({int? businessId});
-  Future<List<ITenant>> signup({required Map business});
+  Future<List<ITenant>> signup(
+      {required Map business, required HttpClientInterface flipperHttpClient});
   Business getBusiness({int? businessId});
   Future<Business> getBusinessFuture({int? businessId});
   Future<Business?> defaultBusiness();
   Branch? defaultBranch();
   Future<Branch> activeBranch();
 
-  Future<List<ITenant>> tenantsFromOnline({required int businessId});
-  Future<Business?> getBusinessFromOnlineGivenId({required int id});
+  Future<List<ITenant>> tenantsFromOnline(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient});
+  Future<Business?> getBusinessFromOnlineGivenId(
+      {required int id, required HttpClientInterface flipperHttpClient});
   Future<List<Business>> getContacts();
   Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
+      required HttpClientInterface flipperHttpClient,
       required String userType});
   Future<List<UnversalProduct>> universalProductNames({required int branchId});
   Stream<List<AppNotification>> notificationStream({required int identifier});
@@ -43,7 +50,9 @@ abstract class LocalRealmInterface {
       {required String name,
       required int businessId,
       required String location,
-      required String userOwnerPhoneNumber});
-  Future<void> deleteBranch({required int branchId});
+      required String userOwnerPhoneNumber,
+      required HttpClientInterface flipperHttpClient});
+  Future<void> deleteBranch(
+      {required int branchId, required HttpClientInterface flipperHttpClient});
   Branch? branch({required int serverId});
 }

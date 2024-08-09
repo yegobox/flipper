@@ -184,8 +184,10 @@ class CoreViewModel extends FlipperBaseModel
       // ProxyService.keypad.reset();
       reset();
       TransactionItem itemToDelete = items.last;
-      await ProxyService.realm
-          .delete(id: itemToDelete.id!, endPoint: 'transactionItem');
+      await ProxyService.realm.delete(
+          id: itemToDelete.id!,
+          endPoint: 'transactionItem',
+          flipperHttpClient: ProxyService.http);
 
       List<TransactionItem> updatedItems = await ProxyService.realm
           .transactionItems(
@@ -680,7 +682,10 @@ class CoreViewModel extends FlipperBaseModel
   /// FIXMEsometime after deleteting transactionItems are not reflecting
   Future<bool> deleteTransactionItem(
       {required int id, required BuildContext context}) async {
-    await ProxyService.realm.delete(id: id, endPoint: 'transactionItem');
+    await ProxyService.realm.delete(
+        id: id,
+        endPoint: 'transactionItem',
+        flipperHttpClient: ProxyService.http);
 
     updatePayable();
 
@@ -765,13 +770,15 @@ class CoreViewModel extends FlipperBaseModel
         transactionType: TransactionType.sale,
         isExpense: false);
     if (transaction.customerId == null) {
-      await ProxyService.realm.delete(id: id, endPoint: 'customer');
+      await ProxyService.realm.delete(
+          id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
       callback("customer deleted");
     } else {
       /// first detach the customer from trans
       ProxyService.realm.realm!.write(() {
         transaction.customerId = null;
-        ProxyService.realm.delete(id: id, endPoint: 'customer');
+        ProxyService.realm.delete(
+            id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
       });
       callback("customer deleted");
     }

@@ -85,7 +85,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       if (username == null) {
         return "Username/business name is required";
       }
-      int status = await ProxyService.realm.userNameAvailable(name: username);
+      int status = await ProxyService.realm.userNameAvailable(
+          name: username, flipperHttpClient: ProxyService.http);
 
       if (status == 200) {
         return 'That username is already taken';

@@ -365,12 +365,11 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
         // Save tenant, is tenant is not already saved in the backend
         Tenant? newTenant = await ProxyService.local.saveTenant(
-          _phoneController.text,
-          _nameController.text,
-          branch: branch!,
-          business: business!,
-          userType: selectedUserType,
-        );
+            _phoneController.text, _nameController.text,
+            branch: branch!,
+            business: business!,
+            userType: selectedUserType,
+            flipperHttpClient: ProxyService.http);
 
         // Save access permissions
         tenantPermissions.forEach((featureName, accessLevel) {
@@ -641,18 +640,27 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
       showToast(context, 'Tenant deleted successfully');
       model.deleteTenant(tenant);
-      ProxyService.realm.delete(id: tenant.id!, endPoint: 'tenant');
+      ProxyService.realm.delete(
+          id: tenant.id!,
+          endPoint: 'tenant',
+          flipperHttpClient: ProxyService.http);
 
       /// also delete related permission & acess
       List<LPermission> permissions =
           ProxyService.realm.permissions(userId: tenant.userId!);
       for (LPermission permission in permissions) {
-        ProxyService.realm.delete(id: permission.id!, endPoint: 'permission');
+        ProxyService.realm.delete(
+            id: permission.id!,
+            endPoint: 'permission',
+            flipperHttpClient: ProxyService.http);
       }
       //
       List<Access> accesses = ProxyService.realm.access(userId: tenant.userId!);
       for (Access access in accesses) {
-        ProxyService.realm.delete(id: access.id!, endPoint: 'access');
+        ProxyService.realm.delete(
+            id: access.id!,
+            endPoint: 'access',
+            flipperHttpClient: ProxyService.http);
       }
 
       model.rebuildUi();

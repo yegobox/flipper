@@ -1,22 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:mockito/mockito.dart';
-
-abstract class HttpClientInterface {
-  Future<http.StreamedResponse> send(http.BaseRequest request);
-  Future<http.Response> get(Uri url, {Map<String, String>? headers});
-  Future<http.Response> post(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding});
-  Future<http.Response> patch(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding});
-  Future<http.Response> put(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding});
-  Future<http.Response> delete(Uri url,
-      {Map<String, String>? headers, Object? body, Encoding? encoding});
-}
 
 class MockHttpClientInterface extends Mock implements HttpClientInterface {}
 

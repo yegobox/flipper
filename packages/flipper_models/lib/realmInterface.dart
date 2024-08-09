@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -70,9 +71,13 @@ abstract class RealmApiInterface {
   Future<List<IUnit>> units({required int branchId});
   T? create<T>({required T data});
   Stream<double> getStockValue({required int branchId});
-  Future<int> updateNonRealm<T>({required T data});
+  Future<int> updateNonRealm<T>(
+      {required T data, required HttpClientInterface flipperHttpClient});
 
-  Future<bool> delete({required int id, String? endPoint});
+  Future<bool> delete(
+      {required int id,
+      String? endPoint,
+      required HttpClientInterface flipperHttpClient});
   Future<PColor?> getColor({required int id});
   Future<Stock?> getStock({required int branchId, required int variantId});
   Future<List<Variant>> variants({
@@ -219,7 +224,8 @@ abstract class RealmApiInterface {
   void emptySentMessageQueue();
   bool suggestRestore();
 
-  Future<int> userNameAvailable({required String name});
+  Future<int> userNameAvailable(
+      {required String name, required HttpClientInterface flipperHttpClient});
 
   Future<List<Tenant>> tenants({int? businessId});
   Future<Tenant?> getTenantBYUserId({required int userId});
@@ -364,7 +370,8 @@ abstract class RealmApiInterface {
   // Future<Permission?> permission({required int userId});
 
   Future<List<BusinessType>> businessTypes();
-  Future<IPin?> getPin({required String pin});
+  Future<IPin?> getPin(
+      {required String pin, required HttpClientInterface flipperHttpClient});
 
   Stream<List<TransactionItem>> transactionItemsStreams(
       {required int transactionId,

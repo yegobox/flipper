@@ -64,7 +64,8 @@ class LoginViewModel extends FlipperBaseModel
             userId: ProxyService.box.getUserId());
       }
 
-      IPin? pin = await ProxyService.realm.getPin(pin: pinCode);
+      IPin? pin = await ProxyService.realm
+          .getPin(pin: pinCode, flipperHttpClient: ProxyService.http);
       if (pin == null) {
         throw PinError(term: "Not found");
       }
@@ -77,6 +78,7 @@ class LoginViewModel extends FlipperBaseModel
 
       // Perform user login with ProxyService
       await ProxyService.local.login(
+        flipperHttpClient: ProxyService.http,
         skipDefaultAppSetup: false,
         userPhone: pin.phoneNumber,
       );

@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:flipper_models/Booting.dart';
+import 'package:flipper_models/DATA.dart';
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/exceptions.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -17,7 +20,6 @@ import 'package:realm/realm.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flutter/foundation.dart' as foundation;
 
 final localModels = [
@@ -28,111 +30,14 @@ final localModels = [
   AppNotification.schema
 ];
 
-class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
+class LocalRealmApi extends RealmAPI
+    with Booting, Data
+    implements LocalRealmInterface {
   final talker = TalkerFlutter.init();
   @override
   Realm? localRealm;
 
   void dataCb(Realm realm) {
-    List<Map<String, dynamic>> itemClsList = [
-      {
-        "itemClsCd": "5020230601",
-        "itemClsNm": "Fanta",
-        "itemClsLvl": 5,
-        "taxTyCd": "B",
-        "mjrTgYn": "Y",
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "5020230602",
-        "itemClsNm": "water",
-        "itemClsLvl": 5,
-        "taxTyCd": "B",
-        "mjrTgYn": "Y",
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "5020230102",
-        "itemClsNm": "Inyange",
-        "itemClsLvl": 5,
-        "taxTyCd": "B",
-        "mjrTgYn": "Y",
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "1112200101",
-        "itemClsNm": "Gypsum boad",
-        "itemClsLvl": 5,
-        "taxTyCd": "B",
-        "mjrTgYn": "Y",
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "3011170102",
-        "itemClsNm": "Gypsum board 1",
-        "itemClsLvl": 5,
-        "taxTyCd": "B",
-        "mjrTgYn": "Y",
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "10122101",
-        "itemClsNm": "Miscellaneous animal food",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "50202203",
-        "itemClsNm": "Wine",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "26111612",
-        "itemClsNm": "Solar equipment systems",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "31211905",
-        "itemClsNm": "Paint mixers",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "10171702",
-        "itemClsNm": "Fungicides",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "22101539",
-        "itemClsNm": "Earthmoving machinery parts and accessories",
-        "itemClsLvl": 4,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-      {
-        "itemClsCd": "25132100",
-        "itemClsNm": "Unmanned aerial vehicle",
-        "itemClsLvl": 3,
-        "taxTyCd": null,
-        "mjrTgYn": null,
-        "useYn": "Y"
-      },
-    ];
-
     for (final item in itemClsList) {
       // Check if an item with the same 'itemClsCd' already exists
       final existingItem = realm.query<UnversalProduct>(
@@ -329,11 +234,11 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<IUser> login({
-    required String userPhone,
-    required bool skipDefaultAppSetup,
-    bool stopAfterConfigure = false,
-  }) async {
+  Future<IUser> login(
+      {required String userPhone,
+      required bool skipDefaultAppSetup,
+      bool stopAfterConfigure = false,
+      required HttpClientInterface flipperHttpClient}) async {
     String phoneNumber = userPhone;
 
     await _initializeRealms();
@@ -342,20 +247,22 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       phoneNumber = '+' + phoneNumber;
     }
 
-    final http.Response response = await _sendLoginRequest(phoneNumber);
+    final http.Response response =
+        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final IUser user = IUser.fromJson(json.decode(response.body));
 
-      await _configureApp(userPhone, user);
+      await configureApp(userPhone, user);
+      await configureLocal(useInMemory: false);
 
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {
-        await _setDefaultApp(user);
+        await setDefaultApp(user);
       }
 
-      await _updateLocalRealm(user);
+      await updateLocalRealm(user);
 
       return user;
     } else {
@@ -378,226 +285,6 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
     if (ProxyService.local.localRealm == null) {
       await ProxyService.local.configureLocal(useInMemory: false);
-    }
-  }
-
-  Future<http.Response> _sendLoginRequest(String phoneNumber) async {
-    final String? uid = firebase.FirebaseAuth.instance.currentUser?.uid;
-    return await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      body:
-          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
-    );
-  }
-
-  Future<void> _configureApp(String userPhone, IUser user) async {
-    await _configureTheBox(userPhone, user);
-    await configureLocal(useInMemory: false);
-    await ProxyService.realm.configure(
-      useInMemoryDb: false,
-      useFallBack: false,
-      localRealm: ProxyService.local.localRealm,
-      businessId: ProxyService.box.getBusinessId(),
-      encryptionKey: ProxyService.box.encryptionKey(),
-      branchId: ProxyService.box.getBranchId(),
-      userId: ProxyService.box.getUserId(),
-    );
-
-    await ProxyService.realm.downloadAssetSave();
-  }
-
-  Future<void> _setDefaultApp(IUser user) async {
-    final String defaultAppValue = user.tenants.isEmpty
-        ? 'null'
-        : ProxyService.box.getDefaultApp() != "1"
-            ? ProxyService.box.getDefaultApp()
-            : user.tenants.first.businesses.first.businessTypeId.toString();
-
-    await ProxyService.box
-        .writeString(key: 'defaultApp', value: defaultAppValue);
-  }
-
-  Future<void> _updateLocalRealm(IUser user) async {
-    for (ITenant tenant in user.tenants) {
-      await _addOrUpdateTenant(tenant, user.id.toString());
-    }
-  }
-
-  Future<void> _addOrUpdateTenant(ITenant tenant, String userId) async {
-    final Tenant iTenant = Tenant(
-      ObjectId(),
-      isDefault: tenant.isDefault,
-      id: tenant.id,
-      name: tenant.name,
-      businessId: tenant.businessId,
-      nfcEnabled: tenant.nfcEnabled,
-      email: tenant.email,
-      userId: int.tryParse(userId),
-      phoneNumber: tenant.phoneNumber,
-      pin: tenant.pin,
-    );
-
-    await _addOrUpdateBusinesses(tenant.businesses, userId);
-    await _addOrUpdateBranches(tenant.branches);
-    await _addOrUpdatePermissions(tenant.permissions);
-    await _addOrUpdateTenantInRealm(iTenant, userId);
-  }
-
-  Future<void> _addOrUpdateBusinesses(
-      List<IBusiness> businesses, String userId) async {
-    final List<Business> businessesToAdd = [];
-
-    for (IBusiness business in businesses) {
-      Business biz = Business(
-        ObjectId(),
-        userId: business.userId,
-        serverId: business.id,
-        name: business.name,
-        currency: business.currency,
-        categoryId: business.categoryId,
-        latitude: business.latitude,
-        longitude: business.longitude,
-        timeZone: business.timeZone,
-        country: business.country,
-        businessUrl: business.businessUrl,
-        hexColor: business.hexColor,
-        imageUrl: business.imageUrl,
-        type: business.type,
-        active: business.active,
-        chatUid: business.chatUid,
-        metadata: business.metadata,
-        role: business.role,
-        lastSeen: business.lastSeen,
-        firstName: business.firstName,
-        lastName: business.lastName,
-        createdAt: business.createdAt,
-        deviceToken: business.deviceToken,
-        backUpEnabled: business.backUpEnabled,
-        subscriptionPlan: business.subscriptionPlan,
-        nextBillingDate: business.nextBillingDate,
-        previousBillingDate: business.previousBillingDate,
-        isLastSubscriptionPaymentSucceeded:
-            business.isLastSubscriptionPaymentSucceeded,
-        backupFileId: business.backupFileId,
-        email: business.email,
-        lastDbBackup: business.lastDbBackup,
-        fullName: business.fullName,
-        tinNumber: business.tinNumber,
-        bhfId: ProxyService.box.bhfId() ?? "00",
-        dvcSrlNo: business.dvcSrlNo,
-        adrs: business.adrs,
-        taxEnabled: business.taxEnabled,
-        taxServerUrl: business.taxServerUrl,
-        isDefault: business.isDefault,
-        businessTypeId: business.businessTypeId,
-        lastTouched: business.lastTouched,
-        action: business.action,
-        deletedAt: business.deletedAt,
-        encryptionKey: business.encryptionKey,
-      );
-
-      Business? exist = localRealm!
-          .query<Business>(r'serverId == $0', [business.id]).firstOrNull;
-      if (exist == null) {
-        businessesToAdd.add(biz);
-      }
-    }
-
-    localRealm!.writeAsync(() {
-      localRealm!.addAll<Business>(businessesToAdd);
-    });
-  }
-
-  Future<void> _addOrUpdateBranches(List<IBranch> branches) async {
-    final List<Branch> branchToAdd = [];
-
-    for (IBranch brannch in branches) {
-      Branch branch = Branch(
-        ObjectId(),
-        active: brannch.active,
-        serverId: brannch.id,
-        description: brannch.description,
-        name: brannch.name,
-        businessId: brannch.businessId,
-        longitude: brannch.longitude,
-        latitude: brannch.latitude,
-        isDefault: brannch.isDefault,
-        lastTouched: brannch.lastTouched,
-        action: brannch.action,
-        deletedAt: brannch.deletedAt,
-      );
-
-      Branch? exist = localRealm!
-          .query<Branch>(r'serverId == $0', [branch.serverId]).firstOrNull;
-      if (exist == null) {
-        branchToAdd.add(branch);
-      }
-    }
-
-    localRealm!.write(() {
-      localRealm!.addAll<Branch>(branchToAdd);
-    });
-  }
-
-  Future<void> _addOrUpdatePermissions(List<IPermission> permissions) async {
-    final List<LPermission> permissionToAdd = [];
-    final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
-
-    for (IPermission permission in permissions) {
-      LPermission? exist = ProxyService.realm.realm!
-          .query<LPermission>(r'userId == $0', [permission.userId]).firstOrNull;
-
-      if (exist == null) {
-        final perm = LPermission(
-          ObjectId(),
-          id: randomNumber(),
-          name: permission.name,
-          userId: permission.userId,
-        );
-        permissionToAdd.add(perm);
-
-        // Check if the permission is "admin" and handle access creation
-        if (permission.name.toLowerCase() == 'admin') {
-          for (String featureName in features) {
-            final Access? existingAccess = ProxyService.realm.realm!
-                .query<Access>(r'userId == $0 AND featureName == $1',
-                    [permission.userId, featureName]).firstOrNull;
-
-            if (existingAccess == null) {
-              final Access access = Access(
-                ObjectId(),
-                id: randomNumber(),
-                createdAt: DateTime.now(),
-                branchId: ProxyService.box.getBranchId(),
-                businessId: ProxyService.box.getBusinessId(),
-                userType: "Admin",
-                accessLevel: 'Admin'.toLowerCase(),
-                status: 'active',
-                userId: permission.userId,
-                featureName: featureName,
-              );
-              ProxyService.realm.realm!.write(() {
-                ProxyService.realm.realm!.add<Access>(access);
-              });
-            }
-          }
-        }
-      }
-    }
-
-    ProxyService.realm.realm!.write(() {
-      ProxyService.realm.realm!.addAll<LPermission>(permissionToAdd);
-    });
-  }
-
-  Future<void> _addOrUpdateTenantInRealm(Tenant iTenant, String userId) async {
-    Tenant? exist = ProxyService.realm.realm!
-        .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
-    if (exist == null) {
-      ProxyService.realm.realm!.write(() {
-        iTenant.sessionActive = (userId == iTenant.userId);
-        ProxyService.realm.realm!.add<Tenant>(iTenant);
-      });
     }
   }
 
@@ -629,94 +316,10 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
     }
   }
 
-  // @override
-  // Future<Business> getOnlineBusiness({required int userId}) async {
-  //   final response = await flipperHttpClient
-  //       .get(Uri.parse("$apihub/v2/api/businessUserId/$userId"));
-
-  //   if (response.statusCode == 401) {
-  //     throw SessionException(term: "session expired");
-  //   }
-  //   if (response.statusCode == 404) {
-  //     throw BusinessNotFoundException(term: "IBusiness not found");
-  //   }
-
-  //   Business? business = localRealm!.query<Business>(r'serverId == $0',
-  //       [IBusiness.fromJson(json.decode(response.body)).id!]).firstOrNull;
-
-  //   if (business == null) {
-  //     localRealm!.write(() {
-  //       localRealm!.add<Business>(Business(ObjectId(),
-  //           serverId: IBusiness.fromJson(json.decode(response.body)).id,
-  //           userId: IBusiness.fromJson(json.decode(response.body)).userId,
-  //           name: IBusiness.fromJson(json.decode(response.body)).name,
-  //           currency: IBusiness.fromJson(json.decode(response.body)).currency,
-  //           categoryId:
-  //               IBusiness.fromJson(json.decode(response.body)).categoryId,
-  //           latitude: IBusiness.fromJson(json.decode(response.body)).latitude,
-  //           longitude: IBusiness.fromJson(json.decode(response.body)).longitude,
-  //           timeZone: IBusiness.fromJson(json.decode(response.body)).timeZone,
-  //           country: IBusiness.fromJson(json.decode(response.body)).country,
-  //           businessUrl:
-  //               IBusiness.fromJson(json.decode(response.body)).businessUrl,
-  //           hexColor: IBusiness.fromJson(json.decode(response.body)).hexColor,
-  //           imageUrl: IBusiness.fromJson(json.decode(response.body)).imageUrl,
-  //           type: IBusiness.fromJson(json.decode(response.body)).type,
-  //           active: IBusiness.fromJson(json.decode(response.body)).active,
-  //           chatUid: IBusiness.fromJson(json.decode(response.body)).chatUid,
-  //           metadata: IBusiness.fromJson(json.decode(response.body)).metadata,
-  //           role: IBusiness.fromJson(json.decode(response.body)).role,
-  //           lastSeen: IBusiness.fromJson(json.decode(response.body)).lastSeen,
-  //           firstName: IBusiness.fromJson(json.decode(response.body)).firstName,
-  //           lastName: IBusiness.fromJson(json.decode(response.body)).lastName,
-  //           createdAt: IBusiness.fromJson(json.decode(response.body)).createdAt,
-  //           deviceToken:
-  //               IBusiness.fromJson(json.decode(response.body)).deviceToken,
-  //           backUpEnabled:
-  //               IBusiness.fromJson(json.decode(response.body)).backUpEnabled,
-  //           subscriptionPlan:
-  //               IBusiness.fromJson(json.decode(response.body)).subscriptionPlan,
-  //           nextBillingDate:
-  //               IBusiness.fromJson(json.decode(response.body)).nextBillingDate,
-  //           previousBillingDate: IBusiness.fromJson(json.decode(response.body))
-  //               .previousBillingDate,
-  //           isLastSubscriptionPaymentSucceeded:
-  //               IBusiness.fromJson(json.decode(response.body))
-  //                   .isLastSubscriptionPaymentSucceeded,
-  //           backupFileId:
-  //               IBusiness.fromJson(json.decode(response.body)).backupFileId,
-  //           email: IBusiness.fromJson(json.decode(response.body)).email,
-  //           lastDbBackup:
-  //               IBusiness.fromJson(json.decode(response.body)).lastDbBackup,
-  //           fullName: IBusiness.fromJson(json.decode(response.body)).fullName,
-  //           tinNumber: IBusiness.fromJson(json.decode(response.body)).tinNumber,
-  //           bhfId: IBusiness.fromJson(json.decode(response.body)).bhfId,
-  //           dvcSrlNo: IBusiness.fromJson(json.decode(response.body)).dvcSrlNo,
-  //           adrs: IBusiness.fromJson(json.decode(response.body)).adrs,
-  //           taxEnabled:
-  //               IBusiness.fromJson(json.decode(response.body)).taxEnabled,
-  //           taxServerUrl:
-  //               IBusiness.fromJson(json.decode(response.body)).taxServerUrl,
-  //           isDefault: IBusiness.fromJson(json.decode(response.body)).isDefault,
-  //           businessTypeId:
-  //               IBusiness.fromJson(json.decode(response.body)).businessTypeId,
-  //           lastTouched:
-  //               IBusiness.fromJson(json.decode(response.body)).lastTouched,
-  //           action: IBusiness.fromJson(json.decode(response.body)).action,
-  //           deletedAt: IBusiness.fromJson(json.decode(response.body)).deletedAt,
-  //           encryptionKey:
-  //               IBusiness.fromJson(json.decode(response.body)).encryptionKey));
-  //     });
-  //   }
-  //   business =
-  //       localRealm!.query<Business>(r'userId == $0', [userId]).firstOrNull;
-  //   ProxyService.box.writeInt(key: 'businessId', value: business!.serverId!);
-
-  //   return business;
-  // }
-
   @override
-  Future<List<ITenant>> signup({required Map business}) async {
+  Future<List<ITenant>> signup(
+      {required Map business,
+      required HttpClientInterface flipperHttpClient}) async {
     talker.info(business.toString());
     final http.Response response = await flipperHttpClient
         .post(Uri.parse("$apihub/v2/api/business"), body: jsonEncode(business));
@@ -725,7 +328,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       /// as soon as possible so I can be able to save real data into realm
       /// then I call login in here after signup as login handle configuring
       await login(
-          userPhone: business['phoneNumber'], skipDefaultAppSetup: true);
+          userPhone: business['phoneNumber'],
+          skipDefaultAppSetup: true,
+          flipperHttpClient: flipperHttpClient);
 
       await configureLocal(useInMemory: false);
       await ProxyService.realm.configure(
@@ -882,7 +487,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<List<ITenant>> tenantsFromOnline({required int businessId}) async {
+  Future<List<ITenant>> tenantsFromOnline(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient}) async {
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
     if (response.statusCode == 200) {
@@ -1020,7 +627,8 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<Business?> getBusinessFromOnlineGivenId({required int id}) async {
+  Future<Business?> getBusinessFromOnlineGivenId(
+      {required int id, required HttpClientInterface flipperHttpClient}) async {
     Business? business =
         localRealm!.query<Business>(r'serverId == $0', [id]).firstOrNull;
 
@@ -1056,6 +664,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       required int pin,
       required int branchId,
       required int businessId,
+      required HttpClientInterface flipperHttpClient,
       required int defaultApp}) async {
     final data = jsonEncode({
       "userId": pin.toString(),
@@ -1072,6 +681,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
       required Branch branch,
+      required HttpClientInterface flipperHttpClient,
       required String userType}) async {
     talker.info(jsonEncode(branch.toEJson().convertRealmValues()));
 
@@ -1095,6 +705,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       try {
         ITenant jTenant = ITenant.fromRawJson(response.body);
         await _createPin(
+          flipperHttpClient: flipperHttpClient,
           phoneNumber: phoneNumber,
           pin: jTenant.userId,
           branchId: business.serverId!,
@@ -1282,6 +893,7 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
       {required String name,
       required int businessId,
       required String location,
+      required HttpClientInterface flipperHttpClient,
       required String userOwnerPhoneNumber}) async {
     final response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/branch/${userOwnerPhoneNumber}'),
@@ -1316,7 +928,9 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
   }
 
   @override
-  Future<void> deleteBranch({required int branchId}) async {
+  Future<void> deleteBranch(
+      {required int branchId,
+      required HttpClientInterface flipperHttpClient}) async {
     try {
       await flipperHttpClient
           .delete(Uri.parse(apihub + '/v2/api/branch/${branchId}'));

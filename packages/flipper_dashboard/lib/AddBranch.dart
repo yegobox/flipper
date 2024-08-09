@@ -27,7 +27,6 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Branch Manager'),
-        
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -110,12 +109,12 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                 .read(isProcessingProvider.notifier)
                                 .startProcessing();
                             await ProxyService.local.addBranch(
-                              name: _nameController.text,
-                              businessId: ProxyService.box.getBusinessId()!,
-                              location: _locationController.text,
-                              userOwnerPhoneNumber:
-                                  ProxyService.box.getUserPhone()!,
-                            );
+                                name: _nameController.text,
+                                businessId: ProxyService.box.getBusinessId()!,
+                                location: _locationController.text,
+                                userOwnerPhoneNumber:
+                                    ProxyService.box.getUserPhone()!,
+                                flipperHttpClient: ProxyService.http);
                             ref.refresh(branchesProvider);
                             _nameController.clear();
                             _locationController.clear();
@@ -223,8 +222,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                     false) {
                                   // If confirmed
                                   // Delete the branch
-                                  await ProxyService.local
-                                      .deleteBranch(branchId: branch.serverId!);
+                                  await ProxyService.local.deleteBranch(
+                                      branchId: branch.serverId!,
+                                      flipperHttpClient: ProxyService.http);
                                   ref.refresh(
                                       branchesProvider); // Refresh the provider
                                 }

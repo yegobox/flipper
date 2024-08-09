@@ -1,13 +1,15 @@
 // mock_http_client.dart
+import 'dart:convert';
+
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_services/constants.dart';
 
-import 'http_client_interface.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_models/secrets.dart';
 
 import 'package:flutter/foundation.dart' as foundation;
 
-class MockHttpClient extends http.BaseClient implements HttpClientInterface {
+class MockHttpClient implements HttpClientInterface {
   // Mock the behavior for testing
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
@@ -65,5 +67,39 @@ class MockHttpClient extends http.BaseClient implements HttpClientInterface {
     }
 
     return streamedResponse;
+  }
+
+  @override
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement delete
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) {
+    // TODO: implement get
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement patch
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement post
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) {
+    // TODO: implement put
+    throw UnimplementedError();
   }
 }

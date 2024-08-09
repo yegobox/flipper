@@ -132,7 +132,7 @@ class SignupViewModel extends ReactiveViewModel {
         'referredBy': referralCode ?? 'Organic',
         'fullName': kFullName,
         'country': kCountry
-      });
+      }, flipperHttpClient: ProxyService.http);
     } catch (e, s) {
       talker.error(s);
       talker.error(e);
