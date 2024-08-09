@@ -41,6 +41,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'isPosDefault',
         'isOrdersDefault',
         'version',
+        'UToken',
       },
     ));
     return this;

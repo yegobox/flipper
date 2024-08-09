@@ -1,7 +1,4 @@
-import 'dart:convert';
-
 import 'package:flipper_models/exceptions.dart';
-import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -11,7 +8,6 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_services/proxy.dart';
 
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:http/http.dart' as http;
 import 'package:realm/realm.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -223,16 +219,6 @@ mixin Booting {
 
     await ProxyService.box
         .writeString(key: 'defaultApp', value: defaultAppValue);
-  }
-
-  Future<http.Response> sendLoginRequest(String phoneNumber,
-      HttpClientInterface flipperHttpClient, String apihub) async {
-    final String? uid = firebase.FirebaseAuth.instance.currentUser?.uid;
-    return await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/user'),
-      body:
-          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
-    );
   }
 
   Future<void> configureTheBox(String userPhone, IUser user) async {

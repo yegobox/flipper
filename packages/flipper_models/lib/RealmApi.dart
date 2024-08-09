@@ -2041,7 +2041,7 @@ class RealmAPI<M extends IJsonSerializable>
   ///
 
   @override
-  Future<RealmApiInterface> instance() async {
+  RealmApiInterface instance() {
     return this;
   }
 

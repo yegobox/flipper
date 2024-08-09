@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Flutter Tests",
+            "request": "launch",
+            "type": "dart",
+            "program": "apps/flipper/test/",
+            "args": ["--dart-define=FLUTTER_TEST_ENV=true"]
+        },
+        {
             "name": "flipper",
             "request": "launch",
             "type": "dart"

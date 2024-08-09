@@ -3,6 +3,7 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:realm/realm.dart';
+import 'package:http/http.dart' as http;
 
 abstract class LocalRealmInterface {
   Future<LocalRealmInterface> configureLocal({required bool useInMemory});
@@ -55,4 +56,7 @@ abstract class LocalRealmInterface {
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
   Branch? branch({required int serverId});
+
+  Future<http.Response> sendLoginRequest(
+      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub);
 }

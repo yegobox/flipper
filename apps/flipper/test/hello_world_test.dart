@@ -8,7 +8,7 @@ import 'package:mockito/mockito.dart';
 import 'BranchIdWidget.dart';
 import 'TestApp.dart';
 
-//flutter test test/hello_world_test.dart  --dart-define=Test=true
+//flutter test test/hello_world_test.dart  --dart-define=FLUTTER_TEST_ENV=true
 
 void main() {
   group('BranchIdWidget Tests', () {

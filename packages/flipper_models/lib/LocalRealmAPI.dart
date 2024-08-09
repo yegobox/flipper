@@ -21,6 +21,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 
 final localModels = [
   UserActivity.schema,
@@ -65,6 +66,17 @@ class LocalRealmApi extends RealmAPI
     Configuration config = Configuration.inMemory(localModels);
     realm = Realm(config);
     talker.info("Opened in-memory realm.");
+  }
+
+  @override
+  Future<http.Response> sendLoginRequest(String phoneNumber,
+      HttpClientInterface flipperHttpClient, String apihub) async {
+    final String? uid = firebase.FirebaseAuth.instance.currentUser?.uid;
+    return await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/user'),
+      body:
+          jsonEncode(<String, String?>{'phoneNumber': phoneNumber, 'uid': uid}),
+    );
   }
 
   @override

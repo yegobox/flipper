@@ -442,7 +442,7 @@ abstract class RealmApiInterface {
       required String name});
 
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName);
-  Future<RealmApiInterface> instance();
+  RealmApiInterface instance();
   Tenant? tenant({int? businessId, int? userId});
   Stream<List<Report>> reports({required int branchId});
   Report report({required int id});

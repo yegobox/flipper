@@ -68,4 +68,4 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
-          flutter test --dart-define=Test=false -d windows integration_test/smoke_windows_test.dart
+          flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart

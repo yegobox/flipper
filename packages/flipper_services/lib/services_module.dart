@@ -1,6 +1,7 @@
 import 'package:flipper_models/FirestoreSync.dart';
 import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_models/LocalRealmAPI.dart';
+import 'package:flipper_models/RealmAPIMocked.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/marketing.dart';
@@ -152,7 +153,7 @@ abstract class ServicesModule {
   @LazySingleton()
   HttpClientInterface http() {
     late HttpClientInterface https;
-    if ((const bool.fromEnvironment('Test') == true)) {
+    if ((const bool.fromEnvironment('FLUTTER_TEST_ENV') == true)) {
       https = MockHttpClient();
     } else {
       https = FlipperHttpClient(httP.Client());
@@ -253,26 +254,32 @@ abstract class ServicesModule {
   @preResolve
   @LazySingleton()
   Future<LocalStorage> box() async {
-    if ((const bool.fromEnvironment('Test') == true)) {
+    final isTest = bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    if (isTest) {
       return await SharedPreferenceStorageMock().initializePreferences();
     } else {
       return await SharedPreferenceStorage().initializePreferences();
     }
   }
 
-  @preResolve
   @LazySingleton()
-  Future<RealmApiInterface> realmApi() async {
+  RealmApiInterface realmApi() {
+    final isTest = bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+
     /// to speed-up the application starting time, when we init realm, we just pass in memory db
     /// then when user login we will close it and switch to flexible sync
-    return await RealmAPI().instance();
+    if (isTest) {
+      return RealmApiMocked();
+    } else {
+      return RealmAPI().instance();
+    }
   }
 
   @preResolve
   @LazySingleton()
   Future<LocalRealmInterface> localRealm() async {
     return await LocalRealmApi().configureLocal(
-      useInMemory: bool.fromEnvironment('Test') == true,
+      useInMemory: bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
     );
   }
 
