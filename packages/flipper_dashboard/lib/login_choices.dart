@@ -11,6 +11,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:realm/realm.dart';
+import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -31,48 +32,57 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
-    ref.refresh(businessesProvider);
-    ref.refresh(branchesProvider);
-    final branches = ref.watch(branchesProvider);
-    final businesses = ref.watch(businessesProvider);
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        onViewModelReady: (viewModel) {
+          ref.refresh(businessesProvider);
+          ref.refresh(branchesProvider);
+        },
+        builder: (context, viewModel, child) {
+          final branches = ref.watch(branchesProvider);
+          final businesses = ref.watch(businessesProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _isSelectingBranch ? 'Choose a Branch' : 'Choose a Business',
-                style: TextStyle(
-                  fontSize: 32.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0, vertical: 40.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isSelectingBranch
+                          ? 'Choose a Branch'
+                          : 'Choose a Business',
+                      style: TextStyle(
+                        fontSize: 32.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      _isSelectingBranch
+                          ? 'Select the branch you want to access'
+                          : 'Select the business you want to log into',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 32.0),
+                    Expanded(
+                      child: _isSelectingBranch
+                          ? _buildBranchList(branches: branches)
+                          : _buildBusinessList(businesses: businesses),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8.0),
-              Text(
-                _isSelectingBranch
-                    ? 'Select the branch you want to access'
-                    : 'Select the business you want to log into',
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 32.0),
-              Expanded(
-                child: _isSelectingBranch
-                    ? _buildBranchList(branches: branches)
-                    : _buildBusinessList(businesses: businesses),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+            ),
+          );
+        });
   }
 
   Widget _buildBusinessList({required List<Business> businesses}) {

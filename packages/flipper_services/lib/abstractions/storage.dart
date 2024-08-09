@@ -3,9 +3,9 @@ abstract class LocalStorage {
   String? readString({required String key});
   bool? readBool({required String key});
   dynamic remove({required String key});
-  Future<bool> writeInt({required String key, required int value});
-  Future<bool> writeString({required String key, required String value});
-  Future<bool> writeBool({required String key, required bool value});
+  Future<void> writeInt({required String key, required int value});
+  Future<void> writeString({required String key, required String value});
+  Future<void> writeBool({required String key, required bool value});
   int? getBusinessId();
   int? getBranchId();
   bool? getIsTokenRegistered();
@@ -27,7 +27,7 @@ abstract class LocalStorage {
   String? paginationCreatedAt();
   int? paginationId();
   String encryptionKey();
-  Future<bool> clear();
+  Future<void> clear();
   Future<bool> authComplete();
 
   /// firebase token, we take uid from logged in device (mobile)

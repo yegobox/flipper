@@ -2,9 +2,47 @@ import 'abstractions/storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferenceStorage implements LocalStorage {
-  late SharedPreferences prefs;
+  late SharedPreferencesWithCache prefs;
+
   Future<LocalStorage> initializePreferences() async {
-    prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferencesWithCache.create(
+        // You can add cache options here if needed
+        cacheOptions: const SharedPreferencesWithCacheOptions(
+      // When an allowlist is included, any keys that aren't included cannot be used.
+      allowList: <String>{
+        'branchId',
+        'businessId',
+        'userId',
+        'userPhone',
+        'needLinkPhoneNumber',
+        'getServerUrl',
+        'currentOrderId',
+        'isPoroformaMode',
+        'isTrainingMode',
+        'isAutoPrintEnabled',
+        'isAutoBackupEnabled',
+        'hasSignedInForAutoBackup',
+        'gdID',
+        'isAnonymous',
+        'bearerToken',
+        'getIsTokenRegistered',
+        'defaultApp',
+        'whatsAppToken',
+        'createdAt',
+        'id',
+        'encryptionKey',
+        'authComplete',
+        'uid',
+        'bhfId',
+        'tin',
+        'currentSaleCustomerPhoneNumber',
+        'getRefundReason',
+        'mrc',
+        'isPosDefault',
+        'isOrdersDefault',
+        'version',
+      },
+    ));
     return this;
   }
 
@@ -14,8 +52,8 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  Future<bool> writeInt({required dynamic key, required int value}) async {
-    return prefs.setInt(key, value);
+  Future<void> writeInt({required dynamic key, required int value}) async {
+    prefs.setInt(key, value);
   }
 
   @override
@@ -143,13 +181,13 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  Future<bool> writeString({required String key, required String value}) async {
-    return await prefs.setString(key, value);
+  Future<void> writeString({required String key, required String value}) async {
+    await prefs.setString(key, value);
   }
 
   @override
-  Future<bool> writeBool({required String key, required bool value}) async {
-    return await prefs.setBool(key, value);
+  Future<void> writeBool({required String key, required bool value}) async {
+    await prefs.setBool(key, value);
   }
 
   @override
@@ -158,7 +196,7 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  Future<bool> clear() async {
+  Future<void> clear() async {
     return await prefs.clear();
   }
 
