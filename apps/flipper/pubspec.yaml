@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
-version: 1.170.4252223232243+1723059742
+version: 1.170.4252223232244+1723178428
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
@@ -11,7 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-  sentry_flutter: ^8.4.0
+  sentry: ^8.6.0
+  sentry_flutter: ^8.6.0
+  
   firebase_crashlytics: ^4.0.4
   flutter_local_notifications: ^14.1.1
   intl: ^0.19.0
@@ -61,10 +63,7 @@ dependencies:
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
   fluentui_system_icons: ^1.1.203
-  easy_sidemenu:
-    git:
-      url: https://github.com/Jamalianpour/easy_sidemenu.git
-      ref: master
+  easy_sidemenu: ^0.6.0
   # flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
@@ -96,21 +95,16 @@ dependencies:
   syncfusion_flutter_xlsio: ^25.2.7
   syncfusion_flutter_datagrid_export: ^25.2.7
   syncfusion_flutter_core: ^25.2.7
-  flutter_colorpicker:
-    git: https://github.com/mchome/flutter_colorpicker.git
-  realm: ^3.2.0
+  flutter_colorpicker: ^1.1.0
+  realm: ^3.3.0
   
   sizer: ^2.0.15
   # firebase_app_check: ^0.2.1+12
   talker_flutter: ^4.1.5
   collection: ^1.15.0
   # flipper_loading: ^2.0.0
-  flutter_window_close: ^0.2.2
-  window_size:
-    git:
-      url: https://github.com/google/flutter-desktop-embedding.git
-      path: plugins/window_size
-      ref: 6c66ad23ee79749f30a8eece542cf54eaf157ed8
+  
+  
   stacked_services: ^1.0.4
   url_strategy: ^0.2.0
   logger: ^1.1.0
@@ -138,7 +132,7 @@ dependencies:
   markdown:
   string_scanner:
   pdf: ^3.10.3
-  printing: ^5.13.1
+  printing: ^5.13.2
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   plugin_platform_interface: ^2.1.0
@@ -169,6 +163,8 @@ dependencies:
   amplify_auth_cognito: ^2.1.0
   amplify_storage_s3: ^2.1.0
   shared_preferences: ^2.3.1
+
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -206,7 +202,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.2386.0
+  msix_version: 1.170.2387.0
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

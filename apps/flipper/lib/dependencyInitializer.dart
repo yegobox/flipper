@@ -14,7 +14,6 @@ import 'package:flipper_services/notifications/cubit/notifications_cubit.dart';
 
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +24,7 @@ import 'package:flutter/foundation.dart';
 // import 'package:firebase_app_check/firebase_app_check.dart';
 // TODO: configure https://docs.amplify.aws/gen1/flutter/start/project-setup/platform-setup/ for ios,macos
 // import 'package:firebase_app_check/firebase_app_check.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 // Amplify Flutter Packages
 import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
@@ -56,9 +56,8 @@ Future<void> _configureAmplify() async {
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
-/**
- *TODO: need to generate this key in firebase
- */
+///TODO: need to generate this key in firebase
+
 const kWebRecaptchaSiteKey = '';
 
 class MyHttpOverrides extends HttpOverrides {

@@ -59,7 +59,7 @@ class _AdminControlState extends State<AdminControl> {
           tooltip: 'Back',
         ),
         title: Text(
-          'Manage Your Account and Preferences',
+          'Management',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,

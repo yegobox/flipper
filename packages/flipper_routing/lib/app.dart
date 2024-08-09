@@ -563,3 +563,9 @@ class App {}
 /// https://www.corbado.com/pricing
 /// https://github.com/corbado/flutter-passkeys
 /// https://www.epam.com/
+/// echo "$PRODUCT_NAME.app" > "$PROJECT_DIR"/Flutter/ephemeral/.app_filename && "$FLUTTER_ROOT"/packages/flutter_tools/bin/macos_assemble.sh embed
+/// Features TODO: take advantage of https://pub.dev/packages/sentry_flutter/changelog
+// Add dart platform to sentry frames (#2193)
+// This allows viewing the correct dart formatted raw stacktrace in the Sentry UI
+// Support ignoredExceptionsForType (#2150)
+// Filter out exception types by calling SentryOptions.addExceptionFilterForType(Type exceptionType)

@@ -187,3 +187,10 @@ extension AccessControlWidget on Widget {
     );
   }
 }
+
+extension PercentageFormatter on double {
+  String toFormattedPercentage() {
+    final formatter = NumberFormat.percentPattern();
+    return formatter.format(this / 100); // Divide by 100 before formatting
+  }
+}

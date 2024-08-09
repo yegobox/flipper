@@ -14,7 +14,6 @@ import 'package:realm/realm.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:email_validator_flutter/email_validator_flutter.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 import 'customappbar.dart';
 
 class TenantAdd extends StatefulHookConsumerWidget {

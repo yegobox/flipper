@@ -7,7 +7,6 @@ import 'package:flipper_models/Subcriptions.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
-import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/pin.dart';
@@ -2134,6 +2133,13 @@ class RealmAPI<M extends IJsonSerializable>
       throw Exception();
     }
     realm = await _openRealm(config: config, user: user, app: app);
+    updateSubscription(
+      localRealm: localRealm,
+      userId: userId,
+      realm: realm,
+      branchId: branchId,
+      businessId: businessId,
+    );
   }
 
   ///https://www.mongodb.com/docs/atlas/device-sdks/sdk/flutter/sync/handle-sync-errors/import 'dart:io';
@@ -2617,8 +2623,6 @@ class RealmAPI<M extends IJsonSerializable>
   @override
   Stream<double> soldStockValue({required branchId}) async* {
     // Get the list of TransactionItem objects for the given branchId
-
-    /// first check in Computed model if we have already calculated the value
     final List<Computed> computeds =
         realm!.query<Computed>(r'branchId == $0', [branchId]).toList();
 
@@ -2629,9 +2633,14 @@ class RealmAPI<M extends IJsonSerializable>
               ? next
               : curr);
 
-      yield computed.totalStockSoldValue?.toPrecision(2) ?? 0;
-      return;
+      // Check if the computed object has a valid totalStockSoldValue
+      if (computed.totalStockSoldValue != null) {
+        yield computed.totalStockSoldValue!.toPrecision(2);
+        return;
+      }
     }
+
+    // If no valid computed value is found, or computeds is empty, calculate from transactions
     final List<TransactionItem> transactions =
         realm!.query<TransactionItem>(r'branchId == $0', [branchId]).toList();
 

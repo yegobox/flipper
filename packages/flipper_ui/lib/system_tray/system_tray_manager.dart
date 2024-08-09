@@ -5,12 +5,12 @@ import 'package:flipper_services/constants.dart';
 
 /// Manages the system tray icon.
 class SystemTrayManager {
-  final AppWindow _window;
+  // final AppWindow _window;
 
   /// The singleton instance of this class.
   static late SystemTrayManager instance;
 
-  SystemTrayManager(this._window) {
+  SystemTrayManager() {
     instance = this;
   }
 
@@ -23,10 +23,10 @@ class SystemTrayManager {
 
     final Menu menu = Menu(
       items: [
-        MenuItem(label: 'Show', onClick: (menuItem) => _window.show()),
-        MenuItem(label: 'Hide', onClick: (menuItem) => _window.hide()),
-        MenuItem(label: 'Reset Window', onClick: (_) => _resetWindow()),
-        MenuItem(label: 'Exit', onClick: (menuItem) => _window.close()),
+        // MenuItem(label: 'Show', onClick: (menuItem) => _window.show()),
+        // MenuItem(label: 'Hide', onClick: (menuItem) => _window.hide()),
+        // MenuItem(label: 'Reset Window', onClick: (_) => _resetWindow()),
+        // MenuItem(label: 'Exit', onClick: (menuItem) => _window.close()),
       ],
     );
 
@@ -46,6 +46,6 @@ class SystemTrayManager {
       await WindowCubit.instance.togglePinned();
     }
 
-    await _window.reset();
+    // await _window.reset();
   }
 }

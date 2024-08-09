@@ -1,18 +1,100 @@
-import 'package:flipper_models/http_client_interface.dart';
+import 'dart:convert';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:http/retry.dart';
 
-class FlipperHttpClient extends http.BaseClient implements HttpClientInterface {
+abstract class HttpClientInterface {
+  Future<http.StreamedResponse> send(http.BaseRequest request);
+  Future<http.Response> get(Uri url, {Map<String, String>? headers});
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding});
+}
+
+class FlipperHttpClient implements HttpClientInterface {
   final http.Client _inner;
 
-  // ignore: sort_constructors_first
   FlipperHttpClient(this._inner);
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    /// token,userId can be null when is desktop login with pin
+    request.headers.addAll(await _getHeaders());
+
+    const retries = 3;
+    var retryClient = RetryClient(_inner, retries: retries);
+
+    try {
+      return await retryClient.send(request);
+    } on SocketException catch (e) {
+      throw Exception('Failed to connect: ${e.message}');
+    } on HandshakeException catch (e) {
+      throw Exception('Failed to connect: ${e.message}');
+    } catch (error, stackTrace) {
+      ProxyService.crash.reportError(error, stackTrace);
+      throw Exception('Unknown error: $error');
+    }
+  }
+
+  @override
+  Future<http.Response> get(Uri url, {Map<String, String>? headers}) async {
+    return _sendUnstreamed('GET', url, headers);
+  }
+
+  @override
+  Future<http.Response> post(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+    return _sendUnstreamed('POST', url, headers, body, encoding);
+  }
+
+  @override
+  Future<http.Response> patch(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+    return _sendUnstreamed('PATCH', url, headers, body, encoding);
+  }
+
+  @override
+  Future<http.Response> put(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+    return _sendUnstreamed('PUT', url, headers, body, encoding);
+  }
+
+  @override
+  Future<http.Response> delete(Uri url,
+      {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
+    return _sendUnstreamed('DELETE', url, headers, body, encoding);
+  }
+
+  Future<http.Response> _sendUnstreamed(
+      String method, Uri url, Map<String, String>? headers,
+      [Object? body, Encoding? encoding]) async {
+    var request = http.Request(method, url);
+
+    if (headers != null) request.headers.addAll(headers);
+    if (encoding != null) request.encoding = encoding;
+    if (body != null) {
+      if (body is String) {
+        request.body = body;
+      } else if (body is List) {
+        request.bodyBytes = body.cast<int>();
+      } else if (body is Map) {
+        request.body = json.encode(body);
+      } else {
+        throw ArgumentError('Invalid request body "$body".');
+      }
+    }
+
+    return http.Response.fromStream(await send(request));
+  }
+
+  Future<Map<String, String>> _getHeaders() async {
     String? token;
     if (ProxyService.box.getDefaultApp() == 2) {
       token = ProxyService.box.whatsAppToken();
@@ -21,41 +103,15 @@ class FlipperHttpClient extends http.BaseClient implements HttpClientInterface {
     }
 
     int? userId = ProxyService.box.getUserId();
-    Map<String, String> headers;
-    if (token == null) {
-      headers = {
-        'Content-Type': 'application/json',
-        'userId': userId == null ? "" : userId.toString()
-      };
-    } else {
-      headers = {
-        'Content-Type': 'application/json',
-        'Authorization': '$token',
-        'userId': userId == null ? "" : userId.toString()
-      };
+    Map<String, String> headers = {
+      'Content-Type': 'application/json',
+      'userId': userId?.toString() ?? "",
+    };
+
+    if (token != null) {
+      headers['Authorization'] = token;
     }
 
-    request.headers.addAll(headers);
-
-    const retries = 3;
-
-    var retryClient = RetryClient(_inner, retries: retries);
-
-    try {
-      http.StreamedResponse response = await retryClient.send(request);
-
-      return response;
-    } on SocketException catch (e) {
-      print('Failed to connect: ${e.message}');
-      throw Exception('Failed to connect: ${e.message}');
-    } on HandshakeException catch (e) {
-      print('Failed to connect: ${e.message}');
-      throw Exception('Failed to connect: ${e.message}');
-    } catch (error, stackTrace) {
-      // Handle other types of errors that might occur during the request
-      ProxyService.crash.reportError(error, stackTrace);
-      print('Unknown error: ${error.toString()}');
-      throw Exception('Unknown error: ${error.toString()}');
-    }
+    return headers;
   }
 }

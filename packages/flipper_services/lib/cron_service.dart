@@ -143,9 +143,9 @@ class CronService with Subscriptions {
           ProxyService.box.getBusinessId() == null) return;
 
       /// bootstrap data for universal Product names;
+      await _spawnIsolate("synced", IsolateHandler.flexibleSync);
 
       await _spawnIsolate("local", IsolateHandler.localData);
-      await _spawnIsolate("synced", IsolateHandler.flexibleSync);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);
     });

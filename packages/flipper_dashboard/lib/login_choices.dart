@@ -31,6 +31,8 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
 
   @override
   Widget build(BuildContext context) {
+    ref.refresh(businessesProvider);
+    ref.refresh(branchesProvider);
     final branches = ref.watch(branchesProvider);
     final businesses = ref.watch(businessesProvider);
 
@@ -187,12 +189,15 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     ref.read(businessSelectionProvider.notifier).setLoading(true);
 
     try {
-      ProxyService.local.localRealm!.write(() {
-        final branches = ProxyService.local.businesses();
-        branches.forEach((buss) {
-          buss.isDefault = false;
-          buss.active = false;
+      final businesses = ProxyService.local.businesses();
+      for (Business business in businesses) {
+        ProxyService.local.localRealm!.write(() {
+          business.active = false;
+          business.isDefault = false;
         });
+      }
+
+      ProxyService.local.localRealm!.write(() {
         business.isDefault = true;
         business.active = true;
       });
@@ -264,13 +269,19 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     talker.warning("The choosen branch:${branch.serverId}");
     await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
     try {
-      ProxyService.local.localRealm!.write(() {
-        final branches = ProxyService.local
-            .branches(businessId: ProxyService.box.getBusinessId());
-        branches.forEach((branch) {
+      final branches = ProxyService.local
+          .branches(businessId: ProxyService.box.getBusinessId());
+
+      for (Branch branch in branches) {
+        ProxyService.local.localRealm!.write(() {
+          branch.active = false;
           branch.isDefault = false;
         });
+      }
+
+      ProxyService.local.localRealm!.write(() {
         branch.isDefault = true;
+        branch.active = true;
       });
       ref.refresh(businessesProvider);
       ref.refresh(branchesProvider);

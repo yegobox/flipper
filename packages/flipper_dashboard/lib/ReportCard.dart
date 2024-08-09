@@ -24,65 +24,55 @@ class ReportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final talker = TalkerFlutter.init();
     talker.warning("Incoming Value A ${valueA}: Incoming Value B ${valueB}");
+    double percentage = valueA != 0 ? (valueB / valueA * 100) : 0.0;
+    print("Percentage: ${percentage}");
 
-    return SizedBox(
-      width: 280,
-      height: 150,
-      child: Card(
-        elevation: 4,
-        shape: RoundedRectangleBorder(
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.indigoAccent, Colors.lightBlueAccent],
+          ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Colors.indigoAccent, Colors.lightBlueAccent],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            _buildDataRow(
+              title: wordingA,
+              value: valueA.toRwf(),
+              color: Colors.orangeAccent,
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Text(
-              //   cardName,
-              //   style: TextStyle(
-              //     fontSize: 16,
-              //     fontWeight: FontWeight.bold,
-              //     color: Colors.white,
-              //   ),
-              // ),
-              const SizedBox(height: 8),
-              _buildDataRow(
-                title: wordingA,
-                value: valueA.toRwf(),
-                color: Colors.orangeAccent,
+            const SizedBox(height: 4),
+            _buildDataRow(
+              title: wordingB,
+              value: valueB.toRwf(),
+              color: Colors.greenAccent,
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
+              backgroundColor: Colors.white.withOpacity(0.3),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$description: ${percentage.toFormattedPercentage()}',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              const SizedBox(height: 4),
-              _buildDataRow(
-                title: wordingB,
-                value: valueB.toRwf(),
-                color: Colors.greenAccent,
-              ),
-              const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: valueA != 0 ? (valueB / valueA).clamp(0.0, 1.0) : 0.0,
-                backgroundColor: Colors.white.withOpacity(0.3),
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '$description: ${(valueB / valueA * 100).toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

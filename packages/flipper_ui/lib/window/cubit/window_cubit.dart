@@ -29,11 +29,11 @@ class WindowCubit extends Cubit<WindowState> {
     //     ? Colors.transparent
     //     : Colors.white;
 
-    await AppWindow.instance.setAlwaysOnBottom(!state.pinned);
-    await AppWindow.instance.setAsFrameless();
+    // await AppWindow.instance.setAlwaysOnBottom(!state.pinned);
+    // await AppWindow.instance.setAsFrameless();
     // await AppWindow.instance.setBackgroundColor(backgroundColor);
-    await AppWindow.instance.setSkipTaskbar(!state.pinned);
-    await AppWindow.instance.setTitleBarVisible(state.pinned);
+    // await AppWindow.instance.setSkipTaskbar(!state.pinned);
+    // await AppWindow.instance.setTitleBarVisible(state.pinned);
     emit(state.copyWith(pinned: !state.pinned));
   }
 }

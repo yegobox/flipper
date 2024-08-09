@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/StateObserver.dart';
 
 import 'package:flipper_localize/flipper_localize.dart';
@@ -19,13 +20,12 @@ import 'package:flutter/foundation.dart';
 Future<void> main() async {
   await initializeDependencies();
   await SentryFlutter.init(
-    (options) {
-      options.dsn = kDebugMode
-          ? ''
-          : 'https://f3b8abd190f84fa0abdb139178362bc2@o205255.ingest.sentry.io/6067680';
-      options.tracesSampleRate = 1.0;
-      options.attachScreenshot = true;
-    },
+    (options) => options
+      ..dsn = kDebugMode ? AppSecrets.sentryKeyDev : AppSecrets.sentryKey
+      ..release = 'flipper@1.170.4252223232243+1723059742'
+      ..environment = 'production'
+      ..tracesSampleRate = 1.0
+      ..attachScreenshot = true,
     appRunner: () => runApp(
       ProviderScope(
         observers: [StateObserver()],

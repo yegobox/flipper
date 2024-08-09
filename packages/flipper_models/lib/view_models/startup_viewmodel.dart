@@ -45,14 +45,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       /// TODO: I think bellow code are not necessary
       if (ProxyService.box.encryptionKey().isNotEmpty &&
           ProxyService.realm.realm == null) {
-        talker.info("In startupFile we are re-init the realm db");
+        talker.info("In startupFile we are re-init the realm db:) ");
         await ProxyService.realm.configure(
           useInMemoryDb: false,
           useFallBack: false,
           localRealm: ProxyService.local.localRealm,
-          branchId: ProxyService.box.getBranchId(),
-          userId: ProxyService.box.getUserId(),
-          businessId: ProxyService.box.getBusinessId(),
+          branchId: ProxyService.box.getBranchId()!,
+          userId: ProxyService.box.getUserId()!,
+          businessId: ProxyService.box.getBusinessId()!,
           encryptionKey: ProxyService.box.encryptionKey(),
         );
       }

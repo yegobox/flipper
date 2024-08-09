@@ -16,7 +16,6 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:window_manager/window_manager.dart';
 
 import 'package:flipper_ui/system_tray/system_tray_manager.dart';
-import 'package:flipper_ui/window/app_window.dart';
 import '../notifications.dart';
 
 part 'notifications_state.dart';
@@ -508,8 +507,8 @@ Future<void> _notificationCallback(NotificationResponse response) async {
     case NotificationResponseType.selectedNotification:
       if (isWindows || isLinux) {
         // On desktop, the app is already running so we can just show the window.
-        await AppWindow.instance.show();
-        await AppWindow.instance.focus();
+        // await AppWindow.instance.show();
+        // await AppWindow.instance.focus();
       }
 
       notificationResponseStream.add(response);

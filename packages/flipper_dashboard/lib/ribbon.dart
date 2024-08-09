@@ -1,6 +1,8 @@
+import 'package:flipper_dashboard/logout/logout.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +74,7 @@ class IconRow extends StatefulHookConsumerWidget {
   IconRowState createState() => IconRowState();
 }
 
-class IconRowState extends ConsumerState<IconRow> {
+class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
   List<bool> _isSelected = [true, false, false, false];
 
   @override
@@ -194,9 +196,12 @@ class IconRowState extends ConsumerState<IconRow> {
         ProxyService.realm.realm!.write(() {
           drawer.closingBalance = data.income;
         });
+        _routerService
+            .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));
+      } else {
+        await logOut();
+        _routerService.navigateTo(LoginViewRoute());
       }
-      _routerService
-          .navigateTo(DrawerScreenRoute(open: "close", drawer: drawer!));
     }
   }
 }

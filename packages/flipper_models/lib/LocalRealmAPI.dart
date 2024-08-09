@@ -1051,6 +1051,23 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         r'userId == $0', [ProxyService.box.getUserId()]).toList();
   }
 
+  _createPin(
+      {required String phoneNumber,
+      required int pin,
+      required int branchId,
+      required int businessId,
+      required int defaultApp}) async {
+    final data = jsonEncode({
+      "userId": pin.toString(),
+      "phoneNumber": phoneNumber,
+      "pin": pin,
+      "branchId": branchId,
+      "businessId": businessId,
+      "defaultApp": defaultApp
+    });
+    await flipperHttpClient.post(Uri.parse("$apihub/v2/api/pin"), body: data);
+  }
+
   @override
   Future<Tenant?> saveTenant(String phoneNumber, String name,
       {required Business business,
@@ -1073,8 +1090,17 @@ class LocalRealmApi extends RealmAPI implements LocalRealmInterface {
         .post(Uri.parse("$apihub/v2/api/tenant"), body: data);
 
     if (response.statusCode == 200) {
+      /// add the userId into Pins
+
       try {
         ITenant jTenant = ITenant.fromRawJson(response.body);
+        await _createPin(
+          phoneNumber: phoneNumber,
+          pin: jTenant.userId,
+          branchId: business.serverId!,
+          businessId: branch.serverId!,
+          defaultApp: 1,
+        );
         ITenant iTenant = ITenant(
             businesses: jTenant.businesses,
             branches: jTenant.branches,
