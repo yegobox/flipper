@@ -121,10 +121,6 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
-    int? userId = ProxyService.box.getUserId();
-
-    if (userId == null) return;
-
     List<Business> businesses = await ProxyService.local.businesses();
 
     List<Branch> branches = await ProxyService.local
@@ -132,9 +128,10 @@ class AppService with ListenableServiceMixin {
 
     bool authComplete = await ProxyService.box.authComplete();
 
-    if ((businesses.length > 1 || branches.length > 1) &&
-        !Platform.isWindows &&
-        !authComplete) {
+    bool hasMultipleBusinesses = businesses.length > 1;
+    bool hasMultipleBranches = branches.length > 1;
+
+    if ((hasMultipleBusinesses || hasMultipleBranches) && !authComplete) {
       throw LoginChoicesException(term: "Choose default business");
     }
   }

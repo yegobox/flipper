@@ -265,16 +265,15 @@ class LocalRealmApi extends RealmAPI
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final IUser user = IUser.fromJson(json.decode(response.body));
 
-      await configureApp(userPhone, user);
       await configureLocal(useInMemory: false);
+      await configureApp(userPhone, user, localRealm: localRealm);
+      await updateLocalRealm(user, localRealm: localRealm);
 
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {
         await setDefaultApp(user);
       }
-
-      await updateLocalRealm(user, localRealm: localRealm);
 
       return user;
     } else {
