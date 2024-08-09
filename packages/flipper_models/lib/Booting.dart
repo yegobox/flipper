@@ -17,11 +17,13 @@ mixin Booting {
 
   Future<void> updateLocalRealm(IUser user, {Realm? localRealm}) async {
     for (ITenant tenant in user.tenants) {
-      await _addOrUpdateTenant(tenant, user.id.toString());
+      await _addOrUpdateTenant(tenant, user.id.toString(),
+          localRealm: localRealm);
     }
   }
 
-  Future<void> _addOrUpdateTenant(ITenant tenant, String userId) async {
+  Future<void> _addOrUpdateTenant(ITenant tenant, String userId,
+      {Realm? localRealm}) async {
     final Tenant iTenant = Tenant(
       ObjectId(),
       isDefault: tenant.isDefault,
@@ -35,13 +37,15 @@ mixin Booting {
       pin: tenant.pin,
     );
 
-    await addOrUpdateBusinesses(tenant.businesses, userId);
-    await addOrUpdateBranches(tenant.branches);
-    await addOrUpdatePermissions(tenant.permissions);
-    await addOrUpdateTenantInRealm(iTenant, userId);
+    await addOrUpdateBusinesses(tenant.businesses, userId,
+        localRealm: localRealm);
+    await addOrUpdateBranches(tenant.branches, localRealm: localRealm);
+    await addOrUpdatePermissions(tenant.permissions, localRealm: localRealm);
+    await addOrUpdateTenantInRealm(iTenant, userId, localRealm: localRealm);
   }
 
-  Future<void> addOrUpdateTenantInRealm(Tenant iTenant, String userId) async {
+  Future<void> addOrUpdateTenantInRealm(Tenant iTenant, String userId,
+      {Realm? localRealm}) async {
     Tenant? exist = ProxyService.realm.realm!
         .query<Tenant>(r'id == $0', [iTenant.id]).firstOrNull;
     if (exist == null) {
@@ -52,7 +56,8 @@ mixin Booting {
     }
   }
 
-  Future<void> addOrUpdatePermissions(List<IPermission> permissions) async {
+  Future<void> addOrUpdatePermissions(List<IPermission> permissions,
+      {Realm? localRealm}) async {
     final List<LPermission> permissionToAdd = [];
     final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
 

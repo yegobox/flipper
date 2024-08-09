@@ -65,7 +65,7 @@ dependencies:
   google_fonts: ^6.1.0
   shared_preferences: ^2.3.1
   newrelic_mobile: ^1.0.5
-  flutter_local_notifications: ^14.1.1
+  flutter_local_notifications: ^17.2.2
   local_notifier:
     git:
       url: https://github.com/yegobox/local_notifier.git

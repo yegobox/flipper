@@ -274,7 +274,7 @@ class LocalRealmApi extends RealmAPI
         await setDefaultApp(user);
       }
 
-      await updateLocalRealm(user);
+      await updateLocalRealm(user, localRealm: localRealm);
 
       return user;
     } else {

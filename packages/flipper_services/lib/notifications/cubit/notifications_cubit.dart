@@ -262,7 +262,7 @@ class NotificationsCubit {
 
     if (androidPlugin == null) return false;
 
-    return await androidPlugin.requestPermission();
+    return await androidPlugin.requestNotificationsPermission();
   }
 
   /// Schedule a notification on desktop.
