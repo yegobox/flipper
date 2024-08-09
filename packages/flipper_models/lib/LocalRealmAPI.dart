@@ -266,9 +266,11 @@ class LocalRealmApi extends RealmAPI
       final IUser user = IUser.fromJson(json.decode(response.body));
 
       await configureLocal(useInMemory: false);
-      await configureApp(userPhone, user, localRealm: localRealm);
-      await updateLocalRealm(user, localRealm: localRealm);
+      await configureTheBox(userPhone, user);
 
+      await configureRemoteRealm(userPhone, user, localRealm: localRealm);
+      await updateLocalRealm(user, localRealm: localRealm);
+      await ProxyService.realm.downloadAssetSave();
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {

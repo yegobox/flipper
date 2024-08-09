@@ -267,10 +267,8 @@ mixin Booting {
         value: user.tenants.first.businesses.first.encryptionKey);
   }
 
-  Future<void> configureApp(String userPhone, IUser user,
+  Future<void> configureRemoteRealm(String userPhone, IUser user,
       {Realm? localRealm}) async {
-    await configureTheBox(userPhone, user);
-
     await ProxyService.realm.configure(
       useInMemoryDb: false,
       useFallBack: false,
@@ -280,8 +278,6 @@ mixin Booting {
       branchId: ProxyService.box.getBranchId(),
       userId: ProxyService.box.getUserId(),
     );
-
-    await ProxyService.realm.downloadAssetSave();
   }
 
   Future<void> initializeRealms() async {

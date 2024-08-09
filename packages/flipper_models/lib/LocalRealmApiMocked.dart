@@ -25,7 +25,7 @@ class LocalRealmApiMocked extends LocalRealmApi {
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final IUser user = IUser.fromJson(json.decode(response.body));
 
-      await configureApp(userPhone, user);
+      await configureRemoteRealm(userPhone, user);
       await configureLocal(useInMemory: false);
 
       if (stopAfterConfigure) return user;
