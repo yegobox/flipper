@@ -13,10 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 
-extension on Widget {
-  Widget? showOrNull(bool isShow) => isShow ? this : null;
-}
-
 class AppLayoutDrawer extends StatefulHookConsumerWidget {
   const AppLayoutDrawer({
     Key? key,
@@ -65,14 +61,12 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
 
   Widget buildRow(bool isScanningMode) {
     return Scaffold(
-      // Wrap the Row in a Scaffold
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // && kDebugMode
             ProxyService.remoteConfig.isMultiUserEnabled()
                 ? Container(
                     child: SideMenu(
@@ -102,7 +96,6 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
             ).shouldSeeTheApp(ref, AppFeature.Sales),
             Flexible(
               child: ListView(
-                // Use ListView instead of SingleChildScrollView
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(8),
@@ -117,7 +110,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: ProductView.normalMode(),
-                  ), // Your ProductView widget
+                  ),
                 ],
               ),
             ),

@@ -1,10 +1,7 @@
-// ignore_for_file: unused_result
-
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:flipper_dashboard/init_app.dart';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
@@ -18,7 +15,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
-// import 'package:flutter_windowmanager/flutter_windowmanager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -118,21 +114,11 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   void _handlePausedState() {}
 
-  void initializeApplicationIfRequired() {
-    if (ProxyService.box.getBranchId() != null &&
-        ProxyService.box.getBusinessId() != null &&
-        ProxyService.box.getUserId() != null) {
-      InitApp.init();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
-      onViewModelReady: (model) async {
-        ref.refresh(pendingTransactionProvider(
-            (mode: TransactionType.sale, isExpense: false)));
+      onViewModelReady: (model) {
         _viewModelReadyLogic(model);
       },
       builder: (context, model, child) {
@@ -142,26 +128,11 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   void _viewModelReadyLogic(CoreViewModel model) {
-    final currentTransaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
-    // ignore: duplicate_ignore
-    // ignore: unused_result
-    ref.refresh(transactionItemsProvider(currentTransaction.value?.id));
-    initializeApplicationIfRequired();
-    model.defaultBranch();
-    ProxyService.local.refreshSession(
-      branchId: ProxyService.box.getBranchId()!,
-      refreshRate:
-          kDebugMode ? 10 : ProxyService.remoteConfig.sessionTimeOutMinutes(),
-    );
-
     ProxyService.dynamicLink.handleDynamicLink(context);
 
     if ((isAndroid || isIos)) {
       _startNFCForModel(model);
     }
-
-    model.loadReport();
   }
 
   Future<void> _startNFCForModel(CoreViewModel model) async {
@@ -194,29 +165,19 @@ class FlipperAppState extends ConsumerState<FlipperApp>
   }
 
   Widget _buildScaffold(BuildContext context, CoreViewModel model) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (bool didPop) {
-        if (didPop) {
-          return;
-        }
+    return KeyboardListener(
+      focusNode: FocusNode(),
+      autofocus: true,
+      onKeyEvent: (event) {
+        _handleKeyEvent(model, event);
       },
-      child: KeyboardListener(
-        focusNode: FocusNode(),
-        autofocus: true,
-        onKeyEvent: (event) {
-          _handleKeyEvent(model, event);
-        },
-        child: Scaffold(
-          extendBody: true,
-          appBar: _buildAppBar(),
-          body: StreamBuilder<Tenant?>(
-            stream: ProxyService.realm
-                .authState(branchId: ProxyService.box.getBranchId() ?? 0),
-            builder: (context, snapshot) {
-              return _buildAppLayoutDrawer(context, model, snapshot);
-            },
-          ),
+      child: Scaffold(
+        extendBody: true,
+        appBar: _buildAppBar(),
+        body: Consumer(
+          builder: (context, ref, child) {
+            return _buildAppLayoutDrawer(context, model, ref);
+          },
         ),
       ),
     );
@@ -241,8 +202,19 @@ class FlipperAppState extends ConsumerState<FlipperApp>
     );
   }
 
-  Widget _buildAppLayoutDrawer(BuildContext context, CoreViewModel model,
-      AsyncSnapshot<Tenant?> snapshot) {
+  Widget _buildAppLayoutDrawer(
+      BuildContext context, CoreViewModel model, WidgetRef ref) {
+    return StreamBuilder<Tenant?>(
+      stream: ProxyService.realm
+          .authState(branchId: ProxyService.box.getBranchId() ?? 0),
+      builder: (context, snapshot) {
+        return _buildAppLayoutDrawerInner(context, model, snapshot, ref);
+      },
+    );
+  }
+
+  Widget _buildAppLayoutDrawerInner(BuildContext context, CoreViewModel model,
+      AsyncSnapshot<Tenant?> snapshot, WidgetRef ref) {
     if (snapshot.hasData &&
         !(snapshot.data!.sessionActive == null
             ? false

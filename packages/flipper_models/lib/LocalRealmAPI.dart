@@ -12,6 +12,7 @@ import 'package:flipper_models/helperModels/permission.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
+import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
 import 'package:flipper_models/secrets.dart';
@@ -204,47 +205,6 @@ class LocalRealmApi extends RealmAPI
     }
   }
 
-  Future<void> _configureTheBox(String userPhone, IUser user) async {
-    await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
-    await ProxyService.box.writeString(key: 'bearerToken', value: user.token);
-
-    /// FIXME: should set branchId and businessId by looking into what is set to be default
-    /// when we enable for a user to login on multiple
-
-    talker.warning("Upon login: UserId ${user.id}: UserPhone: ${userPhone}");
-
-    /// the token from firebase that link this user with firebase
-    /// so it can be used to login to other devices
-    await ProxyService.box.writeString(key: 'uid', value: user.uid ?? "");
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
-
-    if (user.tenants.isEmpty) {
-      talker.error("User created does not have tenants");
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-    if (user.tenants.first.businesses.isEmpty ||
-        user.tenants.first.branches.isEmpty) {
-      throw BusinessNotFoundException(
-          term:
-              "No tenant added to the user, if a business is added it should have one tenant");
-    }
-
-    await ProxyService.box.writeInt(
-        key: 'branchId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.branches.first.id!);
-
-    await ProxyService.box.writeInt(
-        key: 'businessId',
-        value:
-            user.tenants.isEmpty ? 0 : user.tenants.first.businesses.first.id!);
-    await ProxyService.box.writeString(
-        key: 'encryptionKey',
-        value: user.tenants.first.businesses.first.encryptionKey);
-  }
-
   @override
   Future<IUser> login(
       {required String userPhone,
@@ -271,6 +231,7 @@ class LocalRealmApi extends RealmAPI
       await configureRemoteRealm(userPhone, user, localRealm: localRealm);
       await updateLocalRealm(user, localRealm: localRealm);
       await ProxyService.realm.downloadAssetSave();
+      AppInitializer.initialize();
       if (stopAfterConfigure) return user;
 
       if (!skipDefaultAppSetup) {

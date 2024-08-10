@@ -13,6 +13,7 @@ class AdminControl extends StatefulWidget {
 }
 
 class _AdminControlState extends State<AdminControl> {
+  final navigator = locator<RouterService>();
   bool isPosDefault = false;
   bool isOrdersDefault = true;
   @override
@@ -54,7 +55,7 @@ class _AdminControlState extends State<AdminControl> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            locator<RouterService>().navigateTo(FlipperAppRoute());
+            navigator.navigateTo(FlipperAppRoute());
           },
           tooltip: 'Back',
         ),
