@@ -91,14 +91,65 @@ final stockByVariantIdProvider =
       .getStockStream(variantId: variantId, branchId: branchId);
 });
 
-final variantsProvider = FutureProvider.autoDispose
-    .family<List<Variant>, int?>((ref, productId) async {
-  // Fetch the list of variants from a remote service.
-  final variants = await ProxyService.realm.variants(
-      branchId: ProxyService.box.getBranchId()!, productId: productId ?? 0);
-
-  return variants;
+final paginatedVariantsProvider = StateNotifierProvider.family<
+    PaginatedVariantsNotifier,
+    AsyncValue<List<Variant>>,
+    int>((ref, productId) {
+  return PaginatedVariantsNotifier(productId);
 });
+
+class PaginatedVariantsNotifier
+    extends StateNotifier<AsyncValue<List<Variant>>> {
+  final int productId;
+  int _page = 1;
+  static const int _pageSize = 4;
+  bool _hasMore = true;
+  List<Variant> _allVariants = [];
+
+  PaginatedVariantsNotifier(this.productId)
+      : super(const AsyncValue.loading()) {
+    loadMore();
+  }
+
+  Future<void> loadMore() async {
+    if (!_hasMore) return;
+
+    state = const AsyncValue.loading();
+    try {
+      if (_allVariants.isEmpty) {
+        _allVariants = await fetchVariants(productId);
+      }
+
+      final startIndex = (_page - 1) * _pageSize;
+      final endIndex = startIndex + _pageSize;
+      final newVariants = _allVariants.sublist(
+        startIndex,
+        endIndex.clamp(0, _allVariants.length),
+      );
+
+      if (newVariants.isEmpty) {
+        _hasMore = false;
+      } else {
+        _page++;
+        final currentList = state.value ?? [];
+        final updatedList = [...currentList, ...newVariants];
+        state = AsyncValue.data(updatedList);
+      }
+
+      if (endIndex >= _allVariants.length) {
+        _hasMore = false;
+      }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<List<Variant>> fetchVariants(int productId) async {
+    final branchId = ProxyService.box.getBranchId()!;
+    return await ProxyService.realm
+        .variants(branchId: branchId, productId: productId);
+  }
+}
 
 final pendingTransactionProvider = Provider.autoDispose
     .family<AsyncValue<ITransaction>, ({String mode, bool isExpense})>(
@@ -191,17 +242,17 @@ class TransactionItemsNotifier
 
 final outerVariantsProvider = StateNotifierProvider.autoDispose
     .family<OuterVariantsNotifier, AsyncValue<List<Variant>>, int>(
-        (ref, branchId) {
-  final productsNotifier = OuterVariantsNotifier(branchId);
-  final scanMode = ref.watch(scanningModeProvider);
-  final searchString = ref.watch(searchStringProvider);
-  productsNotifier.loadVariants(
-    scanMode: scanMode,
-    searchString: searchString,
-  );
-
-  return productsNotifier;
-});
+  (ref, branchId) {
+    final productsNotifier = OuterVariantsNotifier(branchId);
+    final scanMode = ref.watch(scanningModeProvider);
+    final searchString = ref.watch(searchStringProvider);
+    productsNotifier.loadVariants(
+        scanMode: scanMode,
+        searchString: searchString,
+        searchOnly: searchString.isNotEmpty);
+    return productsNotifier;
+  },
+);
 
 ///The code will now first try to filter the variants based on the search string in the name field.
 /// If no match is found in name, it will then search in the productName field.
@@ -210,19 +261,39 @@ final outerVariantsProvider = StateNotifierProvider.autoDispose
 class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
     with TransactionMixin {
   int branchId;
+  int _currentPage = 0;
+  final int _itemsPerPage = ProxyService.box.itemPerPage()!;
+  bool _hasMore = true;
+  bool _isLoading = false;
 
   OuterVariantsNotifier(this.branchId) : super(AsyncLoading());
 
-  Future<void> loadVariants(
-      {required bool scanMode, required String searchString}) async {
+  Future<void> loadVariants({
+    required bool scanMode,
+    required String searchString,
+    bool searchOnly = false,
+  }) async {
+    if (_isLoading || (!_hasMore && !searchOnly)) return;
+
+    _isLoading = true;
     try {
-      final allVariants = await ProxyService.realm.variants(
-        branchId: ProxyService.box.getBranchId()!,
-      );
+      List<Variant> variants;
+
+      if (searchOnly) {
+        // Fetch all variants for search purposes
+        variants = await ProxyService.realm.variants(branchId: branchId);
+      } else {
+        // Fetch paginated variants
+        variants = await ProxyService.realm.variants(
+          branchId: branchId,
+          page: _currentPage,
+          itemsPerPage: _itemsPerPage,
+        );
+      }
 
       // Apply search if searchString is not empty
       final filteredVariants = searchString.isNotEmpty
-          ? allVariants
+          ? variants
               .where((variant) =>
                   variant.name!
                       .toLowerCase()
@@ -231,15 +302,21 @@ class OuterVariantsNotifier extends StateNotifier<AsyncValue<List<Variant>>>
                       .toLowerCase()
                       .contains(searchString.toLowerCase()))
               .toList()
-          : allVariants;
+          : variants;
 
-      // If there's a match, save the transaction for the first matched variant
+      // Update pagination info if not searching
+      if (!searchOnly) {
+        _currentPage++;
+        _hasMore = filteredVariants.length == _itemsPerPage;
+      }
 
-      // Update the state with the filtered list of variants.
-      state = AsyncValue.data(filteredVariants);
+      _isLoading = false;
+
+      final currentState = state.value ?? [];
+      state = AsyncValue.data([...currentState, ...filteredVariants]);
     } catch (error) {
-      // Handle errors if needed
       state = AsyncValue.error(error, StackTrace.current);
+      _isLoading = false;
     }
   }
 }

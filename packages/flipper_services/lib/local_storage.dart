@@ -42,6 +42,7 @@ class SharedPreferenceStorage implements LocalStorage {
         'isOrdersDefault',
         'version',
         'UToken',
+        'itemPerPage',
       },
     ));
     return this;
@@ -249,5 +250,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   bool? isOrdersDefault() {
     return prefs.getBool("isOrdersDefault") ?? true;
+  }
+
+  @override
+  int? itemPerPage() {
+    return prefs.getInt('itemPerPage') ?? 2;
   }
 }

@@ -1975,26 +1975,40 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  Future<List<Variant>> variants(
-      {required int branchId, int? productId}) async {
+  List<Variant> variants({
+    required int branchId,
+    int? productId,
+    int? page,
+    int? itemsPerPage,
+  }) {
     List<Variant> variants = [];
+
     if (productId != null) {
       variants = realm!.query<Variant>(
-          r'productId == $0 && branchId == $1 && retailPrice >0',
-          [productId, branchId]).toList();
+        r'productId == $0 && branchId == $1 && retailPrice > 0',
+        [productId, branchId],
+      ).toList();
     } else {
       variants = realm!.query<Variant>(
-          r'branchId == $0 && retailPrice >0', [branchId]).toList();
+        r'branchId == $0 && retailPrice > 0',
+        [branchId],
+      ).toList();
     }
 
-    /// this is the case where a branch does not own the product the above query will not
-    /// find the matching variant using branchId as branchId is the Id of the branch who created variant
-    /// for that we search there in a list of branchids to see where we have assigned this variant
-    /// it is important to know that only variant is shared but stock is independent per branch
+    // Check for branchId not owning the product and search in branchIds list
     if (variants.isEmpty) {
       variants = realm!.query<Variant>(
-          r'ANY branchIds == $0 && retailPrice > 0', [branchId]).toList();
+        r'ANY branchIds == $0 && retailPrice > 0',
+        [branchId],
+      ).toList();
     }
+
+    // Apply pagination only if both page and itemsPerPage are provided
+    if (page != null && itemsPerPage != null) {
+      final offset = page * itemsPerPage;
+      return variants.skip(offset).take(itemsPerPage).toList();
+    }
+
     return variants;
   }
 

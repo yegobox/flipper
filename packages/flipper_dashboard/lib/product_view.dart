@@ -43,10 +43,32 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   final _routerService = locator<RouterService>();
+  final ScrollController _scrollController = ScrollController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) {
+      ref
+          .read(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0)
+              .notifier)
+          .loadVariants(
+            scanMode: ref.read(scanningModeProvider),
+            searchString: ref.read(searchStringProvider),
+          );
+    }
+  }
 
   @override
   void dispose() {
     _searchFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -111,25 +133,30 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   Widget _buildVariantsGrid(
       BuildContext context, ProductViewModel model, List<Variant> variants) {
-    return GridView.builder(
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 200,
-        mainAxisSpacing: 5.0,
-        crossAxisSpacing: 2.0,
-      ),
-      itemCount: variants.length,
-      itemBuilder: (context, index) {
-        if (index < 0 || index >= variants.length) {
-          return SizedBox.shrink();
-        }
-        return buildVariantRow(
-          context: context,
-          model: model,
-          variant: variants[index],
-          isOrdering: false,
-        );
-      },
-      shrinkWrap: true,
+    return Stack(
+      children: [
+        GridView.builder(
+          controller: _scrollController,
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            mainAxisSpacing: 5.0,
+            crossAxisSpacing: 2.0,
+          ),
+          itemCount: variants.length + (_isLoading ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index >= variants.length) {
+              return Center(child: CircularProgressIndicator());
+            }
+            return buildVariantRow(
+              context: context,
+              model: model,
+              variant: variants[index],
+              isOrdering: false,
+            );
+          },
+          shrinkWrap: true,
+        ),
+      ],
     );
   }
 
@@ -216,9 +243,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Widget _buildVariantsList(Product product) {
     return Consumer(
       builder: (context, ref, _) {
-        return ref.watch(variantsProvider(product.id ?? 0)).when(
-              data: (variants) => ListView.builder(
+        final variantsAsync =
+            ref.watch(paginatedVariantsProvider(product.id ?? 0));
+
+        return variantsAsync.when(
+          data: (variants) => Column(
+            children: [
+              ListView.builder(
                 shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: variants.length,
                 itemBuilder: (context, index) {
                   final variant = variants[index];
@@ -228,10 +261,21 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   );
                 },
               ),
-              loading: () => Text("searching..."),
-              error: (_, __) => SizedBox.shrink(),
-            );
+              _buildLoadMoreButton(ref, product.id ?? 0),
+            ],
+          ),
+          loading: () => Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Text('Error loading variants: $error'),
+        );
       },
+    );
+  }
+
+  Widget _buildLoadMoreButton(WidgetRef ref, int productId) {
+    final notifier = ref.read(paginatedVariantsProvider(productId).notifier);
+    return ElevatedButton(
+      onPressed: () => notifier.loadMore(),
+      child: Text('Load More'),
     );
   }
 

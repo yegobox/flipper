@@ -239,4 +239,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement isOrdersDefault
     throw UnimplementedError();
   }
+
+  @override
+  int? itemPerPage() {
+    // TODO: implement itemPerPage
+    throw UnimplementedError();
+  }
 }

@@ -2,7 +2,6 @@
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
-import 'package:flipper_dashboard/home/pages/root_sheet_page.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/ImportPurchasePage.dart';
@@ -21,7 +20,6 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
   const SearchField({

@@ -45,4 +45,5 @@ abstract class LocalStorage {
   String? mrc();
   bool? isPosDefault();
   bool? isOrdersDefault();
+  int? itemPerPage();
 }

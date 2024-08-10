@@ -80,9 +80,11 @@ abstract class RealmApiInterface {
       required HttpClientInterface flipperHttpClient});
   Future<PColor?> getColor({required int id});
   Future<Stock?> getStock({required int branchId, required int variantId});
-  Future<List<Variant>> variants({
+  List<Variant> variants({
     required int branchId,
     int? productId,
+    int? page,
+    int? itemsPerPage,
   });
   Configurations getByTaxType({required String taxtype});
   Variant? variant({int? variantId, String? name});
