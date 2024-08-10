@@ -255,14 +255,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                   ),
                                   onChanged: (value) {
                                     if (!item.partOfComposite) {
-                                      int? newQty = int.tryParse(value);
-                                      if (newQty != null && newQty >= 0) {
-                                        ProxyService.realm.realm!.write(() {
-                                          item.qty = newQty.toDouble();
-                                          item.quantityRequested = newQty;
-                                        });
-                                        ref.refresh(transactionItemsProvider(
-                                            transaction.value?.id));
+                                      final trimmedValue = value.trim();
+
+                                      // Try parsing as double, fall back to int if needed
+                                      double? doubleValue =
+                                          double.tryParse(trimmedValue) ??
+                                              int.tryParse(trimmedValue)
+                                                  ?.toDouble();
+
+                                      if (doubleValue != null) {
+                                        // Convert double to int if it's a whole number
+                                        int newQty = doubleValue.toInt();
+
+                                        // Check if the double value is actually an integer
+                                        if (doubleValue == newQty.toDouble() &&
+                                            newQty >= 0) {
+                                          ProxyService.realm.realm!.write(() {
+                                            item.qty = doubleValue;
+                                            item.quantityRequested = newQty;
+                                          });
+                                          ref.refresh(transactionItemsProvider(
+                                              transaction.value?.id));
+                                        }
                                       }
                                     }
                                   },

@@ -11,7 +11,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/realm_model_export.dart';
-
 import 'package:flipper_dashboard/widgets/back_button.dart' as back;
 import 'package:intl/intl.dart';
 
@@ -20,6 +19,7 @@ class DrawerScreen extends StatefulHookConsumerWidget {
       : super(key: key);
   final String open;
   final Drawers drawer;
+
   @override
   _DrawerScreenState createState() => _DrawerScreenState();
 }
@@ -77,6 +77,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
                 buildTextFormField(),
                 buildSubmitButton(isProcessing),
                 const Spacer(),
+                buildLogoutButton(),
                 const Spacer(),
               ],
             ),
@@ -214,7 +215,23 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       });
     }
     await logOut();
-    // _routerService.replaceWithLoginView();
     _routerService.navigateTo(LoginViewRoute());
+  }
+
+  Widget buildLogoutButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(1, 8, 1, 0),
+      child: TextButton(
+        key: const Key('logoutButton'),
+        onPressed: () async {
+          await logOut();
+          _routerService.navigateTo(LoginViewRoute());
+        },
+        child: Text(
+          "Logout without closing drawer 🙂",
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      ),
+    );
   }
 }
