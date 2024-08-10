@@ -11,19 +11,11 @@ void main() {
 
     setUpAll(() async {
       // Initialize the Realm API with an in-memory database for testing
-      await realm.configure(
-          useInMemoryDb: true,  businessId: 1);
+      await realm.configure(useInMemoryDb: true, businessId: 1);
     });
 
     tearDownAll(() async {
-      // Close Realm instances if necessary
       realm.close();
-
-      // Clean up any temporary files or directories
-      // final realmDir = Directory('mongodb-realm');
-      // if (realmDir.existsSync()) {
-      //   realmDir.deleteSync(recursive: true);
-      // }
     });
     setUp(() async {
       realm.realm!.write(() {

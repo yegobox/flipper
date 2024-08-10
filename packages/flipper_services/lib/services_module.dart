@@ -10,6 +10,7 @@ import 'package:flipper_models/realmInterface.dart';
 import 'package:flipper_models/tax_api.dart';
 import 'package:flipper_models/rw_tax.dart';
 import 'package:flipper_models/view_models/NotificationStream.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/whatsapp.dart';
 
 import 'package:http/http.dart' as httP;
@@ -254,7 +255,10 @@ abstract class ServicesModule {
   @preResolve
   @LazySingleton()
   Future<LocalStorage> box() async {
-    final isTest = bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+    talker.warning("running in test env: $isTest");
+
     if (isTest) {
       return await SharedPreferenceStorageMock().initializePreferences();
     } else {
@@ -264,7 +268,9 @@ abstract class ServicesModule {
 
   @LazySingleton()
   RealmApiInterface realmApi() {
-    final isTest = bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+    talker.warning("running in test env: $isTest");
 
     /// to speed-up the application starting time, when we init realm, we just pass in memory db
     /// then when user login we will close it and switch to flexible sync

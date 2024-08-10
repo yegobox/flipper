@@ -2017,34 +2017,40 @@ class RealmAPI<M extends IJsonSerializable>
   /// because it assumed that realm will upload data if they exist and they are not synced
   @override
   Future<String> dbPath({required String path, int? folder}) async {
-    try {
-      Directory appSupportDirectory;
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+    if (!isTest) {
+      try {
+        Directory appSupportDirectory;
 
-      // Determine the appropriate directory based on the platform
-      if (Platform.isWindows) {
-        appSupportDirectory = await getApplicationSupportDirectory();
-      } else {
-        appSupportDirectory = await getApplicationDocumentsDirectory();
+        // Determine the appropriate directory based on the platform
+        if (Platform.isWindows) {
+          appSupportDirectory = await getApplicationSupportDirectory();
+        } else {
+          appSupportDirectory = await getApplicationDocumentsDirectory();
+        }
+
+        // Construct the specific directory path
+        /// the 1 appended is incremented everytime there is a breaking change on a client.
+        final realmDirectory =
+            p.join(appSupportDirectory.path, '${folder ?? ""}2');
+
+        // Create the directory if it doesn't exist
+        final directory = Directory(realmDirectory);
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+
+        // Construct the full path to the database file
+        final String fileName = '$path.realm';
+        return p.join(realmDirectory, fileName);
+      } catch (e) {
+        // Handle any exceptions that might occur
+        print('Error creating db path: $e');
+        rethrow;
       }
-
-      // Construct the specific directory path
-      /// the 1 appended is incremented everytime there is a breaking change on a client.
-      final realmDirectory =
-          p.join(appSupportDirectory.path, '${folder ?? ""}2');
-
-      // Create the directory if it doesn't exist
-      final directory = Directory(realmDirectory);
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
-      }
-
-      // Construct the full path to the database file
-      final String fileName = '$path.realm';
-      return p.join(realmDirectory, fileName);
-    } catch (e) {
-      // Handle any exceptions that might occur
-      print('Error creating db path: $e');
-      rethrow;
+    } else {
+      return "";
     }
   }
 
@@ -2069,6 +2075,8 @@ class RealmAPI<M extends IJsonSerializable>
       int? branchId,
       int? userId}) async {
     _setApiEndpoints();
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
     realm?.close();
 
@@ -2090,7 +2098,10 @@ class RealmAPI<M extends IJsonSerializable>
       /// https://github.com/realm/realm-dart/issues/1205#issuecomment-1465778841
       User user = app.currentUser ??
           await app.logIn(Credentials.apiKey(AppSecrets.mongoApiSecret));
-      if (useInMemoryDb || encryptionKey == null || encryptionKey.isEmpty) {
+      if (useInMemoryDb ||
+          encryptionKey == null ||
+          encryptionKey.isEmpty ||
+          isTest) {
         talker.warning("Using in Memory db");
         realm?.close();
         _configureInMemory();

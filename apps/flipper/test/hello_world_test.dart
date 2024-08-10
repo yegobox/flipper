@@ -1,33 +1,21 @@
-import 'package:flipper_models/HttpClientMock.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 
 import 'BranchIdWidget.dart';
 import 'TestApp.dart';
 
 //flutter test test/hello_world_test.dart  --dart-define=FLUTTER_TEST_ENV=true
-
+/// this is a fake test just to simulate we are able to bootstrap close to the dependencies we are using inside our app
+/// since I have mocking plus other complication that comes with mocking, integration testing should be close to the 
+/// real app we are testing hence why I never use mocking
 void main() {
   group('BranchIdWidget Tests', () {
-    late MockHttpClientInterface mockHttpClientInterface;
-    late MockProxyService mockProxyService;
-    setUp(() async {
-      bool.fromEnvironment('Test', defaultValue: true);
-      mockHttpClientInterface = MockHttpClientInterface();
-      mockProxyService = MockProxyService();
-      // Initialize dependencies
-    });
-
     setUpAll(() async {
       // Initialize dependencies for test environment
       await initializeDependenciesForTest();
 
-      // Set up mocks for HttpClientInterface
-      // when(mockHttpClientInterface.get(any))
-      //     .thenReturn(Future.value(http.Response('', 200)));
     });
 
     testWidgets('BranchIdWidget displays and updates branch ID',

@@ -84,6 +84,8 @@ class LocalRealmApi extends RealmAPI
   Future<LocalRealmInterface> configureLocal(
       {required bool useInMemory}) async {
     talker.warning("Opening local realm alongside the synced one!");
+    const isTest =
+        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
     // Set API keys based on the environment
     if (foundation.kDebugMode) {
@@ -104,7 +106,7 @@ class LocalRealmApi extends RealmAPI
     localRealm?.close();
 
     try {
-      if (useInMemory || ProxyService.box.encryptionKey().isEmpty) {
+      if (useInMemory || ProxyService.box.encryptionKey().isEmpty || isTest) {
         talker.error("Using in Memory db");
         localRealm?.close();
         _configureInMemory();
