@@ -195,16 +195,16 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
     drawer.cashierId = ProxyService.box.getUserId();
     drawer.openingBalance = double.tryParse(_controller.text) ?? 0;
     drawer.open = true;
-    ProxyService.realm.openDrawer(
+    ProxyService.local.openDrawer(
       drawer: drawer,
     );
-
+   
     LoginInfo().isLoggedIn = true;
     _routerService.navigateTo(FlipperAppRoute());
   }
 
   void handleCloseDrawer() async {
-    Drawers? drawers = await ProxyService.realm
+    Drawers? drawers = await ProxyService.local
         .getDrawer(cashierId: ProxyService.box.getUserId()!);
     if (drawers != null) {
       ProxyService.realm.realm!.write(() {

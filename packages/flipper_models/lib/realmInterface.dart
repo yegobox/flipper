@@ -124,6 +124,12 @@ abstract class RealmApiInterface {
 
   Future<Voucher?> consumeVoucher({required int voucherCode});
 
+  Stream<ITransaction> manageTransactionStream(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false});
+
   ///create an transaction if no pending transaction exist should create a new one
   ///then if it exist should return the existing one!
   ITransaction manageTransaction(
@@ -408,13 +414,6 @@ abstract class RealmApiInterface {
     required String lastReqDt,
   });
 
-  /// drawers
-  bool isDrawerOpen({required int cashierId, required int branchId});
-  Future<Drawers?> getDrawer({required int cashierId});
-
-  Drawers? openDrawer({required Drawers drawer});
-  Stream<List<TransactionItem>> transactionItemList(
-      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 
   Future<void> syncUserWithAwsIncognito({required String identifier});
   Future<Stream<double>> downloadAssetSave(

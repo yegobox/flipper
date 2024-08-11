@@ -160,18 +160,9 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                                     await Future.delayed(
                                         Duration(microseconds: 800));
 
-                                    /// refresh the cart, this is messy but for now it is all I have
+                                    ref.refresh(transactionItemsProvider(
+                                        (isExpense: false)).notifier);
 
-                                    /// Refreshing after I resume is so hard, not working as I want it.
-                                    ///FIXME: so I am doing so many hack I know I should not including this loop
-                                    for (var i = 0; i < 120; i++) {
-                                      final transaction = ref.refresh(
-                                          pendingTransactionProvider(
-                                              (mode:TransactionType.sale,isExpense: false)));
-                                      ref.refresh(transactionItemsProvider(
-                                              transaction.value?.id!)
-                                          .notifier);
-                                    }
                                     _routerService
                                         .clearStackAndShow(FlipperAppRoute());
                                   }

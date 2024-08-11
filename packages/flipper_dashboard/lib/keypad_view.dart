@@ -213,14 +213,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       },
       key: ref.watch(keypadProvider),
     );
-    ref.refresh(transactionItemsProvider(ref
-        .read(pendingTransactionProvider((
-          mode: widget.transactionType,
-          isExpense:
-              widget.transactionType == TransactionType.cashOut ? true : false
-        )))
-        .value
-        ?.id));
+
+    // (isExpense: false)
+    ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 
   Future<void> _handleSpecialKey(String key) async {
@@ -329,7 +324,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         ref.read(keypadProvider.notifier).reset();
       },
     );
-    ref.refresh(transactionItemsProvider(transaction.value?.id));
+    ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 
   void HandleTransactionFromCashBook(
@@ -384,6 +379,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             categoryId: category?.id.toString(),
             transactionType: category?.name ?? "",
             isIncome: isIncome);
-    ref.refresh(transactionItemsProvider(transaction.value?.id));
+    ref.refresh(transactionItemsProvider((isExpense: false)));
   }
 }

@@ -18,10 +18,8 @@ class SetingsBottomSheet extends StatefulHookConsumerWidget {
 class SetingsBottomSheetState extends ConsumerState<SetingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(pendingTransactionProvider(
-        (mode: TransactionType.sale, isExpense: false)));
     final transactionItemsNotifier =
-        ref.watch(transactionItemsProvider(transaction.value?.id).notifier);
+        ref.watch(transactionItemsProvider((isExpense: false)).notifier);
 
     transactionItemsNotifier.updatePendingTransaction();
 

@@ -126,7 +126,7 @@ class PreviewSaleBottomSheetState
     final transaction = ref.watch(pendingTransactionProvider(
         (mode: TransactionType.sale, isExpense: false)));
     final transactionItemsNotifier =
-        ref.watch(transactionItemsProvider(transaction.value?.id!).notifier);
+        ref.watch(transactionItemsProvider((isExpense: false)).notifier);
 
     final totalPayable = transactionItemsNotifier.totalPayable;
 
@@ -154,7 +154,7 @@ class PreviewSaleBottomSheetState
             shrinkWrap: true,
             itemCount: (ref
                         .watch(
-                          transactionItemsProvider(transaction.value!.id),
+                          transactionItemsProvider((isExpense: false)),
                         )
                         .value ??
                     [])
@@ -164,7 +164,7 @@ class PreviewSaleBottomSheetState
             itemBuilder: (context, index) {
               final items = (ref
                       .watch(
-                        transactionItemsProvider(transaction.value?.id),
+                        transactionItemsProvider((isExpense: false)),
                       )
                       .value ??
                   [])[index];
@@ -177,7 +177,7 @@ class PreviewSaleBottomSheetState
                     context: context,
                   );
                   ref.refresh(
-                    transactionItemsProvider(transaction.value?.id),
+                    transactionItemsProvider((isExpense: false)),
                   );
                 },
                 items: items,
@@ -185,38 +185,51 @@ class PreviewSaleBottomSheetState
             },
           ),
         ),
-        buildPayable(totalPayable),
+        buildPayable(totalPayable, ref: ref),
       ],
     );
   }
 
-  Padding buildPayable(double totalPayable) {
+  Padding buildPayable(double totalPayable, {required WidgetRef ref}) {
+    final transactionAsyncValue = ref.watch(pendingTransactionProvider((
+      mode: TransactionType.sale,
+      isExpense: false,
+    )));
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       child: BoxButton(
         title: widget.mode == SellingMode.forSelling
             ? "Collect ${_numberFormat.format(totalPayable)} "
             : "Order ${_numberFormat.format(totalPayable)} ",
-        onTap: () async {
-          if (totalPayable.round() == 0) {
-            showSnackBar(context, "Your cart is empty",
-                textColor: Colors.white, backgroundColor: Colors.green);
-            return;
-          }
+        onTap: () {
+          transactionAsyncValue.when(
+            data: (transaction) {
+              if (totalPayable.round() == 0) {
+                showSnackBar(context, "Your cart is empty",
+                    textColor: Colors.white, backgroundColor: Colors.green);
+                return;
+              }
 
-          /// clause the bottom sheet before navigating to transaction because if we don't then it will try to rebuild when we navigate back
-          Navigator.of(context).pop();
-          final transaction = await ProxyService.realm.manageTransaction(
-              branchId: ProxyService.box.getBranchId()!,
-              transactionType: TransactionType.sale,
-              isExpense: false);
-          _routerService.navigateTo(
-            PaymentsRoute(
-              transactionType: TransactionType.sale,
-              categoryId: "0",
-              isIncome: true,
-              transaction: transaction,
-            ),
+              // Close the bottom sheet before navigating
+              Navigator.of(context).pop();
+
+              _routerService.navigateTo(
+                PaymentsRoute(
+                  transactionType: TransactionType.sale,
+                  categoryId: "0",
+                  isIncome: true,
+                  transaction: transaction,
+                ),
+              );
+            },
+            loading: () {
+              // Optional: Handle loading state if needed
+            },
+            error: (error, stackTrace) {
+              showSnackBar(context, "Error: $error",
+                  textColor: Colors.white, backgroundColor: Colors.red);
+            },
           );
         },
       ),

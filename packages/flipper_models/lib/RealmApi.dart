@@ -1344,6 +1344,48 @@ class RealmAPI<M extends IJsonSerializable>
       return existTransaction;
     }
   }
+  @override
+  Stream<ITransaction> manageTransactionStream(
+      {required String transactionType,
+      required bool isExpense,
+      required int branchId,
+      bool? includeSubTotalCheck = false}) async* {
+    // Use async/await to handle asynchronous operations
+    final ITransaction? existTransaction = await _pendingTransaction(
+        branchId: branchId,
+        isExpense: isExpense,
+        includeSubTotalCheck: includeSubTotalCheck!);
+
+    if (existTransaction == null) {
+      final int id = randomNumber();
+      final transaction = ITransaction(
+        ObjectId(),
+        lastTouched: DateTime.now(),
+        id: id,
+        reference: randomNumber().toString(),
+        action: AppActions.created,
+        transactionNumber: randomNumber().toString(),
+        status: PENDING,
+        isExpense: isExpense,
+        isIncome: !isExpense,
+        transactionType: transactionType,
+        subTotal: 0,
+        cashReceived: 0,
+        updatedAt: DateTime.now().toIso8601String(),
+        customerChangeDue: 0.0,
+        paymentType: 'Cash',
+        branchId: branchId,
+        createdAt: DateTime.now().toIso8601String(),
+      );
+
+      // Save transaction to Realm
+      realm!.add<ITransaction>(transaction);
+
+      yield transaction;
+    } else {
+      yield existTransaction;
+    }
+  }
 
   @override
   ITransaction manageTransaction(
@@ -2803,31 +2845,7 @@ class RealmAPI<M extends IJsonSerializable>
     );
   }
 
-  //// drawers
-
-  /// because a drawer is open per the user logged in
-  @override
-  bool isDrawerOpen({required int cashierId, required int branchId}) {
-    return realm?.query<Drawers>(
-            r'cashierId == $0 AND open == $1 && branchId == $2',
-            [cashierId, true, branchId]).firstOrNull !=
-        null;
-  }
-
-  @override
-  Future<Drawers?> getDrawer({required int cashierId}) async {
-    return realm!.query<Drawers>(
-        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
-  }
-
-  @override
-  Drawers? openDrawer({required Drawers drawer}) {
-    realm!.write(() {
-      realm!.add<Drawers>(drawer);
-    });
-    return realm!.query<Drawers>(r'id == $0 ', [drawer.id]).firstOrNull;
-  }
-
+  
   @override
   Future<void> syncUserWithAwsIncognito({required String identifier}) async {
     try {

@@ -24,8 +24,8 @@ env:
 
 jobs:
   unit-testing:
-    # runs-on: ubuntu-22.04
-    runs-on: [self-hosted, macOS, richard]
+    runs-on: ubuntu-22.04
+    # runs-on: [self-hosted, macOS, richard]
     # runs-on: windows-2022
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     steps:
@@ -76,8 +76,8 @@ jobs:
   integration-testing-windows:
     name: "Integration Testing Windows"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
-    # runs-on: windows-2022
-    runs-on: [self-hosted, macOS, richard]
+    runs-on: windows-2022
+    # runs-on: [self-hosted, macOS, richard]
     needs: [unit-testing,android-integration-test]
     #     https://github.com/subosito/flutter-action/issues/278 isse of windows failing to build
     #   https://github.com/subosito/flutter-action/issues/277#issuecomment-1974628019

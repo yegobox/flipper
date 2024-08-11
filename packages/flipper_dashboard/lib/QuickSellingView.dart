@@ -69,13 +69,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
 
   @override
   Widget build(BuildContext context) {
+    ///start by cleaning the  transactionItems to avoid invalidated error
+    ref.invalidate(isOrderingProvider);
     final isOrdering = ref.watch(isOrderingProvider);
-    final transaction = ref.watch(pendingTransactionProvider((isOrdering
-        ? (mode: TransactionType.cashOut, isExpense: true)
-        : (mode: TransactionType.sale, isExpense: false))));
 
+    /// if is ordering then this is treated as expense
     final transactionItemsAsyncValue =
-        ref.watch(transactionItemsProvider(transaction.value?.id));
+        ref.watch(transactionItemsProvider((isExpense: isOrdering)));
 
     // Update the transactionItems list when the AsyncValue changes
     transactionItemsAsyncValue.when(
@@ -219,7 +219,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                       }
                                     });
                                     ref.refresh(transactionItemsProvider(
-                                        transaction.value?.id));
+                                        (isExpense: isOrdering)));
                                     // Update the TextFormField
                                     setState(() {});
                                   }
@@ -275,7 +275,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                             item.quantityRequested = newQty;
                                           });
                                           ref.refresh(transactionItemsProvider(
-                                              transaction.value?.id));
+                                              (isExpense: isOrdering)));
                                         }
                                       }
                                     }
@@ -291,7 +291,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                       item.quantityRequested = item.qty.toInt();
                                     });
                                     ref.refresh(transactionItemsProvider(
-                                        transaction.value?.id));
+                                        (isExpense: isOrdering)));
                                     // Update the TextFormField
                                     setState(() {});
                                   }
@@ -325,7 +325,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                     ProxyService.realm.realm!.delete(item);
                                   });
                                   ref.refresh(transactionItemsProvider(
-                                      transaction.value?.id));
+                                      (isExpense: isOrdering)));
                                 } catch (e) {
                                   talker.error(e);
                                 }
@@ -349,10 +349,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                                     });
                                   }
                                   ref.refresh(transactionItemsProvider(
-                                      transaction.value?.id));
+                                      (isExpense: isOrdering)));
                                 }
                                 ref.refresh(transactionItemsProvider(
-                                    transaction.value?.id));
+                                    (isExpense: isOrdering)));
                               }
                             },
                           ),
@@ -658,7 +658,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView> {
                         );
                       },
                       child: Text(
-                        "ID: ${transaction.asData?.value.id.toString()} ",
+                        "ID: ${ref.watch(pendingTransactionProvider((
+                                  mode: TransactionType.sale,
+                                  isExpense: false
+                                ))).asData?.value.id.toString()} ",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

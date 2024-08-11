@@ -107,7 +107,7 @@ class LoginViewModel extends FlipperBaseModel
           }
           final _routerService = locator<RouterService>();
           _routerService.navigateTo(SocialHomeViewRoute());
-        } else if (ProxyService.realm.isDrawerOpen(
+        } else if (ProxyService.local.isDrawerOpen(
             cashierId: ProxyService.box.getUserId()!,
             branchId: ProxyService.box.getBranchId()!)) {
           ProxyService.forceDateEntry.dataBootstrapper();

@@ -250,10 +250,10 @@ class _RowItemState extends ConsumerState<RowItem> {
         );
 
         await Future.delayed(Duration(microseconds: 1000));
-        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
 
         await Future.delayed(Duration(microseconds: 200));
-        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       }
     } catch (e, s) {
       talker.warning("Error while clicking ${e}");

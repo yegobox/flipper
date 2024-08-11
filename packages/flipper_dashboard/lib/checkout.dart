@@ -287,6 +287,10 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     return transactionAsyncValue.when(
       data: (transaction) {
+        if (!transaction.isValid) {
+          ref.refresh(pendingTransactionProvider(
+              (mode: TransactionType.sale, isExpense: false)));
+        }
         if (widget.isBigScreen) {
           return ViewModelBuilder<CoreViewModel>.reactive(
             viewModelBuilder: () => CoreViewModel(),
@@ -334,6 +338,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: PaymentTicketManager(
+                                      ref: ref,
                                       context: context,
                                       model: model,
                                       controller: textEditController,
@@ -429,6 +434,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                       child: Container(
                         color: Colors.white,
                         child: PaymentTicketManager(
+                          ref: ref,
                           context: context,
                           model: model,
                           controller: textEditController,

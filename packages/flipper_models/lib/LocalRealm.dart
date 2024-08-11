@@ -62,4 +62,13 @@ abstract class LocalRealmInterface {
 
   Future<void> configureRemoteRealm(String userPhone, IUser user,
       {Realm? localRealm});
+
+  
+  /// drawers
+  bool isDrawerOpen({required int cashierId, required int branchId});
+  Future<Drawers?> getDrawer({required int cashierId});
+
+  Drawers? openDrawer({required Drawers drawer});
+  Stream<List<TransactionItem>> transactionItemList(
+      {DateTime? startDate, DateTime? endDate, bool? isPluReport});
 }

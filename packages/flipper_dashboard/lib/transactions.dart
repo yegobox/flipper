@@ -270,8 +270,8 @@ class TransactionsState extends ConsumerState<Transactions> {
   Widget build(BuildContext context) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       onViewModelReady: (model) async {
-        Drawers? drawer = await ProxyService.realm
-            .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+        Drawers? drawer = await ProxyService.local
+            .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
         // for rra z report
         setState(() {

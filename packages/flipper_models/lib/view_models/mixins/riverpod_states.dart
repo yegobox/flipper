@@ -151,90 +151,140 @@ class PaginatedVariantsNotifier
   }
 }
 
-final pendingTransactionProvider = Provider.autoDispose
-    .family<AsyncValue<ITransaction>, ({String mode, bool isExpense})>(
-        (ref, params) {
-  final (:mode, :isExpense) = params;
-  try {
-    ITransaction pendingTransaction = ProxyService.realm.manageTransaction(
+final pendingTransactionProvider = StreamProvider.autoDispose
+    .family<ITransaction, ({String mode, bool isExpense})>(
+  (ref, params) {
+    final (:mode, :isExpense) = params;
+    // ref.invalidateSelf();
+    // Access ProxyService to get the branch ID
+    final branchId = ProxyService.box.getBranchId()!;
+
+    // Return a stream from the manageTransaction method
+    return ProxyService.realm.manageTransactionStream(
       transactionType: mode,
       isExpense: isExpense,
-      branchId: ProxyService.box.getBranchId()!,
+      branchId: branchId,
     );
-    return AsyncData(pendingTransaction);
-  } catch (error) {
-    return AsyncError(error, StackTrace.current);
-  }
-});
+  },
+);
 
 final talker = TalkerFlutter.init();
 
-final transactionItemsProvider = StateNotifierProvider.autoDispose
-    .family<TransactionItemsNotifier, AsyncValue<List<TransactionItem>>, int?>(
-  (ref, currentTransaction) {
-    return TransactionItemsNotifier(currentTransaction: currentTransaction!);
+final freshtransactionItemsProviderByIdProvider =
+    StateNotifierProvider.autoDispose.family<TransactionItemsNotifier,
+        AsyncValue<List<TransactionItem>>, ({int transactionId})>(
+  (ref, params) {
+    final (:transactionId) = params;
+
+    return TransactionItemsNotifier(
+      getTransactionId: () {
+        try {
+          return transactionId;
+        } catch (e) {
+          talker.error("Error accessing transaction ID: $e");
+          return null;
+        }
+      },
+    );
+  },
+);
+
+final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
+    TransactionItemsNotifier,
+    AsyncValue<List<TransactionItem>>,
+    ({bool isExpense})>(
+  (ref, params) {
+    final (:isExpense) = params;
+    final transaction = ref.watch(pendingTransactionProvider((isExpense
+        ? (mode: TransactionType.cashOut, isExpense: true)
+        : (mode: TransactionType.sale, isExpense: false))));
+
+    return TransactionItemsNotifier(
+      getTransactionId: () {
+        try {
+          return transaction.value?.id;
+        } catch (e) {
+          talker.error("Error accessing transaction ID: $e");
+          return null;
+        }
+      },
+    );
   },
 );
 
 class TransactionItemsNotifier
     extends StateNotifier<AsyncValue<List<TransactionItem>>> {
-  TransactionItemsNotifier({required int currentTransaction})
-      : super(AsyncLoading()) {
-    loadItems(currentTransaction: currentTransaction);
+  final int? Function() getTransactionId;
+
+  TransactionItemsNotifier({required this.getTransactionId})
+      : super(const AsyncValue.loading()) {
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    final currentTransaction = getTransactionId();
+    if (currentTransaction == null) {
+      state = const AsyncValue.error(
+          "No transaction ID available", StackTrace.empty);
+      return;
+    }
+    await loadItems(currentTransaction: currentTransaction);
   }
 
   Future<List<TransactionItem>> loadItems(
       {required int currentTransaction}) async {
     try {
-      talker.info("Loading transactionId ${currentTransaction}");
-      state = AsyncLoading();
+      talker.info("Loading transactionId $currentTransaction");
+      state = const AsyncValue.loading();
 
-      // Await the future and store the result in a local variable
       final items = ProxyService.realm.transactionItems(
           branchId: ProxyService.box.getBranchId()!,
           transactionId: currentTransaction,
           doneWithTransaction: false,
           active: true);
-      state = AsyncData(items);
+      state = AsyncValue.data(items);
 
       return items;
-    } catch (error) {
-      state = AsyncError(error, StackTrace.current);
-
-      throw error;
+    } catch (error, stackTrace) {
+      talker.error("Error loading transaction items: $error");
+      state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 
-  /// Keep pending transaction with updated subtotal
   Future<void> updatePendingTransaction() async {
     try {
-      // Await the future and store the result in a local variable
-      final transaction = await ProxyService.realm.manageTransaction(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionType: TransactionType.sale,
-          isExpense: false);
-      ProxyService.realm.realm!.write(() {
-        transaction.subTotal = totalPayable;
-      });
+      final branchId = ProxyService.box.getBranchId()!;
+      final stream = ProxyService.realm.manageTransactionStream(
+        branchId: branchId,
+        transactionType: TransactionType.sale,
+        isExpense: false,
+      );
+
+      // Listen to the stream and process the transaction
+      await for (final transaction in stream) {
+        // Assuming realm.write is synchronous, process the transaction here
+        ProxyService.realm.realm?.write(() {
+          transaction.subTotal = totalPayable;
+        });
+        // Optionally break the loop if only one transaction needs to be updated
+        break;
+      }
     } catch (error) {
-      // Handle error
+      talker.error("Error updating pending transaction: $error");
     }
   }
 
   int get counts {
     return state.maybeWhen(
-      data: (items) {
-        return items.length;
-      },
+      data: (items) => items.length,
       orElse: () => 0,
     );
   }
 
   double get totalPayable {
     return state.maybeWhen(
-      data: (items) {
-        return items.fold(0, (a, b) => a + (b.price * b.qty));
-      },
+      data: (items) => items.fold(0, (a, b) => a + (b.price * b.qty)),
       orElse: () => 0.0,
     );
   }
@@ -615,7 +665,7 @@ final transactionItemListProvider =
     return Stream.value([]);
   }
 
-  return ProxyService.realm
+  return ProxyService.local
       .transactionItemList(
     startDate: startDate,
     endDate: endDate,

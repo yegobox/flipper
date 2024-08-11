@@ -100,18 +100,17 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
 
   Future<void> _refreshTransactionItems(int? transactionId) async {
     await Future.delayed(const Duration(milliseconds: 1000));
-    ref.refresh(transactionItemsProvider(transactionId));
+    ref.refresh(freshtransactionItemsProviderByIdProvider(
+        (transactionId: transactionId!)));
     await Future.delayed(const Duration(milliseconds: 200));
-    ref.refresh(transactionItemsProvider(transactionId));
+    ref.refresh(freshtransactionItemsProviderByIdProvider(
+        (transactionId: transactionId)));
   }
 
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
     final isOrdering = ref.watch(isOrderingProvider);
-    final transaction = ref.watch(pendingTransactionProvider((isOrdering
-        ? (mode: TransactionType.cashOut, isExpense: true)
-        : (mode: TransactionType.sale, isExpense: false))));
 
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => ProductViewModel(),
@@ -164,7 +163,9 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
               child: PreviewSaleButton(
                 wording: showCart
                     ? "Place order"
-                    : "Preview Cart (${ref.watch(transactionItemsProvider(transaction.value?.id)).value?.length})",
+                    : "Preview Cart (${ref.watch(transactionItemsProvider((
+                              isExpense: isOrdering
+                            ))).value?.length})",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
                   previewCart();

@@ -187,7 +187,7 @@ class IconRowState extends ConsumerState<IconRow> with CoreMiscellaneous {
       // Perform some action when the button is pressed
       final data = await ProxyService.realm
           .getTransactionsAmountsSum(period: TransactionPeriod.today);
-      Drawers? drawer = await ProxyService.realm.getDrawer(
+      Drawers? drawer = await ProxyService.local.getDrawer(
         cashierId: ProxyService.box.getUserId()!,
       );
       if (drawer != null) {

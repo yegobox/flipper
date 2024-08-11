@@ -33,3 +33,13 @@ final realmModels = [
   Access.schema,
   StockRequest.schema,
 ];
+
+/// for local db
+final localModels = [
+  UserActivity.schema,
+  Business.schema,
+  Branch.schema,
+  UnversalProduct.schema,
+  AppNotification.schema,
+  Drawers.schema,
+];

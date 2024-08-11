@@ -15,6 +15,7 @@ import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/RealmApi.dart';
+import 'package:flipper_models/realmModels.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
@@ -23,14 +24,6 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-
-final localModels = [
-  UserActivity.schema,
-  Business.schema,
-  Branch.schema,
-  UnversalProduct.schema,
-  AppNotification.schema
-];
 
 class LocalRealmApi extends RealmAPI
     with Booting, Data
@@ -938,6 +931,28 @@ class LocalRealmApi extends RealmAPI
 
   @override
   Branch? branch({required int serverId}) {
-    return realm!.query<Branch>(r'serverId == $0', [serverId]).firstOrNull;
+    return localRealm!.query<Branch>(r'serverId == $0', [serverId]).firstOrNull;
+  }
+
+  @override
+  bool isDrawerOpen({required int cashierId, required int branchId}) {
+    return localRealm?.query<Drawers>(
+            r'cashierId == $0 AND open == $1 && branchId == $2',
+            [cashierId, true, branchId]).firstOrNull !=
+        null;
+  }
+
+  @override
+  Future<Drawers?> getDrawer({required int cashierId}) async {
+    return localRealm!.query<Drawers>(
+        r'open == true AND cashierId == $0', [cashierId]).firstOrNull;
+  }
+
+  @override
+  Drawers? openDrawer({required Drawers drawer}) {
+    localRealm!.write(() {
+      localRealm!.add<Drawers>(drawer);
+    });
+    return localRealm!.query<Drawers>(r'id == $0 ', [drawer.id]).firstOrNull;
   }
 }

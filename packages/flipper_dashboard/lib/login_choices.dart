@@ -327,8 +327,8 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     /// This help when we restart the app do not come to auth flow for second time
     ProxyService.box.writeBool(key: "authComplete", value: true);
 
-    if (ProxyService.realm.isDrawerOpen(
-        cashierId: ProxyService.box.getBusinessId()!,
+    if (ProxyService.local.isDrawerOpen(
+        cashierId: ProxyService.box.getUserId()!,
         branchId: ProxyService.box.getBranchId()!)) {
       _routerService.navigateTo(FlipperAppRoute());
     } else {

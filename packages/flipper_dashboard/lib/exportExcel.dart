@@ -32,8 +32,8 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
       final business = await ProxyService.local.getBusiness();
       final tinNumber = business.tinNumber ?? 0;
       final bhfId = ProxyService.box.bhfId() ?? "00";
-      final drawer = await ProxyService.realm
-          .getDrawer(cashierId: ProxyService.box.getBusinessId()!);
+      final drawer = await ProxyService.local
+          .getDrawer(cashierId: ProxyService.box.getUserId()!);
 
       final excel.Workbook workbook =
           workBookKey.currentState!.exportToExcelWorkbook();
@@ -55,7 +55,7 @@ mixin BaseCoreWidgetMixin<T extends ConsumerStatefulWidget>
           fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
 
       final currencyFormat =
-          '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"'; 
+          '$currencySymbol#,##0.00_);$currencySymbol#,##0.00;$currencySymbol"-"';
 
       final Map<String, excel.Range> namedRanges = _addHeaderAndInfoRows(
           reportSheet,

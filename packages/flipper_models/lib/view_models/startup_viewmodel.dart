@@ -66,7 +66,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       int userId = ProxyService.box.getUserId()!;
       //if we reached this far then it means we have a default business/branch make sence to check drawer
-      if (ProxyService.realm.isDrawerOpen(
+      if (ProxyService.local.isDrawerOpen(
           cashierId: userId, branchId: ProxyService.box.getBranchId()!)) {
         /// if there is missing initial data, this is the right time to add them
         /// this is the case when a user login to a different device and the data does not exist there

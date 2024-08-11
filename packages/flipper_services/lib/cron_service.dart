@@ -138,12 +138,12 @@ class CronService with Subscriptions {
       //   localRealm: ProxyService.local.localRealm,
       // );
     }
+    await _spawnIsolate("synced", IsolateHandler.flexibleSync);
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
 
       /// bootstrap data for universal Product names;
-      await _spawnIsolate("synced", IsolateHandler.flexibleSync);
 
       await _spawnIsolate("local", IsolateHandler.localData);
 
