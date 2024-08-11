@@ -59,4 +59,7 @@ abstract class LocalRealmInterface {
 
   Future<http.Response> sendLoginRequest(
       String phoneNumber, HttpClientInterface flipperHttpClient, String apihub);
+
+  Future<void> configureRemoteRealm(String userPhone, IUser user,
+      {Realm? localRealm});
 }
