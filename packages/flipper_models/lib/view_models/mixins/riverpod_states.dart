@@ -832,6 +832,7 @@ class KeypadNotifier extends StateNotifier<String> {
 
 final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);
+final toggleBetweenProductViewAndQuickSale = StateProvider<bool>((ref) => false);
 
 final refreshPrivider = Provider((ref) {
   return CombinedNotifier(ref);

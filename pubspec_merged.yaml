@@ -22,7 +22,7 @@ dependencies:
   flipper_routing: ^0.0.1-dev.3
   timeago: ^3.4.0
   mime: ^1.0.5
-  open_filex: ^4.1.1
+  open_filex: ^4.5.0
   ant_icons: ^2.0.0-nullsafety.0
   pubnub: ^4.3.1
   feather_icons: ^1.1.0-nullsafety.0
@@ -298,10 +298,12 @@ dependencies:
   flutter_keyboard_visibility: ^6.0.0
   bloc: ^8.0.1
   # flipper_actionable: ^0.0.1
-  amplify_api: ^2.1.0
-  amplify_flutter: ^2.1.0
-  amplify_auth_cognito: ^2.1.0
-  amplify_storage_s3: ^2.1.0
+  amplify_core: 2.0.0
+  amplify_api: 2.0.0
+  amplify_flutter: 2.0.0
+  amplify_auth_cognito: 2.0.0
+  amplify_storage_s3: 2.0.0
+  
 
 dev_dependencies:
   melos: ^3.2.0

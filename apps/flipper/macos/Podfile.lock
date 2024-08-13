@@ -418,7 +418,7 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/window_manager/macos
 
 SPEC CHECKSUMS:
-  amplify_auth_cognito: b76a0e367489da2b9a3c6e5a8ec74a72a0a7cc2f
+  amplify_auth_cognito: 76b5a54f05f66f69966b468b8121a0dd33a32c70
   amplify_secure_storage: a0f7269fd7bca15e77c30abae739000a990e8fcd
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
@@ -482,6 +482,6 @@ SPEC CHECKSUMS:
   url_launcher_macos: 5f437abeda8c85500ceb03f5c1938a8c5a705399
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
 
-PODFILE CHECKSUM: 26afb05ec85171714fd0f04b5df26f11eb79e81e
+PODFILE CHECKSUM: a2271d1029a5b133189be83fb86fad7092781871
 
 COCOAPODS: 1.15.2

@@ -71,6 +71,7 @@ jobs:
           melos clean
           melos bootstrap
           cd apps/flipper
+          dart run realm install
           flutter test --dart-define=FLUTTER_TEST_ENV=true
 
   integration-testing-windows:
@@ -129,6 +130,7 @@ jobs:
           dart pub global activate melos
           melos bootstrap
           cd apps/flipper
+          dart run realm install
           flutter test --dart-define=FLUTTER_TEST_ENV=false -d windows integration_test/smoke_windows_test.dart
   build-and-release-windows:
     name: "Build windows app"
@@ -295,7 +297,7 @@ jobs:
       - run: sdkmanager --install "build-tools;30.0.3"
       - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.6
         with:
-          cmd: cd apps/flipper &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
+          cmd: dart run realm install && cd apps/flipper &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
           api: 29
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
           tag: google_apis

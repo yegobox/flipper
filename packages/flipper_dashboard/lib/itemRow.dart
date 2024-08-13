@@ -51,7 +51,6 @@ class RowItem extends StatefulHookConsumerWidget {
   final Product? product;
   final bool? addFavoriteMode;
   final int? favIndex;
-  final Function? orderItem;
   final String variantName;
   final bool isComposite;
   final bool isOrdering;
@@ -62,7 +61,6 @@ class RowItem extends StatefulHookConsumerWidget {
     required this.productName,
     required this.variantName,
     required this.stock,
-    this.orderItem = _defaultFunction,
     this.delete = _defaultFunction,
     this.deleteVariant = _defaultFunction,
     this.edit = _defaultFunction,
@@ -103,10 +101,6 @@ class _RowItemState extends ConsumerState<RowItem> {
               ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
             } else {
               await onTapItem(model: model, isOrdering: widget.isOrdering);
-              if (widget.orderItem != null && widget.isOrdering) {
-                widget.orderItem!(widget.variant!.productId);
-                return;
-              }
             }
           },
           onLongPress: () {
@@ -263,7 +257,11 @@ class _RowItemState extends ConsumerState<RowItem> {
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
-    final appSupportDir = await getApplicationSupportDirectory();
+    Directory appSupportDir = await getApplicationSupportDirectory();
+    if (Platform.isAndroid) {
+      appSupportDir = await getApplicationDocumentsDirectory();
+    }
+
     final imageFilePath = '${appSupportDir.path}/${imageFileName}';
     final file = File(imageFilePath);
 

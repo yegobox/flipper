@@ -103,12 +103,6 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       variantName: variant.name ?? "",
       imageUrl: asset?.assetName,
       isComposite: !isOrdering ? product?.isComposite ?? false : false,
-      orderItem: (int productId) {
-        // ref.read(cartListProvider.notifier).addToCart(variant);
-        // ref.refresh(cartListProvider);
-
-        /// add item to the cart, as user start ordering items.
-      },
       edit: (productId, type) {
         talker.info("navigating to Edit!");
         if (_getDeviceType(context) != "Phone") {

@@ -28,8 +28,14 @@ class IsolateHandler with Subscriptions {
     final branchId = args[2] as int;
     final businessId = args[7] as int;
     String? encryptionKey = args[4] as String?;
+    String? local = args[9] as String?;
 
     if (dbPatch == null || key == null) return;
+
+    LocalConfiguration configLocal = localConfig(key.toIntList(), local!);
+
+    localRealm?.close();
+    localRealm = Realm(configLocal);
 
     final app = App.getById(AppSecrets.appId);
     final user = app?.currentUser!;
@@ -39,7 +45,10 @@ class IsolateHandler with Subscriptions {
     realm = Realm(config);
 
     await IsolateHandler().updateSubscription(
-        branchId: branchId, businessId: businessId, realm: realm);
+        branchId: branchId,
+        businessId: businessId,
+        realm: realm,
+        localRealm: localRealm);
 
     await realm?.syncSession.waitForDownload();
     await realm?.subscriptions.waitForSynchronization();
@@ -54,6 +63,7 @@ class IsolateHandler with Subscriptions {
     int? tinNumber = args[5] as int?;
     String? bhfId = args[6] as String?;
     String? URI = args[8] as String?;
+
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
 
     if (encryptionKey == null ||

@@ -1,26 +1,31 @@
-import 'package:flipper_dashboard/preview_sale_button.dart';
+import 'package:flipper_dashboard/PreviewSaleButton.dart';
+import 'package:flipper_dashboard/typeDef.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_models/realm_model_export.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-typedef void CompleteTransaction();
-
 class PayableView extends StatefulHookConsumerWidget {
   PayableView(
       {Key? key,
-      required this.onClick,
       required this.ticketHandler,
-      required this.completeTransaction,
-      required this.model})
+      this.completeTransaction,
+      required this.model,
+      this.previewCart,
+      this.wording,
+      required this.mode,
+      required WidgetRef ref})
       : super(key: key);
-  final Function onClick;
   final Function ticketHandler;
   final CoreViewModel model;
   final CompleteTransaction? completeTransaction;
+  final PreviewCart? previewCart;
+  final String? wording;
+  final SellingMode mode;
   @override
   _PayableViewState createState() => _PayableViewState();
 }
@@ -59,7 +64,12 @@ class _PayableViewState extends ConsumerState<PayableView> {
           const SizedBox(
             width: 10,
           ),
-          PreviewSaleButton(completeTransaction: widget.completeTransaction)
+          PreviewSaleButton(
+            mode: widget.mode,
+            wording: widget.wording,
+            completeTransaction: widget.completeTransaction ?? null,
+            previewCart: widget.previewCart ?? null,
+          )
         ],
       ),
     );

@@ -32,16 +32,6 @@ class CronService with Subscriptions {
     // Implement delete received message logic
   }
 
-  Future<void> _remoteHttps(List<dynamic> args) async {
-    final rootIsolateToken = args[0] as RootIsolateToken;
-    final sendPort = args[1] as SendPort;
-    BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
-
-    await initDependencies();
-    // await ProxyService.sync.pull();
-    sendPort.send('Done sending data to http server');
-  }
-
   final talker = TalkerFlutter.init();
   Future<void> _spawnIsolate(String name, dynamic isolateHandler) async {
     if (ProxyService.box.getBusinessId() == null) return;
@@ -64,7 +54,9 @@ class CronService with Subscriptions {
             business.tinNumber,
             ProxyService.box.bhfId() ?? "00",
             ProxyService.box.getBusinessId(),
-            ProxyService.box.getServerUrl()
+            ProxyService.box.getServerUrl(),
+            await ProxyService.realm.dbPath(
+                path: 'local', folder: ProxyService.box.getBusinessId()),
           ],
         );
 
@@ -138,13 +130,13 @@ class CronService with Subscriptions {
       //   localRealm: ProxyService.local.localRealm,
       // );
     }
-    await _spawnIsolate("synced", IsolateHandler.flexibleSync);
+
     Timer.periodic(_getHeartBeatDuration(), (Timer t) async {
       if (ProxyService.box.getUserId() == null ||
           ProxyService.box.getBusinessId() == null) return;
 
       /// bootstrap data for universal Product names;
-
+      await _spawnIsolate("synced", IsolateHandler.flexibleSync);
       await _spawnIsolate("local", IsolateHandler.localData);
 
       await _spawnIsolate("synced", IsolateHandler.handleEBMTrigger);

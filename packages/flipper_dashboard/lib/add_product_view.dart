@@ -98,7 +98,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
       builder: (context, model, child) {
         return PopScope(
           canPop: false,
-          onPopInvoked: (bool didPop) {
+          onPopInvokedWithResult: (bool didPop, dynamic here) {
             if (didPop) {
               return;
             }

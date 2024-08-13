@@ -34,9 +34,6 @@ target 'Runner' do
   target 'RunnerTests' do
     inherit! :search_paths
   end
-  target 'flipperUITests' do
-    inherit! :complete
-  end
 end
 
 post_install do |installer|
@@ -44,3 +41,4 @@ post_install do |installer|
     flutter_additional_macos_build_settings(target)
   end
 end
+

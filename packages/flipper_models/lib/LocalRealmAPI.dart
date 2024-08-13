@@ -58,7 +58,7 @@ class LocalRealmApi extends RealmAPI
 
   void _configureInMemory() {
     Configuration config = Configuration.inMemory(localModels);
-    realm = Realm(config);
+    localRealm = Realm(config);
     talker.info("Opened in-memory realm.");
   }
 
@@ -101,33 +101,31 @@ class LocalRealmApi extends RealmAPI
     try {
       if (useInMemory || ProxyService.box.encryptionKey().isEmpty || isTest) {
         talker.error("Using in Memory db");
-        localRealm?.close();
         _configureInMemory();
-        return this;
+      } else {
+        String path = await dbPath(
+            path: 'local', folder: ProxyService.box.getBusinessId());
+        config = Configuration.local(
+          localModels,
+          initialDataCallback: dataCb,
+          path: path,
+          encryptionKey: ProxyService.box.encryptionKey().isEmpty == true
+              ? []
+              : ProxyService.box.encryptionKey().toIntList(),
+          schemaVersion: 2,
+          migrationCallback: (migration, oldSchemaVersion) {
+            if (oldSchemaVersion < 2) {
+              // This means we are migrating from version 1 to version 2
+              migration.deleteType('Drawers');
+            }
+          },
+        );
+        localRealm = Realm(config);
       }
-      localRealm?.close();
-      String path =
-          await dbPath(path: 'local', folder: ProxyService.box.getBusinessId());
-      config = Configuration.local(
-        localModels,
-        initialDataCallback: dataCb,
-        path: path,
-        encryptionKey: ProxyService.box.encryptionKey().isEmpty == true
-            ? []
-            : ProxyService.box.encryptionKey().toIntList(),
-        schemaVersion: 2,
-        migrationCallback: (migration, oldSchemaVersion) {
-          if (oldSchemaVersion < 2) {
-            // This means we are migrating from version 1 to version 2
-            migration.deleteType('Drawers');
-          }
-        },
-      );
-      localRealm = Realm(config);
-      return this;
     } catch (e) {
       rethrow;
     }
+    return this;
   }
 
   @override
@@ -234,11 +232,11 @@ class LocalRealmApi extends RealmAPI
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final IUser user = IUser.fromJson(json.decode(response.body));
 
-      await configureLocal(useInMemory: false);
       await configureTheBox(userPhone, user);
+      await configureLocal(useInMemory: false);
 
       await configureRemoteRealm(userPhone, user, localRealm: localRealm);
-      await updateLocalRealm(user, localRealm: localRealm);
+      await updateLocalRealm(user, localRealm: ProxyService.local.localRealm);
       await ProxyService.realm.downloadAssetSave();
       AppInitializer.initialize();
       if (stopAfterConfigure) return user;

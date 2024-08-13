@@ -569,3 +569,16 @@ class App {}
 // This allows viewing the correct dart formatted raw stacktrace in the Sentry UI
 // Support ignoredExceptionsForType (#2150)
 // Filter out exception types by calling SentryOptions.addExceptionFilterForType(Type exceptionType)
+// https://pub.dev/packages/flutter_thermal_printer
+// https://pos-x.com/download/thermal-receipt-printer-driver-2/
+
+
+// TIP on testing
+//https://stackoverflow.com/questions/73022762/how-to-specify-test-tags-correctly-in-dart-test-yaml
+// Rust flutter
+// https://www.youtube.com/watch?v=FyRo7tvwteQ
+//https://github.com/TimNN/cargo-lipo
+//https://blog.logrocket.com/using-flutter-rust-bridge-cross-platform-development/
+// https://github.com/cunarist/rinf
+//https://rinf.cunarist.com/
+// https://github.com/realm/realm-dart/issues/1771

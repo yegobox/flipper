@@ -305,6 +305,7 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
         userId: ProxyService.box.getUserId(),
         businessId: ProxyService.box.getBusinessId(),
         encryptionKey: ProxyService.box.encryptionKey(),
+        localRealm: ProxyService.local.localRealm,
       );
 
       ref.refresh(businessesProvider);

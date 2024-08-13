@@ -1344,6 +1344,7 @@ class RealmAPI<M extends IJsonSerializable>
       return existTransaction;
     }
   }
+
   @override
   Stream<ITransaction> manageTransactionStream(
       {required String transactionType,
@@ -2845,7 +2846,6 @@ class RealmAPI<M extends IJsonSerializable>
     );
   }
 
-  
   @override
   Future<void> syncUserWithAwsIncognito({required String identifier}) async {
     try {
@@ -2907,7 +2907,11 @@ class RealmAPI<M extends IJsonSerializable>
     }
     await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
     int branchId = ProxyService.box.getBranchId()!;
-    final applicationSupportDirectory = await getApplicationSupportDirectory();
+    Directory applicationSupportDirectory =
+        await getApplicationSupportDirectory();
+    if (Platform.isAndroid) {
+      applicationSupportDirectory = await getApplicationDocumentsDirectory();
+    }
 
     if (assetName != null) {
       return _downloadAsset(
@@ -2960,7 +2964,7 @@ class RealmAPI<M extends IJsonSerializable>
     final file = File(filePath);
 
     if (await file.exists()) {
-      talker.info('File already exists: ${file.path}');
+      talker.warning('File Exist: ${file.path}');
       return Stream.value(100.0); // Return a stream indicating 100% completion
     }
 
@@ -2987,6 +2991,7 @@ class RealmAPI<M extends IJsonSerializable>
       // Listen for the download completion
       operation.result.then((_) {
         progressController.close();
+        talker.warning("Downloaded file at path ${storagePath}");
       }).catchError((error) async {
         String path = 'public/${subPath}-$branchId/$assetName';
         try {

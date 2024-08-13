@@ -4,7 +4,7 @@ import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:realm/realm.dart';
 
-import 'package:talker_flutter/talker_flutter.dart';
+// import 'package:talker_flutter/talker_flutter.dart';
 
 mixin Subscriptions {
   Future<void> updateSubscription({
@@ -14,7 +14,7 @@ mixin Subscriptions {
     Realm? realm,
     Realm? localRealm,
   }) async {
-    final talker = TalkerFlutter.init();
+    // final talker = TalkerFlutter.init();
     if (realm == null) return;
 
     // Collect current subscription names
@@ -24,8 +24,8 @@ mixin Subscriptions {
     }
 
     // Log current subscriptions
-    existingSubscriptions
-        .forEach((name) => talker.info("Existing Sub: ${name}"));
+    // existingSubscriptions
+    //     .forEach((name) => talker.info("Existing Sub: ${name}"));
 
     if (businessId == null || branchId == null || userId == null) return;
 
@@ -79,7 +79,7 @@ mixin Subscriptions {
     realm.subscriptions.update((MutableSubscriptionSet mutableSubscriptions) {
       queries.forEach((name, query) {
         if (!existingSubscriptions.contains(name)) {
-          talker.warning("Registered subscription ${name}");
+          // talker.warning("Registered subscription ${name}");
           mutableSubscriptions.add(query, name: name, update: true);
         }
       });

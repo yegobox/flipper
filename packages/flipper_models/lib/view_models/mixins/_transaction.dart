@@ -195,4 +195,5 @@ mixin TransactionMixin {
     pendingTransaction.updatedAt = DateTime.now().toIso8601String();
     pendingTransaction.lastTouched = DateTime.now();
   }
+  
 }

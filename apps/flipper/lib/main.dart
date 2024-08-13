@@ -46,7 +46,7 @@ Future<void> main() async {
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
-                ),
+                ),  
               ),
               localizationsDelegates: [
                 FirebaseUILocalizations.withDefaultOverrides(
