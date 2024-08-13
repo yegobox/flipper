@@ -86,7 +86,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     return transactionAsyncValue.when(
       data: (transaction) => _buildDataWidget(transaction),
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (error, stackTrace) => Center(child: Text('Error: $error')),
+      error: (error, stackTrace) => Center(child: Text('Error: $stackTrace')),
     );
   }
 

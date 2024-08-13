@@ -1379,8 +1379,10 @@ class RealmAPI<M extends IJsonSerializable>
         createdAt: DateTime.now().toIso8601String(),
       );
 
-      // Save transaction to Realm
-      realm!.add<ITransaction>(transaction);
+      realm!.write(() {
+        // Save transaction to Realm
+        realm!.add<ITransaction>(transaction);
+      });
 
       yield transaction;
     } else {

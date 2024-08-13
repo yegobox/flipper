@@ -291,14 +291,14 @@ jobs:
           dart pub global activate melos
           melos bootstrap
       - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.6
+        uses: malinskiy/action-android/install-sdk@release/0.1.7
       - run: echo $ANDROID_HOME
       - run: sdkmanager --install "ndk;23.1.7779620"
       - run: sdkmanager --install "build-tools;30.0.3"
-      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.6
+      - uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
         with:
           cmd: dart run realm install && cd apps/flipper &&  flutter test --dart-define=FLUTTER_TEST_ENV=true  integration_test/smoke_android_test.dart
-          api: 29
+          api: 33
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
           tag: google_apis
           abi: x86_64
