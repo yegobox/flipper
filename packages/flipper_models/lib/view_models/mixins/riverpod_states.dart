@@ -155,7 +155,6 @@ final pendingTransactionProvider = StreamProvider.autoDispose
     .family<ITransaction, ({String mode, bool isExpense})>(
   (ref, params) {
     final (:mode, :isExpense) = params;
-    // ref.invalidateSelf();
     // Access ProxyService to get the branch ID
     final branchId = ProxyService.box.getBranchId()!;
 
@@ -224,8 +223,9 @@ class TransactionItemsNotifier
   Future<void> _loadItems() async {
     final currentTransaction = getTransactionId();
     if (currentTransaction == null) {
-      state = const AsyncValue.error(
-          "No transaction ID available", StackTrace.empty);
+      // fail silen
+      // state = const AsyncValue.error(
+      //     "No transaction ID available", StackTrace.empty);
       return;
     }
     await loadItems(currentTransaction: currentTransaction);
@@ -832,7 +832,8 @@ class KeypadNotifier extends StateNotifier<String> {
 
 final loadingProvider = StateProvider<bool>((ref) => false);
 final toggleProvider = StateProvider<bool>((ref) => false);
-final toggleBetweenProductViewAndQuickSale = StateProvider<bool>((ref) => false);
+final toggleBetweenProductViewAndQuickSale =
+    StateProvider<bool>((ref) => false);
 
 final refreshPrivider = Provider((ref) {
   return CombinedNotifier(ref);

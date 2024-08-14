@@ -366,9 +366,18 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
   }
 
   double getSumOfItems() {
-    return ref
-        .watch(transactionItemsProvider((isExpense: false)))
-        .value!
-        .fold(0, (sum, item) => sum + (item.price * item.qty));
+    final transactionItems =
+        ref.watch(transactionItemsProvider((isExpense: false)));
+
+    // Check if the AsyncValue is in a data state (has data)
+    if (transactionItems.hasValue) {
+      return transactionItems.value!.fold(
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
+    } else {
+      // Return 0 or handle the case where data is not available
+      return 0.0;
+    }
   }
 }

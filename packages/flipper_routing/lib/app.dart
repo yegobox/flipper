@@ -582,3 +582,5 @@ class App {}
 // https://github.com/cunarist/rinf
 //https://rinf.cunarist.com/
 // https://github.com/realm/realm-dart/issues/1771
+// https://github.com/microsoft/store-submission/issues/12
+// https://github.com/LanceMcCarthy/MediaFileManager/blob/cb3e5f41e20e0d611a99405f22478242a7b748e3/.github/workflows/cd_release_msstore.yml#L110

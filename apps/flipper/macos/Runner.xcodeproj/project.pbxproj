@@ -455,7 +455,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
-			shellScript = "\n\n";
+			shellScript = "
+
+";
 		};
 		79C476BE2C45141700F53450 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -472,7 +474,8 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" embed_and_thin\n\n";
-			shellScript = "\n";
+			shellScript = "
+";
 		};
 		A5DC2877123CECFDBDAD8C5D /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

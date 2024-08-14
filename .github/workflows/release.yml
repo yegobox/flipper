@@ -302,7 +302,7 @@ jobs:
           cmdOptions: -no-snapshot-save -noaudio -no-boot-anim -cores 2 -memory 3072 -no-window
           tag: google_apis
           abi: x86_64
-          bootTimeout: 720
+          bootTimeout: 820
       - run: sleep 30
   shorebird-deploy:
     name: "Shorebird Deploy to Google Play"

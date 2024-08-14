@@ -31,6 +31,7 @@ class _PreviewsalebuttonState extends ConsumerState<PreviewSaleButton> {
     return SizedBox(
       height: 64,
       child: TextButton(
+        key: Key("PaymentButton"),
         style: primaryButtonStyle.copyWith(
           backgroundColor: WidgetStateProperty.resolveWith<Color?>(
             (Set<WidgetState> states) {

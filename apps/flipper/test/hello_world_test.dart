@@ -7,6 +7,7 @@ import 'BranchIdWidget.dart';
 import 'TestApp.dart';
 
 //flutter test test/hello_world_test.dart  --dart-define=FLUTTER_TEST_ENV=true
+//flutter test test/quick_sell.dart  --dart-define=FLUTTER_TEST_ENV=true
 /// this is a fake test just to simulate we are able to bootstrap close to the dependencies we are using inside our app
 /// since I have mocking plus other complication that comes with mocking, integration testing should be close to the 
 /// real app we are testing hence why I never use mocking
