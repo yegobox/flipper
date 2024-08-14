@@ -3384,10 +3384,19 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  List<StockRequest> requests({required int branchId}) {
-    final data = realm!.query<StockRequest>(
-        r'mainBranchId == $0 && status== $1 ',
-        [branchId, RequestStatus.pending]).toList();
-    return data;
+  Stream<List<StockRequest>> requestsStream({required int branchId}) {
+    if (realm == null) {
+      return Stream.value([]);
+    }
+
+    final query = realm!.query<StockRequest>(
+        r'mainBranchId == $0 && status == $1 || status == $2',
+        [branchId, RequestStatus.pending, RequestStatus.partiallyApproved]);
+
+    return query.changes
+        .map((changes) => changes.results.toList())
+        .startWith(query.toList())
+        .debounceTime(
+            Duration(milliseconds: 100)); // Optional: debounce rapid updates
   }
 }

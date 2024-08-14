@@ -42,6 +42,7 @@ void main() {
 
     testWidgets('Widget displays stock requests correctly',
         (WidgetTester tester) async {
+      // Build the widget with a stream provider for requests
       await tester.pumpWidget(
         ProviderScope(
           overrides: [],
@@ -53,16 +54,23 @@ void main() {
         ),
       );
 
+      // Allow the stream to emit values and the widget to rebuild
       await tester.pumpAndSettle();
 
+      // Check that the correct number of Card widgets are displayed
       expect(find.byType(Card), findsNWidgets(2));
 
-      expect(
-          find.text(
-              'Request #${ProxyService.realm.requests(branchId: 1).first.id}'),
-          findsNWidgets(1));
+      // Check that the correct request ID text is displayed
+      final firstRequestId = await ProxyService.realm
+          .requestsStream(branchId: 1)
+          .first
+          .then((request) => request.first.id);
+      expect(find.text('Request #$firstRequestId'), findsNWidgets(1));
+
+      // Check that the correct Branch ID text is displayed
       expect(find.text('Branch ID: 1-2'), findsNWidgets(2));
 
+      // Check that the 'Approve Request' button is enabled
       expect(
         tester
             .widget<ElevatedButton>(

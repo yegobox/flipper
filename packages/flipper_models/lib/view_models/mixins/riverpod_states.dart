@@ -1040,9 +1040,12 @@ final branchSelectionProvider =
     StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
   (ref) => BranchSelectionNotifier(),
 );
-final stockRequestsProvider = Provider<List<StockRequest>>((ref) {
-  // Assuming ProxyService.realm.requests(branchId: 1) is synchronous
-  return ProxyService.realm.requests(branchId: ProxyService.box.getBranchId()!);
+final stockRequestsProvider = StreamProvider<List<StockRequest>>((ref) {
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) {
+    throw Exception('Branch ID is not set');
+  }
+  return ProxyService.realm.requestsStream(branchId: branchId);
 });
 
 List<ProviderBase> allProviders = [

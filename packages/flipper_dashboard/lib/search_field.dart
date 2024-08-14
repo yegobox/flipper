@@ -112,7 +112,13 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   toggleSearch(),
                   calc(model: model),
-                  if (widget.showOrderButton) orderButton(orders),
+                  orders.when(
+                    data: (orders) => widget.showOrderButton
+                        ? orderButton(orders)
+                        : SizedBox.shrink(),
+                    loading: () => SizedBox.shrink(),
+                    error: (err, stack) => Text('Error: $err'),
+                  ),
                   if (widget.showIncomingButton) incomingButton(),
                   if (widget.showAddButton)
                     addButton().shouldSeeTheApp(ref, AppFeature.Sales),

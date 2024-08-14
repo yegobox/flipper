@@ -159,4 +159,62 @@ void main() {
     String str2 = "2023-03-22T10:38:37.057Z-0000";
     expect(isGreaterThan(str1, str2), false);
   });
+  group('RealmEJsonConverterExtension', () {
+    test('convertRealmValues handles basic types correctly', () {
+      final testMap = {
+        'string': 'test',
+        'int': {'\$numberInt': '42'},
+        'double': {'\$numberDouble': '3.14'},
+        'date': {
+          '\$date': {'\$numberLong': '1625097600000'}
+        },
+        'objectId': {'\$oid': '60e1f1f1f1f1f1f1f1f1f1f1'},
+      };
+
+      final result = testMap.convertRealmValues();
+
+      expect(result['string'], equals('test'));
+      expect(result['int'], equals(42));
+      expect(result['double'], equals(3.14));
+      expect(result['date'], isA<String>());
+      expect(result['objectId'], equals('60e1f1f1f1f1f1f1f1f1f1f1'));
+    });
+
+    test('convertRealmValues swaps id and serverId correctly', () {
+      final testMap = {
+        'id': 'originalId',
+        'serverId': 'originalServerId',
+        'otherField': 'value',
+      };
+
+      final result = testMap.convertRealmValues();
+
+      expect(result['id'], equals('originalServerId'));
+      expect(result['serverId'], equals('originalId'));
+      expect(result['otherField'], equals('value'));
+    });
+    // test('convertRealmValues handles nested structures', () {
+    //   final testMap = {
+    //     'nested': {
+    //       'array': [
+    //         {'\$numberInt': '1'},
+    //         {'\$numberDouble': '2.5'},
+    //         {
+    //           'nestedObject': {
+    //             '\$date': {'\$numberLong': '1625097600000'}
+    //           }
+    //         },
+    //       ],
+    //     },
+    //   };
+
+    //   final result = testMap.convertRealmValues();
+
+    //   expect(result['nested']['array'][0], equals(1));
+    //   expect(result['nested']['array'][1], equals(2.5));
+    //   expect(result['nested']['array'][2]['nestedObject'], isA<String>());
+    //   expect(result['nested']['array'][2]['nestedObject'],
+    //       equals('2021-07-01T00:00:00.000Z'));
+    // });
+  });
 }

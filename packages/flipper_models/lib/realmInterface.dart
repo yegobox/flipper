@@ -414,7 +414,6 @@ abstract class RealmApiInterface {
     required String lastReqDt,
   });
 
-
   Future<void> syncUserWithAwsIncognito({required String identifier});
   Future<Stream<double>> downloadAssetSave(
       {String? assetName, String? subPath = "branch"});
@@ -459,5 +458,5 @@ abstract class RealmApiInterface {
   Future<LPermission?> permission({required int userId});
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});
-  List<StockRequest> requests({required int branchId});
+  Stream<List<StockRequest>> requestsStream({required int branchId});
 }
