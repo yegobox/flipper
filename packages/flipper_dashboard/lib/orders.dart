@@ -6,7 +6,6 @@ import 'package:flipper_dashboard/ProductList.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/states/selectedSupplierProvider.dart';
-
 import 'package:flutter_hooks/flutter_hooks.dart';
 
 class Orders extends HookConsumerWidget {
@@ -30,16 +29,16 @@ class Orders extends HookConsumerWidget {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Select Supplier'),
+          title: Text('Select Supplier',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          elevation: 1,
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
-              // Desktop layout
               return _buildDesktopLayout(
                   context, ref, suppliers, selectedSupplier);
             } else {
-              // Mobile layout
               return _buildMobileLayout(
                   context, ref, suppliers, selectedSupplier);
             }
@@ -57,9 +56,9 @@ class Orders extends HookConsumerWidget {
           flex: 1,
           child: _buildSupplierList(context, suppliers, selectedSupplier, ref),
         ),
-        const VerticalDivider(thickness: 1, width: 1),
+        VerticalDivider(thickness: 1, width: 1, color: Colors.grey[300]),
         Expanded(
-          flex: 2,
+          flex: 5,
           child: _buildProductsView(context, ref, selectedSupplier.value),
         ),
       ],
@@ -73,7 +72,7 @@ class Orders extends HookConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildSupplierDropdown(suppliers, selectedSupplier, ref),
+          _buildSupplierDropdown(suppliers, selectedSupplier, ref, context),
           const SizedBox(height: 20),
           _buildViewProductsButton(context, ref, selectedSupplier.value),
         ],
@@ -88,8 +87,16 @@ class Orders extends HookConsumerWidget {
       itemBuilder: (context, index) {
         final supplier = suppliers[index];
         return ListTile(
-          title: Text(supplier.name ?? "-"),
+          title: Text(
+            supplier.name ?? "-",
+            style: TextStyle(
+              fontWeight: selectedSupplier.value == supplier
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+            ),
+          ),
           selected: selectedSupplier.value == supplier,
+          selectedTileColor: Colors.grey[100],
           onTap: () {
             selectedSupplier.value = supplier;
             ref
@@ -101,13 +108,20 @@ class Orders extends HookConsumerWidget {
     );
   }
 
-  Widget _buildSupplierDropdown(List<Branch> suppliers,
-      ValueNotifier<Branch?> selectedSupplier, WidgetRef ref) {
+  Widget _buildSupplierDropdown(
+      List<Branch> suppliers,
+      ValueNotifier<Branch?> selectedSupplier,
+      WidgetRef ref,
+      BuildContext context) {
     return DropdownButtonFormField<Branch>(
       value: selectedSupplier.value,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Select Supplier',
         border: OutlineInputBorder(),
+        focusedBorder: OutlineInputBorder(
+          borderSide:
+              BorderSide(color: Theme.of(context).primaryColor, width: 2),
+        ),
       ),
       items: suppliers.map((Branch supplier) {
         return DropdownMenuItem<Branch>(
@@ -142,9 +156,9 @@ class Orders extends HookConsumerWidget {
             },
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 15),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       ),
-      child: const Text(
+      child: Text(
         'View Products',
         style: TextStyle(
           fontSize: 16,
@@ -157,7 +171,12 @@ class Orders extends HookConsumerWidget {
   Widget _buildProductsView(
       BuildContext context, WidgetRef ref, Branch? selectedSupplier) {
     if (selectedSupplier == null) {
-      return const Center(child: Text('Please select a supplier'));
+      return Center(
+        child: Text(
+          'Please select a supplier',
+          style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+        ),
+      );
     }
     return const ProductListScreen();
   }

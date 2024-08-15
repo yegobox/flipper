@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flipper_dashboard/QuickSellingView.dart';
-// import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_models/LocalRealmApiMocked.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
@@ -46,9 +45,6 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: TestApp(
-            // child: CheckOut(
-            //   isBigScreen: true,
-            // ),
             child: QuickSellingView(
               formKey: formKey,
               discountController: discountController,
@@ -76,33 +72,31 @@ void main() {
       // TODO: Implement this test after setting up your item addition logic
     });
 
-    /// Validating form fields TODO: finalize this Test
-    // testWidgets('QuickSellingView validates form fields',
-    //     (WidgetTester tester) async {
-    //   await tester.pumpWidget(
-    //     ProviderScope(
-    //       child: TestApp(
-    //         child: QuickSellingView(
-    //           formKey: formKey,
-    //           discountController: discountController,
-    //           receivedAmountController: receivedAmountController,
-    //           customerPhoneNumberController: customerPhoneNumberController,
-    //           paymentTypeController: paymentTypeController,
-    //         ),
-    //       ),
-    //     ),
-    //   );
+    /// Validating form fields
+    testWidgets('QuickSellingView validates form fields',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: TestApp(
+            child: QuickSellingView(
+              formKey: formKey,
+              discountController: discountController,
+              receivedAmountController: receivedAmountController,
+              customerPhoneNumberController: customerPhoneNumberController,
+              paymentTypeController: paymentTypeController,
+            ),
+          ),
+        ),
+      );
 
-    //   // Trigger a submit (e.g., tapping a "Submit" button or a form action)
-    //   // This is a placeholder - replace with the actual submit action in your app
-    //   await tester.tap(find.byKey(Key('PaymentButton')));
-    //   await tester.pumpAndSettle();
+      formKey.currentState!.validate();
+      await tester.pumpAndSettle();
 
-    //   // Verify error messages for invalid inputs
-    //   expect(find.text('Please enter received amount'), findsOneWidget);
-    //   expect(find.text('Please enter a phone number'), findsOneWidget);
-    //   expect(
-    //       find.text('Please select or enter a payment method'), findsOneWidget);
-    // });
+      // Verify error messages for invalid inputs
+      expect(find.text('Please enter received amount'), findsOneWidget);
+      expect(find.text('Please enter a phone number'), findsOneWidget);
+      expect(
+          find.text('Please select or enter a payment method'), findsOneWidget);
+    });
   });
 }

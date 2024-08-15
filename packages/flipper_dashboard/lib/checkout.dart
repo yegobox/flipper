@@ -128,19 +128,17 @@ class CheckOutState extends ConsumerState<CheckOut>
                 height: constraints.maxHeight,
                 child: FadeTransition(
                   opacity: _animation,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildIconRow(),
-                        const SizedBox(height: 60.0),
-                        if (ProxyService.box.isPosDefault()!)
-                          _buildPosDefaultContent(transaction, model),
-                        // Text('POS!'),
-                        if (ProxyService.box.isOrdersDefault()!)
-                          const IncomingOrdersWidget(),
-                      ],
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildIconRow(),
+                      const SizedBox(height: 60.0),
+                      if (ProxyService.box.isPosDefault()!)
+                        _buildPosDefaultContent(transaction, model),
+                      // Text('POS!'),
+                      if (ProxyService.box.isOrdersDefault()!)
+                        const IncomingOrdersWidget(),
+                    ],
                   ),
                 ),
               ),

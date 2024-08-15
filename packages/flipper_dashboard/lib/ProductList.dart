@@ -27,20 +27,20 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
         TransactionMixin,
         TextEditingControllersMixin,
         PreviewcartMixin {
-  // bool showCart = false;
-
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
     final isOrdering = ref.watch(isOrderingProvider);
+    final orders = ref
+            .watch(transactionItemsProvider((isExpense: isOrdering)))
+            .value
+            ?.length ??
+        0;
 
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => ProductViewModel(),
         builder: (context, model, child) {
           return Scaffold(
-            appBar: AppBar(
-              title: Text('Products'),
-            ),
             body: items.when(
               data: (products) {
                 if (products.isEmpty) {
@@ -85,12 +85,12 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
               child: PreviewSaleButton(
                 wording: ref.watch(toggleBetweenProductViewAndQuickSale)
                     ? "Place order"
-                    : "Preview Cart (${ref.watch(transactionItemsProvider((
-                              isExpense: isOrdering
-                            ))).value?.length})",
+                    : "Preview Cart  (${orders})",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
-                  previewCart();
+                  if (orders > 0) {
+                    previewCart();
+                  }
                 },
               ),
             ),
