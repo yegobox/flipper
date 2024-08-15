@@ -115,14 +115,18 @@ mixin Booting {
     for (IBranch brannch in branches) {
       Branch branch = Branch(
         ObjectId(),
-        active: brannch.active,
+
         serverId: brannch.id,
         description: brannch.description,
         name: brannch.name,
         businessId: brannch.businessId,
         longitude: brannch.longitude,
         latitude: brannch.latitude,
-        isDefault: brannch.isDefault,
+
+        /// when we are loading branch from remove we ignore the default behaviour of a user
+        /// what is set to be default branch
+        isDefault: false,
+        active: false,
         lastTouched: brannch.lastTouched,
         action: brannch.action,
         deletedAt: brannch.deletedAt,

@@ -5,6 +5,8 @@ import 'package:flipper_models/realm/schemas.dart';
 import 'package:realm/realm.dart';
 import 'package:http/http.dart' as http;
 
+enum ClearData { Business, Branch }
+
 abstract class LocalRealmInterface {
   Future<LocalRealmInterface> configureLocal({required bool useInMemory});
   Realm? localRealm;
@@ -63,7 +65,6 @@ abstract class LocalRealmInterface {
   Future<void> configureRemoteRealm(String userPhone, IUser user,
       {Realm? localRealm});
 
-  
   /// drawers
   bool isDrawerOpen({required int cashierId, required int branchId});
   Future<Drawers?> getDrawer({required int cashierId});
@@ -71,4 +72,6 @@ abstract class LocalRealmInterface {
   Drawers? openDrawer({required Drawers drawer});
   Stream<List<TransactionItem>> transactionItemList(
       {DateTime? startDate, DateTime? endDate, bool? isPluReport});
+
+  void clearData({required ClearData data});
 }

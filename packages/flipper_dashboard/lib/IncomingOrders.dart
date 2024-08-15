@@ -205,13 +205,15 @@ class IncomingOrdersWidget extends HookConsumerWidget
   Color _getStatusColor(String? status) {
     switch (status) {
       case 'pending':
-        return Colors.orange[100]!;
+        return Colors.orange[300]!;
       case 'approved':
-        return Colors.green[100]!;
+        return Colors.green[400]!;
+      case 'partiallyApproved':
+        return Colors.yellow[600]!;
       case 'rejected':
-        return Colors.red[100]!;
+        return Colors.red[400]!;
       default:
-        return Colors.red[200]!;
+        return Colors.grey[400]!;
     }
   }
 }

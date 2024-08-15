@@ -91,9 +91,10 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
             const SizedBox(width: 20),
             Expanded(
               child: isScanningMode
-                  ? buildReceiptUI()
-                  : CheckOut(isBigScreen: true),
-            ).shouldSeeTheApp(ref, AppFeature.Sales),
+                  ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
+                  : CheckOut(isBigScreen: true)
+                      .shouldSeeTheApp(ref, AppFeature.Sales),
+            ),
             Flexible(
               child: ListView(
                 children: [

@@ -235,6 +235,11 @@ class LocalRealmApi extends RealmAPI
       await configureTheBox(userPhone, user);
       await configureLocal(useInMemory: false);
 
+      /// clear any business/branches that was logged in this is to unintentionaly log to the branch
+      /// that I am not supposed to
+
+      clearData(data: ClearData.Branch);
+      clearData(data: ClearData.Business);
       await configureRemoteRealm(userPhone, user, localRealm: localRealm);
       await updateLocalRealm(user, localRealm: ProxyService.local.localRealm);
       await ProxyService.realm.downloadAssetSave();
@@ -289,9 +294,10 @@ class LocalRealmApi extends RealmAPI
 
   @override
   List<Branch> branches({int? businessId}) {
+    /// filter out active == true, to avoid to order from yourself
     if (businessId != null) {
-      return localRealm!
-          .query<Branch>(r'businessId == $0 ', [businessId]).toList();
+      return localRealm!.query<Branch>(
+          r'businessId == $0 && active == $1', [businessId, false]).toList();
     } else {
       throw Exception("BusinessId is required");
     }
@@ -952,5 +958,24 @@ class LocalRealmApi extends RealmAPI
       localRealm!.add<Drawers>(drawer);
     });
     return localRealm!.query<Drawers>(r'id == $0 ', [drawer.id]).firstOrNull;
+  }
+
+  @override
+  void clearData({required ClearData data}) {
+    try {
+      if (data == ClearData.Branch) {
+        localRealm!.write(() {
+          localRealm!.deleteAll<Branch>();
+        });
+      }
+      if (data == ClearData.Business) {
+        localRealm!.write(() {
+          localRealm!.deleteAll<Business>();
+        });
+      }
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+    }
   }
 }

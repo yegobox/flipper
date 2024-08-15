@@ -1,3 +1,4 @@
+import 'package:flipper_models/LocalRealm.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/customappbar.dart';
 import 'package:flipper_models/view_models/gate.dart';
@@ -198,7 +199,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
     ProxyService.local.openDrawer(
       drawer: drawer,
     );
-   
+
     LoginInfo().isLoggedIn = true;
     _routerService.navigateTo(FlipperAppRoute());
   }
@@ -215,6 +216,8 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       });
     }
     await logOut();
+    ProxyService.local.clearData(data: ClearData.Branch);
+    ProxyService.local.clearData(data: ClearData.Business);
     _routerService.navigateTo(LoginViewRoute());
   }
 
@@ -224,6 +227,8 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       child: TextButton(
         key: const Key('logoutButton'),
         onPressed: () async {
+          ProxyService.local.clearData(data: ClearData.Branch);
+          ProxyService.local.clearData(data: ClearData.Business);
           await logOut();
           _routerService.navigateTo(LoginViewRoute());
         },

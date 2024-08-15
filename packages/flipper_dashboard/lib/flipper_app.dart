@@ -215,14 +215,15 @@ class FlipperAppState extends ConsumerState<FlipperApp>
 
   Widget _buildAppLayoutDrawerInner(BuildContext context, CoreViewModel model,
       AsyncSnapshot<Tenant?> snapshot, WidgetRef ref) {
-    if (snapshot.hasData &&
-        !(snapshot.data!.sessionActive == null
-            ? false
-            : snapshot.data!.sessionActive!)) {
-      _handleSessionInactive(context, model, snapshot.data!);
-    } else if (snapshot.hasData && snapshot.data!.sessionActive!) {
-      model.passCode = snapshot.data!.pin.toString();
-    }
+    /// TODO: re-work on this.
+    // if (snapshot.hasData &&
+    //     !(snapshot.data!.sessionActive == null
+    //         ? false
+    //         : snapshot.data!.sessionActive!)) {
+    //   _handleSessionInactive(context, model, snapshot.data!);
+    // } else if (snapshot.hasData && snapshot.data!.sessionActive!) {
+    //   model.passCode = snapshot.data!.pin.toString();
+    // }
 
     return AppLayoutDrawer(
       controller: controller,
