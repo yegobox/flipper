@@ -23,6 +23,13 @@ env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
+  code-coverage:
+    uses: ./.github/workflows/reusable-code-coverage-check.yml
+    with:
+      flutter-channel: 'stable'
+      minimum-coverage: 45
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   integration-testing-windows:
     name: "Integration Testing Windows"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')

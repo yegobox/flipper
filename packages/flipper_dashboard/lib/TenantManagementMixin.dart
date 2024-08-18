@@ -159,10 +159,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       // Fill permissions based on tenantAccesses
       for (var access in tenantAccesses) {
         if (access.featureName != null && access.accessLevel != null) {
-          // Ensure the accessLevel is a valid option
-          ///TODO: if I fix the bug in the bellow code then In dropdowns of permission
-          ///I will have duplicate which I do not know how to handle, the issue in bellow
-          ///code is that accessLevels list should apply toLowerCase before we apply .contains
           String validAccessLevel = accessLevels.contains(access.accessLevel)
               ? access.accessLevel!
               : 'No Access';
