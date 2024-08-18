@@ -416,10 +416,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
-    TenantAddRoute.name: (routeData) {
+    TenantManagementRoute.name: (routeData) {
       return _i4.CustomPage<dynamic>(
         routeData: routeData,
-        child: const _i1.TenantAdd(),
+        child: const _i1.TenantManagement(),
         opaque: true,
         barrierDismissible: false,
       );
@@ -750,8 +750,8 @@ class StackedRouterWeb extends _i4.RootStackRouter {
           path: '/login-choices',
         ),
         _i4.RouteConfig(
-          TenantAddRoute.name,
-          path: '/tenant-add',
+          TenantManagementRoute.name,
+          path: '/tenant-management',
         ),
         _i4.RouteConfig(
           SocialHomeViewRoute.name,
@@ -1830,15 +1830,15 @@ class LoginChoicesRoute extends _i4.PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [_i1.TenantAdd]
-class TenantAddRoute extends _i4.PageRouteInfo<void> {
-  const TenantAddRoute()
+/// [_i1.TenantManagement]
+class TenantManagementRoute extends _i4.PageRouteInfo<void> {
+  const TenantManagementRoute()
       : super(
-          TenantAddRoute.name,
-          path: '/tenant-add',
+          TenantManagementRoute.name,
+          path: '/tenant-management',
         );
 
-  static const String name = 'TenantAdd';
+  static const String name = 'TenantManagement';
 }
 
 /// generated route for
@@ -2751,10 +2751,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> navigateToTenantAdd(
+  Future<dynamic> navigateToTenantManagement(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return navigateTo(
-      const TenantAddRoute(),
+      const TenantManagementRoute(),
       onFailure: onFailure,
     );
   }
@@ -3428,10 +3428,10 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
-  Future<dynamic> replaceWithTenantAdd(
+  Future<dynamic> replaceWithTenantManagement(
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
-      const TenantAddRoute(),
+      const TenantManagementRoute(),
       onFailure: onFailure,
     );
   }

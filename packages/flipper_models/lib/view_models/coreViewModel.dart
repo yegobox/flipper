@@ -625,18 +625,6 @@ class CoreViewModel extends FlipperBaseModel
     });
   }
 
-  Future resumeTransaction({required int ticketId}) async {
-    ITransaction? _transaction =
-        await ProxyService.realm.getTransactionById(id: ticketId);
-
-    ProxyService.realm.realm!.write(() {
-      _transaction!.status = PENDING;
-      _transaction.updatedAt = DateTime.now().toIso8601String();
-    });
-    // await keypad.getPendingTransaction(
-    //     branchId: ProxyService.box.getBranchId()!);
-    // await await updatePayable();
-  }
 
   /// the method return total amount of the transaction to be used in the payment
   /// @return num if there is discount applied to transactionItem then it will return discount instead of price to be

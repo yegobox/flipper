@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/tenant_add.dart';
+import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -98,7 +98,7 @@ class _AdminControlState extends State<AdminControl> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                return TenantAdd();
+                                return TenantManagement();
                               },
                             );
                           },

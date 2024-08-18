@@ -21,7 +21,7 @@ List<String> features = [
   "Add Product",
   "Orders",
 ];
-List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
+List<String> accessLevels = ['No Access', 'read', 'write', 'admin'];
 
 class AppFeature {
   static const String Sales = "Sales";
@@ -32,9 +32,9 @@ class AppFeature {
 }
 
 class AccessLevel {
-  static const String WRITE = "Write";
-  static const String ADMIN = "Admin";
-  static const String READ = "Read";
+  static const String WRITE = "write";
+  static const String ADMIN = "admin";
+  static const String READ = "read";
 }
 
 // String EBMURL = "http://localhost:8080/rra";

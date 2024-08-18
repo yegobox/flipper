@@ -14,6 +14,114 @@ import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'new_ticket.dart';
 
+mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+  final _routerService = locator<RouterService>();
+
+  Widget _buildTicketList(BuildContext context, List<ITransaction> tickets) {
+    return ListView.separated(
+      itemCount: tickets.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final ticket = tickets[index];
+        return TicketTile(
+          ticket: ticket,
+          onTap: () async {
+            bool? confirm = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Confirm Resume'),
+                  content: Text('Are you sure you want to resume this order?'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                      child: Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                      child: Text('Confirm'),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (confirm == true) {
+              ITransaction? _transaction =
+                  await ProxyService.realm.getTransactionById(id: ticket.id!);
+
+              ProxyService.realm.realm!.write(() {
+                _transaction!.status = PENDING;
+                _transaction.updatedAt = DateTime.now().toIso8601String();
+              });
+
+              await Future.delayed(Duration(microseconds: 800));
+
+              ref.refresh(
+                  transactionItemsProvider((isExpense: false)).notifier);
+
+              _routerService.clearStackAndShow(FlipperAppRoute());
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNoTickets(BuildContext context) {
+    return Center(
+      child: Text(
+        'No open tickets',
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.w400,
+          fontSize: 16,
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTicketSection(BuildContext context) {
+    return ViewModelBuilder.nonReactive(
+        viewModelBuilder: () => CoreViewModel(),
+        builder: (context, model, child) {
+          return Expanded(
+            child: StreamBuilder<List<ITransaction>>(
+              stream: ProxyService.realm.ticketsStreams(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  List<ITransaction> data = snapshot.data!;
+                  if (data.isEmpty) {
+                    return _buildNoTickets(context);
+                  }
+                  return _buildTicketList(context, data);
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 16,
+                        color: Colors.red,
+                      ),
+                    ),
+                  );
+                } else {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            ),
+          );
+        });
+  }
+}
+
 class TicketsList extends StatefulHookConsumerWidget {
   const TicketsList(
       {Key? key, required this.transaction, this.showAppBar = true})
@@ -25,9 +133,8 @@ class TicketsList extends StatefulHookConsumerWidget {
   _TicketsListState createState() => _TicketsListState();
 }
 
-class _TicketsListState extends ConsumerState<TicketsList> {
-  final _routerService = locator<RouterService>();
-
+class _TicketsListState extends ConsumerState<TicketsList>
+    with TicketsListMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,8 +144,6 @@ class _TicketsListState extends ConsumerState<TicketsList> {
               elevation: 0,
               leading: IconButton(
                 onPressed: () {
-                  /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
-                  /// cart preview
                   ref.refresh(
                     pendingTransactionProvider(
                         (mode: TransactionType.sale, isExpense: false)),
@@ -108,7 +213,7 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                 .eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
 
             Text(
-              'Other Tickets',
+              'Tickets',
               style: GoogleFonts.poppins(
                 fontWeight: FontWeight.w500,
                 fontSize: 18,
@@ -116,86 +221,7 @@ class _TicketsListState extends ConsumerState<TicketsList> {
               ),
             ),
             const SizedBox(height: 16),
-            ViewModelBuilder.nonReactive(
-                viewModelBuilder: () => CoreViewModel(),
-                builder: (context, model, child) {
-                  return Expanded(
-                    child: StreamBuilder<List<ITransaction>>(
-                      stream: ProxyService.realm.ticketsStreams(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          List<ITransaction> data = snapshot.data!;
-                          return ListView.separated(
-                            itemCount: data.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final ticket = data[index];
-                              return TicketTile(
-                                ticket: ticket,
-                                onTap: () async {
-                                  bool? confirm = await showDialog<bool>(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Confirm Resume'),
-                                        content: Text(
-                                            'Are you sure you want to resume this order?'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop(false);
-                                            },
-                                            child: Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop(true);
-                                            },
-                                            child: Text('Confirm'),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-
-                                  if (confirm == true) {
-                                    await model.resumeTransaction(
-                                        ticketId: ticket.id!);
-
-                                    await Future.delayed(
-                                        Duration(microseconds: 800));
-
-                                    ref.refresh(transactionItemsProvider(
-                                        (isExpense: false)).notifier);
-
-                                    _routerService
-                                        .clearStackAndShow(FlipperAppRoute());
-                                  }
-                                },
-                              );
-                            },
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Error: ${snapshot.error}',
-                              style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 16,
-                                color: Colors.red,
-                              ),
-                            ),
-                          );
-                        } else {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                      },
-                    ),
-                  );
-                }),
+            _buildTicketSection(context),
           ],
         ),
       ),

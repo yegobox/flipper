@@ -986,7 +986,6 @@ final featureAccessLevelProvider =
   // Normal permission check for the requested feature
   return accesses.any((access) =>
       access.accessLevel == accessLevel &&
-      access.status == 'active' &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 });
 

@@ -48,7 +48,7 @@ import 'all_routes.dart';
     CustomRoute(page: Printing),
     CustomRoute(page: BackUp),
     CustomRoute(page: LoginChoices),
-    CustomRoute(page: TenantAdd),
+    CustomRoute(page: TenantManagement),
     CustomRoute(page: SocialHomeView),
     CustomRoute(page: DrawerScreen),
     CustomRoute(page: ChatListView),

@@ -88,7 +88,7 @@ Widget SettingLayout(
                       ),
                     ),
                     onPressed: (BuildContext context) async {
-                      _routerService.navigateTo(TenantAddRoute());
+                      _routerService.navigateTo(TenantManagementRoute());
                     },
                   ),
                   SettingsTile(

@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/tenant_add.dart';
+import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flutter/material.dart';
 
 class UserManagement extends StatefulWidget {
@@ -63,8 +63,6 @@ class _UserManagementState extends State<UserManagement> {
       });
     }
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +191,7 @@ class _UserManagementState extends State<UserManagement> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return TenantAdd();
+        return TenantManagement();
       },
     );
   }
