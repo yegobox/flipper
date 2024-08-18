@@ -28,7 +28,7 @@ env:
 jobs:
   code-coverage:
     name: Check Code Coverage
-    runs-on: macOS-12
+    runs-on: windows-2022
 
     steps:
       - name: Checkout Repository
@@ -69,6 +69,12 @@ jobs:
 
       - name: Setup LCOV
         uses: hrishikesh-kadam/setup-lcov@v1
+      - name: Generate Code Coverage Report
+        run: |
+          # Navigate to the directory containing lcov.info
+          cd coverage 
+          # Generate the HTML report
+          genhtml --branch_coverage --output-directory html lcov.info 
 
       - name: Report Code Coverage
         uses: zgosalvez/github-actions-report-lcov@v3
