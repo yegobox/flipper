@@ -1,4 +1,4 @@
-name: Deploy to Play Store
+name: CI/CD
 
 on:
   # Enable manual run
@@ -62,6 +62,7 @@ jobs:
       - name: Run Flutter Tests
         run: |
           dart pub global activate melos
+          melos bootstrap
           cd apps/flipper
           flutter test --coverage
 
