@@ -14,7 +14,6 @@ on:
     secrets:
       GITHUB_TOKEN:
         required: true
-# 
 jobs:
   code-coverage:
     name: Check Code Coverage
