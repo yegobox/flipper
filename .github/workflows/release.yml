@@ -28,7 +28,7 @@ env:
 jobs:
   code-coverage:
     name: Check Code Coverage
-    runs-on: ubuntu-20.04
+    runs-on: macOS-12
 
     steps:
       - name: Checkout Repository
