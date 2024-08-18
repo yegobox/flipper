@@ -24,19 +24,41 @@ env:
 
 jobs:
   code-coverage:
-    uses: ./.github/workflows/reusable-code-coverage-check.yml
-    with:
-      flutter-channel: 'stable'
-      minimum-coverage: 45
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    name: Check Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Tests
+        run: flutter test --coverage
+
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+
+      - name: Report Code Coverage
+        uses: zgosalvez/github-actions-report-lcov@v3
+        with:
+          coverage-files: coverage/lcov.info
+          minimum-coverage: 95
+          artifact-name: code-coverage-report
+          github-token: ${{ secrets.ACCESS_TOKEN }}
   unit-testing:
     # runs-on: ubuntu-22.04
     # runs-on: [self-hosted, macOS, richard]
     runs-on: windows-2022
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')
     steps:
-      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3 #
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           submodules: recursive
           token: ${{ secrets.ACCESS_TOKEN }}

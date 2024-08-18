@@ -23,13 +23,42 @@ env:
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
 
 jobs:
+  # code-coverage:
+  #   uses: ./.github/workflows/reusable-code-coverage-check.yml
+  #   with:
+  #     flutter-channel: 'stable'
+  #     minimum-coverage: 45
+  #   secrets:
+  #     GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
   code-coverage:
-    uses: ./.github/workflows/reusable-code-coverage-check.yml
-    with:
-      flutter-channel: 'stable'
-      minimum-coverage: 45
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+    name: Check Code Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Flutter Tests
+        run: flutter test --coverage
+
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+
+      - name: Report Code Coverage
+        uses: zgosalvez/github-actions-report-lcov@v3
+        with:
+          coverage-files: coverage/lcov.info
+          minimum-coverage: 95
+          artifact-name: code-coverage-report
+          github-token: ${{ secrets.ACCESS_TOKEN }}
   integration-testing-windows:
     name: "Integration Testing Windows"
     if: github.event_name == 'push' && github.ref == 'refs/heads/dev' && contains(github.event.head_commit.message, 'test')

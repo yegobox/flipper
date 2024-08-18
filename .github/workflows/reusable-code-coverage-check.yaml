@@ -1,5 +1,6 @@
 name: Reusable Code Coverage Check
-
+# This reusable is not working.
+# https://github.com/orgs/community/discussions/14306
 on:
   workflow_call:
     inputs:
