@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/IncomingOrders.dart';
 import 'package:flipper_models/LocalRealmApiMocked.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/realm/schemas.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_rw/dependencyInitializer.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'helpers/bootstrapTestData.dart';
 
+// flutter test test/incoming_order_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -36,6 +38,7 @@ void main() {
         ProxyService.realm.realm!.deleteAll<SKU>();
         ProxyService.realm.realm!.deleteAll<Variant>();
         ProxyService.realm.realm!.deleteAll<Stock>();
+        ProxyService.realm.realm!.deleteAll<StockRequest>();
       });
       ProxyService.realm.close();
     });
@@ -53,9 +56,12 @@ void main() {
           ),
         ),
       );
+      List<StockRequest> requests = ProxyService.realm.requests(branchId: 1);
+      talker.warning("We have Stock Request generated ${requests.length}");
 
       // Allow the stream to emit values and the widget to rebuild
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(Duration(seconds: 1));
+      // await tester.pumpAndSettle(Duration(seconds: 1));
 
       // Check that the correct number of Card widgets are displayed
       expect(find.byType(Card), findsNWidgets(2));

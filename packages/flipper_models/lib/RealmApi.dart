@@ -3410,4 +3410,14 @@ class RealmAPI<M extends IJsonSerializable>
       rethrow;
     }
   }
+
+  @override
+  List<StockRequest> requests({required int branchId}) {
+    return realm!.query<StockRequest>(
+        r'mainBranchId == $0 && status == $1 || status == $2', [
+      branchId,
+      RequestStatus.pending,
+      RequestStatus.partiallyApproved
+    ]).toList();
+  }
 }
