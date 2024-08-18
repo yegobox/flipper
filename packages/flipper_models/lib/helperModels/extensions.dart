@@ -177,6 +177,20 @@ extension RealmEJsonConverterExtension on EJsonValue {
   }
 }
 
+extension AccessInnerController on Widget {
+  Widget eligibleToSee(WidgetRef ref, List<String> accessLevels) {
+    return Consumer(
+      builder: (context, ref, child) {
+        for (final level in accessLevels) {
+          final hasAccess = ref.watch(featureAccessLevelProvider(level));
+          if (hasAccess) return this;
+        }
+        return const SizedBox.shrink();
+      },
+    );
+  }
+}
+
 extension AccessControlWidget on Widget {
   Widget shouldSeeTheApp(WidgetRef ref, String featureName) {
     return Consumer(

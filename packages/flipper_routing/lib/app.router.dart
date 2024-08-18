@@ -10,8 +10,7 @@ import 'dart:ui' as _i8;
 import 'package:firebase_auth/firebase_auth.dart' as _i7;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart' as _i6;
 import 'package:flipper_dashboard/QuickSellingView.dart' as _i2;
-import 'package:flipper_models/realm/schemas.dart' as _i9;
-import 'package:flipper_models/realm_model_export.dart' as _i10;
+import 'package:flipper_models/realm_model_export.dart' as _i9;
 import 'package:flutter/material.dart' as _i5;
 import 'package:stacked/stacked.dart' as _i4;
 import 'package:stacked_services/stacked_services.dart' as _i3;
@@ -473,6 +472,7 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         child: _i1.TicketsList(
           key: args.key,
           transaction: args.transaction,
+          showAppBar: args.showAppBar,
         ),
         opaque: true,
         barrierDismissible: false,
@@ -1945,12 +1945,14 @@ class TicketsListRoute extends _i4.PageRouteInfo<TicketsListArgs> {
   TicketsListRoute({
     _i5.Key? key,
     required _i9.ITransaction? transaction,
+    bool showAppBar = true,
   }) : super(
           TicketsListRoute.name,
           path: '/tickets-list',
           args: TicketsListArgs(
             key: key,
             transaction: transaction,
+            showAppBar: showAppBar,
           ),
         );
 
@@ -1961,15 +1963,18 @@ class TicketsListArgs {
   const TicketsListArgs({
     this.key,
     required this.transaction,
+    this.showAppBar = true,
   });
 
   final _i5.Key? key;
 
   final _i9.ITransaction? transaction;
 
+  final bool showAppBar;
+
   @override
   String toString() {
-    return 'TicketsListArgs{key: $key, transaction: $transaction}';
+    return 'TicketsListArgs{key: $key, transaction: $transaction, showAppBar: $showAppBar}';
   }
 }
 
@@ -2019,7 +2024,7 @@ class AppsRoute extends _i4.PageRouteInfo<AppsArgs> {
     _i5.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i10.CoreViewModel model,
+    required _i9.CoreViewModel model,
   }) : super(
           AppsRoute.name,
           path: '/Apps',
@@ -2048,7 +2053,7 @@ class AppsArgs {
 
   final bool isBigScreen;
 
-  final _i10.CoreViewModel model;
+  final _i9.CoreViewModel model;
 
   @override
   String toString() {
@@ -2803,12 +2808,14 @@ extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToTicketsList({
     _i5.Key? key,
     required _i9.ITransaction? transaction,
+    bool showAppBar = true,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
       TicketsListRoute(
         key: key,
         transaction: transaction,
+        showAppBar: showAppBar,
       ),
       onFailure: onFailure,
     );
@@ -2834,7 +2841,7 @@ extension RouterStateExtension on _i3.RouterService {
     _i5.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i10.CoreViewModel model,
+    required _i9.CoreViewModel model,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return navigateTo(
@@ -3478,12 +3485,14 @@ extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> replaceWithTicketsList({
     _i5.Key? key,
     required _i9.ITransaction? transaction,
+    bool showAppBar = true,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(
       TicketsListRoute(
         key: key,
         transaction: transaction,
+        showAppBar: showAppBar,
       ),
       onFailure: onFailure,
     );
@@ -3509,7 +3518,7 @@ extension RouterStateExtension on _i3.RouterService {
     _i5.Key? key,
     required _i5.TextEditingController controller,
     required bool isBigScreen,
-    required _i10.CoreViewModel model,
+    required _i9.CoreViewModel model,
     void Function(_i4.NavigationFailure)? onFailure,
   }) async {
     return replaceWith(

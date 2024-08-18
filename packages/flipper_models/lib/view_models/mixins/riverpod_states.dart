@@ -961,8 +961,31 @@ final featureAccessProvider = Provider.family<bool, String>((ref, featureName) {
   final accesses = ref.watch(userAccessesProvider);
   final now = DateTime.now();
 
+  // Check if the elevated permission (e.g., "ticket") is active
+  final hasElevatedPermission = accesses.any((access) =>
+      access.featureName == AppFeature.Tickets &&
+      access.status == 'active' &&
+      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+
+  // If the elevated permission is active, return false for other permissions
+  if (hasElevatedPermission && featureName != AppFeature.Tickets) {
+    return false;
+  }
+
+  // Normal permission check for the requested feature
   return accesses.any((access) =>
       access.featureName == featureName &&
+      access.status == 'active' &&
+      (access.expiresAt == null || access.expiresAt!.isAfter(now)));
+});
+
+final featureAccessLevelProvider =
+    Provider.family<bool, String>((ref, accessLevel) {
+  final accesses = ref.watch(userAccessesProvider);
+  final now = DateTime.now();
+  // Normal permission check for the requested feature
+  return accesses.any((access) =>
+      access.accessLevel == accessLevel &&
       access.status == 'active' &&
       (access.expiresAt == null || access.expiresAt!.isAfter(now)));
 });

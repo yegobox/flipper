@@ -15,8 +15,11 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'new_ticket.dart';
 
 class TicketsList extends StatefulHookConsumerWidget {
-  const TicketsList({Key? key, required this.transaction}) : super(key: key);
+  const TicketsList(
+      {Key? key, required this.transaction, this.showAppBar = true})
+      : super(key: key);
   final ITransaction? transaction;
+  final bool showAppBar;
 
   @override
   _TicketsListState createState() => _TicketsListState();
@@ -28,30 +31,32 @@ class _TicketsListState extends ConsumerState<TicketsList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () {
-            /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
-            /// cart preview
-            ref.refresh(
-              pendingTransactionProvider(
-                  (mode: TransactionType.sale, isExpense: false)),
-            );
-            _routerService.back();
-          },
-          icon: const Icon(Icons.close, color: Colors.black),
-        ),
-        title: Text(
-          'Tickets',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w400,
-            fontSize: 20,
-            color: Colors.black,
-          ),
-        ),
-      ),
+      appBar: widget.showAppBar
+          ? AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                onPressed: () {
+                  /// refreshing the transaction make the counter on preview cart reset as ticket are removed from current
+                  /// cart preview
+                  ref.refresh(
+                    pendingTransactionProvider(
+                        (mode: TransactionType.sale, isExpense: false)),
+                  );
+                  _routerService.back();
+                },
+                icon: const Icon(Icons.close, color: Colors.black),
+              ),
+              title: Text(
+                'Tickets',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20,
+                  color: Colors.black,
+                ),
+              ),
+            )
+          : null,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -98,9 +103,10 @@ class _TicketsListState extends ConsumerState<TicketsList> {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            // Other Tickets Title
+            ).eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+            const SizedBox(height: 24)
+                .eligibleToSee(ref, [AccessLevel.ADMIN, AccessLevel.WRITE]),
+
             Text(
               'Other Tickets',
               style: GoogleFonts.poppins(

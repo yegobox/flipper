@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/TenantWidget.dart';
+import 'package:flipper_dashboard/tickets.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_side_menu/flutter_side_menu.dart';
@@ -60,6 +61,8 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
   }
 
   Widget buildRow(bool isScanningMode) {
+    final transaction = ref.watch(pendingTransactionProvider(
+        (mode: TransactionType.sale, isExpense: false)));
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -89,12 +92,29 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                   )
                 : SizedBox.shrink(),
             const SizedBox(width: 20),
+
+            /// add the ticket UI which will only show if is left alone in tree
+            /// when Ticket is visible in row then we make sure the rest of widget is not visible
+            /// we can do this by making sure the rest of widget does not show if we ever found the
+            /// ticket in permission list
+            transaction.when(
+                data: (transaction) {
+                  return Expanded(
+                    child: TicketsList(
+                      showAppBar: false,
+                      transaction: transaction,
+                    ),
+                  ).shouldSeeTheApp(ref, AppFeature.Tickets);
+                },
+                error: (error, s) => SizedBox.shrink(),
+                loading: () => SizedBox.shrink()),
+
             Expanded(
               child: isScanningMode
                   ? buildReceiptUI().shouldSeeTheApp(ref, AppFeature.Sales)
                   : CheckOut(isBigScreen: true)
                       .shouldSeeTheApp(ref, AppFeature.Sales),
-            ),
+            ).shouldSeeTheApp(ref, AppFeature.Inventory),
             Flexible(
               child: ListView(
                 children: [
@@ -114,7 +134,7 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
                   ),
                 ],
               ),
-            ),
+            ).shouldSeeTheApp(ref, AppFeature.Sales),
           ],
         ),
       ),

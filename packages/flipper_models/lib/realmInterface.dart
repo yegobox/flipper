@@ -459,4 +459,5 @@ abstract class RealmApiInterface {
   List<LPermission> permissions({required int userId});
   List<Access> access({required int userId});
   Stream<List<StockRequest>> requestsStream({required int branchId});
+  Tenant getTenant({required int userId});
 }

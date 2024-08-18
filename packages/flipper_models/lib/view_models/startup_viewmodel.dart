@@ -29,20 +29,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       /// there is cases where when app re-start and then for some reason the realm is closed
       /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
       /// or the app start and and module service init the db with in-memory because we don't want
-      ///  @preResolve
-      /// @LazySingleton()
-      /// Future<RealmApiInterface> realmApi() async {
-      ///   /// to speed-up the application starting time, when we init realm, we just pass in memory db
-      ///   /// then when user login we will close it and switch to flexible sync
-      ///   return await RealmAPI().configure(
-      ///     useInMemoryDb: true,
-      ///   );
-      /// }
       /// then we are are forced here when app start to re-open the realm with useInMemoryDb false
       /// for performance this is supposed to take a time to configure the db and get data in sync
       /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
       /// which sync data later...i.e not wait for synchronizations
-      /// TODO: I think bellow code are not necessary
 
       /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
       if (refreshCredentials) {

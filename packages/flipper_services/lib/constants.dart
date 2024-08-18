@@ -13,13 +13,13 @@ class RequestStatus {
 const List<String> paymentTypes = ['Cash', 'MOMO MTN', 'Card', 'Credit'];
 List<String> features = [
   'Sales',
+  'Tickets',
   'Inventory',
   'Reports',
   'Settings',
   "Custom Amount",
   "Add Product",
   "Orders",
-  "Chat"
 ];
 List<String> accessLevels = ['No Access', 'Read', 'Write', 'Admin'];
 
@@ -28,6 +28,13 @@ class AppFeature {
   static const String Inventory = "Inventory";
   static const String Reports = "Reports";
   static const String Settings = "Settings";
+  static const String Tickets = "Tickets";
+}
+
+class AccessLevel {
+  static const String WRITE = "Write";
+  static const String ADMIN = "Admin";
+  static const String READ = "Read";
 }
 
 // String EBMURL = "http://localhost:8080/rra";

@@ -30,19 +30,19 @@ class TenantAddState extends ConsumerState<TenantAdd>
   final TextEditingController _phoneController = TextEditingController();
   final _routerService = locator<RouterService>();
   bool isAddingUser = false;
+  bool editMode = false;
   String selectedUserType = 'Agent';
   Map<String, String> permissions = {};
 
   Map<String, bool> activeFeatures = {};
-  Map<String, String> tenantPermissions = {};
+  Map<String, String> tenantAllowedFeatures = {};
   int? userId;
 
   @override
   void initState() {
     super.initState();
     for (var feature in features) {
-      activeFeatures[feature] =
-          false; // or true, depending on your default state
+      activeFeatures[feature] = false;
     }
   }
 
@@ -208,10 +208,16 @@ class TenantAddState extends ConsumerState<TenantAdd>
               _buildPermissionsSection(),
               const SizedBox(height: 32),
               BoxButton(
-                title: isAddingUser ? "Adding user..." : "Add user",
+                title: editMode
+                    ? "Update"
+                    : isAddingUser
+                        ? "Adding user..."
+                        : "Add user",
                 busy: isAddingUser,
                 borderRadius: 8,
-                onTap: isAddingUser ? null : () => _addUser(model, context),
+                onTap: isAddingUser
+                    ? null
+                    : () => _addUser(model, context, editMode: editMode),
               ),
             ],
           ),
@@ -317,6 +323,11 @@ class TenantAddState extends ConsumerState<TenantAdd>
             value: activeFeatures[feature] ?? false,
             onChanged: (bool value) {
               setState(() {
+                if (!tenantAllowedFeatures.containsKey(feature)) {
+                  tenantAllowedFeatures
+                      .addEntries(<String, String>{feature: 'write'}.entries);
+                }
+
                 activeFeatures[feature] = value;
               });
             },
@@ -355,7 +366,8 @@ class TenantAddState extends ConsumerState<TenantAdd>
     return null;
   }
 
-  Future<void> _addUser(FlipperBaseModel model, BuildContext context) async {
+  Future<void> _addUser(FlipperBaseModel model, BuildContext context,
+      {required bool editMode}) async {
     if (_formKey.currentState!.validate()) {
       setState(() => isAddingUser = true);
       try {
@@ -364,20 +376,26 @@ class TenantAddState extends ConsumerState<TenantAdd>
             ProxyService.local.defaultBranch();
 
         // Save tenant, is tenant is not already saved in the backend
-        Tenant? newTenant = await ProxyService.local.saveTenant(
-            _phoneController.text, _nameController.text,
-            branch: branch!,
-            business: business!,
-            userType: selectedUserType,
-            flipperHttpClient: ProxyService.http);
+        Tenant? newTenant;
+        if (!editMode) {
+          newTenant = await ProxyService.local.saveTenant(
+              _phoneController.text, _nameController.text,
+              branch: branch!,
+              business: business!,
+              userType: selectedUserType,
+              flipperHttpClient: ProxyService.http);
+        } else {
+          newTenant = ProxyService.realm.getTenant(userId: userId!);
+        }
 
         // Save access permissions
-        tenantPermissions.forEach((featureName, accessLevel) {
+        tenantAllowedFeatures.forEach((featureName, accessLevel) {
           // Query for existing Access object
           Access? existingAccess = ProxyService.realm.realm!.query<Access>(
               r'userId == $0 AND featureName == $1',
               [newTenant?.userId ?? userId, featureName]).firstOrNull;
 
+          talker.warning(featureName);
           if (existingAccess != null) {
             // Update existing Access object
             ProxyService.realm.realm!.write(() {
@@ -394,8 +412,8 @@ class TenantAddState extends ConsumerState<TenantAdd>
             final access = Access(
               ObjectId(),
               id: randomNumber(),
-              branchId: branch.serverId!,
-              businessId: business.serverId,
+              branchId: branch!.serverId!,
+              businessId: business!.serverId,
               createdAt: DateTime.now(),
               userType: selectedUserType,
               accessLevel: accessLevel.toLowerCase(),
@@ -427,10 +445,10 @@ class TenantAddState extends ConsumerState<TenantAdd>
 
   void _updateTenantPermissions(List<Access> tenantAccesses) {
     setState(() {
-      tenantPermissions.clear();
+      tenantAllowedFeatures.clear();
       for (Access access in tenantAccesses) {
         if (access.featureName != null && access.accessLevel != null) {
-          tenantPermissions[access.featureName!] = access.accessLevel!;
+          tenantAllowedFeatures[access.featureName!] = access.accessLevel!;
         }
       }
     });
@@ -505,12 +523,17 @@ class TenantAddState extends ConsumerState<TenantAdd>
       onExpansionChanged: (expanded) {
         if (expanded) {
           setState(() {
+            editMode = true;
             userId = tenant.userId!;
           });
           talker.warning(
               "Permission Assigned: ${tenantAccesses.first.accessLevel}");
           _updateTenantPermissions(tenantAccesses);
           _fillFormWithTenantData(tenant, tenantAccesses);
+        } else {
+          setState(() {
+            editMode = false;
+          });
         }
       },
       leading: CircleAvatar(

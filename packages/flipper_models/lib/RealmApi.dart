@@ -3399,4 +3399,15 @@ class RealmAPI<M extends IJsonSerializable>
         .debounceTime(
             Duration(milliseconds: 100)); // Optional: debounce rapid updates
   }
+
+  @override
+  Tenant getTenant({required int userId}) {
+    try {
+      return realm!.query<Tenant>(r'userId == $0', [userId]).first;
+    } catch (e, s) {
+      talker.error(e);
+      talker.error(s);
+      rethrow;
+    }
+  }
 }
