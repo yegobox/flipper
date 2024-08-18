@@ -28,7 +28,7 @@ env:
 jobs:
   code-coverage:
     name: Check Code Coverage
-    runs-on: windows-2022
+    runs-on: macOS-12
 
     steps:
       - name: Checkout Repository
