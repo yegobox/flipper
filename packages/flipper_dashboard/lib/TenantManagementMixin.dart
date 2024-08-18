@@ -23,7 +23,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   bool isAddingUser = false;
   bool editMode = false;
   String selectedUserType = 'Agent';
-  Map<String, String> permissions = {};
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
   int? userId;
@@ -33,7 +32,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     _phoneController.clear();
     setState(() {
       selectedUserType = 'Agent';
-      permissions.clear();
+      tenantAllowedFeatures.clear();
     });
   }
 
@@ -153,7 +152,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       _phoneController.text = tenant.phoneNumber ?? '';
 
       // Reset permissions, activeFeatures, and userType
-      permissions.clear();
+      tenantAllowedFeatures.clear();
       activeFeatures.clear();
       String? userType;
 
@@ -167,7 +166,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           String validAccessLevel = accessLevels.contains(access.accessLevel)
               ? access.accessLevel!
               : 'No Access';
-          permissions[access.featureName!] = validAccessLevel;
+          tenantAllowedFeatures[access.featureName!] = validAccessLevel;
           activeFeatures[access.featureName!] = access.status == 'active';
 
           // Set userType if not already set
@@ -182,8 +181,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
 
       // Ensure all features have a valid permission set
       for (String feature in features) {
-        if (!permissions.containsKey(feature)) {
-          permissions[feature] = 'No Access';
+        if (!tenantAllowedFeatures.containsKey(feature)) {
+          tenantAllowedFeatures[feature] = 'No Access';
         }
         if (!activeFeatures.containsKey(feature)) {
           activeFeatures[feature] = false;
@@ -488,10 +487,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           Expanded(
             flex: 3,
             child: DropdownButtonFormField<String>(
-              value: permissions[feature] ?? 'No Access',
+              value: tenantAllowedFeatures[feature] ?? 'No Access',
               onChanged: (String? newValue) {
                 setState(() {
-                  permissions[feature] = newValue!;
+                  tenantAllowedFeatures[feature] = newValue!;
                 });
               },
               items: accessLevels.map<DropdownMenuItem<String>>((String value) {
