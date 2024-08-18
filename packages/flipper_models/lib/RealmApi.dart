@@ -2123,15 +2123,6 @@ class RealmAPI<M extends IJsonSerializable>
     const isTest =
         const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
 
-    realm?.close();
-
-    /// do not provide fallback if the user is not authenticated.
-    if (useFallBack) {
-      realm?.close();
-      _configureInMemory();
-      return this;
-    }
-
     try {
       final app = App(AppConfiguration(AppSecrets.appId,
           baseUrl: Uri.parse("https://services.cloud.mongodb.com")));
