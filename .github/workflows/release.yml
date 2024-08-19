@@ -67,20 +67,22 @@ jobs:
           dart run realm install
           flutter test --coverage --dart-define=FLUTTER_TEST_ENV=true 
         
+      - name: Setup LCOV
+        uses: hrishikesh-kadam/setup-lcov@v1
+      - name: Generate Code Coverage Report
+        run: |
+          cd apps/flipper
+          # Navigate to the directory containing filtered.lcov.info
+          # Generate the HTML report
+          genhtml --branch-coverage --output-directory html filtered.lcov.info
+          
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # - name: Setup LCOV
-      #   uses: hrishikesh-kadam/setup-lcov@v1
-      # - name: Generate Code Coverage Report
-      #   run: |
-      #     cd apps/flipper
-      #     # Navigate to the directory containing filtered.lcov.info
-      #     # Generate the HTML report
-      #     genhtml --branch-coverage --output-directory html filtered.lcov.info
+      
 
 
       # - name: Report Code Coverage
