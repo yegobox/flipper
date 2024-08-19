@@ -34,7 +34,9 @@ scripts:
     no-select: true
     description: Run all unit testsAdditionally, you can incorporate commands for analysis and code coverage. Melos offers a GUI interface for seamless execution without terminal input.
   unit_test:
-    run: melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub --coverage
+    run: |
+      # dart run realm install
+      melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub --coverage
     description: Run all Flutter tests in this project.
   unit_test_and_coverage:
     description: Merge all packages coverage tracefiles and filter out generated files with correct paths.

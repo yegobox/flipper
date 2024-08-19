@@ -108,7 +108,7 @@ dependencies:
       url: https://github.com/ryojiro/flutter_datetime_picker.git
       ref: 32ea47240c10469ad31db0084f5d9b7a12d16e01
   flutter_colorpicker: ^1.1.0
-  realm: ^3.3.0
+  realm: ^3.4.1
   
   sizer: ^2.0.15
   talker_flutter: ^4.1.5

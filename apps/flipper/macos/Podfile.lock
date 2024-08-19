@@ -251,7 +251,7 @@ PODS:
   - PromisesObjC (2.4.0)
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
-  - realm (3.3.0):
+  - realm (3.4.1):
     - FlutterMacOS
   - screen_retriever (0.0.1):
     - FlutterMacOS
@@ -470,7 +470,7 @@ SPEC CHECKSUMS:
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
-  realm: c3742dc0720a5117e7f27313ebdbdfbade236ca2
+  realm: ec3c773c15233e8f4d73db0e26d74ef3996d6990
   screen_retriever: 59634572a57080243dd1bf715e55b6c54f241a38
   Sentry: 96ae1dcdf01a644bc3a3b1dc279cecaf48a833fb
   sentry_flutter: 090351ce1ff5f96a4b33ef9455b7e3b28185387d
