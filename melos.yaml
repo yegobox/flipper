@@ -29,26 +29,19 @@ scripts:
     description: Run selective unit tests
 
   test:all_unit_tests:
-    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true 
+    exec: flutter test
     no-select: true
     description: Run all unit testsAdditionally, you can incorporate commands for analysis and code coverage. Melos offers a GUI interface for seamless execution without terminal input.
   unit_test:
     run: melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub --coverage
     description: Run all Flutter tests in this project.
   unit_test_and_coverage:
-    description: Merge all packages coverage tracefiles ignoring data related to generated files.
+    description: Merge all packages coverage tracefiles and filter out generated files with correct paths.
     run: |
       melos exec rm -rf coverage
       melos run unit_test
-      mkdir -p $MELOS_ROOT_PATH/coverage
-      melos exec -c 1 --file-exists=coverage/lcov.info -- \
-        coverde filter --input ./coverage/lcov.info \
-        --output ./coverage/filtered.lcov.info \
-        --filters \.g\.dart \
-        --prepend-package-dir
-      find . -name "filtered.lcov.info" -exec cat {} + > $MELOS_ROOT_PATH/coverage/merged.lcov.info
-      coverde value -i $MELOS_ROOT_PATH/coverage/merged.lcov.info > $MELOS_ROOT_PATH/coverage/result.txt
-
+      melos exec -c 1 --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart --paths-parent MELOS_ROOT_PATH
+      coverde value -i coverage/filtered.lcov.info > MELOS_ROOT_PATH/coverage/result.txt
   analyze:
     run: |
       melos exec -c 5 -- \
