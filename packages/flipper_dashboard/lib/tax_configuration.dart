@@ -38,6 +38,8 @@ class _TaxConfigurationState extends ConsumerState<TaxConfiguration> {
     });
     _serverUrlController.text = ProxyService.box.getServerUrl() ?? "";
     _branchController.text = ProxyService.box.bhfId() ?? "";
+    String? mrc = ProxyService.box.mrc();
+    _mrcController.text = (mrc == null || mrc.isEmpty) ? "" : mrc;
   }
 
   @override

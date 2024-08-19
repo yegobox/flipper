@@ -11,6 +11,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/mail_log.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -128,6 +129,7 @@ class RWTax implements TaxApi {
     } on DioException catch (e) {
       print('DioException caught: ${e.message}');
       final errorMessage = e.response?.data;
+      // talker.error(s);
       throw Exception(
           'Error sending POST request: ${errorMessage ?? 'Bad Request'}');
     } catch (e, s) {

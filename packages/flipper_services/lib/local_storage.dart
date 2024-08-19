@@ -239,7 +239,8 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? mrc() {
-    return prefs.getString("mrc");
+    final mc = prefs.getString("mrc");
+    return (mc == null || mc.isEmpty) ? null : mc;
   }
 
   @override
