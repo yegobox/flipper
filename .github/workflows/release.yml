@@ -71,6 +71,7 @@ jobs:
         uses: hrishikesh-kadam/setup-lcov@v1
       - name: Generate Code Coverage Report
         run: |
+          cd apps/flipper
           # Navigate to the directory containing lcov.info
           cd coverage 
           # Generate the HTML report
