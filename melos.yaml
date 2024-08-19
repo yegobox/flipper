@@ -4,6 +4,7 @@ packages:
   - open-sources/**
   - open-sources/**/**
   - packages/**
+  - packages/**/**
   - apps/**
   - apps/**/*
 
@@ -40,8 +41,9 @@ scripts:
     run: |
       melos exec rm -rf coverage
       melos run unit_test
-      melos exec -c 1 --file-exists=coverage/lcov.info -- coverde filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart --paths-parent MELOS_ROOT_PATH
+      melos exec -c 1 --file-exists=coverage/lcov.info -- coverde  filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart --paths-parent MELOS_PACKAGE_PATH --mode a
       coverde value -i coverage/filtered.lcov.info > MELOS_ROOT_PATH/coverage/result.txt
+      genhtml -o MELOS_ROOT_PATH/coverage/html MELOS_ROOT_PATH/coverage/filtered.lcov.info 
   analyze:
     run: |
       melos exec -c 5 -- \

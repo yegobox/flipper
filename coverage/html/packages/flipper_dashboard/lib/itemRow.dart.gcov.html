@@ -1,0 +1,509 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - filtered.lcov.info - packages/flipper_dashboard/lib/itemRow.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory packages/flipper_dashboard/lib">packages/flipper_dashboard/lib</a> - itemRow.dart<span style="font-size: 80%;"> (source / <a href="itemRow.dart.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">filtered.lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntry">174</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : // ignore_for_file: unused_result</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : import 'dart:io';</span>
+<span id="L4"><span class="lineNum">       4</span>              : import 'package:flipper_models/helperModels/hexColor.dart';</span>
+<span id="L5"><span class="lineNum">       5</span>              : import 'package:flipper_models/realm_model_export.dart';</span>
+<span id="L6"><span class="lineNum">       6</span>              : import 'package:flipper_models/view_models/mixins/riverpod_states.dart';</span>
+<span id="L7"><span class="lineNum">       7</span>              : import 'package:flipper_routing/app.locator.dart';</span>
+<span id="L8"><span class="lineNum">       8</span>              : import 'package:flipper_routing/app.router.dart';</span>
+<span id="L9"><span class="lineNum">       9</span>              : import 'package:flipper_services/constants.dart';</span>
+<span id="L10"><span class="lineNum">      10</span>              : import 'package:flipper_services/proxy.dart';</span>
+<span id="L11"><span class="lineNum">      11</span>              : import 'package:flutter/material.dart';</span>
+<span id="L12"><span class="lineNum">      12</span>              : import 'package:path_provider/path_provider.dart';</span>
+<span id="L13"><span class="lineNum">      13</span>              : import 'package:google_fonts/google_fonts.dart';</span>
+<span id="L14"><span class="lineNum">      14</span>              : import 'package:hooks_riverpod/hooks_riverpod.dart';</span>
+<span id="L15"><span class="lineNum">      15</span>              : import 'package:stacked/stacked.dart';</span>
+<span id="L16"><span class="lineNum">      16</span>              : import 'package:stacked_services/stacked_services.dart';</span>
+<span id="L17"><span class="lineNum">      17</span>              : </span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaUNC tlaBgUNC">           0 : Map&lt;int, String&gt; positionString = {</span></span>
+<span id="L19"><span class="lineNum">      19</span>              :   0: 'first',</span>
+<span id="L20"><span class="lineNum">      20</span>              :   1: 'second',</span>
+<span id="L21"><span class="lineNum">      21</span>              :   2: 'third',</span>
+<span id="L22"><span class="lineNum">      22</span>              :   3: 'fourth',</span>
+<span id="L23"><span class="lineNum">      23</span>              :   4: 'fifth',</span>
+<span id="L24"><span class="lineNum">      24</span>              :   5: 'sixth',</span>
+<span id="L25"><span class="lineNum">      25</span>              :   6: 'seventh',</span>
+<span id="L26"><span class="lineNum">      26</span>              :   7: 'eighth',</span>
+<span id="L27"><span class="lineNum">      27</span>              :   8: 'ninth',</span>
+<span id="L28"><span class="lineNum">      28</span>              :   9: 'tenth',</span>
+<span id="L29"><span class="lineNum">      29</span>              :   10: 'eleventh',</span>
+<span id="L30"><span class="lineNum">      30</span>              :   11: 'twelfth',</span>
+<span id="L31"><span class="lineNum">      31</span>              :   12: 'thirteenth',</span>
+<span id="L32"><span class="lineNum">      32</span>              :   13: 'fourteenth',</span>
+<span id="L33"><span class="lineNum">      33</span>              :   14: 'fifteenth',</span>
+<span id="L34"><span class="lineNum">      34</span>              :   15: 'sixteenth'</span>
+<span id="L35"><span class="lineNum">      35</span>              : };</span>
+<span id="L36"><span class="lineNum">      36</span>              : </span>
+<span id="L37"><span class="lineNum">      37</span>              : typedef void DeleteProductFunction(int? id, String type);</span>
+<span id="L38"><span class="lineNum">      38</span>              : typedef void DeleteVariantFunction(int? id, String type);</span>
+<span id="L39"><span class="lineNum">      39</span>              : </span>
+<span id="L40"><span class="lineNum">      40</span>              : class RowItem extends StatefulHookConsumerWidget {</span>
+<span id="L41"><span class="lineNum">      41</span>              :   final String color;</span>
+<span id="L42"><span class="lineNum">      42</span>              :   final String productName;</span>
+<span id="L43"><span class="lineNum">      43</span>              :   final String? imageUrl;</span>
+<span id="L44"><span class="lineNum">      44</span>              :   final DeleteProductFunction delete;</span>
+<span id="L45"><span class="lineNum">      45</span>              :   final DeleteVariantFunction deleteVariant;</span>
+<span id="L46"><span class="lineNum">      46</span>              :   final Function edit;</span>
+<span id="L47"><span class="lineNum">      47</span>              :   final Function enableNfc;</span>
+<span id="L48"><span class="lineNum">      48</span>              :   final ProductViewModel model;</span>
+<span id="L49"><span class="lineNum">      49</span>              :   final double stock;</span>
+<span id="L50"><span class="lineNum">      50</span>              :   final Variant? variant;</span>
+<span id="L51"><span class="lineNum">      51</span>              :   final Product? product;</span>
+<span id="L52"><span class="lineNum">      52</span>              :   final bool? addFavoriteMode;</span>
+<span id="L53"><span class="lineNum">      53</span>              :   final int? favIndex;</span>
+<span id="L54"><span class="lineNum">      54</span>              :   final String variantName;</span>
+<span id="L55"><span class="lineNum">      55</span>              :   final bool isComposite;</span>
+<span id="L56"><span class="lineNum">      56</span>              :   final bool isOrdering;</span>
+<span id="L57"><span class="lineNum">      57</span>              : </span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :   RowItem({</span></span>
+<span id="L59"><span class="lineNum">      59</span>              :     Key? key,</span>
+<span id="L60"><span class="lineNum">      60</span>              :     required this.color,</span>
+<span id="L61"><span class="lineNum">      61</span>              :     required this.productName,</span>
+<span id="L62"><span class="lineNum">      62</span>              :     required this.variantName,</span>
+<span id="L63"><span class="lineNum">      63</span>              :     required this.stock,</span>
+<span id="L64"><span class="lineNum">      64</span>              :     this.delete = _defaultFunction,</span>
+<span id="L65"><span class="lineNum">      65</span>              :     this.deleteVariant = _defaultFunction,</span>
+<span id="L66"><span class="lineNum">      66</span>              :     this.edit = _defaultFunction,</span>
+<span id="L67"><span class="lineNum">      67</span>              :     this.enableNfc = _defaultFunction,</span>
+<span id="L68"><span class="lineNum">      68</span>              :     required this.model,</span>
+<span id="L69"><span class="lineNum">      69</span>              :     this.imageUrl,</span>
+<span id="L70"><span class="lineNum">      70</span>              :     this.variant,</span>
+<span id="L71"><span class="lineNum">      71</span>              :     this.product,</span>
+<span id="L72"><span class="lineNum">      72</span>              :     this.addFavoriteMode,</span>
+<span id="L73"><span class="lineNum">      73</span>              :     this.favIndex,</span>
+<span id="L74"><span class="lineNum">      74</span>              :     required this.isComposite,</span>
+<span id="L75"><span class="lineNum">      75</span>              :     required this.isOrdering,</span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaUNC">           0 :   }) : super(key: key);</span></span>
+<span id="L77"><span class="lineNum">      77</span>              : </span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaUNC">           0 :   static _defaultFunction(int? id, String type) {</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaUNC">           0 :     print(&quot;no function provided for the action&quot;);</span></span>
+<span id="L80"><span class="lineNum">      80</span>              :   }</span>
+<span id="L81"><span class="lineNum">      81</span>              : </span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaUNC">           0 :   _RowItemState createState() =&gt; _RowItemState();</span></span>
+<span id="L84"><span class="lineNum">      84</span>              : }</span>
+<span id="L85"><span class="lineNum">      85</span>              : </span>
+<span id="L86"><span class="lineNum">      86</span>              : class _RowItemState extends ConsumerState&lt;RowItem&gt; {</span>
+<span id="L87"><span class="lineNum">      87</span>              :   final _routerService = locator&lt;RouterService&gt;();</span>
+<span id="L88"><span class="lineNum">      88</span>              : </span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L90"><span class="lineNum">      90</span>              :   Widget build(BuildContext context) {</span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaUNC">           0 :     final selectedItem = ref.watch(selectedItemIdProvider);</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaUNC">           0 :     final isSelected = selectedItem == widget.variant?.id ||</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaUNC">           0 :         widget.product?.id == selectedItem;</span></span>
+<span id="L94"><span class="lineNum">      94</span>              : </span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaUNC">           0 :     return ViewModelBuilder.nonReactive(</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaUNC">           0 :       viewModelBuilder: () =&gt; CoreViewModel(),</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaUNC">           0 :       builder: (context, model, c) {</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaUNC">           0 :         return InkWell(</span></span>
+<span id="L99"><span class="lineNum">      99</span> <span class="tlaUNC">           0 :           onTap: () async {</span></span>
+<span id="L100"><span class="lineNum">     100</span>              :             if (isSelected) {</span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaUNC">           0 :               ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;</span></span>
+<span id="L102"><span class="lineNum">     102</span>              :             } else {</span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaUNC">           0 :               await onTapItem(model: model, isOrdering: widget.isOrdering);</span></span>
+<span id="L104"><span class="lineNum">     104</span>              :             }</span>
+<span id="L105"><span class="lineNum">     105</span>              :           },</span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaUNC">           0 :           onLongPress: () {</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaUNC">           0 :             final itemId = widget.variant?.id ?? widget.product?.id;</span></span>
+<span id="L108"><span class="lineNum">     108</span>              :             if (itemId != null) {</span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaUNC">           0 :               if (selectedItem == itemId) {</span></span>
+<span id="L110"><span class="lineNum">     110</span>              :                 /// set it to 1 as 1 is not a valid id this will unselect item</span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaUNC">           0 :                 ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;</span></span>
+<span id="L112"><span class="lineNum">     112</span>              :               } else {</span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaUNC">           0 :                 ref.read(selectedItemIdProvider.notifier).state = itemId;</span></span>
+<span id="L114"><span class="lineNum">     114</span>              :               }</span>
+<span id="L115"><span class="lineNum">     115</span>              :             }</span>
+<span id="L116"><span class="lineNum">     116</span>              :           },</span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaUNC">           0 :           child: Stack(</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaUNC">           0 :             children: [</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaUNC">           0 :               Container(</span></span>
+<span id="L120"><span class="lineNum">     120</span>              :                 padding: const EdgeInsets.all(8.0),</span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC">           0 :                 decoration: BoxDecoration(</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaUNC">           0 :                   color: isSelected ? Colors.grey[300] : Colors.white,</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaUNC">           0 :                   borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaUNC">           0 :                   boxShadow: [</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaUNC">           0 :                     BoxShadow(</span></span>
+<span id="L126"><span class="lineNum">     126</span>              :                       color: Colors.black12,</span>
+<span id="L127"><span class="lineNum">     127</span>              :                       blurRadius: 4.0,</span>
+<span id="L128"><span class="lineNum">     128</span>              :                       spreadRadius: 1.0,</span>
+<span id="L129"><span class="lineNum">     129</span>              :                     ),</span>
+<span id="L130"><span class="lineNum">     130</span>              :                   ],</span>
+<span id="L131"><span class="lineNum">     131</span>              :                 ),</span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :                 child: Column(</span></span>
+<span id="L133"><span class="lineNum">     133</span>              :                   crossAxisAlignment: CrossAxisAlignment.start,</span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaUNC">           0 :                   children: [</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaUNC">           0 :                     Flexible(</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaUNC">           0 :                       child: _buildImage(),</span></span>
+<span id="L137"><span class="lineNum">     137</span>              :                     ),</span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaUNC">           0 :                     SizedBox(height: 8.0),</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :                     _buildProductDetails(isComposite: widget.isComposite),</span></span>
+<span id="L140"><span class="lineNum">     140</span>              :                   ],</span>
+<span id="L141"><span class="lineNum">     141</span>              :                 ),</span>
+<span id="L142"><span class="lineNum">     142</span>              :               ),</span>
+<span id="L143"><span class="lineNum">     143</span>              :               if (isSelected)</span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaUNC">           0 :                 Positioned(</span></span>
+<span id="L145"><span class="lineNum">     145</span>              :                   left: 8.0,</span>
+<span id="L146"><span class="lineNum">     146</span>              :                   bottom: 8.0,</span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaUNC">           0 :                   child: IconButton(</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaUNC">           0 :                     icon: Icon(Icons.delete, color: Colors.red),</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaUNC">           0 :                     onPressed: () {</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaUNC">           0 :                       if (widget.variant != null) {</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaUNC">           0 :                         widget.delete(widget.variant?.productId, 'product');</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaUNC">           0 :                       } else if (widget.product != null) {</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC">           0 :                         widget.delete(widget.product?.id, 'product');</span></span>
+<span id="L154"><span class="lineNum">     154</span>              :                       }</span>
+<span id="L155"><span class="lineNum">     155</span>              :                     },</span>
+<span id="L156"><span class="lineNum">     156</span>              :                   ),</span>
+<span id="L157"><span class="lineNum">     157</span>              :                 ),</span>
+<span id="L158"><span class="lineNum">     158</span>              :               if (isSelected)</span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :                 Positioned(</span></span>
+<span id="L160"><span class="lineNum">     160</span>              :                   right: 8.0,</span>
+<span id="L161"><span class="lineNum">     161</span>              :                   bottom: 8.0,</span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaUNC">           0 :                   child: IconButton(</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaUNC">           0 :                     icon: Icon(Icons.edit, color: Colors.blue),</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaUNC">           0 :                     onPressed: () {</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaUNC">           0 :                       if (widget.variant != null) {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaUNC">           0 :                         widget.edit(widget.variant?.productId, 'product');</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaUNC">           0 :                       } else if (widget.product != null) {</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaUNC">           0 :                         widget.edit(widget.product?.id, 'product');</span></span>
+<span id="L169"><span class="lineNum">     169</span>              :                       }</span>
+<span id="L170"><span class="lineNum">     170</span>              :                     },</span>
+<span id="L171"><span class="lineNum">     171</span>              :                   ),</span>
+<span id="L172"><span class="lineNum">     172</span>              :                 ),</span>
+<span id="L173"><span class="lineNum">     173</span>              :             ],</span>
+<span id="L174"><span class="lineNum">     174</span>              :           ),</span>
+<span id="L175"><span class="lineNum">     175</span>              :         );</span>
+<span id="L176"><span class="lineNum">     176</span>              :       },</span>
+<span id="L177"><span class="lineNum">     177</span>              :     );</span>
+<span id="L178"><span class="lineNum">     178</span>              :   }</span>
+<span id="L179"><span class="lineNum">     179</span>              : </span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; onTapItem(</span></span>
+<span id="L181"><span class="lineNum">     181</span>              :       {required CoreViewModel model, required isOrdering}) async {</span>
+<span id="L182"><span class="lineNum">     182</span>              :     try {</span>
+<span id="L183"><span class="lineNum">     183</span>              :       var pendingTransaction = null;</span>
+<span id="L184"><span class="lineNum">     184</span>              :       if (isOrdering) {</span>
+<span id="L185"><span class="lineNum">     185</span>              :         /// update is ordering to true</span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaUNC">           0 :         ref.read(isOrderingProvider.notifier).startOrdering();</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaUNC">           0 :         pendingTransaction = ref.watch(pendingTransactionProvider(</span></span>
+<span id="L188"><span class="lineNum">     188</span>              :             (mode: TransactionType.cashOut, isExpense: true)));</span>
+<span id="L189"><span class="lineNum">     189</span>              :       } else {</span>
+<span id="L190"><span class="lineNum">     190</span>              :         /// update is ordering to true</span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaUNC">           0 :         ref.read(isOrderingProvider.notifier).stopOrdering();</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaUNC">           0 :         pendingTransaction = ref.watch(pendingTransactionProvider(</span></span>
+<span id="L193"><span class="lineNum">     193</span>              :             (mode: TransactionType.sale, isExpense: false)));</span>
+<span id="L194"><span class="lineNum">     194</span>              :       }</span>
+<span id="L195"><span class="lineNum">     195</span>              : </span>
+<span id="L196"><span class="lineNum">     196</span>              :       /// first check if this item is a composite</span>
+<span id="L197"><span class="lineNum">     197</span>              :       Product? product =</span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaUNC">           0 :           ProxyService.realm.getProduct(id: widget.variant!.productId!);</span></span>
+<span id="L199"><span class="lineNum">     199</span>              :       if (product != null &amp;&amp;</span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :           product.isComposite != null &amp;&amp;</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :           product.isComposite!) {</span></span>
+<span id="L202"><span class="lineNum">     202</span>              :         /// get items of this composite</span>
+<span id="L203"><span class="lineNum">     203</span>              :         List&lt;Composite&gt; composites =</span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaUNC">           0 :             ProxyService.realm.composites(productId: product.id!);</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaUNC">           0 :         for (Composite composite in composites) {</span></span>
+<span id="L206"><span class="lineNum">     206</span>              :           /// find a stock for a given variant</span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaUNC">           0 :           Stock? stock = ProxyService.realm.stockByVariantId(</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaUNC">           0 :               variantId: composite.variantId!,</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaUNC">           0 :               branchId: ProxyService.box.getBranchId()!);</span></span>
+<span id="L210"><span class="lineNum">     210</span>              :           Variant? variant =</span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaUNC">           0 :               ProxyService.realm.getVariantById(id: composite.variantId!);</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaUNC">           0 :           model.saveTransaction(</span></span>
+<span id="L213"><span class="lineNum">     213</span>              :             variation: variant!,</span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaUNC">           0 :             amountTotal: variant.retailPrice,</span></span>
+<span id="L215"><span class="lineNum">     215</span>              :             customItem: false,</span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 :             currentStock: stock!.currentStock,</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaUNC">           0 :             pendingTransaction: pendingTransaction.value!,</span></span>
+<span id="L218"><span class="lineNum">     218</span>              :             partOfComposite: true,</span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaUNC">           0 :             compositePrice: composite.actualPrice,</span></span>
+<span id="L220"><span class="lineNum">     220</span>              :           );</span>
+<span id="L221"><span class="lineNum">     221</span>              :         }</span>
+<span id="L222"><span class="lineNum">     222</span>              : </span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaUNC">           0 :         await Future.delayed(Duration(microseconds: 1000));</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaUNC">           0 :         ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));</span></span>
+<span id="L225"><span class="lineNum">     225</span>              : </span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaUNC">           0 :         await Future.delayed(Duration(microseconds: 200));</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaUNC">           0 :         ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));</span></span>
+<span id="L228"><span class="lineNum">     228</span>              :       } else {</span>
+<span id="L229"><span class="lineNum">     229</span>              :         double stockQty = 0;</span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaUNC">           0 :         if (!widget.isOrdering) {</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :           Stock? stock = ProxyService.realm.stockByVariantId(</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC">           0 :               variantId: widget.variant?.id ?? 0,</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaUNC">           0 :               branchId: ProxyService.box.getBranchId()!);</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :           stockQty = stock?.currentStock ?? 0.0;</span></span>
+<span id="L235"><span class="lineNum">     235</span>              :         }</span>
+<span id="L236"><span class="lineNum">     236</span>              : </span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaUNC">           0 :         model.saveTransaction(</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaUNC">           0 :           variation: widget.variant!,</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaUNC">           0 :           amountTotal: widget.variant?.retailPrice ?? 0,</span></span>
+<span id="L240"><span class="lineNum">     240</span>              :           customItem: false,</span>
+<span id="L241"><span class="lineNum">     241</span>              :           currentStock: stockQty,</span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaUNC">           0 :           pendingTransaction: pendingTransaction.value!,</span></span>
+<span id="L243"><span class="lineNum">     243</span>              :           partOfComposite: false,</span>
+<span id="L244"><span class="lineNum">     244</span>              :         );</span>
+<span id="L245"><span class="lineNum">     245</span>              : </span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaUNC">           0 :         await Future.delayed(Duration(microseconds: 1000));</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaUNC">           0 :         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));</span></span>
+<span id="L248"><span class="lineNum">     248</span>              : </span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaUNC">           0 :         await Future.delayed(Duration(microseconds: 200));</span></span>
+<span id="L250"><span class="lineNum">     250</span> <span class="tlaUNC">           0 :         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));</span></span>
+<span id="L251"><span class="lineNum">     251</span>              :       }</span>
+<span id="L252"><span class="lineNum">     252</span>              :     } catch (e, s) {</span>
+<span id="L253"><span class="lineNum">     253</span> <span class="tlaUNC">           0 :       talker.warning(&quot;Error while clicking ${e}&quot;);</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaUNC">           0 :       talker.error(s);</span></span>
+<span id="L255"><span class="lineNum">     255</span>              :       rethrow;</span>
+<span id="L256"><span class="lineNum">     256</span>              :     }</span>
+<span id="L257"><span class="lineNum">     257</span>              :   }</span>
+<span id="L258"><span class="lineNum">     258</span>              : </span>
+<span id="L259"><span class="lineNum">     259</span> <span class="tlaUNC">           0 :   Future&lt;String?&gt; getImageFilePath({required String imageFileName}) async {</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaUNC">           0 :     Directory appSupportDir = await getApplicationSupportDirectory();</span></span>
+<span id="L261"><span class="lineNum">     261</span> <span class="tlaUNC">           0 :     if (Platform.isAndroid) {</span></span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC">           0 :       appSupportDir = await getApplicationDocumentsDirectory();</span></span>
+<span id="L263"><span class="lineNum">     263</span>              :     }</span>
+<span id="L264"><span class="lineNum">     264</span>              : </span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaUNC">           0 :     final imageFilePath = '${appSupportDir.path}/${imageFileName}';</span></span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaUNC">           0 :     final file = File(imageFilePath);</span></span>
+<span id="L267"><span class="lineNum">     267</span>              : </span>
+<span id="L268"><span class="lineNum">     268</span> <span class="tlaUNC">           0 :     if (await file.exists()) {</span></span>
+<span id="L269"><span class="lineNum">     269</span>              :       return imageFilePath;</span>
+<span id="L270"><span class="lineNum">     270</span>              :     } else {</span>
+<span id="L271"><span class="lineNum">     271</span>              :       return null;</span>
+<span id="L272"><span class="lineNum">     272</span>              :     }</span>
+<span id="L273"><span class="lineNum">     273</span>              :   }</span>
+<span id="L274"><span class="lineNum">     274</span>              : </span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaUNC">           0 :   Widget _buildImage() {</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaUNC">           0 :     if (widget.imageUrl?.isEmpty ?? true) {</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaUNC">           0 :       return Container(</span></span>
+<span id="L278"><span class="lineNum">     278</span>              :         width: double.infinity,</span>
+<span id="L279"><span class="lineNum">     279</span> <span class="tlaUNC">           0 :         color: HexColor(widget.color.isEmpty ? &quot;#FF0000&quot; : widget.color),</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaUNC">           0 :         child: Center(</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaUNC">           0 :           child: Padding(</span></span>
+<span id="L282"><span class="lineNum">     282</span>              :             padding: const EdgeInsets.all(8.0),</span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaUNC">           0 :             child: Text(</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaUNC">           0 :               widget.productName,</span></span>
+<span id="L285"><span class="lineNum">     285</span>              :               style: const TextStyle(color: Colors.white, fontSize: 16.0),</span>
+<span id="L286"><span class="lineNum">     286</span>              :               textAlign: TextAlign.center,</span>
+<span id="L287"><span class="lineNum">     287</span>              :             ),</span>
+<span id="L288"><span class="lineNum">     288</span>              :           ),</span>
+<span id="L289"><span class="lineNum">     289</span>              :         ),</span>
+<span id="L290"><span class="lineNum">     290</span>              :       );</span>
+<span id="L291"><span class="lineNum">     291</span>              :     } else {</span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaUNC">           0 :       return FutureBuilder&lt;String?&gt;(</span></span>
+<span id="L293"><span class="lineNum">     293</span> <span class="tlaUNC">           0 :         future: getImageFilePath(imageFileName: widget.imageUrl!),</span></span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaUNC">           0 :         builder: (context, snapshot) {</span></span>
+<span id="L295"><span class="lineNum">     295</span> <span class="tlaUNC">           0 :           if (snapshot.hasData &amp;&amp; snapshot.data != null) {</span></span>
+<span id="L296"><span class="lineNum">     296</span> <span class="tlaUNC">           0 :             final imageFilePath = snapshot.data!;</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaUNC">           0 :             return Image.file(</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaUNC">           0 :               File(imageFilePath),</span></span>
+<span id="L299"><span class="lineNum">     299</span>              :               width: double.infinity,</span>
+<span id="L300"><span class="lineNum">     300</span>              :               height: 130,</span>
+<span id="L301"><span class="lineNum">     301</span>              :               fit: BoxFit.cover,</span>
+<span id="L302"><span class="lineNum">     302</span> <span class="tlaUNC">           0 :               errorBuilder: (context, error, stackTrace) {</span></span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaUNC">           0 :                 return Container(</span></span>
+<span id="L304"><span class="lineNum">     304</span>              :                   width: double.infinity,</span>
+<span id="L305"><span class="lineNum">     305</span>              :                   height: 130,</span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaUNC">           0 :                   color: Colors.grey[300],</span></span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaUNC">           0 :                   child: Center(</span></span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaUNC">           0 :                     child: Icon(</span></span>
+<span id="L309"><span class="lineNum">     309</span>              :                       Icons.image,</span>
+<span id="L310"><span class="lineNum">     310</span>              :                       size: 50,</span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaUNC">           0 :                       color: Colors.grey[500],</span></span>
+<span id="L312"><span class="lineNum">     312</span>              :                     ),</span>
+<span id="L313"><span class="lineNum">     313</span>              :                   ),</span>
+<span id="L314"><span class="lineNum">     314</span>              :                 );</span>
+<span id="L315"><span class="lineNum">     315</span>              :               },</span>
+<span id="L316"><span class="lineNum">     316</span>              :             );</span>
+<span id="L317"><span class="lineNum">     317</span>              :           } else {</span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaUNC">           0 :             return Container(</span></span>
+<span id="L319"><span class="lineNum">     319</span>              :               width: double.infinity,</span>
+<span id="L320"><span class="lineNum">     320</span>              :               height: 130,</span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaUNC">           0 :               color: Colors.grey[300],</span></span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaUNC">           0 :               child: Center(</span></span>
+<span id="L323"><span class="lineNum">     323</span> <span class="tlaUNC">           0 :                 child: Icon(</span></span>
+<span id="L324"><span class="lineNum">     324</span>              :                   Icons.image,</span>
+<span id="L325"><span class="lineNum">     325</span>              :                   size: 50,</span>
+<span id="L326"><span class="lineNum">     326</span> <span class="tlaUNC">           0 :                   color: Colors.grey[500],</span></span>
+<span id="L327"><span class="lineNum">     327</span>              :                 ),</span>
+<span id="L328"><span class="lineNum">     328</span>              :               ),</span>
+<span id="L329"><span class="lineNum">     329</span>              :             );</span>
+<span id="L330"><span class="lineNum">     330</span>              :           }</span>
+<span id="L331"><span class="lineNum">     331</span>              :         },</span>
+<span id="L332"><span class="lineNum">     332</span>              :       );</span>
+<span id="L333"><span class="lineNum">     333</span>              :     }</span>
+<span id="L334"><span class="lineNum">     334</span>              :   }</span>
+<span id="L335"><span class="lineNum">     335</span>              : </span>
+<span id="L336"><span class="lineNum">     336</span> <span class="tlaUNC">           0 :   Widget _buildProductDetails({required bool isComposite}) {</span></span>
+<span id="L337"><span class="lineNum">     337</span> <span class="tlaUNC">           0 :     return Column(</span></span>
+<span id="L338"><span class="lineNum">     338</span>              :       crossAxisAlignment: CrossAxisAlignment.start,</span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaUNC">           0 :       children: [</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaUNC">           0 :         Text(</span></span>
+<span id="L341"><span class="lineNum">     341</span> <span class="tlaUNC">           0 :           &quot;Name: ${widget.productName}&quot;,</span></span>
+<span id="L342"><span class="lineNum">     342</span>              :           style: const TextStyle(color: Colors.black, fontSize: 16.0),</span>
+<span id="L343"><span class="lineNum">     343</span>              :           overflow: TextOverflow.ellipsis,</span>
+<span id="L344"><span class="lineNum">     344</span>              :         ),</span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaUNC">           0 :         Visibility(</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaUNC">           0 :             visible: (!isComposite &amp;&amp; widget.stock != 0),</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaUNC">           0 :             child: SizedBox(height: 4.0)),</span></span>
+<span id="L348"><span class="lineNum">     348</span> <span class="tlaUNC">           0 :         Visibility(</span></span>
+<span id="L349"><span class="lineNum">     349</span> <span class="tlaUNC">           0 :           visible: (!isComposite &amp;&amp; widget.stock != 0), // Use &amp;&amp; here</span></span>
+<span id="L350"><span class="lineNum">     350</span> <span class="tlaUNC">           0 :           child: Text(</span></span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaUNC">           0 :             &quot;Stock: ${isComposite ? '-' : widget.stock}&quot;,</span></span>
+<span id="L352"><span class="lineNum">     352</span>              :             style: const TextStyle(color: Colors.black, fontSize: 14.0),</span>
+<span id="L353"><span class="lineNum">     353</span>              :           ),</span>
+<span id="L354"><span class="lineNum">     354</span>              :         ),</span>
+<span id="L355"><span class="lineNum">     355</span> <span class="tlaUNC">           0 :         Visibility(</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaUNC">           0 :             visible: widget.variant?.retailPrice != 0,</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaUNC">           0 :             child: SizedBox(height: 4.0)),</span></span>
+<span id="L358"><span class="lineNum">     358</span> <span class="tlaUNC">           0 :         Visibility(</span></span>
+<span id="L359"><span class="lineNum">     359</span> <span class="tlaUNC">           0 :             visible: widget.variant?.retailPrice != 0, child: _buildPrices()),</span></span>
+<span id="L360"><span class="lineNum">     360</span>              :       ],</span>
+<span id="L361"><span class="lineNum">     361</span>              :     );</span>
+<span id="L362"><span class="lineNum">     362</span>              :   }</span>
+<span id="L363"><span class="lineNum">     363</span>              : </span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaUNC">           0 :   Widget _buildPrices() {</span></span>
+<span id="L365"><span class="lineNum">     365</span> <span class="tlaUNC">           0 :     return Container(</span></span>
+<span id="L366"><span class="lineNum">     366</span>              :       width: 80,</span>
+<span id="L367"><span class="lineNum">     367</span> <span class="tlaUNC">           0 :       child: Text(</span></span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaUNC">           0 :         (widget.variant?.retailPrice ?? 0).toRwf(),</span></span>
+<span id="L369"><span class="lineNum">     369</span>              :         style: const TextStyle(color: Colors.black, fontSize: 14.0),</span>
+<span id="L370"><span class="lineNum">     370</span>              :         overflow: TextOverflow.ellipsis,</span>
+<span id="L371"><span class="lineNum">     371</span>              :       ),</span>
+<span id="L372"><span class="lineNum">     372</span>              :     );</span>
+<span id="L373"><span class="lineNum">     373</span>              :   }</span>
+<span id="L374"><span class="lineNum">     374</span>              : </span>
+<span id="L375"><span class="lineNum">     375</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; onRowClick(BuildContext context) async {</span></span>
+<span id="L376"><span class="lineNum">     376</span> <span class="tlaUNC">           0 :     if (widget.addFavoriteMode != null &amp;&amp; widget.addFavoriteMode == true) {</span></span>
+<span id="L377"><span class="lineNum">     377</span> <span class="tlaUNC">           0 :       String? position = positionString[widget.favIndex!];</span></span>
+<span id="L378"><span class="lineNum">     378</span> <span class="tlaUNC">           0 :       showDialog(</span></span>
+<span id="L379"><span class="lineNum">     379</span>              :         context: context,</span>
+<span id="L380"><span class="lineNum">     380</span> <span class="tlaUNC">           0 :         builder: (BuildContext context) {</span></span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaUNC">           0 :           return AlertDialog(</span></span>
+<span id="L382"><span class="lineNum">     382</span> <span class="tlaUNC">           0 :             title: Text('Confirm Favorite'),</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaUNC">           0 :             content: Text(</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaUNC">           0 :               'You are about to add ${widget.productName} to your $position favorite position.\n\nDo you approve?',</span></span>
+<span id="L385"><span class="lineNum">     385</span>              :             ),</span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaUNC">           0 :             actions: &lt;Widget&gt;[</span></span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaUNC">           0 :               OutlinedButton(</span></span>
+<span id="L388"><span class="lineNum">     388</span> <span class="tlaUNC">           0 :                 child: Text(</span></span>
+<span id="L389"><span class="lineNum">     389</span>              :                   'Yes',</span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaUNC">           0 :                   style: GoogleFonts.poppins(</span></span>
+<span id="L391"><span class="lineNum">     391</span>              :                     fontSize: 16.0,</span>
+<span id="L392"><span class="lineNum">     392</span>              :                     fontWeight: FontWeight.w500,</span>
+<span id="L393"><span class="lineNum">     393</span>              :                     color: Colors.white,</span>
+<span id="L394"><span class="lineNum">     394</span>              :                   ),</span>
+<span id="L395"><span class="lineNum">     395</span>              :                 ),</span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaUNC">           0 :                 style: primaryButtonStyle,</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaUNC">           0 :                 onPressed: () =&gt; {</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaUNC">           0 :                   widget.model.addFavorite(</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaUNC">           0 :                     favIndex: widget.favIndex!,</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaUNC">           0 :                     productId: widget.product!.id!,</span></span>
+<span id="L401"><span class="lineNum">     401</span>              :                   ),</span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaUNC">           0 :                   widget.model.rebuildUi(),</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaUNC">           0 :                   Navigator.of(context).pop(),</span></span>
+<span id="L404"><span class="lineNum">     404</span> <span class="tlaUNC">           0 :                   Navigator.of(context).pop(),</span></span>
+<span id="L405"><span class="lineNum">     405</span>              :                 },</span>
+<span id="L406"><span class="lineNum">     406</span>              :               ),</span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaUNC">           0 :               OutlinedButton(</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaUNC">           0 :                 child: Text(</span></span>
+<span id="L409"><span class="lineNum">     409</span>              :                   'No',</span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaUNC">           0 :                   style: GoogleFonts.poppins(</span></span>
+<span id="L411"><span class="lineNum">     411</span>              :                     fontSize: 16.0,</span>
+<span id="L412"><span class="lineNum">     412</span>              :                     fontWeight: FontWeight.w500,</span>
+<span id="L413"><span class="lineNum">     413</span>              :                     color: Colors.white,</span>
+<span id="L414"><span class="lineNum">     414</span>              :                   ),</span>
+<span id="L415"><span class="lineNum">     415</span>              :                 ),</span>
+<span id="L416"><span class="lineNum">     416</span> <span class="tlaUNC">           0 :                 style: primaryButtonStyle,</span></span>
+<span id="L417"><span class="lineNum">     417</span> <span class="tlaUNC">           0 :                 onPressed: () =&gt; Navigator.of(context).pop(),</span></span>
+<span id="L418"><span class="lineNum">     418</span>              :               ),</span>
+<span id="L419"><span class="lineNum">     419</span>              :             ],</span>
+<span id="L420"><span class="lineNum">     420</span>              :           );</span>
+<span id="L421"><span class="lineNum">     421</span>              :         },</span>
+<span id="L422"><span class="lineNum">     422</span>              :       );</span>
+<span id="L423"><span class="lineNum">     423</span>              :     } else {</span>
+<span id="L424"><span class="lineNum">     424</span> <span class="tlaUNC">           0 :       if (widget.variant != null) {</span></span>
+<span id="L425"><span class="lineNum">     425</span>              :         // Copy variant.name to clipboard, handy tool when want to copy name for some use.</span>
+<span id="L426"><span class="lineNum">     426</span>              :         // await Clipboard.setData(ClipboardData(text: widget.variant!.name!));</span>
+<span id="L427"><span class="lineNum">     427</span>              :       }</span>
+<span id="L428"><span class="lineNum">     428</span> <span class="tlaUNC">           0 :       if (widget.variant == null) {</span></span>
+<span id="L429"><span class="lineNum">     429</span> <span class="tlaUNC">           0 :         _routerService.navigateTo(SellRoute(product: widget.product!));</span></span>
+<span id="L430"><span class="lineNum">     430</span>              :       }</span>
+<span id="L431"><span class="lineNum">     431</span>              :     }</span>
+<span id="L432"><span class="lineNum">     432</span>              :   }</span>
+<span id="L433"><span class="lineNum">     433</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.1-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

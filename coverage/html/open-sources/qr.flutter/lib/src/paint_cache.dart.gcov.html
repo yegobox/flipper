@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - filtered.lcov.info - open-sources/qr.flutter/lib/src/paint_cache.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory open-sources/qr.flutter/lib/src">open-sources/qr.flutter/lib/src</a> - paint_cache.dart<span style="font-size: 80%;"> (source / <a href="paint_cache.dart.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">filtered.lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">73.3&nbsp;%</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntry">11</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : /*</span>
+<span id="L2"><span class="lineNum">       2</span>              :  * QR.Flutter</span>
+<span id="L3"><span class="lineNum">       3</span>              :  * Copyright (c) 2019 the QR.Flutter authors.</span>
+<span id="L4"><span class="lineNum">       4</span>              :  * See LICENSE for distribution and usage details.</span>
+<span id="L5"><span class="lineNum">       5</span>              :  */</span>
+<span id="L6"><span class="lineNum">       6</span>              : </span>
+<span id="L7"><span class="lineNum">       7</span>              : import 'package:flutter/widgets.dart';</span>
+<span id="L8"><span class="lineNum">       8</span>              : </span>
+<span id="L9"><span class="lineNum">       9</span>              : import 'types.dart';</span>
+<span id="L10"><span class="lineNum">      10</span>              : </span>
+<span id="L11"><span class="lineNum">      11</span>              : ///</span>
+<span id="L12"><span class="lineNum">      12</span>              : class PaintCache {</span>
+<span id="L13"><span class="lineNum">      13</span>              :   final List&lt;Paint&gt; _pixelPaints = &lt;Paint&gt;[];</span>
+<span id="L14"><span class="lineNum">      14</span>              :   final Map&lt;String, Paint&gt; _keyedPaints = &lt;String, Paint&gt;{};</span>
+<span id="L15"><span class="lineNum">      15</span>              : </span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC tlaBgGNC">           4 :   String _cacheKey(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           4 :     final posKey = position != null ? position.toString() : 'any';</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">           8 :     return '${element.toString()}:$posKey';</span></span>
+<span id="L19"><span class="lineNum">      19</span>              :   }</span>
+<span id="L20"><span class="lineNum">      20</span>              : </span>
+<span id="L21"><span class="lineNum">      21</span>              :   /// Save a [Paint] for the provided element and position into the cache.</span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           4 :   void cache(Paint paint, QrCodeElement element,</span></span>
+<span id="L23"><span class="lineNum">      23</span>              :       {FinderPatternPosition? position}) {</span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           4 :     if (element == QrCodeElement.codePixel) {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           8 :       _pixelPaints.add(paint);</span></span>
+<span id="L26"><span class="lineNum">      26</span>              :     } else {</span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          12 :       _keyedPaints[_cacheKey(element, position: position)] = paint;</span></span>
+<span id="L28"><span class="lineNum">      28</span>              :     }</span>
+<span id="L29"><span class="lineNum">      29</span>              :   }</span>
+<span id="L30"><span class="lineNum">      30</span>              : </span>
+<span id="L31"><span class="lineNum">      31</span>              :   /// Retrieve the first [Paint] object from the paint cache for the provided</span>
+<span id="L32"><span class="lineNum">      32</span>              :   /// element and position.</span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           4 :   Paint? firstPaint(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           4 :     if (element == QrCodeElement.codePixel) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           8 :       return _pixelPaints.first;</span></span>
+<span id="L36"><span class="lineNum">      36</span>              :     } else {</span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">          12 :       return _keyedPaints[_cacheKey(element, position: position)];</span></span>
+<span id="L38"><span class="lineNum">      38</span>              :     }</span>
+<span id="L39"><span class="lineNum">      39</span>              :   }</span>
+<span id="L40"><span class="lineNum">      40</span>              : </span>
+<span id="L41"><span class="lineNum">      41</span>              :   /// Retrieve all [Paint] objects from the paint cache for the provided</span>
+<span id="L42"><span class="lineNum">      42</span>              :   /// element and position. Note: Finder pattern elements can only have a max</span>
+<span id="L43"><span class="lineNum">      43</span>              :   /// one [Paint] object per position. As such they will always return a [List]</span>
+<span id="L44"><span class="lineNum">      44</span>              :   /// with a fixed size of `1`.</span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaUNC tlaBgUNC">           0 :   List&lt;Paint?&gt; paints(QrCodeElement element,</span></span>
+<span id="L46"><span class="lineNum">      46</span>              :       {FinderPatternPosition? position}) {</span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaUNC">           0 :     if (element == QrCodeElement.codePixel) {</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 :       return _pixelPaints;</span></span>
+<span id="L49"><span class="lineNum">      49</span>              :     } else {</span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaUNC">           0 :       return &lt;Paint?&gt;[_keyedPaints[_cacheKey(element, position: position)]];</span></span>
+<span id="L51"><span class="lineNum">      51</span>              :     }</span>
+<span id="L52"><span class="lineNum">      52</span>              :   }</span>
+<span id="L53"><span class="lineNum">      53</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.1-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

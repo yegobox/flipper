@@ -1,0 +1,1 @@
+genhtml -o /Users/richard/Documents/GitHub/flipper/coverage/html /Users/richard/Documents/GitHub/flipper/coverage/filtered.lcov.info

@@ -1,0 +1,1153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - filtered.lcov.info - packages/flipper_dashboard/lib/DesktopProductAdd.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory packages/flipper_dashboard/lib">packages/flipper_dashboard/lib</a> - DesktopProductAdd.dart<span style="font-size: 80%;"> (source / <a href="DesktopProductAdd.dart.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">filtered.lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryLo">0.0&nbsp;%</td>
+            <td class="headerCovTableEntry">488</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : // ignore_for_file: unused_result</span>
+<span id="L2"><span class="lineNum">       2</span>              : </span>
+<span id="L3"><span class="lineNum">       3</span>              : import 'dart:async';</span>
+<span id="L4"><span class="lineNum">       4</span>              : import 'dart:io';</span>
+<span id="L5"><span class="lineNum">       5</span>              : </span>
+<span id="L6"><span class="lineNum">       6</span>              : import 'package:flipper_dashboard/FieldCompositeActivated.dart';</span>
+<span id="L7"><span class="lineNum">       7</span>              : import 'package:flipper_dashboard/SearchProduct.dart';</span>
+<span id="L8"><span class="lineNum">       8</span>              : import 'package:flipper_dashboard/CompositeVariation.dart';</span>
+<span id="L9"><span class="lineNum">       9</span>              : import 'package:flipper_dashboard/ToggleButtonWidget.dart';</span>
+<span id="L10"><span class="lineNum">      10</span>              : import 'package:flipper_models/helperModels/random.dart';</span>
+<span id="L11"><span class="lineNum">      11</span>              : import 'package:path_provider/path_provider.dart';</span>
+<span id="L12"><span class="lineNum">      12</span>              : import 'package:dropdown_search/dropdown_search.dart';</span>
+<span id="L13"><span class="lineNum">      13</span>              : import 'package:flipper_dashboard/create/browsePhotos.dart';</span>
+<span id="L14"><span class="lineNum">      14</span>              : import 'package:flipper_models/helperModels/hexColor.dart';</span>
+<span id="L15"><span class="lineNum">      15</span>              : import 'package:flipper_models/realm_model_export.dart';</span>
+<span id="L16"><span class="lineNum">      16</span>              : import 'package:flipper_models/view_models/mixins/riverpod_states.dart';</span>
+<span id="L17"><span class="lineNum">      17</span>              : import 'package:flipper_services/constants.dart';</span>
+<span id="L18"><span class="lineNum">      18</span>              : import 'package:flipper_services/proxy.dart';</span>
+<span id="L19"><span class="lineNum">      19</span>              : import 'package:flutter/material.dart';</span>
+<span id="L20"><span class="lineNum">      20</span>              : import 'package:flutter_colorpicker/flutter_colorpicker.dart';</span>
+<span id="L21"><span class="lineNum">      21</span>              : import 'package:hooks_riverpod/hooks_riverpod.dart';</span>
+<span id="L22"><span class="lineNum">      22</span>              : import 'package:overlay_support/overlay_support.dart';</span>
+<span id="L23"><span class="lineNum">      23</span>              : import 'package:realm/realm.dart';</span>
+<span id="L24"><span class="lineNum">      24</span>              : import 'package:stacked/stacked.dart';</span>
+<span id="L25"><span class="lineNum">      25</span>              : </span>
+<span id="L26"><span class="lineNum">      26</span>              : class QuantityCell extends StatelessWidget {</span>
+<span id="L27"><span class="lineNum">      27</span>              :   final double? quantity;</span>
+<span id="L28"><span class="lineNum">      28</span>              :   final VoidCallback onEdit;</span>
+<span id="L29"><span class="lineNum">      29</span>              : </span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaUNC tlaBgUNC">           0 :   const QuantityCell({required this.quantity, required this.onEdit});</span></span>
+<span id="L31"><span class="lineNum">      31</span>              : </span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L33"><span class="lineNum">      33</span>              :   Widget build(BuildContext context) {</span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaUNC">           0 :     return GestureDetector(</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaUNC">           0 :       onTap: onEdit,</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaUNC">           0 :       child: Row(</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaUNC">           0 :         children: [</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaUNC">           0 :           Text(quantity.toString()),</span></span>
+<span id="L39"><span class="lineNum">      39</span>              :           const Icon(</span>
+<span id="L40"><span class="lineNum">      40</span>              :               Icons.edit), // You can replace this icon with your edit icon</span>
+<span id="L41"><span class="lineNum">      41</span>              :         ],</span>
+<span id="L42"><span class="lineNum">      42</span>              :       ),</span>
+<span id="L43"><span class="lineNum">      43</span>              :     );</span>
+<span id="L44"><span class="lineNum">      44</span>              :   }</span>
+<span id="L45"><span class="lineNum">      45</span>              : }</span>
+<span id="L46"><span class="lineNum">      46</span>              : </span>
+<span id="L47"><span class="lineNum">      47</span>              : class ProductEntryScreen extends StatefulHookConsumerWidget {</span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaUNC">           0 :   const ProductEntryScreen({super.key, this.productId});</span></span>
+<span id="L49"><span class="lineNum">      49</span>              : </span>
+<span id="L50"><span class="lineNum">      50</span>              :   final int? productId;</span>
+<span id="L51"><span class="lineNum">      51</span>              : </span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :   ProductEntryScreenState createState() =&gt; ProductEntryScreenState();</span></span>
+<span id="L54"><span class="lineNum">      54</span>              : }</span>
+<span id="L55"><span class="lineNum">      55</span>              : </span>
+<span id="L56"><span class="lineNum">      56</span>              : class ProductEntryScreenState extends ConsumerState&lt;ProductEntryScreen&gt; {</span>
+<span id="L57"><span class="lineNum">      57</span>              :   int _portraitCrossAxisCount = 4;</span>
+<span id="L58"><span class="lineNum">      58</span>              :   int _landscapeCrossAxisCount = 5;</span>
+<span id="L59"><span class="lineNum">      59</span>              :   double _borderRadius = 30;</span>
+<span id="L60"><span class="lineNum">      60</span>              :   double _blurRadius = 5;</span>
+<span id="L61"><span class="lineNum">      61</span>              :   double _iconSize = 24;</span>
+<span id="L62"><span class="lineNum">      62</span>              :   Color pickerColor = Colors.amber;</span>
+<span id="L63"><span class="lineNum">      63</span>              : </span>
+<span id="L64"><span class="lineNum">      64</span>              :   bool _selectAll = false;</span>
+<span id="L65"><span class="lineNum">      65</span>              :   bool _showDeleteButton = false;</span>
+<span id="L66"><span class="lineNum">      66</span>              : </span>
+<span id="L67"><span class="lineNum">      67</span>              :   String selectedPackageUnitValue = &quot;BJ: Bucket Bucket&quot;;</span>
+<span id="L68"><span class="lineNum">      68</span>              : </span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaUNC">           0 :   void changeColor(Color color) =&gt; setState(() =&gt; pickerColor = color);</span></span>
+<span id="L70"><span class="lineNum">      70</span>              : </span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaUNC">           0 :   Widget pickerLayoutBuilder(</span></span>
+<span id="L72"><span class="lineNum">      72</span>              :       BuildContext context, List&lt;Color&gt; colors, PickerItem child) {</span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaUNC">           0 :     Orientation orientation = MediaQuery.of(context).orientation;</span></span>
+<span id="L74"><span class="lineNum">      74</span>              : </span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaUNC">           0 :     return SizedBox(</span></span>
+<span id="L76"><span class="lineNum">      76</span>              :       width: 300,</span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaUNC">           0 :       height: orientation == Orientation.portrait ? 360 : 240,</span></span>
+<span id="L78"><span class="lineNum">      78</span> <span class="tlaUNC">           0 :       child: GridView.count(</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaUNC">           0 :         crossAxisCount: orientation == Orientation.portrait</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaUNC">           0 :             ? _portraitCrossAxisCount</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaUNC">           0 :             : _landscapeCrossAxisCount,</span></span>
+<span id="L82"><span class="lineNum">      82</span>              :         crossAxisSpacing: 5,</span>
+<span id="L83"><span class="lineNum">      83</span>              :         mainAxisSpacing: 5,</span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaUNC">           0 :         children: [for (Color color in colors) child(color)],</span></span>
+<span id="L85"><span class="lineNum">      85</span>              :       ),</span>
+<span id="L86"><span class="lineNum">      86</span>              :     );</span>
+<span id="L87"><span class="lineNum">      87</span>              :   }</span>
+<span id="L88"><span class="lineNum">      88</span>              : </span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaUNC">           0 :   Widget pickerItemBuilder(</span></span>
+<span id="L90"><span class="lineNum">      90</span>              :       Color color, bool isCurrentColor, void Function() changeColor) {</span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaUNC">           0 :     return Container(</span></span>
+<span id="L92"><span class="lineNum">      92</span>              :       margin: const EdgeInsets.all(8),</span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaUNC">           0 :       decoration: BoxDecoration(</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaUNC">           0 :         borderRadius: BorderRadius.circular(_borderRadius),</span></span>
+<span id="L95"><span class="lineNum">      95</span>              :         color: color,</span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaUNC">           0 :         boxShadow: [</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaUNC">           0 :           BoxShadow(</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaUNC">           0 :               color: color.withOpacity(0.8),</span></span>
+<span id="L99"><span class="lineNum">      99</span>              :               offset: const Offset(1, 2),</span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaUNC">           0 :               blurRadius: _blurRadius)</span></span>
+<span id="L101"><span class="lineNum">     101</span>              :         ],</span>
+<span id="L102"><span class="lineNum">     102</span>              :       ),</span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaUNC">           0 :       child: Material(</span></span>
+<span id="L104"><span class="lineNum">     104</span>              :         color: Colors.transparent,</span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaUNC">           0 :         child: InkWell(</span></span>
+<span id="L106"><span class="lineNum">     106</span>              :           onTap: changeColor,</span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaUNC">           0 :           borderRadius: BorderRadius.circular(_borderRadius),</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaUNC">           0 :           child: AnimatedOpacity(</span></span>
+<span id="L109"><span class="lineNum">     109</span>              :             duration: const Duration(milliseconds: 250),</span>
+<span id="L110"><span class="lineNum">     110</span>              :             opacity: isCurrentColor ? 1 : 0,</span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaUNC">           0 :             child: Icon(</span></span>
+<span id="L112"><span class="lineNum">     112</span>              :               Icons.done,</span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaUNC">           0 :               size: _iconSize,</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaUNC">           0 :               color: useWhiteForeground(color) ? Colors.white : Colors.black,</span></span>
+<span id="L115"><span class="lineNum">     115</span>              :             ),</span>
+<span id="L116"><span class="lineNum">     116</span>              :           ),</span>
+<span id="L117"><span class="lineNum">     117</span>              :         ),</span>
+<span id="L118"><span class="lineNum">     118</span>              :       ),</span>
+<span id="L119"><span class="lineNum">     119</span>              :     );</span>
+<span id="L120"><span class="lineNum">     120</span>              :   }</span>
+<span id="L121"><span class="lineNum">     121</span>              : </span>
+<span id="L122"><span class="lineNum">     122</span>              :   TextEditingController productNameController = TextEditingController();</span>
+<span id="L123"><span class="lineNum">     123</span>              :   TextEditingController retailPriceController = TextEditingController();</span>
+<span id="L124"><span class="lineNum">     124</span>              :   TextEditingController supplyPriceController = TextEditingController();</span>
+<span id="L125"><span class="lineNum">     125</span>              :   TextEditingController scannedInputController = TextEditingController();</span>
+<span id="L126"><span class="lineNum">     126</span>              :   TextEditingController barCodeController = TextEditingController();</span>
+<span id="L127"><span class="lineNum">     127</span>              :   TextEditingController skuController = TextEditingController();</span>
+<span id="L128"><span class="lineNum">     128</span>              :   FocusNode scannedInputFocusNode = FocusNode();</span>
+<span id="L129"><span class="lineNum">     129</span>              :   Timer? _inputTimer;</span>
+<span id="L130"><span class="lineNum">     130</span>              :   final _formKey = GlobalKey&lt;FormState&gt;();</span>
+<span id="L131"><span class="lineNum">     131</span>              :   final _fieldComposite = GlobalKey&lt;FormState&gt;();</span>
+<span id="L132"><span class="lineNum">     132</span>              : </span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L134"><span class="lineNum">     134</span>              :   void dispose() {</span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaUNC">           0 :     _inputTimer?.cancel();</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaUNC">           0 :     productNameController.dispose();</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaUNC">           0 :     retailPriceController.dispose();</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaUNC">           0 :     scannedInputController.dispose();</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :     supplyPriceController.dispose();</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaUNC">           0 :     scannedInputFocusNode.dispose();</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaUNC">           0 :     super.dispose();</span></span>
+<span id="L142"><span class="lineNum">     142</span>              :   }</span>
+<span id="L143"><span class="lineNum">     143</span>              : </span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaUNC">           0 :   void _showEditQuantityDialog(</span></span>
+<span id="L145"><span class="lineNum">     145</span>              :     BuildContext context,</span>
+<span id="L146"><span class="lineNum">     146</span>              :     Variant variant,</span>
+<span id="L147"><span class="lineNum">     147</span>              :     ScannViewModel model,</span>
+<span id="L148"><span class="lineNum">     148</span>              :     VoidCallback onDialogClosed,</span>
+<span id="L149"><span class="lineNum">     149</span>              :   ) {</span>
+<span id="L150"><span class="lineNum">     150</span>              :     TextEditingController quantityController =</span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaUNC">           0 :         TextEditingController(text: variant.qty.toString());</span></span>
+<span id="L152"><span class="lineNum">     152</span>              : </span>
+<span id="L153"><span class="lineNum">     153</span>              :     // Create a FocusNode and set autofocus to true</span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC">           0 :     FocusNode focusNode = FocusNode();</span></span>
+<span id="L155"><span class="lineNum">     155</span>              : </span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC">           0 :     showDialog(</span></span>
+<span id="L157"><span class="lineNum">     157</span>              :       context: context,</span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 :       builder: (BuildContext context) {</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 :         return AlertDialog(</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaUNC">           0 :           title: Text('Edit Quantity'),</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaUNC">           0 :           content: TextFormField(</span></span>
+<span id="L162"><span class="lineNum">     162</span>              :             controller: quantityController,</span>
+<span id="L163"><span class="lineNum">     163</span>              :             keyboardType: TextInputType.number,</span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaUNC">           0 :             decoration: InputDecoration(labelText: 'Quantity'),</span></span>
+<span id="L165"><span class="lineNum">     165</span>              :             focusNode: focusNode,</span>
+<span id="L166"><span class="lineNum">     166</span>              :           ),</span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaUNC">           0 :           actions: [</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaUNC">           0 :             TextButton(</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaUNC">           0 :               onPressed: () {</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaUNC">           0 :                 Navigator.pop(context);</span></span>
+<span id="L171"><span class="lineNum">     171</span>              :               },</span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaUNC">           0 :               child: Text('Cancel'),</span></span>
+<span id="L173"><span class="lineNum">     173</span>              :             ),</span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaUNC">           0 :             TextButton(</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaUNC">           0 :               onPressed: () {</span></span>
+<span id="L176"><span class="lineNum">     176</span>              :                 double newQuantity =</span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaUNC">           0 :                     double.tryParse(quantityController.text) ?? 0.0;</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaUNC">           0 :                 model.updateVariantQuantity(variant.id!, newQuantity);</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaUNC">           0 :                 Navigator.pop(context);</span></span>
+<span id="L180"><span class="lineNum">     180</span>              :               },</span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaUNC">           0 :               child: Text('Save'),</span></span>
+<span id="L182"><span class="lineNum">     182</span>              :             ),</span>
+<span id="L183"><span class="lineNum">     183</span>              :           ],</span>
+<span id="L184"><span class="lineNum">     184</span>              :         );</span>
+<span id="L185"><span class="lineNum">     185</span>              :       },</span>
+<span id="L186"><span class="lineNum">     186</span>              :     );</span>
+<span id="L187"><span class="lineNum">     187</span>              : </span>
+<span id="L188"><span class="lineNum">     188</span>              :     // Use WidgetsBinding.instance?.addPostFrameCallback to focus after the frame is painted</span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC">           0 :     WidgetsBinding.instance.addPostFrameCallback((_) {</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaUNC">           0 :       focusNode.requestFocus();</span></span>
+<span id="L191"><span class="lineNum">     191</span>              :     });</span>
+<span id="L192"><span class="lineNum">     192</span>              : </span>
+<span id="L193"><span class="lineNum">     193</span>              :     // Add a callback to execute when the dialog is closed</span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaUNC">           0 :     Navigator.of(context).popUntil((route) {</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaUNC">           0 :       onDialogClosed();</span></span>
+<span id="L196"><span class="lineNum">     196</span>              :       return true;</span>
+<span id="L197"><span class="lineNum">     197</span>              :     });</span>
+<span id="L198"><span class="lineNum">     198</span>              :   }</span>
+<span id="L199"><span class="lineNum">     199</span>              : </span>
+<span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :   Widget _buildUniversalProductDropDown(</span></span>
+<span id="L201"><span class="lineNum">     201</span>              :       BuildContext context, ScannViewModel model, Variant variant) {</span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :     final unitsAsyncValue = ref.watch(universalProductsNames);</span></span>
+<span id="L203"><span class="lineNum">     203</span>              : </span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaUNC">           0 :     return unitsAsyncValue.when(</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaUNC">           0 :       data: (items) {</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaUNC">           0 :         final List&lt;String&gt; itemClsCdList = items.asData?.value</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaUNC">           0 :                 .map((unit) =&gt; ((unit.itemClsNm ?? &quot;&quot;) + &quot; &quot; + unit.itemClsCd!))</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaUNC">           0 :                 .toList() ??</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaUNC">           0 :             [];</span></span>
+<span id="L210"><span class="lineNum">     210</span>              : </span>
+<span id="L211"><span class="lineNum">     211</span>              :         // talker.warning(itemClsCdList);</span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaUNC">           0 :         return Container(</span></span>
+<span id="L213"><span class="lineNum">     213</span>              :           width: double.infinity,</span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaUNC">           0 :           child: DropdownSearch&lt;String&gt;(</span></span>
+<span id="L215"><span class="lineNum">     215</span>              :             items: itemClsCdList,</span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaUNC">           0 :             selectedItem: itemClsCdList.isNotEmpty ? itemClsCdList.first : null,</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaUNC">           0 :             dropdownDecoratorProps: DropDownDecoratorProps(</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaUNC">           0 :               dropdownSearchDecoration: InputDecoration(</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaUNC">           0 :                 border: OutlineInputBorder(</span></span>
+<span id="L220"><span class="lineNum">     220</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L221"><span class="lineNum">     221</span>              :                 ),</span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaUNC">           0 :                 disabledBorder: OutlineInputBorder(</span></span>
+<span id="L223"><span class="lineNum">     223</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L224"><span class="lineNum">     224</span>              :                 ),</span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaUNC">           0 :                 enabledBorder: OutlineInputBorder(</span></span>
+<span id="L226"><span class="lineNum">     226</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L227"><span class="lineNum">     227</span>              :                 ),</span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaUNC">           0 :                 focusedBorder: OutlineInputBorder(</span></span>
+<span id="L229"><span class="lineNum">     229</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L230"><span class="lineNum">     230</span>              :                 ),</span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaUNC">           0 :                 errorBorder: OutlineInputBorder(</span></span>
+<span id="L232"><span class="lineNum">     232</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L233"><span class="lineNum">     233</span>              :                 ),</span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaUNC">           0 :                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),</span></span>
+<span id="L235"><span class="lineNum">     235</span>              :               ),</span>
+<span id="L236"><span class="lineNum">     236</span>              :             ),</span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaUNC">           0 :             onChanged: (String? newValue) {</span></span>
+<span id="L238"><span class="lineNum">     238</span>              :               if (newValue != null) {</span>
+<span id="L239"><span class="lineNum">     239</span>              :                 // Loop through model.scannedVariants</span>
+<span id="L240"><span class="lineNum">     240</span> <span class="tlaUNC">           0 :                 for (var scannedVariant in model.scannedVariants) {</span></span>
+<span id="L241"><span class="lineNum">     241</span>              :                   // Find the related variant based on some criteria</span>
+<span id="L242"><span class="lineNum">     242</span>              :                   // For example, matching variant.id</span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaUNC">           0 :                   if (scannedVariant.id == variant.id) {</span></span>
+<span id="L244"><span class="lineNum">     244</span>              :                     // Update the variant.itemClsCd with the value of newValue</span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaUNC">           0 :                     final value = newValue.split(' ').last;</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaUNC">           0 :                     scannedVariant.itemClsCd = value;</span></span>
+<span id="L247"><span class="lineNum">     247</span>              :                     break; // Exit the loop since the variant is found and updated</span>
+<span id="L248"><span class="lineNum">     248</span>              :                   }</span>
+<span id="L249"><span class="lineNum">     249</span>              :                 }</span>
+<span id="L250"><span class="lineNum">     250</span>              :               }</span>
+<span id="L251"><span class="lineNum">     251</span>              :             },</span>
+<span id="L252"><span class="lineNum">     252</span>              :           ),</span>
+<span id="L253"><span class="lineNum">     253</span>              :         );</span>
+<span id="L254"><span class="lineNum">     254</span>              :       },</span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaUNC">           0 :       loading: () =&gt; const CircularProgressIndicator(),</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaUNC">           0 :       error: (error, stackTrace) =&gt; Text('Error: $error'),</span></span>
+<span id="L257"><span class="lineNum">     257</span>              :     );</span>
+<span id="L258"><span class="lineNum">     258</span>              :   }</span>
+<span id="L259"><span class="lineNum">     259</span>              : </span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaUNC">           0 :   Widget _buildUnitOfMeasureDropDown(</span></span>
+<span id="L261"><span class="lineNum">     261</span>              :       BuildContext context, Variant variant, ScannViewModel model) {</span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC">           0 :     final unitsAsyncValue = ref.watch(unitsProvider);</span></span>
+<span id="L263"><span class="lineNum">     263</span>              : </span>
+<span id="L264"><span class="lineNum">     264</span> <span class="tlaUNC">           0 :     return unitsAsyncValue.when(</span></span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaUNC">           0 :       data: (units) {</span></span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaUNC">           0 :         return Container(</span></span>
+<span id="L267"><span class="lineNum">     267</span>              :           width: double.infinity,</span>
+<span id="L268"><span class="lineNum">     268</span> <span class="tlaUNC">           0 :           child: DropdownSearch&lt;String&gt;(</span></span>
+<span id="L269"><span class="lineNum">     269</span> <span class="tlaUNC">           0 :             items: units.asData?.value.map((unit) =&gt; unit.name!).toList() ?? [],</span></span>
+<span id="L270"><span class="lineNum">     270</span> <span class="tlaUNC">           0 :             selectedItem: variant.unit,</span></span>
+<span id="L271"><span class="lineNum">     271</span> <span class="tlaUNC">           0 :             dropdownDecoratorProps: DropDownDecoratorProps(</span></span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaUNC">           0 :               dropdownSearchDecoration: InputDecoration(</span></span>
+<span id="L273"><span class="lineNum">     273</span> <span class="tlaUNC">           0 :                 border: OutlineInputBorder(</span></span>
+<span id="L274"><span class="lineNum">     274</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L275"><span class="lineNum">     275</span>              :                 ),</span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaUNC">           0 :                 disabledBorder: OutlineInputBorder(</span></span>
+<span id="L277"><span class="lineNum">     277</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L278"><span class="lineNum">     278</span>              :                 ),</span>
+<span id="L279"><span class="lineNum">     279</span> <span class="tlaUNC">           0 :                 enabledBorder: OutlineInputBorder(</span></span>
+<span id="L280"><span class="lineNum">     280</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L281"><span class="lineNum">     281</span>              :                 ),</span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaUNC">           0 :                 focusedBorder: OutlineInputBorder(</span></span>
+<span id="L283"><span class="lineNum">     283</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L284"><span class="lineNum">     284</span>              :                 ),</span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaUNC">           0 :                 errorBorder: OutlineInputBorder(</span></span>
+<span id="L286"><span class="lineNum">     286</span>              :                   borderSide: BorderSide.none,</span>
+<span id="L287"><span class="lineNum">     287</span>              :                 ),</span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaUNC">           0 :                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),</span></span>
+<span id="L289"><span class="lineNum">     289</span>              :               ),</span>
+<span id="L290"><span class="lineNum">     290</span>              :             ),</span>
+<span id="L291"><span class="lineNum">     291</span>              :           ),</span>
+<span id="L292"><span class="lineNum">     292</span>              :         );</span>
+<span id="L293"><span class="lineNum">     293</span>              :       },</span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaUNC">           0 :       loading: () =&gt;</span></span>
+<span id="L295"><span class="lineNum">     295</span>              :           const CircularProgressIndicator(), // Show a loading indicator</span>
+<span id="L296"><span class="lineNum">     296</span> <span class="tlaUNC">           0 :       error: (error, stackTrace) =&gt;</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaUNC">           0 :           Text('Error: $error'), // Show an error message</span></span>
+<span id="L298"><span class="lineNum">     298</span>              :     );</span>
+<span id="L299"><span class="lineNum">     299</span>              :   }</span>
+<span id="L300"><span class="lineNum">     300</span>              : </span>
+<span id="L301"><span class="lineNum">     301</span> <span class="tlaUNC">           0 :   Widget _buildTaxDropdown(</span></span>
+<span id="L302"><span class="lineNum">     302</span>              :       BuildContext context, Variant variant, ScannViewModel model) {</span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaUNC">           0 :     final List&lt;String&gt; options = [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;];</span></span>
+<span id="L304"><span class="lineNum">     304</span>              : </span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaUNC">           0 :     return DropdownSearch&lt;String&gt;(</span></span>
+<span id="L306"><span class="lineNum">     306</span>              :       items: options,</span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaUNC">           0 :       selectedItem: variant.taxTyCd ?? &quot;B&quot;,</span></span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaUNC">           0 :       dropdownDecoratorProps: DropDownDecoratorProps(</span></span>
+<span id="L309"><span class="lineNum">     309</span> <span class="tlaUNC">           0 :         dropdownSearchDecoration: InputDecoration(</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaUNC">           0 :           border: OutlineInputBorder(</span></span>
+<span id="L311"><span class="lineNum">     311</span>              :             borderSide: BorderSide.none,</span>
+<span id="L312"><span class="lineNum">     312</span>              :           ),</span>
+<span id="L313"><span class="lineNum">     313</span> <span class="tlaUNC">           0 :           disabledBorder: OutlineInputBorder(</span></span>
+<span id="L314"><span class="lineNum">     314</span>              :             borderSide: BorderSide.none,</span>
+<span id="L315"><span class="lineNum">     315</span>              :           ),</span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaUNC">           0 :           enabledBorder: OutlineInputBorder(</span></span>
+<span id="L317"><span class="lineNum">     317</span>              :             borderSide: BorderSide.none,</span>
+<span id="L318"><span class="lineNum">     318</span>              :           ),</span>
+<span id="L319"><span class="lineNum">     319</span> <span class="tlaUNC">           0 :           focusedBorder: OutlineInputBorder(</span></span>
+<span id="L320"><span class="lineNum">     320</span>              :             borderSide: BorderSide.none,</span>
+<span id="L321"><span class="lineNum">     321</span>              :           ),</span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaUNC">           0 :           errorBorder: OutlineInputBorder(</span></span>
+<span id="L323"><span class="lineNum">     323</span>              :             borderSide: BorderSide.none,</span>
+<span id="L324"><span class="lineNum">     324</span>              :           ),</span>
+<span id="L325"><span class="lineNum">     325</span> <span class="tlaUNC">           0 :           contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),</span></span>
+<span id="L326"><span class="lineNum">     326</span>              :         ),</span>
+<span id="L327"><span class="lineNum">     327</span>              :       ),</span>
+<span id="L328"><span class="lineNum">     328</span> <span class="tlaUNC">           0 :       onChanged: (String? newValue) {</span></span>
+<span id="L329"><span class="lineNum">     329</span>              :         try {</span>
+<span id="L330"><span class="lineNum">     330</span> <span class="tlaUNC">           0 :           ProxyService.realm.realm!.write(() =&gt; variant.taxTyCd = newValue!);</span></span>
+<span id="L331"><span class="lineNum">     331</span>              :         } catch (e) {</span>
+<span id="L332"><span class="lineNum">     332</span> <span class="tlaUNC">           0 :           talker.error(e);</span></span>
+<span id="L333"><span class="lineNum">     333</span>              :         }</span>
+<span id="L334"><span class="lineNum">     334</span>              :       },</span>
+<span id="L335"><span class="lineNum">     335</span>              :     );</span>
+<span id="L336"><span class="lineNum">     336</span>              :   }</span>
+<span id="L337"><span class="lineNum">     337</span>              : </span>
+<span id="L338"><span class="lineNum">     338</span>              :   // Helper function to get a valid color or a default color</span>
+<span id="L339"><span class="lineNum">     339</span>              : </span>
+<span id="L340"><span class="lineNum">     340</span>              :   // Helper function to check if a string is a valid hexadecimal color code</span>
+<span id="L341"><span class="lineNum">     341</span> <span class="tlaUNC">           0 :   void _showNoProductNameToast() {</span></span>
+<span id="L342"><span class="lineNum">     342</span> <span class="tlaUNC">           0 :     toast('No product name!');</span></span>
+<span id="L343"><span class="lineNum">     343</span>              :   }</span>
+<span id="L344"><span class="lineNum">     344</span>              : </span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaUNC">           0 :   void _showNoProductSavedToast() {</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaUNC">           0 :     toast('No Product saved!');</span></span>
+<span id="L347"><span class="lineNum">     347</span>              :   }</span>
+<span id="L348"><span class="lineNum">     348</span>              : </span>
+<span id="L349"><span class="lineNum">     349</span> <span class="tlaUNC">           0 :   Future&lt;void&gt; _saveProductAndVariants(</span></span>
+<span id="L350"><span class="lineNum">     350</span>              :       ScannViewModel model, BuildContext context, Product productRef) async {</span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaUNC">           0 :     if (model.kProductName == null) {</span></span>
+<span id="L352"><span class="lineNum">     352</span> <span class="tlaUNC">           0 :       _showNoProductNameToast();</span></span>
+<span id="L353"><span class="lineNum">     353</span>              :       return;</span>
+<span id="L354"><span class="lineNum">     354</span>              :     }</span>
+<span id="L355"><span class="lineNum">     355</span>              : </span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaUNC">           0 :     if (widget.productId != null) {</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaUNC">           0 :       await model.bulkUpdateVariants(true, color: model.currentColor);</span></span>
+<span id="L358"><span class="lineNum">     358</span>              :     } else {</span>
+<span id="L359"><span class="lineNum">     359</span> <span class="tlaUNC">           0 :       await model.addVariant(</span></span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaUNC">           0 :           variations: model.scannedVariants,</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaUNC">           0 :           packagingUnit: selectedPackageUnitValue.split(&quot;:&quot;)[0]);</span></span>
+<span id="L362"><span class="lineNum">     362</span>              :     }</span>
+<span id="L363"><span class="lineNum">     363</span>              : </span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaUNC">           0 :     model.currentColor = pickerColor.toHex();</span></span>
+<span id="L365"><span class="lineNum">     365</span>              : </span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaUNC">           0 :     await model.saveProduct(</span></span>
+<span id="L367"><span class="lineNum">     367</span>              :         mproduct: productRef,</span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaUNC">           0 :         color: model.currentColor,</span></span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaUNC">           0 :         inUpdateProcess: widget.productId != null,</span></span>
+<span id="L370"><span class="lineNum">     370</span> <span class="tlaUNC">           0 :         productName: model.kProductName!);</span></span>
+<span id="L371"><span class="lineNum">     371</span>              : </span>
+<span id="L372"><span class="lineNum">     372</span> <span class="tlaUNC">           0 :     final searchKeyword = ref.watch(searchStringProvider);</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaUNC">           0 :     final scanMode = ref.watch(scanningModeProvider);</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaUNC">           0 :     ref</span></span>
+<span id="L375"><span class="lineNum">     375</span> <span class="tlaUNC">           0 :         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)</span></span>
+<span id="L376"><span class="lineNum">     376</span> <span class="tlaUNC">           0 :         .loadProducts(searchString: searchKeyword, scanMode: scanMode);</span></span>
+<span id="L377"><span class="lineNum">     377</span>              : </span>
+<span id="L378"><span class="lineNum">     378</span>              :     /// end of reloading</span>
+<span id="L379"><span class="lineNum">     379</span>              : </span>
+<span id="L380"><span class="lineNum">     380</span>              :     /// attempt to see newly created product</span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaUNC">           0 :     ref.read(searchStringProvider.notifier).emitString(value: &quot;search&quot;);</span></span>
+<span id="L382"><span class="lineNum">     382</span> <span class="tlaUNC">           0 :     ref.read(searchStringProvider.notifier).emitString(value: &quot;&quot;);</span></span>
+<span id="L383"><span class="lineNum">     383</span>              : </span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaUNC">           0 :     ref</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaUNC">           0 :         .read(productsProvider(ProxyService.box.getBranchId()!).notifier)</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaUNC">           0 :         .loadProducts(searchString: model.kProductName ?? &quot;&quot;, scanMode: true);</span></span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaUNC">           0 :     toast(&quot;Product Saved&quot;);</span></span>
+<span id="L388"><span class="lineNum">     388</span> <span class="tlaUNC">           0 :     Navigator.maybePop(context);</span></span>
+<span id="L389"><span class="lineNum">     389</span>              :   }</span>
+<span id="L390"><span class="lineNum">     390</span>              : </span>
+<span id="L391"><span class="lineNum">     391</span> <span class="tlaUNC">           0 :   void _onSaveButtonPressed(</span></span>
+<span id="L392"><span class="lineNum">     392</span>              :       ScannViewModel model, BuildContext context, Product product) {</span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaUNC">           0 :     if (model.scannedVariants.isEmpty &amp;&amp; widget.productId == null) {</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaUNC">           0 :       _showNoProductSavedToast();</span></span>
+<span id="L395"><span class="lineNum">     395</span>              :     } else {</span>
+<span id="L396"><span class="lineNum">     396</span> <span class="tlaUNC">           0 :       _saveProductAndVariants(model, context, product);</span></span>
+<span id="L397"><span class="lineNum">     397</span>              :     }</span>
+<span id="L398"><span class="lineNum">     398</span>              :   }</span>
+<span id="L399"><span class="lineNum">     399</span>              : </span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaUNC">           0 :   Widget _buildDropdownButton(ScannViewModel model) {</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaUNC">           0 :     return Column(</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaUNC">           0 :       children: [</span></span>
+<span id="L403"><span class="lineNum">     403</span> <span class="tlaUNC">           0 :         Text(&quot;Packaging unit&quot;),</span></span>
+<span id="L404"><span class="lineNum">     404</span> <span class="tlaUNC">           0 :         Container(</span></span>
+<span id="L405"><span class="lineNum">     405</span>              :           padding: const EdgeInsets.symmetric(horizontal: 16),</span>
+<span id="L406"><span class="lineNum">     406</span> <span class="tlaUNC">           0 :           decoration: BoxDecoration(</span></span>
+<span id="L407"><span class="lineNum">     407</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8),</span></span>
+<span id="L408"><span class="lineNum">     408</span> <span class="tlaUNC">           0 :             border: Border.all(color: Colors.grey),</span></span>
+<span id="L409"><span class="lineNum">     409</span>              :           ),</span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaUNC">           0 :           child: DropdownButton&lt;String&gt;(</span></span>
+<span id="L411"><span class="lineNum">     411</span> <span class="tlaUNC">           0 :             value: selectedPackageUnitValue,</span></span>
+<span id="L412"><span class="lineNum">     412</span> <span class="tlaUNC">           0 :             onChanged: (String? newValue) {</span></span>
+<span id="L413"><span class="lineNum">     413</span> <span class="tlaUNC">           0 :               setState(() {</span></span>
+<span id="L414"><span class="lineNum">     414</span>              :                 if (newValue != null) {</span>
+<span id="L415"><span class="lineNum">     415</span> <span class="tlaUNC">           0 :                   selectedPackageUnitValue = newValue;</span></span>
+<span id="L416"><span class="lineNum">     416</span>              :                 }</span>
+<span id="L417"><span class="lineNum">     417</span>              :               });</span>
+<span id="L418"><span class="lineNum">     418</span>              :             },</span>
+<span id="L419"><span class="lineNum">     419</span> <span class="tlaUNC">           0 :             items: model.pkgUnits.map&lt;DropdownMenuItem&lt;String&gt;&gt;(</span></span>
+<span id="L420"><span class="lineNum">     420</span> <span class="tlaUNC">           0 :               (String value) {</span></span>
+<span id="L421"><span class="lineNum">     421</span> <span class="tlaUNC">           0 :                 return DropdownMenuItem&lt;String&gt;(</span></span>
+<span id="L422"><span class="lineNum">     422</span>              :                   value: value,</span>
+<span id="L423"><span class="lineNum">     423</span> <span class="tlaUNC">           0 :                   child: Text(value),</span></span>
+<span id="L424"><span class="lineNum">     424</span>              :                 );</span>
+<span id="L425"><span class="lineNum">     425</span>              :               },</span>
+<span id="L426"><span class="lineNum">     426</span> <span class="tlaUNC">           0 :             ).toList(),</span></span>
+<span id="L427"><span class="lineNum">     427</span>              :             style: const TextStyle(color: Colors.black, fontSize: 16),</span>
+<span id="L428"><span class="lineNum">     428</span>              :             icon: const Icon(Icons.arrow_drop_down),</span>
+<span id="L429"><span class="lineNum">     429</span>              :             iconSize: 30,</span>
+<span id="L430"><span class="lineNum">     430</span>              :             isExpanded: true,</span>
+<span id="L431"><span class="lineNum">     431</span> <span class="tlaUNC">           0 :             underline: SizedBox(), // Remove the default underline</span></span>
+<span id="L432"><span class="lineNum">     432</span>              :           ),</span>
+<span id="L433"><span class="lineNum">     433</span>              :         ),</span>
+<span id="L434"><span class="lineNum">     434</span>              :       ],</span>
+<span id="L435"><span class="lineNum">     435</span>              :     );</span>
+<span id="L436"><span class="lineNum">     436</span>              :   }</span>
+<span id="L437"><span class="lineNum">     437</span>              : </span>
+<span id="L438"><span class="lineNum">     438</span>              : // Define your default color</span>
+<span id="L439"><span class="lineNum">     439</span>              :   Color DEFAULT_COLOR = Colors.grey;</span>
+<span id="L440"><span class="lineNum">     440</span>              : </span>
+<span id="L441"><span class="lineNum">     441</span> <span class="tlaUNC">           0 :   @override</span></span>
+<span id="L442"><span class="lineNum">     442</span>              :   Widget build(BuildContext context) {</span>
+<span id="L443"><span class="lineNum">     443</span> <span class="tlaUNC">           0 :     final productRef = ref.watch(unsavedProductProvider);</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaUNC">           0 :     return ViewModelBuilder&lt;ScannViewModel&gt;.reactive(</span></span>
+<span id="L445"><span class="lineNum">     445</span> <span class="tlaUNC">           0 :       viewModelBuilder: () =&gt; ScannViewModel(),</span></span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaUNC">           0 :       onViewModelReady: (model) async {</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaUNC">           0 :         if (widget.productId != null) {</span></span>
+<span id="L448"><span class="lineNum">     448</span>              :           // Load existing product if productId is given</span>
+<span id="L449"><span class="lineNum">     449</span>              : </span>
+<span id="L450"><span class="lineNum">     450</span>              :           Product product =</span>
+<span id="L451"><span class="lineNum">     451</span> <span class="tlaUNC">           0 :               await model.getProduct(productId: widget.productId!);</span></span>
+<span id="L452"><span class="lineNum">     452</span> <span class="tlaUNC">           0 :           ref.read(unsavedProductProvider.notifier).emitProduct(value: product);</span></span>
+<span id="L453"><span class="lineNum">     453</span>              : </span>
+<span id="L454"><span class="lineNum">     454</span>              :           // Populate product name with the name of the product being edited</span>
+<span id="L455"><span class="lineNum">     455</span> <span class="tlaUNC">           0 :           productNameController.text = product.name!;</span></span>
+<span id="L456"><span class="lineNum">     456</span> <span class="tlaUNC">           0 :           model.setProductName(name: product.name!);</span></span>
+<span id="L457"><span class="lineNum">     457</span>              : </span>
+<span id="L458"><span class="lineNum">     458</span>              :           // Populate variants related to the product</span>
+<span id="L459"><span class="lineNum">     459</span> <span class="tlaUNC">           0 :           List&lt;Variant&gt; variants = await ProxyService.realm.variants(</span></span>
+<span id="L460"><span class="lineNum">     460</span> <span class="tlaUNC">           0 :               productId: widget.productId!,</span></span>
+<span id="L461"><span class="lineNum">     461</span> <span class="tlaUNC">           0 :               branchId: ProxyService.box.getBranchId()!);</span></span>
+<span id="L462"><span class="lineNum">     462</span>              : </span>
+<span id="L463"><span class="lineNum">     463</span>              :           /// populate the supplyPrice and retailPrice of the first item</span>
+<span id="L464"><span class="lineNum">     464</span>              :           /// this in assumption that all variants added has same supply and retail price</span>
+<span id="L465"><span class="lineNum">     465</span>              :           /// but this will change in future when we support for variant to have different</span>
+<span id="L466"><span class="lineNum">     466</span>              :           /// prices</span>
+<span id="L467"><span class="lineNum">     467</span> <span class="tlaUNC">           0 :           supplyPriceController.text = variants.first.supplyPrice.toString();</span></span>
+<span id="L468"><span class="lineNum">     468</span> <span class="tlaUNC">           0 :           retailPriceController.text = variants.first.retailPrice.toString();</span></span>
+<span id="L469"><span class="lineNum">     469</span>              : </span>
+<span id="L470"><span class="lineNum">     470</span> <span class="tlaUNC">           0 :           model.setScannedVariants(variants);</span></span>
+<span id="L471"><span class="lineNum">     471</span>              : </span>
+<span id="L472"><span class="lineNum">     472</span>              :           // If there are variants, set the color to the color of the first variant</span>
+<span id="L473"><span class="lineNum">     473</span> <span class="tlaUNC">           0 :           if (variants.isNotEmpty) {</span></span>
+<span id="L474"><span class="lineNum">     474</span> <span class="tlaUNC">           0 :             pickerColor = getColorOrDefault(variants.first.color!);</span></span>
+<span id="L475"><span class="lineNum">     475</span>              :           }</span>
+<span id="L476"><span class="lineNum">     476</span>              :         } else {</span>
+<span id="L477"><span class="lineNum">     477</span>              :           // If productId is not given, create a new product</span>
+<span id="L478"><span class="lineNum">     478</span> <span class="tlaUNC">           0 :           Product? product = await model.createProduct(name: TEMP_PRODUCT);</span></span>
+<span id="L479"><span class="lineNum">     479</span> <span class="tlaUNC">           0 :           ref</span></span>
+<span id="L480"><span class="lineNum">     480</span> <span class="tlaUNC">           0 :               .read(unsavedProductProvider.notifier)</span></span>
+<span id="L481"><span class="lineNum">     481</span> <span class="tlaUNC">           0 :               .emitProduct(value: product!);</span></span>
+<span id="L482"><span class="lineNum">     482</span>              :         }</span>
+<span id="L483"><span class="lineNum">     483</span>              : </span>
+<span id="L484"><span class="lineNum">     484</span> <span class="tlaUNC">           0 :         model.initialize();</span></span>
+<span id="L485"><span class="lineNum">     485</span>              :       },</span>
+<span id="L486"><span class="lineNum">     486</span> <span class="tlaUNC">           0 :       builder: (context, model, child) {</span></span>
+<span id="L487"><span class="lineNum">     487</span> <span class="tlaUNC">           0 :         return Padding(</span></span>
+<span id="L488"><span class="lineNum">     488</span>              :           padding: const EdgeInsets.only(left: 18, right: 18),</span>
+<span id="L489"><span class="lineNum">     489</span> <span class="tlaUNC">           0 :           child: SizedBox(</span></span>
+<span id="L490"><span class="lineNum">     490</span>              :             width: double.infinity,</span>
+<span id="L491"><span class="lineNum">     491</span> <span class="tlaUNC">           0 :             child: Form(</span></span>
+<span id="L492"><span class="lineNum">     492</span> <span class="tlaUNC">           0 :               key: _formKey,</span></span>
+<span id="L493"><span class="lineNum">     493</span> <span class="tlaUNC">           0 :               child: Column(</span></span>
+<span id="L494"><span class="lineNum">     494</span> <span class="tlaUNC">           0 :                 children: [</span></span>
+<span id="L495"><span class="lineNum">     495</span> <span class="tlaUNC">           0 :                   topButtons(context, model, productRef),</span></span>
+<span id="L496"><span class="lineNum">     496</span>              : </span>
+<span id="L497"><span class="lineNum">     497</span>              :                   /// toggle between is composite vs non-composite product</span>
+<span id="L498"><span class="lineNum">     498</span> <span class="tlaUNC">           0 :                   ToggleButtonWidget(),</span></span>
+<span id="L499"><span class="lineNum">     499</span>              : </span>
+<span id="L500"><span class="lineNum">     500</span>              :                   /// End of toggle</span>
+<span id="L501"><span class="lineNum">     501</span> <span class="tlaUNC">           0 :                   productNameField(model),</span></span>
+<span id="L502"><span class="lineNum">     502</span> <span class="tlaUNC">           0 :                   retailPrice(model),</span></span>
+<span id="L503"><span class="lineNum">     503</span> <span class="tlaUNC">           0 :                   supplyPrice(model),</span></span>
+<span id="L504"><span class="lineNum">     504</span> <span class="tlaUNC">           0 :                   !ref.watch(isCompositeProvider)</span></span>
+<span id="L505"><span class="lineNum">     505</span> <span class="tlaUNC">           0 :                       ? scanField(model, productRef)</span></span>
+<span id="L506"><span class="lineNum">     506</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L507"><span class="lineNum">     507</span> <span class="tlaUNC">           0 :                   packagingDropDown(model),</span></span>
+<span id="L508"><span class="lineNum">     508</span>              :                   // previewName(model),</span>
+<span id="L509"><span class="lineNum">     509</span> <span class="tlaUNC">           0 :                   !ref.watch(isCompositeProvider)</span></span>
+<span id="L510"><span class="lineNum">     510</span> <span class="tlaUNC">           0 :                       ? TableVariants(model, context)</span></span>
+<span id="L511"><span class="lineNum">     511</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L512"><span class="lineNum">     512</span> <span class="tlaUNC">           0 :                   ref.watch(isCompositeProvider)</span></span>
+<span id="L513"><span class="lineNum">     513</span> <span class="tlaUNC">           0 :                       ? Fieldcompositeactivated(</span></span>
+<span id="L514"><span class="lineNum">     514</span> <span class="tlaUNC">           0 :                           formKey: _fieldComposite,</span></span>
+<span id="L515"><span class="lineNum">     515</span> <span class="tlaUNC">           0 :                           skuController: skuController,</span></span>
+<span id="L516"><span class="lineNum">     516</span> <span class="tlaUNC">           0 :                           barCodeController: barCodeController,</span></span>
+<span id="L517"><span class="lineNum">     517</span>              :                         )</span>
+<span id="L518"><span class="lineNum">     518</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L519"><span class="lineNum">     519</span> <span class="tlaUNC">           0 :                   ref.watch(isCompositeProvider)</span></span>
+<span id="L520"><span class="lineNum">     520</span> <span class="tlaUNC">           0 :                       ? SearchProduct()</span></span>
+<span id="L521"><span class="lineNum">     521</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L522"><span class="lineNum">     522</span> <span class="tlaUNC">           0 :                   ref.watch(isCompositeProvider)</span></span>
+<span id="L523"><span class="lineNum">     523</span> <span class="tlaUNC">           0 :                       ? Padding(</span></span>
+<span id="L524"><span class="lineNum">     524</span> <span class="tlaUNC">           0 :                           padding: EdgeInsets.all(16),</span></span>
+<span id="L525"><span class="lineNum">     525</span> <span class="tlaUNC">           0 :                           child: Text(&quot;Components&quot;),</span></span>
+<span id="L526"><span class="lineNum">     526</span>              :                         )</span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L528"><span class="lineNum">     528</span> <span class="tlaUNC">           0 :                   ref.watch(isCompositeProvider)</span></span>
+<span id="L529"><span class="lineNum">     529</span> <span class="tlaUNC">           0 :                       ? CompositeVariation(</span></span>
+<span id="L530"><span class="lineNum">     530</span> <span class="tlaUNC">           0 :                           supplyPriceController: supplyPriceController)</span></span>
+<span id="L531"><span class="lineNum">     531</span> <span class="tlaUNC">           0 :                       : SizedBox.shrink(),</span></span>
+<span id="L532"><span class="lineNum">     532</span>              :                 ],</span>
+<span id="L533"><span class="lineNum">     533</span>              :               ),</span>
+<span id="L534"><span class="lineNum">     534</span>              :             ),</span>
+<span id="L535"><span class="lineNum">     535</span>              :           ),</span>
+<span id="L536"><span class="lineNum">     536</span>              :         );</span>
+<span id="L537"><span class="lineNum">     537</span>              :       },</span>
+<span id="L538"><span class="lineNum">     538</span>              :     );</span>
+<span id="L539"><span class="lineNum">     539</span>              :   }</span>
+<span id="L540"><span class="lineNum">     540</span>              : </span>
+<span id="L541"><span class="lineNum">     541</span> <span class="tlaUNC">           0 :   Future&lt;String?&gt; getImageFilePath({required String imageFileName}) async {</span></span>
+<span id="L542"><span class="lineNum">     542</span> <span class="tlaUNC">           0 :     final appSupportDir = await getApplicationSupportDirectory();</span></span>
+<span id="L543"><span class="lineNum">     543</span> <span class="tlaUNC">           0 :     final imageFilePath = '${appSupportDir.path}/${imageFileName}';</span></span>
+<span id="L544"><span class="lineNum">     544</span> <span class="tlaUNC">           0 :     final file = File(imageFilePath);</span></span>
+<span id="L545"><span class="lineNum">     545</span>              : </span>
+<span id="L546"><span class="lineNum">     546</span> <span class="tlaUNC">           0 :     if (await file.exists()) {</span></span>
+<span id="L547"><span class="lineNum">     547</span> <span class="tlaUNC">           0 :       talker.info(&quot;image exist at path ${imageFilePath}&quot;);</span></span>
+<span id="L548"><span class="lineNum">     548</span>              :       return imageFilePath;</span>
+<span id="L549"><span class="lineNum">     549</span>              :     } else {</span>
+<span id="L550"><span class="lineNum">     550</span> <span class="tlaUNC">           0 :       talker.info(&quot;image does not exist at path ${imageFilePath}&quot;);</span></span>
+<span id="L551"><span class="lineNum">     551</span>              :       return null;</span>
+<span id="L552"><span class="lineNum">     552</span>              :     }</span>
+<span id="L553"><span class="lineNum">     553</span>              :   }</span>
+<span id="L554"><span class="lineNum">     554</span>              : </span>
+<span id="L555"><span class="lineNum">     555</span> <span class="tlaUNC">           0 :   Widget topButtons(</span></span>
+<span id="L556"><span class="lineNum">     556</span>              :       BuildContext context, ScannViewModel productModel, Product? productRef) {</span>
+<span id="L557"><span class="lineNum">     557</span> <span class="tlaUNC">           0 :     return ViewModelBuilder.nonReactive(</span></span>
+<span id="L558"><span class="lineNum">     558</span> <span class="tlaUNC">           0 :         viewModelBuilder: () =&gt; UploadViewModel(),</span></span>
+<span id="L559"><span class="lineNum">     559</span> <span class="tlaUNC">           0 :         builder: (context, model, child) {</span></span>
+<span id="L560"><span class="lineNum">     560</span> <span class="tlaUNC">           0 :           return Column(</span></span>
+<span id="L561"><span class="lineNum">     561</span>              :             crossAxisAlignment: CrossAxisAlignment.end,</span>
+<span id="L562"><span class="lineNum">     562</span> <span class="tlaUNC">           0 :             children: [</span></span>
+<span id="L563"><span class="lineNum">     563</span> <span class="tlaUNC">           0 :               Padding(</span></span>
+<span id="L564"><span class="lineNum">     564</span>              :                 padding: const EdgeInsets.all(8.0),</span>
+<span id="L565"><span class="lineNum">     565</span> <span class="tlaUNC">           0 :                 child: Row(</span></span>
+<span id="L566"><span class="lineNum">     566</span>              :                   crossAxisAlignment: CrossAxisAlignment.end,</span>
+<span id="L567"><span class="lineNum">     567</span> <span class="tlaUNC">           0 :                   children: [</span></span>
+<span id="L568"><span class="lineNum">     568</span> <span class="tlaUNC">           0 :                     ElevatedButton(</span></span>
+<span id="L569"><span class="lineNum">     569</span> <span class="tlaUNC">           0 :                         onPressed: () {</span></span>
+<span id="L570"><span class="lineNum">     570</span> <span class="tlaUNC">           0 :                           showDialog(</span></span>
+<span id="L571"><span class="lineNum">     571</span>              :                               context: context,</span>
+<span id="L572"><span class="lineNum">     572</span> <span class="tlaUNC">           0 :                               builder: (BuildContext context) {</span></span>
+<span id="L573"><span class="lineNum">     573</span> <span class="tlaUNC">           0 :                                 return AlertDialog(</span></span>
+<span id="L574"><span class="lineNum">     574</span> <span class="tlaUNC">           0 :                                     content: SingleChildScrollView(</span></span>
+<span id="L575"><span class="lineNum">     575</span> <span class="tlaUNC">           0 :                                   child: BlockPicker(</span></span>
+<span id="L576"><span class="lineNum">     576</span> <span class="tlaUNC">           0 :                                     pickerColor: pickerColor,</span></span>
+<span id="L577"><span class="lineNum">     577</span> <span class="tlaUNC">           0 :                                     onColorChanged: changeColor,</span></span>
+<span id="L578"><span class="lineNum">     578</span>              :                                     availableColors: colors,</span>
+<span id="L579"><span class="lineNum">     579</span> <span class="tlaUNC">           0 :                                     layoutBuilder: pickerLayoutBuilder,</span></span>
+<span id="L580"><span class="lineNum">     580</span>              :                                   ),</span>
+<span id="L581"><span class="lineNum">     581</span>              :                                 ));</span>
+<span id="L582"><span class="lineNum">     582</span>              :                               });</span>
+<span id="L583"><span class="lineNum">     583</span>              :                         },</span>
+<span id="L584"><span class="lineNum">     584</span> <span class="tlaUNC">           0 :                         child: Icon(Icons.color_lens,</span></span>
+<span id="L585"><span class="lineNum">     585</span> <span class="tlaUNC">           0 :                             color: useWhiteForeground(pickerColor)</span></span>
+<span id="L586"><span class="lineNum">     586</span>              :                                 ? Colors.white</span>
+<span id="L587"><span class="lineNum">     587</span>              :                                 : Colors.black),</span>
+<span id="L588"><span class="lineNum">     588</span> <span class="tlaUNC">           0 :                         style: ElevatedButton.styleFrom(</span></span>
+<span id="L589"><span class="lineNum">     589</span> <span class="tlaUNC">           0 :                           backgroundColor: pickerColor,</span></span>
+<span id="L590"><span class="lineNum">     590</span> <span class="tlaUNC">           0 :                           shadowColor: pickerColor.withOpacity(1),</span></span>
+<span id="L591"><span class="lineNum">     591</span>              :                           elevation: 0,</span>
+<span id="L592"><span class="lineNum">     592</span>              :                         )),</span>
+<span id="L593"><span class="lineNum">     593</span> <span class="tlaUNC">           0 :                     SizedBox(width: 10),</span></span>
+<span id="L594"><span class="lineNum">     594</span> <span class="tlaUNC">           0 :                     ElevatedButton(</span></span>
+<span id="L595"><span class="lineNum">     595</span> <span class="tlaUNC">           0 :                       onPressed: () {</span></span>
+<span id="L596"><span class="lineNum">     596</span>              :                         /// form is validated and we are not dealing with composite product</span>
+<span id="L597"><span class="lineNum">     597</span> <span class="tlaUNC">           0 :                         if (_formKey.currentState!.validate() &amp;&amp;</span></span>
+<span id="L598"><span class="lineNum">     598</span> <span class="tlaUNC">           0 :                             !ref.watch(isCompositeProvider)) {</span></span>
+<span id="L599"><span class="lineNum">     599</span> <span class="tlaUNC">           0 :                           _onSaveButtonPressed(</span></span>
+<span id="L600"><span class="lineNum">     600</span>              :                             productModel,</span>
+<span id="L601"><span class="lineNum">     601</span>              :                             context,</span>
+<span id="L602"><span class="lineNum">     602</span>              :                             productRef!,</span>
+<span id="L603"><span class="lineNum">     603</span>              :                           );</span>
+<span id="L604"><span class="lineNum">     604</span> <span class="tlaUNC">           0 :                         } else if (_fieldComposite.currentState?.validate() ??</span></span>
+<span id="L605"><span class="lineNum">     605</span>              :                             false) {</span>
+<span id="L606"><span class="lineNum">     606</span>              :                           /// we are now officially dealing with composite product</span>
+<span id="L607"><span class="lineNum">     607</span> <span class="tlaUNC">           0 :                           talker.info(</span></span>
+<span id="L608"><span class="lineNum">     608</span>              :                               &quot;we are dealing with composite product now handle down&quot;);</span>
+<span id="L609"><span class="lineNum">     609</span>              : </span>
+<span id="L610"><span class="lineNum">     610</span>              :                           List&lt;VariantState&gt; partOfComposite =</span>
+<span id="L611"><span class="lineNum">     611</span> <span class="tlaUNC">           0 :                               ref.watch(selectedVariantsLocalProvider);</span></span>
+<span id="L612"><span class="lineNum">     612</span> <span class="tlaUNC">           0 :                           for (var i = 0; i &lt; partOfComposite.length; i++) {</span></span>
+<span id="L613"><span class="lineNum">     613</span> <span class="tlaUNC">           0 :                             partOfComposite[i].variant.id;</span></span>
+<span id="L614"><span class="lineNum">     614</span> <span class="tlaUNC">           0 :                             talker.info(</span></span>
+<span id="L615"><span class="lineNum">     615</span> <span class="tlaUNC">           0 :                                 &quot;This is the variant on composite${partOfComposite[i].variant.id}&quot;);</span></span>
+<span id="L616"><span class="lineNum">     616</span>              : </span>
+<span id="L617"><span class="lineNum">     617</span>              :                             /// now save each</span>
+<span id="L618"><span class="lineNum">     618</span> <span class="tlaUNC">           0 :                             ProxyService.realm.saveComposite(</span></span>
+<span id="L619"><span class="lineNum">     619</span> <span class="tlaUNC">           0 :                               composite: Composite(ObjectId(),</span></span>
+<span id="L620"><span class="lineNum">     620</span> <span class="tlaUNC">           0 :                                   id: randomNumber(),</span></span>
+<span id="L621"><span class="lineNum">     621</span> <span class="tlaUNC">           0 :                                   businessId: ProxyService.box.getBusinessId(),</span></span>
+<span id="L622"><span class="lineNum">     622</span>              :                                   productId:</span>
+<span id="L623"><span class="lineNum">     623</span> <span class="tlaUNC">           0 :                                       ref.read(unsavedProductProvider)!.id!,</span></span>
+<span id="L624"><span class="lineNum">     624</span> <span class="tlaUNC">           0 :                                   qty: partOfComposite[i].quantity,</span></span>
+<span id="L625"><span class="lineNum">     625</span> <span class="tlaUNC">           0 :                                   actualPrice: double.tryParse(</span></span>
+<span id="L626"><span class="lineNum">     626</span> <span class="tlaUNC">           0 :                                           retailPriceController.text) ??</span></span>
+<span id="L627"><span class="lineNum">     627</span>              :                                       0.0,</span>
+<span id="L628"><span class="lineNum">     628</span> <span class="tlaUNC">           0 :                                   branchId: ProxyService.box.getBranchId(),</span></span>
+<span id="L629"><span class="lineNum">     629</span> <span class="tlaUNC">           0 :                                   variantId: partOfComposite[i].variant.id),</span></span>
+<span id="L630"><span class="lineNum">     630</span>              :                             );</span>
+<span id="L631"><span class="lineNum">     631</span>              :                           }</span>
+<span id="L632"><span class="lineNum">     632</span>              : </span>
+<span id="L633"><span class="lineNum">     633</span>              :                           /// because this product has no variant attached</span>
+<span id="L634"><span class="lineNum">     634</span>              :                           // final productRef = ref.watch(productProvider);</span>
+<span id="L635"><span class="lineNum">     635</span> <span class="tlaUNC">           0 :                           String sku = skuController.text;</span></span>
+<span id="L636"><span class="lineNum">     636</span> <span class="tlaUNC">           0 :                           String barCode = barCodeController.text;</span></span>
+<span id="L637"><span class="lineNum">     637</span> <span class="tlaUNC">           0 :                           String name = productNameController.text;</span></span>
+<span id="L638"><span class="lineNum">     638</span>              : </span>
+<span id="L639"><span class="lineNum">     639</span>              :                           /// print the sku and bar</span>
+<span id="L640"><span class="lineNum">     640</span> <span class="tlaUNC">           0 :                           talker.info(&quot;SKU ${sku} Bar Code ${barCode}&quot;);</span></span>
+<span id="L641"><span class="lineNum">     641</span>              : </span>
+<span id="L642"><span class="lineNum">     642</span> <span class="tlaUNC">           0 :                           Product? product = ProxyService.realm.getProduct(</span></span>
+<span id="L643"><span class="lineNum">     643</span> <span class="tlaUNC">           0 :                               id: ref.read(unsavedProductProvider)!.id!);</span></span>
+<span id="L644"><span class="lineNum">     644</span>              : </span>
+<span id="L645"><span class="lineNum">     645</span>              :                           /// update the product with propper name</span>
+<span id="L646"><span class="lineNum">     646</span> <span class="tlaUNC">           0 :                           ProxyService.realm.realm!.write(() {</span></span>
+<span id="L647"><span class="lineNum">     647</span> <span class="tlaUNC">           0 :                             product?.name = productNameController.text;</span></span>
+<span id="L648"><span class="lineNum">     648</span> <span class="tlaUNC">           0 :                             product?.color = model.currentColor;</span></span>
+<span id="L649"><span class="lineNum">     649</span> <span class="tlaUNC">           0 :                             product?.isComposite = true;</span></span>
+<span id="L650"><span class="lineNum">     650</span>              :                           });</span>
+<span id="L651"><span class="lineNum">     651</span>              : </span>
+<span id="L652"><span class="lineNum">     652</span>              :                           /// create the default variant to represent this composite item, in flipper each product</span>
+<span id="L653"><span class="lineNum">     653</span>              :                           /// has a default variant</span>
+<span id="L654"><span class="lineNum">     654</span> <span class="tlaUNC">           0 :                           ProxyService.realm.createVariant(</span></span>
+<span id="L655"><span class="lineNum">     655</span> <span class="tlaUNC">           0 :                             tinNumber: ProxyService.box.tin(),</span></span>
+<span id="L656"><span class="lineNum">     656</span> <span class="tlaUNC">           0 :                             branchId: ProxyService.box.getBranchId()!,</span></span>
+<span id="L657"><span class="lineNum">     657</span>              :                             itemSeq: 1,</span>
+<span id="L658"><span class="lineNum">     658</span>              : </span>
+<span id="L659"><span class="lineNum">     659</span>              :                             /// because this is a placeholder variant, then qty does not matter in this scenario</span>
+<span id="L660"><span class="lineNum">     660</span>              :                             /// we only care about it when the qty will be involved in manaing stock</span>
+<span id="L661"><span class="lineNum">     661</span>              :                             /// but for composite, stock is managed to the level of the composites item not the default item on product</span>
+<span id="L662"><span class="lineNum">     662</span>              :                             qty: 1,</span>
+<span id="L663"><span class="lineNum">     663</span>              :                             barCode: barCode,</span>
+<span id="L664"><span class="lineNum">     664</span>              :                             sku: sku,</span>
+<span id="L665"><span class="lineNum">     665</span>              :                             retailPrice:</span>
+<span id="L666"><span class="lineNum">     666</span> <span class="tlaUNC">           0 :                                 double.tryParse(retailPriceController.text) ??</span></span>
+<span id="L667"><span class="lineNum">     667</span>              :                                     0,</span>
+<span id="L668"><span class="lineNum">     668</span>              :                             supplierPrice:</span>
+<span id="L669"><span class="lineNum">     669</span> <span class="tlaUNC">           0 :                                 double.tryParse(supplyPriceController.text) ??</span></span>
+<span id="L670"><span class="lineNum">     670</span>              :                                     0,</span>
+<span id="L671"><span class="lineNum">     671</span> <span class="tlaUNC">           0 :                             productId: product!.id!,</span></span>
+<span id="L672"><span class="lineNum">     672</span> <span class="tlaUNC">           0 :                             color: product.color,</span></span>
+<span id="L673"><span class="lineNum">     673</span>              :                             name: name,</span>
+<span id="L674"><span class="lineNum">     674</span>              :                           );</span>
+<span id="L675"><span class="lineNum">     675</span>              : </span>
+<span id="L676"><span class="lineNum">     676</span>              :                           /// refresh the list</span>
+<span id="L677"><span class="lineNum">     677</span> <span class="tlaUNC">           0 :                           final combinedNotifier = ref.read(refreshPrivider);</span></span>
+<span id="L678"><span class="lineNum">     678</span> <span class="tlaUNC">           0 :                           combinedNotifier.performActions(</span></span>
+<span id="L679"><span class="lineNum">     679</span>              :                               productName: &quot;&quot;, scanMode: true);</span>
+<span id="L680"><span class="lineNum">     680</span> <span class="tlaUNC">           0 :                           ref</span></span>
+<span id="L681"><span class="lineNum">     681</span> <span class="tlaUNC">           0 :                               .read(selectedVariantsLocalProvider.notifier)</span></span>
+<span id="L682"><span class="lineNum">     682</span> <span class="tlaUNC">           0 :                               .clearState();</span></span>
+<span id="L683"><span class="lineNum">     683</span> <span class="tlaUNC">           0 :                           Navigator.maybePop(context);</span></span>
+<span id="L684"><span class="lineNum">     684</span>              : </span>
+<span id="L685"><span class="lineNum">     685</span>              :                           /// at the end then save the product with the composite attached.</span>
+<span id="L686"><span class="lineNum">     686</span>              :                         }</span>
+<span id="L687"><span class="lineNum">     687</span>              :                       },</span>
+<span id="L688"><span class="lineNum">     688</span>              :                       child: const Text('Save'),</span>
+<span id="L689"><span class="lineNum">     689</span>              :                     ),</span>
+<span id="L690"><span class="lineNum">     690</span> <span class="tlaUNC">           0 :                     SizedBox(width: 10),</span></span>
+<span id="L691"><span class="lineNum">     691</span> <span class="tlaUNC">           0 :                     ElevatedButton(</span></span>
+<span id="L692"><span class="lineNum">     692</span> <span class="tlaUNC">           0 :                       onPressed: () async {</span></span>
+<span id="L693"><span class="lineNum">     693</span> <span class="tlaUNC">           0 :                         Navigator.maybePop(context);</span></span>
+<span id="L694"><span class="lineNum">     694</span>              :                       },</span>
+<span id="L695"><span class="lineNum">     695</span> <span class="tlaUNC">           0 :                       style: ElevatedButton.styleFrom(</span></span>
+<span id="L696"><span class="lineNum">     696</span>              :                         backgroundColor: Colors.red, // Background color</span>
+<span id="L697"><span class="lineNum">     697</span>              :                         foregroundColor: Colors.white, // Text color</span>
+<span id="L698"><span class="lineNum">     698</span>              :                       ),</span>
+<span id="L699"><span class="lineNum">     699</span>              :                       child: const Text('Close'),</span>
+<span id="L700"><span class="lineNum">     700</span>              :                     )</span>
+<span id="L701"><span class="lineNum">     701</span>              :                   ],</span>
+<span id="L702"><span class="lineNum">     702</span>              :                 ),</span>
+<span id="L703"><span class="lineNum">     703</span>              :               ),</span>
+<span id="L704"><span class="lineNum">     704</span> <span class="tlaUNC">           0 :               if (ref.watch(unsavedProductProvider)?.imageUrl != null)</span></span>
+<span id="L705"><span class="lineNum">     705</span> <span class="tlaUNC">           0 :                 FutureBuilder(</span></span>
+<span id="L706"><span class="lineNum">     706</span> <span class="tlaUNC">           0 :                   future: getImageFilePath(</span></span>
+<span id="L707"><span class="lineNum">     707</span>              :                       imageFileName:</span>
+<span id="L708"><span class="lineNum">     708</span> <span class="tlaUNC">           0 :                           ref.watch(unsavedProductProvider)!.imageUrl!),</span></span>
+<span id="L709"><span class="lineNum">     709</span> <span class="tlaUNC">           0 :                   builder: (context, snapshot) {</span></span>
+<span id="L710"><span class="lineNum">     710</span> <span class="tlaUNC">           0 :                     if (snapshot.hasData &amp;&amp; snapshot.data != null) {</span></span>
+<span id="L711"><span class="lineNum">     711</span> <span class="tlaUNC">           0 :                       final imageFilePath = snapshot.data as String;</span></span>
+<span id="L712"><span class="lineNum">     712</span> <span class="tlaUNC">           0 :                       return Container(</span></span>
+<span id="L713"><span class="lineNum">     713</span>              :                         width: 200, // Specify the width you need</span>
+<span id="L714"><span class="lineNum">     714</span>              :                         height: 200, // Specify the height you need</span>
+<span id="L715"><span class="lineNum">     715</span> <span class="tlaUNC">           0 :                         child: Image.file(</span></span>
+<span id="L716"><span class="lineNum">     716</span> <span class="tlaUNC">           0 :                           new File(imageFilePath),</span></span>
+<span id="L717"><span class="lineNum">     717</span>              :                           fit: BoxFit.cover,</span>
+<span id="L718"><span class="lineNum">     718</span>              :                         ),</span>
+<span id="L719"><span class="lineNum">     719</span>              :                       );</span>
+<span id="L720"><span class="lineNum">     720</span>              :                     } else {</span>
+<span id="L721"><span class="lineNum">     721</span> <span class="tlaUNC">           0 :                       return Container(</span></span>
+<span id="L722"><span class="lineNum">     722</span>              :                         width: 200,</span>
+<span id="L723"><span class="lineNum">     723</span>              :                         height: 200,</span>
+<span id="L724"><span class="lineNum">     724</span> <span class="tlaUNC">           0 :                         color: Colors.grey[300],</span></span>
+<span id="L725"><span class="lineNum">     725</span> <span class="tlaUNC">           0 :                         child: Center(</span></span>
+<span id="L726"><span class="lineNum">     726</span> <span class="tlaUNC">           0 :                           child: Icon(</span></span>
+<span id="L727"><span class="lineNum">     727</span>              :                             Icons.image,</span>
+<span id="L728"><span class="lineNum">     728</span>              :                             size: 50,</span>
+<span id="L729"><span class="lineNum">     729</span> <span class="tlaUNC">           0 :                             color: Colors.grey[500],</span></span>
+<span id="L730"><span class="lineNum">     730</span>              :                           ),</span>
+<span id="L731"><span class="lineNum">     731</span>              :                         ),</span>
+<span id="L732"><span class="lineNum">     732</span>              :                       );</span>
+<span id="L733"><span class="lineNum">     733</span>              :                     }</span>
+<span id="L734"><span class="lineNum">     734</span>              :                   },</span>
+<span id="L735"><span class="lineNum">     735</span>              :                 )</span>
+<span id="L736"><span class="lineNum">     736</span>              :               else</span>
+<span id="L737"><span class="lineNum">     737</span> <span class="tlaUNC">           0 :                 Container(</span></span>
+<span id="L738"><span class="lineNum">     738</span>              :                   width: 200,</span>
+<span id="L739"><span class="lineNum">     739</span>              :                   height: 200,</span>
+<span id="L740"><span class="lineNum">     740</span> <span class="tlaUNC">           0 :                   color: Colors.grey[300],</span></span>
+<span id="L741"><span class="lineNum">     741</span> <span class="tlaUNC">           0 :                   child: Center(</span></span>
+<span id="L742"><span class="lineNum">     742</span> <span class="tlaUNC">           0 :                     child: Icon(</span></span>
+<span id="L743"><span class="lineNum">     743</span>              :                       Icons.image,</span>
+<span id="L744"><span class="lineNum">     744</span>              :                       size: 50,</span>
+<span id="L745"><span class="lineNum">     745</span> <span class="tlaUNC">           0 :                       color: Colors.grey[500],</span></span>
+<span id="L746"><span class="lineNum">     746</span>              :                     ),</span>
+<span id="L747"><span class="lineNum">     747</span>              :                   ),</span>
+<span id="L748"><span class="lineNum">     748</span>              :                 ),</span>
+<span id="L749"><span class="lineNum">     749</span> <span class="tlaUNC">           0 :               Browsephotos(</span></span>
+<span id="L750"><span class="lineNum">     750</span> <span class="tlaUNC">           0 :                 productId: ref.read(unsavedProductProvider)?.id ?? 0,</span></span>
+<span id="L751"><span class="lineNum">     751</span>              :               )</span>
+<span id="L752"><span class="lineNum">     752</span>              :             ],</span>
+<span id="L753"><span class="lineNum">     753</span>              :           );</span>
+<span id="L754"><span class="lineNum">     754</span>              :         });</span>
+<span id="L755"><span class="lineNum">     755</span>              :   }</span>
+<span id="L756"><span class="lineNum">     756</span>              : </span>
+<span id="L757"><span class="lineNum">     757</span> <span class="tlaUNC">           0 :   Padding productNameField(ScannViewModel model) {</span></span>
+<span id="L758"><span class="lineNum">     758</span> <span class="tlaUNC">           0 :     return Padding(</span></span>
+<span id="L759"><span class="lineNum">     759</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L760"><span class="lineNum">     760</span> <span class="tlaUNC">           0 :       child: TextFormField(</span></span>
+<span id="L761"><span class="lineNum">     761</span> <span class="tlaUNC">           0 :         controller: productNameController,</span></span>
+<span id="L762"><span class="lineNum">     762</span>              :         textInputAction: TextInputAction.next,</span>
+<span id="L763"><span class="lineNum">     763</span> <span class="tlaUNC">           0 :         onChanged: (value) {</span></span>
+<span id="L764"><span class="lineNum">     764</span> <span class="tlaUNC">           0 :           model.setProductName(name: value);</span></span>
+<span id="L765"><span class="lineNum">     765</span>              :         },</span>
+<span id="L766"><span class="lineNum">     766</span> <span class="tlaUNC">           0 :         validator: (value) {</span></span>
+<span id="L767"><span class="lineNum">     767</span> <span class="tlaUNC">           0 :           if (value == null || value.isEmpty) {</span></span>
+<span id="L768"><span class="lineNum">     768</span>              :             return 'Product name is required';</span>
+<span id="L769"><span class="lineNum">     769</span> <span class="tlaUNC">           0 :           } else if (value.length &lt; 3) {</span></span>
+<span id="L770"><span class="lineNum">     770</span>              :             return 'Product name must be at least 3 characters long';</span>
+<span id="L771"><span class="lineNum">     771</span>              :           }</span>
+<span id="L772"><span class="lineNum">     772</span>              :           return null;</span>
+<span id="L773"><span class="lineNum">     773</span>              :         },</span>
+<span id="L774"><span class="lineNum">     774</span> <span class="tlaUNC">           0 :         decoration: InputDecoration(</span></span>
+<span id="L775"><span class="lineNum">     775</span>              :           labelText: 'Product Name',</span>
+<span id="L776"><span class="lineNum">     776</span>              :           labelStyle: const TextStyle(</span>
+<span id="L777"><span class="lineNum">     777</span>              :             // Add labelStyle</span>
+<span id="L778"><span class="lineNum">     778</span>              :             color: Colors.black,</span>
+<span id="L779"><span class="lineNum">     779</span>              :           ),</span>
+<span id="L780"><span class="lineNum">     780</span> <span class="tlaUNC">           0 :           border: OutlineInputBorder(</span></span>
+<span id="L781"><span class="lineNum">     781</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L782"><span class="lineNum">     782</span>              :           ),</span>
+<span id="L783"><span class="lineNum">     783</span>              :           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),</span>
+<span id="L784"><span class="lineNum">     784</span>              :           // When in error state</span>
+<span id="L785"><span class="lineNum">     785</span> <span class="tlaUNC">           0 :           errorBorder: OutlineInputBorder(</span></span>
+<span id="L786"><span class="lineNum">     786</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L787"><span class="lineNum">     787</span> <span class="tlaUNC">           0 :             borderSide: BorderSide(color: Theme.of(context).colorScheme.error),</span></span>
+<span id="L788"><span class="lineNum">     788</span>              :           ),</span>
+<span id="L789"><span class="lineNum">     789</span>              :           // When in error state and focused</span>
+<span id="L790"><span class="lineNum">     790</span> <span class="tlaUNC">           0 :           focusedErrorBorder: OutlineInputBorder(</span></span>
+<span id="L791"><span class="lineNum">     791</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L792"><span class="lineNum">     792</span> <span class="tlaUNC">           0 :             borderSide: BorderSide(color: Theme.of(context).colorScheme.error),</span></span>
+<span id="L793"><span class="lineNum">     793</span>              :           ),</span>
+<span id="L794"><span class="lineNum">     794</span>              :         ),</span>
+<span id="L795"><span class="lineNum">     795</span>              :       ),</span>
+<span id="L796"><span class="lineNum">     796</span>              :     );</span>
+<span id="L797"><span class="lineNum">     797</span>              :   }</span>
+<span id="L798"><span class="lineNum">     798</span>              : </span>
+<span id="L799"><span class="lineNum">     799</span> <span class="tlaUNC">           0 :   Container previewName(ScannViewModel model) {</span></span>
+<span id="L800"><span class="lineNum">     800</span> <span class="tlaUNC">           0 :     return Container(</span></span>
+<span id="L801"><span class="lineNum">     801</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L802"><span class="lineNum">     802</span>              :       alignment: Alignment.center,</span>
+<span id="L803"><span class="lineNum">     803</span> <span class="tlaUNC">           0 :       child: Text(</span></span>
+<span id="L804"><span class="lineNum">     804</span> <span class="tlaUNC">           0 :         'Product Name: ${model.kProductName}',</span></span>
+<span id="L805"><span class="lineNum">     805</span>              :         style: const TextStyle(</span>
+<span id="L806"><span class="lineNum">     806</span>              :           fontSize: 18,</span>
+<span id="L807"><span class="lineNum">     807</span>              :           fontWeight: FontWeight.bold,</span>
+<span id="L808"><span class="lineNum">     808</span>              :         ),</span>
+<span id="L809"><span class="lineNum">     809</span>              :       ),</span>
+<span id="L810"><span class="lineNum">     810</span>              :     );</span>
+<span id="L811"><span class="lineNum">     811</span>              :   }</span>
+<span id="L812"><span class="lineNum">     812</span>              : </span>
+<span id="L813"><span class="lineNum">     813</span> <span class="tlaUNC">           0 :   Padding packagingDropDown(ScannViewModel model) {</span></span>
+<span id="L814"><span class="lineNum">     814</span> <span class="tlaUNC">           0 :     return Padding(</span></span>
+<span id="L815"><span class="lineNum">     815</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L816"><span class="lineNum">     816</span> <span class="tlaUNC">           0 :       child: model.EBMenabled</span></span>
+<span id="L817"><span class="lineNum">     817</span> <span class="tlaUNC">           0 :           ? _buildDropdownButton(model)</span></span>
+<span id="L818"><span class="lineNum">     818</span>              :           : const SizedBox.shrink(),</span>
+<span id="L819"><span class="lineNum">     819</span>              :     );</span>
+<span id="L820"><span class="lineNum">     820</span>              :   }</span>
+<span id="L821"><span class="lineNum">     821</span>              : </span>
+<span id="L822"><span class="lineNum">     822</span> <span class="tlaUNC">           0 :   Padding scanField(ScannViewModel model, Product? productRef) {</span></span>
+<span id="L823"><span class="lineNum">     823</span> <span class="tlaUNC">           0 :     return Padding(</span></span>
+<span id="L824"><span class="lineNum">     824</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L825"><span class="lineNum">     825</span> <span class="tlaUNC">           0 :       child: TextFormField(</span></span>
+<span id="L826"><span class="lineNum">     826</span> <span class="tlaUNC">           0 :         controller: scannedInputController,</span></span>
+<span id="L827"><span class="lineNum">     827</span> <span class="tlaUNC">           0 :         decoration: InputDecoration(</span></span>
+<span id="L828"><span class="lineNum">     828</span>              :           labelText: 'Scan or Type',</span>
+<span id="L829"><span class="lineNum">     829</span> <span class="tlaUNC">           0 :           border: OutlineInputBorder(</span></span>
+<span id="L830"><span class="lineNum">     830</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L831"><span class="lineNum">     831</span>              :           ),</span>
+<span id="L832"><span class="lineNum">     832</span>              :           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),</span>
+<span id="L833"><span class="lineNum">     833</span>              :         ),</span>
+<span id="L834"><span class="lineNum">     834</span>              :         textInputAction: TextInputAction.done,</span>
+<span id="L835"><span class="lineNum">     835</span> <span class="tlaUNC">           0 :         onFieldSubmitted: (scannedInput) {</span></span>
+<span id="L836"><span class="lineNum">     836</span> <span class="tlaUNC">           0 :           _inputTimer?.cancel();</span></span>
+<span id="L837"><span class="lineNum">     837</span> <span class="tlaUNC">           0 :           _inputTimer = Timer(const Duration(seconds: 1), () {</span></span>
+<span id="L838"><span class="lineNum">     838</span> <span class="tlaUNC">           0 :             if (scannedInput.isNotEmpty) {</span></span>
+<span id="L839"><span class="lineNum">     839</span> <span class="tlaUNC">           0 :               model.onAddVariant(</span></span>
+<span id="L840"><span class="lineNum">     840</span> <span class="tlaUNC">           0 :                 editmode: widget.productId != null,</span></span>
+<span id="L841"><span class="lineNum">     841</span>              :                 variantName: scannedInput,</span>
+<span id="L842"><span class="lineNum">     842</span>              :                 isTaxExempted: false,</span>
+<span id="L843"><span class="lineNum">     843</span>              :                 product: productRef!,</span>
+<span id="L844"><span class="lineNum">     844</span>              :               );</span>
+<span id="L845"><span class="lineNum">     845</span> <span class="tlaUNC">           0 :               scannedInputController.clear();</span></span>
+<span id="L846"><span class="lineNum">     846</span> <span class="tlaUNC">           0 :               scannedInputFocusNode.requestFocus();</span></span>
+<span id="L847"><span class="lineNum">     847</span>              :             }</span>
+<span id="L848"><span class="lineNum">     848</span>              :           });</span>
+<span id="L849"><span class="lineNum">     849</span>              :         },</span>
+<span id="L850"><span class="lineNum">     850</span> <span class="tlaUNC">           0 :         focusNode: scannedInputFocusNode,</span></span>
+<span id="L851"><span class="lineNum">     851</span>              :       ),</span>
+<span id="L852"><span class="lineNum">     852</span>              :     );</span>
+<span id="L853"><span class="lineNum">     853</span>              :   }</span>
+<span id="L854"><span class="lineNum">     854</span>              : </span>
+<span id="L855"><span class="lineNum">     855</span> <span class="tlaUNC">           0 :   Padding supplyPrice(ScannViewModel model) {</span></span>
+<span id="L856"><span class="lineNum">     856</span> <span class="tlaUNC">           0 :     bool isComposite = ref.watch(isCompositeProvider);</span></span>
+<span id="L857"><span class="lineNum">     857</span>              : </span>
+<span id="L858"><span class="lineNum">     858</span> <span class="tlaUNC">           0 :     return Padding(</span></span>
+<span id="L859"><span class="lineNum">     859</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L860"><span class="lineNum">     860</span> <span class="tlaUNC">           0 :       child: TextFormField(</span></span>
+<span id="L861"><span class="lineNum">     861</span>              :         textInputAction: TextInputAction.next,</span>
+<span id="L862"><span class="lineNum">     862</span> <span class="tlaUNC">           0 :         controller: supplyPriceController,</span></span>
+<span id="L863"><span class="lineNum">     863</span>              :         readOnly: isComposite,</span>
+<span id="L864"><span class="lineNum">     864</span> <span class="tlaUNC">           0 :         onChanged: (value) =&gt; model.setSupplyPrice(price: value),</span></span>
+<span id="L865"><span class="lineNum">     865</span> <span class="tlaUNC">           0 :         decoration: InputDecoration(</span></span>
+<span id="L866"><span class="lineNum">     866</span>              :           labelText: 'Cost',</span>
+<span id="L867"><span class="lineNum">     867</span> <span class="tlaUNC">           0 :           border: OutlineInputBorder(</span></span>
+<span id="L868"><span class="lineNum">     868</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L869"><span class="lineNum">     869</span>              :           ),</span>
+<span id="L870"><span class="lineNum">     870</span>              :           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),</span>
+<span id="L871"><span class="lineNum">     871</span>              :           filled: isComposite, // Fill the background color when read-only</span>
+<span id="L872"><span class="lineNum">     872</span>              :           fillColor: isComposite</span>
+<span id="L873"><span class="lineNum">     873</span> <span class="tlaUNC">           0 :               ? Colors.grey[200]</span></span>
+<span id="L874"><span class="lineNum">     874</span>              :               : null, // Light grey background when read-only</span>
+<span id="L875"><span class="lineNum">     875</span>              :           suffixIcon: isComposite</span>
+<span id="L876"><span class="lineNum">     876</span> <span class="tlaUNC">           0 :               ? Icon(Icons.lock,</span></span>
+<span id="L877"><span class="lineNum">     877</span>              :                   color: Colors.grey) // Lock icon to indicate read-only</span>
+<span id="L878"><span class="lineNum">     878</span>              :               : null,</span>
+<span id="L879"><span class="lineNum">     879</span>              :         ),</span>
+<span id="L880"><span class="lineNum">     880</span>              :         keyboardType: TextInputType.number,</span>
+<span id="L881"><span class="lineNum">     881</span> <span class="tlaUNC">           0 :         style: TextStyle(</span></span>
+<span id="L882"><span class="lineNum">     882</span>              :           color: isComposite</span>
+<span id="L883"><span class="lineNum">     883</span>              :               ? Colors.grey</span>
+<span id="L884"><span class="lineNum">     884</span>              :               : Colors.black, // Lighter text color when read-only</span>
+<span id="L885"><span class="lineNum">     885</span>              :         ),</span>
+<span id="L886"><span class="lineNum">     886</span>              :       ),</span>
+<span id="L887"><span class="lineNum">     887</span>              :     );</span>
+<span id="L888"><span class="lineNum">     888</span>              :   }</span>
+<span id="L889"><span class="lineNum">     889</span>              : </span>
+<span id="L890"><span class="lineNum">     890</span> <span class="tlaUNC">           0 :   Padding retailPrice(ScannViewModel model) {</span></span>
+<span id="L891"><span class="lineNum">     891</span> <span class="tlaUNC">           0 :     return Padding(</span></span>
+<span id="L892"><span class="lineNum">     892</span>              :       padding: const EdgeInsets.all(16.0),</span>
+<span id="L893"><span class="lineNum">     893</span> <span class="tlaUNC">           0 :       child: TextFormField(</span></span>
+<span id="L894"><span class="lineNum">     894</span>              :         textInputAction: TextInputAction.next,</span>
+<span id="L895"><span class="lineNum">     895</span> <span class="tlaUNC">           0 :         controller: retailPriceController,</span></span>
+<span id="L896"><span class="lineNum">     896</span> <span class="tlaUNC">           0 :         onChanged: (value) =&gt; model.setRetailPrice(price: value),</span></span>
+<span id="L897"><span class="lineNum">     897</span> <span class="tlaUNC">           0 :         validator: (value) {</span></span>
+<span id="L898"><span class="lineNum">     898</span> <span class="tlaUNC">           0 :           if (value == null || value.isEmpty) {</span></span>
+<span id="L899"><span class="lineNum">     899</span>              :             return 'Price is required';</span>
+<span id="L900"><span class="lineNum">     900</span>              :           }</span>
+<span id="L901"><span class="lineNum">     901</span>              : </span>
+<span id="L902"><span class="lineNum">     902</span>              :           // Use tryParse to check if the value can be converted to a double</span>
+<span id="L903"><span class="lineNum">     903</span> <span class="tlaUNC">           0 :           if (double.tryParse(value) == null) {</span></span>
+<span id="L904"><span class="lineNum">     904</span>              :             return 'Wrong value given';</span>
+<span id="L905"><span class="lineNum">     905</span>              :           }</span>
+<span id="L906"><span class="lineNum">     906</span>              : </span>
+<span id="L907"><span class="lineNum">     907</span>              :           return null; // Validation passed</span>
+<span id="L908"><span class="lineNum">     908</span>              :         },</span>
+<span id="L909"><span class="lineNum">     909</span> <span class="tlaUNC">           0 :         decoration: InputDecoration(</span></span>
+<span id="L910"><span class="lineNum">     910</span>              :           labelText: 'Price',</span>
+<span id="L911"><span class="lineNum">     911</span> <span class="tlaUNC">           0 :           border: OutlineInputBorder(</span></span>
+<span id="L912"><span class="lineNum">     912</span> <span class="tlaUNC">           0 :             borderRadius: BorderRadius.circular(8.0),</span></span>
+<span id="L913"><span class="lineNum">     913</span>              :           ),</span>
+<span id="L914"><span class="lineNum">     914</span>              :           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),</span>
+<span id="L915"><span class="lineNum">     915</span>              :         ),</span>
+<span id="L916"><span class="lineNum">     916</span>              :         keyboardType: TextInputType.number,</span>
+<span id="L917"><span class="lineNum">     917</span>              :       ),</span>
+<span id="L918"><span class="lineNum">     918</span>              :     );</span>
+<span id="L919"><span class="lineNum">     919</span>              :   }</span>
+<span id="L920"><span class="lineNum">     920</span>              : </span>
+<span id="L921"><span class="lineNum">     921</span> <span class="tlaUNC">           0 :   Stack TableVariants(ScannViewModel model, BuildContext context) {</span></span>
+<span id="L922"><span class="lineNum">     922</span> <span class="tlaUNC">           0 :     return Stack(</span></span>
+<span id="L923"><span class="lineNum">     923</span> <span class="tlaUNC">           0 :       children: [</span></span>
+<span id="L924"><span class="lineNum">     924</span> <span class="tlaUNC">           0 :         SizedBox(</span></span>
+<span id="L925"><span class="lineNum">     925</span>              :           height: 200,</span>
+<span id="L926"><span class="lineNum">     926</span> <span class="tlaUNC">           0 :           child: ListView(</span></span>
+<span id="L927"><span class="lineNum">     927</span> <span class="tlaUNC">           0 :             children: [</span></span>
+<span id="L928"><span class="lineNum">     928</span> <span class="tlaUNC">           0 :               DataTable(</span></span>
+<span id="L929"><span class="lineNum">     929</span> <span class="tlaUNC">           0 :                 decoration: BoxDecoration(</span></span>
+<span id="L930"><span class="lineNum">     930</span> <span class="tlaUNC">           0 :                   border: Border.all(</span></span>
+<span id="L931"><span class="lineNum">     931</span>              :                     color: Colors.transparent,</span>
+<span id="L932"><span class="lineNum">     932</span>              :                   ),</span>
+<span id="L933"><span class="lineNum">     933</span>              :                 ),</span>
+<span id="L934"><span class="lineNum">     934</span> <span class="tlaUNC">           0 :                 columns: [</span></span>
+<span id="L935"><span class="lineNum">     935</span> <span class="tlaUNC">           0 :                   DataColumn(</span></span>
+<span id="L936"><span class="lineNum">     936</span> <span class="tlaUNC">           0 :                     label: Row(</span></span>
+<span id="L937"><span class="lineNum">     937</span> <span class="tlaUNC">           0 :                       children: [</span></span>
+<span id="L938"><span class="lineNum">     938</span> <span class="tlaUNC">           0 :                         Checkbox(</span></span>
+<span id="L939"><span class="lineNum">     939</span> <span class="tlaUNC">           0 :                           value: _selectAll,</span></span>
+<span id="L940"><span class="lineNum">     940</span> <span class="tlaUNC">           0 :                           onChanged: (value) {</span></span>
+<span id="L941"><span class="lineNum">     941</span> <span class="tlaUNC">           0 :                             setState(() {</span></span>
+<span id="L942"><span class="lineNum">     942</span> <span class="tlaUNC">           0 :                               _selectAll = value!;</span></span>
+<span id="L943"><span class="lineNum">     943</span> <span class="tlaUNC">           0 :                               _showDeleteButton = value;</span></span>
+<span id="L944"><span class="lineNum">     944</span>              :                             });</span>
+<span id="L945"><span class="lineNum">     945</span>              :                           },</span>
+<span id="L946"><span class="lineNum">     946</span>              :                         ),</span>
+<span id="L947"><span class="lineNum">     947</span>              :                         const Text('All'),</span>
+<span id="L948"><span class="lineNum">     948</span>              :                       ],</span>
+<span id="L949"><span class="lineNum">     949</span>              :                     ),</span>
+<span id="L950"><span class="lineNum">     950</span>              :                   ),</span>
+<span id="L951"><span class="lineNum">     951</span>              :                   const DataColumn(label: Text('Name')),</span>
+<span id="L952"><span class="lineNum">     952</span>              :                   const DataColumn(label: Text('Price')),</span>
+<span id="L953"><span class="lineNum">     953</span>              :                   const DataColumn(label: Text('Created At')),</span>
+<span id="L954"><span class="lineNum">     954</span>              :                   const DataColumn(label: Text('Quantity')),</span>
+<span id="L955"><span class="lineNum">     955</span>              :                   const DataColumn(label: Text('Tax')),</span>
+<span id="L956"><span class="lineNum">     956</span>              :                   const DataColumn(label: Text('Unit')),</span>
+<span id="L957"><span class="lineNum">     957</span>              :                   const DataColumn(label: Text('Classification')),</span>
+<span id="L958"><span class="lineNum">     958</span>              :                   const DataColumn(label: Text('Action')),</span>
+<span id="L959"><span class="lineNum">     959</span>              :                 ],</span>
+<span id="L960"><span class="lineNum">     960</span> <span class="tlaUNC">           0 :                 rows: model.scannedVariants.reversed.map((variant) {</span></span>
+<span id="L961"><span class="lineNum">     961</span> <span class="tlaUNC">           0 :                   return DataRow(</span></span>
+<span id="L962"><span class="lineNum">     962</span> <span class="tlaUNC">           0 :                     color: WidgetStateProperty.resolveWith&lt;Color?&gt;(</span></span>
+<span id="L963"><span class="lineNum">     963</span> <span class="tlaUNC">           0 :                         (Set&lt;WidgetState&gt; states) {</span></span>
+<span id="L964"><span class="lineNum">     964</span> <span class="tlaUNC">           0 :                       if (states.contains(WidgetState.selected)) {</span></span>
+<span id="L965"><span class="lineNum">     965</span> <span class="tlaUNC">           0 :                         return Theme.of(context)</span></span>
+<span id="L966"><span class="lineNum">     966</span> <span class="tlaUNC">           0 :                             .colorScheme</span></span>
+<span id="L967"><span class="lineNum">     967</span> <span class="tlaUNC">           0 :                             .primary</span></span>
+<span id="L968"><span class="lineNum">     968</span> <span class="tlaUNC">           0 :                             .withOpacity(0.08);</span></span>
+<span id="L969"><span class="lineNum">     969</span>              :                       }</span>
+<span id="L970"><span class="lineNum">     970</span>              :                       return null; // Use the default value.</span>
+<span id="L971"><span class="lineNum">     971</span>              :                     }),</span>
+<span id="L972"><span class="lineNum">     972</span> <span class="tlaUNC">           0 :                     cells: [</span></span>
+<span id="L973"><span class="lineNum">     973</span> <span class="tlaUNC">           0 :                       DataCell(Checkbox(</span></span>
+<span id="L974"><span class="lineNum">     974</span> <span class="tlaUNC">           0 :                         value: _selectAll,</span></span>
+<span id="L975"><span class="lineNum">     975</span> <span class="tlaUNC">           0 :                         onChanged: (value) {</span></span>
+<span id="L976"><span class="lineNum">     976</span>              :                           // Handle row checkbox state if needed</span>
+<span id="L977"><span class="lineNum">     977</span>              :                         },</span>
+<span id="L978"><span class="lineNum">     978</span>              :                       )),</span>
+<span id="L979"><span class="lineNum">     979</span> <span class="tlaUNC">           0 :                       DataCell(Text(variant.name!)),</span></span>
+<span id="L980"><span class="lineNum">     980</span> <span class="tlaUNC">           0 :                       DataCell(Text(variant.retailPrice.toStringAsFixed(2))),</span></span>
+<span id="L981"><span class="lineNum">     981</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L982"><span class="lineNum">     982</span> <span class="tlaUNC">           0 :                         Text(</span></span>
+<span id="L983"><span class="lineNum">     983</span> <span class="tlaUNC">           0 :                           variant.lastTouched == null</span></span>
+<span id="L984"><span class="lineNum">     984</span>              :                               ? ''</span>
+<span id="L985"><span class="lineNum">     985</span> <span class="tlaUNC">           0 :                               : variant.lastTouched!</span></span>
+<span id="L986"><span class="lineNum">     986</span> <span class="tlaUNC">           0 :                                   .toLocal()</span></span>
+<span id="L987"><span class="lineNum">     987</span> <span class="tlaUNC">           0 :                                   .toIso8601String(),</span></span>
+<span id="L988"><span class="lineNum">     988</span>              :                         ),</span>
+<span id="L989"><span class="lineNum">     989</span>              :                       ),</span>
+<span id="L990"><span class="lineNum">     990</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L991"><span class="lineNum">     991</span> <span class="tlaUNC">           0 :                         QuantityCell(</span></span>
+<span id="L992"><span class="lineNum">     992</span> <span class="tlaUNC">           0 :                           quantity: variant.qty,</span></span>
+<span id="L993"><span class="lineNum">     993</span> <span class="tlaUNC">           0 :                           onEdit: () {</span></span>
+<span id="L994"><span class="lineNum">     994</span> <span class="tlaUNC">           0 :                             _showEditQuantityDialog(</span></span>
+<span id="L995"><span class="lineNum">     995</span>              :                               context,</span>
+<span id="L996"><span class="lineNum">     996</span>              :                               variant,</span>
+<span id="L997"><span class="lineNum">     997</span>              :                               model,</span>
+<span id="L998"><span class="lineNum">     998</span> <span class="tlaUNC">           0 :                               () {</span></span>
+<span id="L999"><span class="lineNum">     999</span> <span class="tlaUNC">           0 :                                 FocusScope.of(context)</span></span>
+<span id="L1000"><span class="lineNum">    1000</span> <span class="tlaUNC">           0 :                                     .requestFocus(scannedInputFocusNode);</span></span>
+<span id="L1001"><span class="lineNum">    1001</span>              :                               },</span>
+<span id="L1002"><span class="lineNum">    1002</span>              :                             );</span>
+<span id="L1003"><span class="lineNum">    1003</span>              :                           },</span>
+<span id="L1004"><span class="lineNum">    1004</span>              :                         ),</span>
+<span id="L1005"><span class="lineNum">    1005</span>              :                       ),</span>
+<span id="L1006"><span class="lineNum">    1006</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L1007"><span class="lineNum">    1007</span> <span class="tlaUNC">           0 :                         _buildTaxDropdown(context, variant, model),</span></span>
+<span id="L1008"><span class="lineNum">    1008</span>              :                       ),</span>
+<span id="L1009"><span class="lineNum">    1009</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L1010"><span class="lineNum">    1010</span> <span class="tlaUNC">           0 :                         _buildUnitOfMeasureDropDown(context, variant, model),</span></span>
+<span id="L1011"><span class="lineNum">    1011</span>              :                       ),</span>
+<span id="L1012"><span class="lineNum">    1012</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L1013"><span class="lineNum">    1013</span> <span class="tlaUNC">           0 :                         _buildUniversalProductDropDown(context, model, variant),</span></span>
+<span id="L1014"><span class="lineNum">    1014</span>              :                       ),</span>
+<span id="L1015"><span class="lineNum">    1015</span> <span class="tlaUNC">           0 :                       DataCell(</span></span>
+<span id="L1016"><span class="lineNum">    1016</span> <span class="tlaUNC">           0 :                         ElevatedButton(</span></span>
+<span id="L1017"><span class="lineNum">    1017</span> <span class="tlaUNC">           0 :                           onPressed: () {</span></span>
+<span id="L1018"><span class="lineNum">    1018</span> <span class="tlaUNC">           0 :                             model.removeVariant(id: variant.id!);</span></span>
+<span id="L1019"><span class="lineNum">    1019</span>              :                           },</span>
+<span id="L1020"><span class="lineNum">    1020</span>              :                           child: const Text('Delete'),</span>
+<span id="L1021"><span class="lineNum">    1021</span>              :                         ),</span>
+<span id="L1022"><span class="lineNum">    1022</span>              :                       ),</span>
+<span id="L1023"><span class="lineNum">    1023</span>              :                     ],</span>
+<span id="L1024"><span class="lineNum">    1024</span>              :                   );</span>
+<span id="L1025"><span class="lineNum">    1025</span> <span class="tlaUNC">           0 :                 }).toList(),</span></span>
+<span id="L1026"><span class="lineNum">    1026</span>              :               ),</span>
+<span id="L1027"><span class="lineNum">    1027</span>              :             ],</span>
+<span id="L1028"><span class="lineNum">    1028</span>              :           ),</span>
+<span id="L1029"><span class="lineNum">    1029</span>              :         ),</span>
+<span id="L1030"><span class="lineNum">    1030</span> <span class="tlaUNC">           0 :         if (_showDeleteButton)</span></span>
+<span id="L1031"><span class="lineNum">    1031</span> <span class="tlaUNC">           0 :           Positioned(</span></span>
+<span id="L1032"><span class="lineNum">    1032</span>              :             top: 0,</span>
+<span id="L1033"><span class="lineNum">    1033</span>              :             right: 0,</span>
+<span id="L1034"><span class="lineNum">    1034</span> <span class="tlaUNC">           0 :             child: ElevatedButton(</span></span>
+<span id="L1035"><span class="lineNum">    1035</span> <span class="tlaUNC">           0 :               onPressed: () async {</span></span>
+<span id="L1036"><span class="lineNum">    1036</span>              :                 // Display a confirmation dialog or perform any other action</span>
+<span id="L1037"><span class="lineNum">    1037</span> <span class="tlaUNC">           0 :                 bool confirmed = await showDialog(</span></span>
+<span id="L1038"><span class="lineNum">    1038</span>              :                   context: context,</span>
+<span id="L1039"><span class="lineNum">    1039</span> <span class="tlaUNC">           0 :                   builder: (BuildContext context) {</span></span>
+<span id="L1040"><span class="lineNum">    1040</span> <span class="tlaUNC">           0 :                     return AlertDialog(</span></span>
+<span id="L1041"><span class="lineNum">    1041</span> <span class="tlaUNC">           0 :                       title: Text('Confirm Deletion'),</span></span>
+<span id="L1042"><span class="lineNum">    1042</span>              :                       content:</span>
+<span id="L1043"><span class="lineNum">    1043</span> <span class="tlaUNC">           0 :                           Text('Are you sure you want to delete all variants?'),</span></span>
+<span id="L1044"><span class="lineNum">    1044</span> <span class="tlaUNC">           0 :                       actions: &lt;Widget&gt;[</span></span>
+<span id="L1045"><span class="lineNum">    1045</span> <span class="tlaUNC">           0 :                         TextButton(</span></span>
+<span id="L1046"><span class="lineNum">    1046</span> <span class="tlaUNC">           0 :                           onPressed: () {</span></span>
+<span id="L1047"><span class="lineNum">    1047</span> <span class="tlaUNC">           0 :                             Navigator.of(context).pop(false);</span></span>
+<span id="L1048"><span class="lineNum">    1048</span>              :                           },</span>
+<span id="L1049"><span class="lineNum">    1049</span> <span class="tlaUNC">           0 :                           child: Text('Cancel'),</span></span>
+<span id="L1050"><span class="lineNum">    1050</span>              :                         ),</span>
+<span id="L1051"><span class="lineNum">    1051</span> <span class="tlaUNC">           0 :                         TextButton(</span></span>
+<span id="L1052"><span class="lineNum">    1052</span> <span class="tlaUNC">           0 :                           onPressed: () {</span></span>
+<span id="L1053"><span class="lineNum">    1053</span> <span class="tlaUNC">           0 :                             Navigator.of(context).pop(true);</span></span>
+<span id="L1054"><span class="lineNum">    1054</span>              :                           },</span>
+<span id="L1055"><span class="lineNum">    1055</span> <span class="tlaUNC">           0 :                           child: Text('Delete'),</span></span>
+<span id="L1056"><span class="lineNum">    1056</span>              :                         ),</span>
+<span id="L1057"><span class="lineNum">    1057</span>              :                       ],</span>
+<span id="L1058"><span class="lineNum">    1058</span>              :                     );</span>
+<span id="L1059"><span class="lineNum">    1059</span>              :                   },</span>
+<span id="L1060"><span class="lineNum">    1060</span>              :                 );</span>
+<span id="L1061"><span class="lineNum">    1061</span>              : </span>
+<span id="L1062"><span class="lineNum">    1062</span>              :                 // If user confirmed, call model.deleteAllVariants()</span>
+<span id="L1063"><span class="lineNum">    1063</span> <span class="tlaUNC">           0 :                 if (confirmed == true) {</span></span>
+<span id="L1064"><span class="lineNum">    1064</span> <span class="tlaUNC">           0 :                   model.deleteAllVariants();</span></span>
+<span id="L1065"><span class="lineNum">    1065</span>              :                 }</span>
+<span id="L1066"><span class="lineNum">    1066</span>              :               },</span>
+<span id="L1067"><span class="lineNum">    1067</span> <span class="tlaUNC">           0 :               style: ElevatedButton.styleFrom(</span></span>
+<span id="L1068"><span class="lineNum">    1068</span>              :                 backgroundColor: Colors.red, // Background color</span>
+<span id="L1069"><span class="lineNum">    1069</span>              :                 foregroundColor: Colors.white, // Text color</span>
+<span id="L1070"><span class="lineNum">    1070</span>              :               ),</span>
+<span id="L1071"><span class="lineNum">    1071</span>              :               child: const Text('Delete'),</span>
+<span id="L1072"><span class="lineNum">    1072</span>              :             ),</span>
+<span id="L1073"><span class="lineNum">    1073</span>              :           ),</span>
+<span id="L1074"><span class="lineNum">    1074</span>              :       ],</span>
+<span id="L1075"><span class="lineNum">    1075</span>              :     );</span>
+<span id="L1076"><span class="lineNum">    1076</span>              :   }</span>
+<span id="L1077"><span class="lineNum">    1077</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.1-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>

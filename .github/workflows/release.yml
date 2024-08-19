@@ -72,15 +72,15 @@ jobs:
       - name: Generate Code Coverage Report
         run: |
           cd apps/flipper
-          # Navigate to the directory containing lcov.info
+          # Navigate to the directory containing filtered.lcov.info
           # Generate the HTML report
-          genhtml --branch-coverage --output-directory html lcov.info
+          genhtml --branch-coverage --output-directory html filtered.lcov.info
 
 
       - name: Report Code Coverage
         uses: zgosalvez/github-actions-report-lcov@v3
         with:
-          coverage-files: coverage/lcov.info
+          coverage-files: coverage/filtered.lcov.info
           minimum-coverage: 45
           artifact-name: code-coverage-report
           github-token: ${{ secrets.ACCESS_TOKEN }}

@@ -1,0 +1,188 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - filtered.lcov.info - open-sources/dart_pdf/printing/lib/src/interface.dart</title>
+  <link rel="stylesheet" type="text/css" href="../../../../../gcov.css">
+</head>
+
+<body>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="title">LCOV - code coverage report</td></tr>
+            <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+
+            <tr>
+              <td width="100%">
+                <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="10%" class="headerValue"><a href="../../../../../index.html" title="Click to go to top-level">top level</a> - <a href="index.html" title="Click to go to directory open-sources/dart_pdf/printing/lib/src">open-sources/dart_pdf/printing/lib/src</a> - interface.dart<span style="font-size: 80%;"> (source / <a href="interface.dart.func-c.html" title="Click to go to function table">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="5%"></td>
+            <td width="5%" class="headerCovTableHead">Coverage</td>
+            <td width="5%" class="headerCovTableHead" title="Covered + Uncovered code">Total</td>
+            <td width="5%" class="headerCovTableHead" title="Exercised code only">Hit</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">filtered.lcov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntryMed">83.3&nbsp;%</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">5</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test Date:</td>
+            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntryHi">-</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+          </tr>
+                  <tr><td><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+          </table>
+
+          <table cellpadding=0 cellspacing=0 border=0>
+            <tr>
+              <td><br></td>
+            </tr>
+            <tr>
+              <td>
+<pre class="sourceHeading">            Line data    Source code</pre>
+<pre class="source">
+<span id="L1"><span class="lineNum">       1</span>              : /*</span>
+<span id="L2"><span class="lineNum">       2</span>              :  * Copyright (C) 2017, David PHAM-VAN &lt;dev.nfet.net@gmail.com&gt;</span>
+<span id="L3"><span class="lineNum">       3</span>              :  *</span>
+<span id="L4"><span class="lineNum">       4</span>              :  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span id="L5"><span class="lineNum">       5</span>              :  * you may not use this file except in compliance with the License.</span>
+<span id="L6"><span class="lineNum">       6</span>              :  * You may obtain a copy of the License at</span>
+<span id="L7"><span class="lineNum">       7</span>              :  *</span>
+<span id="L8"><span class="lineNum">       8</span>              :  *     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span id="L9"><span class="lineNum">       9</span>              :  *</span>
+<span id="L10"><span class="lineNum">      10</span>              :  * Unless required by applicable law or agreed to in writing, software</span>
+<span id="L11"><span class="lineNum">      11</span>              :  * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span id="L12"><span class="lineNum">      12</span>              :  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span id="L13"><span class="lineNum">      13</span>              :  * See the License for the specific language governing permissions and</span>
+<span id="L14"><span class="lineNum">      14</span>              :  * limitations under the License.</span>
+<span id="L15"><span class="lineNum">      15</span>              :  */</span>
+<span id="L16"><span class="lineNum">      16</span>              : </span>
+<span id="L17"><span class="lineNum">      17</span>              : import 'dart:async';</span>
+<span id="L18"><span class="lineNum">      18</span>              : import 'dart:typed_data';</span>
+<span id="L19"><span class="lineNum">      19</span>              : </span>
+<span id="L20"><span class="lineNum">      20</span>              : import 'package:flutter/rendering.dart' show Rect;</span>
+<span id="L21"><span class="lineNum">      21</span>              : import 'package:pdf/pdf.dart';</span>
+<span id="L22"><span class="lineNum">      22</span>              : import 'package:plugin_platform_interface/plugin_platform_interface.dart';</span>
+<span id="L23"><span class="lineNum">      23</span>              : </span>
+<span id="L24"><span class="lineNum">      24</span>              : import 'callback.dart';</span>
+<span id="L25"><span class="lineNum">      25</span>              : import 'method_channel.dart';</span>
+<span id="L26"><span class="lineNum">      26</span>              : import 'printer.dart';</span>
+<span id="L27"><span class="lineNum">      27</span>              : import 'printing_info.dart';</span>
+<span id="L28"><span class="lineNum">      28</span>              : import 'raster.dart';</span>
+<span id="L29"><span class="lineNum">      29</span>              : </span>
+<span id="L30"><span class="lineNum">      30</span>              : /// The interface that implementations of printing must implement.</span>
+<span id="L31"><span class="lineNum">      31</span>              : abstract class PrintingPlatform extends PlatformInterface {</span>
+<span id="L32"><span class="lineNum">      32</span>              :   /// Constructs a PrintingPlatform.</span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC tlaBgUNC">           0 :   PrintingPlatform() : super(token: _token);</span></span>
+<span id="L34"><span class="lineNum">      34</span>              : </span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC tlaBgGNC">           6 :   static final Object _token = Object();</span></span>
+<span id="L36"><span class="lineNum">      36</span>              : </span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           2 :   static PrintingPlatform _instance = MethodChannelPrinting();</span></span>
+<span id="L38"><span class="lineNum">      38</span>              : </span>
+<span id="L39"><span class="lineNum">      39</span>              :   /// The default instance of [PrintingPlatform] to use.</span>
+<span id="L40"><span class="lineNum">      40</span>              :   ///</span>
+<span id="L41"><span class="lineNum">      41</span>              :   /// Defaults to [MethodChannelPrinting].</span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           4 :   static PrintingPlatform get instance =&gt; _instance;</span></span>
+<span id="L43"><span class="lineNum">      43</span>              : </span>
+<span id="L44"><span class="lineNum">      44</span>              :   /// Platform-specific plugins should set this with their own platform-specific</span>
+<span id="L45"><span class="lineNum">      45</span>              :   /// class that extends [PrintingPlatform] when they register themselves.</span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           2 :   static set instance(PrintingPlatform instance) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           4 :     PlatformInterface.verifyToken(instance, _token);</span></span>
+<span id="L48"><span class="lineNum">      48</span>              :     _instance = instance;</span>
+<span id="L49"><span class="lineNum">      49</span>              :   }</span>
+<span id="L50"><span class="lineNum">      50</span>              : </span>
+<span id="L51"><span class="lineNum">      51</span>              :   /// Returns a [PrintingInfo] object representing the capabilities</span>
+<span id="L52"><span class="lineNum">      52</span>              :   /// supported for the current platform</span>
+<span id="L53"><span class="lineNum">      53</span>              :   Future&lt;PrintingInfo&gt; info();</span>
+<span id="L54"><span class="lineNum">      54</span>              : </span>
+<span id="L55"><span class="lineNum">      55</span>              :   /// Prints a Pdf document to a local printer using the platform UI</span>
+<span id="L56"><span class="lineNum">      56</span>              :   /// the Pdf document is re-built in a [LayoutCallback] each time the</span>
+<span id="L57"><span class="lineNum">      57</span>              :   /// user changes a setting like the page format or orientation.</span>
+<span id="L58"><span class="lineNum">      58</span>              :   ///</span>
+<span id="L59"><span class="lineNum">      59</span>              :   /// returns a future with a `bool` set to true if the document is printed</span>
+<span id="L60"><span class="lineNum">      60</span>              :   /// and false if it is canceled.</span>
+<span id="L61"><span class="lineNum">      61</span>              :   /// throws an exception in case of error</span>
+<span id="L62"><span class="lineNum">      62</span>              :   Future&lt;bool&gt; layoutPdf(</span>
+<span id="L63"><span class="lineNum">      63</span>              :     Printer? printer,</span>
+<span id="L64"><span class="lineNum">      64</span>              :     LayoutCallback onLayout,</span>
+<span id="L65"><span class="lineNum">      65</span>              :     String name,</span>
+<span id="L66"><span class="lineNum">      66</span>              :     PdfPageFormat format,</span>
+<span id="L67"><span class="lineNum">      67</span>              :     bool dynamicLayout,</span>
+<span id="L68"><span class="lineNum">      68</span>              :     bool usePrinterSettings,</span>
+<span id="L69"><span class="lineNum">      69</span>              :   );</span>
+<span id="L70"><span class="lineNum">      70</span>              : </span>
+<span id="L71"><span class="lineNum">      71</span>              :   /// Enumerate the available printers on the system.</span>
+<span id="L72"><span class="lineNum">      72</span>              :   Future&lt;List&lt;Printer&gt;&gt; listPrinters();</span>
+<span id="L73"><span class="lineNum">      73</span>              : </span>
+<span id="L74"><span class="lineNum">      74</span>              :   /// Opens the native printer picker interface, and returns the URL of the selected printer.</span>
+<span id="L75"><span class="lineNum">      75</span>              :   Future&lt;Printer?&gt; pickPrinter(Rect bounds);</span>
+<span id="L76"><span class="lineNum">      76</span>              : </span>
+<span id="L77"><span class="lineNum">      77</span>              :   /// Displays a platform popup to share the Pdf document to another application.</span>
+<span id="L78"><span class="lineNum">      78</span>              :   ///</span>
+<span id="L79"><span class="lineNum">      79</span>              :   /// [subject] will be the email subject if selected application is email.</span>
+<span id="L80"><span class="lineNum">      80</span>              :   ///</span>
+<span id="L81"><span class="lineNum">      81</span>              :   /// [body] will be the extra text that can be shared along with the Pdf document.</span>
+<span id="L82"><span class="lineNum">      82</span>              :   /// For email application [body] will be the email body text.</span>
+<span id="L83"><span class="lineNum">      83</span>              :   ///</span>
+<span id="L84"><span class="lineNum">      84</span>              :   /// [emails] will be the list of emails to which you want to share the Pdf document.</span>
+<span id="L85"><span class="lineNum">      85</span>              :   /// If the selected application is email application then the these [emails] will be</span>
+<span id="L86"><span class="lineNum">      86</span>              :   /// filled in the to address.</span>
+<span id="L87"><span class="lineNum">      87</span>              :   ///</span>
+<span id="L88"><span class="lineNum">      88</span>              :   /// [subject] and [body] will only work for Android and iOS platforms.</span>
+<span id="L89"><span class="lineNum">      89</span>              :   /// [emails] will only work for Android Platform.</span>
+<span id="L90"><span class="lineNum">      90</span>              :   Future&lt;bool&gt; sharePdf(</span>
+<span id="L91"><span class="lineNum">      91</span>              :     Uint8List bytes,</span>
+<span id="L92"><span class="lineNum">      92</span>              :     String filename,</span>
+<span id="L93"><span class="lineNum">      93</span>              :     Rect bounds,</span>
+<span id="L94"><span class="lineNum">      94</span>              :     String? subject,</span>
+<span id="L95"><span class="lineNum">      95</span>              :     String? body,</span>
+<span id="L96"><span class="lineNum">      96</span>              :     List&lt;String&gt;? emails,</span>
+<span id="L97"><span class="lineNum">      97</span>              :   );</span>
+<span id="L98"><span class="lineNum">      98</span>              : </span>
+<span id="L99"><span class="lineNum">      99</span>              :   /// Convert an html document to a pdf data</span>
+<span id="L100"><span class="lineNum">     100</span>              :   Future&lt;Uint8List&gt; convertHtml(</span>
+<span id="L101"><span class="lineNum">     101</span>              :     String html,</span>
+<span id="L102"><span class="lineNum">     102</span>              :     String? baseUrl,</span>
+<span id="L103"><span class="lineNum">     103</span>              :     PdfPageFormat format,</span>
+<span id="L104"><span class="lineNum">     104</span>              :   );</span>
+<span id="L105"><span class="lineNum">     105</span>              : </span>
+<span id="L106"><span class="lineNum">     106</span>              :   /// Convert a Pdf document to bitmap images</span>
+<span id="L107"><span class="lineNum">     107</span>              :   Stream&lt;PdfRaster&gt; raster(</span>
+<span id="L108"><span class="lineNum">     108</span>              :     Uint8List document,</span>
+<span id="L109"><span class="lineNum">     109</span>              :     List&lt;int&gt;? pages,</span>
+<span id="L110"><span class="lineNum">     110</span>              :     double dpi,</span>
+<span id="L111"><span class="lineNum">     111</span>              :   );</span>
+<span id="L112"><span class="lineNum">     112</span>              : }</span>
+        </pre>
+              </td>
+            </tr>
+          </table>
+          <br>
+
+          <table width="100%" border=0 cellspacing=0 cellpadding=0>
+            <tr><td class="ruler"><img src="../../../../../glass.png" width=3 height=3 alt=""></td></tr>
+            <tr><td class="versionInfo">Generated by: <a href="https://github.com//linux-test-project/lcov" target="_parent">LCOV version 2.1-1</a></td></tr>
+          </table>
+          <br>
+
+</body>
+</html>
