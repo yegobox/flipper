@@ -75,7 +75,8 @@ jobs:
           # Navigate to the directory containing lcov.info
           cd coverage 
           # Generate the HTML report
-          genhtml --branch_coverage --output-directory html lcov.info 
+          genhtml --branch-coverage --output-directory html lcov.info
+
 
       - name: Report Code Coverage
         uses: zgosalvez/github-actions-report-lcov@v3
