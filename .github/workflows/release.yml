@@ -65,7 +65,7 @@ jobs:
           melos bootstrap
           cd apps/flipper
           dart run realm install
-          flutter test --dart-define=FLUTTER_TEST_ENV=true --coverage
+          flutter test --coverage --dart-define=FLUTTER_TEST_ENV=true 
 
       - name: Setup LCOV
         uses: hrishikesh-kadam/setup-lcov@v1

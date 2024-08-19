@@ -12,22 +12,42 @@ ignore:
   - "*odm*"
 command:
   version:
-    # Generate commit links in package changelogs.
     linkToCommits: true
-    # Only allow versioning to happen on main branch.
     branch: dev
-    # Additionally build a changelog at the root of the workspace.
     workspaceChangelog: true
-#  bootstrap:
-#    usePubspecOverrides: true
 
 scripts:
   flipper:
     run: melos exec --scope="*flipper_data_table*" -- flutter packages pub publish -f
-  # postbootstrap: cp -rf .dart_tool/flutter_gen/gen_l10n lib/localize/lib
   lint:all:
     run: melos run analyze && melos run format
     description: Run all static analysis checks.
+  test:selective_unit_test:
+    exec: flutter test
+    dir-exists: "test"
+    fail-fast: true
+    description: Run selective unit tests
+
+  test:all_unit_tests:
+    exec: flutter test --dart-define=FLUTTER_TEST_ENV=true 
+    no-select: true
+    description: Run all unit testsAdditionally, you can incorporate commands for analysis and code coverage. Melos offers a GUI interface for seamless execution without terminal input.
+  unit_test:
+    run: melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub --coverage
+    description: Run all Flutter tests in this project.
+  unit_test_and_coverage:
+    description: Merge all packages coverage tracefiles ignoring data related to generated files.
+    run: |
+      melos exec rm -rf coverage
+      melos run unit_test
+      mkdir -p $MELOS_ROOT_PATH/coverage
+      melos exec -c 1 --file-exists=coverage/lcov.info -- \
+        coverde filter --input ./coverage/lcov.info \
+        --output ./coverage/filtered.lcov.info \
+        --filters \.g\.dart \
+        --prepend-package-dir
+      find . -name "filtered.lcov.info" -exec cat {} + > $MELOS_ROOT_PATH/coverage/merged.lcov.info
+      coverde value -i $MELOS_ROOT_PATH/coverage/merged.lcov.info > $MELOS_ROOT_PATH/coverage/result.txt
 
   analyze:
     run: |

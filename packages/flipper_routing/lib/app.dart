@@ -585,3 +585,6 @@ class App {}
 // https://github.com/realm/realm-dart/issues/1771
 // https://github.com/microsoft/store-submission/issues/12
 // https://github.com/LanceMcCarthy/MediaFileManager/blob/cb3e5f41e20e0d611a99405f22478242a7b748e3/.github/workflows/cd_release_msstore.yml#L110
+
+//TODO:Testing https://seniorturkmen.medium.com/managing-multi-package-flutter-projects-with-melos-a-leap-towards-efficient-development-a305e696fe73
+// https://medium.com/@meliksahcakirr/unit-tests-and-coverage-reports-in-multi-package-flutter-project-5b0ce47d2fc2
