@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -88,28 +88,28 @@
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              : /// Loads an image from a Flutter [ImageProvider]</span>
 <span id="L28"><span class="lineNum">      28</span>              : /// into an [ImageProvider] instance</span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC tlaBgGNC">           2 : Future&lt;ImageProvider&gt; flutterImageProvider(</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC tlaBgGNC">           3 : Future&lt;ImageProvider&gt; flutterImageProvider(</span></span>
 <span id="L30"><span class="lineNum">      30</span>              :   rdr.ImageProvider image, {</span>
 <span id="L31"><span class="lineNum">      31</span>              :   rdr.ImageConfiguration? configuration,</span>
 <span id="L32"><span class="lineNum">      32</span>              :   rdr.ImageErrorListener? onError,</span>
 <span id="L33"><span class="lineNum">      33</span>              : }) async {</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           2 :   final completer = Completer&lt;ImageProvider&gt;();</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           2 :   final stream = image.resolve(configuration ?? rdr.ImageConfiguration.empty);</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           3 :   final completer = Completer&lt;ImageProvider&gt;();</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           3 :   final stream = image.resolve(configuration ?? rdr.ImageConfiguration.empty);</span></span>
 <span id="L36"><span class="lineNum">      36</span>              : </span>
 <span id="L37"><span class="lineNum">      37</span>              :   late rdr.ImageStreamListener listener;</span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           4 :   listener = rdr.ImageStreamListener((rdr.ImageInfo image, bool sync) async {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           6 :   listener = rdr.ImageStreamListener((rdr.ImageInfo image, bool sync) async {</span></span>
 <span id="L39"><span class="lineNum">      39</span>              :     final bytes =</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           4 :         await image.image.toByteData(format: ui.ImageByteFormat.rawRgba);</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           6 :         await image.image.toByteData(format: ui.ImageByteFormat.rawRgba);</span></span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           2 :     final result = RawImage(</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           4 :         bytes: bytes!.buffer.asUint8List(),</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           4 :         width: image.image.width,</span></span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           4 :         height: image.image.height);</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           3 :     final result = RawImage(</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           6 :         bytes: bytes!.buffer.asUint8List(),</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           6 :         width: image.image.width,</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           6 :         height: image.image.height);</span></span>
 <span id="L46"><span class="lineNum">      46</span>              : </span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           2 :     if (!completer.isCompleted) {</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           2 :       completer.complete(result);</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           3 :     if (!completer.isCompleted) {</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           3 :       completer.complete(result);</span></span>
 <span id="L49"><span class="lineNum">      49</span>              :     }</span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           2 :     stream.removeListener(listener);</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           3 :     stream.removeListener(listener);</span></span>
 <span id="L51"><span class="lineNum">      51</span> <span class="tlaUNC tlaBgUNC">           0 :   }, onError: (dynamic exception, StackTrace? stackTrace) {</span></span>
 <span id="L52"><span class="lineNum">      52</span> <span class="tlaUNC">           0 :     if (!completer.isCompleted) {</span></span>
 <span id="L53"><span class="lineNum">      53</span> <span class="tlaUNC">           0 :       completer.completeError('image failed to load');</span></span>
@@ -122,8 +122,8 @@
 <span id="L60"><span class="lineNum">      60</span>              :     }</span>
 <span id="L61"><span class="lineNum">      61</span>              :   });</span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC tlaBgGNC">           2 :   stream.addListener(listener);</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           2 :   return completer.future;</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC tlaBgGNC">           3 :   stream.addListener(listener);</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           3 :   return completer.future;</span></span>
 <span id="L65"><span class="lineNum">      65</span>              : }</span>
 <span id="L66"><span class="lineNum">      66</span>              : </span>
 <span id="L67"><span class="lineNum">      67</span>              : /// Loads a font from an asset bundle key. If used multiple times with the same font name,</span>

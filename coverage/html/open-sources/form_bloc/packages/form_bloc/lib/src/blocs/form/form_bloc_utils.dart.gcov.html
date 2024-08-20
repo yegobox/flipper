@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -65,13 +65,13 @@
 <span id="L3"><span class="lineNum">       3</span>              : class FormBlocUtils {</span>
 <span id="L4"><span class="lineNum">       4</span> <span class="tlaUNC tlaBgUNC">           0 :   FormBlocUtils._();</span></span>
 <span id="L5"><span class="lineNum">       5</span>              : </span>
-<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC tlaBgGNC">           4 :   static Iterable&lt;SingleFieldBloc&gt; getAllSingleFieldBlocs(</span></span>
+<span id="L6"><span class="lineNum">       6</span> <span class="tlaGNC tlaBgGNC">           6 :   static Iterable&lt;SingleFieldBloc&gt; getAllSingleFieldBlocs(</span></span>
 <span id="L7"><span class="lineNum">       7</span>              :       Iterable&lt;FieldBloc&gt; fieldBlocs) {</span>
-<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">           8 :     return fieldBlocs.expand((fieldBloc) {</span></span>
-<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">           4 :       if (fieldBloc is SingleFieldBloc) {</span></span>
-<span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           4 :         return [fieldBloc];</span></span>
-<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           2 :       } else if (fieldBloc is MultiFieldBloc) {</span></span>
-<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">           4 :         return getAllSingleFieldBlocs(fieldBloc.flatFieldBlocs);</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC">          12 :     return fieldBlocs.expand((fieldBloc) {</span></span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC">           6 :       if (fieldBloc is SingleFieldBloc) {</span></span>
+<span id="L10"><span class="lineNum">      10</span> <span class="tlaGNC">           6 :         return [fieldBloc];</span></span>
+<span id="L11"><span class="lineNum">      11</span> <span class="tlaGNC">           3 :       } else if (fieldBloc is MultiFieldBloc) {</span></span>
+<span id="L12"><span class="lineNum">      12</span> <span class="tlaGNC">           6 :         return getAllSingleFieldBlocs(fieldBloc.flatFieldBlocs);</span></span>
 <span id="L13"><span class="lineNum">      13</span>              :       }</span>
 <span id="L14"><span class="lineNum">      14</span>              :       return const &lt;SingleFieldBloc&gt;[];</span>
 <span id="L15"><span class="lineNum">      15</span>              :     });</span>
@@ -93,23 +93,23 @@
 <span id="L31"><span class="lineNum">      31</span>              : </span>
 <span id="L32"><span class="lineNum">      32</span>              :   /// Returns the corresponding [FieldBloc] to the [path].</span>
 <span id="L33"><span class="lineNum">      33</span>              :   /// if it does not exist, return `null`.</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC tlaBgGNC">           2 :   static FieldBloc? getFieldBlocFromPath({</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC tlaBgGNC">           3 :   static FieldBloc? getFieldBlocFromPath({</span></span>
 <span id="L35"><span class="lineNum">      35</span>              :     required String path,</span>
 <span id="L36"><span class="lineNum">      36</span>              :     required Map&lt;String, FieldBloc&gt; fieldBlocs,</span>
 <span id="L37"><span class="lineNum">      37</span>              :   }) {</span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           2 :     var names = path.split('/');</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           3 :     var names = path.split('/');</span></span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
 <span id="L40"><span class="lineNum">      40</span>              :     FieldBloc? currentFieldBloc;</span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           6 :     for (var i = 0; i &lt; names.length; i++) {</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           2 :       final name = names[i];</span></span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           2 :       final isFirstName = i == 0;</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           9 :     for (var i = 0; i &lt; names.length; i++) {</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           3 :       final name = names[i];</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">           3 :       final isFirstName = i == 0;</span></span>
 <span id="L45"><span class="lineNum">      45</span>              : </span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           4 :       var isListIndex = name.startsWith('[') &amp;&amp; name.endsWith(']');</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           6 :       var isListIndex = name.startsWith('[') &amp;&amp; name.endsWith(']');</span></span>
 <span id="L47"><span class="lineNum">      47</span>              :       int? listIndex;</span>
 <span id="L48"><span class="lineNum">      48</span>              : </span>
 <span id="L49"><span class="lineNum">      49</span>              :       if (isListIndex) {</span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           8 :         listIndex = int.tryParse(name.substring(1, name.length - 1));</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          12 :         listIndex = int.tryParse(name.substring(1, name.length - 1));</span></span>
 <span id="L51"><span class="lineNum">      51</span>              : </span>
 <span id="L52"><span class="lineNum">      52</span>              :         if (listIndex != null) {</span>
 <span id="L53"><span class="lineNum">      53</span>              :           isListIndex = true;</span>
@@ -122,26 +122,26 @@
 <span id="L60"><span class="lineNum">      60</span>              :         if (isListIndex) {</span>
 <span id="L61"><span class="lineNum">      61</span>              :           return null;</span>
 <span id="L62"><span class="lineNum">      62</span>              :         } else {</span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           2 :           currentFieldBloc = fieldBlocs[name];</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           3 :           currentFieldBloc = fieldBlocs[name];</span></span>
 <span id="L64"><span class="lineNum">      64</span>              :         }</span>
 <span id="L65"><span class="lineNum">      65</span>              :       } else {</span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           2 :         if (currentFieldBloc == null || currentFieldBloc is SingleFieldBloc) {</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           3 :         if (currentFieldBloc == null || currentFieldBloc is SingleFieldBloc) {</span></span>
 <span id="L67"><span class="lineNum">      67</span>              :           return null;</span>
 <span id="L68"><span class="lineNum">      68</span>              :         }</span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
 <span id="L70"><span class="lineNum">      70</span>              :         if (isListIndex) {</span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           2 :           if (currentFieldBloc is ListFieldBloc) {</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           3 :           if (currentFieldBloc is ListFieldBloc) {</span></span>
 <span id="L72"><span class="lineNum">      72</span>              :             try {</span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           6 :               currentFieldBloc = currentFieldBloc.state.fieldBlocs[listIndex!];</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           2 :             } on RangeError {</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           9 :               currentFieldBloc = currentFieldBloc.state.fieldBlocs[listIndex!];</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           3 :             } on RangeError {</span></span>
 <span id="L75"><span class="lineNum">      75</span>              :               return null;</span>
 <span id="L76"><span class="lineNum">      76</span>              :             }</span>
 <span id="L77"><span class="lineNum">      77</span>              :           } else {</span>
 <span id="L78"><span class="lineNum">      78</span>              :             return null;</span>
 <span id="L79"><span class="lineNum">      79</span>              :           }</span>
 <span id="L80"><span class="lineNum">      80</span>              :         } else {</span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           2 :           if (currentFieldBloc is GroupFieldBloc) {</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           6 :             currentFieldBloc = currentFieldBloc.state.fieldBlocs[name];</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">           3 :           if (currentFieldBloc is GroupFieldBloc) {</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           9 :             currentFieldBloc = currentFieldBloc.state.fieldBlocs[name];</span></span>
 <span id="L83"><span class="lineNum">      83</span>              :           } else {</span>
 <span id="L84"><span class="lineNum">      84</span>              :             return null;</span>
 <span id="L85"><span class="lineNum">      85</span>              :           }</span>
@@ -251,17 +251,17 @@
 <span id="L189"><span class="lineNum">     189</span>              :     }</span>
 <span id="L190"><span class="lineNum">     190</span>              :   } */</span>
 <span id="L191"><span class="lineNum">     191</span>              : </span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">           2 :   static Map&lt;String, dynamic&gt; fieldBlocsStatesToJson(</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC">           3 :   static Map&lt;String, dynamic&gt; fieldBlocsStatesToJson(</span></span>
 <span id="L193"><span class="lineNum">     193</span>              :       Map&lt;String, dynamic&gt; fieldBlocsStates) {</span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">           2 :     final json = &lt;String, dynamic&gt;{};</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">           3 :     final json = &lt;String, dynamic&gt;{};</span></span>
 <span id="L195"><span class="lineNum">     195</span>              : </span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">           4 :     fieldBlocsStates.forEach((name, dynamic fieldBlocState) {</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           2 :       if (fieldBlocState is FieldBlocState) {</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           4 :         json[name] = fieldBlocState.toJson();</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">           6 :     fieldBlocsStates.forEach((name, dynamic fieldBlocState) {</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           3 :       if (fieldBlocState is FieldBlocState) {</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           6 :         json[name] = fieldBlocState.toJson();</span></span>
 <span id="L199"><span class="lineNum">     199</span> <span class="tlaUNC tlaBgUNC">           0 :       } else if (fieldBlocState is Map&lt;String, dynamic&gt;) {</span></span>
 <span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC">           0 :         json[name] = fieldBlocsStatesToJson(fieldBlocState);</span></span>
 <span id="L201"><span class="lineNum">     201</span>              :       }</span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC tlaBgGNC">           2 :       if (fieldBlocState is List&lt;dynamic&gt;) {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC tlaBgGNC">           3 :       if (fieldBlocState is List&lt;dynamic&gt;) {</span></span>
 <span id="L203"><span class="lineNum">     203</span> <span class="tlaUNC tlaBgUNC">           0 :         json[name] = fieldBlocsStatesListToJsonList(fieldBlocState);</span></span>
 <span id="L204"><span class="lineNum">     204</span>              :       }</span>
 <span id="L205"><span class="lineNum">     205</span>              :     });</span>
@@ -284,34 +284,34 @@
 <span id="L222"><span class="lineNum">     222</span>              :     return list;</span>
 <span id="L223"><span class="lineNum">     223</span>              :   }</span>
 <span id="L224"><span class="lineNum">     224</span>              : </span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC tlaBgGNC">           4 :   static Map&lt;String, dynamic&gt; fieldBlocsToFieldBlocsStates(</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC tlaBgGNC">           6 :   static Map&lt;String, dynamic&gt; fieldBlocsToFieldBlocsStates(</span></span>
 <span id="L226"><span class="lineNum">     226</span>              :       Map&lt;String, FieldBloc&gt; fieldBlocs) {</span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           4 :     final json = &lt;String, dynamic&gt;{};</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           6 :     final json = &lt;String, dynamic&gt;{};</span></span>
 <span id="L228"><span class="lineNum">     228</span>              : </span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">           8 :     fieldBlocs.forEach((name, fieldBloc) {</span></span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           4 :       if (fieldBloc is SingleFieldBloc) {</span></span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           8 :         json[name] = fieldBloc.state;</span></span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           2 :       } else if (fieldBloc is GroupFieldBloc) {</span></span>
-<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">           8 :         json[name] = fieldBlocsToFieldBlocsStates(fieldBloc.state.fieldBlocs);</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          12 :     fieldBlocs.forEach((name, fieldBloc) {</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           6 :       if (fieldBloc is SingleFieldBloc) {</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">          12 :         json[name] = fieldBloc.state;</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           3 :       } else if (fieldBloc is GroupFieldBloc) {</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          12 :         json[name] = fieldBlocsToFieldBlocsStates(fieldBloc.state.fieldBlocs);</span></span>
 <span id="L234"><span class="lineNum">     234</span>              :       }</span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           4 :       if (fieldBloc is ListFieldBloc) {</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           4 :         json[name] = fieldBlocListToFieldBlocsStatesList(fieldBloc);</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           6 :       if (fieldBloc is ListFieldBloc) {</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           6 :         json[name] = fieldBlocListToFieldBlocsStatesList(fieldBloc);</span></span>
 <span id="L237"><span class="lineNum">     237</span>              :       }</span>
 <span id="L238"><span class="lineNum">     238</span>              :     });</span>
 <span id="L239"><span class="lineNum">     239</span>              :     return json;</span>
 <span id="L240"><span class="lineNum">     240</span>              :   }</span>
 <span id="L241"><span class="lineNum">     241</span>              : </span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           2 :   static List&lt;dynamic&gt; fieldBlocListToFieldBlocsStatesList(</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           3 :   static List&lt;dynamic&gt; fieldBlocListToFieldBlocsStatesList(</span></span>
 <span id="L243"><span class="lineNum">     243</span>              :       ListFieldBloc fieldBlocList) {</span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           2 :     final list = &lt;dynamic&gt;[];</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           3 :     final list = &lt;dynamic&gt;[];</span></span>
 <span id="L245"><span class="lineNum">     245</span>              : </span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           6 :     for (var fieldBloc in fieldBlocList.state.fieldBlocs) {</span></span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">           2 :       if (fieldBloc is SingleFieldBloc) {</span></span>
-<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           4 :         list.add(fieldBloc.state);</span></span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           2 :       } else if (fieldBloc is GroupFieldBloc) {</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           9 :     for (var fieldBloc in fieldBlocList.state.fieldBlocs) {</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">           3 :       if (fieldBloc is SingleFieldBloc) {</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           6 :         list.add(fieldBloc.state);</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           3 :       } else if (fieldBloc is GroupFieldBloc) {</span></span>
 <span id="L250"><span class="lineNum">     250</span> <span class="tlaUNC tlaBgUNC">           0 :         list.add(fieldBlocsToFieldBlocsStates(fieldBloc.state.fieldBlocs));</span></span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC tlaBgGNC">           2 :       } else if (fieldBloc is ListFieldBloc) {</span></span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           4 :         list.add(fieldBlocListToFieldBlocsStatesList(fieldBloc));</span></span>
+<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC tlaBgGNC">           3 :       } else if (fieldBloc is ListFieldBloc) {</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           6 :         list.add(fieldBlocListToFieldBlocsStatesList(fieldBloc));</span></span>
 <span id="L253"><span class="lineNum">     253</span>              :       }</span>
 <span id="L254"><span class="lineNum">     254</span>              :     }</span>
 <span id="L255"><span class="lineNum">     255</span>              :     return list;</span>
@@ -336,19 +336,19 @@
 <span id="L274"><span class="lineNum">     274</span>              :   /// Returns the corresponding [FieldBlocState] of the</span>
 <span id="L275"><span class="lineNum">     275</span>              :   /// [FieldBlocState] that is on the path.</span>
 <span id="L276"><span class="lineNum">     276</span>              :   /// if it does not exist, return `null`.</span>
-<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC tlaBgGNC">           2 :   static dynamic getFieldBlocStateFromPath({</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC tlaBgGNC">           3 :   static dynamic getFieldBlocStateFromPath({</span></span>
 <span id="L278"><span class="lineNum">     278</span>              :     required String path,</span>
 <span id="L279"><span class="lineNum">     279</span>              :     required Map&lt;String, dynamic&gt; fieldBlocsStates,</span>
 <span id="L280"><span class="lineNum">     280</span>              :   }) {</span>
-<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">           2 :     var names = path.split('/');</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">           3 :     var names = path.split('/');</span></span>
 <span id="L282"><span class="lineNum">     282</span>              : </span>
 <span id="L283"><span class="lineNum">     283</span>              :     dynamic currentFieldBlocState;</span>
 <span id="L284"><span class="lineNum">     284</span>              : </span>
-<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">           6 :     for (var i = 0; i &lt; names.length; i++) {</span></span>
-<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           2 :       final name = names[i];</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">           2 :       final isFirstName = i == 0;</span></span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">           9 :     for (var i = 0; i &lt; names.length; i++) {</span></span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           3 :       final name = names[i];</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">           3 :       final isFirstName = i == 0;</span></span>
 <span id="L288"><span class="lineNum">     288</span>              : </span>
-<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">           2 :       var isListIndex = name.startsWith('[') &amp;&amp; name.endsWith(']');</span></span>
+<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">           3 :       var isListIndex = name.startsWith('[') &amp;&amp; name.endsWith(']');</span></span>
 <span id="L290"><span class="lineNum">     290</span>              :       int? listIndex;</span>
 <span id="L291"><span class="lineNum">     291</span>              : </span>
 <span id="L292"><span class="lineNum">     292</span>              :       if (isListIndex) {</span>
@@ -365,7 +365,7 @@
 <span id="L303"><span class="lineNum">     303</span>              :         if (isListIndex) {</span>
 <span id="L304"><span class="lineNum">     304</span>              :           return null;</span>
 <span id="L305"><span class="lineNum">     305</span>              :         } else {</span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC tlaBgGNC">           2 :           currentFieldBlocState = fieldBlocsStates[name];</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC tlaBgGNC">           3 :           currentFieldBlocState = fieldBlocsStates[name];</span></span>
 <span id="L307"><span class="lineNum">     307</span>              :         }</span>
 <span id="L308"><span class="lineNum">     308</span>              :       } else {</span>
 <span id="L309"><span class="lineNum">     309</span>              :         if (currentFieldBlocState == null ||</span>
@@ -414,54 +414,54 @@
 <span id="L352"><span class="lineNum">     352</span>              :     }</span>
 <span id="L353"><span class="lineNum">     353</span>              :   }</span>
 <span id="L354"><span class="lineNum">     354</span>              : </span>
-<span id="L355"><span class="lineNum">     355</span> <span class="tlaGNC tlaBgGNC">           6 :   static void updateFormBloc({</span></span>
+<span id="L355"><span class="lineNum">     355</span> <span class="tlaGNC tlaBgGNC">           9 :   static void updateFormBloc({</span></span>
 <span id="L356"><span class="lineNum">     356</span>              :     required Iterable&lt;FieldBloc&gt; fieldBlocs,</span>
 <span id="L357"><span class="lineNum">     357</span>              :     required FormBloc? formBloc,</span>
 <span id="L358"><span class="lineNum">     358</span>              :     bool autoValidate = false,</span>
 <span id="L359"><span class="lineNum">     359</span>              :   }) {</span>
 <span id="L360"><span class="lineNum">     360</span>              :     if (formBloc == null) return;</span>
 <span id="L361"><span class="lineNum">     361</span>              : </span>
-<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">           8 :     for (final fieldBloc in fieldBlocs) {</span></span>
-<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           4 :       fieldBloc.updateFormBloc(formBloc, autoValidate: autoValidate);</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">          12 :     for (final fieldBloc in fieldBlocs) {</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           6 :       fieldBloc.updateFormBloc(formBloc, autoValidate: autoValidate);</span></span>
 <span id="L364"><span class="lineNum">     364</span>              :     }</span>
 <span id="L365"><span class="lineNum">     365</span>              :   }</span>
 <span id="L366"><span class="lineNum">     366</span>              : </span>
-<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">           6 :   static void removeFormBloc({</span></span>
+<span id="L367"><span class="lineNum">     367</span> <span class="tlaGNC">           9 :   static void removeFormBloc({</span></span>
 <span id="L368"><span class="lineNum">     368</span>              :     required Iterable&lt;FieldBloc&gt; fieldBlocs,</span>
 <span id="L369"><span class="lineNum">     369</span>              :     required FormBloc? formBloc,</span>
 <span id="L370"><span class="lineNum">     370</span>              :   }) {</span>
 <span id="L371"><span class="lineNum">     371</span>              :     if (formBloc == null) return;</span>
 <span id="L372"><span class="lineNum">     372</span>              : </span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">           8 :     for (final fieldBloc in fieldBlocs) {</span></span>
-<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           4 :       fieldBloc.removeFormBloc(formBloc);</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">          12 :     for (final fieldBloc in fieldBlocs) {</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           6 :       fieldBloc.removeFormBloc(formBloc);</span></span>
 <span id="L375"><span class="lineNum">     375</span>              :     }</span>
 <span id="L376"><span class="lineNum">     376</span>              :   }</span>
 <span id="L377"><span class="lineNum">     377</span>              : </span>
 <span id="L378"><span class="lineNum">     378</span>              :   /// See [FormBloc.isValuesChanged]</span>
-<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">           2 :   static bool isValuesChanged(</span></span>
+<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">           3 :   static bool isValuesChanged(</span></span>
 <span id="L380"><span class="lineNum">     380</span>              :     Iterable&lt;FieldBloc&gt; fieldBlocs, {</span>
 <span id="L381"><span class="lineNum">     381</span>              :     bool fallback = false,</span>
 <span id="L382"><span class="lineNum">     382</span>              :   }) {</span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">           4 :     return fieldBlocs.any((fb) {</span></span>
-<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">           2 :       if (fb is SingleFieldBloc) {</span></span>
-<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">           2 :         return fb.isValueChanged;</span></span>
-<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">           2 :       } else if (fb is MultiFieldBloc) {</span></span>
-<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">           2 :         return fb.isValuesChanged;</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">           6 :     return fieldBlocs.any((fb) {</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">           3 :       if (fb is SingleFieldBloc) {</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">           3 :         return fb.isValueChanged;</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">           3 :       } else if (fb is MultiFieldBloc) {</span></span>
+<span id="L387"><span class="lineNum">     387</span> <span class="tlaGNC">           3 :         return fb.isValuesChanged;</span></span>
 <span id="L388"><span class="lineNum">     388</span>              :       }</span>
 <span id="L389"><span class="lineNum">     389</span>              :       return fallback;</span>
 <span id="L390"><span class="lineNum">     390</span>              :     });</span>
 <span id="L391"><span class="lineNum">     391</span>              :   }</span>
 <span id="L392"><span class="lineNum">     392</span>              : </span>
 <span id="L393"><span class="lineNum">     393</span>              :   /// See [FormBloc.hasInitialValues]</span>
-<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">           2 :   static bool hasInitialValues(</span></span>
+<span id="L394"><span class="lineNum">     394</span> <span class="tlaGNC">           3 :   static bool hasInitialValues(</span></span>
 <span id="L395"><span class="lineNum">     395</span>              :     Iterable&lt;FieldBloc&gt; fieldBlocs, {</span>
 <span id="L396"><span class="lineNum">     396</span>              :     bool fallback = true,</span>
 <span id="L397"><span class="lineNum">     397</span>              :   }) {</span>
-<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">           4 :     return fieldBlocs.every((fb) {</span></span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           2 :       if (fb is SingleFieldBloc) {</span></span>
-<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           2 :         return fb.hasInitialValue;</span></span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           2 :       } else if (fb is MultiFieldBloc) {</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           2 :         return fb.hasInitialValues;</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC">           6 :     return fieldBlocs.every((fb) {</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           3 :       if (fb is SingleFieldBloc) {</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           3 :         return fb.hasInitialValue;</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           3 :       } else if (fb is MultiFieldBloc) {</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           3 :         return fb.hasInitialValues;</span></span>
 <span id="L403"><span class="lineNum">     403</span>              :       }</span>
 <span id="L404"><span class="lineNum">     404</span>              :       return fallback;</span>
 <span id="L405"><span class="lineNum">     405</span>              :     });</span>

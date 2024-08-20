@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -161,14 +161,14 @@
 <span id="L99"><span class="lineNum">      99</span>              : /// Represents a way to control a slidable from outside.</span>
 <span id="L100"><span class="lineNum">     100</span>              : class SlidableController {</span>
 <span id="L101"><span class="lineNum">     101</span>              :   /// Creates a [SlidableController].</span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC tlaBgGNC">           8 :   SlidableController(TickerProvider vsync)</span></span>
-<span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">           8 :       : _animationController = AnimationController(vsync: vsync),</span></span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">           8 :         endGesture = ValueNotifier(null),</span></span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           8 :         _dismissGesture = _ValueNotifier(null),</span></span>
-<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">           8 :         resizeRequest = ValueNotifier(null),</span></span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           8 :         actionPaneType = ValueNotifier(ActionPaneType.none),</span></span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">           8 :         direction = ValueNotifier(0) {</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">          24 :     direction.addListener(_onDirectionChanged);</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC tlaBgGNC">          12 :   SlidableController(TickerProvider vsync)</span></span>
+<span id="L103"><span class="lineNum">     103</span> <span class="tlaGNC">          12 :       : _animationController = AnimationController(vsync: vsync),</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">          12 :         endGesture = ValueNotifier(null),</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">          12 :         _dismissGesture = _ValueNotifier(null),</span></span>
+<span id="L106"><span class="lineNum">     106</span> <span class="tlaGNC">          12 :         resizeRequest = ValueNotifier(null),</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">          12 :         actionPaneType = ValueNotifier(ActionPaneType.none),</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">          12 :         direction = ValueNotifier(0) {</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">          36 :     direction.addListener(_onDirectionChanged);</span></span>
 <span id="L110"><span class="lineNum">     110</span>              :   }</span>
 <span id="L111"><span class="lineNum">     111</span>              : </span>
 <span id="L112"><span class="lineNum">     112</span>              :   final AnimationController _animationController;</span>
@@ -185,33 +185,33 @@
 <span id="L123"><span class="lineNum">     123</span>              :   bool isLeftToRight = true;</span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
 <span id="L125"><span class="lineNum">     125</span>              :   /// Whether the positive action pane is enabled.</span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">           6 :   bool get enablePositiveActionPane =&gt;</span></span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          12 :       isLeftToRight ? enableStartActionPane : enableEndActionPane;</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">           9 :   bool get enablePositiveActionPane =&gt;</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">          18 :       isLeftToRight ? enableStartActionPane : enableEndActionPane;</span></span>
 <span id="L128"><span class="lineNum">     128</span>              : </span>
 <span id="L129"><span class="lineNum">     129</span>              :   /// Whether the negative action pane is enabled.</span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">           4 :   bool get enableNegativeActionPane =&gt;</span></span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">           8 :       isLeftToRight ? enableEndActionPane : enableStartActionPane;</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">           6 :   bool get enableNegativeActionPane =&gt;</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">          12 :       isLeftToRight ? enableEndActionPane : enableStartActionPane;</span></span>
 <span id="L132"><span class="lineNum">     132</span>              : </span>
 <span id="L133"><span class="lineNum">     133</span>              :   /// The extent ratio of the start action pane.</span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           4 :   double get startActionPaneExtentRatio =&gt; _startActionPaneExtentRatio;</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           6 :   double get startActionPaneExtentRatio =&gt; _startActionPaneExtentRatio;</span></span>
 <span id="L135"><span class="lineNum">     135</span>              :   double _startActionPaneExtentRatio = 0;</span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">           6 :   set startActionPaneExtentRatio(double value) {</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          24 :     if (_startActionPaneExtentRatio != value &amp;&amp; value &gt;= 0 &amp;&amp; value &lt;= 1) {</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           6 :       _startActionPaneExtentRatio = value;</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">           9 :   set startActionPaneExtentRatio(double value) {</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          36 :     if (_startActionPaneExtentRatio != value &amp;&amp; value &gt;= 0 &amp;&amp; value &lt;= 1) {</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           9 :       _startActionPaneExtentRatio = value;</span></span>
 <span id="L139"><span class="lineNum">     139</span>              :     }</span>
 <span id="L140"><span class="lineNum">     140</span>              :   }</span>
 <span id="L141"><span class="lineNum">     141</span>              : </span>
 <span id="L142"><span class="lineNum">     142</span>              :   /// The extent ratio of the end action pane.</span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           4 :   double get endActionPaneExtentRatio =&gt; _endActionPaneExtentRatio;</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           6 :   double get endActionPaneExtentRatio =&gt; _endActionPaneExtentRatio;</span></span>
 <span id="L144"><span class="lineNum">     144</span>              :   double _endActionPaneExtentRatio = 0;</span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           6 :   set endActionPaneExtentRatio(double value) {</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          24 :     if (_endActionPaneExtentRatio != value &amp;&amp; value &gt;= 0 &amp;&amp; value &lt;= 1) {</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           6 :       _endActionPaneExtentRatio = value;</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           9 :   set endActionPaneExtentRatio(double value) {</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">          36 :     if (_endActionPaneExtentRatio != value &amp;&amp; value &gt;= 0 &amp;&amp; value &lt;= 1) {</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           9 :       _endActionPaneExtentRatio = value;</span></span>
 <span id="L148"><span class="lineNum">     148</span>              :     }</span>
 <span id="L149"><span class="lineNum">     149</span>              :   }</span>
 <span id="L150"><span class="lineNum">     150</span>              : </span>
 <span id="L151"><span class="lineNum">     151</span>              :   /// The current action pane configurator.</span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          12 :   RatioConfigurator? get actionPaneConfigurator =&gt; _actionPaneConfigurator;</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          18 :   RatioConfigurator? get actionPaneConfigurator =&gt; _actionPaneConfigurator;</span></span>
 <span id="L153"><span class="lineNum">     153</span>              :   RatioConfigurator? _actionPaneConfigurator;</span>
 <span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC tlaBgUNC">           0 :   set actionPaneConfigurator(RatioConfigurator? value) {</span></span>
 <span id="L155"><span class="lineNum">     155</span> <span class="tlaUNC">           0 :     if (_actionPaneConfigurator != value) {</span></span>
@@ -226,7 +226,7 @@
 <span id="L164"><span class="lineNum">     164</span>              :   bool _replayEndGesture = false;</span>
 <span id="L165"><span class="lineNum">     165</span>              : </span>
 <span id="L166"><span class="lineNum">     166</span>              :   /// The value of the ratio over time.</span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC tlaBgGNC">          18 :   Animation&lt;double&gt; get animation =&gt; _animationController.view;</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC tlaBgGNC">          27 :   Animation&lt;double&gt; get animation =&gt; _animationController.view;</span></span>
 <span id="L168"><span class="lineNum">     168</span>              : </span>
 <span id="L169"><span class="lineNum">     169</span>              :   /// Track the end gestures.</span>
 <span id="L170"><span class="lineNum">     170</span>              :   final ValueNotifier&lt;EndGesture?&gt; endGesture;</span>
@@ -251,14 +251,14 @@
 <span id="L189"><span class="lineNum">     189</span> <span class="tlaUNC">           0 :   bool get isDismissibleReady =&gt; _dismissGesture._hasListeners;</span></span>
 <span id="L190"><span class="lineNum">     190</span>              : </span>
 <span id="L191"><span class="lineNum">     191</span>              :   /// Whether this [close()] method has been called and not finished.</span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">           4 :   bool get closing =&gt; _closing;</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">           6 :   bool get closing =&gt; _closing;</span></span>
 <span id="L193"><span class="lineNum">     193</span>              :   bool _closing = false;</span>
 <span id="L194"><span class="lineNum">     194</span>              : </span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           6 :   bool _acceptRatio(double ratio) {</span></span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">           6 :     return !_closing &amp;&amp;</span></span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           6 :         (ratio == 0 ||</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          12 :             ((ratio &gt; 0 &amp;&amp; enablePositiveActionPane) ||</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           8 :                 (ratio &lt; 0 &amp;&amp; enableNegativeActionPane)));</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           9 :   bool _acceptRatio(double ratio) {</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">           9 :     return !_closing &amp;&amp;</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           9 :         (ratio == 0 ||</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          18 :             ((ratio &gt; 0 &amp;&amp; enablePositiveActionPane) ||</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          12 :                 (ratio &lt; 0 &amp;&amp; enableNegativeActionPane)));</span></span>
 <span id="L200"><span class="lineNum">     200</span>              :   }</span>
 <span id="L201"><span class="lineNum">     201</span>              : </span>
 <span id="L202"><span class="lineNum">     202</span>              :   /// The current ratio of the full size of the [Slidable] that is already</span>
@@ -269,19 +269,19 @@
 <span id="L207"><span class="lineNum">     207</span>              :   /// [ActionPaneType.end].</span>
 <span id="L208"><span class="lineNum">     208</span>              :   /// Between 0 (exclusive) and 1 (inclusive), the action pane is</span>
 <span id="L209"><span class="lineNum">     209</span>              :   /// [ActionPaneType.start].</span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          36 :   double get ratio =&gt; _animationController.value * direction.value;</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           6 :   set ratio(double value) {</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           6 :     final newRatio = (actionPaneConfigurator?.normalizeRatio(value)) ?? value;</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          18 :     if (_acceptRatio(newRatio) &amp;&amp; newRatio != ratio) {</span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          24 :       direction.value = newRatio.sign.toInt();</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          18 :       _animationController.value = newRatio.abs();</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          54 :   double get ratio =&gt; _animationController.value * direction.value;</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           9 :   set ratio(double value) {</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           9 :     final newRatio = (actionPaneConfigurator?.normalizeRatio(value)) ?? value;</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">          27 :     if (_acceptRatio(newRatio) &amp;&amp; newRatio != ratio) {</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">          36 :       direction.value = newRatio.sign.toInt();</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          27 :       _animationController.value = newRatio.abs();</span></span>
 <span id="L216"><span class="lineNum">     216</span>              :     }</span>
 <span id="L217"><span class="lineNum">     217</span>              :   }</span>
 <span id="L218"><span class="lineNum">     218</span>              : </span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           6 :   void _onDirectionChanged() {</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           6 :     final mulitiplier = isLeftToRight ? 1 : -1;</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          24 :     final index = (direction.value * mulitiplier) + 1;</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          18 :     actionPaneType.value = ActionPaneType.values[index];</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           9 :   void _onDirectionChanged() {</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           9 :     final mulitiplier = isLeftToRight ? 1 : -1;</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          36 :     final index = (direction.value * mulitiplier) + 1;</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          27 :     actionPaneType.value = ActionPaneType.values[index];</span></span>
 <span id="L223"><span class="lineNum">     223</span>              :   }</span>
 <span id="L224"><span class="lineNum">     224</span>              : </span>
 <span id="L225"><span class="lineNum">     225</span>              :   /// Dispatches a new [EndGesture] determined by the given [velocity] and</span>
@@ -303,18 +303,18 @@
 <span id="L241"><span class="lineNum">     241</span>              :   }</span>
 <span id="L242"><span class="lineNum">     242</span>              : </span>
 <span id="L243"><span class="lineNum">     243</span>              :   /// Closes the [Slidable].</span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC tlaBgGNC">           4 :   Future&lt;void&gt; close({</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC tlaBgGNC">           6 :   Future&lt;void&gt; close({</span></span>
 <span id="L245"><span class="lineNum">     245</span>              :     Duration duration = _defaultMovementDuration,</span>
 <span id="L246"><span class="lineNum">     246</span>              :     Curve curve = _defaultCurve,</span>
 <span id="L247"><span class="lineNum">     247</span>              :   }) async {</span>
-<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           4 :     _closing = true;</span></span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           8 :     await _animationController.animateBack(</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           6 :     _closing = true;</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">          12 :     await _animationController.animateBack(</span></span>
 <span id="L250"><span class="lineNum">     250</span>              :       0,</span>
 <span id="L251"><span class="lineNum">     251</span>              :       duration: duration,</span>
 <span id="L252"><span class="lineNum">     252</span>              :       curve: curve,</span>
 <span id="L253"><span class="lineNum">     253</span>              :     );</span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">           8 :     direction.value = 0;</span></span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           4 :     _closing = false;</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">          12 :     direction.value = 0;</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           6 :     _closing = false;</span></span>
 <span id="L256"><span class="lineNum">     256</span>              :   }</span>
 <span id="L257"><span class="lineNum">     257</span>              : </span>
 <span id="L258"><span class="lineNum">     258</span>              :   /// Opens the current [ActionPane].</span>
@@ -330,58 +330,58 @@
 <span id="L268"><span class="lineNum">     268</span>              :   }</span>
 <span id="L269"><span class="lineNum">     269</span>              : </span>
 <span id="L270"><span class="lineNum">     270</span>              :   /// Opens the [Slidable.startActionPane].</span>
-<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC tlaBgGNC">           2 :   Future&lt;void&gt; openStartActionPane({</span></span>
+<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC tlaBgGNC">           3 :   Future&lt;void&gt; openStartActionPane({</span></span>
 <span id="L272"><span class="lineNum">     272</span>              :     Duration duration = _defaultMovementDuration,</span>
 <span id="L273"><span class="lineNum">     273</span>              :     Curve curve = _defaultCurve,</span>
 <span id="L274"><span class="lineNum">     274</span>              :   }) async {</span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           6 :     if (actionPaneType.value != ActionPaneType.start) {</span></span>
-<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">           6 :       direction.value = isLeftToRight ? 1 : -1;</span></span>
-<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">           2 :       ratio = 0;</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           9 :     if (actionPaneType.value != ActionPaneType.start) {</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">           9 :       direction.value = isLeftToRight ? 1 : -1;</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">           3 :       ratio = 0;</span></span>
 <span id="L278"><span class="lineNum">     278</span>              :     }</span>
 <span id="L279"><span class="lineNum">     279</span>              : </span>
-<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">           2 :     return openTo(</span></span>
-<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">           2 :       startActionPaneExtentRatio,</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC">           3 :     return openTo(</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">           3 :       startActionPaneExtentRatio,</span></span>
 <span id="L282"><span class="lineNum">     282</span>              :       duration: duration,</span>
 <span id="L283"><span class="lineNum">     283</span>              :       curve: curve,</span>
 <span id="L284"><span class="lineNum">     284</span>              :     );</span>
 <span id="L285"><span class="lineNum">     285</span>              :   }</span>
 <span id="L286"><span class="lineNum">     286</span>              : </span>
 <span id="L287"><span class="lineNum">     287</span>              :   /// Opens the [Slidable.endActionPane].</span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           2 :   Future&lt;void&gt; openEndActionPane({</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           3 :   Future&lt;void&gt; openEndActionPane({</span></span>
 <span id="L289"><span class="lineNum">     289</span>              :     Duration duration = _defaultMovementDuration,</span>
 <span id="L290"><span class="lineNum">     290</span>              :     Curve curve = _defaultCurve,</span>
 <span id="L291"><span class="lineNum">     291</span>              :   }) async {</span>
-<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           6 :     if (actionPaneType.value != ActionPaneType.end) {</span></span>
-<span id="L293"><span class="lineNum">     293</span> <span class="tlaGNC">           8 :       direction.value = isLeftToRight ? -1 : 1;</span></span>
-<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">           2 :       ratio = 0;</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           9 :     if (actionPaneType.value != ActionPaneType.end) {</span></span>
+<span id="L293"><span class="lineNum">     293</span> <span class="tlaGNC">          12 :       direction.value = isLeftToRight ? -1 : 1;</span></span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">           3 :       ratio = 0;</span></span>
 <span id="L295"><span class="lineNum">     295</span>              :     }</span>
 <span id="L296"><span class="lineNum">     296</span>              : </span>
-<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">           2 :     return openTo(</span></span>
-<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">           4 :       -endActionPaneExtentRatio,</span></span>
+<span id="L297"><span class="lineNum">     297</span> <span class="tlaGNC">           3 :     return openTo(</span></span>
+<span id="L298"><span class="lineNum">     298</span> <span class="tlaGNC">           6 :       -endActionPaneExtentRatio,</span></span>
 <span id="L299"><span class="lineNum">     299</span>              :       duration: duration,</span>
 <span id="L300"><span class="lineNum">     300</span>              :       curve: curve,</span>
 <span id="L301"><span class="lineNum">     301</span>              :     );</span>
 <span id="L302"><span class="lineNum">     302</span>              :   }</span>
 <span id="L303"><span class="lineNum">     303</span>              : </span>
 <span id="L304"><span class="lineNum">     304</span>              :   /// Opens the [Slidable] to the given [ratio].</span>
-<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">           4 :   Future&lt;void&gt; openTo(</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">           6 :   Future&lt;void&gt; openTo(</span></span>
 <span id="L306"><span class="lineNum">     306</span>              :     double ratio, {</span>
 <span id="L307"><span class="lineNum">     307</span>              :     Duration duration = _defaultMovementDuration,</span>
 <span id="L308"><span class="lineNum">     308</span>              :     Curve curve = _defaultCurve,</span>
 <span id="L309"><span class="lineNum">     309</span>              :   }) async {</span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">          16 :     assert(ratio &gt;= -1 &amp;&amp; ratio &lt;= 1);</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">          24 :     assert(ratio &gt;= -1 &amp;&amp; ratio &lt;= 1);</span></span>
 <span id="L311"><span class="lineNum">     311</span>              : </span>
-<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           4 :     if (_closing) {</span></span>
+<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           6 :     if (_closing) {</span></span>
 <span id="L313"><span class="lineNum">     313</span>              :       return;</span>
 <span id="L314"><span class="lineNum">     314</span>              :     }</span>
 <span id="L315"><span class="lineNum">     315</span>              : </span>
 <span id="L316"><span class="lineNum">     316</span>              :     // Edge case: to be able to correctly set the sign when the value is zero,</span>
 <span id="L317"><span class="lineNum">     317</span>              :     // we have to manually set the ratio to a tiny amount.</span>
-<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">          12 :     if (_animationController.value == 0) {</span></span>
-<span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">          12 :       this.ratio = 0.05 * ratio.sign;</span></span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">          18 :     if (_animationController.value == 0) {</span></span>
+<span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">          18 :       this.ratio = 0.05 * ratio.sign;</span></span>
 <span id="L320"><span class="lineNum">     320</span>              :     }</span>
-<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">           8 :     return _animationController.animateTo(</span></span>
-<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">           4 :       ratio.abs(),</span></span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">          12 :     return _animationController.animateTo(</span></span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">           6 :       ratio.abs(),</span></span>
 <span id="L323"><span class="lineNum">     323</span>              :       duration: duration,</span>
 <span id="L324"><span class="lineNum">     324</span>              :       curve: curve,</span>
 <span id="L325"><span class="lineNum">     325</span>              :     );</span>
@@ -402,16 +402,16 @@
 <span id="L340"><span class="lineNum">     340</span>              :   }</span>
 <span id="L341"><span class="lineNum">     341</span>              : </span>
 <span id="L342"><span class="lineNum">     342</span>              :   /// Disposes the controller.</span>
-<span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC tlaBgGNC">           4 :   void dispose() {</span></span>
-<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC">           8 :     _animationController.stop();</span></span>
-<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">           8 :     _animationController.dispose();</span></span>
-<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">          12 :     direction.removeListener(_onDirectionChanged);</span></span>
-<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">           8 :     direction.dispose();</span></span>
+<span id="L343"><span class="lineNum">     343</span> <span class="tlaGNC tlaBgGNC">           6 :   void dispose() {</span></span>
+<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC">          12 :     _animationController.stop();</span></span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">          12 :     _animationController.dispose();</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">          18 :     direction.removeListener(_onDirectionChanged);</span></span>
+<span id="L347"><span class="lineNum">     347</span> <span class="tlaGNC">          12 :     direction.dispose();</span></span>
 <span id="L348"><span class="lineNum">     348</span>              :   }</span>
 <span id="L349"><span class="lineNum">     349</span>              : }</span>
 <span id="L350"><span class="lineNum">     350</span>              : </span>
 <span id="L351"><span class="lineNum">     351</span>              : class _ValueNotifier&lt;T&gt; extends ValueNotifier&lt;T&gt; {</span>
-<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">          16 :   _ValueNotifier(T value) : super(value);</span></span>
+<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">          24 :   _ValueNotifier(T value) : super(value);</span></span>
 <span id="L353"><span class="lineNum">     353</span>              : </span>
 <span id="L354"><span class="lineNum">     354</span> <span class="tlaUNC tlaBgUNC">           0 :   bool get _hasListeners =&gt; hasListeners;</span></span>
 <span id="L355"><span class="lineNum">     355</span>              : }</span>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -457,11 +457,11 @@
 <span id="L395"><span class="lineNum">     395</span>              :   ];</span>
 <span id="L396"><span class="lineNum">     396</span>              : </span>
 <span id="L397"><span class="lineNum">     397</span>              :   /// Get a pseudo-random color</span>
-<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC tlaBgGNC">           2 :   static PdfColor getColor(int index) {</span></span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           2 :     final hue = index * 137.508;</span></span>
-<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           4 :     final PdfColor color = PdfColorHsv(hue % 360, 1, 1);</span></span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           6 :     if ((index / 3) % 2 == 0) {</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">           8 :       return PdfColor.fromRYB(color.red, color.green, color.blue);</span></span>
+<span id="L398"><span class="lineNum">     398</span> <span class="tlaGNC tlaBgGNC">           3 :   static PdfColor getColor(int index) {</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">           3 :     final hue = index * 137.508;</span></span>
+<span id="L400"><span class="lineNum">     400</span> <span class="tlaGNC">           6 :     final PdfColor color = PdfColorHsv(hue % 360, 1, 1);</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">           9 :     if ((index / 3) % 2 == 0) {</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">          12 :       return PdfColor.fromRYB(color.red, color.green, color.blue);</span></span>
 <span id="L403"><span class="lineNum">     403</span>              :     }</span>
 <span id="L404"><span class="lineNum">     404</span>              :     return color;</span>
 <span id="L405"><span class="lineNum">     405</span>              :   }</span>

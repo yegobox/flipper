@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -146,7 +146,7 @@
 <span id="L84"><span class="lineNum">      84</span>              : @immutable</span>
 <span id="L85"><span class="lineNum">      85</span>              : class PdfGraphicState {</span>
 <span id="L86"><span class="lineNum">      86</span>              :   /// Create a new graphic state</span>
-<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC tlaBgGNC">           6 :   const PdfGraphicState({</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC tlaBgGNC">           9 :   const PdfGraphicState({</span></span>
 <span id="L88"><span class="lineNum">      88</span>              :     double? opacity,</span>
 <span id="L89"><span class="lineNum">      89</span>              :     double? strokeOpacity,</span>
 <span id="L90"><span class="lineNum">      90</span>              :     double? fillOpacity,</span>
@@ -175,44 +175,44 @@
 <span id="L113"><span class="lineNum">     113</span>              :   String toString() =&gt;</span>
 <span id="L114"><span class="lineNum">     114</span> <span class="tlaUNC">           0 :       '$runtimeType fillOpacity:$fillOpacity strokeOpacity:$strokeOpacity blendMode:$blendMode softMask:$softMask transferFunction:$transferFunction';</span></span>
 <span id="L115"><span class="lineNum">     115</span>              : </span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC tlaBgGNC">           4 :   PdfDict output() {</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">           4 :     final params = PdfDict();</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC tlaBgGNC">           6 :   PdfDict output() {</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">           6 :     final params = PdfDict();</span></span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           4 :     if (strokeOpacity != null) {</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          12 :       params['/CA'] = PdfNum(strokeOpacity!);</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           6 :     if (strokeOpacity != null) {</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          18 :       params['/CA'] = PdfNum(strokeOpacity!);</span></span>
 <span id="L121"><span class="lineNum">     121</span>              :     }</span>
 <span id="L122"><span class="lineNum">     122</span>              : </span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">           4 :     if (fillOpacity != null) {</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">          12 :       params['/ca'] = PdfNum(fillOpacity!);</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">           6 :     if (fillOpacity != null) {</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">          18 :       params['/ca'] = PdfNum(fillOpacity!);</span></span>
 <span id="L125"><span class="lineNum">     125</span>              :     }</span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">           4 :     if (blendMode != null) {</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">           6 :     if (blendMode != null) {</span></span>
 <span id="L128"><span class="lineNum">     128</span> <span class="tlaUNC tlaBgUNC">           0 :       final bm = blendMode.toString();</span></span>
 <span id="L129"><span class="lineNum">     129</span> <span class="tlaUNC">           0 :       params['/BM'] =</span></span>
 <span id="L130"><span class="lineNum">     130</span> <span class="tlaUNC">           0 :           PdfName('/${bm.substring(13, 14).toUpperCase()}${bm.substring(14)}');</span></span>
 <span id="L131"><span class="lineNum">     131</span>              :     }</span>
 <span id="L132"><span class="lineNum">     132</span>              : </span>
-<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC tlaBgGNC">           4 :     if (softMask != null) {</span></span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           6 :       params['/SMask'] = softMask!.output();</span></span>
+<span id="L133"><span class="lineNum">     133</span> <span class="tlaGNC tlaBgGNC">           6 :     if (softMask != null) {</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           9 :       params['/SMask'] = softMask!.output();</span></span>
 <span id="L135"><span class="lineNum">     135</span>              :     }</span>
 <span id="L136"><span class="lineNum">     136</span>              : </span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           4 :     if (transferFunction != null) {</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           6 :     if (transferFunction != null) {</span></span>
 <span id="L138"><span class="lineNum">     138</span> <span class="tlaUNC tlaBgUNC">           0 :       params['/TR'] = transferFunction!.ref();</span></span>
 <span id="L139"><span class="lineNum">     139</span>              :     }</span>
 <span id="L140"><span class="lineNum">     140</span>              : </span>
 <span id="L141"><span class="lineNum">     141</span>              :     return params;</span>
 <span id="L142"><span class="lineNum">     142</span>              :   }</span>
 <span id="L143"><span class="lineNum">     143</span>              : </span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L145"><span class="lineNum">     145</span>              :   bool operator ==(Object other) {</span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           2 :     if (other is! PdfGraphicState) {</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           3 :     if (other is! PdfGraphicState) {</span></span>
 <span id="L147"><span class="lineNum">     147</span>              :       return false;</span>
 <span id="L148"><span class="lineNum">     148</span>              :     }</span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           6 :     return other.fillOpacity == fillOpacity &amp;&amp;</span></span>
-<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">           6 :         other.strokeOpacity == strokeOpacity &amp;&amp;</span></span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">           6 :         other.blendMode == blendMode &amp;&amp;</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           6 :         other.softMask == softMask &amp;&amp;</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">           6 :         other.transferFunction == transferFunction;</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           9 :     return other.fillOpacity == fillOpacity &amp;&amp;</span></span>
+<span id="L150"><span class="lineNum">     150</span> <span class="tlaGNC">           9 :         other.strokeOpacity == strokeOpacity &amp;&amp;</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">           9 :         other.blendMode == blendMode &amp;&amp;</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           9 :         other.softMask == softMask &amp;&amp;</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC">           9 :         other.transferFunction == transferFunction;</span></span>
 <span id="L154"><span class="lineNum">     154</span>              :   }</span>
 <span id="L155"><span class="lineNum">     155</span>              : </span>
 <span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>
@@ -227,29 +227,29 @@
 <span id="L165"><span class="lineNum">     165</span>              : /// Stores all the graphic states used in the document</span>
 <span id="L166"><span class="lineNum">     166</span>              : class PdfGraphicStates extends PdfObject&lt;PdfDict&gt; {</span>
 <span id="L167"><span class="lineNum">     167</span>              :   /// Create a new Graphic States object</span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC tlaBgGNC">           4 :   PdfGraphicStates(PdfDocument pdfDocument)</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">           8 :       : super(pdfDocument, params: PdfDict());</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC tlaBgGNC">           6 :   PdfGraphicStates(PdfDocument pdfDocument)</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          12 :       : super(pdfDocument, params: PdfDict());</span></span>
 <span id="L170"><span class="lineNum">     170</span>              : </span>
 <span id="L171"><span class="lineNum">     171</span>              :   final List&lt;PdfGraphicState&gt; _states = &lt;PdfGraphicState&gt;[];</span>
 <span id="L172"><span class="lineNum">     172</span>              : </span>
 <span id="L173"><span class="lineNum">     173</span>              :   static const String _prefix = '/a';</span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
 <span id="L175"><span class="lineNum">     175</span>              :   /// Generate a name for a state object</span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">           4 :   String stateName(PdfGraphicState state) {</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           8 :     var index = _states.indexOf(state);</span></span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">           4 :     if (index &lt; 0) {</span></span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">           8 :       index = _states.length;</span></span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           8 :       _states.add(state);</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">           6 :   String stateName(PdfGraphicState state) {</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          12 :     var index = _states.indexOf(state);</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">           6 :     if (index &lt; 0) {</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          12 :       index = _states.length;</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">          12 :       _states.add(state);</span></span>
 <span id="L181"><span class="lineNum">     181</span>              :     }</span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           4 :     return '$_prefix$index';</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           6 :     return '$_prefix$index';</span></span>
 <span id="L183"><span class="lineNum">     183</span>              :   }</span>
 <span id="L184"><span class="lineNum">     184</span>              : </span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           4 :   @override</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           6 :   @override</span></span>
 <span id="L186"><span class="lineNum">     186</span>              :   void prepare() {</span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">           4 :     super.prepare();</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">           6 :     super.prepare();</span></span>
 <span id="L188"><span class="lineNum">     188</span>              : </span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          16 :     for (var index = 0; index &lt; _states.length; index++) {</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          24 :       params['$_prefix$index'] = _states[index].output();</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          24 :     for (var index = 0; index &lt; _states.length; index++) {</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          36 :       params['$_prefix$index'] = _states[index].output();</span></span>
 <span id="L191"><span class="lineNum">     191</span>              :     }</span>
 <span id="L192"><span class="lineNum">     192</span>              :   }</span>
 <span id="L193"><span class="lineNum">     193</span>              : }</span>

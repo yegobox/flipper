@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -94,19 +94,19 @@
 <span id="L32"><span class="lineNum">      32</span>              :   /// Constructs a PrintingPlatform.</span>
 <span id="L33"><span class="lineNum">      33</span> <span class="tlaUNC tlaBgUNC">           0 :   PrintingPlatform() : super(token: _token);</span></span>
 <span id="L34"><span class="lineNum">      34</span>              : </span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC tlaBgGNC">           6 :   static final Object _token = Object();</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC tlaBgGNC">           9 :   static final Object _token = Object();</span></span>
 <span id="L36"><span class="lineNum">      36</span>              : </span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           2 :   static PrintingPlatform _instance = MethodChannelPrinting();</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           3 :   static PrintingPlatform _instance = MethodChannelPrinting();</span></span>
 <span id="L38"><span class="lineNum">      38</span>              : </span>
 <span id="L39"><span class="lineNum">      39</span>              :   /// The default instance of [PrintingPlatform] to use.</span>
 <span id="L40"><span class="lineNum">      40</span>              :   ///</span>
 <span id="L41"><span class="lineNum">      41</span>              :   /// Defaults to [MethodChannelPrinting].</span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           4 :   static PrintingPlatform get instance =&gt; _instance;</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           6 :   static PrintingPlatform get instance =&gt; _instance;</span></span>
 <span id="L43"><span class="lineNum">      43</span>              : </span>
 <span id="L44"><span class="lineNum">      44</span>              :   /// Platform-specific plugins should set this with their own platform-specific</span>
 <span id="L45"><span class="lineNum">      45</span>              :   /// class that extends [PrintingPlatform] when they register themselves.</span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           2 :   static set instance(PrintingPlatform instance) {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           4 :     PlatformInterface.verifyToken(instance, _token);</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">           3 :   static set instance(PrintingPlatform instance) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           6 :     PlatformInterface.verifyToken(instance, _token);</span></span>
 <span id="L48"><span class="lineNum">      48</span>              :     _instance = instance;</span>
 <span id="L49"><span class="lineNum">      49</span>              :   }</span>
 <span id="L50"><span class="lineNum">      50</span>              : </span>

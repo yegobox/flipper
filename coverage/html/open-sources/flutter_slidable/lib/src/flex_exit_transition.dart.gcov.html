@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -67,14 +67,14 @@
 <span id="L5"><span class="lineNum">       5</span>              : // ignore_for_file: public_member_api_docs</span>
 <span id="L6"><span class="lineNum">       6</span>              : </span>
 <span id="L7"><span class="lineNum">       7</span>              : class FlexExitTransition extends MultiChildRenderObjectWidget {</span>
-<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC tlaBgGNC">           2 :   FlexExitTransition({</span></span>
+<span id="L8"><span class="lineNum">       8</span> <span class="tlaGNC tlaBgGNC">           3 :   FlexExitTransition({</span></span>
 <span id="L9"><span class="lineNum">       9</span>              :     Key? key,</span>
 <span id="L10"><span class="lineNum">      10</span>              :     required this.mainAxisExtent,</span>
 <span id="L11"><span class="lineNum">      11</span>              :     required this.direction,</span>
 <span id="L12"><span class="lineNum">      12</span>              :     required this.startToEnd,</span>
 <span id="L13"><span class="lineNum">      13</span>              :     required this.initialExtentRatio,</span>
 <span id="L14"><span class="lineNum">      14</span>              :     required List&lt;Widget&gt; children,</span>
-<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">           2 :   }) : super(key: key, children: children);</span></span>
+<span id="L15"><span class="lineNum">      15</span> <span class="tlaGNC">           3 :   }) : super(key: key, children: children);</span></span>
 <span id="L16"><span class="lineNum">      16</span>              : </span>
 <span id="L17"><span class="lineNum">      17</span>              :   /// The direction to use as the main axis.</span>
 <span id="L18"><span class="lineNum">      18</span>              :   final Axis direction;</span>
@@ -89,13 +89,13 @@
 <span id="L27"><span class="lineNum">      27</span>              :   /// The animation that controls the main axis position of the children.</span>
 <span id="L28"><span class="lineNum">      28</span>              :   final Animation&lt;double&gt; mainAxisExtent;</span>
 <span id="L29"><span class="lineNum">      29</span>              : </span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L31"><span class="lineNum">      31</span>              :   RenderObject createRenderObject(BuildContext context) {</span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           2 :     return _RenderFlexExitTransition(</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           2 :       mainAxisExtent: mainAxisExtent,</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           2 :       direction: direction,</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           2 :       initialExtentRatio: initialExtentRatio,</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           2 :       startToEnd: startToEnd,</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           3 :     return _RenderFlexExitTransition(</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           3 :       mainAxisExtent: mainAxisExtent,</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           3 :       direction: direction,</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           3 :       initialExtentRatio: initialExtentRatio,</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           3 :       startToEnd: startToEnd,</span></span>
 <span id="L37"><span class="lineNum">      37</span>              :     );</span>
 <span id="L38"><span class="lineNum">      38</span>              :   }</span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
@@ -117,7 +117,7 @@
 <span id="L55"><span class="lineNum">      55</span>              :         ContainerRenderObjectMixin&lt;RenderBox, _FlexExitTransitionParentData&gt;,</span>
 <span id="L56"><span class="lineNum">      56</span>              :         RenderBoxContainerDefaultsMixin&lt;RenderBox,</span>
 <span id="L57"><span class="lineNum">      57</span>              :             _FlexExitTransitionParentData&gt; {</span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC tlaBgGNC">           2 :   _RenderFlexExitTransition({</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC tlaBgGNC">           3 :   _RenderFlexExitTransition({</span></span>
 <span id="L59"><span class="lineNum">      59</span>              :     List&lt;RenderBox&gt;? children,</span>
 <span id="L60"><span class="lineNum">      60</span>              :     Axis direction = Axis.horizontal,</span>
 <span id="L61"><span class="lineNum">      61</span>              :     required Animation&lt;double&gt; mainAxisExtent,</span>
@@ -127,7 +127,7 @@
 <span id="L65"><span class="lineNum">      65</span>              :         _mainAxisExtent = mainAxisExtent,</span>
 <span id="L66"><span class="lineNum">      66</span>              :         _initialExtentRatio = initialExtentRatio,</span>
 <span id="L67"><span class="lineNum">      67</span>              :         _startToEnd = startToEnd {</span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :     addAll(children);</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           3 :     addAll(children);</span></span>
 <span id="L69"><span class="lineNum">      69</span>              :   }</span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
 <span id="L71"><span class="lineNum">      71</span>              :   /// The direction to use as the main axis.</span>
@@ -140,7 +140,7 @@
 <span id="L78"><span class="lineNum">      78</span>              :     }</span>
 <span id="L79"><span class="lineNum">      79</span>              :   }</span>
 <span id="L80"><span class="lineNum">      80</span>              : </span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC tlaBgGNC">           4 :   bool get startToEnd =&gt; _startToEnd;</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC tlaBgGNC">           6 :   bool get startToEnd =&gt; _startToEnd;</span></span>
 <span id="L82"><span class="lineNum">      82</span>              :   bool _startToEnd;</span>
 <span id="L83"><span class="lineNum">      83</span> <span class="tlaUNC tlaBgUNC">           0 :   set startToEnd(bool value) {</span></span>
 <span id="L84"><span class="lineNum">      84</span> <span class="tlaUNC">           0 :     if (_startToEnd != value) {</span></span>
@@ -171,61 +171,61 @@
 <span id="L109"><span class="lineNum">     109</span>              :     }</span>
 <span id="L110"><span class="lineNum">     110</span>              :   }</span>
 <span id="L111"><span class="lineNum">     111</span>              : </span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L113"><span class="lineNum">     113</span>              :   void setupParentData(RenderBox child) {</span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">           4 :     if (child.parentData is! _FlexExitTransitionParentData) {</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">           4 :       child.parentData = _FlexExitTransitionParentData();</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">           6 :     if (child.parentData is! _FlexExitTransitionParentData) {</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">           6 :       child.parentData = _FlexExitTransitionParentData();</span></span>
 <span id="L116"><span class="lineNum">     116</span>              :     }</span>
 <span id="L117"><span class="lineNum">     117</span>              :   }</span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L120"><span class="lineNum">     120</span>              :   void attach(covariant PipelineOwner owner) {</span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">           2 :     super.attach(owner);</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">           6 :     _mainAxisExtent.addListener(markNeedsOffsets);</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">           3 :     super.attach(owner);</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">           9 :     _mainAxisExtent.addListener(markNeedsOffsets);</span></span>
 <span id="L123"><span class="lineNum">     123</span>              :   }</span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L126"><span class="lineNum">     126</span>              :   void detach() {</span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">           6 :     _mainAxisExtent.removeListener(markNeedsOffsets);</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">           2 :     super.detach();</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">           9 :     _mainAxisExtent.removeListener(markNeedsOffsets);</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">           3 :     super.detach();</span></span>
 <span id="L129"><span class="lineNum">     129</span>              :   }</span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
 <span id="L131"><span class="lineNum">     131</span> <span class="tlaUNC tlaBgUNC">           0 :   void markNeedsOffsets() {</span></span>
 <span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :     markNeedsLayout();</span></span>
 <span id="L133"><span class="lineNum">     133</span>              :   }</span>
 <span id="L134"><span class="lineNum">     134</span>              : </span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC tlaBgGNC">           2 :   int getTotalFlex() {</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC tlaBgGNC">           3 :   int getTotalFlex() {</span></span>
 <span id="L136"><span class="lineNum">     136</span>              :     int totalFlex = 0;</span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           4 :     visitChildren((child) {</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           2 :       final parentData = child.parentData as _FlexExitTransitionParentData?;</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">           2 :       assert(() {</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">           2 :         if (parentData!.flex != null) {</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           6 :     visitChildren((child) {</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           3 :       final parentData = child.parentData as _FlexExitTransitionParentData?;</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">           3 :       assert(() {</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">           3 :         if (parentData!.flex != null) {</span></span>
 <span id="L141"><span class="lineNum">     141</span>              :           return true;</span>
 <span id="L142"><span class="lineNum">     142</span>              :         } else {</span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           2 :           throw FlutterError.fromParts(</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">           2 :             [</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           2 :               ErrorSummary(</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           3 :           throw FlutterError.fromParts(</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">           3 :             [</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           3 :               ErrorSummary(</span></span>
 <span id="L146"><span class="lineNum">     146</span>              :                 'FlexTransition only supports children with non-zero flex',</span>
 <span id="L147"><span class="lineNum">     147</span>              :               ),</span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">           2 :               ErrorDescription(</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">           3 :               ErrorDescription(</span></span>
 <span id="L149"><span class="lineNum">     149</span>              :                 'Only children wrapped into Flexible widgets with non-zero '</span>
 <span id="L150"><span class="lineNum">     150</span>              :                 'flex are supported',</span>
 <span id="L151"><span class="lineNum">     151</span>              :               ),</span>
 <span id="L152"><span class="lineNum">     152</span>              :             ],</span>
 <span id="L153"><span class="lineNum">     153</span>              :           );</span>
 <span id="L154"><span class="lineNum">     154</span>              :         }</span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">           2 :       }());</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">           3 :       }());</span></span>
 <span id="L156"><span class="lineNum">     156</span> <span class="tlaUNC tlaBgUNC">           0 :       totalFlex += parentData!.flex!;</span></span>
 <span id="L157"><span class="lineNum">     157</span>              :     });</span>
 <span id="L158"><span class="lineNum">     158</span>              :     return totalFlex;</span>
 <span id="L159"><span class="lineNum">     159</span>              :   }</span>
 <span id="L160"><span class="lineNum">     160</span>              : </span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L162"><span class="lineNum">     162</span>              :   void performLayout() {</span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">           6 :     size = constraints.biggest;</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">           9 :     size = constraints.biggest;</span></span>
 <span id="L164"><span class="lineNum">     164</span>              :     final totalMainAxisExtent =</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">           8 :         _direction == Axis.horizontal ? size.width : size.height;</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">           2 :     final totalFlex = getTotalFlex();</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          12 :         _direction == Axis.horizontal ? size.width : size.height;</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">           3 :     final totalFlex = getTotalFlex();</span></span>
 <span id="L167"><span class="lineNum">     167</span>              :     double totalMainAxisExtentSoFar = 0;</span>
 <span id="L168"><span class="lineNum">     168</span>              : </span>
 <span id="L169"><span class="lineNum">     169</span> <span class="tlaUNC tlaBgUNC">           0 :     RenderBox? child = startToEnd ? firstChild : lastChild;</span></span>
@@ -305,16 +305,16 @@
 <span id="L243"><span class="lineNum">     243</span>              :     return false;</span>
 <span id="L244"><span class="lineNum">     244</span>              :   }</span>
 <span id="L245"><span class="lineNum">     245</span>              : </span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L247"><span class="lineNum">     247</span>              :   void paint(PaintingContext context, Offset offset) {</span>
-<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           4 :     RenderBox? child = startToEnd ? lastChild : firstChild;</span></span>
+<span id="L248"><span class="lineNum">     248</span> <span class="tlaGNC">           6 :     RenderBox? child = startToEnd ? lastChild : firstChild;</span></span>
 <span id="L249"><span class="lineNum">     249</span>              :     while (child != null) {</span>
 <span id="L250"><span class="lineNum">     250</span>              :       final childParentData =</span>
-<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">           2 :           child.parentData as _FlexExitTransitionParentData?;</span></span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           6 :       context.paintChild(child, childParentData!.offset + offset);</span></span>
+<span id="L251"><span class="lineNum">     251</span> <span class="tlaGNC">           3 :           child.parentData as _FlexExitTransitionParentData?;</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           9 :       context.paintChild(child, childParentData!.offset + offset);</span></span>
 <span id="L253"><span class="lineNum">     253</span>              : </span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">           2 :       child = startToEnd</span></span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           2 :           ? childParentData.previousSibling</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC">           3 :       child = startToEnd</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           3 :           ? childParentData.previousSibling</span></span>
 <span id="L256"><span class="lineNum">     256</span> <span class="tlaUNC tlaBgUNC">           0 :           : childParentData.nextSibling;</span></span>
 <span id="L257"><span class="lineNum">     257</span>              :     }</span>
 <span id="L258"><span class="lineNum">     258</span>              :   }</span>

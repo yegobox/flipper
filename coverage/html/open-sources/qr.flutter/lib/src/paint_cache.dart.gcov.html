@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -75,28 +75,28 @@
 <span id="L13"><span class="lineNum">      13</span>              :   final List&lt;Paint&gt; _pixelPaints = &lt;Paint&gt;[];</span>
 <span id="L14"><span class="lineNum">      14</span>              :   final Map&lt;String, Paint&gt; _keyedPaints = &lt;String, Paint&gt;{};</span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
-<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC tlaBgGNC">           4 :   String _cacheKey(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
-<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           4 :     final posKey = position != null ? position.toString() : 'any';</span></span>
-<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">           8 :     return '${element.toString()}:$posKey';</span></span>
+<span id="L16"><span class="lineNum">      16</span> <span class="tlaGNC tlaBgGNC">           6 :   String _cacheKey(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
+<span id="L17"><span class="lineNum">      17</span> <span class="tlaGNC">           6 :     final posKey = position != null ? position.toString() : 'any';</span></span>
+<span id="L18"><span class="lineNum">      18</span> <span class="tlaGNC">          12 :     return '${element.toString()}:$posKey';</span></span>
 <span id="L19"><span class="lineNum">      19</span>              :   }</span>
 <span id="L20"><span class="lineNum">      20</span>              : </span>
 <span id="L21"><span class="lineNum">      21</span>              :   /// Save a [Paint] for the provided element and position into the cache.</span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           4 :   void cache(Paint paint, QrCodeElement element,</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           6 :   void cache(Paint paint, QrCodeElement element,</span></span>
 <span id="L23"><span class="lineNum">      23</span>              :       {FinderPatternPosition? position}) {</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           4 :     if (element == QrCodeElement.codePixel) {</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           8 :       _pixelPaints.add(paint);</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           6 :     if (element == QrCodeElement.codePixel) {</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">          12 :       _pixelPaints.add(paint);</span></span>
 <span id="L26"><span class="lineNum">      26</span>              :     } else {</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          12 :       _keyedPaints[_cacheKey(element, position: position)] = paint;</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          18 :       _keyedPaints[_cacheKey(element, position: position)] = paint;</span></span>
 <span id="L28"><span class="lineNum">      28</span>              :     }</span>
 <span id="L29"><span class="lineNum">      29</span>              :   }</span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
 <span id="L31"><span class="lineNum">      31</span>              :   /// Retrieve the first [Paint] object from the paint cache for the provided</span>
 <span id="L32"><span class="lineNum">      32</span>              :   /// element and position.</span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           4 :   Paint? firstPaint(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           4 :     if (element == QrCodeElement.codePixel) {</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           8 :       return _pixelPaints.first;</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           6 :   Paint? firstPaint(QrCodeElement element, {FinderPatternPosition? position}) {</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           6 :     if (element == QrCodeElement.codePixel) {</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          12 :       return _pixelPaints.first;</span></span>
 <span id="L36"><span class="lineNum">      36</span>              :     } else {</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">          12 :       return _keyedPaints[_cacheKey(element, position: position)];</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">          18 :       return _keyedPaints[_cacheKey(element, position: position)];</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :     }</span>
 <span id="L39"><span class="lineNum">      39</span>              :   }</span>
 <span id="L40"><span class="lineNum">      40</span>              : </span>

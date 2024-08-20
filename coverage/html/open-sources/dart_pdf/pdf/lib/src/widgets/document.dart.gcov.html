@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -85,7 +85,7 @@
 <span id="L23"><span class="lineNum">      23</span>              : import 'theme.dart';</span>
 <span id="L24"><span class="lineNum">      24</span>              : </span>
 <span id="L25"><span class="lineNum">      25</span>              : class Document {</span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC tlaBgGNC">          54 :   Document({</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC tlaBgGNC">          81 :   Document({</span></span>
 <span id="L27"><span class="lineNum">      27</span>              :     PdfPageMode pageMode = PdfPageMode.none,</span>
 <span id="L28"><span class="lineNum">      28</span>              :     DeflateCallback? deflate,</span>
 <span id="L29"><span class="lineNum">      29</span>              :     bool compress = true,</span>
@@ -99,7 +99,7 @@
 <span id="L37"><span class="lineNum">      37</span>              :     String? keywords,</span>
 <span id="L38"><span class="lineNum">      38</span>              :     String? producer,</span>
 <span id="L39"><span class="lineNum">      39</span>              :     XmlDocument? metadata,</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">          54 :   }) : document = PdfDocument(</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">          81 :   }) : document = PdfDocument(</span></span>
 <span id="L41"><span class="lineNum">      41</span>              :           pageMode: pageMode,</span>
 <span id="L42"><span class="lineNum">      42</span>              :           deflate: deflate,</span>
 <span id="L43"><span class="lineNum">      43</span>              :           compress: compress,</span>
@@ -174,10 +174,10 @@
 <span id="L112"><span class="lineNum">     112</span>              : </span>
 <span id="L113"><span class="lineNum">     113</span>              :   bool _paint = false;</span>
 <span id="L114"><span class="lineNum">     114</span>              : </span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC tlaBgGNC">          48 :   void addPage(Page page, {int? index}) {</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">          96 :     assert(!_paint, 'The document has already been saved.');</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          48 :     page.generate(this, index: index);</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          96 :     _pages.add(page);</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC tlaBgGNC">          72 :   void addPage(Page page, {int? index}) {</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         144 :     assert(!_paint, 'The document has already been saved.');</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          72 :     page.generate(this, index: index);</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">         144 :     _pages.add(page);</span></span>
 <span id="L119"><span class="lineNum">     119</span>              :   }</span>
 <span id="L120"><span class="lineNum">     120</span>              : </span>
 <span id="L121"><span class="lineNum">     121</span> <span class="tlaUNC tlaBgUNC">           0 :   void editPage(int index, Page page) {</span></span>
@@ -186,14 +186,14 @@
 <span id="L124"><span class="lineNum">     124</span> <span class="tlaUNC">           0 :     _pages.add(page);</span></span>
 <span id="L125"><span class="lineNum">     125</span>              :   }</span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC tlaBgGNC">          52 :   Future&lt;Uint8List&gt; save() async {</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          52 :     if (!_paint) {</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         100 :       for (final page in _pages) {</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          48 :         page.postProcess(this);</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC tlaBgGNC">          78 :   Future&lt;Uint8List&gt; save() async {</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          78 :     if (!_paint) {</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">         150 :       for (final page in _pages) {</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          72 :         page.postProcess(this);</span></span>
 <span id="L131"><span class="lineNum">     131</span>              :       }</span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          52 :       _paint = true;</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          78 :       _paint = true;</span></span>
 <span id="L133"><span class="lineNum">     133</span>              :     }</span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         104 :     return await document.save();</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         156 :     return await document.save();</span></span>
 <span id="L135"><span class="lineNum">     135</span>              :   }</span>
 <span id="L136"><span class="lineNum">     136</span>              : }</span>
         </pre>

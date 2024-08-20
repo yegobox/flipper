@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -88,14 +88,14 @@
 <span id="L26"><span class="lineNum">      26</span>              : </span>
 <span id="L27"><span class="lineNum">      27</span>              : @immutable</span>
 <span id="L28"><span class="lineNum">      28</span>              : abstract class DecorationGraphic {</span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC tlaBgGNC">           4 :   const DecorationGraphic();</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC tlaBgGNC">           6 :   const DecorationGraphic();</span></span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
 <span id="L31"><span class="lineNum">      31</span>              :   void paint(Context context, PdfRect box);</span>
 <span id="L32"><span class="lineNum">      32</span>              : }</span>
 <span id="L33"><span class="lineNum">      33</span>              : </span>
 <span id="L34"><span class="lineNum">      34</span>              : @immutable</span>
 <span id="L35"><span class="lineNum">      35</span>              : class DecorationImage extends DecorationGraphic {</span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           2 :   const DecorationImage({</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           3 :   const DecorationImage({</span></span>
 <span id="L37"><span class="lineNum">      37</span>              :     required this.image,</span>
 <span id="L38"><span class="lineNum">      38</span>              :     this.fit = BoxFit.cover,</span>
 <span id="L39"><span class="lineNum">      39</span>              :     this.alignment = Alignment.center,</span>
@@ -107,30 +107,30 @@
 <span id="L45"><span class="lineNum">      45</span>              :   final Alignment alignment;</span>
 <span id="L46"><span class="lineNum">      46</span>              :   final double? dpi;</span>
 <span id="L47"><span class="lineNum">      47</span>              : </span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L49"><span class="lineNum">      49</span>              :   void paint(Context context, PdfRect box) {</span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           8 :     final _image = image.resolve(context, box.size, dpi: dpi);</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          12 :     final _image = image.resolve(context, box.size, dpi: dpi);</span></span>
 <span id="L51"><span class="lineNum">      51</span>              : </span>
 <span id="L52"><span class="lineNum">      52</span>              :     final imageSize =</span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          10 :         PdfPoint(_image.width.toDouble(), _image.height.toDouble());</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           6 :     final sizes = applyBoxFit(fit, imageSize, box.size);</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          10 :     final scaleX = sizes.destination!.x / sizes.source!.x;</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          10 :     final scaleY = sizes.destination!.y / sizes.source!.y;</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           4 :     final sourceRect = alignment.inscribe(</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           4 :         sizes.source!, PdfRect.fromPoints(PdfPoint.zero, imageSize));</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           6 :     final destinationRect = alignment.inscribe(sizes.destination!, box);</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          15 :         PdfPoint(_image.width.toDouble(), _image.height.toDouble());</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           9 :     final sizes = applyBoxFit(fit, imageSize, box.size);</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          15 :     final scaleX = sizes.destination!.x / sizes.source!.x;</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          15 :     final scaleY = sizes.destination!.y / sizes.source!.y;</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           6 :     final sourceRect = alignment.inscribe(</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           6 :         sizes.source!, PdfRect.fromPoints(PdfPoint.zero, imageSize));</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           9 :     final destinationRect = alignment.inscribe(sizes.destination!, box);</span></span>
 <span id="L60"><span class="lineNum">      60</span>              :     final mat =</span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           6 :         Matrix4.translationValues(destinationRect.x, destinationRect.y, 0)</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           2 :           ..scale(scaleX, scaleY, 1)</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          10 :           ..translate(-sourceRect.x, -sourceRect.y);</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           9 :         Matrix4.translationValues(destinationRect.x, destinationRect.y, 0)</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           3 :           ..scale(scaleX, scaleY, 1)</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          15 :           ..translate(-sourceRect.x, -sourceRect.y);</span></span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           2 :     context.canvas</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           2 :       ..saveContext()</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           2 :       ..drawBox(box)</span></span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           2 :       ..clipPath()</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           2 :       ..setTransform(mat)</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">           6 :       ..drawImage(_image, 0, 0, imageSize.x, imageSize.y)</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           2 :       ..restoreContext();</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           3 :     context.canvas</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           3 :       ..saveContext()</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           3 :       ..drawBox(box)</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           3 :       ..clipPath()</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           3 :       ..setTransform(mat)</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">           9 :       ..drawImage(_image, 0, 0, imageSize.x, imageSize.y)</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           3 :       ..restoreContext();</span></span>
 <span id="L72"><span class="lineNum">      72</span>              :   }</span>
 <span id="L73"><span class="lineNum">      73</span>              : }</span>
 <span id="L74"><span class="lineNum">      74</span>              : </span>
@@ -150,7 +150,7 @@
 <span id="L88"><span class="lineNum">      88</span>              : @immutable</span>
 <span id="L89"><span class="lineNum">      89</span>              : abstract class Gradient {</span>
 <span id="L90"><span class="lineNum">      90</span>              :   /// Initialize the gradient's colors and stops.</span>
-<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">           2 :   const Gradient({</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">           3 :   const Gradient({</span></span>
 <span id="L92"><span class="lineNum">      92</span>              :     required this.colors,</span>
 <span id="L93"><span class="lineNum">      93</span>              :     this.stops,</span>
 <span id="L94"><span class="lineNum">      94</span>              :   });</span>
@@ -166,7 +166,7 @@
 <span id="L104"><span class="lineNum">     104</span>              : /// A 2D linear gradient.</span>
 <span id="L105"><span class="lineNum">     105</span>              : class LinearGradient extends Gradient {</span>
 <span id="L106"><span class="lineNum">     106</span>              :   /// Creates a linear gradient.</span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           2 :   const LinearGradient({</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           3 :   const LinearGradient({</span></span>
 <span id="L108"><span class="lineNum">     108</span>              :     this.begin = Alignment.centerLeft,</span>
 <span id="L109"><span class="lineNum">     109</span>              :     this.end = Alignment.centerRight,</span>
 <span id="L110"><span class="lineNum">     110</span>              :     required List&lt;PdfColor&gt; colors,</span>
@@ -183,40 +183,40 @@
 <span id="L121"><span class="lineNum">     121</span>              :   /// How this gradient should tile the plane beyond in the region before</span>
 <span id="L122"><span class="lineNum">     122</span>              :   final TileMode tileMode;</span>
 <span id="L123"><span class="lineNum">     123</span>              : </span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L125"><span class="lineNum">     125</span>              :   void paint(Context context, PdfRect box) {</span>
-<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">           4 :     if (colors.isEmpty) {</span></span>
+<span id="L126"><span class="lineNum">     126</span> <span class="tlaGNC">           6 :     if (colors.isEmpty) {</span></span>
 <span id="L127"><span class="lineNum">     127</span>              :       return;</span>
 <span id="L128"><span class="lineNum">     128</span>              :     }</span>
 <span id="L129"><span class="lineNum">     129</span>              : </span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">           6 :     if (colors.length == 1) {</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">           9 :     if (colors.length == 1) {</span></span>
 <span id="L131"><span class="lineNum">     131</span> <span class="tlaUNC tlaBgUNC">           0 :       context.canvas</span></span>
 <span id="L132"><span class="lineNum">     132</span> <span class="tlaUNC">           0 :         ..setFillColor(colors.first)</span></span>
 <span id="L133"><span class="lineNum">     133</span> <span class="tlaUNC">           0 :         ..fillPath();</span></span>
 <span id="L134"><span class="lineNum">     134</span>              :     }</span>
 <span id="L135"><span class="lineNum">     135</span>              : </span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC tlaBgGNC">          12 :     assert(stops == null || stops!.length == colors.length);</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           2 :     final textDirection = Directionality.of(context);</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           2 :     context.canvas</span></span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">           2 :       ..saveContext()</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">           2 :       ..clipPath()</span></span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">           2 :       ..applyShader(</span></span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">           2 :         PdfShading(</span></span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           2 :           context.document,</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC tlaBgGNC">          18 :     assert(stops == null || stops!.length == colors.length);</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">           3 :     final textDirection = Directionality.of(context);</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">           3 :     context.canvas</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">           3 :       ..saveContext()</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">           3 :       ..clipPath()</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">           3 :       ..applyShader(</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">           3 :         PdfShading(</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           3 :           context.document,</span></span>
 <span id="L144"><span class="lineNum">     144</span>              :           shadingType: PdfShadingType.axial,</span>
 <span id="L145"><span class="lineNum">     145</span>              :           boundingBox: box,</span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           2 :           function: PdfBaseFunction.colorsAndStops(</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           2 :             context.document,</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">           2 :             colors,</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           2 :             stops,</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           3 :           function: PdfBaseFunction.colorsAndStops(</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           3 :             context.document,</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">           3 :             colors,</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           3 :             stops,</span></span>
 <span id="L150"><span class="lineNum">     150</span>              :           ),</span>
-<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">           6 :           start: begin.resolve(textDirection).withinRect(box),</span></span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           6 :           end: end.resolve(textDirection).withinRect(box),</span></span>
+<span id="L151"><span class="lineNum">     151</span> <span class="tlaGNC">           9 :           start: begin.resolve(textDirection).withinRect(box),</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">           9 :           end: end.resolve(textDirection).withinRect(box),</span></span>
 <span id="L153"><span class="lineNum">     153</span>              :           extendStart: true,</span>
 <span id="L154"><span class="lineNum">     154</span>              :           extendEnd: true,</span>
 <span id="L155"><span class="lineNum">     155</span>              :         ),</span>
 <span id="L156"><span class="lineNum">     156</span>              :       )</span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">           2 :       ..restoreContext();</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">           3 :       ..restoreContext();</span></span>
 <span id="L158"><span class="lineNum">     158</span>              :   }</span>
 <span id="L159"><span class="lineNum">     159</span>              : }</span>
 <span id="L160"><span class="lineNum">     160</span>              : </span>
@@ -226,7 +226,7 @@
 <span id="L164"><span class="lineNum">     164</span>              :   ///</span>
 <span id="L165"><span class="lineNum">     165</span>              :   /// The [colors] argument must not be null. If [stops] is non-null, it must</span>
 <span id="L166"><span class="lineNum">     166</span>              :   /// have the same length as [colors].</span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">           2 :   const RadialGradient({</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">           3 :   const RadialGradient({</span></span>
 <span id="L168"><span class="lineNum">     168</span>              :     this.center = Alignment.center,</span>
 <span id="L169"><span class="lineNum">     169</span>              :     this.radius = 0.5,</span>
 <span id="L170"><span class="lineNum">     170</span>              :     required List&lt;PdfColor&gt; colors,</span>
@@ -252,51 +252,51 @@
 <span id="L190"><span class="lineNum">     190</span>              :   /// The radius of the focal point of the gradient.</span>
 <span id="L191"><span class="lineNum">     191</span>              :   final double focalRadius;</span>
 <span id="L192"><span class="lineNum">     192</span>              : </span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC tlaBgGNC">           2 :   @override</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC tlaBgGNC">           3 :   @override</span></span>
 <span id="L194"><span class="lineNum">     194</span>              :   void paint(Context context, PdfRect box) {</span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           4 :     if (colors.isEmpty) {</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           6 :     if (colors.isEmpty) {</span></span>
 <span id="L196"><span class="lineNum">     196</span>              :       return;</span>
 <span id="L197"><span class="lineNum">     197</span>              :     }</span>
 <span id="L198"><span class="lineNum">     198</span>              : </span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           6 :     if (colors.length == 1) {</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           9 :     if (colors.length == 1) {</span></span>
 <span id="L200"><span class="lineNum">     200</span> <span class="tlaUNC tlaBgUNC">           0 :       context.canvas</span></span>
 <span id="L201"><span class="lineNum">     201</span> <span class="tlaUNC">           0 :         ..setFillColor(colors.first)</span></span>
 <span id="L202"><span class="lineNum">     202</span> <span class="tlaUNC">           0 :         ..fillPath();</span></span>
 <span id="L203"><span class="lineNum">     203</span>              :     }</span>
 <span id="L204"><span class="lineNum">     204</span>              : </span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC tlaBgGNC">          12 :     assert(stops == null || stops!.length == colors.length);</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC tlaBgGNC">          18 :     assert(stops == null || stops!.length == colors.length);</span></span>
 <span id="L206"><span class="lineNum">     206</span>              : </span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           2 :     final _focal = focal ?? center;</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           3 :     final _focal = focal ?? center;</span></span>
 <span id="L208"><span class="lineNum">     208</span>              : </span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">           6 :     final _radius = math.min(box.width, box.height);</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">           2 :     final textDirection = Directionality.of(context);</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           2 :     context.canvas</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           2 :       ..saveContext()</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">           2 :       ..clipPath()</span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">           2 :       ..applyShader(</span></span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">           2 :         PdfShading(</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">           2 :           context.document,</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">           9 :     final _radius = math.min(box.width, box.height);</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">           3 :     final textDirection = Directionality.of(context);</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">           3 :     context.canvas</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">           3 :       ..saveContext()</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">           3 :       ..clipPath()</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">           3 :       ..applyShader(</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">           3 :         PdfShading(</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">           3 :           context.document,</span></span>
 <span id="L217"><span class="lineNum">     217</span>              :           shadingType: PdfShadingType.radial,</span>
 <span id="L218"><span class="lineNum">     218</span>              :           boundingBox: box,</span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           2 :           function: PdfBaseFunction.colorsAndStops(</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           2 :             context.document,</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">           2 :             colors,</span></span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">           2 :             stops,</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">           3 :           function: PdfBaseFunction.colorsAndStops(</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           3 :             context.document,</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">           3 :             colors,</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">           3 :             stops,</span></span>
 <span id="L223"><span class="lineNum">     223</span>              :           ),</span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           4 :           start: _focal.resolve(textDirection).withinRect(box),</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           6 :           end: center.resolve(textDirection).withinRect(box),</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           4 :           radius0: focalRadius * _radius,</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           4 :           radius1: radius * _radius,</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           6 :           start: _focal.resolve(textDirection).withinRect(box),</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           9 :           end: center.resolve(textDirection).withinRect(box),</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           6 :           radius0: focalRadius * _radius,</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           6 :           radius1: radius * _radius,</span></span>
 <span id="L228"><span class="lineNum">     228</span>              :           extendStart: true,</span>
 <span id="L229"><span class="lineNum">     229</span>              :           extendEnd: true,</span>
 <span id="L230"><span class="lineNum">     230</span>              :         ),</span>
 <span id="L231"><span class="lineNum">     231</span>              :       )</span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           2 :       ..restoreContext();</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           3 :       ..restoreContext();</span></span>
 <span id="L233"><span class="lineNum">     233</span>              :   }</span>
 <span id="L234"><span class="lineNum">     234</span>              : }</span>
 <span id="L235"><span class="lineNum">     235</span>              : </span>
 <span id="L236"><span class="lineNum">     236</span>              : class BoxShadow {</span>
-<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">           2 :   const BoxShadow({</span></span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">           3 :   const BoxShadow({</span></span>
 <span id="L238"><span class="lineNum">     238</span>              :     this.color = PdfColors.black,</span>
 <span id="L239"><span class="lineNum">     239</span>              :     this.offset = PdfPoint.zero,</span>
 <span id="L240"><span class="lineNum">     240</span>              :     this.blurRadius = 0.0,</span>
@@ -315,7 +315,7 @@
 <span id="L253"><span class="lineNum">     253</span>              : </span>
 <span id="L254"><span class="lineNum">     254</span>              : @immutable</span>
 <span id="L255"><span class="lineNum">     255</span>              : class BoxDecoration {</span>
-<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">         178 :   const BoxDecoration({</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">         267 :   const BoxDecoration({</span></span>
 <span id="L257"><span class="lineNum">     257</span>              :     this.color,</span>
 <span id="L258"><span class="lineNum">     258</span>              :     this.border,</span>
 <span id="L259"><span class="lineNum">     259</span>              :     this.borderRadius,</span>
@@ -334,33 +334,33 @@
 <span id="L272"><span class="lineNum">     272</span>              :   final Gradient? gradient;</span>
 <span id="L273"><span class="lineNum">     273</span>              :   final List&lt;BoxShadow&gt;? boxShadow;</span>
 <span id="L274"><span class="lineNum">     274</span>              : </span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">          20 :   void paint(</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">          30 :   void paint(</span></span>
 <span id="L276"><span class="lineNum">     276</span>              :     Context context,</span>
 <span id="L277"><span class="lineNum">     277</span>              :     PdfRect box, [</span>
 <span id="L278"><span class="lineNum">     278</span>              :     PaintPhase phase = PaintPhase.all,</span>
 <span id="L279"><span class="lineNum">     279</span>              :   ]) {</span>
 <span id="L280"><span class="lineNum">     280</span>              :     final resolvedBorderRadius =</span>
-<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">          40 :         borderRadius?.resolve(Directionality.of(context));</span></span>
-<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">          22 :     if (phase == PaintPhase.all || phase == PaintPhase.background) {</span></span>
-<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          20 :       if (color != null) {</span></span>
-<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          18 :         switch (shape) {</span></span>
-<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          18 :           case BoxShape.rectangle:</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">          60 :         borderRadius?.resolve(Directionality.of(context));</span></span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">          33 :     if (phase == PaintPhase.all || phase == PaintPhase.background) {</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          30 :       if (color != null) {</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          27 :         switch (shape) {</span></span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          27 :           case BoxShape.rectangle:</span></span>
 <span id="L286"><span class="lineNum">     286</span>              :             if (resolvedBorderRadius == null) {</span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          16 :               if (boxShadow != null) {</span></span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           6 :                 for (final s in boxShadow!) {</span></span>
-<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">           6 :                   final i = PdfRasterBase.shadowRect(box.width, box.height,</span></span>
-<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">           6 :                       s.spreadRadius, s.blurRadius, s.color);</span></span>
-<span id="L291"><span class="lineNum">     291</span> <span class="tlaGNC">           4 :                   final m = PdfImage.fromImage(context.document, image: i);</span></span>
-<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           4 :                   context.canvas.drawImage(</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          24 :               if (boxShadow != null) {</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           9 :                 for (final s in boxShadow!) {</span></span>
+<span id="L289"><span class="lineNum">     289</span> <span class="tlaGNC">           9 :                   final i = PdfRasterBase.shadowRect(box.width, box.height,</span></span>
+<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">           9 :                       s.spreadRadius, s.blurRadius, s.color);</span></span>
+<span id="L291"><span class="lineNum">     291</span> <span class="tlaGNC">           6 :                   final m = PdfImage.fromImage(context.document, image: i);</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           6 :                   context.canvas.drawImage(</span></span>
 <span id="L293"><span class="lineNum">     293</span>              :                     m,</span>
-<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          12 :                     box.x + s.offset.x - s.spreadRadius,</span></span>
-<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">          12 :                     box.y - s.offset.y - s.spreadRadius,</span></span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          18 :                     box.x + s.offset.x - s.spreadRadius,</span></span>
+<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">          18 :                     box.y - s.offset.y - s.spreadRadius,</span></span>
 <span id="L296"><span class="lineNum">     296</span>              :                   );</span>
 <span id="L297"><span class="lineNum">     297</span>              :                 }</span>
 <span id="L298"><span class="lineNum">     298</span>              :               }</span>
-<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          32 :               context.canvas.drawBox(box);</span></span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          48 :               context.canvas.drawBox(box);</span></span>
 <span id="L300"><span class="lineNum">     300</span>              :             } else {</span>
-<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">          10 :               if (boxShadow != null) {</span></span>
+<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">          15 :               if (boxShadow != null) {</span></span>
 <span id="L302"><span class="lineNum">     302</span> <span class="tlaUNC tlaBgUNC">           0 :                 for (final s in boxShadow!) {</span></span>
 <span id="L303"><span class="lineNum">     303</span> <span class="tlaUNC">           0 :                   final i = PdfRasterBase.shadowRect(box.width, box.height,</span></span>
 <span id="L304"><span class="lineNum">     304</span> <span class="tlaUNC">           0 :                       s.spreadRadius, s.blurRadius, s.color);</span></span>
@@ -372,38 +372,38 @@
 <span id="L310"><span class="lineNum">     310</span>              :                   );</span>
 <span id="L311"><span class="lineNum">     311</span>              :                 }</span>
 <span id="L312"><span class="lineNum">     312</span>              :               }</span>
-<span id="L313"><span class="lineNum">     313</span> <span class="tlaGNC tlaBgGNC">          10 :               resolvedBorderRadius.paint(context, box);</span></span>
+<span id="L313"><span class="lineNum">     313</span> <span class="tlaGNC tlaBgGNC">          15 :               resolvedBorderRadius.paint(context, box);</span></span>
 <span id="L314"><span class="lineNum">     314</span>              :             }</span>
 <span id="L315"><span class="lineNum">     315</span>              :             break;</span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">           2 :           case BoxShape.circle:</span></span>
-<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">           8 :             if (boxShadow != null &amp;&amp; box.width == box.height) {</span></span>
-<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">           6 :               for (final s in boxShadow!) {</span></span>
-<span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">           6 :                 final i = PdfRasterBase.shadowEllipse(box.width, box.height,</span></span>
-<span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">           6 :                     s.spreadRadius, s.blurRadius, s.color);</span></span>
-<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">           4 :                 final m = PdfImage.fromImage(context.document, image: i);</span></span>
-<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">           4 :                 context.canvas.drawImage(</span></span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">           3 :           case BoxShape.circle:</span></span>
+<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">          12 :             if (boxShadow != null &amp;&amp; box.width == box.height) {</span></span>
+<span id="L318"><span class="lineNum">     318</span> <span class="tlaGNC">           9 :               for (final s in boxShadow!) {</span></span>
+<span id="L319"><span class="lineNum">     319</span> <span class="tlaGNC">           9 :                 final i = PdfRasterBase.shadowEllipse(box.width, box.height,</span></span>
+<span id="L320"><span class="lineNum">     320</span> <span class="tlaGNC">           9 :                     s.spreadRadius, s.blurRadius, s.color);</span></span>
+<span id="L321"><span class="lineNum">     321</span> <span class="tlaGNC">           6 :                 final m = PdfImage.fromImage(context.document, image: i);</span></span>
+<span id="L322"><span class="lineNum">     322</span> <span class="tlaGNC">           6 :                 context.canvas.drawImage(</span></span>
 <span id="L323"><span class="lineNum">     323</span>              :                   m,</span>
-<span id="L324"><span class="lineNum">     324</span> <span class="tlaGNC">          12 :                   box.x + s.offset.x - s.spreadRadius,</span></span>
-<span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC">          12 :                   box.y - s.offset.y - s.spreadRadius,</span></span>
+<span id="L324"><span class="lineNum">     324</span> <span class="tlaGNC">          18 :                   box.x + s.offset.x - s.spreadRadius,</span></span>
+<span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC">          18 :                   box.y - s.offset.y - s.spreadRadius,</span></span>
 <span id="L326"><span class="lineNum">     326</span>              :                 );</span>
 <span id="L327"><span class="lineNum">     327</span>              :               }</span>
 <span id="L328"><span class="lineNum">     328</span>              :             }</span>
-<span id="L329"><span class="lineNum">     329</span> <span class="tlaGNC">          12 :             context.canvas.drawEllipse(box.x + box.width / 2.0,</span></span>
-<span id="L330"><span class="lineNum">     330</span> <span class="tlaGNC">          16 :                 box.y + box.height / 2.0, box.width / 2.0, box.height / 2.0);</span></span>
+<span id="L329"><span class="lineNum">     329</span> <span class="tlaGNC">          18 :             context.canvas.drawEllipse(box.x + box.width / 2.0,</span></span>
+<span id="L330"><span class="lineNum">     330</span> <span class="tlaGNC">          24 :                 box.y + box.height / 2.0, box.width / 2.0, box.height / 2.0);</span></span>
 <span id="L331"><span class="lineNum">     331</span>              :             break;</span>
 <span id="L332"><span class="lineNum">     332</span>              :         }</span>
-<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">          18 :         context.canvas</span></span>
-<span id="L334"><span class="lineNum">     334</span> <span class="tlaGNC">          36 :           ..setFillColor(color)</span></span>
-<span id="L335"><span class="lineNum">     335</span> <span class="tlaGNC">          18 :           ..fillPath();</span></span>
+<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">          27 :         context.canvas</span></span>
+<span id="L334"><span class="lineNum">     334</span> <span class="tlaGNC">          54 :           ..setFillColor(color)</span></span>
+<span id="L335"><span class="lineNum">     335</span> <span class="tlaGNC">          27 :           ..fillPath();</span></span>
 <span id="L336"><span class="lineNum">     336</span>              :       }</span>
 <span id="L337"><span class="lineNum">     337</span>              : </span>
-<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">          20 :       if (gradient != null) {</span></span>
-<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">           2 :         switch (shape) {</span></span>
-<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">           2 :           case BoxShape.rectangle:</span></span>
+<span id="L338"><span class="lineNum">     338</span> <span class="tlaGNC">          30 :       if (gradient != null) {</span></span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">           3 :         switch (shape) {</span></span>
+<span id="L340"><span class="lineNum">     340</span> <span class="tlaGNC">           3 :           case BoxShape.rectangle:</span></span>
 <span id="L341"><span class="lineNum">     341</span>              :             if (resolvedBorderRadius == null) {</span>
 <span id="L342"><span class="lineNum">     342</span> <span class="tlaUNC tlaBgUNC">           0 :               context.canvas.drawBox(box);</span></span>
 <span id="L343"><span class="lineNum">     343</span>              :             } else {</span>
-<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC tlaBgGNC">           2 :               resolvedBorderRadius.paint(context, box);</span></span>
+<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC tlaBgGNC">           3 :               resolvedBorderRadius.paint(context, box);</span></span>
 <span id="L345"><span class="lineNum">     345</span>              :             }</span>
 <span id="L346"><span class="lineNum">     346</span>              :             break;</span>
 <span id="L347"><span class="lineNum">     347</span> <span class="tlaUNC tlaBgUNC">           0 :           case BoxShape.circle:</span></span>
@@ -412,37 +412,37 @@
 <span id="L350"><span class="lineNum">     350</span>              :             break;</span>
 <span id="L351"><span class="lineNum">     351</span>              :         }</span>
 <span id="L352"><span class="lineNum">     352</span>              : </span>
-<span id="L353"><span class="lineNum">     353</span> <span class="tlaGNC tlaBgGNC">           4 :         gradient!.paint(context, box);</span></span>
+<span id="L353"><span class="lineNum">     353</span> <span class="tlaGNC tlaBgGNC">           6 :         gradient!.paint(context, box);</span></span>
 <span id="L354"><span class="lineNum">     354</span>              :       }</span>
 <span id="L355"><span class="lineNum">     355</span>              : </span>
-<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">          20 :       if (image != null) {</span></span>
-<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">           8 :         context.canvas.saveContext();</span></span>
-<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">           4 :         switch (shape) {</span></span>
-<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">           4 :           case BoxShape.circle:</span></span>
-<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">           2 :             context.canvas</span></span>
-<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">          18 :               ..drawEllipse(box.x + box.width / 2.0, box.y + box.height / 2.0,</span></span>
-<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">           8 :                   box.width / 2.0, box.height / 2.0)</span></span>
-<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           2 :               ..clipPath();</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">          30 :       if (image != null) {</span></span>
+<span id="L357"><span class="lineNum">     357</span> <span class="tlaGNC">          12 :         context.canvas.saveContext();</span></span>
+<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">           6 :         switch (shape) {</span></span>
+<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">           6 :           case BoxShape.circle:</span></span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">           3 :             context.canvas</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">          27 :               ..drawEllipse(box.x + box.width / 2.0, box.y + box.height / 2.0,</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">          12 :                   box.width / 2.0, box.height / 2.0)</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           3 :               ..clipPath();</span></span>
 <span id="L364"><span class="lineNum">     364</span>              : </span>
 <span id="L365"><span class="lineNum">     365</span>              :             break;</span>
-<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">           4 :           case BoxShape.rectangle:</span></span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">           6 :           case BoxShape.rectangle:</span></span>
 <span id="L367"><span class="lineNum">     367</span>              :             if (resolvedBorderRadius != null) {</span>
-<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">           4 :               resolvedBorderRadius.paint(context, box);</span></span>
-<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">           8 :               context.canvas.clipPath();</span></span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC">           6 :               resolvedBorderRadius.paint(context, box);</span></span>
+<span id="L369"><span class="lineNum">     369</span> <span class="tlaGNC">          12 :               context.canvas.clipPath();</span></span>
 <span id="L370"><span class="lineNum">     370</span>              :             }</span>
 <span id="L371"><span class="lineNum">     371</span>              :             break;</span>
 <span id="L372"><span class="lineNum">     372</span>              :         }</span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">           8 :         image!.paint(context, box);</span></span>
-<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           8 :         context.canvas.restoreContext();</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">          12 :         image!.paint(context, box);</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">          12 :         context.canvas.restoreContext();</span></span>
 <span id="L375"><span class="lineNum">     375</span>              :       }</span>
 <span id="L376"><span class="lineNum">     376</span>              :     }</span>
 <span id="L377"><span class="lineNum">     377</span>              : </span>
-<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">          22 :     if (phase == PaintPhase.all || phase == PaintPhase.foreground) {</span></span>
-<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">          20 :       if (border != null) {</span></span>
-<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">          20 :         border!.paint(</span></span>
+<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">          33 :     if (phase == PaintPhase.all || phase == PaintPhase.foreground) {</span></span>
+<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">          30 :       if (border != null) {</span></span>
+<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">          30 :         border!.paint(</span></span>
 <span id="L381"><span class="lineNum">     381</span>              :           context,</span>
 <span id="L382"><span class="lineNum">     382</span>              :           box,</span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          10 :           shape: shape,</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          15 :           shape: shape,</span></span>
 <span id="L384"><span class="lineNum">     384</span>              :           borderRadius: resolvedBorderRadius,</span>
 <span id="L385"><span class="lineNum">     385</span>              :         );</span>
 <span id="L386"><span class="lineNum">     386</span>              :       }</span>

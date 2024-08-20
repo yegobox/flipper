@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -125,15 +125,15 @@
 <span id="L63"><span class="lineNum">      63</span>              :   int firstChild = 0;</span>
 <span id="L64"><span class="lineNum">      64</span>              :   int lastChild = 0;</span>
 <span id="L65"><span class="lineNum">      65</span>              : </span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC tlaBgGNC">           6 :   @override</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC tlaBgGNC">           9 :   @override</span></span>
 <span id="L67"><span class="lineNum">      67</span>              :   void apply(FlexContext other) {</span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          12 :     firstChild = other.firstChild;</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          12 :     lastChild = other.lastChild;</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          18 :     firstChild = other.firstChild;</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          18 :     lastChild = other.lastChild;</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :   }</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           9 :   @override</span></span>
 <span id="L73"><span class="lineNum">      73</span>              :   WidgetContext clone() {</span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          12 :     return FlexContext()..apply(this);</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          18 :     return FlexContext()..apply(this);</span></span>
 <span id="L75"><span class="lineNum">      75</span>              :   }</span>
 <span id="L76"><span class="lineNum">      76</span>              : </span>
 <span id="L77"><span class="lineNum">      77</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>
@@ -141,14 +141,14 @@
 <span id="L79"><span class="lineNum">      79</span>              : }</span>
 <span id="L80"><span class="lineNum">      80</span>              : </span>
 <span id="L81"><span class="lineNum">      81</span>              : class Flex extends MultiChildWidget with SpanningWidget {</span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC tlaBgGNC">          28 :   Flex({</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC tlaBgGNC">          42 :   Flex({</span></span>
 <span id="L83"><span class="lineNum">      83</span>              :     required this.direction,</span>
 <span id="L84"><span class="lineNum">      84</span>              :     this.mainAxisAlignment = MainAxisAlignment.start,</span>
 <span id="L85"><span class="lineNum">      85</span>              :     this.mainAxisSize = MainAxisSize.max,</span>
 <span id="L86"><span class="lineNum">      86</span>              :     this.crossAxisAlignment = CrossAxisAlignment.center,</span>
 <span id="L87"><span class="lineNum">      87</span>              :     this.verticalDirection = VerticalDirection.down,</span>
 <span id="L88"><span class="lineNum">      88</span>              :     List&lt;Widget&gt; children = const &lt;Widget&gt;[],</span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          28 :   }) : super(children: children);</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          42 :   }) : super(children: children);</span></span>
 <span id="L90"><span class="lineNum">      90</span>              : </span>
 <span id="L91"><span class="lineNum">      91</span>              :   final Axis direction;</span>
 <span id="L92"><span class="lineNum">      92</span>              : </span>
@@ -266,46 +266,46 @@
 <span id="L204"><span class="lineNum">     204</span> <span class="tlaUNC">           0 :         childSize: (Widget child, double? extent) =&gt; child.box!.height);</span></span>
 <span id="L205"><span class="lineNum">     205</span>              :   }</span>
 <span id="L206"><span class="lineNum">     206</span>              : </span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC tlaBgGNC">          28 :   double _getCrossSize(Widget child) {</span></span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">          28 :     switch (direction) {</span></span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">          28 :       case Axis.horizontal:</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          28 :         return child.box!.height;</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">          26 :       case Axis.vertical:</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          52 :         return child.box!.width;</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC tlaBgGNC">          42 :   double _getCrossSize(Widget child) {</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">          42 :     switch (direction) {</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">          42 :       case Axis.horizontal:</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          42 :         return child.box!.height;</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">          39 :       case Axis.vertical:</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          78 :         return child.box!.width;</span></span>
 <span id="L213"><span class="lineNum">     213</span>              :     }</span>
 <span id="L214"><span class="lineNum">     214</span>              :   }</span>
 <span id="L215"><span class="lineNum">     215</span>              : </span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          28 :   double _getMainSize(Widget child) {</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">          28 :     switch (direction) {</span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">          28 :       case Axis.horizontal:</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          28 :         return child.box!.width;</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          26 :       case Axis.vertical:</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          52 :         return child.box!.height;</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          42 :   double _getMainSize(Widget child) {</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">          42 :     switch (direction) {</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">          42 :       case Axis.horizontal:</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          42 :         return child.box!.width;</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          39 :       case Axis.vertical:</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          78 :         return child.box!.height;</span></span>
 <span id="L222"><span class="lineNum">     222</span>              :     }</span>
 <span id="L223"><span class="lineNum">     223</span>              :   }</span>
 <span id="L224"><span class="lineNum">     224</span>              : </span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          28 :   @override</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          42 :   @override</span></span>
 <span id="L226"><span class="lineNum">     226</span>              :   void layout(Context context, BoxConstraints constraints,</span>
 <span id="L227"><span class="lineNum">     227</span>              :       {bool parentUsesSize = false}) {</span>
 <span id="L228"><span class="lineNum">     228</span>              :     // Determine used flex factor, size inflexible items, calculate free space.</span>
 <span id="L229"><span class="lineNum">     229</span>              :     var totalFlex = 0;</span>
 <span id="L230"><span class="lineNum">     230</span>              :     Widget? lastFlexChild;</span>
 <span id="L231"><span class="lineNum">     231</span>              : </span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">          56 :     final maxMainSize = direction == Axis.horizontal</span></span>
-<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          14 :         ? constraints.maxWidth</span></span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          26 :         : constraints.maxHeight;</span></span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          28 :     final canFlex = maxMainSize &lt; double.infinity;</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">          84 :     final maxMainSize = direction == Axis.horizontal</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          21 :         ? constraints.maxWidth</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          39 :         : constraints.maxHeight;</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">          42 :     final canFlex = maxMainSize &lt; double.infinity;</span></span>
 <span id="L236"><span class="lineNum">     236</span>              : </span>
 <span id="L237"><span class="lineNum">     237</span>              :     var crossSize = 0.0;</span>
 <span id="L238"><span class="lineNum">     238</span>              :     var allocatedSize = 0.0; // Sum of the sizes of the non-flexible children.</span>
-<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">          56 :     var index = _context.firstChild;</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">          84 :     var index = _context.firstChild;</span></span>
 <span id="L240"><span class="lineNum">     240</span>              : </span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">         140 :     for (final child in children.sublist(_context.firstChild)) {</span></span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          36 :       final flex = child is Flexible ? child.flex : 0;</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">          36 :       final fit = child is Flexible ? child.fit : FlexFit.loose;</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">          28 :       if (flex &gt; 0) {</span></span>
-<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">          16 :         assert(() {</span></span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          16 :           final dimension = direction == Axis.horizontal ? 'width' : 'height';</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">         210 :     for (final child in children.sublist(_context.firstChild)) {</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">          54 :       final flex = child is Flexible ? child.flex : 0;</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">          54 :       final fit = child is Flexible ? child.fit : FlexFit.loose;</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">          42 :       if (flex &gt; 0) {</span></span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">          24 :         assert(() {</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          24 :           final dimension = direction == Axis.horizontal ? 'width' : 'height';</span></span>
 <span id="L247"><span class="lineNum">     247</span>              :           if (!canFlex &amp;&amp;</span>
 <span id="L248"><span class="lineNum">     248</span> <span class="tlaUNC tlaBgUNC">           0 :               (mainAxisSize == MainAxisSize.max || fit == FlexFit.tight)) {</span></span>
 <span id="L249"><span class="lineNum">     249</span> <span class="tlaUNC">           0 :             throw Exception(</span></span>
@@ -313,11 +313,11 @@
 <span id="L251"><span class="lineNum">     251</span>              :           } else {</span>
 <span id="L252"><span class="lineNum">     252</span>              :             return true;</span>
 <span id="L253"><span class="lineNum">     253</span>              :           }</span>
-<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC tlaBgGNC">           8 :         }());</span></span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           8 :         totalFlex += flex;</span></span>
+<span id="L254"><span class="lineNum">     254</span> <span class="tlaGNC tlaBgGNC">          12 :         }());</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">          12 :         totalFlex += flex;</span></span>
 <span id="L256"><span class="lineNum">     256</span>              :       } else {</span>
 <span id="L257"><span class="lineNum">     257</span>              :         BoxConstraints? innerConstraints;</span>
-<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">          52 :         if (crossAxisAlignment == CrossAxisAlignment.stretch) {</span></span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">          78 :         if (crossAxisAlignment == CrossAxisAlignment.stretch) {</span></span>
 <span id="L259"><span class="lineNum">     259</span> <span class="tlaUNC tlaBgUNC">           0 :           switch (direction) {</span></span>
 <span id="L260"><span class="lineNum">     260</span> <span class="tlaUNC">           0 :             case Axis.horizontal:</span></span>
 <span id="L261"><span class="lineNum">     261</span> <span class="tlaUNC">           0 :               innerConstraints = BoxConstraints(</span></span>
@@ -331,52 +331,52 @@
 <span id="L269"><span class="lineNum">     269</span>              :               break;</span>
 <span id="L270"><span class="lineNum">     270</span>              :           }</span>
 <span id="L271"><span class="lineNum">     271</span>              :         } else {</span>
-<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC tlaBgGNC">          26 :           switch (direction) {</span></span>
-<span id="L273"><span class="lineNum">     273</span> <span class="tlaGNC">          26 :             case Axis.horizontal:</span></span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC tlaBgGNC">          39 :           switch (direction) {</span></span>
+<span id="L273"><span class="lineNum">     273</span> <span class="tlaGNC">          39 :             case Axis.horizontal:</span></span>
 <span id="L274"><span class="lineNum">     274</span>              :               innerConstraints =</span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">          20 :                   BoxConstraints(maxHeight: constraints.maxHeight);</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">          30 :                   BoxConstraints(maxHeight: constraints.maxHeight);</span></span>
 <span id="L276"><span class="lineNum">     276</span>              :               break;</span>
-<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">          26 :             case Axis.vertical:</span></span>
-<span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">          52 :               innerConstraints = BoxConstraints(maxWidth: constraints.maxWidth);</span></span>
+<span id="L277"><span class="lineNum">     277</span> <span class="tlaGNC">          39 :             case Axis.vertical:</span></span>
+<span id="L278"><span class="lineNum">     278</span> <span class="tlaGNC">          78 :               innerConstraints = BoxConstraints(maxWidth: constraints.maxWidth);</span></span>
 <span id="L279"><span class="lineNum">     279</span>              :               break;</span>
 <span id="L280"><span class="lineNum">     280</span>              :           }</span>
 <span id="L281"><span class="lineNum">     281</span>              :         }</span>
-<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">          26 :         child.layout(context, innerConstraints, parentUsesSize: true);</span></span>
-<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          52 :         assert(child.box != null);</span></span>
-<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          52 :         allocatedSize += _getMainSize(child);</span></span>
-<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          52 :         crossSize = math.max(crossSize, _getCrossSize(child));</span></span>
-<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">          52 :         if (direction == Axis.vertical &amp;&amp;</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          52 :             allocatedSize &gt; constraints.maxHeight) {</span></span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">          39 :         child.layout(context, innerConstraints, parentUsesSize: true);</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          78 :         assert(child.box != null);</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          78 :         allocatedSize += _getMainSize(child);</span></span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          78 :         crossSize = math.max(crossSize, _getCrossSize(child));</span></span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">          78 :         if (direction == Axis.vertical &amp;&amp;</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          78 :             allocatedSize &gt; constraints.maxHeight) {</span></span>
 <span id="L288"><span class="lineNum">     288</span>              :           break;</span>
 <span id="L289"><span class="lineNum">     289</span>              :         }</span>
 <span id="L290"><span class="lineNum">     290</span>              :       }</span>
 <span id="L291"><span class="lineNum">     291</span>              :       lastFlexChild = child;</span>
-<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">          28 :       index++;</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">          42 :       index++;</span></span>
 <span id="L293"><span class="lineNum">     293</span>              :     }</span>
-<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          56 :     _context.lastChild = index;</span></span>
-<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">         140 :     final totalChildren = _context.lastChild - _context.firstChild;</span></span>
+<span id="L294"><span class="lineNum">     294</span> <span class="tlaGNC">          84 :     _context.lastChild = index;</span></span>
+<span id="L295"><span class="lineNum">     295</span> <span class="tlaGNC">         210 :     final totalChildren = _context.lastChild - _context.firstChild;</span></span>
 <span id="L296"><span class="lineNum">     296</span>              : </span>
 <span id="L297"><span class="lineNum">     297</span>              :     // Distribute free space to flexible children, and determine baseline.</span>
 <span id="L298"><span class="lineNum">     298</span>              :     final freeSpace =</span>
-<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          56 :         math.max(0.0, (canFlex ? maxMainSize : 0.0) - allocatedSize);</span></span>
+<span id="L299"><span class="lineNum">     299</span> <span class="tlaGNC">          84 :         math.max(0.0, (canFlex ? maxMainSize : 0.0) - allocatedSize);</span></span>
 <span id="L300"><span class="lineNum">     300</span>              :     var allocatedFlexSpace = 0.0;</span>
-<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">          28 :     if (totalFlex &gt; 0) {</span></span>
+<span id="L301"><span class="lineNum">     301</span> <span class="tlaGNC">          42 :     if (totalFlex &gt; 0) {</span></span>
 <span id="L302"><span class="lineNum">     302</span>              :       final spacePerFlex =</span>
-<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">          16 :           canFlex &amp;&amp; totalFlex &gt; 0 ? (freeSpace / totalFlex) : double.nan;</span></span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC">          24 :           canFlex &amp;&amp; totalFlex &gt; 0 ? (freeSpace / totalFlex) : double.nan;</span></span>
 <span id="L304"><span class="lineNum">     304</span>              : </span>
-<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">          16 :       for (final child in children) {</span></span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">          16 :         final flex = child is Flexible ? child.flex : 0;</span></span>
-<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">          16 :         final fit = child is Flexible ? child.fit : FlexFit.loose;</span></span>
-<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">           8 :         if (flex &gt; 0) {</span></span>
+<span id="L305"><span class="lineNum">     305</span> <span class="tlaGNC">          24 :       for (final child in children) {</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">          24 :         final flex = child is Flexible ? child.flex : 0;</span></span>
+<span id="L307"><span class="lineNum">     307</span> <span class="tlaGNC">          24 :         final fit = child is Flexible ? child.fit : FlexFit.loose;</span></span>
+<span id="L308"><span class="lineNum">     308</span> <span class="tlaGNC">          12 :         if (flex &gt; 0) {</span></span>
 <span id="L309"><span class="lineNum">     309</span>              :           final maxChildExtent = canFlex</span>
-<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">           8 :               ? (child == lastFlexChild</span></span>
-<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">           4 :                   ? (freeSpace - allocatedFlexSpace)</span></span>
-<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           6 :                   : spacePerFlex * flex)</span></span>
+<span id="L310"><span class="lineNum">     310</span> <span class="tlaGNC">          12 :               ? (child == lastFlexChild</span></span>
+<span id="L311"><span class="lineNum">     311</span> <span class="tlaGNC">           6 :                   ? (freeSpace - allocatedFlexSpace)</span></span>
+<span id="L312"><span class="lineNum">     312</span> <span class="tlaGNC">           9 :                   : spacePerFlex * flex)</span></span>
 <span id="L313"><span class="lineNum">     313</span>              :               : double.infinity;</span>
 <span id="L314"><span class="lineNum">     314</span>              :           double? minChildExtent;</span>
 <span id="L315"><span class="lineNum">     315</span>              :           switch (fit) {</span>
-<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">           8 :             case FlexFit.tight:</span></span>
-<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">          16 :               assert(maxChildExtent &lt; double.infinity);</span></span>
+<span id="L316"><span class="lineNum">     316</span> <span class="tlaGNC">          12 :             case FlexFit.tight:</span></span>
+<span id="L317"><span class="lineNum">     317</span> <span class="tlaGNC">          24 :               assert(maxChildExtent &lt; double.infinity);</span></span>
 <span id="L318"><span class="lineNum">     318</span>              :               minChildExtent = maxChildExtent;</span>
 <span id="L319"><span class="lineNum">     319</span>              :               break;</span>
 <span id="L320"><span class="lineNum">     320</span> <span class="tlaUNC tlaBgUNC">           0 :             case FlexFit.loose:</span></span>
@@ -385,7 +385,7 @@
 <span id="L323"><span class="lineNum">     323</span>              :           }</span>
 <span id="L324"><span class="lineNum">     324</span>              : </span>
 <span id="L325"><span class="lineNum">     325</span>              :           BoxConstraints? innerConstraints;</span>
-<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC tlaBgGNC">          16 :           if (crossAxisAlignment == CrossAxisAlignment.stretch) {</span></span>
+<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC tlaBgGNC">          24 :           if (crossAxisAlignment == CrossAxisAlignment.stretch) {</span></span>
 <span id="L327"><span class="lineNum">     327</span> <span class="tlaUNC tlaBgUNC">           0 :             switch (direction) {</span></span>
 <span id="L328"><span class="lineNum">     328</span> <span class="tlaUNC">           0 :               case Axis.horizontal:</span></span>
 <span id="L329"><span class="lineNum">     329</span> <span class="tlaUNC">           0 :                 innerConstraints = BoxConstraints(</span></span>
@@ -403,110 +403,110 @@
 <span id="L341"><span class="lineNum">     341</span>              :                 break;</span>
 <span id="L342"><span class="lineNum">     342</span>              :             }</span>
 <span id="L343"><span class="lineNum">     343</span>              :           } else {</span>
-<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC tlaBgGNC">           8 :             switch (direction) {</span></span>
-<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">           8 :               case Axis.horizontal:</span></span>
-<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">           6 :                 innerConstraints = BoxConstraints(</span></span>
+<span id="L344"><span class="lineNum">     344</span> <span class="tlaGNC tlaBgGNC">          12 :             switch (direction) {</span></span>
+<span id="L345"><span class="lineNum">     345</span> <span class="tlaGNC">          12 :               case Axis.horizontal:</span></span>
+<span id="L346"><span class="lineNum">     346</span> <span class="tlaGNC">           9 :                 innerConstraints = BoxConstraints(</span></span>
 <span id="L347"><span class="lineNum">     347</span>              :                     minWidth: minChildExtent,</span>
 <span id="L348"><span class="lineNum">     348</span>              :                     maxWidth: maxChildExtent,</span>
-<span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">           6 :                     maxHeight: constraints.maxHeight);</span></span>
+<span id="L349"><span class="lineNum">     349</span> <span class="tlaGNC">           9 :                     maxHeight: constraints.maxHeight);</span></span>
 <span id="L350"><span class="lineNum">     350</span>              :                 break;</span>
-<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC">           4 :               case Axis.vertical:</span></span>
-<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">           4 :                 innerConstraints = BoxConstraints(</span></span>
-<span id="L353"><span class="lineNum">     353</span> <span class="tlaGNC">           4 :                     maxWidth: constraints.maxWidth,</span></span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC">           6 :               case Axis.vertical:</span></span>
+<span id="L352"><span class="lineNum">     352</span> <span class="tlaGNC">           6 :                 innerConstraints = BoxConstraints(</span></span>
+<span id="L353"><span class="lineNum">     353</span> <span class="tlaGNC">           6 :                     maxWidth: constraints.maxWidth,</span></span>
 <span id="L354"><span class="lineNum">     354</span>              :                     minHeight: minChildExtent,</span>
 <span id="L355"><span class="lineNum">     355</span>              :                     maxHeight: maxChildExtent);</span>
 <span id="L356"><span class="lineNum">     356</span>              :                 break;</span>
 <span id="L357"><span class="lineNum">     357</span>              :             }</span>
 <span id="L358"><span class="lineNum">     358</span>              :           }</span>
-<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">           8 :           child.layout(context, innerConstraints, parentUsesSize: true);</span></span>
-<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">          16 :           assert(child.box != null);</span></span>
-<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">           8 :           final childSize = _getMainSize(child);</span></span>
-<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">          16 :           assert(childSize &lt;= maxChildExtent);</span></span>
-<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">           8 :           allocatedSize += childSize;</span></span>
-<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">           8 :           allocatedFlexSpace += maxChildExtent;</span></span>
-<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">          16 :           crossSize = math.max(crossSize, _getCrossSize(child));</span></span>
+<span id="L359"><span class="lineNum">     359</span> <span class="tlaGNC">          12 :           child.layout(context, innerConstraints, parentUsesSize: true);</span></span>
+<span id="L360"><span class="lineNum">     360</span> <span class="tlaGNC">          24 :           assert(child.box != null);</span></span>
+<span id="L361"><span class="lineNum">     361</span> <span class="tlaGNC">          12 :           final childSize = _getMainSize(child);</span></span>
+<span id="L362"><span class="lineNum">     362</span> <span class="tlaGNC">          24 :           assert(childSize &lt;= maxChildExtent);</span></span>
+<span id="L363"><span class="lineNum">     363</span> <span class="tlaGNC">          12 :           allocatedSize += childSize;</span></span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">          12 :           allocatedFlexSpace += maxChildExtent;</span></span>
+<span id="L365"><span class="lineNum">     365</span> <span class="tlaGNC">          24 :           crossSize = math.max(crossSize, _getCrossSize(child));</span></span>
 <span id="L366"><span class="lineNum">     366</span>              :         }</span>
 <span id="L367"><span class="lineNum">     367</span>              :       }</span>
 <span id="L368"><span class="lineNum">     368</span>              :     }</span>
 <span id="L369"><span class="lineNum">     369</span>              : </span>
 <span id="L370"><span class="lineNum">     370</span>              :     // Align items along the main axis.</span>
-<span id="L371"><span class="lineNum">     371</span> <span class="tlaGNC">          56 :     final idealSize = canFlex &amp;&amp; mainAxisSize == MainAxisSize.max</span></span>
+<span id="L371"><span class="lineNum">     371</span> <span class="tlaGNC">          84 :     final idealSize = canFlex &amp;&amp; mainAxisSize == MainAxisSize.max</span></span>
 <span id="L372"><span class="lineNum">     372</span>              :         ? maxMainSize</span>
 <span id="L373"><span class="lineNum">     373</span>              :         : allocatedSize;</span>
 <span id="L374"><span class="lineNum">     374</span>              :     double? actualSize;</span>
 <span id="L375"><span class="lineNum">     375</span>              :     double actualSizeDelta;</span>
 <span id="L376"><span class="lineNum">     376</span>              :     late PdfPoint size;</span>
-<span id="L377"><span class="lineNum">     377</span> <span class="tlaGNC">          28 :     switch (direction) {</span></span>
-<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">          28 :       case Axis.horizontal:</span></span>
-<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">          28 :         size = constraints.constrain(PdfPoint(idealSize, crossSize));</span></span>
-<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">          14 :         actualSize = size.x;</span></span>
-<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">          14 :         crossSize = size.y;</span></span>
+<span id="L377"><span class="lineNum">     377</span> <span class="tlaGNC">          42 :     switch (direction) {</span></span>
+<span id="L378"><span class="lineNum">     378</span> <span class="tlaGNC">          42 :       case Axis.horizontal:</span></span>
+<span id="L379"><span class="lineNum">     379</span> <span class="tlaGNC">          42 :         size = constraints.constrain(PdfPoint(idealSize, crossSize));</span></span>
+<span id="L380"><span class="lineNum">     380</span> <span class="tlaGNC">          21 :         actualSize = size.x;</span></span>
+<span id="L381"><span class="lineNum">     381</span> <span class="tlaGNC">          21 :         crossSize = size.y;</span></span>
 <span id="L382"><span class="lineNum">     382</span>              :         break;</span>
-<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          26 :       case Axis.vertical:</span></span>
-<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">          52 :         size = constraints.constrain(PdfPoint(crossSize, idealSize));</span></span>
-<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">          26 :         actualSize = size.y;</span></span>
-<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">          26 :         crossSize = size.x;</span></span>
+<span id="L383"><span class="lineNum">     383</span> <span class="tlaGNC">          39 :       case Axis.vertical:</span></span>
+<span id="L384"><span class="lineNum">     384</span> <span class="tlaGNC">          78 :         size = constraints.constrain(PdfPoint(crossSize, idealSize));</span></span>
+<span id="L385"><span class="lineNum">     385</span> <span class="tlaGNC">          39 :         actualSize = size.y;</span></span>
+<span id="L386"><span class="lineNum">     386</span> <span class="tlaGNC">          39 :         crossSize = size.x;</span></span>
 <span id="L387"><span class="lineNum">     387</span>              :         break;</span>
 <span id="L388"><span class="lineNum">     388</span>              :     }</span>
 <span id="L389"><span class="lineNum">     389</span>              : </span>
-<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">          56 :     box = PdfRect.fromPoints(PdfPoint.zero, size);</span></span>
-<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">          28 :     actualSizeDelta = actualSize - allocatedSize;</span></span>
+<span id="L390"><span class="lineNum">     390</span> <span class="tlaGNC">          84 :     box = PdfRect.fromPoints(PdfPoint.zero, size);</span></span>
+<span id="L391"><span class="lineNum">     391</span> <span class="tlaGNC">          42 :     actualSizeDelta = actualSize - allocatedSize;</span></span>
 <span id="L392"><span class="lineNum">     392</span>              : </span>
-<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">          28 :     final remainingSpace = math.max(0.0, actualSizeDelta);</span></span>
+<span id="L393"><span class="lineNum">     393</span> <span class="tlaGNC">          42 :     final remainingSpace = math.max(0.0, actualSizeDelta);</span></span>
 <span id="L394"><span class="lineNum">     394</span>              :     double? leadingSpace;</span>
 <span id="L395"><span class="lineNum">     395</span>              :     late double betweenSpace;</span>
 <span id="L396"><span class="lineNum">     396</span>              : </span>
-<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">          28 :     final textDirection = Directionality.of(context);</span></span>
+<span id="L397"><span class="lineNum">     397</span> <span class="tlaGNC">          42 :     final textDirection = Directionality.of(context);</span></span>
 <span id="L398"><span class="lineNum">     398</span>              :     final flipMainAxis =</span>
-<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">          84 :         !(_startIsTopLeft(direction, textDirection, verticalDirection) ?? true);</span></span>
+<span id="L399"><span class="lineNum">     399</span> <span class="tlaGNC">         126 :         !(_startIsTopLeft(direction, textDirection, verticalDirection) ?? true);</span></span>
 <span id="L400"><span class="lineNum">     400</span>              : </span>
-<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">          28 :     switch (mainAxisAlignment) {</span></span>
-<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">          28 :       case MainAxisAlignment.start:</span></span>
+<span id="L401"><span class="lineNum">     401</span> <span class="tlaGNC">          42 :     switch (mainAxisAlignment) {</span></span>
+<span id="L402"><span class="lineNum">     402</span> <span class="tlaGNC">          42 :       case MainAxisAlignment.start:</span></span>
 <span id="L403"><span class="lineNum">     403</span>              :         leadingSpace = 0.0;</span>
 <span id="L404"><span class="lineNum">     404</span>              :         betweenSpace = 0.0;</span>
 <span id="L405"><span class="lineNum">     405</span>              :         break;</span>
-<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">          16 :       case MainAxisAlignment.end:</span></span>
+<span id="L406"><span class="lineNum">     406</span> <span class="tlaGNC">          24 :       case MainAxisAlignment.end:</span></span>
 <span id="L407"><span class="lineNum">     407</span>              :         leadingSpace = remainingSpace;</span>
 <span id="L408"><span class="lineNum">     408</span>              :         betweenSpace = 0.0;</span>
 <span id="L409"><span class="lineNum">     409</span>              :         break;</span>
-<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">          16 :       case MainAxisAlignment.center:</span></span>
-<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">           4 :         leadingSpace = remainingSpace / 2.0;</span></span>
+<span id="L410"><span class="lineNum">     410</span> <span class="tlaGNC">          24 :       case MainAxisAlignment.center:</span></span>
+<span id="L411"><span class="lineNum">     411</span> <span class="tlaGNC">           6 :         leadingSpace = remainingSpace / 2.0;</span></span>
 <span id="L412"><span class="lineNum">     412</span>              :         betweenSpace = 0.0;</span>
 <span id="L413"><span class="lineNum">     413</span>              :         break;</span>
-<span id="L414"><span class="lineNum">     414</span> <span class="tlaGNC">          14 :       case MainAxisAlignment.spaceBetween:</span></span>
+<span id="L414"><span class="lineNum">     414</span> <span class="tlaGNC">          21 :       case MainAxisAlignment.spaceBetween:</span></span>
 <span id="L415"><span class="lineNum">     415</span>              :         leadingSpace = 0.0;</span>
 <span id="L416"><span class="lineNum">     416</span>              :         betweenSpace =</span>
-<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">          12 :             totalChildren &gt; 1 ? remainingSpace / (totalChildren - 1) : 0.0;</span></span>
+<span id="L417"><span class="lineNum">     417</span> <span class="tlaGNC">          18 :             totalChildren &gt; 1 ? remainingSpace / (totalChildren - 1) : 0.0;</span></span>
 <span id="L418"><span class="lineNum">     418</span>              :         break;</span>
-<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">          10 :       case MainAxisAlignment.spaceAround:</span></span>
+<span id="L419"><span class="lineNum">     419</span> <span class="tlaGNC">          15 :       case MainAxisAlignment.spaceAround:</span></span>
 <span id="L420"><span class="lineNum">     420</span> <span class="tlaUNC tlaBgUNC">           0 :         betweenSpace = totalChildren &gt; 0 ? remainingSpace / totalChildren : 0.0;</span></span>
 <span id="L421"><span class="lineNum">     421</span> <span class="tlaUNC">           0 :         leadingSpace = betweenSpace / 2.0;</span></span>
 <span id="L422"><span class="lineNum">     422</span>              :         break;</span>
-<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC tlaBgGNC">          10 :       case MainAxisAlignment.spaceEvenly:</span></span>
+<span id="L423"><span class="lineNum">     423</span> <span class="tlaGNC tlaBgGNC">          15 :       case MainAxisAlignment.spaceEvenly:</span></span>
 <span id="L424"><span class="lineNum">     424</span>              :         betweenSpace =</span>
-<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">          30 :             totalChildren &gt; 0 ? remainingSpace / (totalChildren + 1) : 0.0;</span></span>
+<span id="L425"><span class="lineNum">     425</span> <span class="tlaGNC">          45 :             totalChildren &gt; 0 ? remainingSpace / (totalChildren + 1) : 0.0;</span></span>
 <span id="L426"><span class="lineNum">     426</span>              :         leadingSpace = betweenSpace;</span>
 <span id="L427"><span class="lineNum">     427</span>              :         break;</span>
 <span id="L428"><span class="lineNum">     428</span>              :     }</span>
 <span id="L429"><span class="lineNum">     429</span>              : </span>
 <span id="L430"><span class="lineNum">     430</span>              :     // Position elements</span>
 <span id="L431"><span class="lineNum">     431</span>              :     var childMainPosition =</span>
-<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">          26 :         flipMainAxis ? actualSize - leadingSpace : leadingSpace;</span></span>
+<span id="L432"><span class="lineNum">     432</span> <span class="tlaGNC">          39 :         flipMainAxis ? actualSize - leadingSpace : leadingSpace;</span></span>
 <span id="L433"><span class="lineNum">     433</span>              : </span>
 <span id="L434"><span class="lineNum">     434</span>              :     for (var child</span>
-<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">         196 :         in children.sublist(_context.firstChild, _context.lastChild)) {</span></span>
+<span id="L435"><span class="lineNum">     435</span> <span class="tlaGNC">         294 :         in children.sublist(_context.firstChild, _context.lastChild)) {</span></span>
 <span id="L436"><span class="lineNum">     436</span>              :       double? childCrossPosition;</span>
-<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">          28 :       switch (crossAxisAlignment) {</span></span>
-<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">          28 :         case CrossAxisAlignment.start:</span></span>
-<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">          28 :         case CrossAxisAlignment.end:</span></span>
-<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">           4 :           childCrossPosition = _startIsTopLeft(</span></span>
-<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">          16 :                       flipAxis(direction), textDirection, verticalDirection) ==</span></span>
-<span id="L442"><span class="lineNum">     442</span> <span class="tlaGNC">           8 :                   (crossAxisAlignment == CrossAxisAlignment.start)</span></span>
+<span id="L437"><span class="lineNum">     437</span> <span class="tlaGNC">          42 :       switch (crossAxisAlignment) {</span></span>
+<span id="L438"><span class="lineNum">     438</span> <span class="tlaGNC">          42 :         case CrossAxisAlignment.start:</span></span>
+<span id="L439"><span class="lineNum">     439</span> <span class="tlaGNC">          42 :         case CrossAxisAlignment.end:</span></span>
+<span id="L440"><span class="lineNum">     440</span> <span class="tlaGNC">           6 :           childCrossPosition = _startIsTopLeft(</span></span>
+<span id="L441"><span class="lineNum">     441</span> <span class="tlaGNC">          24 :                       flipAxis(direction), textDirection, verticalDirection) ==</span></span>
+<span id="L442"><span class="lineNum">     442</span> <span class="tlaGNC">          12 :                   (crossAxisAlignment == CrossAxisAlignment.start)</span></span>
 <span id="L443"><span class="lineNum">     443</span>              :               ? 0.0</span>
-<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">           4 :               : crossSize - _getCrossSize(child);</span></span>
+<span id="L444"><span class="lineNum">     444</span> <span class="tlaGNC">           6 :               : crossSize - _getCrossSize(child);</span></span>
 <span id="L445"><span class="lineNum">     445</span>              :           break;</span>
-<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">          28 :         case CrossAxisAlignment.center:</span></span>
-<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         112 :           childCrossPosition = crossSize / 2.0 - _getCrossSize(child) / 2.0;</span></span>
+<span id="L446"><span class="lineNum">     446</span> <span class="tlaGNC">          42 :         case CrossAxisAlignment.center:</span></span>
+<span id="L447"><span class="lineNum">     447</span> <span class="tlaGNC">         168 :           childCrossPosition = crossSize / 2.0 - _getCrossSize(child) / 2.0;</span></span>
 <span id="L448"><span class="lineNum">     448</span>              :           break;</span>
 <span id="L449"><span class="lineNum">     449</span> <span class="tlaUNC tlaBgUNC">           0 :         case CrossAxisAlignment.stretch:</span></span>
 <span id="L450"><span class="lineNum">     450</span>              :           childCrossPosition = 0.0;</span>
@@ -514,51 +514,51 @@
 <span id="L452"><span class="lineNum">     452</span>              :       }</span>
 <span id="L453"><span class="lineNum">     453</span>              : </span>
 <span id="L454"><span class="lineNum">     454</span>              :       if (flipMainAxis) {</span>
-<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC tlaBgGNC">          52 :         childMainPosition -= _getMainSize(child);</span></span>
+<span id="L455"><span class="lineNum">     455</span> <span class="tlaGNC tlaBgGNC">          78 :         childMainPosition -= _getMainSize(child);</span></span>
 <span id="L456"><span class="lineNum">     456</span>              :       }</span>
-<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">          28 :       switch (direction) {</span></span>
-<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">          28 :         case Axis.horizontal:</span></span>
-<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">          70 :           child.box = PdfRect(box!.x + childMainPosition,</span></span>
-<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">          98 :               box!.y + childCrossPosition, child.box!.width, child.box!.height);</span></span>
+<span id="L457"><span class="lineNum">     457</span> <span class="tlaGNC">          42 :       switch (direction) {</span></span>
+<span id="L458"><span class="lineNum">     458</span> <span class="tlaGNC">          42 :         case Axis.horizontal:</span></span>
+<span id="L459"><span class="lineNum">     459</span> <span class="tlaGNC">         105 :           child.box = PdfRect(box!.x + childMainPosition,</span></span>
+<span id="L460"><span class="lineNum">     460</span> <span class="tlaGNC">         147 :               box!.y + childCrossPosition, child.box!.width, child.box!.height);</span></span>
 <span id="L461"><span class="lineNum">     461</span>              :           break;</span>
-<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">          26 :         case Axis.vertical:</span></span>
-<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">          52 :           child.box = PdfRect(childCrossPosition, childMainPosition,</span></span>
-<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">         104 :               child.box!.width, child.box!.height);</span></span>
+<span id="L462"><span class="lineNum">     462</span> <span class="tlaGNC">          39 :         case Axis.vertical:</span></span>
+<span id="L463"><span class="lineNum">     463</span> <span class="tlaGNC">          78 :           child.box = PdfRect(childCrossPosition, childMainPosition,</span></span>
+<span id="L464"><span class="lineNum">     464</span> <span class="tlaGNC">         156 :               child.box!.width, child.box!.height);</span></span>
 <span id="L465"><span class="lineNum">     465</span>              :           break;</span>
 <span id="L466"><span class="lineNum">     466</span>              :       }</span>
 <span id="L467"><span class="lineNum">     467</span>              :       if (flipMainAxis) {</span>
-<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">          26 :         childMainPosition -= betweenSpace;</span></span>
+<span id="L468"><span class="lineNum">     468</span> <span class="tlaGNC">          39 :         childMainPosition -= betweenSpace;</span></span>
 <span id="L469"><span class="lineNum">     469</span>              :       } else {</span>
-<span id="L470"><span class="lineNum">     470</span> <span class="tlaGNC">          42 :         childMainPosition += _getMainSize(child) + betweenSpace;</span></span>
+<span id="L470"><span class="lineNum">     470</span> <span class="tlaGNC">          63 :         childMainPosition += _getMainSize(child) + betweenSpace;</span></span>
 <span id="L471"><span class="lineNum">     471</span>              :       }</span>
 <span id="L472"><span class="lineNum">     472</span>              :     }</span>
 <span id="L473"><span class="lineNum">     473</span>              :   }</span>
 <span id="L474"><span class="lineNum">     474</span>              : </span>
-<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">           4 :   Axis flipAxis(Axis direction) {</span></span>
+<span id="L475"><span class="lineNum">     475</span> <span class="tlaGNC">           6 :   Axis flipAxis(Axis direction) {</span></span>
 <span id="L476"><span class="lineNum">     476</span>              :     switch (direction) {</span>
-<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">           4 :       case Axis.horizontal:</span></span>
+<span id="L477"><span class="lineNum">     477</span> <span class="tlaGNC">           6 :       case Axis.horizontal:</span></span>
 <span id="L478"><span class="lineNum">     478</span>              :         return Axis.vertical;</span>
-<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">           4 :       case Axis.vertical:</span></span>
+<span id="L479"><span class="lineNum">     479</span> <span class="tlaGNC">           6 :       case Axis.vertical:</span></span>
 <span id="L480"><span class="lineNum">     480</span>              :         return Axis.horizontal;</span>
 <span id="L481"><span class="lineNum">     481</span>              :     }</span>
 <span id="L482"><span class="lineNum">     482</span>              :   }</span>
 <span id="L483"><span class="lineNum">     483</span>              : </span>
-<span id="L484"><span class="lineNum">     484</span> <span class="tlaGNC">          28 :   bool? _startIsTopLeft(Axis direction, TextDirection? textDirection,</span></span>
+<span id="L484"><span class="lineNum">     484</span> <span class="tlaGNC">          42 :   bool? _startIsTopLeft(Axis direction, TextDirection? textDirection,</span></span>
 <span id="L485"><span class="lineNum">     485</span>              :       VerticalDirection? verticalDirection) {</span>
 <span id="L486"><span class="lineNum">     486</span>              :     // If the relevant value of textDirection or verticalDirection is null, this returns null too.</span>
 <span id="L487"><span class="lineNum">     487</span>              :     switch (direction) {</span>
-<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">          28 :       case Axis.horizontal:</span></span>
+<span id="L488"><span class="lineNum">     488</span> <span class="tlaGNC">          42 :       case Axis.horizontal:</span></span>
 <span id="L489"><span class="lineNum">     489</span>              :         switch (textDirection) {</span>
-<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">          14 :           case TextDirection.ltr:</span></span>
+<span id="L490"><span class="lineNum">     490</span> <span class="tlaGNC">          21 :           case TextDirection.ltr:</span></span>
 <span id="L491"><span class="lineNum">     491</span>              :             return true;</span>
-<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">           2 :           case TextDirection.rtl:</span></span>
+<span id="L492"><span class="lineNum">     492</span> <span class="tlaGNC">           3 :           case TextDirection.rtl:</span></span>
 <span id="L493"><span class="lineNum">     493</span>              :             return false;</span>
 <span id="L494"><span class="lineNum">     494</span> <span class="tlaUNC tlaBgUNC">           0 :           case null:</span></span>
 <span id="L495"><span class="lineNum">     495</span>              :             return null;</span>
 <span id="L496"><span class="lineNum">     496</span>              :         }</span>
-<span id="L497"><span class="lineNum">     497</span> <span class="tlaGNC tlaBgGNC">          26 :       case Axis.vertical:</span></span>
+<span id="L497"><span class="lineNum">     497</span> <span class="tlaGNC tlaBgGNC">          39 :       case Axis.vertical:</span></span>
 <span id="L498"><span class="lineNum">     498</span>              :         switch (verticalDirection) {</span>
-<span id="L499"><span class="lineNum">     499</span> <span class="tlaGNC">          26 :           case VerticalDirection.down:</span></span>
+<span id="L499"><span class="lineNum">     499</span> <span class="tlaGNC">          39 :           case VerticalDirection.down:</span></span>
 <span id="L500"><span class="lineNum">     500</span>              :             return false;</span>
 <span id="L501"><span class="lineNum">     501</span> <span class="tlaUNC tlaBgUNC">           0 :           case VerticalDirection.up:</span></span>
 <span id="L502"><span class="lineNum">     502</span>              :             return true;</span>
@@ -568,48 +568,48 @@
 <span id="L506"><span class="lineNum">     506</span>              :     }</span>
 <span id="L507"><span class="lineNum">     507</span>              :   }</span>
 <span id="L508"><span class="lineNum">     508</span>              : </span>
-<span id="L509"><span class="lineNum">     509</span> <span class="tlaGNC tlaBgGNC">          28 :   @override</span></span>
+<span id="L509"><span class="lineNum">     509</span> <span class="tlaGNC tlaBgGNC">          42 :   @override</span></span>
 <span id="L510"><span class="lineNum">     510</span>              :   void paint(Context context) {</span>
-<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">          28 :     super.paint(context);</span></span>
+<span id="L511"><span class="lineNum">     511</span> <span class="tlaGNC">          42 :     super.paint(context);</span></span>
 <span id="L512"><span class="lineNum">     512</span>              : </span>
-<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">          28 :     final mat = Matrix4.identity();</span></span>
-<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         140 :     mat.translate(box!.x, box!.y);</span></span>
-<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">          28 :     context.canvas</span></span>
-<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">          28 :       ..saveContext()</span></span>
-<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">          28 :       ..setTransform(mat);</span></span>
+<span id="L513"><span class="lineNum">     513</span> <span class="tlaGNC">          42 :     final mat = Matrix4.identity();</span></span>
+<span id="L514"><span class="lineNum">     514</span> <span class="tlaGNC">         210 :     mat.translate(box!.x, box!.y);</span></span>
+<span id="L515"><span class="lineNum">     515</span> <span class="tlaGNC">          42 :     context.canvas</span></span>
+<span id="L516"><span class="lineNum">     516</span> <span class="tlaGNC">          42 :       ..saveContext()</span></span>
+<span id="L517"><span class="lineNum">     517</span> <span class="tlaGNC">          42 :       ..setTransform(mat);</span></span>
 <span id="L518"><span class="lineNum">     518</span>              : </span>
 <span id="L519"><span class="lineNum">     519</span>              :     for (final child</span>
-<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">         196 :         in children.sublist(_context.firstChild, _context.lastChild)) {</span></span>
-<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">          28 :       child.paint(context);</span></span>
+<span id="L520"><span class="lineNum">     520</span> <span class="tlaGNC">         294 :         in children.sublist(_context.firstChild, _context.lastChild)) {</span></span>
+<span id="L521"><span class="lineNum">     521</span> <span class="tlaGNC">          42 :       child.paint(context);</span></span>
 <span id="L522"><span class="lineNum">     522</span>              :     }</span>
-<span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">          56 :     context.canvas.restoreContext();</span></span>
+<span id="L523"><span class="lineNum">     523</span> <span class="tlaGNC">          84 :     context.canvas.restoreContext();</span></span>
 <span id="L524"><span class="lineNum">     524</span>              :   }</span>
 <span id="L525"><span class="lineNum">     525</span>              : </span>
-<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">           8 :   @override</span></span>
-<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">          16 :   bool get canSpan =&gt; direction == Axis.vertical;</span></span>
+<span id="L526"><span class="lineNum">     526</span> <span class="tlaGNC">          12 :   @override</span></span>
+<span id="L527"><span class="lineNum">     527</span> <span class="tlaGNC">          24 :   bool get canSpan =&gt; direction == Axis.vertical;</span></span>
 <span id="L528"><span class="lineNum">     528</span>              : </span>
-<span id="L529"><span class="lineNum">     529</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L529"><span class="lineNum">     529</span> <span class="tlaGNC">           9 :   @override</span></span>
 <span id="L530"><span class="lineNum">     530</span>              :   bool get hasMoreWidgets =&gt; true;</span>
 <span id="L531"><span class="lineNum">     531</span>              : </span>
-<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L532"><span class="lineNum">     532</span> <span class="tlaGNC">           9 :   @override</span></span>
 <span id="L533"><span class="lineNum">     533</span>              :   void restoreContext(FlexContext context) {</span>
-<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">          18 :     _context.firstChild = context.lastChild;</span></span>
+<span id="L534"><span class="lineNum">     534</span> <span class="tlaGNC">          27 :     _context.firstChild = context.lastChild;</span></span>
 <span id="L535"><span class="lineNum">     535</span>              :   }</span>
 <span id="L536"><span class="lineNum">     536</span>              : </span>
-<span id="L537"><span class="lineNum">     537</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L537"><span class="lineNum">     537</span> <span class="tlaGNC">           9 :   @override</span></span>
 <span id="L538"><span class="lineNum">     538</span>              :   WidgetContext saveContext() {</span>
-<span id="L539"><span class="lineNum">     539</span> <span class="tlaGNC">           6 :     return _context;</span></span>
+<span id="L539"><span class="lineNum">     539</span> <span class="tlaGNC">           9 :     return _context;</span></span>
 <span id="L540"><span class="lineNum">     540</span>              :   }</span>
 <span id="L541"><span class="lineNum">     541</span>              : }</span>
 <span id="L542"><span class="lineNum">     542</span>              : </span>
 <span id="L543"><span class="lineNum">     543</span>              : class Row extends Flex {</span>
-<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">          14 :   Row({</span></span>
+<span id="L544"><span class="lineNum">     544</span> <span class="tlaGNC">          21 :   Row({</span></span>
 <span id="L545"><span class="lineNum">     545</span>              :     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,</span>
 <span id="L546"><span class="lineNum">     546</span>              :     MainAxisSize mainAxisSize = MainAxisSize.max,</span>
 <span id="L547"><span class="lineNum">     547</span>              :     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,</span>
 <span id="L548"><span class="lineNum">     548</span>              :     VerticalDirection verticalDirection = VerticalDirection.down,</span>
 <span id="L549"><span class="lineNum">     549</span>              :     List&lt;Widget&gt; children = const &lt;Widget&gt;[],</span>
-<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">          14 :   }) : super(</span></span>
+<span id="L550"><span class="lineNum">     550</span> <span class="tlaGNC">          21 :   }) : super(</span></span>
 <span id="L551"><span class="lineNum">     551</span>              :           children: children,</span>
 <span id="L552"><span class="lineNum">     552</span>              :           direction: Axis.horizontal,</span>
 <span id="L553"><span class="lineNum">     553</span>              :           mainAxisAlignment: mainAxisAlignment,</span>
@@ -620,13 +620,13 @@
 <span id="L558"><span class="lineNum">     558</span>              : }</span>
 <span id="L559"><span class="lineNum">     559</span>              : </span>
 <span id="L560"><span class="lineNum">     560</span>              : class Column extends Flex {</span>
-<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">          24 :   Column({</span></span>
+<span id="L561"><span class="lineNum">     561</span> <span class="tlaGNC">          36 :   Column({</span></span>
 <span id="L562"><span class="lineNum">     562</span>              :     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.start,</span>
 <span id="L563"><span class="lineNum">     563</span>              :     MainAxisSize mainAxisSize = MainAxisSize.max,</span>
 <span id="L564"><span class="lineNum">     564</span>              :     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.center,</span>
 <span id="L565"><span class="lineNum">     565</span>              :     VerticalDirection verticalDirection = VerticalDirection.down,</span>
 <span id="L566"><span class="lineNum">     566</span>              :     List&lt;Widget&gt; children = const &lt;Widget&gt;[],</span>
-<span id="L567"><span class="lineNum">     567</span> <span class="tlaGNC">          24 :   }) : super(</span></span>
+<span id="L567"><span class="lineNum">     567</span> <span class="tlaGNC">          36 :   }) : super(</span></span>
 <span id="L568"><span class="lineNum">     568</span>              :           children: children,</span>
 <span id="L569"><span class="lineNum">     569</span>              :           direction: Axis.vertical,</span>
 <span id="L570"><span class="lineNum">     570</span>              :           mainAxisAlignment: mainAxisAlignment,</span>
@@ -638,11 +638,11 @@
 <span id="L576"><span class="lineNum">     576</span>              : </span>
 <span id="L577"><span class="lineNum">     577</span>              : /// A widget that controls how a child of a [Row], [Column], or [Flex] flexes.</span>
 <span id="L578"><span class="lineNum">     578</span>              : class Flexible extends SingleChildWidget {</span>
-<span id="L579"><span class="lineNum">     579</span> <span class="tlaGNC">           8 :   Flexible({</span></span>
+<span id="L579"><span class="lineNum">     579</span> <span class="tlaGNC">          12 :   Flexible({</span></span>
 <span id="L580"><span class="lineNum">     580</span>              :     this.flex = 1,</span>
 <span id="L581"><span class="lineNum">     581</span>              :     this.fit = FlexFit.loose,</span>
 <span id="L582"><span class="lineNum">     582</span>              :     required Widget child,</span>
-<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">           8 :   }) : super(child: child);</span></span>
+<span id="L583"><span class="lineNum">     583</span> <span class="tlaGNC">          12 :   }) : super(child: child);</span></span>
 <span id="L584"><span class="lineNum">     584</span>              : </span>
 <span id="L585"><span class="lineNum">     585</span>              :   /// The flex factor to use for this child</span>
 <span id="L586"><span class="lineNum">     586</span>              :   final int flex;</span>
@@ -650,37 +650,37 @@
 <span id="L588"><span class="lineNum">     588</span>              :   /// How a flexible child is inscribed into the available space.</span>
 <span id="L589"><span class="lineNum">     589</span>              :   final FlexFit fit;</span>
 <span id="L590"><span class="lineNum">     590</span>              : </span>
-<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">           8 :   @override</span></span>
+<span id="L591"><span class="lineNum">     591</span> <span class="tlaGNC">          12 :   @override</span></span>
 <span id="L592"><span class="lineNum">     592</span>              :   void paint(Context context) {</span>
-<span id="L593"><span class="lineNum">     593</span> <span class="tlaGNC">           8 :     super.paint(context);</span></span>
-<span id="L594"><span class="lineNum">     594</span> <span class="tlaGNC">           8 :     paintChild(context);</span></span>
+<span id="L593"><span class="lineNum">     593</span> <span class="tlaGNC">          12 :     super.paint(context);</span></span>
+<span id="L594"><span class="lineNum">     594</span> <span class="tlaGNC">          12 :     paintChild(context);</span></span>
 <span id="L595"><span class="lineNum">     595</span>              :   }</span>
 <span id="L596"><span class="lineNum">     596</span>              : }</span>
 <span id="L597"><span class="lineNum">     597</span>              : </span>
 <span id="L598"><span class="lineNum">     598</span>              : class Expanded extends Flexible {</span>
-<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">           4 :   Expanded({</span></span>
+<span id="L599"><span class="lineNum">     599</span> <span class="tlaGNC">           6 :   Expanded({</span></span>
 <span id="L600"><span class="lineNum">     600</span>              :     int flex = 1,</span>
 <span id="L601"><span class="lineNum">     601</span>              :     FlexFit fit = FlexFit.tight,</span>
 <span id="L602"><span class="lineNum">     602</span>              :     required Widget child,</span>
-<span id="L603"><span class="lineNum">     603</span> <span class="tlaGNC">           4 :   }) : super(child: child, flex: flex, fit: fit);</span></span>
+<span id="L603"><span class="lineNum">     603</span> <span class="tlaGNC">           6 :   }) : super(child: child, flex: flex, fit: fit);</span></span>
 <span id="L604"><span class="lineNum">     604</span>              : }</span>
 <span id="L605"><span class="lineNum">     605</span>              : </span>
 <span id="L606"><span class="lineNum">     606</span>              : /// Spacer creates an adjustable, empty spacer that can be used to tune the</span>
 <span id="L607"><span class="lineNum">     607</span>              : /// spacing between widgets in a [Flex] container, like [Row] or [Column].</span>
 <span id="L608"><span class="lineNum">     608</span>              : class Spacer extends Flexible {</span>
-<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">           2 :   Spacer({int flex = 1})</span></span>
-<span id="L610"><span class="lineNum">     610</span> <span class="tlaGNC">           4 :       : assert(flex &gt; 0),</span></span>
-<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">           2 :         super(</span></span>
+<span id="L609"><span class="lineNum">     609</span> <span class="tlaGNC">           3 :   Spacer({int flex = 1})</span></span>
+<span id="L610"><span class="lineNum">     610</span> <span class="tlaGNC">           6 :       : assert(flex &gt; 0),</span></span>
+<span id="L611"><span class="lineNum">     611</span> <span class="tlaGNC">           3 :         super(</span></span>
 <span id="L612"><span class="lineNum">     612</span>              :           flex: flex,</span>
 <span id="L613"><span class="lineNum">     613</span>              :           fit: FlexFit.tight,</span>
-<span id="L614"><span class="lineNum">     614</span> <span class="tlaGNC">           2 :           child: SizedBox.shrink(),</span></span>
+<span id="L614"><span class="lineNum">     614</span> <span class="tlaGNC">           3 :           child: SizedBox.shrink(),</span></span>
 <span id="L615"><span class="lineNum">     615</span>              :         );</span>
 <span id="L616"><span class="lineNum">     616</span>              : }</span>
 <span id="L617"><span class="lineNum">     617</span>              : </span>
 <span id="L618"><span class="lineNum">     618</span>              : typedef IndexedWidgetBuilder = Widget Function(Context context, int index);</span>
 <span id="L619"><span class="lineNum">     619</span>              : </span>
 <span id="L620"><span class="lineNum">     620</span>              : class ListView extends StatelessWidget {</span>
-<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">           8 :   ListView({</span></span>
+<span id="L621"><span class="lineNum">     621</span> <span class="tlaGNC">          12 :   ListView({</span></span>
 <span id="L622"><span class="lineNum">     622</span>              :     this.direction = Axis.vertical,</span>
 <span id="L623"><span class="lineNum">     623</span>              :     this.reverse = false,</span>
 <span id="L624"><span class="lineNum">     624</span>              :     this.spacing = 0,</span>
@@ -688,10 +688,10 @@
 <span id="L626"><span class="lineNum">     626</span>              :     List&lt;Widget&gt; this.children = const &lt;Widget&gt;[],</span>
 <span id="L627"><span class="lineNum">     627</span>              :   })  : itemBuilder = null,</span>
 <span id="L628"><span class="lineNum">     628</span>              :         separatorBuilder = null,</span>
-<span id="L629"><span class="lineNum">     629</span> <span class="tlaGNC">           8 :         itemCount = children.length,</span></span>
-<span id="L630"><span class="lineNum">     630</span> <span class="tlaGNC">           8 :         super();</span></span>
+<span id="L629"><span class="lineNum">     629</span> <span class="tlaGNC">          12 :         itemCount = children.length,</span></span>
+<span id="L630"><span class="lineNum">     630</span> <span class="tlaGNC">          12 :         super();</span></span>
 <span id="L631"><span class="lineNum">     631</span>              : </span>
-<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">           2 :   ListView.builder({</span></span>
+<span id="L632"><span class="lineNum">     632</span> <span class="tlaGNC">           3 :   ListView.builder({</span></span>
 <span id="L633"><span class="lineNum">     633</span>              :     this.direction = Axis.vertical,</span>
 <span id="L634"><span class="lineNum">     634</span>              :     this.reverse = false,</span>
 <span id="L635"><span class="lineNum">     635</span>              :     this.spacing = 0,</span>
@@ -700,9 +700,9 @@
 <span id="L638"><span class="lineNum">     638</span>              :     required this.itemCount,</span>
 <span id="L639"><span class="lineNum">     639</span>              :   })  : children = null,</span>
 <span id="L640"><span class="lineNum">     640</span>              :         separatorBuilder = null,</span>
-<span id="L641"><span class="lineNum">     641</span> <span class="tlaGNC">           2 :         super();</span></span>
+<span id="L641"><span class="lineNum">     641</span> <span class="tlaGNC">           3 :         super();</span></span>
 <span id="L642"><span class="lineNum">     642</span>              : </span>
-<span id="L643"><span class="lineNum">     643</span> <span class="tlaGNC">           2 :   ListView.separated({</span></span>
+<span id="L643"><span class="lineNum">     643</span> <span class="tlaGNC">           3 :   ListView.separated({</span></span>
 <span id="L644"><span class="lineNum">     644</span>              :     this.direction = Axis.vertical,</span>
 <span id="L645"><span class="lineNum">     645</span>              :     this.reverse = false,</span>
 <span id="L646"><span class="lineNum">     646</span>              :     this.padding,</span>
@@ -711,7 +711,7 @@
 <span id="L649"><span class="lineNum">     649</span>              :     required this.itemCount,</span>
 <span id="L650"><span class="lineNum">     650</span>              :   })  : children = null,</span>
 <span id="L651"><span class="lineNum">     651</span>              :         spacing = null,</span>
-<span id="L652"><span class="lineNum">     652</span> <span class="tlaGNC">           2 :         super();</span></span>
+<span id="L652"><span class="lineNum">     652</span> <span class="tlaGNC">           3 :         super();</span></span>
 <span id="L653"><span class="lineNum">     653</span>              : </span>
 <span id="L654"><span class="lineNum">     654</span>              :   final Axis direction;</span>
 <span id="L655"><span class="lineNum">     655</span>              :   final EdgeInsetsGeometry? padding;</span>
@@ -722,40 +722,40 @@
 <span id="L660"><span class="lineNum">     660</span>              :   final List&lt;Widget&gt;? children;</span>
 <span id="L661"><span class="lineNum">     661</span>              :   final int itemCount;</span>
 <span id="L662"><span class="lineNum">     662</span>              : </span>
-<span id="L663"><span class="lineNum">     663</span> <span class="tlaGNC">           8 :   Widget _getItem(Context context, int index) {</span></span>
-<span id="L664"><span class="lineNum">     664</span> <span class="tlaGNC">          28 :     return children == null ? itemBuilder!(context, index) : children![index];</span></span>
+<span id="L663"><span class="lineNum">     663</span> <span class="tlaGNC">          12 :   Widget _getItem(Context context, int index) {</span></span>
+<span id="L664"><span class="lineNum">     664</span> <span class="tlaGNC">          42 :     return children == null ? itemBuilder!(context, index) : children![index];</span></span>
 <span id="L665"><span class="lineNum">     665</span>              :   }</span>
 <span id="L666"><span class="lineNum">     666</span>              : </span>
-<span id="L667"><span class="lineNum">     667</span> <span class="tlaGNC">           2 :   Widget _getSeparator(Context context, int index) {</span></span>
-<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">           2 :     return spacing == null</span></span>
-<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">           4 :         ? separatorBuilder!(context, index)</span></span>
-<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">           4 :         : direction == Axis.vertical</span></span>
-<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">           4 :             ? SizedBox(height: spacing)</span></span>
+<span id="L667"><span class="lineNum">     667</span> <span class="tlaGNC">           3 :   Widget _getSeparator(Context context, int index) {</span></span>
+<span id="L668"><span class="lineNum">     668</span> <span class="tlaGNC">           3 :     return spacing == null</span></span>
+<span id="L669"><span class="lineNum">     669</span> <span class="tlaGNC">           6 :         ? separatorBuilder!(context, index)</span></span>
+<span id="L670"><span class="lineNum">     670</span> <span class="tlaGNC">           6 :         : direction == Axis.vertical</span></span>
+<span id="L671"><span class="lineNum">     671</span> <span class="tlaGNC">           6 :             ? SizedBox(height: spacing)</span></span>
 <span id="L672"><span class="lineNum">     672</span> <span class="tlaUNC tlaBgUNC">           0 :             : SizedBox(width: spacing);</span></span>
 <span id="L673"><span class="lineNum">     673</span>              :   }</span>
 <span id="L674"><span class="lineNum">     674</span>              : </span>
-<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC tlaBgGNC">           8 :   @override</span></span>
+<span id="L675"><span class="lineNum">     675</span> <span class="tlaGNC tlaBgGNC">          12 :   @override</span></span>
 <span id="L676"><span class="lineNum">     676</span>              :   Widget build(Context context) {</span>
-<span id="L677"><span class="lineNum">     677</span> <span class="tlaGNC">           8 :     final _children = &lt;Widget&gt;[];</span></span>
+<span id="L677"><span class="lineNum">     677</span> <span class="tlaGNC">          12 :     final _children = &lt;Widget&gt;[];</span></span>
 <span id="L678"><span class="lineNum">     678</span>              : </span>
-<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">           8 :     if (reverse) {</span></span>
-<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">           8 :       for (var index = itemCount - 1; index &gt;= 0; index--) {</span></span>
-<span id="L681"><span class="lineNum">     681</span> <span class="tlaGNC">           4 :         _children.add(_getItem(context, index));</span></span>
-<span id="L682"><span class="lineNum">     682</span> <span class="tlaGNC">           6 :         if (spacing != 0 &amp;&amp; index &gt; 0) {</span></span>
-<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">           4 :           _children.add(_getSeparator(context, index));</span></span>
+<span id="L679"><span class="lineNum">     679</span> <span class="tlaGNC">          12 :     if (reverse) {</span></span>
+<span id="L680"><span class="lineNum">     680</span> <span class="tlaGNC">          12 :       for (var index = itemCount - 1; index &gt;= 0; index--) {</span></span>
+<span id="L681"><span class="lineNum">     681</span> <span class="tlaGNC">           6 :         _children.add(_getItem(context, index));</span></span>
+<span id="L682"><span class="lineNum">     682</span> <span class="tlaGNC">           9 :         if (spacing != 0 &amp;&amp; index &gt; 0) {</span></span>
+<span id="L683"><span class="lineNum">     683</span> <span class="tlaGNC">           6 :           _children.add(_getSeparator(context, index));</span></span>
 <span id="L684"><span class="lineNum">     684</span>              :         }</span>
 <span id="L685"><span class="lineNum">     685</span>              :       }</span>
 <span id="L686"><span class="lineNum">     686</span>              :     } else {</span>
-<span id="L687"><span class="lineNum">     687</span> <span class="tlaGNC">          24 :       for (var index = 0; index &lt; itemCount; index++) {</span></span>
-<span id="L688"><span class="lineNum">     688</span> <span class="tlaGNC">          16 :         _children.add(_getItem(context, index));</span></span>
-<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">          22 :         if (spacing != 0 &amp;&amp; index &lt; itemCount - 1) {</span></span>
-<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">           4 :           _children.add(_getSeparator(context, index));</span></span>
+<span id="L687"><span class="lineNum">     687</span> <span class="tlaGNC">          36 :       for (var index = 0; index &lt; itemCount; index++) {</span></span>
+<span id="L688"><span class="lineNum">     688</span> <span class="tlaGNC">          24 :         _children.add(_getItem(context, index));</span></span>
+<span id="L689"><span class="lineNum">     689</span> <span class="tlaGNC">          33 :         if (spacing != 0 &amp;&amp; index &lt; itemCount - 1) {</span></span>
+<span id="L690"><span class="lineNum">     690</span> <span class="tlaGNC">           6 :           _children.add(_getSeparator(context, index));</span></span>
 <span id="L691"><span class="lineNum">     691</span>              :         }</span>
 <span id="L692"><span class="lineNum">     692</span>              :       }</span>
 <span id="L693"><span class="lineNum">     693</span>              :     }</span>
 <span id="L694"><span class="lineNum">     694</span>              : </span>
-<span id="L695"><span class="lineNum">     695</span> <span class="tlaGNC">           8 :     final Widget widget = Flex(</span></span>
-<span id="L696"><span class="lineNum">     696</span> <span class="tlaGNC">           8 :       direction: direction,</span></span>
+<span id="L695"><span class="lineNum">     695</span> <span class="tlaGNC">          12 :     final Widget widget = Flex(</span></span>
+<span id="L696"><span class="lineNum">     696</span> <span class="tlaGNC">          12 :       direction: direction,</span></span>
 <span id="L697"><span class="lineNum">     697</span>              :       mainAxisAlignment: MainAxisAlignment.start,</span>
 <span id="L698"><span class="lineNum">     698</span>              :       mainAxisSize: MainAxisSize.max,</span>
 <span id="L699"><span class="lineNum">     699</span>              :       crossAxisAlignment: CrossAxisAlignment.center,</span>
@@ -763,9 +763,9 @@
 <span id="L701"><span class="lineNum">     701</span>              :       children: _children,</span>
 <span id="L702"><span class="lineNum">     702</span>              :     );</span>
 <span id="L703"><span class="lineNum">     703</span>              : </span>
-<span id="L704"><span class="lineNum">     704</span> <span class="tlaGNC">           8 :     if (padding != null) {</span></span>
-<span id="L705"><span class="lineNum">     705</span> <span class="tlaGNC">           2 :       return Padding(</span></span>
-<span id="L706"><span class="lineNum">     706</span> <span class="tlaGNC">           2 :         padding: padding!,</span></span>
+<span id="L704"><span class="lineNum">     704</span> <span class="tlaGNC">          12 :     if (padding != null) {</span></span>
+<span id="L705"><span class="lineNum">     705</span> <span class="tlaGNC">           3 :       return Padding(</span></span>
+<span id="L706"><span class="lineNum">     706</span> <span class="tlaGNC">           3 :         padding: padding!,</span></span>
 <span id="L707"><span class="lineNum">     707</span>              :         child: widget,</span>
 <span id="L708"><span class="lineNum">     708</span>              :       );</span>
 <span id="L709"><span class="lineNum">     709</span>              :     }</span>

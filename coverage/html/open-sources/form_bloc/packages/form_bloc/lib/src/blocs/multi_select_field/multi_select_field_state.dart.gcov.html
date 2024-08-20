@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -66,7 +66,7 @@
 <span id="L4"><span class="lineNum">       4</span>              :     extends FieldBlocState&lt;List&lt;Value&gt;, Value, ExtraData?&gt; {</span>
 <span id="L5"><span class="lineNum">       5</span>              :   final List&lt;Value&gt; items;</span>
 <span id="L6"><span class="lineNum">       6</span>              : </span>
-<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC tlaBgGNC">           6 :   MultiSelectFieldBlocState({</span></span>
+<span id="L7"><span class="lineNum">       7</span> <span class="tlaGNC tlaBgGNC">           9 :   MultiSelectFieldBlocState({</span></span>
 <span id="L8"><span class="lineNum">       8</span>              :     required bool isValueChanged,</span>
 <span id="L9"><span class="lineNum">       9</span>              :     required List&lt;Value&gt; initialValue,</span>
 <span id="L10"><span class="lineNum">      10</span>              :     required List&lt;Value&gt; updatedValue,</span>
@@ -81,11 +81,11 @@
 <span id="L19"><span class="lineNum">      19</span>              :     this.items = const [],</span>
 <span id="L20"><span class="lineNum">      20</span>              :     dynamic Function(List&lt;Value&gt; value)? toJson,</span>
 <span id="L21"><span class="lineNum">      21</span>              :     ExtraData? extraData,</span>
-<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           6 :   }) : super(</span></span>
+<span id="L22"><span class="lineNum">      22</span> <span class="tlaGNC">           9 :   }) : super(</span></span>
 <span id="L23"><span class="lineNum">      23</span>              :           isValueChanged: isValueChanged,</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           6 :           initialValue: EquatableList(initialValue),</span></span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           6 :           updatedValue: EquatableList(updatedValue),</span></span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           6 :           value: EquatableList(value),</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC">           9 :           initialValue: EquatableList(initialValue),</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC">           9 :           updatedValue: EquatableList(updatedValue),</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">           9 :           value: EquatableList(value),</span></span>
 <span id="L27"><span class="lineNum">      27</span>              :           error: error,</span>
 <span id="L28"><span class="lineNum">      28</span>              :           isDirty: isDirty,</span>
 <span id="L29"><span class="lineNum">      29</span>              :           suggestions: suggestions,</span>
@@ -97,7 +97,7 @@
 <span id="L35"><span class="lineNum">      35</span>              :           extraData: extraData,</span>
 <span id="L36"><span class="lineNum">      36</span>              :         );</span>
 <span id="L37"><span class="lineNum">      37</span>              : </span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           4 :   @override</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           6 :   @override</span></span>
 <span id="L39"><span class="lineNum">      39</span>              :   MultiSelectFieldBlocState&lt;Value, ExtraData&gt; copyWith({</span>
 <span id="L40"><span class="lineNum">      40</span>              :     bool? isValueChanged,</span>
 <span id="L41"><span class="lineNum">      41</span>              :     Param&lt;List&lt;Value&gt;&gt;? initialValue,</span>
@@ -112,30 +112,30 @@
 <span id="L50"><span class="lineNum">      50</span>              :     List&lt;Value&gt;? items,</span>
 <span id="L51"><span class="lineNum">      51</span>              :     Param&lt;ExtraData?&gt;? extraData,</span>
 <span id="L52"><span class="lineNum">      52</span>              :   }) {</span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           4 :     return MultiSelectFieldBlocState(</span></span>
-<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           4 :       isValueChanged: isValueChanged ?? this.isValueChanged,</span></span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">           8 :       initialValue: initialValue.or(this.initialValue),</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           8 :       updatedValue: updatedValue.or(this.updatedValue),</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           8 :       value: value == null ? this.value : value.value,</span></span>
-<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">           8 :       error: error == null ? this.error : error.value,</span></span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           4 :       isDirty: isDirty ?? this.isDirty,</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           6 :       suggestions: suggestions == null ? this.suggestions : suggestions.value,</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           4 :       isValidated: isValidated ?? this.isValidated,</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           4 :       isValidating: isValidating ?? this.isValidating,</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           4 :       formBloc: formBloc == null ? this.formBloc : formBloc.value,</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           4 :       name: name,</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           4 :       items: items ?? this.items,</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           4 :       toJson: _toJson,</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           4 :       extraData: extraData == null ? this.extraData : extraData.value,</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">           6 :     return MultiSelectFieldBlocState(</span></span>
+<span id="L54"><span class="lineNum">      54</span> <span class="tlaGNC">           6 :       isValueChanged: isValueChanged ?? this.isValueChanged,</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          12 :       initialValue: initialValue.or(this.initialValue),</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          12 :       updatedValue: updatedValue.or(this.updatedValue),</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          12 :       value: value == null ? this.value : value.value,</span></span>
+<span id="L58"><span class="lineNum">      58</span> <span class="tlaGNC">          12 :       error: error == null ? this.error : error.value,</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">           6 :       isDirty: isDirty ?? this.isDirty,</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           9 :       suggestions: suggestions == null ? this.suggestions : suggestions.value,</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           6 :       isValidated: isValidated ?? this.isValidated,</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           6 :       isValidating: isValidating ?? this.isValidating,</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">           6 :       formBloc: formBloc == null ? this.formBloc : formBloc.value,</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">           6 :       name: name,</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">           6 :       items: items ?? this.items,</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           6 :       toJson: _toJson,</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           6 :       extraData: extraData == null ? this.extraData : extraData.value,</span></span>
 <span id="L68"><span class="lineNum">      68</span>              :     );</span>
 <span id="L69"><span class="lineNum">      69</span>              :   }</span>
 <span id="L70"><span class="lineNum">      70</span>              : </span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           2 :   @override</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           3 :   @override</span></span>
 <span id="L72"><span class="lineNum">      72</span>              :   String toString([String extra = '']) =&gt;</span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           6 :       super.toString(',\n  items: $items$extra');</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           9 :       super.toString(',\n  items: $items$extra');</span></span>
 <span id="L74"><span class="lineNum">      74</span>              : </span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           4 :   @override</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          12 :   List&lt;Object?&gt; get props =&gt; [super.props, items];</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">          18 :   List&lt;Object?&gt; get props =&gt; [super.props, items];</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : }</span>
         </pre>
               </td>

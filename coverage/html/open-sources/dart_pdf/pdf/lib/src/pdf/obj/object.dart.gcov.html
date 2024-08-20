@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -85,18 +85,18 @@
 <span id="L23"><span class="lineNum">      23</span>              : /// Base Object used in the PDF file</span>
 <span id="L24"><span class="lineNum">      24</span>              : class PdfObject&lt;T extends PdfDataType&gt; extends PdfObjectBase&lt;T&gt; {</span>
 <span id="L25"><span class="lineNum">      25</span>              :   /// Create a base Object used in the PDF file</span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC tlaBgGNC">          64 :   PdfObject(</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC tlaBgGNC">          96 :   PdfObject(</span></span>
 <span id="L27"><span class="lineNum">      27</span>              :     this.pdfDocument, {</span>
 <span id="L28"><span class="lineNum">      28</span>              :     required T params,</span>
 <span id="L29"><span class="lineNum">      29</span>              :     int objgen = 0,</span>
 <span id="L30"><span class="lineNum">      30</span>              :     int? objser,</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">          64 :   }) : super(</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          64 :           objser: objser ?? pdfDocument.genSerial(),</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">          96 :   }) : super(</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          96 :           objser: objser ?? pdfDocument.genSerial(),</span></span>
 <span id="L33"><span class="lineNum">      33</span>              :           objgen: objgen,</span>
 <span id="L34"><span class="lineNum">      34</span>              :           params: params,</span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          64 :           settings: pdfDocument.settings,</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">          96 :           settings: pdfDocument.settings,</span></span>
 <span id="L36"><span class="lineNum">      36</span>              :         ) {</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         192 :     pdfDocument.objects.add(this);</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         288 :     pdfDocument.objects.add(this);</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :   }</span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
 <span id="L40"><span class="lineNum">      40</span>              :   /// This allows any Pdf object to refer to the document being constructed.</span>
@@ -105,7 +105,7 @@
 <span id="L43"><span class="lineNum">      43</span>              :   var inUse = true;</span>
 <span id="L44"><span class="lineNum">      44</span>              : </span>
 <span id="L45"><span class="lineNum">      45</span>              :   /// Prepare the object to be written to the stream</span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          54 :   @mustCallSuper</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          81 :   @mustCallSuper</span></span>
 <span id="L47"><span class="lineNum">      47</span>              :   void prepare() {}</span>
 <span id="L48"><span class="lineNum">      48</span>              : </span>
 <span id="L49"><span class="lineNum">      49</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>

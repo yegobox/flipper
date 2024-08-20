@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -86,11 +86,11 @@
 <span id="L24"><span class="lineNum">      24</span>              : </span>
 <span id="L25"><span class="lineNum">      25</span>              : @immutable</span>
 <span id="L26"><span class="lineNum">      26</span>              : class SvgClipPath {</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">          74 :   const SvgClipPath(this.children, this.isEmpty, this.painter);</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">         111 :   const SvgClipPath(this.children, this.isEmpty, this.painter);</span></span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           2 :   factory SvgClipPath.fromXml(</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           3 :   factory SvgClipPath.fromXml(</span></span>
 <span id="L30"><span class="lineNum">      30</span>              :       XmlElement element, SvgPainter painter, SvgBrush brush) {</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           2 :     final clipPathAttr = element.getAttribute('clip-path');</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           3 :     final clipPathAttr = element.getAttribute('clip-path');</span></span>
 <span id="L32"><span class="lineNum">      32</span>              :     if (clipPathAttr == null) {</span>
 <span id="L33"><span class="lineNum">      33</span>              :       return const SvgClipPath(null, true, null);</span>
 <span id="L34"><span class="lineNum">      34</span>              :     }</span>
@@ -119,8 +119,8 @@
 <span id="L57"><span class="lineNum">      57</span>              : </span>
 <span id="L58"><span class="lineNum">      58</span> <span class="tlaUNC">           0 :   bool get isNotEmpty =&gt; !isEmpty;</span></span>
 <span id="L59"><span class="lineNum">      59</span>              : </span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC tlaBgGNC">           2 :   void apply(PdfGraphics canvas) {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           2 :     if (isEmpty) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC tlaBgGNC">           3 :   void apply(PdfGraphics canvas) {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           3 :     if (isEmpty) {</span></span>
 <span id="L62"><span class="lineNum">      62</span>              :       return;</span>
 <span id="L63"><span class="lineNum">      63</span>              :     }</span>
 <span id="L64"><span class="lineNum">      64</span>              : </span>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -87,13 +87,13 @@
 <span id="L25"><span class="lineNum">      25</span>              : /// PdfPageList object</span>
 <span id="L26"><span class="lineNum">      26</span>              : class PdfPageList extends PdfObject&lt;PdfDict&gt; {</span>
 <span id="L27"><span class="lineNum">      27</span>              :   /// This constructs a [PdfPageList] object.</span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC tlaBgGNC">          64 :   PdfPageList(</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC tlaBgGNC">          96 :   PdfPageList(</span></span>
 <span id="L29"><span class="lineNum">      29</span>              :     PdfDocument pdfDocument, {</span>
 <span id="L30"><span class="lineNum">      30</span>              :     int objgen = 0,</span>
 <span id="L31"><span class="lineNum">      31</span>              :     int? objser,</span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          64 :   }) : super(</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          96 :   }) : super(</span></span>
 <span id="L33"><span class="lineNum">      33</span>              :           pdfDocument,</span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         128 :           params: PdfDict.values({</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">         192 :           params: PdfDict.values({</span></span>
 <span id="L35"><span class="lineNum">      35</span>              :             '/Type': const PdfName('/Pages'),</span>
 <span id="L36"><span class="lineNum">      36</span>              :           }),</span>
 <span id="L37"><span class="lineNum">      37</span>              :           objgen: objgen,</span>
@@ -103,12 +103,12 @@
 <span id="L41"><span class="lineNum">      41</span>              :   /// This holds the pages</span>
 <span id="L42"><span class="lineNum">      42</span>              :   final pages = &lt;PdfPage&gt;[];</span>
 <span id="L43"><span class="lineNum">      43</span>              : </span>
-<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          54 :   @override</span></span>
+<span id="L44"><span class="lineNum">      44</span> <span class="tlaGNC">          81 :   @override</span></span>
 <span id="L45"><span class="lineNum">      45</span>              :   void prepare() {</span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          54 :     super.prepare();</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          81 :     super.prepare();</span></span>
 <span id="L47"><span class="lineNum">      47</span>              : </span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">         216 :     params['/Kids'] = PdfArray.fromObjects(pages);</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">         270 :     params['/Count'] = PdfNum(pages.length);</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">         324 :     params['/Kids'] = PdfArray.fromObjects(pages);</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">         405 :     params['/Count'] = PdfNum(pages.length);</span></span>
 <span id="L50"><span class="lineNum">      50</span>              :   }</span>
 <span id="L51"><span class="lineNum">      51</span>              : }</span>
         </pre>

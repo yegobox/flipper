@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -89,18 +89,18 @@
 <span id="L27"><span class="lineNum">      27</span>              : import 'string.dart';</span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
 <span id="L29"><span class="lineNum">      29</span>              : class PdfArray&lt;T extends PdfDataType&gt; extends PdfDataType {</span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC tlaBgGNC">         186 :   PdfArray([Iterable&lt;T&gt;? values]) : values = [if (values != null) ...values];</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC tlaBgGNC">         279 :   PdfArray([Iterable&lt;T&gt;? values]) : values = [if (values != null) ...values];</span></span>
 <span id="L31"><span class="lineNum">      31</span>              : </span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          54 :   static PdfArray&lt;PdfIndirect&gt; fromObjects(Iterable&lt;PdfObjectBase&gt; objects) {</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">         262 :     return PdfArray(objects.map&lt;PdfIndirect&gt;((e) =&gt; e.ref()).toList());</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">          81 :   static PdfArray&lt;PdfIndirect&gt; fromObjects(Iterable&lt;PdfObjectBase&gt; objects) {</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">         393 :     return PdfArray(objects.map&lt;PdfIndirect&gt;((e) =&gt; e.ref()).toList());</span></span>
 <span id="L34"><span class="lineNum">      34</span>              :   }</span>
 <span id="L35"><span class="lineNum">      35</span>              : </span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">          60 :   static PdfArray&lt;PdfNum&gt; fromNum(Iterable&lt;num&gt; list) {</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         300 :     return PdfArray(list.map&lt;PdfNum&gt;((num e) =&gt; PdfNum(e)).toList());</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">          90 :   static PdfArray&lt;PdfNum&gt; fromNum(Iterable&lt;num&gt; list) {</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">         450 :     return PdfArray(list.map&lt;PdfNum&gt;((num e) =&gt; PdfNum(e)).toList());</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :   }</span>
 <span id="L39"><span class="lineNum">      39</span>              : </span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           8 :   static PdfArray fromColor(PdfColor color) {</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           8 :     if (color is PdfColorCmyk) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">          12 :   static PdfArray fromColor(PdfColor color) {</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">          12 :     if (color is PdfColorCmyk) {</span></span>
 <span id="L42"><span class="lineNum">      42</span> <span class="tlaUNC tlaBgUNC">           0 :       return PdfArray.fromNum(&lt;double&gt;[</span></span>
 <span id="L43"><span class="lineNum">      43</span> <span class="tlaUNC">           0 :         color.cyan,</span></span>
 <span id="L44"><span class="lineNum">      44</span> <span class="tlaUNC">           0 :         color.magenta,</span></span>
@@ -108,70 +108,70 @@
 <span id="L46"><span class="lineNum">      46</span> <span class="tlaUNC">           0 :         color.black,</span></span>
 <span id="L47"><span class="lineNum">      47</span>              :       ]);</span>
 <span id="L48"><span class="lineNum">      48</span>              :     } else {</span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC tlaBgGNC">          16 :       return PdfArray.fromNum(&lt;double&gt;[</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           8 :         color.red,</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           8 :         color.green,</span></span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           8 :         color.blue,</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC tlaBgGNC">          24 :       return PdfArray.fromNum(&lt;double&gt;[</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">          12 :         color.red,</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">          12 :         color.green,</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">          12 :         color.blue,</span></span>
 <span id="L53"><span class="lineNum">      53</span>              :       ]);</span>
 <span id="L54"><span class="lineNum">      54</span>              :     }</span>
 <span id="L55"><span class="lineNum">      55</span>              :   }</span>
 <span id="L56"><span class="lineNum">      56</span>              : </span>
 <span id="L57"><span class="lineNum">      57</span>              :   final List&lt;T&gt; values;</span>
 <span id="L58"><span class="lineNum">      58</span>              : </span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          10 :   void add(T v) {</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          20 :     values.add(v);</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC">          15 :   void add(T v) {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          30 :     values.add(v);</span></span>
 <span id="L61"><span class="lineNum">      61</span>              :   }</span>
 <span id="L62"><span class="lineNum">      62</span>              : </span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          58 :   @override</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          87 :   @override</span></span>
 <span id="L64"><span class="lineNum">      64</span>              :   void output(PdfObjectBase o, PdfStream s, [int? indent]) {</span>
 <span id="L65"><span class="lineNum">      65</span>              :     if (indent != null) {</span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           4 :       s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           2 :       indent += kIndentSize;</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           6 :       s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">           3 :       indent += kIndentSize;</span></span>
 <span id="L68"><span class="lineNum">      68</span>              :     }</span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          58 :     s.putString('[');</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         116 :     if (values.isNotEmpty) {</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         232 :       for (var n = 0; n &lt; values.length; n++) {</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">         116 :         final val = values[n];</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">          87 :     s.putString('[');</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         174 :     if (values.isNotEmpty) {</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         348 :       for (var n = 0; n &lt; values.length; n++) {</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">         174 :         final val = values[n];</span></span>
 <span id="L73"><span class="lineNum">      73</span>              :         if (indent != null) {</span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           2 :           s.putByte(0x0a);</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           4 :           if (val is! PdfDict &amp;&amp; val is! PdfArray) {</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           4 :             s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           3 :           s.putByte(0x0a);</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           6 :           if (val is! PdfDict &amp;&amp; val is! PdfArray) {</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           6 :             s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
 <span id="L77"><span class="lineNum">      77</span>              :           }</span>
 <span id="L78"><span class="lineNum">      78</span>              :         } else {</span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">          56 :           if (n &gt; 0 &amp;&amp;</span></span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">          56 :               !(val is PdfName ||</span></span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          56 :                   val is PdfString ||</span></span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">          56 :                   val is PdfArray ||</span></span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">          56 :                   val is PdfDict)) {</span></span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          56 :             s.putByte(0x20);</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">          84 :           if (n &gt; 0 &amp;&amp;</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">          84 :               !(val is PdfName ||</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          84 :                   val is PdfString ||</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">          84 :                   val is PdfArray ||</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">          84 :                   val is PdfDict)) {</span></span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          84 :             s.putByte(0x20);</span></span>
 <span id="L85"><span class="lineNum">      85</span>              :           }</span>
 <span id="L86"><span class="lineNum">      86</span>              :         }</span>
-<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">          58 :         val.output(o, s, indent);</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">          87 :         val.output(o, s, indent);</span></span>
 <span id="L88"><span class="lineNum">      88</span>              :       }</span>
 <span id="L89"><span class="lineNum">      89</span>              :       if (indent != null) {</span>
-<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">           2 :         s.putByte(0x0a);</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">           3 :         s.putByte(0x0a);</span></span>
 <span id="L91"><span class="lineNum">      91</span>              :       }</span>
 <span id="L92"><span class="lineNum">      92</span>              :     }</span>
 <span id="L93"><span class="lineNum">      93</span>              :     if (indent != null) {</span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">           2 :       indent -= kIndentSize;</span></span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">           4 :       s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">           3 :       indent -= kIndentSize;</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">           6 :       s.putBytes(List&lt;int&gt;.filled(indent, 0x20));</span></span>
 <span id="L96"><span class="lineNum">      96</span>              :     }</span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">          58 :     s.putString(']');</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">          87 :     s.putString(']');</span></span>
 <span id="L98"><span class="lineNum">      98</span>              :   }</span>
 <span id="L99"><span class="lineNum">      99</span>              : </span>
 <span id="L100"><span class="lineNum">     100</span>              :   /// Make all values unique, preserving the order</span>
-<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">          50 :   void uniq() {</span></span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         150 :     if (values.length &lt;= 1) {</span></span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">          75 :   void uniq() {</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">         225 :     if (values.length &lt;= 1) {</span></span>
 <span id="L103"><span class="lineNum">     103</span>              :       return;</span>
 <span id="L104"><span class="lineNum">     104</span>              :     }</span>
 <span id="L105"><span class="lineNum">     105</span>              : </span>
 <span id="L106"><span class="lineNum">     106</span>              :     // ignore: prefer_collection_literals</span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           2 :     final uniques = LinkedHashMap&lt;T, bool&gt;();</span></span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">           4 :     for (final s in values) {</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">           2 :       uniques[s] = true;</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           3 :     final uniques = LinkedHashMap&lt;T, bool&gt;();</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">           6 :     for (final s in values) {</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">           3 :       uniques[s] = true;</span></span>
 <span id="L110"><span class="lineNum">     110</span>              :     }</span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">           4 :     values.clear();</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">           6 :     values.addAll(uniques.keys);</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">           6 :     values.clear();</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">           9 :     values.addAll(uniques.keys);</span></span>
 <span id="L113"><span class="lineNum">     113</span>              :   }</span>
 <span id="L114"><span class="lineNum">     114</span>              : </span>
 <span id="L115"><span class="lineNum">     115</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>

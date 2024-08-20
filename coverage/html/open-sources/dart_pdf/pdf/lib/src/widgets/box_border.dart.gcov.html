@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -84,7 +84,7 @@
 <span id="L22"><span class="lineNum">      22</span>              : import 'widget.dart';</span>
 <span id="L23"><span class="lineNum">      23</span>              : </span>
 <span id="L24"><span class="lineNum">      24</span>              : class BorderStyle {</span>
-<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC tlaBgGNC">          74 :   const BorderStyle({</span></span>
+<span id="L25"><span class="lineNum">      25</span> <span class="tlaGNC tlaBgGNC">         111 :   const BorderStyle({</span></span>
 <span id="L26"><span class="lineNum">      26</span>              :     this.paint = true,</span>
 <span id="L27"><span class="lineNum">      27</span>              :     this.pattern,</span>
 <span id="L28"><span class="lineNum">      28</span>              :     this.phase = 0,</span>
@@ -105,25 +105,25 @@
 <span id="L43"><span class="lineNum">      43</span>              :   /// Specify the distance into the dash pattern at which to start the dash.</span>
 <span id="L44"><span class="lineNum">      44</span>              :   final int phase;</span>
 <span id="L45"><span class="lineNum">      45</span>              : </span>
-<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          10 :   void setStyle(Context context) {</span></span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          20 :     if (paint &amp;&amp; pattern != null) {</span></span>
-<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           2 :       context.canvas</span></span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           2 :         ..saveContext()</span></span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           2 :         ..setLineCap(PdfLineCap.butt)</span></span>
-<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           6 :         ..setLineDashPattern(pattern!, phase);</span></span>
+<span id="L46"><span class="lineNum">      46</span> <span class="tlaGNC">          15 :   void setStyle(Context context) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          30 :     if (paint &amp;&amp; pattern != null) {</span></span>
+<span id="L48"><span class="lineNum">      48</span> <span class="tlaGNC">           3 :       context.canvas</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           3 :         ..saveContext()</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           3 :         ..setLineCap(PdfLineCap.butt)</span></span>
+<span id="L51"><span class="lineNum">      51</span> <span class="tlaGNC">           9 :         ..setLineDashPattern(pattern!, phase);</span></span>
 <span id="L52"><span class="lineNum">      52</span>              :     }</span>
 <span id="L53"><span class="lineNum">      53</span>              :   }</span>
 <span id="L54"><span class="lineNum">      54</span>              : </span>
-<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          10 :   void unsetStyle(Context context) {</span></span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          20 :     if (paint &amp;&amp; pattern != null) {</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           4 :       context.canvas.restoreContext();</span></span>
+<span id="L55"><span class="lineNum">      55</span> <span class="tlaGNC">          15 :   void unsetStyle(Context context) {</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          30 :     if (paint &amp;&amp; pattern != null) {</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           6 :       context.canvas.restoreContext();</span></span>
 <span id="L58"><span class="lineNum">      58</span>              :     }</span>
 <span id="L59"><span class="lineNum">      59</span>              :   }</span>
 <span id="L60"><span class="lineNum">      60</span>              : }</span>
 <span id="L61"><span class="lineNum">      61</span>              : </span>
 <span id="L62"><span class="lineNum">      62</span>              : @immutable</span>
 <span id="L63"><span class="lineNum">      63</span>              : abstract class BoxBorder {</span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         308 :   const BoxBorder();</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         462 :   const BoxBorder();</span></span>
 <span id="L65"><span class="lineNum">      65</span>              : </span>
 <span id="L66"><span class="lineNum">      66</span>              :   BorderSide get top;</span>
 <span id="L67"><span class="lineNum">      67</span>              :   BorderSide get bottom;</span>
@@ -139,49 +139,49 @@
 <span id="L77"><span class="lineNum">      77</span>              :     BorderRadius? borderRadius,</span>
 <span id="L78"><span class="lineNum">      78</span>              :   });</span>
 <span id="L79"><span class="lineNum">      79</span>              : </span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           2 :   static void _paintUniformBorderWithCircle(</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">           3 :   static void _paintUniformBorderWithCircle(</span></span>
 <span id="L81"><span class="lineNum">      81</span>              :       Context context, PdfRect box, BorderSide side) {</span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           4 :     side.style.setStyle(context);</span></span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           2 :     context.canvas</span></span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">           4 :       ..setStrokeColor(side.color)</span></span>
-<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           4 :       ..setLineWidth(side.width)</span></span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          18 :       ..drawEllipse(box.x + box.width / 2.0, box.y + box.height / 2.0,</span></span>
-<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">           8 :           box.width / 2.0, box.height / 2.0)</span></span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">           2 :       ..strokePath();</span></span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">           4 :     side.style.unsetStyle(context);</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           6 :     side.style.setStyle(context);</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           3 :     context.canvas</span></span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">           6 :       ..setStrokeColor(side.color)</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           6 :       ..setLineWidth(side.width)</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          27 :       ..drawEllipse(box.x + box.width / 2.0, box.y + box.height / 2.0,</span></span>
+<span id="L87"><span class="lineNum">      87</span> <span class="tlaGNC">          12 :           box.width / 2.0, box.height / 2.0)</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">           3 :       ..strokePath();</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">           6 :     side.style.unsetStyle(context);</span></span>
 <span id="L90"><span class="lineNum">      90</span>              :   }</span>
 <span id="L91"><span class="lineNum">      91</span>              : </span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">           2 :   static void _paintUniformBorderWithRadius(Context context, PdfRect box,</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">           3 :   static void _paintUniformBorderWithRadius(Context context, PdfRect box,</span></span>
 <span id="L93"><span class="lineNum">      93</span>              :       BorderSide side, BorderRadius borderRadius) {</span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">           4 :     side.style.setStyle(context);</span></span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">           2 :     context.canvas</span></span>
-<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">           2 :       ..setLineJoin(PdfLineJoin.miter)</span></span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">           2 :       ..setMiterLimit(4)</span></span>
-<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">           4 :       ..setStrokeColor(side.color)</span></span>
-<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">           4 :       ..setLineWidth(side.width);</span></span>
-<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">           2 :     borderRadius.paint(context, box);</span></span>
-<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">           4 :     context.canvas.strokePath();</span></span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">           4 :     side.style.unsetStyle(context);</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">           6 :     side.style.setStyle(context);</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">           3 :     context.canvas</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">           3 :       ..setLineJoin(PdfLineJoin.miter)</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">           3 :       ..setMiterLimit(4)</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">           6 :       ..setStrokeColor(side.color)</span></span>
+<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">           6 :       ..setLineWidth(side.width);</span></span>
+<span id="L100"><span class="lineNum">     100</span> <span class="tlaGNC">           3 :     borderRadius.paint(context, box);</span></span>
+<span id="L101"><span class="lineNum">     101</span> <span class="tlaGNC">           6 :     context.canvas.strokePath();</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">           6 :     side.style.unsetStyle(context);</span></span>
 <span id="L103"><span class="lineNum">     103</span>              :   }</span>
 <span id="L104"><span class="lineNum">     104</span>              : </span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           4 :   static void _paintUniformBorderWithRectangle(</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           6 :   static void _paintUniformBorderWithRectangle(</span></span>
 <span id="L106"><span class="lineNum">     106</span>              :       Context context, PdfRect box, BorderSide side) {</span>
-<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">           8 :     side.style.setStyle(context);</span></span>
-<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">           4 :     context.canvas</span></span>
-<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">           4 :       ..setLineJoin(PdfLineJoin.miter)</span></span>
-<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">           4 :       ..setMiterLimit(4)</span></span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">           8 :       ..setStrokeColor(side.color)</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">           8 :       ..setLineWidth(side.width)</span></span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">           4 :       ..drawBox(box)</span></span>
-<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">           4 :       ..strokePath();</span></span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">           8 :     side.style.unsetStyle(context);</span></span>
+<span id="L107"><span class="lineNum">     107</span> <span class="tlaGNC">          12 :     side.style.setStyle(context);</span></span>
+<span id="L108"><span class="lineNum">     108</span> <span class="tlaGNC">           6 :     context.canvas</span></span>
+<span id="L109"><span class="lineNum">     109</span> <span class="tlaGNC">           6 :       ..setLineJoin(PdfLineJoin.miter)</span></span>
+<span id="L110"><span class="lineNum">     110</span> <span class="tlaGNC">           6 :       ..setMiterLimit(4)</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC">          12 :       ..setStrokeColor(side.color)</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">          12 :       ..setLineWidth(side.width)</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">           6 :       ..drawBox(box)</span></span>
+<span id="L114"><span class="lineNum">     114</span> <span class="tlaGNC">           6 :       ..strokePath();</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          12 :     side.style.unsetStyle(context);</span></span>
 <span id="L116"><span class="lineNum">     116</span>              :   }</span>
 <span id="L117"><span class="lineNum">     117</span>              : }</span>
 <span id="L118"><span class="lineNum">     118</span>              : </span>
 <span id="L119"><span class="lineNum">     119</span>              : /// A side of a border of a box.</span>
 <span id="L120"><span class="lineNum">     120</span>              : class BorderSide {</span>
 <span id="L121"><span class="lineNum">     121</span>              :   /// Creates the side of a border.</span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         382 :   const BorderSide({</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">         573 :   const BorderSide({</span></span>
 <span id="L123"><span class="lineNum">     123</span>              :     this.color = PdfColors.black,</span>
 <span id="L124"><span class="lineNum">     124</span>              :     this.width = 1.0,</span>
 <span id="L125"><span class="lineNum">     125</span>              :     this.style = BorderStyle.solid,</span>
@@ -211,17 +211,17 @@
 <span id="L149"><span class="lineNum">     149</span> <span class="tlaUNC">           0 :         style: style ?? this.style,</span></span>
 <span id="L150"><span class="lineNum">     150</span>              :       );</span>
 <span id="L151"><span class="lineNum">     151</span>              : </span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC tlaBgGNC">          10 :   @override</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC tlaBgGNC">          15 :   @override</span></span>
 <span id="L153"><span class="lineNum">     153</span>              :   bool operator ==(Object other) {</span>
 <span id="L154"><span class="lineNum">     154</span>              :     if (identical(this, other)) {</span>
 <span id="L155"><span class="lineNum">     155</span>              :       return true;</span>
 <span id="L156"><span class="lineNum">     156</span>              :     }</span>
-<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">          18 :     if (other.runtimeType != runtimeType) {</span></span>
+<span id="L157"><span class="lineNum">     157</span> <span class="tlaGNC">          27 :     if (other.runtimeType != runtimeType) {</span></span>
 <span id="L158"><span class="lineNum">     158</span>              :       return false;</span>
 <span id="L159"><span class="lineNum">     159</span>              :     }</span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           6 :     return other is BorderSide &amp;&amp;</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">          18 :         other.color == color &amp;&amp;</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          12 :         other.width == width &amp;&amp;</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           9 :     return other is BorderSide &amp;&amp;</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">          27 :         other.color == color &amp;&amp;</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          18 :         other.width == width &amp;&amp;</span></span>
 <span id="L163"><span class="lineNum">     163</span> <span class="tlaUNC tlaBgUNC">           0 :         other.style == style;</span></span>
 <span id="L164"><span class="lineNum">     164</span>              :   }</span>
 <span id="L165"><span class="lineNum">     165</span>              : </span>
@@ -231,30 +231,30 @@
 <span id="L169"><span class="lineNum">     169</span>              : </span>
 <span id="L170"><span class="lineNum">     170</span>              : /// A border of a box, comprised of four sides: top, right, bottom, left.</span>
 <span id="L171"><span class="lineNum">     171</span>              : class Border extends BoxBorder {</span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC tlaBgGNC">         304 :   const Border({</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC tlaBgGNC">         456 :   const Border({</span></span>
 <span id="L173"><span class="lineNum">     173</span>              :     this.top = BorderSide.none,</span>
 <span id="L174"><span class="lineNum">     174</span>              :     this.right = BorderSide.none,</span>
 <span id="L175"><span class="lineNum">     175</span>              :     this.bottom = BorderSide.none,</span>
 <span id="L176"><span class="lineNum">     176</span>              :     this.left = BorderSide.none,</span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           4 :   }) : super();</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           6 :   }) : super();</span></span>
 <span id="L178"><span class="lineNum">     178</span>              : </span>
 <span id="L179"><span class="lineNum">     179</span>              :   /// A uniform border with all sides the same color and width.</span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           4 :   factory Border.all({</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           6 :   factory Border.all({</span></span>
 <span id="L181"><span class="lineNum">     181</span>              :     PdfColor color = PdfColors.black,</span>
 <span id="L182"><span class="lineNum">     182</span>              :     double width = 1.0,</span>
 <span id="L183"><span class="lineNum">     183</span>              :     BorderStyle style = BorderStyle.solid,</span>
 <span id="L184"><span class="lineNum">     184</span>              :   }) =&gt;</span>
-<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           4 :       Border.fromBorderSide(</span></span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">           4 :         BorderSide(color: color, width: width, style: style),</span></span>
+<span id="L185"><span class="lineNum">     185</span> <span class="tlaGNC">           6 :       Border.fromBorderSide(</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">           6 :         BorderSide(color: color, width: width, style: style),</span></span>
 <span id="L187"><span class="lineNum">     187</span>              :       );</span>
 <span id="L188"><span class="lineNum">     188</span>              : </span>
 <span id="L189"><span class="lineNum">     189</span>              :   /// Creates a border whose sides are all the same.</span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">           4 :   const Border.fromBorderSide(BorderSide side)</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">           6 :   const Border.fromBorderSide(BorderSide side)</span></span>
 <span id="L191"><span class="lineNum">     191</span>              :       : top = side,</span>
 <span id="L192"><span class="lineNum">     192</span>              :         right = side,</span>
 <span id="L193"><span class="lineNum">     193</span>              :         bottom = side,</span>
 <span id="L194"><span class="lineNum">     194</span>              :         left = side,</span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           4 :         super();</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           6 :         super();</span></span>
 <span id="L196"><span class="lineNum">     196</span>              : </span>
 <span id="L197"><span class="lineNum">     197</span>              :   /// Creates a border with symmetrical vertical and horizontal sides.</span>
 <span id="L198"><span class="lineNum">     198</span> <span class="tlaUNC tlaBgUNC">           0 :   const Border.symmetric({</span></span>
@@ -278,48 +278,48 @@
 <span id="L216"><span class="lineNum">     216</span>              :   @override</span>
 <span id="L217"><span class="lineNum">     217</span>              :   final BorderSide right;</span>
 <span id="L218"><span class="lineNum">     218</span>              : </span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC tlaBgGNC">          10 :   @override</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          66 :   bool get isUniform =&gt; top == bottom &amp;&amp; bottom == left &amp;&amp; left == right;</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC tlaBgGNC">          15 :   @override</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          99 :   bool get isUniform =&gt; top == bottom &amp;&amp; bottom == left &amp;&amp; left == right;</span></span>
 <span id="L221"><span class="lineNum">     221</span>              : </span>
-<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          10 :   @override</span></span>
+<span id="L222"><span class="lineNum">     222</span> <span class="tlaGNC">          15 :   @override</span></span>
 <span id="L223"><span class="lineNum">     223</span>              :   void paint(</span>
 <span id="L224"><span class="lineNum">     224</span>              :     Context context,</span>
 <span id="L225"><span class="lineNum">     225</span>              :     PdfRect box, {</span>
 <span id="L226"><span class="lineNum">     226</span>              :     BoxShape shape = BoxShape.rectangle,</span>
 <span id="L227"><span class="lineNum">     227</span>              :     BorderRadius? borderRadius,</span>
 <span id="L228"><span class="lineNum">     228</span>              :   }) {</span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          10 :     if (isUniform) {</span></span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          18 :       if (top.style == BorderStyle.none) {</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">          15 :     if (isUniform) {</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">          27 :       if (top.style == BorderStyle.none) {</span></span>
 <span id="L231"><span class="lineNum">     231</span>              :         return;</span>
 <span id="L232"><span class="lineNum">     232</span>              :       }</span>
 <span id="L233"><span class="lineNum">     233</span>              : </span>
 <span id="L234"><span class="lineNum">     234</span>              :       switch (shape) {</span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           6 :         case BoxShape.circle:</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           2 :           assert(borderRadius == null,</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           9 :         case BoxShape.circle:</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           3 :           assert(borderRadius == null,</span></span>
 <span id="L237"><span class="lineNum">     237</span>              :               'A borderRadius can only be given for rectangular boxes.');</span>
-<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           4 :           BoxBorder._paintUniformBorderWithCircle(context, box, top);</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           6 :           BoxBorder._paintUniformBorderWithCircle(context, box, top);</span></span>
 <span id="L239"><span class="lineNum">     239</span>              :           break;</span>
-<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">           6 :         case BoxShape.rectangle:</span></span>
+<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">           9 :         case BoxShape.rectangle:</span></span>
 <span id="L241"><span class="lineNum">     241</span>              :           if (borderRadius != null) {</span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           2 :             BoxBorder._paintUniformBorderWithRadius(</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           2 :                 context, box, top, borderRadius);</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           3 :             BoxBorder._paintUniformBorderWithRadius(</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           3 :                 context, box, top, borderRadius);</span></span>
 <span id="L244"><span class="lineNum">     244</span>              :             return;</span>
 <span id="L245"><span class="lineNum">     245</span>              :           }</span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           8 :           BoxBorder._paintUniformBorderWithRectangle(context, box, top);</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          12 :           BoxBorder._paintUniformBorderWithRectangle(context, box, top);</span></span>
 <span id="L247"><span class="lineNum">     247</span>              :           break;</span>
 <span id="L248"><span class="lineNum">     248</span>              :       }</span>
 <span id="L249"><span class="lineNum">     249</span>              :       return;</span>
 <span id="L250"><span class="lineNum">     250</span>              :     }</span>
 <span id="L251"><span class="lineNum">     251</span>              : </span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           6 :     assert(borderRadius == null,</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           9 :     assert(borderRadius == null,</span></span>
 <span id="L253"><span class="lineNum">     253</span>              :         'A borderRadius can only be given for a uniform Border.');</span>
 <span id="L254"><span class="lineNum">     254</span>              : </span>
-<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           6 :     context.canvas</span></span>
-<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">           6 :       ..setLineCap(PdfLineCap.square)</span></span>
-<span id="L257"><span class="lineNum">     257</span> <span class="tlaGNC">           6 :       ..setMiterLimit(4)</span></span>
-<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">           6 :       ..setLineJoin(PdfLineJoin.miter);</span></span>
+<span id="L255"><span class="lineNum">     255</span> <span class="tlaGNC">           9 :     context.canvas</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">           9 :       ..setLineCap(PdfLineCap.square)</span></span>
+<span id="L257"><span class="lineNum">     257</span> <span class="tlaGNC">           9 :       ..setMiterLimit(4)</span></span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">           9 :       ..setLineJoin(PdfLineJoin.miter);</span></span>
 <span id="L259"><span class="lineNum">     259</span>              : </span>
-<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">          18 :     if (top.style.paint) {</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">          27 :     if (top.style.paint) {</span></span>
 <span id="L261"><span class="lineNum">     261</span> <span class="tlaUNC tlaBgUNC">           0 :       top.style.setStyle(context);</span></span>
 <span id="L262"><span class="lineNum">     262</span> <span class="tlaUNC">           0 :       context.canvas</span></span>
 <span id="L263"><span class="lineNum">     263</span> <span class="tlaUNC">           0 :         ..setStrokeColor(top.color)</span></span>
@@ -329,7 +329,7 @@
 <span id="L267"><span class="lineNum">     267</span> <span class="tlaUNC">           0 :       top.style.unsetStyle(context);</span></span>
 <span id="L268"><span class="lineNum">     268</span>              :     }</span>
 <span id="L269"><span class="lineNum">     269</span>              : </span>
-<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC tlaBgGNC">          18 :     if (right.style.paint) {</span></span>
+<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC tlaBgGNC">          27 :     if (right.style.paint) {</span></span>
 <span id="L271"><span class="lineNum">     271</span> <span class="tlaUNC tlaBgUNC">           0 :       right.style.setStyle(context);</span></span>
 <span id="L272"><span class="lineNum">     272</span> <span class="tlaUNC">           0 :       context.canvas</span></span>
 <span id="L273"><span class="lineNum">     273</span> <span class="tlaUNC">           0 :         ..setStrokeColor(right.color)</span></span>
@@ -339,17 +339,17 @@
 <span id="L277"><span class="lineNum">     277</span> <span class="tlaUNC">           0 :       right.style.unsetStyle(context);</span></span>
 <span id="L278"><span class="lineNum">     278</span>              :     }</span>
 <span id="L279"><span class="lineNum">     279</span>              : </span>
-<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC tlaBgGNC">          18 :     if (bottom.style.paint) {</span></span>
-<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">          18 :       bottom.style.setStyle(context);</span></span>
-<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">           6 :       context.canvas</span></span>
-<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          18 :         ..setStrokeColor(bottom.color)</span></span>
-<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          18 :         ..setLineWidth(bottom.width)</span></span>
-<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          30 :         ..drawLine(box.right, box.bottom, box.left, box.bottom)</span></span>
-<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           6 :         ..strokePath();</span></span>
-<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          18 :       bottom.style.unsetStyle(context);</span></span>
+<span id="L280"><span class="lineNum">     280</span> <span class="tlaGNC tlaBgGNC">          27 :     if (bottom.style.paint) {</span></span>
+<span id="L281"><span class="lineNum">     281</span> <span class="tlaGNC">          27 :       bottom.style.setStyle(context);</span></span>
+<span id="L282"><span class="lineNum">     282</span> <span class="tlaGNC">           9 :       context.canvas</span></span>
+<span id="L283"><span class="lineNum">     283</span> <span class="tlaGNC">          27 :         ..setStrokeColor(bottom.color)</span></span>
+<span id="L284"><span class="lineNum">     284</span> <span class="tlaGNC">          27 :         ..setLineWidth(bottom.width)</span></span>
+<span id="L285"><span class="lineNum">     285</span> <span class="tlaGNC">          45 :         ..drawLine(box.right, box.bottom, box.left, box.bottom)</span></span>
+<span id="L286"><span class="lineNum">     286</span> <span class="tlaGNC">           9 :         ..strokePath();</span></span>
+<span id="L287"><span class="lineNum">     287</span> <span class="tlaGNC">          27 :       bottom.style.unsetStyle(context);</span></span>
 <span id="L288"><span class="lineNum">     288</span>              :     }</span>
 <span id="L289"><span class="lineNum">     289</span>              : </span>
-<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">          18 :     if (left.style.paint) {</span></span>
+<span id="L290"><span class="lineNum">     290</span> <span class="tlaGNC">          27 :     if (left.style.paint) {</span></span>
 <span id="L291"><span class="lineNum">     291</span> <span class="tlaUNC tlaBgUNC">           0 :       left.style.setStyle(context);</span></span>
 <span id="L292"><span class="lineNum">     292</span> <span class="tlaUNC">           0 :       context.canvas</span></span>
 <span id="L293"><span class="lineNum">     293</span> <span class="tlaUNC">           0 :         ..setStrokeColor(left.color)</span></span>

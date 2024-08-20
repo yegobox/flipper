@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -68,12 +68,12 @@
 <span id="L6"><span class="lineNum">       6</span>              : // ignore_for_file: public_member_api_docs</span>
 <span id="L7"><span class="lineNum">       7</span>              : </span>
 <span id="L8"><span class="lineNum">       8</span>              : class SlidableScrollingBehavior extends StatefulWidget {</span>
-<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC tlaBgGNC">           4 :   const SlidableScrollingBehavior({</span></span>
+<span id="L9"><span class="lineNum">       9</span> <span class="tlaGNC tlaBgGNC">           6 :   const SlidableScrollingBehavior({</span></span>
 <span id="L10"><span class="lineNum">      10</span>              :     Key? key,</span>
 <span id="L11"><span class="lineNum">      11</span>              :     required this.controller,</span>
 <span id="L12"><span class="lineNum">      12</span>              :     this.closeOnScroll = true,</span>
 <span id="L13"><span class="lineNum">      13</span>              :     required this.child,</span>
-<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           4 :   }) : super(key: key);</span></span>
+<span id="L14"><span class="lineNum">      14</span> <span class="tlaGNC">           6 :   }) : super(key: key);</span></span>
 <span id="L15"><span class="lineNum">      15</span>              : </span>
 <span id="L16"><span class="lineNum">      16</span>              :   final SlidableController controller;</span>
 <span id="L17"><span class="lineNum">      17</span>              : </span>
@@ -88,19 +88,19 @@
 <span id="L26"><span class="lineNum">      26</span>              :   /// {@macro flutter.widgets.child}</span>
 <span id="L27"><span class="lineNum">      27</span>              :   final Widget child;</span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           4 :   @override</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           6 :   @override</span></span>
 <span id="L30"><span class="lineNum">      30</span>              :   _SlidableScrollingBehaviorState createState() =&gt;</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           4 :       _SlidableScrollingBehaviorState();</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           6 :       _SlidableScrollingBehaviorState();</span></span>
 <span id="L32"><span class="lineNum">      32</span>              : }</span>
 <span id="L33"><span class="lineNum">      33</span>              : </span>
 <span id="L34"><span class="lineNum">      34</span>              : class _SlidableScrollingBehaviorState extends State&lt;SlidableScrollingBehavior&gt; {</span>
 <span id="L35"><span class="lineNum">      35</span>              :   ScrollPosition? scrollPosition;</span>
 <span id="L36"><span class="lineNum">      36</span>              : </span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           4 :   @override</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           6 :   @override</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :   void didChangeDependencies() {</span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">           4 :     super.didChangeDependencies();</span></span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           4 :     removeScrollingNotifierListener();</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           4 :     addScrollingNotifierListener();</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">           6 :     super.didChangeDependencies();</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           6 :     removeScrollingNotifierListener();</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           6 :     addScrollingNotifierListener();</span></span>
 <span id="L42"><span class="lineNum">      42</span>              :   }</span>
 <span id="L43"><span class="lineNum">      43</span>              : </span>
 <span id="L44"><span class="lineNum">      44</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>
@@ -118,17 +118,17 @@
 <span id="L56"><span class="lineNum">      56</span> <span class="tlaUNC">           0 :     super.dispose();</span></span>
 <span id="L57"><span class="lineNum">      57</span>              :   }</span>
 <span id="L58"><span class="lineNum">      58</span>              : </span>
-<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC tlaBgGNC">           4 :   void addScrollingNotifierListener() {</span></span>
-<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">           8 :     if (widget.closeOnScroll) {</span></span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           8 :       scrollPosition = Scrollable.of(context).position;</span></span>
+<span id="L59"><span class="lineNum">      59</span> <span class="tlaGNC tlaBgGNC">           6 :   void addScrollingNotifierListener() {</span></span>
+<span id="L60"><span class="lineNum">      60</span> <span class="tlaGNC">          12 :     if (widget.closeOnScroll) {</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">          12 :       scrollPosition = Scrollable.of(context).position;</span></span>
 <span id="L62"><span class="lineNum">      62</span> <span class="tlaUNC tlaBgUNC">           0 :       if (scrollPosition != null) {</span></span>
 <span id="L63"><span class="lineNum">      63</span> <span class="tlaUNC">           0 :         scrollPosition!.isScrollingNotifier.addListener(handleScrollingChanged);</span></span>
 <span id="L64"><span class="lineNum">      64</span>              :       }</span>
 <span id="L65"><span class="lineNum">      65</span>              :     }</span>
 <span id="L66"><span class="lineNum">      66</span>              :   }</span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC tlaBgGNC">           4 :   void removeScrollingNotifierListener() {</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           4 :     scrollPosition?.isScrollingNotifier.removeListener(handleScrollingChanged);</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC tlaBgGNC">           6 :   void removeScrollingNotifierListener() {</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           6 :     scrollPosition?.isScrollingNotifier.removeListener(handleScrollingChanged);</span></span>
 <span id="L70"><span class="lineNum">      70</span>              :   }</span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span> <span class="tlaUNC tlaBgUNC">           0 :   void handleScrollingChanged() {</span></span>

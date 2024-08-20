@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-19 17:03:44</td>
+            <td class="headerValue">2024-08-20 06:52:17</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -83,10 +83,10 @@
 <span id="L21"><span class="lineNum">      21</span>              :   ///</span>
 <span id="L22"><span class="lineNum">      22</span>              :   /// Returns [FieldBlocValidatorsErrors.required]</span>
 <span id="L23"><span class="lineNum">      23</span>              :   /// if is not valid.</span>
-<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC tlaBgGNC">          18 :   static String? required(dynamic value) {</span></span>
+<span id="L24"><span class="lineNum">      24</span> <span class="tlaGNC tlaBgGNC">          27 :   static String? required(dynamic value) {</span></span>
 <span id="L25"><span class="lineNum">      25</span>              :     if (value == null ||</span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">          18 :         value == false ||</span></span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          56 :         ((value is Iterable || value is String || value is Map) &amp;&amp; value.length == 0)) {</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">          27 :         value == false ||</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC">          84 :         ((value is Iterable || value is String || value is Map) &amp;&amp; value.length == 0)) {</span></span>
 <span id="L28"><span class="lineNum">      28</span>              :       return FieldBlocValidatorsErrors.required;</span>
 <span id="L29"><span class="lineNum">      29</span>              :     }</span>
 <span id="L30"><span class="lineNum">      30</span>              :     return null;</span>
@@ -99,9 +99,9 @@
 <span id="L37"><span class="lineNum">      37</span>              :   ///</span>
 <span id="L38"><span class="lineNum">      38</span>              :   /// Returns [FieldBlocValidatorsErrors.email]</span>
 <span id="L39"><span class="lineNum">      39</span>              :   /// if is not valid.</span>
-<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           2 :   static String? email(String? string) {</span></span>
-<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           2 :     final emailRegExp = RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');</span></span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           4 :     if (string == null || string.isEmpty || emailRegExp.hasMatch(string)) {</span></span>
+<span id="L40"><span class="lineNum">      40</span> <span class="tlaGNC">           3 :   static String? email(String? string) {</span></span>
+<span id="L41"><span class="lineNum">      41</span> <span class="tlaGNC">           3 :     final emailRegExp = RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           6 :     if (string == null || string.isEmpty || emailRegExp.hasMatch(string)) {</span></span>
 <span id="L43"><span class="lineNum">      43</span>              :       return null;</span>
 <span id="L44"><span class="lineNum">      44</span>              :     }</span>
 <span id="L45"><span class="lineNum">      45</span>              : </span>
@@ -115,8 +115,8 @@
 <span id="L53"><span class="lineNum">      53</span>              :   ///</span>
 <span id="L54"><span class="lineNum">      54</span>              :   /// Returns [FieldBlocValidatorsErrors.passwordMin6Chars]</span>
 <span id="L55"><span class="lineNum">      55</span>              :   /// if is not valid.</span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           2 :   static String? passwordMin6Chars(String? string) {</span></span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           8 :     if (string == null || string.isEmpty || string.runes.length &gt;= 6) {</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">           3 :   static String? passwordMin6Chars(String? string) {</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">          12 :     if (string == null || string.isEmpty || string.runes.length &gt;= 6) {</span></span>
 <span id="L58"><span class="lineNum">      58</span>              :       return null;</span>
 <span id="L59"><span class="lineNum">      59</span>              :     }</span>
 <span id="L60"><span class="lineNum">      60</span>              :     return FieldBlocValidatorsErrors.passwordMin6Chars;</span>
@@ -138,14 +138,14 @@
 <span id="L76"><span class="lineNum">      76</span>              :   ///</span>
 <span id="L77"><span class="lineNum">      77</span>              :   /// Returns [FieldBlocValidatorsErrors.passwordMin6Chars]</span>
 <span id="L78"><span class="lineNum">      78</span>              :   /// if is not valid.</span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           2 :   static Validator&lt;String?&gt; confirmPassword(</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           3 :   static Validator&lt;String?&gt; confirmPassword(</span></span>
 <span id="L80"><span class="lineNum">      80</span>              :     // ignore: strict_raw_type</span>
 <span id="L81"><span class="lineNum">      81</span>              :     TextFieldBloc passwordTextFieldBloc,</span>
 <span id="L82"><span class="lineNum">      82</span>              :   ) {</span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           2 :     return (String? confirmPassword) {</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           3 :     return (String? confirmPassword) {</span></span>
 <span id="L84"><span class="lineNum">      84</span>              :       if (confirmPassword == null ||</span>
-<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           2 :           confirmPassword.isEmpty ||</span></span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">           4 :           confirmPassword == passwordTextFieldBloc.value) {</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           3 :           confirmPassword.isEmpty ||</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">           6 :           confirmPassword == passwordTextFieldBloc.value) {</span></span>
 <span id="L87"><span class="lineNum">      87</span>              :         return null;</span>
 <span id="L88"><span class="lineNum">      88</span>              :       }</span>
 <span id="L89"><span class="lineNum">      89</span>              :       return FieldBlocValidatorsErrors.confirmPassword;</span>
