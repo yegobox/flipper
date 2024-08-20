@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -82,13 +82,13 @@
 <span id="L20"><span class="lineNum">      20</span>              : import '../format/object_base.dart';</span>
 <span id="L21"><span class="lineNum">      21</span>              : </span>
 <span id="L22"><span class="lineNum">      22</span>              : /// Zip compression function</span>
-<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC tlaBgGNC">         288 : DeflateCallback defaultDeflate = zlib.encode;</span></span>
+<span id="L23"><span class="lineNum">      23</span> <span class="tlaGNC tlaBgGNC">         384 : DeflateCallback defaultDeflate = zlib.encode;</span></span>
 <span id="L24"><span class="lineNum">      24</span>              : </span>
 <span id="L25"><span class="lineNum">      25</span>              : /// The dart:io implementation of [pdfCompute].</span>
-<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">          81 : @pragma('vm:prefer-inline')</span></span>
+<span id="L26"><span class="lineNum">      26</span> <span class="tlaGNC">         108 : @pragma('vm:prefer-inline')</span></span>
 <span id="L27"><span class="lineNum">      27</span>              : Future&lt;R&gt; pdfCompute&lt;R&gt;(Future&lt;R&gt; Function() computation) async {</span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">         162 :   if (Platform.environment.containsKey('FLUTTER_TEST')) {</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">          81 :     return computation();</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">         216 :   if (Platform.environment.containsKey('FLUTTER_TEST')) {</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">         108 :     return computation();</span></span>
 <span id="L30"><span class="lineNum">      30</span>              :   }</span>
 <span id="L31"><span class="lineNum">      31</span> <span class="tlaUNC tlaBgUNC">           0 :   return Isolate.run&lt;R&gt;(computation, debugName: 'dart_pdf');</span></span>
 <span id="L32"><span class="lineNum">      32</span>              : }</span>

@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -115,7 +115,7 @@
 <span id="L53"><span class="lineNum">      53</span>              : class PdfOutline extends PdfObject&lt;PdfDict&gt; {</span>
 <span id="L54"><span class="lineNum">      54</span>              :   /// Constructs a Pdf Outline object.</span>
 <span id="L55"><span class="lineNum">      55</span>              :   /// When selected, the specified region is displayed.</span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC tlaBgGNC">           9 :   PdfOutline(</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC tlaBgGNC">          12 :   PdfOutline(</span></span>
 <span id="L57"><span class="lineNum">      57</span>              :     PdfDocument pdfDocument, {</span>
 <span id="L58"><span class="lineNum">      58</span>              :     this.title,</span>
 <span id="L59"><span class="lineNum">      59</span>              :     this.dest,</span>
@@ -125,9 +125,9 @@
 <span id="L63"><span class="lineNum">      63</span>              :     this.destMode = PdfOutlineMode.fitPage,</span>
 <span id="L64"><span class="lineNum">      64</span>              :     this.style = PdfOutlineStyle.normal,</span>
 <span id="L65"><span class="lineNum">      65</span>              :     PdfPage? page,</span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">           9 :   })  : assert(anchor == null || (dest == null &amp;&amp; rect == null)),</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          12 :   })  : assert(anchor == null || (dest == null &amp;&amp; rect == null)),</span></span>
 <span id="L67"><span class="lineNum">      67</span>              :         _page = page,</span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          18 :         super(pdfDocument, params: PdfDict());</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">          24 :         super(pdfDocument, params: PdfDict());</span></span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
 <span id="L70"><span class="lineNum">      70</span>              :   /// This holds any outlines below us</span>
 <span id="L71"><span class="lineNum">      71</span>              :   List&lt;PdfOutline&gt; outlines = &lt;PdfOutline&gt;[];</span>
@@ -142,17 +142,17 @@
 <span id="L80"><span class="lineNum">      80</span>              :   PdfPage? dest;</span>
 <span id="L81"><span class="lineNum">      81</span>              : </span>
 <span id="L82"><span class="lineNum">      82</span>              :   /// Page number</span>
-<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           3 :   String? get page {</span></span>
+<span id="L83"><span class="lineNum">      83</span> <span class="tlaGNC">           4 :   String? get page {</span></span>
 <span id="L84"><span class="lineNum">      84</span>              :     final int? num;</span>
-<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           3 :     if (_page != null) {</span></span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          15 :       num = pdfDocument.pdfPageList.pages.indexOf(_page!);</span></span>
+<span id="L85"><span class="lineNum">      85</span> <span class="tlaGNC">           4 :     if (_page != null) {</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          20 :       num = pdfDocument.pdfPageList.pages.indexOf(_page!);</span></span>
 <span id="L87"><span class="lineNum">      87</span> <span class="tlaUNC tlaBgUNC">           0 :     } else if (dest != null) {</span></span>
 <span id="L88"><span class="lineNum">      88</span> <span class="tlaUNC">           0 :       num = pdfDocument.pdfPageList.pages.indexOf(dest!);</span></span>
 <span id="L89"><span class="lineNum">      89</span>              :     } else {</span>
 <span id="L90"><span class="lineNum">      90</span>              :       num = null;</span>
 <span id="L91"><span class="lineNum">      91</span>              :     }</span>
 <span id="L92"><span class="lineNum">      92</span>              : </span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC tlaBgGNC">           6 :     return num == null ? null : (num + 1).toString();</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC tlaBgGNC">           8 :     return num == null ? null : (num + 1).toString();</span></span>
 <span id="L94"><span class="lineNum">      94</span>              :   }</span>
 <span id="L95"><span class="lineNum">      95</span>              : </span>
 <span id="L96"><span class="lineNum">      96</span>              :   final PdfPage? _page;</span>
@@ -177,29 +177,29 @@
 <span id="L115"><span class="lineNum">     115</span>              : </span>
 <span id="L116"><span class="lineNum">     116</span>              :   /// This method creates an outline, and attaches it to this one.</span>
 <span id="L117"><span class="lineNum">     117</span>              :   /// When the outline is selected, the supplied region is displayed.</span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">           9 :   void add(PdfOutline outline) {</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           9 :     outline.parent = this;</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          18 :     outlines.add(outline);</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          12 :   void add(PdfOutline outline) {</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          12 :     outline.parent = this;</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">          24 :     outlines.add(outline);</span></span>
 <span id="L121"><span class="lineNum">     121</span>              :   }</span>
 <span id="L122"><span class="lineNum">     122</span>              : </span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">           9 :   @override</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          12 :   @override</span></span>
 <span id="L124"><span class="lineNum">     124</span>              :   void prepare() {</span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">           9 :     super.prepare();</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">          12 :     super.prepare();</span></span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
 <span id="L127"><span class="lineNum">     127</span>              :     // These are for kids only</span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">           9 :     if (parent != null) {</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          36 :       params['/Title'] = PdfString.fromString(title!);</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          12 :     if (parent != null) {</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          48 :       params['/Title'] = PdfString.fromString(title!);</span></span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">           9 :       if (color != null) {</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          24 :         params['/C'] = PdfArray.fromColor(color!);</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC">          12 :       if (color != null) {</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          32 :         params['/C'] = PdfArray.fromColor(color!);</span></span>
 <span id="L133"><span class="lineNum">     133</span>              :       }</span>
 <span id="L134"><span class="lineNum">     134</span>              : </span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          18 :       if (style != PdfOutlineStyle.normal) {</span></span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">          30 :         params['/F'] = PdfNum(style.index);</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          24 :       if (style != PdfOutlineStyle.normal) {</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">          40 :         params['/F'] = PdfNum(style.index);</span></span>
 <span id="L137"><span class="lineNum">     137</span>              :       }</span>
 <span id="L138"><span class="lineNum">     138</span>              : </span>
-<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">           9 :       if (anchor != null) {</span></span>
-<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          36 :         params['/Dest'] = PdfString.fromString(anchor!);</span></span>
+<span id="L139"><span class="lineNum">     139</span> <span class="tlaGNC">          12 :       if (anchor != null) {</span></span>
+<span id="L140"><span class="lineNum">     140</span> <span class="tlaGNC">          48 :         params['/Dest'] = PdfString.fromString(anchor!);</span></span>
 <span id="L141"><span class="lineNum">     141</span>              :       } else {</span>
 <span id="L142"><span class="lineNum">     142</span> <span class="tlaUNC tlaBgUNC">           0 :         final dests = PdfArray();</span></span>
 <span id="L143"><span class="lineNum">     143</span> <span class="tlaUNC">           0 :         dests.add(dest!.ref());</span></span>
@@ -215,58 +215,58 @@
 <span id="L153"><span class="lineNum">     153</span>              :         }</span>
 <span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC">           0 :         params['/Dest'] = dests;</span></span>
 <span id="L155"><span class="lineNum">     155</span>              :       }</span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC tlaBgGNC">          36 :       params['/Parent'] = parent!.ref();</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC tlaBgGNC">          48 :       params['/Parent'] = parent!.ref();</span></span>
 <span id="L157"><span class="lineNum">     157</span>              : </span>
 <span id="L158"><span class="lineNum">     158</span>              :       // were a descendent, so by default we are closed. Find out how many</span>
 <span id="L159"><span class="lineNum">     159</span>              :       // entries are below us</span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           9 :       final c = descendants();</span></span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">           9 :       if (c &gt; 0) {</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          24 :         params['/Count'] = PdfNum(-c);</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">          12 :       final c = descendants();</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC">          12 :       if (c &gt; 0) {</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          32 :         params['/Count'] = PdfNum(-c);</span></span>
 <span id="L163"><span class="lineNum">     163</span>              :       }</span>
 <span id="L164"><span class="lineNum">     164</span>              : </span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          18 :       final index = parent!.getIndex(this);</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">           9 :       if (index &gt; 0) {</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          24 :       final index = parent!.getIndex(this);</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          12 :       if (index &gt; 0) {</span></span>
 <span id="L167"><span class="lineNum">     167</span>              :         // Now if were not the first, then we have a /Prev node</span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          54 :         params['/Prev'] = parent!.getNode(index - 1).ref();</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">          72 :         params['/Prev'] = parent!.getNode(index - 1).ref();</span></span>
 <span id="L169"><span class="lineNum">     169</span>              :       }</span>
 <span id="L170"><span class="lineNum">     170</span>              : </span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          27 :       if (index &lt; parent!.getLast()) {</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">          36 :       if (index &lt; parent!.getLast()) {</span></span>
 <span id="L172"><span class="lineNum">     172</span>              :         // We have a /Next node</span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          54 :         params['/Next'] = parent!.getNode(index + 1).ref();</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          72 :         params['/Next'] = parent!.getNode(index + 1).ref();</span></span>
 <span id="L174"><span class="lineNum">     174</span>              :       }</span>
 <span id="L175"><span class="lineNum">     175</span>              :     } else {</span>
 <span id="L176"><span class="lineNum">     176</span>              :       // the number of outlines in this document</span>
 <span id="L177"><span class="lineNum">     177</span>              :       // were the top level node, so all are open by default</span>
-<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          45 :       params['/Count'] = PdfNum(outlines.length);</span></span>
+<span id="L178"><span class="lineNum">     178</span> <span class="tlaGNC">          60 :       params['/Count'] = PdfNum(outlines.length);</span></span>
 <span id="L179"><span class="lineNum">     179</span>              :     }</span>
 <span id="L180"><span class="lineNum">     180</span>              : </span>
 <span id="L181"><span class="lineNum">     181</span>              :     // These only valid if we have children</span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          18 :     if (outlines.isNotEmpty) {</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">          24 :     if (outlines.isNotEmpty) {</span></span>
 <span id="L183"><span class="lineNum">     183</span>              :       // the number of the first outline in list</span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          45 :       params['/First'] = outlines[0].ref();</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          60 :       params['/First'] = outlines[0].ref();</span></span>
 <span id="L185"><span class="lineNum">     185</span>              : </span>
 <span id="L186"><span class="lineNum">     186</span>              :       // the number of the last outline in list</span>
-<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          72 :       params['/Last'] = outlines[outlines.length - 1].ref();</span></span>
+<span id="L187"><span class="lineNum">     187</span> <span class="tlaGNC">          96 :       params['/Last'] = outlines[outlines.length - 1].ref();</span></span>
 <span id="L188"><span class="lineNum">     188</span>              :     }</span>
 <span id="L189"><span class="lineNum">     189</span>              :   }</span>
 <span id="L190"><span class="lineNum">     190</span>              : </span>
 <span id="L191"><span class="lineNum">     191</span>              :   /// This is called by children to find their position in this outlines</span>
 <span id="L192"><span class="lineNum">     192</span>              :   /// tree.</span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          27 :   int getIndex(PdfOutline outline) =&gt; outlines.indexOf(outline);</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          36 :   int getIndex(PdfOutline outline) =&gt; outlines.indexOf(outline);</span></span>
 <span id="L194"><span class="lineNum">     194</span>              : </span>
 <span id="L195"><span class="lineNum">     195</span>              :   /// Returns the last index in this outline</span>
-<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          36 :   int getLast() =&gt; outlines.length - 1;</span></span>
+<span id="L196"><span class="lineNum">     196</span> <span class="tlaGNC">          48 :   int getLast() =&gt; outlines.length - 1;</span></span>
 <span id="L197"><span class="lineNum">     197</span>              : </span>
 <span id="L198"><span class="lineNum">     198</span>              :   /// Returns the outline at a specified position.</span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          27 :   PdfOutline getNode(int i) =&gt; outlines[i];</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">          36 :   PdfOutline getNode(int i) =&gt; outlines[i];</span></span>
 <span id="L200"><span class="lineNum">     200</span>              : </span>
 <span id="L201"><span class="lineNum">     201</span>              :   /// Returns the total number of descendants below this one.</span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">           9 :   int descendants() {</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          18 :     var c = outlines.length; // initially the number of kids</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          12 :   int descendants() {</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">          24 :     var c = outlines.length; // initially the number of kids</span></span>
 <span id="L204"><span class="lineNum">     204</span>              : </span>
 <span id="L205"><span class="lineNum">     205</span>              :     // now call each one for their descendants</span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">          15 :     for (final o in outlines) {</span></span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">          12 :       c += o.descendants();</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">          20 :     for (final o in outlines) {</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">          16 :       c += o.descendants();</span></span>
 <span id="L208"><span class="lineNum">     208</span>              :     }</span>
 <span id="L209"><span class="lineNum">     209</span>              : </span>
 <span id="L210"><span class="lineNum">     210</span>              :     return c;</span>

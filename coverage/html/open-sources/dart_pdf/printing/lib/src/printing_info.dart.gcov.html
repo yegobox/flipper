@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -79,7 +79,7 @@
 <span id="L17"><span class="lineNum">      17</span>              : /// Capabilities supported for the current platform</span>
 <span id="L18"><span class="lineNum">      18</span>              : class PrintingInfo {</span>
 <span id="L19"><span class="lineNum">      19</span>              :   /// Create an information object</span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC tlaBgGNC">          18 :   const PrintingInfo({</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC tlaBgGNC">          24 :   const PrintingInfo({</span></span>
 <span id="L21"><span class="lineNum">      21</span>              :     this.directPrint = false,</span>
 <span id="L22"><span class="lineNum">      22</span>              :     this.dynamicLayout = false,</span>
 <span id="L23"><span class="lineNum">      23</span>              :     this.canPrint = false,</span>
@@ -90,14 +90,14 @@
 <span id="L28"><span class="lineNum">      28</span>              :   });</span>
 <span id="L29"><span class="lineNum">      29</span>              : </span>
 <span id="L30"><span class="lineNum">      30</span>              :   /// Create an information object from a dictionary</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           6 :   factory PrintingInfo.fromMap(Map&lt;dynamic, dynamic&gt; map) =&gt; PrintingInfo(</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           3 :         directPrint: map['directPrint'] ?? false,</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           3 :         dynamicLayout: map['dynamicLayout'] ?? false,</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           3 :         canPrint: map['canPrint'] ?? false,</span></span>
-<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           3 :         canConvertHtml: map['canConvertHtml'] ?? false,</span></span>
-<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           3 :         canListPrinters: map['canListPrinters'] ?? false,</span></span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           3 :         canShare: map['canShare'] ?? false,</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           3 :         canRaster: map['canRaster'] ?? false,</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           8 :   factory PrintingInfo.fromMap(Map&lt;dynamic, dynamic&gt; map) =&gt; PrintingInfo(</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           4 :         directPrint: map['directPrint'] ?? false,</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           4 :         dynamicLayout: map['dynamicLayout'] ?? false,</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           4 :         canPrint: map['canPrint'] ?? false,</span></span>
+<span id="L35"><span class="lineNum">      35</span> <span class="tlaGNC">           4 :         canConvertHtml: map['canConvertHtml'] ?? false,</span></span>
+<span id="L36"><span class="lineNum">      36</span> <span class="tlaGNC">           4 :         canListPrinters: map['canListPrinters'] ?? false,</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">           4 :         canShare: map['canShare'] ?? false,</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">           4 :         canRaster: map['canRaster'] ?? false,</span></span>
 <span id="L39"><span class="lineNum">      39</span>              :       );</span>
 <span id="L40"><span class="lineNum">      40</span>              : </span>
 <span id="L41"><span class="lineNum">      41</span>              :   /// Default information with no feature available</span>
@@ -127,15 +127,15 @@
 <span id="L65"><span class="lineNum">      65</span>              :   /// to a stream of images</span>
 <span id="L66"><span class="lineNum">      66</span>              :   final bool canRaster;</span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           3 :   @override</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           3 :   String toString() =&gt; '''$runtimeType:</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">           3 :   canPrint: $canPrint</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           3 :   directPrint: $directPrint</span></span>
-<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           3 :   dynamicLayout: $dynamicLayout</span></span>
-<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           3 :   canConvertHtml: $canConvertHtml</span></span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           3 :   canListPrinters: $canListPrinters</span></span>
-<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           3 :   canShare: $canShare</span></span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           6 :   canRaster: $canRaster''';</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">           4 :   @override</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">           4 :   String toString() =&gt; '''$runtimeType:</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">           4 :   canPrint: $canPrint</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">           4 :   directPrint: $directPrint</span></span>
+<span id="L72"><span class="lineNum">      72</span> <span class="tlaGNC">           4 :   dynamicLayout: $dynamicLayout</span></span>
+<span id="L73"><span class="lineNum">      73</span> <span class="tlaGNC">           4 :   canConvertHtml: $canConvertHtml</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">           4 :   canListPrinters: $canListPrinters</span></span>
+<span id="L75"><span class="lineNum">      75</span> <span class="tlaGNC">           4 :   canShare: $canShare</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">           8 :   canRaster: $canRaster''';</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : }</span>
         </pre>
               </td>

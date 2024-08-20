@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -79,7 +79,7 @@
 <span id="L17"><span class="lineNum">      17</span>              :   ///</span>
 <span id="L18"><span class="lineNum">      18</span>              :   /// The [enabled], [closeOnScroll], [direction], [dragStartBehavior],</span>
 <span id="L19"><span class="lineNum">      19</span>              :   /// [useTextDirection] and [child] arguments must not be null.</span>
-<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC tlaBgGNC">           6 :   const Slidable({</span></span>
+<span id="L20"><span class="lineNum">      20</span> <span class="tlaGNC tlaBgGNC">           8 :   const Slidable({</span></span>
 <span id="L21"><span class="lineNum">      21</span>              :     Key? key,</span>
 <span id="L22"><span class="lineNum">      22</span>              :     this.groupTag,</span>
 <span id="L23"><span class="lineNum">      23</span>              :     this.enabled = true,</span>
@@ -90,7 +90,7 @@
 <span id="L28"><span class="lineNum">      28</span>              :     this.dragStartBehavior = DragStartBehavior.down,</span>
 <span id="L29"><span class="lineNum">      29</span>              :     this.useTextDirection = true,</span>
 <span id="L30"><span class="lineNum">      30</span>              :     required this.child,</span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           6 :   }) : super(key: key);</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           8 :   }) : super(key: key);</span></span>
 <span id="L32"><span class="lineNum">      32</span>              : </span>
 <span id="L33"><span class="lineNum">      33</span>              :   /// Whether this slidable is interactive.</span>
 <span id="L34"><span class="lineNum">      34</span>              :   ///</span>
@@ -163,8 +163,8 @@
 <span id="L101"><span class="lineNum">     101</span>              :   /// {@macro flutter.widgets.ProxyWidget.child}</span>
 <span id="L102"><span class="lineNum">     102</span>              :   final Widget child;</span>
 <span id="L103"><span class="lineNum">     103</span>              : </span>
-<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">           6 :   @override</span></span>
-<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           6 :   _SlidableState createState() =&gt; _SlidableState();</span></span>
+<span id="L104"><span class="lineNum">     104</span> <span class="tlaGNC">           8 :   @override</span></span>
+<span id="L105"><span class="lineNum">     105</span> <span class="tlaGNC">           8 :   _SlidableState createState() =&gt; _SlidableState();</span></span>
 <span id="L106"><span class="lineNum">     106</span>              : </span>
 <span id="L107"><span class="lineNum">     107</span>              :   /// The closest instance of the [SlidableController] which controls this</span>
 <span id="L108"><span class="lineNum">     108</span>              :   /// [Slidable] that encloses the given context.</span>
@@ -190,22 +190,22 @@
 <span id="L128"><span class="lineNum">     128</span>              :   late Animation&lt;Offset&gt; moveAnimation;</span>
 <span id="L129"><span class="lineNum">     129</span>              :   late bool keepPanesOrder;</span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
-<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC tlaBgGNC">           6 :   @override</span></span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          12 :   bool get wantKeepAlive =&gt; !widget.closeOnScroll;</span></span>
+<span id="L131"><span class="lineNum">     131</span> <span class="tlaGNC tlaBgGNC">           8 :   @override</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">          16 :   bool get wantKeepAlive =&gt; !widget.closeOnScroll;</span></span>
 <span id="L133"><span class="lineNum">     133</span>              : </span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">           8 :   @override</span></span>
 <span id="L135"><span class="lineNum">     135</span>              :   void initState() {</span>
-<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">           6 :     super.initState();</span></span>
-<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          12 :     controller = SlidableController(this)</span></span>
-<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          18 :       ..actionPaneType.addListener(handleActionPanelTypeChanged);</span></span>
+<span id="L136"><span class="lineNum">     136</span> <span class="tlaGNC">           8 :     super.initState();</span></span>
+<span id="L137"><span class="lineNum">     137</span> <span class="tlaGNC">          16 :     controller = SlidableController(this)</span></span>
+<span id="L138"><span class="lineNum">     138</span> <span class="tlaGNC">          24 :       ..actionPaneType.addListener(handleActionPanelTypeChanged);</span></span>
 <span id="L139"><span class="lineNum">     139</span>              :   }</span>
 <span id="L140"><span class="lineNum">     140</span>              : </span>
-<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L141"><span class="lineNum">     141</span> <span class="tlaGNC">           8 :   @override</span></span>
 <span id="L142"><span class="lineNum">     142</span>              :   void didChangeDependencies() {</span>
-<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           6 :     super.didChangeDependencies();</span></span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">           6 :     updateIsLeftToRight();</span></span>
-<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           6 :     updateController();</span></span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           6 :     updateMoveAnimation();</span></span>
+<span id="L143"><span class="lineNum">     143</span> <span class="tlaGNC">           8 :     super.didChangeDependencies();</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">           8 :     updateIsLeftToRight();</span></span>
+<span id="L145"><span class="lineNum">     145</span> <span class="tlaGNC">           8 :     updateController();</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">           8 :     updateMoveAnimation();</span></span>
 <span id="L147"><span class="lineNum">     147</span>              :   }</span>
 <span id="L148"><span class="lineNum">     148</span>              : </span>
 <span id="L149"><span class="lineNum">     149</span> <span class="tlaUNC tlaBgUNC">           0 :   @override</span></span>
@@ -215,33 +215,33 @@
 <span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC">           0 :     updateController();</span></span>
 <span id="L154"><span class="lineNum">     154</span>              :   }</span>
 <span id="L155"><span class="lineNum">     155</span>              : </span>
-<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC tlaBgGNC">           6 :   @override</span></span>
+<span id="L156"><span class="lineNum">     156</span> <span class="tlaGNC tlaBgGNC">           8 :   @override</span></span>
 <span id="L157"><span class="lineNum">     157</span>              :   void dispose() {</span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          24 :     controller.actionPaneType.removeListener(handleActionPanelTypeChanged);</span></span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          12 :     controller.dispose();</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           6 :     super.dispose();</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">          32 :     controller.actionPaneType.removeListener(handleActionPanelTypeChanged);</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          16 :     controller.dispose();</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           8 :     super.dispose();</span></span>
 <span id="L161"><span class="lineNum">     161</span>              :   }</span>
 <span id="L162"><span class="lineNum">     162</span>              : </span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">           6 :   void updateController() {</span></span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">           6 :     controller</span></span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          12 :       ..enableStartActionPane = startActionPane != null</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          18 :       ..startActionPaneExtentRatio = startActionPane?.extentRatio ?? 0;</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">           8 :   void updateController() {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">           8 :     controller</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">          16 :       ..enableStartActionPane = startActionPane != null</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          24 :       ..startActionPaneExtentRatio = startActionPane?.extentRatio ?? 0;</span></span>
 <span id="L167"><span class="lineNum">     167</span>              : </span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">           6 :     controller</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          12 :       ..enableEndActionPane = endActionPane != null</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          18 :       ..endActionPaneExtentRatio = endActionPane?.extentRatio ?? 0;</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">           8 :     controller</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">          16 :       ..enableEndActionPane = endActionPane != null</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          24 :       ..endActionPaneExtentRatio = endActionPane?.extentRatio ?? 0;</span></span>
 <span id="L171"><span class="lineNum">     171</span>              :   }</span>
 <span id="L172"><span class="lineNum">     172</span>              : </span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">           6 :   void updateIsLeftToRight() {</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          12 :     final textDirection = Directionality.of(context);</span></span>
-<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          30 :     controller.isLeftToRight = widget.direction == Axis.vertical ||</span></span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          12 :         !widget.useTextDirection ||</span></span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           6 :         textDirection == TextDirection.ltr;</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">           8 :   void updateIsLeftToRight() {</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">          16 :     final textDirection = Directionality.of(context);</span></span>
+<span id="L175"><span class="lineNum">     175</span> <span class="tlaGNC">          40 :     controller.isLeftToRight = widget.direction == Axis.vertical ||</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">          16 :         !widget.useTextDirection ||</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">           8 :         textDirection == TextDirection.ltr;</span></span>
 <span id="L178"><span class="lineNum">     178</span>              :   }</span>
 <span id="L179"><span class="lineNum">     179</span>              : </span>
-<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           3 :   void handleActionPanelTypeChanged() {</span></span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">           6 :     setState(() {</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           3 :       updateMoveAnimation();</span></span>
+<span id="L180"><span class="lineNum">     180</span> <span class="tlaGNC">           4 :   void handleActionPanelTypeChanged() {</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">           8 :     setState(() {</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           4 :       updateMoveAnimation();</span></span>
 <span id="L183"><span class="lineNum">     183</span>              :     });</span>
 <span id="L184"><span class="lineNum">     184</span>              :   }</span>
 <span id="L185"><span class="lineNum">     185</span>              : </span>
@@ -251,91 +251,91 @@
 <span id="L189"><span class="lineNum">     189</span>              :     }</span>
 <span id="L190"><span class="lineNum">     190</span>              :   }</span>
 <span id="L191"><span class="lineNum">     191</span>              : </span>
-<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">           6 :   void updateMoveAnimation() {</span></span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          24 :     final double end = controller.direction.value.toDouble();</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          24 :     moveAnimation = controller.animation.drive(</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           6 :       Tween&lt;Offset&gt;(</span></span>
+<span id="L192"><span class="lineNum">     192</span> <span class="tlaGNC tlaBgGNC">           8 :   void updateMoveAnimation() {</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">          32 :     final double end = controller.direction.value.toDouble();</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          32 :     moveAnimation = controller.animation.drive(</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">           8 :       Tween&lt;Offset&gt;(</span></span>
 <span id="L196"><span class="lineNum">     196</span>              :         begin: Offset.zero,</span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          18 :         end: widget.direction == Axis.horizontal</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           6 :             ? Offset(end, 0)</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           6 :             : Offset(0, end),</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">          24 :         end: widget.direction == Axis.horizontal</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           8 :             ? Offset(end, 0)</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">           8 :             : Offset(0, end),</span></span>
 <span id="L200"><span class="lineNum">     200</span>              :       ),</span>
 <span id="L201"><span class="lineNum">     201</span>              :     );</span>
 <span id="L202"><span class="lineNum">     202</span>              :   }</span>
 <span id="L203"><span class="lineNum">     203</span>              : </span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           6 :   Widget? get actionPane {</span></span>
-<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">          18 :     switch (controller.actionPaneType.value) {</span></span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           6 :       case ActionPaneType.start:</span></span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           3 :         return startActionPane;</span></span>
-<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">           6 :       case ActionPaneType.end:</span></span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">           3 :         return endActionPane;</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           8 :   Widget? get actionPane {</span></span>
+<span id="L205"><span class="lineNum">     205</span> <span class="tlaGNC">          24 :     switch (controller.actionPaneType.value) {</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           8 :       case ActionPaneType.start:</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">           4 :         return startActionPane;</span></span>
+<span id="L208"><span class="lineNum">     208</span> <span class="tlaGNC">           8 :       case ActionPaneType.end:</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">           4 :         return endActionPane;</span></span>
 <span id="L210"><span class="lineNum">     210</span>              :       default:</span>
 <span id="L211"><span class="lineNum">     211</span>              :         return null;</span>
 <span id="L212"><span class="lineNum">     212</span>              :     }</span>
 <span id="L213"><span class="lineNum">     213</span>              :   }</span>
 <span id="L214"><span class="lineNum">     214</span>              : </span>
-<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          18 :   ActionPane? get startActionPane =&gt; widget.startActionPane;</span></span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          18 :   ActionPane? get endActionPane =&gt; widget.endActionPane;</span></span>
+<span id="L215"><span class="lineNum">     215</span> <span class="tlaGNC">          24 :   ActionPane? get startActionPane =&gt; widget.startActionPane;</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">          24 :   ActionPane? get endActionPane =&gt; widget.endActionPane;</span></span>
 <span id="L217"><span class="lineNum">     217</span>              : </span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           6 :   Alignment get actionPaneAlignment {</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          24 :     final sign = controller.direction.value.toDouble();</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          18 :     if (widget.direction == Axis.horizontal) {</span></span>
-<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          12 :       return Alignment(-sign, 0);</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           8 :   Alignment get actionPaneAlignment {</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          32 :     final sign = controller.direction.value.toDouble();</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">          24 :     if (widget.direction == Axis.horizontal) {</span></span>
+<span id="L221"><span class="lineNum">     221</span> <span class="tlaGNC">          16 :       return Alignment(-sign, 0);</span></span>
 <span id="L222"><span class="lineNum">     222</span>              :     } else {</span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          12 :       return Alignment(0, -sign);</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">          16 :       return Alignment(0, -sign);</span></span>
 <span id="L224"><span class="lineNum">     224</span>              :     }</span>
 <span id="L225"><span class="lineNum">     225</span>              :   }</span>
 <span id="L226"><span class="lineNum">     226</span>              : </span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           6 :   @override</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           8 :   @override</span></span>
 <span id="L228"><span class="lineNum">     228</span>              :   Widget build(BuildContext context) {</span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">           6 :     super.build(context); // See AutomaticKeepAliveClientMixin.</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">           8 :     super.build(context); // See AutomaticKeepAliveClientMixin.</span></span>
 <span id="L230"><span class="lineNum">     230</span>              : </span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           6 :     Widget content = SlideTransition(</span></span>
-<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           6 :       position: moveAnimation,</span></span>
-<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">           6 :       child: SlidableAutoCloseBehaviorInteractor(</span></span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          12 :         groupTag: widget.groupTag,</span></span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           6 :         controller: controller,</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">          12 :         child: widget.child,</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           8 :     Widget content = SlideTransition(</span></span>
+<span id="L232"><span class="lineNum">     232</span> <span class="tlaGNC">           8 :       position: moveAnimation,</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">           8 :       child: SlidableAutoCloseBehaviorInteractor(</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">          16 :         groupTag: widget.groupTag,</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           8 :         controller: controller,</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">          16 :         child: widget.child,</span></span>
 <span id="L237"><span class="lineNum">     237</span>              :       ),</span>
 <span id="L238"><span class="lineNum">     238</span>              :     );</span>
 <span id="L239"><span class="lineNum">     239</span>              : </span>
-<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">           6 :     content = Stack(</span></span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">           6 :       children: &lt;Widget&gt;[</span></span>
-<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           6 :         if (actionPane != null)</span></span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           3 :           Positioned.fill(</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           3 :             child: ClipRect(</span></span>
-<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           3 :               clipper: _SlidableClipper(</span></span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           6 :                 axis: widget.direction,</span></span>
-<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">           3 :                 controller: controller,</span></span>
+<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">           8 :     content = Stack(</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">           8 :       children: &lt;Widget&gt;[</span></span>
+<span id="L242"><span class="lineNum">     242</span> <span class="tlaGNC">           8 :         if (actionPane != null)</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           4 :           Positioned.fill(</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           4 :             child: ClipRect(</span></span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           4 :               clipper: _SlidableClipper(</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           8 :                 axis: widget.direction,</span></span>
+<span id="L247"><span class="lineNum">     247</span> <span class="tlaGNC">           4 :                 controller: controller,</span></span>
 <span id="L248"><span class="lineNum">     248</span>              :               ),</span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           3 :               child: actionPane,</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">           4 :               child: actionPane,</span></span>
 <span id="L250"><span class="lineNum">     250</span>              :             ),</span>
 <span id="L251"><span class="lineNum">     251</span>              :           ),</span>
-<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           6 :         content,</span></span>
+<span id="L252"><span class="lineNum">     252</span> <span class="tlaGNC">           8 :         content,</span></span>
 <span id="L253"><span class="lineNum">     253</span>              :       ],</span>
 <span id="L254"><span class="lineNum">     254</span>              :     );</span>
 <span id="L255"><span class="lineNum">     255</span>              : </span>
-<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">           6 :     return SlidableGestureDetector(</span></span>
-<span id="L257"><span class="lineNum">     257</span> <span class="tlaGNC">          12 :       enabled: widget.enabled,</span></span>
-<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">           6 :       controller: controller,</span></span>
-<span id="L259"><span class="lineNum">     259</span> <span class="tlaGNC">          12 :       direction: widget.direction,</span></span>
-<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">          12 :       dragStartBehavior: widget.dragStartBehavior,</span></span>
-<span id="L261"><span class="lineNum">     261</span> <span class="tlaGNC">           6 :       child: SlidableNotificationSender(</span></span>
-<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">          12 :         tag: widget.groupTag,</span></span>
-<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">           6 :         controller: controller,</span></span>
-<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">           6 :         child: SlidableScrollingBehavior(</span></span>
-<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">           6 :           controller: controller,</span></span>
-<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC">          12 :           closeOnScroll: widget.closeOnScroll,</span></span>
-<span id="L267"><span class="lineNum">     267</span> <span class="tlaGNC">           6 :           child: SlidableDismissal(</span></span>
-<span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">          18 :             axis: flipAxis(widget.direction),</span></span>
-<span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">           6 :             controller: controller,</span></span>
-<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC">           6 :             child: ActionPaneConfiguration(</span></span>
-<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC">           6 :               alignment: actionPaneAlignment,</span></span>
-<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">          12 :               direction: widget.direction,</span></span>
+<span id="L256"><span class="lineNum">     256</span> <span class="tlaGNC">           8 :     return SlidableGestureDetector(</span></span>
+<span id="L257"><span class="lineNum">     257</span> <span class="tlaGNC">          16 :       enabled: widget.enabled,</span></span>
+<span id="L258"><span class="lineNum">     258</span> <span class="tlaGNC">           8 :       controller: controller,</span></span>
+<span id="L259"><span class="lineNum">     259</span> <span class="tlaGNC">          16 :       direction: widget.direction,</span></span>
+<span id="L260"><span class="lineNum">     260</span> <span class="tlaGNC">          16 :       dragStartBehavior: widget.dragStartBehavior,</span></span>
+<span id="L261"><span class="lineNum">     261</span> <span class="tlaGNC">           8 :       child: SlidableNotificationSender(</span></span>
+<span id="L262"><span class="lineNum">     262</span> <span class="tlaGNC">          16 :         tag: widget.groupTag,</span></span>
+<span id="L263"><span class="lineNum">     263</span> <span class="tlaGNC">           8 :         controller: controller,</span></span>
+<span id="L264"><span class="lineNum">     264</span> <span class="tlaGNC">           8 :         child: SlidableScrollingBehavior(</span></span>
+<span id="L265"><span class="lineNum">     265</span> <span class="tlaGNC">           8 :           controller: controller,</span></span>
+<span id="L266"><span class="lineNum">     266</span> <span class="tlaGNC">          16 :           closeOnScroll: widget.closeOnScroll,</span></span>
+<span id="L267"><span class="lineNum">     267</span> <span class="tlaGNC">           8 :           child: SlidableDismissal(</span></span>
+<span id="L268"><span class="lineNum">     268</span> <span class="tlaGNC">          24 :             axis: flipAxis(widget.direction),</span></span>
+<span id="L269"><span class="lineNum">     269</span> <span class="tlaGNC">           8 :             controller: controller,</span></span>
+<span id="L270"><span class="lineNum">     270</span> <span class="tlaGNC">           8 :             child: ActionPaneConfiguration(</span></span>
+<span id="L271"><span class="lineNum">     271</span> <span class="tlaGNC">           8 :               alignment: actionPaneAlignment,</span></span>
+<span id="L272"><span class="lineNum">     272</span> <span class="tlaGNC">          16 :               direction: widget.direction,</span></span>
 <span id="L273"><span class="lineNum">     273</span>              :               isStartActionPane:</span>
-<span id="L274"><span class="lineNum">     274</span> <span class="tlaGNC">          24 :                   controller.actionPaneType.value == ActionPaneType.start,</span></span>
-<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           6 :               child: _SlidableControllerScope(</span></span>
-<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">           6 :                 controller: controller,</span></span>
+<span id="L274"><span class="lineNum">     274</span> <span class="tlaGNC">          32 :                   controller.actionPaneType.value == ActionPaneType.start,</span></span>
+<span id="L275"><span class="lineNum">     275</span> <span class="tlaGNC">           8 :               child: _SlidableControllerScope(</span></span>
+<span id="L276"><span class="lineNum">     276</span> <span class="tlaGNC">           8 :                 controller: controller,</span></span>
 <span id="L277"><span class="lineNum">     277</span>              :                 child: content,</span>
 <span id="L278"><span class="lineNum">     278</span>              :               ),</span>
 <span id="L279"><span class="lineNum">     279</span>              :             ),</span>
@@ -347,11 +347,11 @@
 <span id="L285"><span class="lineNum">     285</span>              : }</span>
 <span id="L286"><span class="lineNum">     286</span>              : </span>
 <span id="L287"><span class="lineNum">     287</span>              : class _SlidableControllerScope extends InheritedWidget {</span>
-<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           6 :   const _SlidableControllerScope({</span></span>
+<span id="L288"><span class="lineNum">     288</span> <span class="tlaGNC">           8 :   const _SlidableControllerScope({</span></span>
 <span id="L289"><span class="lineNum">     289</span>              :     Key? key,</span>
 <span id="L290"><span class="lineNum">     290</span>              :     required this.controller,</span>
 <span id="L291"><span class="lineNum">     291</span>              :     required Widget child,</span>
-<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           6 :   }) : super(key: key, child: child);</span></span>
+<span id="L292"><span class="lineNum">     292</span> <span class="tlaGNC">           8 :   }) : super(key: key, child: child);</span></span>
 <span id="L293"><span class="lineNum">     293</span>              : </span>
 <span id="L294"><span class="lineNum">     294</span>              :   final SlidableController? controller;</span>
 <span id="L295"><span class="lineNum">     295</span>              : </span>
@@ -362,10 +362,10 @@
 <span id="L300"><span class="lineNum">     300</span>              : }</span>
 <span id="L301"><span class="lineNum">     301</span>              : </span>
 <span id="L302"><span class="lineNum">     302</span>              : class _SlidableClipper extends CustomClipper&lt;Rect&gt; {</span>
-<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC tlaBgGNC">           3 :   _SlidableClipper({</span></span>
+<span id="L303"><span class="lineNum">     303</span> <span class="tlaGNC tlaBgGNC">           4 :   _SlidableClipper({</span></span>
 <span id="L304"><span class="lineNum">     304</span>              :     required this.axis,</span>
 <span id="L305"><span class="lineNum">     305</span>              :     required this.controller,</span>
-<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">           6 :   }) : super(reclip: controller.animation);</span></span>
+<span id="L306"><span class="lineNum">     306</span> <span class="tlaGNC">           8 :   }) : super(reclip: controller.animation);</span></span>
 <span id="L307"><span class="lineNum">     307</span>              : </span>
 <span id="L308"><span class="lineNum">     308</span>              :   final Axis axis;</span>
 <span id="L309"><span class="lineNum">     309</span>              :   final SlidableController controller;</span>

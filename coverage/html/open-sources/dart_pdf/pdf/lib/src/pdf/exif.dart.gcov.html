@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -86,62 +86,62 @@
 <span id="L24"><span class="lineNum">      24</span>              : /// Jpeg metadata extraction</span>
 <span id="L25"><span class="lineNum">      25</span>              : class PdfJpegInfo {</span>
 <span id="L26"><span class="lineNum">      26</span>              :   /// Load a Jpeg image's metadata</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">           6 :   factory PdfJpegInfo(Uint8List image) {</span></span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          12 :     final buffer = image.buffer.asByteData(</span></span>
-<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           6 :       image.offsetInBytes,</span></span>
-<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           6 :       image.lengthInBytes,</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">           8 :   factory PdfJpegInfo(Uint8List image) {</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC">          16 :     final buffer = image.buffer.asByteData(</span></span>
+<span id="L29"><span class="lineNum">      29</span> <span class="tlaGNC">           8 :       image.offsetInBytes,</span></span>
+<span id="L30"><span class="lineNum">      30</span> <span class="tlaGNC">           8 :       image.lengthInBytes,</span></span>
 <span id="L31"><span class="lineNum">      31</span>              :     );</span>
 <span id="L32"><span class="lineNum">      32</span>              : </span>
 <span id="L33"><span class="lineNum">      33</span>              :     int? width;</span>
 <span id="L34"><span class="lineNum">      34</span>              :     int? height;</span>
 <span id="L35"><span class="lineNum">      35</span>              :     int? color;</span>
 <span id="L36"><span class="lineNum">      36</span>              :     var offset = 0;</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">          12 :     while (offset &lt; buffer.lengthInBytes) {</span></span>
-<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          12 :       while (buffer.getUint8(offset) == 0xff) {</span></span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">           6 :         offset++;</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC">          16 :     while (offset &lt; buffer.lengthInBytes) {</span></span>
+<span id="L38"><span class="lineNum">      38</span> <span class="tlaGNC">          16 :       while (buffer.getUint8(offset) == 0xff) {</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">           8 :         offset++;</span></span>
 <span id="L40"><span class="lineNum">      40</span>              :       }</span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
-<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           6 :       final mrkr = buffer.getUint8(offset);</span></span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           6 :       offset++;</span></span>
+<span id="L42"><span class="lineNum">      42</span> <span class="tlaGNC">           8 :       final mrkr = buffer.getUint8(offset);</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">           8 :       offset++;</span></span>
 <span id="L44"><span class="lineNum">      44</span>              : </span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           6 :       if (mrkr == 0xd8) {</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           8 :       if (mrkr == 0xd8) {</span></span>
 <span id="L46"><span class="lineNum">      46</span>              :         continue; // SOI</span>
 <span id="L47"><span class="lineNum">      47</span>              :       }</span>
 <span id="L48"><span class="lineNum">      48</span>              : </span>
-<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           6 :       if (mrkr == 0xd9) {</span></span>
+<span id="L49"><span class="lineNum">      49</span> <span class="tlaGNC">           8 :       if (mrkr == 0xd9) {</span></span>
 <span id="L50"><span class="lineNum">      50</span>              :         break; // EOI</span>
 <span id="L51"><span class="lineNum">      51</span>              :       }</span>
 <span id="L52"><span class="lineNum">      52</span>              : </span>
-<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          12 :       if (0xd0 &lt;= mrkr &amp;&amp; mrkr &lt;= 0xd7) {</span></span>
+<span id="L53"><span class="lineNum">      53</span> <span class="tlaGNC">          16 :       if (0xd0 &lt;= mrkr &amp;&amp; mrkr &lt;= 0xd7) {</span></span>
 <span id="L54"><span class="lineNum">      54</span>              :         continue;</span>
 <span id="L55"><span class="lineNum">      55</span>              :       }</span>
 <span id="L56"><span class="lineNum">      56</span>              : </span>
-<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           6 :       if (mrkr == 0x01) {</span></span>
+<span id="L57"><span class="lineNum">      57</span> <span class="tlaGNC">           8 :       if (mrkr == 0x01) {</span></span>
 <span id="L58"><span class="lineNum">      58</span>              :         continue; // TEM</span>
 <span id="L59"><span class="lineNum">      59</span>              :       }</span>
 <span id="L60"><span class="lineNum">      60</span>              : </span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           6 :       final len = buffer.getUint16(offset);</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           6 :       offset += 2;</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">           8 :       final len = buffer.getUint16(offset);</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">           8 :       offset += 2;</span></span>
 <span id="L63"><span class="lineNum">      63</span>              : </span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          12 :       if (mrkr &gt;= 0xc0 &amp;&amp; mrkr &lt;= 0xc2) {</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          12 :         height = buffer.getUint16(offset + 1);</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          12 :         width = buffer.getUint16(offset + 3);</span></span>
-<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          12 :         color = buffer.getUint8(offset + 5);</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">          16 :       if (mrkr &gt;= 0xc0 &amp;&amp; mrkr &lt;= 0xc2) {</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">          16 :         height = buffer.getUint16(offset + 1);</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          16 :         width = buffer.getUint16(offset + 3);</span></span>
+<span id="L67"><span class="lineNum">      67</span> <span class="tlaGNC">          16 :         color = buffer.getUint8(offset + 5);</span></span>
 <span id="L68"><span class="lineNum">      68</span>              :         break;</span>
 <span id="L69"><span class="lineNum">      69</span>              :       }</span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">          12 :       offset += len - 2;</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">          16 :       offset += len - 2;</span></span>
 <span id="L71"><span class="lineNum">      71</span>              :     }</span>
 <span id="L72"><span class="lineNum">      72</span>              : </span>
 <span id="L73"><span class="lineNum">      73</span>              :     if (height == null) {</span>
 <span id="L74"><span class="lineNum">      74</span>              :       throw 'Unable to find a Jpeg image in the file';</span>
 <span id="L75"><span class="lineNum">      75</span>              :     }</span>
 <span id="L76"><span class="lineNum">      76</span>              : </span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">           6 :     final tags = _findExifInJpeg(buffer);</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">           8 :     final tags = _findExifInJpeg(buffer);</span></span>
 <span id="L78"><span class="lineNum">      78</span>              : </span>
-<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           6 :     return PdfJpegInfo._(width, height, color, tags);</span></span>
+<span id="L79"><span class="lineNum">      79</span> <span class="tlaGNC">           8 :     return PdfJpegInfo._(width, height, color, tags);</span></span>
 <span id="L80"><span class="lineNum">      80</span>              :   }</span>
 <span id="L81"><span class="lineNum">      81</span>              : </span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           6 :   PdfJpegInfo._(this.width, this.height, this._color, this.tags);</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">           8 :   PdfJpegInfo._(this.width, this.height, this._color, this.tags);</span></span>
 <span id="L83"><span class="lineNum">      83</span>              : </span>
 <span id="L84"><span class="lineNum">      84</span>              :   /// Width of the image</span>
 <span id="L85"><span class="lineNum">      85</span>              :   final int? width;</span>
@@ -152,7 +152,7 @@
 <span id="L90"><span class="lineNum">      90</span>              :   final int? _color;</span>
 <span id="L91"><span class="lineNum">      91</span>              : </span>
 <span id="L92"><span class="lineNum">      92</span>              :   /// Is the image color or greyscale</span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          18 :   bool get isRGB =&gt; _color == 3;</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">          24 :   bool get isRGB =&gt; _color == 3;</span></span>
 <span id="L94"><span class="lineNum">      94</span>              : </span>
 <span id="L95"><span class="lineNum">      95</span>              :   /// Exif tags discovered</span>
 <span id="L96"><span class="lineNum">      96</span>              :   final Map&lt;PdfExifTag, dynamic&gt;? tags;</span>
@@ -170,16 +170,16 @@
 <span id="L108"><span class="lineNum">     108</span> <span class="tlaUNC">           0 :           : utf8.decode(tags![PdfExifTag.FlashpixVersion]);</span></span>
 <span id="L109"><span class="lineNum">     109</span>              : </span>
 <span id="L110"><span class="lineNum">     110</span>              :   /// Rotation angle of this image</span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC tlaBgGNC">           6 :   PdfImageOrientation get orientation {</span></span>
-<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">          18 :     if (tags == null || tags![PdfExifTag.Orientation] == null) {</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC tlaBgGNC">           8 :   PdfImageOrientation get orientation {</span></span>
+<span id="L112"><span class="lineNum">     112</span> <span class="tlaGNC">          24 :     if (tags == null || tags![PdfExifTag.Orientation] == null) {</span></span>
 <span id="L113"><span class="lineNum">     113</span>              :       return PdfImageOrientation.topLeft;</span>
 <span id="L114"><span class="lineNum">     114</span>              :     }</span>
 <span id="L115"><span class="lineNum">     115</span>              : </span>
 <span id="L116"><span class="lineNum">     116</span>              :     try {</span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">           9 :       final int index = tags![PdfExifTag.Orientation] - 1;</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          12 :       final int index = tags![PdfExifTag.Orientation] - 1;</span></span>
 <span id="L118"><span class="lineNum">     118</span>              :       const orientations = PdfImageOrientation.values;</span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">           9 :       if (index &gt;= 0 &amp;&amp; index &lt; orientations.length) {</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           3 :         return orientations[index];</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          12 :       if (index &gt;= 0 &amp;&amp; index &lt; orientations.length) {</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           4 :         return orientations[index];</span></span>
 <span id="L121"><span class="lineNum">     121</span>              :       }</span>
 <span id="L122"><span class="lineNum">     122</span>              :       return PdfImageOrientation.topLeft;</span>
 <span id="L123"><span class="lineNum">     123</span> <span class="tlaUNC tlaBgUNC">           0 :     } on RangeError {</span></span>
@@ -220,52 +220,52 @@
 <span id="L158"><span class="lineNum">     158</span> <span class="tlaUNC">           0 : pixelXDimension: $pixelXDimension pixelYDimension: $pixelYDimension</span></span>
 <span id="L159"><span class="lineNum">     159</span> <span class="tlaUNC">           0 : orientation: $orientation''';</span></span>
 <span id="L160"><span class="lineNum">     160</span>              : </span>
-<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC tlaBgGNC">           6 :   static Map&lt;PdfExifTag, dynamic&gt;? _findExifInJpeg(ByteData buffer) {</span></span>
-<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          24 :     if ((buffer.getUint8(0) != 0xFF) || (buffer.getUint8(1) != 0xD8)) {</span></span>
+<span id="L161"><span class="lineNum">     161</span> <span class="tlaGNC tlaBgGNC">           8 :   static Map&lt;PdfExifTag, dynamic&gt;? _findExifInJpeg(ByteData buffer) {</span></span>
+<span id="L162"><span class="lineNum">     162</span> <span class="tlaGNC">          32 :     if ((buffer.getUint8(0) != 0xFF) || (buffer.getUint8(1) != 0xD8)) {</span></span>
 <span id="L163"><span class="lineNum">     163</span> <span class="tlaUNC tlaBgUNC">           0 :       return &lt;PdfExifTag, dynamic&gt;{}; // Not a valid JPEG</span></span>
 <span id="L164"><span class="lineNum">     164</span>              :     }</span>
 <span id="L165"><span class="lineNum">     165</span>              : </span>
 <span id="L166"><span class="lineNum">     166</span>              :     var offset = 2;</span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC tlaBgGNC">           6 :     final length = buffer.lengthInBytes;</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC tlaBgGNC">           8 :     final length = buffer.lengthInBytes;</span></span>
 <span id="L168"><span class="lineNum">     168</span>              :     int marker;</span>
 <span id="L169"><span class="lineNum">     169</span>              : </span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">           6 :     while (offset &lt; length) {</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">           6 :       final lastValue = buffer.getUint8(offset);</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">           6 :       if (lastValue != 0xFF) {</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">           8 :     while (offset &lt; length) {</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">           8 :       final lastValue = buffer.getUint8(offset);</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">           8 :       if (lastValue != 0xFF) {</span></span>
 <span id="L173"><span class="lineNum">     173</span>              :         return &lt;PdfExifTag,</span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">           6 :             dynamic&gt;{}; // Not a valid marker at offset $offset, found: $lastValue</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">           8 :             dynamic&gt;{}; // Not a valid marker at offset $offset, found: $lastValue</span></span>
 <span id="L175"><span class="lineNum">     175</span>              :       }</span>
 <span id="L176"><span class="lineNum">     176</span>              : </span>
-<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          12 :       marker = buffer.getUint8(offset + 1);</span></span>
+<span id="L177"><span class="lineNum">     177</span> <span class="tlaGNC">          16 :       marker = buffer.getUint8(offset + 1);</span></span>
 <span id="L178"><span class="lineNum">     178</span>              : </span>
 <span id="L179"><span class="lineNum">     179</span>              :       // we could implement handling for other markers here,</span>
 <span id="L180"><span class="lineNum">     180</span>              :       // but we're only looking for 0xFFE1 for EXIF data</span>
-<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">           6 :       if (marker == 0xE1) {</span></span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           6 :         return _readEXIFData(buffer, offset + 4);</span></span>
+<span id="L181"><span class="lineNum">     181</span> <span class="tlaGNC">           8 :       if (marker == 0xE1) {</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           8 :         return _readEXIFData(buffer, offset + 4);</span></span>
 <span id="L183"><span class="lineNum">     183</span>              :       } else {</span>
-<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          24 :         offset += 2 + buffer.getUint16(offset + 2);</span></span>
+<span id="L184"><span class="lineNum">     184</span> <span class="tlaGNC">          32 :         offset += 2 + buffer.getUint16(offset + 2);</span></span>
 <span id="L185"><span class="lineNum">     185</span>              :       }</span>
 <span id="L186"><span class="lineNum">     186</span>              :     }</span>
 <span id="L187"><span class="lineNum">     187</span>              : </span>
 <span id="L188"><span class="lineNum">     188</span> <span class="tlaUNC tlaBgUNC">           0 :     return &lt;PdfExifTag, dynamic&gt;{};</span></span>
 <span id="L189"><span class="lineNum">     189</span>              :   }</span>
 <span id="L190"><span class="lineNum">     190</span>              : </span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC tlaBgGNC">           3 :   static Map&lt;PdfExifTag, dynamic&gt; _readTags(</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC tlaBgGNC">           4 :   static Map&lt;PdfExifTag, dynamic&gt; _readTags(</span></span>
 <span id="L192"><span class="lineNum">     192</span>              :     ByteData file,</span>
 <span id="L193"><span class="lineNum">     193</span>              :     int tiffStart,</span>
 <span id="L194"><span class="lineNum">     194</span>              :     int dirStart,</span>
 <span id="L195"><span class="lineNum">     195</span>              :     Endian bigEnd,</span>
 <span id="L196"><span class="lineNum">     196</span>              :   ) {</span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           3 :     final entries = file.getUint16(dirStart, bigEnd);</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           3 :     final tags = &lt;PdfExifTag, dynamic&gt;{};</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">           4 :     final entries = file.getUint16(dirStart, bigEnd);</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">           4 :     final tags = &lt;PdfExifTag, dynamic&gt;{};</span></span>
 <span id="L199"><span class="lineNum">     199</span>              :     int entryOffset;</span>
 <span id="L200"><span class="lineNum">     200</span>              : </span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">           6 :     for (var i = 0; i &lt; entries; i++) {</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">           9 :       entryOffset = dirStart + i * 12 + 2;</span></span>
-<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">           3 :       final tagId = file.getUint16(entryOffset, bigEnd);</span></span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           3 :       final tag = _exifTags[tagId];</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">           8 :     for (var i = 0; i &lt; entries; i++) {</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">          12 :       entryOffset = dirStart + i * 12 + 2;</span></span>
+<span id="L203"><span class="lineNum">     203</span> <span class="tlaGNC">           4 :       final tagId = file.getUint16(entryOffset, bigEnd);</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">           4 :       final tag = _exifTags[tagId];</span></span>
 <span id="L205"><span class="lineNum">     205</span>              :       if (tag != null) {</span>
-<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           6 :         tags[tag] = _readTagValue(</span></span>
+<span id="L206"><span class="lineNum">     206</span> <span class="tlaGNC">           8 :         tags[tag] = _readTagValue(</span></span>
 <span id="L207"><span class="lineNum">     207</span>              :           file,</span>
 <span id="L208"><span class="lineNum">     208</span>              :           entryOffset,</span>
 <span id="L209"><span class="lineNum">     209</span>              :           tiffStart,</span>
@@ -277,20 +277,20 @@
 <span id="L215"><span class="lineNum">     215</span>              :     return tags;</span>
 <span id="L216"><span class="lineNum">     216</span>              :   }</span>
 <span id="L217"><span class="lineNum">     217</span>              : </span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           3 :   static dynamic _readTagValue(</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           4 :   static dynamic _readTagValue(</span></span>
 <span id="L219"><span class="lineNum">     219</span>              :     ByteData file,</span>
 <span id="L220"><span class="lineNum">     220</span>              :     int entryOffset,</span>
 <span id="L221"><span class="lineNum">     221</span>              :     int tiffStart,</span>
 <span id="L222"><span class="lineNum">     222</span>              :     int dirStart,</span>
 <span id="L223"><span class="lineNum">     223</span>              :     Endian bigEnd,</span>
 <span id="L224"><span class="lineNum">     224</span>              :   ) {</span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           6 :     final type = file.getUint16(entryOffset + 2, bigEnd);</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           6 :     final numValues = file.getUint32(entryOffset + 4, bigEnd);</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           9 :     final valueOffset = file.getUint32(entryOffset + 8, bigEnd) + tiffStart;</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">           8 :     final type = file.getUint16(entryOffset + 2, bigEnd);</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           8 :     final numValues = file.getUint32(entryOffset + 4, bigEnd);</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">          12 :     final valueOffset = file.getUint32(entryOffset + 8, bigEnd) + tiffStart;</span></span>
 <span id="L228"><span class="lineNum">     228</span>              : </span>
 <span id="L229"><span class="lineNum">     229</span>              :     switch (type) {</span>
-<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           3 :       case 1: // byte, 8-bit unsigned int</span></span>
-<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           3 :       case 7: // undefined, 8-bit byte, value depending on field</span></span>
+<span id="L230"><span class="lineNum">     230</span> <span class="tlaGNC">           4 :       case 1: // byte, 8-bit unsigned int</span></span>
+<span id="L231"><span class="lineNum">     231</span> <span class="tlaGNC">           4 :       case 7: // undefined, 8-bit byte, value depending on field</span></span>
 <span id="L232"><span class="lineNum">     232</span> <span class="tlaUNC tlaBgUNC">           0 :         if (numValues == 1) {</span></span>
 <span id="L233"><span class="lineNum">     233</span> <span class="tlaUNC">           0 :           return file.getUint8(entryOffset + 8);</span></span>
 <span id="L234"><span class="lineNum">     234</span>              :         }</span>
@@ -300,12 +300,12 @@
 <span id="L238"><span class="lineNum">     238</span> <span class="tlaUNC">           0 :           result[i] = file.getUint8(offset + i);</span></span>
 <span id="L239"><span class="lineNum">     239</span>              :         }</span>
 <span id="L240"><span class="lineNum">     240</span>              :         return result;</span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC tlaBgGNC">           3 :       case 2: // ascii, 8-bit byte</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC tlaBgGNC">           4 :       case 2: // ascii, 8-bit byte</span></span>
 <span id="L242"><span class="lineNum">     242</span> <span class="tlaUNC tlaBgUNC">           0 :         final offset = numValues &gt; 4 ? valueOffset : (entryOffset + 8);</span></span>
 <span id="L243"><span class="lineNum">     243</span> <span class="tlaUNC">           0 :         return _getStringFromDB(file, offset, numValues - 1);</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC tlaBgGNC">           3 :       case 3: // short, 16 bit int</span></span>
-<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           3 :         if (numValues == 1) {</span></span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           6 :           return file.getUint16(entryOffset + 8, bigEnd);</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC tlaBgGNC">           4 :       case 3: // short, 16 bit int</span></span>
+<span id="L245"><span class="lineNum">     245</span> <span class="tlaGNC">           4 :         if (numValues == 1) {</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">           8 :           return file.getUint16(entryOffset + 8, bigEnd);</span></span>
 <span id="L247"><span class="lineNum">     247</span>              :         }</span>
 <span id="L248"><span class="lineNum">     248</span> <span class="tlaUNC tlaBgUNC">           0 :         final offset = numValues &gt; 2 ? valueOffset : (entryOffset + 8);</span></span>
 <span id="L249"><span class="lineNum">     249</span> <span class="tlaUNC">           0 :         final result = Uint16List(numValues);</span></span>
@@ -384,24 +384,24 @@
 <span id="L322"><span class="lineNum">     322</span>              :     }</span>
 <span id="L323"><span class="lineNum">     323</span>              :   }</span>
 <span id="L324"><span class="lineNum">     324</span>              : </span>
-<span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC tlaBgGNC">           3 :   static String _getStringFromDB(ByteData buffer, int start, int length) {</span></span>
-<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC">           3 :     return utf8.decode(</span></span>
-<span id="L327"><span class="lineNum">     327</span> <span class="tlaGNC">          12 :         List&lt;int&gt;.generate(length, (int i) =&gt; buffer.getUint8(start + i)),</span></span>
+<span id="L325"><span class="lineNum">     325</span> <span class="tlaGNC tlaBgGNC">           4 :   static String _getStringFromDB(ByteData buffer, int start, int length) {</span></span>
+<span id="L326"><span class="lineNum">     326</span> <span class="tlaGNC">           4 :     return utf8.decode(</span></span>
+<span id="L327"><span class="lineNum">     327</span> <span class="tlaGNC">          16 :         List&lt;int&gt;.generate(length, (int i) =&gt; buffer.getUint8(start + i)),</span></span>
 <span id="L328"><span class="lineNum">     328</span>              :         allowMalformed: true);</span>
 <span id="L329"><span class="lineNum">     329</span>              :   }</span>
 <span id="L330"><span class="lineNum">     330</span>              : </span>
-<span id="L331"><span class="lineNum">     331</span> <span class="tlaGNC">           3 :   static Map&lt;PdfExifTag, dynamic&gt;? _readEXIFData(ByteData buffer, int start) {</span></span>
-<span id="L332"><span class="lineNum">     332</span> <span class="tlaGNC">           3 :     final startingString = _getStringFromDB(buffer, start, 4);</span></span>
-<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">           3 :     if (startingString != 'Exif') {</span></span>
+<span id="L331"><span class="lineNum">     331</span> <span class="tlaGNC">           4 :   static Map&lt;PdfExifTag, dynamic&gt;? _readEXIFData(ByteData buffer, int start) {</span></span>
+<span id="L332"><span class="lineNum">     332</span> <span class="tlaGNC">           4 :     final startingString = _getStringFromDB(buffer, start, 4);</span></span>
+<span id="L333"><span class="lineNum">     333</span> <span class="tlaGNC">           4 :     if (startingString != 'Exif') {</span></span>
 <span id="L334"><span class="lineNum">     334</span>              :       // Not valid EXIF data! $startingString</span>
 <span id="L335"><span class="lineNum">     335</span>              :       return null;</span>
 <span id="L336"><span class="lineNum">     336</span>              :     }</span>
 <span id="L337"><span class="lineNum">     337</span>              : </span>
 <span id="L338"><span class="lineNum">     338</span>              :     Endian bigEnd;</span>
-<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">           3 :     final tiffOffset = start + 6;</span></span>
+<span id="L339"><span class="lineNum">     339</span> <span class="tlaGNC">           4 :     final tiffOffset = start + 6;</span></span>
 <span id="L340"><span class="lineNum">     340</span>              : </span>
 <span id="L341"><span class="lineNum">     341</span>              :     // test for TIFF validity and endianness</span>
-<span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">           6 :     if (buffer.getUint16(tiffOffset) == 0x4949) {</span></span>
+<span id="L342"><span class="lineNum">     342</span> <span class="tlaGNC">           8 :     if (buffer.getUint16(tiffOffset) == 0x4949) {</span></span>
 <span id="L343"><span class="lineNum">     343</span>              :       bigEnd = Endian.little;</span>
 <span id="L344"><span class="lineNum">     344</span> <span class="tlaUNC tlaBgUNC">           0 :     } else if (buffer.getUint16(tiffOffset) == 0x4D4D) {</span></span>
 <span id="L345"><span class="lineNum">     345</span>              :       bigEnd = Endian.big;</span>
@@ -410,22 +410,22 @@
 <span id="L348"><span class="lineNum">     348</span>              :       return null;</span>
 <span id="L349"><span class="lineNum">     349</span>              :     }</span>
 <span id="L350"><span class="lineNum">     350</span>              : </span>
-<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC tlaBgGNC">           9 :     if (buffer.getUint16(tiffOffset + 2, bigEnd) != 0x002A) {</span></span>
+<span id="L351"><span class="lineNum">     351</span> <span class="tlaGNC tlaBgGNC">          12 :     if (buffer.getUint16(tiffOffset + 2, bigEnd) != 0x002A) {</span></span>
 <span id="L352"><span class="lineNum">     352</span>              :       // Not valid TIFF data! (no 0x002A)</span>
 <span id="L353"><span class="lineNum">     353</span>              :       return null;</span>
 <span id="L354"><span class="lineNum">     354</span>              :     }</span>
 <span id="L355"><span class="lineNum">     355</span>              : </span>
-<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">           6 :     final firstIFDOffset = buffer.getUint32(tiffOffset + 4, bigEnd);</span></span>
+<span id="L356"><span class="lineNum">     356</span> <span class="tlaGNC">           8 :     final firstIFDOffset = buffer.getUint32(tiffOffset + 4, bigEnd);</span></span>
 <span id="L357"><span class="lineNum">     357</span>              : </span>
-<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">           3 :     if (firstIFDOffset &lt; 0x00000008) {</span></span>
+<span id="L358"><span class="lineNum">     358</span> <span class="tlaGNC">           4 :     if (firstIFDOffset &lt; 0x00000008) {</span></span>
 <span id="L359"><span class="lineNum">     359</span>              :       // Not valid TIFF data! (First offset less than 8) $firstIFDOffset</span>
 <span id="L360"><span class="lineNum">     360</span>              :       return null;</span>
 <span id="L361"><span class="lineNum">     361</span>              :     }</span>
 <span id="L362"><span class="lineNum">     362</span>              : </span>
 <span id="L363"><span class="lineNum">     363</span>              :     final tags =</span>
-<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">           6 :         _readTags(buffer, tiffOffset, tiffOffset + firstIFDOffset, bigEnd);</span></span>
+<span id="L364"><span class="lineNum">     364</span> <span class="tlaGNC">           8 :         _readTags(buffer, tiffOffset, tiffOffset + firstIFDOffset, bigEnd);</span></span>
 <span id="L365"><span class="lineNum">     365</span>              : </span>
-<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">           3 :     if (tags.containsKey(PdfExifTag.ExifIFDPointer)) {</span></span>
+<span id="L366"><span class="lineNum">     366</span> <span class="tlaGNC">           4 :     if (tags.containsKey(PdfExifTag.ExifIFDPointer)) {</span></span>
 <span id="L367"><span class="lineNum">     367</span> <span class="tlaUNC tlaBgUNC">           0 :       final exifData = _readTags(buffer, tiffOffset,</span></span>
 <span id="L368"><span class="lineNum">     368</span> <span class="tlaUNC">           0 :           tiffOffset + tags[PdfExifTag.ExifIFDPointer] as int, bigEnd);</span></span>
 <span id="L369"><span class="lineNum">     369</span> <span class="tlaUNC">           0 :       tags.addAll(exifData);</span></span>

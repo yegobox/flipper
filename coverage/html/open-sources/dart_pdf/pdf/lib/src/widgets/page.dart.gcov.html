@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -96,7 +96,7 @@
 <span id="L34"><span class="lineNum">      34</span>              : enum PageOrientation { natural, landscape, portrait }</span>
 <span id="L35"><span class="lineNum">      35</span>              : </span>
 <span id="L36"><span class="lineNum">      36</span>              : class Page {</span>
-<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC tlaBgGNC">          72 :   Page({</span></span>
+<span id="L37"><span class="lineNum">      37</span> <span class="tlaGNC tlaBgGNC">          96 :   Page({</span></span>
 <span id="L38"><span class="lineNum">      38</span>              :     PageTheme? pageTheme,</span>
 <span id="L39"><span class="lineNum">      39</span>              :     PdfPageFormat? pageFormat,</span>
 <span id="L40"><span class="lineNum">      40</span>              :     required BuildCallback build,</span>
@@ -106,16 +106,16 @@
 <span id="L44"><span class="lineNum">      44</span>              :     bool clip = false,</span>
 <span id="L45"><span class="lineNum">      45</span>              :     TextDirection? textDirection,</span>
 <span id="L46"><span class="lineNum">      46</span>              :   })  : assert(</span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          72 :             pageTheme == null ||</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          96 :             pageTheme == null ||</span></span>
 <span id="L48"><span class="lineNum">      48</span>              :                 (pageFormat == null &amp;&amp;</span>
 <span id="L49"><span class="lineNum">      49</span>              :                     theme == null &amp;&amp;</span>
 <span id="L50"><span class="lineNum">      50</span>              :                     orientation == null &amp;&amp;</span>
 <span id="L51"><span class="lineNum">      51</span>              :                     margin == null &amp;&amp;</span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           3 :                     clip == false &amp;&amp;</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           4 :                     clip == false &amp;&amp;</span></span>
 <span id="L53"><span class="lineNum">      53</span>              :                     textDirection == null),</span>
 <span id="L54"><span class="lineNum">      54</span>              :             'Don\'t set both pageTheme and other settings'),</span>
 <span id="L55"><span class="lineNum">      55</span>              :         pageTheme = pageTheme ??</span>
-<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          69 :             PageTheme(</span></span>
+<span id="L56"><span class="lineNum">      56</span> <span class="tlaGNC">          92 :             PageTheme(</span></span>
 <span id="L57"><span class="lineNum">      57</span>              :               pageFormat: pageFormat,</span>
 <span id="L58"><span class="lineNum">      58</span>              :               orientation: orientation,</span>
 <span id="L59"><span class="lineNum">      59</span>              :               margin: margin,</span>
@@ -127,41 +127,41 @@
 <span id="L65"><span class="lineNum">      65</span>              : </span>
 <span id="L66"><span class="lineNum">      66</span>              :   final PageTheme pageTheme;</span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         351 :   PdfPageFormat get pageFormat =&gt; _pdfPage?.pageFormat ?? pageTheme.pageFormat;</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         468 :   PdfPageFormat get pageFormat =&gt; _pdfPage?.pageFormat ?? pageTheme.pageFormat;</span></span>
 <span id="L69"><span class="lineNum">      69</span>              : </span>
 <span id="L70"><span class="lineNum">      70</span> <span class="tlaUNC tlaBgUNC">           0 :   PageOrientation get orientation =&gt; pageTheme.orientation;</span></span>
 <span id="L71"><span class="lineNum">      71</span>              : </span>
 <span id="L72"><span class="lineNum">      72</span>              :   final BuildCallback _build;</span>
 <span id="L73"><span class="lineNum">      73</span>              : </span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC tlaBgGNC">         216 :   ThemeData? get theme =&gt; pageTheme.theme;</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC tlaBgGNC">         288 :   ThemeData? get theme =&gt; pageTheme.theme;</span></span>
 <span id="L75"><span class="lineNum">      75</span>              : </span>
-<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         216 :   bool get mustRotate =&gt; pageTheme.mustRotate;</span></span>
+<span id="L76"><span class="lineNum">      76</span> <span class="tlaGNC">         288 :   bool get mustRotate =&gt; pageTheme.mustRotate;</span></span>
 <span id="L77"><span class="lineNum">      77</span>              : </span>
 <span id="L78"><span class="lineNum">      78</span>              :   PdfPage? _pdfPage;</span>
 <span id="L79"><span class="lineNum">      79</span>              : </span>
-<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">         216 :   EdgeInsetsGeometry? get margin =&gt; pageTheme.margin;</span></span>
+<span id="L80"><span class="lineNum">      80</span> <span class="tlaGNC">         288 :   EdgeInsetsGeometry? get margin =&gt; pageTheme.margin;</span></span>
 <span id="L81"><span class="lineNum">      81</span>              : </span>
-<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">         360 :   EdgeInsets? get resolvedMargin =&gt; margin?.resolve(pageTheme.textDirection);</span></span>
+<span id="L82"><span class="lineNum">      82</span> <span class="tlaGNC">         480 :   EdgeInsets? get resolvedMargin =&gt; margin?.resolve(pageTheme.textDirection);</span></span>
 <span id="L83"><span class="lineNum">      83</span>              : </span>
-<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          69 :   @protected</span></span>
+<span id="L84"><span class="lineNum">      84</span> <span class="tlaGNC">          92 :   @protected</span></span>
 <span id="L85"><span class="lineNum">      85</span>              :   void debugPaint(Context context) {</span>
-<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          69 :     final _margin = resolvedMargin!;</span></span>
+<span id="L86"><span class="lineNum">      86</span> <span class="tlaGNC">          92 :     final _margin = resolvedMargin!;</span></span>
 <span id="L87"><span class="lineNum">      87</span>              : </span>
-<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          69 :     context.canvas</span></span>
-<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          69 :       ..setFillColor(PdfColors.lightGreen)</span></span>
-<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          69 :       ..moveTo(0, 0)</span></span>
-<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">         207 :       ..lineTo(pageFormat.width, 0)</span></span>
-<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         345 :       ..lineTo(pageFormat.width, pageFormat.height)</span></span>
-<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         207 :       ..lineTo(0, pageFormat.height)</span></span>
-<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">         207 :       ..moveTo(_margin.left, _margin.bottom)</span></span>
-<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">         414 :       ..lineTo(_margin.left, pageFormat.height - _margin.top)</span></span>
-<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">          69 :       ..lineTo(</span></span>
-<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">         552 :           pageFormat.width - _margin.right, pageFormat.height - _margin.top)</span></span>
-<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">         414 :       ..lineTo(pageFormat.width - _margin.right, _margin.bottom)</span></span>
-<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">          69 :       ..fillPath();</span></span>
+<span id="L88"><span class="lineNum">      88</span> <span class="tlaGNC">          92 :     context.canvas</span></span>
+<span id="L89"><span class="lineNum">      89</span> <span class="tlaGNC">          92 :       ..setFillColor(PdfColors.lightGreen)</span></span>
+<span id="L90"><span class="lineNum">      90</span> <span class="tlaGNC">          92 :       ..moveTo(0, 0)</span></span>
+<span id="L91"><span class="lineNum">      91</span> <span class="tlaGNC">         276 :       ..lineTo(pageFormat.width, 0)</span></span>
+<span id="L92"><span class="lineNum">      92</span> <span class="tlaGNC">         460 :       ..lineTo(pageFormat.width, pageFormat.height)</span></span>
+<span id="L93"><span class="lineNum">      93</span> <span class="tlaGNC">         276 :       ..lineTo(0, pageFormat.height)</span></span>
+<span id="L94"><span class="lineNum">      94</span> <span class="tlaGNC">         276 :       ..moveTo(_margin.left, _margin.bottom)</span></span>
+<span id="L95"><span class="lineNum">      95</span> <span class="tlaGNC">         552 :       ..lineTo(_margin.left, pageFormat.height - _margin.top)</span></span>
+<span id="L96"><span class="lineNum">      96</span> <span class="tlaGNC">          92 :       ..lineTo(</span></span>
+<span id="L97"><span class="lineNum">      97</span> <span class="tlaGNC">         736 :           pageFormat.width - _margin.right, pageFormat.height - _margin.top)</span></span>
+<span id="L98"><span class="lineNum">      98</span> <span class="tlaGNC">         552 :       ..lineTo(pageFormat.width - _margin.right, _margin.bottom)</span></span>
+<span id="L99"><span class="lineNum">      99</span> <span class="tlaGNC">          92 :       ..fillPath();</span></span>
 <span id="L100"><span class="lineNum">     100</span>              :   }</span>
 <span id="L101"><span class="lineNum">     101</span>              : </span>
-<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">          63 :   void generate(Document document, {bool insert = true, int? index}) {</span></span>
+<span id="L102"><span class="lineNum">     102</span> <span class="tlaGNC">          84 :   void generate(Document document, {bool insert = true, int? index}) {</span></span>
 <span id="L103"><span class="lineNum">     103</span>              :     if (index != null) {</span>
 <span id="L104"><span class="lineNum">     104</span>              :       if (insert) {</span>
 <span id="L105"><span class="lineNum">     105</span> <span class="tlaUNC tlaBgUNC">           0 :         _pdfPage =</span></span>
@@ -170,146 +170,146 @@
 <span id="L108"><span class="lineNum">     108</span> <span class="tlaUNC">           0 :         _pdfPage = document.document.page(index);</span></span>
 <span id="L109"><span class="lineNum">     109</span>              :       }</span>
 <span id="L110"><span class="lineNum">     110</span>              :     } else {</span>
-<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC tlaBgGNC">         252 :       _pdfPage = PdfPage(document.document, pageFormat: pageFormat);</span></span>
+<span id="L111"><span class="lineNum">     111</span> <span class="tlaGNC tlaBgGNC">         336 :       _pdfPage = PdfPage(document.document, pageFormat: pageFormat);</span></span>
 <span id="L112"><span class="lineNum">     112</span>              :     }</span>
 <span id="L113"><span class="lineNum">     113</span>              :   }</span>
 <span id="L114"><span class="lineNum">     114</span>              : </span>
-<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          63 :   void postProcess(Document document) {</span></span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         126 :     final canvas = _pdfPage!.getGraphics();</span></span>
-<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          63 :     canvas.reset();</span></span>
-<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          63 :     final _margin = resolvedMargin;</span></span>
-<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          63 :     var constraints = mustRotate</span></span>
-<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           3 :         ? BoxConstraints(</span></span>
-<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          12 :             maxWidth: pageFormat.height - _margin!.vertical,</span></span>
-<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">          12 :             maxHeight: pageFormat.width - _margin.horizontal)</span></span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          63 :         : BoxConstraints(</span></span>
-<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         252 :             maxWidth: pageFormat.width - _margin!.horizontal,</span></span>
-<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         252 :             maxHeight: pageFormat.height - _margin.vertical);</span></span>
+<span id="L115"><span class="lineNum">     115</span> <span class="tlaGNC">          84 :   void postProcess(Document document) {</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         168 :     final canvas = _pdfPage!.getGraphics();</span></span>
+<span id="L117"><span class="lineNum">     117</span> <span class="tlaGNC">          84 :     canvas.reset();</span></span>
+<span id="L118"><span class="lineNum">     118</span> <span class="tlaGNC">          84 :     final _margin = resolvedMargin;</span></span>
+<span id="L119"><span class="lineNum">     119</span> <span class="tlaGNC">          84 :     var constraints = mustRotate</span></span>
+<span id="L120"><span class="lineNum">     120</span> <span class="tlaGNC">           4 :         ? BoxConstraints(</span></span>
+<span id="L121"><span class="lineNum">     121</span> <span class="tlaGNC">          16 :             maxWidth: pageFormat.height - _margin!.vertical,</span></span>
+<span id="L122"><span class="lineNum">     122</span> <span class="tlaGNC">          16 :             maxHeight: pageFormat.width - _margin.horizontal)</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC">          84 :         : BoxConstraints(</span></span>
+<span id="L124"><span class="lineNum">     124</span> <span class="tlaGNC">         336 :             maxWidth: pageFormat.width - _margin!.horizontal,</span></span>
+<span id="L125"><span class="lineNum">     125</span> <span class="tlaGNC">         336 :             maxHeight: pageFormat.height - _margin.vertical);</span></span>
 <span id="L126"><span class="lineNum">     126</span>              : </span>
-<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         189 :     final calculatedTheme = theme ?? document.theme ?? ThemeData.base();</span></span>
-<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          63 :     final context = Context(</span></span>
-<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          63 :       document: document.document,</span></span>
-<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          63 :       page: _pdfPage!,</span></span>
+<span id="L127"><span class="lineNum">     127</span> <span class="tlaGNC">         252 :     final calculatedTheme = theme ?? document.theme ?? ThemeData.base();</span></span>
+<span id="L128"><span class="lineNum">     128</span> <span class="tlaGNC">          84 :     final context = Context(</span></span>
+<span id="L129"><span class="lineNum">     129</span> <span class="tlaGNC">          84 :       document: document.document,</span></span>
+<span id="L130"><span class="lineNum">     130</span> <span class="tlaGNC">          84 :       page: _pdfPage!,</span></span>
 <span id="L131"><span class="lineNum">     131</span>              :       canvas: canvas,</span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         126 :     ).inheritFromAll(&lt;Inherited&gt;[</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC">         168 :     ).inheritFromAll(&lt;Inherited&gt;[</span></span>
 <span id="L133"><span class="lineNum">     133</span>              :       calculatedTheme,</span>
-<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         126 :       if (pageTheme.textDirection != null)</span></span>
-<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">           9 :         InheritedDirectionality(pageTheme.textDirection),</span></span>
+<span id="L134"><span class="lineNum">     134</span> <span class="tlaGNC">         168 :       if (pageTheme.textDirection != null)</span></span>
+<span id="L135"><span class="lineNum">     135</span> <span class="tlaGNC">          12 :         InheritedDirectionality(pageTheme.textDirection),</span></span>
 <span id="L136"><span class="lineNum">     136</span>              :     ]);</span>
 <span id="L137"><span class="lineNum">     137</span>              : </span>
 <span id="L138"><span class="lineNum">     138</span>              :     Widget? background;</span>
 <span id="L139"><span class="lineNum">     139</span>              :     Widget? content;</span>
 <span id="L140"><span class="lineNum">     140</span>              :     Widget? foreground;</span>
 <span id="L141"><span class="lineNum">     141</span>              : </span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">         126 :     content = _build(context);</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC">         168 :     content = _build(context);</span></span>
 <span id="L143"><span class="lineNum">     143</span>              : </span>
-<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          63 :     final size = layout(content, context, constraints);</span></span>
+<span id="L144"><span class="lineNum">     144</span> <span class="tlaGNC">          84 :     final size = layout(content, context, constraints);</span></span>
 <span id="L145"><span class="lineNum">     145</span>              : </span>
-<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">         252 :     if (_pdfPage!.pageFormat.height == double.infinity) {</span></span>
-<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           6 :       _pdfPage!.pageFormat =</span></span>
-<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          15 :           _pdfPage!.pageFormat.copyWith(width: size.x, height: size.y);</span></span>
-<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           3 :       constraints = mustRotate</span></span>
+<span id="L146"><span class="lineNum">     146</span> <span class="tlaGNC">         336 :     if (_pdfPage!.pageFormat.height == double.infinity) {</span></span>
+<span id="L147"><span class="lineNum">     147</span> <span class="tlaGNC">           8 :       _pdfPage!.pageFormat =</span></span>
+<span id="L148"><span class="lineNum">     148</span> <span class="tlaGNC">          20 :           _pdfPage!.pageFormat.copyWith(width: size.x, height: size.y);</span></span>
+<span id="L149"><span class="lineNum">     149</span> <span class="tlaGNC">           4 :       constraints = mustRotate</span></span>
 <span id="L150"><span class="lineNum">     150</span> <span class="tlaUNC tlaBgUNC">           0 :           ? BoxConstraints(</span></span>
 <span id="L151"><span class="lineNum">     151</span> <span class="tlaUNC">           0 :               maxWidth: _pdfPage!.pageFormat.height - _margin.vertical,</span></span>
 <span id="L152"><span class="lineNum">     152</span> <span class="tlaUNC">           0 :               maxHeight: _pdfPage!.pageFormat.width - _margin.horizontal)</span></span>
-<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC tlaBgGNC">           3 :           : BoxConstraints(</span></span>
-<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">          15 :               maxWidth: _pdfPage!.pageFormat.width - _margin.horizontal,</span></span>
-<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          15 :               maxHeight: _pdfPage!.pageFormat.height - _margin.vertical);</span></span>
+<span id="L153"><span class="lineNum">     153</span> <span class="tlaGNC tlaBgGNC">           4 :           : BoxConstraints(</span></span>
+<span id="L154"><span class="lineNum">     154</span> <span class="tlaGNC">          20 :               maxWidth: _pdfPage!.pageFormat.width - _margin.horizontal,</span></span>
+<span id="L155"><span class="lineNum">     155</span> <span class="tlaGNC">          20 :               maxHeight: _pdfPage!.pageFormat.height - _margin.vertical);</span></span>
 <span id="L156"><span class="lineNum">     156</span>              :     }</span>
 <span id="L157"><span class="lineNum">     157</span>              : </span>
-<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         126 :     if (pageTheme.buildBackground != null) {</span></span>
-<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">           9 :       background = pageTheme.buildBackground!(context);</span></span>
-<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           3 :       layout(background, context, constraints);</span></span>
+<span id="L158"><span class="lineNum">     158</span> <span class="tlaGNC">         168 :     if (pageTheme.buildBackground != null) {</span></span>
+<span id="L159"><span class="lineNum">     159</span> <span class="tlaGNC">          12 :       background = pageTheme.buildBackground!(context);</span></span>
+<span id="L160"><span class="lineNum">     160</span> <span class="tlaGNC">           4 :       layout(background, context, constraints);</span></span>
 <span id="L161"><span class="lineNum">     161</span>              :     }</span>
 <span id="L162"><span class="lineNum">     162</span>              : </span>
-<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">         126 :     if (pageTheme.buildForeground != null) {</span></span>
-<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">           9 :       foreground = pageTheme.buildForeground!(context);</span></span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">           3 :       layout(foreground, context, constraints);</span></span>
+<span id="L163"><span class="lineNum">     163</span> <span class="tlaGNC">         168 :     if (pageTheme.buildForeground != null) {</span></span>
+<span id="L164"><span class="lineNum">     164</span> <span class="tlaGNC">          12 :       foreground = pageTheme.buildForeground!(context);</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC">           4 :       layout(foreground, context, constraints);</span></span>
 <span id="L166"><span class="lineNum">     166</span>              :     }</span>
 <span id="L167"><span class="lineNum">     167</span>              : </span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         126 :     assert(() {</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         168 :     assert(() {</span></span>
 <span id="L169"><span class="lineNum">     169</span>              :       if (Document.debug) {</span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          60 :         debugPaint(context);</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">          80 :         debugPaint(context);</span></span>
 <span id="L171"><span class="lineNum">     171</span>              :       }</span>
 <span id="L172"><span class="lineNum">     172</span>              :       return true;</span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          63 :     }());</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">          84 :     }());</span></span>
 <span id="L174"><span class="lineNum">     174</span>              : </span>
 <span id="L175"><span class="lineNum">     175</span>              :     if (background != null) {</span>
-<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">           3 :       paint(background, context);</span></span>
+<span id="L176"><span class="lineNum">     176</span> <span class="tlaGNC">           4 :       paint(background, context);</span></span>
 <span id="L177"><span class="lineNum">     177</span>              :     }</span>
 <span id="L178"><span class="lineNum">     178</span>              : </span>
-<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          63 :     paint(content, context);</span></span>
+<span id="L179"><span class="lineNum">     179</span> <span class="tlaGNC">          84 :     paint(content, context);</span></span>
 <span id="L180"><span class="lineNum">     180</span>              : </span>
 <span id="L181"><span class="lineNum">     181</span>              :     if (foreground != null) {</span>
-<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           3 :       paint(foreground, context);</span></span>
+<span id="L182"><span class="lineNum">     182</span> <span class="tlaGNC">           4 :       paint(foreground, context);</span></span>
 <span id="L183"><span class="lineNum">     183</span>              :     }</span>
 <span id="L184"><span class="lineNum">     184</span>              :   }</span>
 <span id="L185"><span class="lineNum">     185</span>              : </span>
-<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          63 :   @protected</span></span>
+<span id="L186"><span class="lineNum">     186</span> <span class="tlaGNC">          84 :   @protected</span></span>
 <span id="L187"><span class="lineNum">     187</span>              :   PdfPoint layout(Widget child, Context context, BoxConstraints constraints,</span>
 <span id="L188"><span class="lineNum">     188</span>              :       {bool parentUsesSize = false}) {</span>
-<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          63 :     final _margin = resolvedMargin!;</span></span>
-<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          63 :     child.layout(context, constraints, parentUsesSize: parentUsesSize);</span></span>
-<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         126 :     assert(child.box != null);</span></span>
+<span id="L189"><span class="lineNum">     189</span> <span class="tlaGNC">          84 :     final _margin = resolvedMargin!;</span></span>
+<span id="L190"><span class="lineNum">     190</span> <span class="tlaGNC">          84 :     child.layout(context, constraints, parentUsesSize: parentUsesSize);</span></span>
+<span id="L191"><span class="lineNum">     191</span> <span class="tlaGNC">         168 :     assert(child.box != null);</span></span>
 <span id="L192"><span class="lineNum">     192</span>              : </span>
-<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">         189 :     final width = pageFormat.width == double.infinity</span></span>
-<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          18 :         ? child.box!.width + _margin.left + _margin.right</span></span>
-<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         126 :         : pageFormat.width;</span></span>
+<span id="L193"><span class="lineNum">     193</span> <span class="tlaGNC">         252 :     final width = pageFormat.width == double.infinity</span></span>
+<span id="L194"><span class="lineNum">     194</span> <span class="tlaGNC">          24 :         ? child.box!.width + _margin.left + _margin.right</span></span>
+<span id="L195"><span class="lineNum">     195</span> <span class="tlaGNC">         168 :         : pageFormat.width;</span></span>
 <span id="L196"><span class="lineNum">     196</span>              : </span>
-<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         189 :     final height = pageFormat.height == double.infinity</span></span>
-<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          18 :         ? child.box!.height + _margin.top + _margin.bottom</span></span>
-<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">         120 :         : pageFormat.height;</span></span>
+<span id="L197"><span class="lineNum">     197</span> <span class="tlaGNC">         252 :     final height = pageFormat.height == double.infinity</span></span>
+<span id="L198"><span class="lineNum">     198</span> <span class="tlaGNC">          24 :         ? child.box!.height + _margin.top + _margin.bottom</span></span>
+<span id="L199"><span class="lineNum">     199</span> <span class="tlaGNC">         160 :         : pageFormat.height;</span></span>
 <span id="L200"><span class="lineNum">     200</span>              : </span>
-<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         504 :     child.box = PdfRect(_margin.left, height - child.box!.height - _margin.top,</span></span>
-<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         252 :         child.box!.width, child.box!.height);</span></span>
+<span id="L201"><span class="lineNum">     201</span> <span class="tlaGNC">         672 :     child.box = PdfRect(_margin.left, height - child.box!.height - _margin.top,</span></span>
+<span id="L202"><span class="lineNum">     202</span> <span class="tlaGNC">         336 :         child.box!.width, child.box!.height);</span></span>
 <span id="L203"><span class="lineNum">     203</span>              : </span>
-<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">          63 :     return PdfPoint(width, height);</span></span>
+<span id="L204"><span class="lineNum">     204</span> <span class="tlaGNC">          84 :     return PdfPoint(width, height);</span></span>
 <span id="L205"><span class="lineNum">     205</span>              :   }</span>
 <span id="L206"><span class="lineNum">     206</span>              : </span>
-<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">          63 :   @protected</span></span>
+<span id="L207"><span class="lineNum">     207</span> <span class="tlaGNC">          84 :   @protected</span></span>
 <span id="L208"><span class="lineNum">     208</span>              :   void paint(Widget child, Context context) {</span>
-<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">          63 :     final _margin = resolvedMargin!;</span></span>
-<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          63 :     final box = PdfRect(</span></span>
-<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">          63 :       _margin.left,</span></span>
-<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          63 :       _margin.bottom,</span></span>
-<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">         252 :       pageFormat.width - _margin.horizontal,</span></span>
-<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">         252 :       pageFormat.height - _margin.vertical,</span></span>
+<span id="L209"><span class="lineNum">     209</span> <span class="tlaGNC">          84 :     final _margin = resolvedMargin!;</span></span>
+<span id="L210"><span class="lineNum">     210</span> <span class="tlaGNC">          84 :     final box = PdfRect(</span></span>
+<span id="L211"><span class="lineNum">     211</span> <span class="tlaGNC">          84 :       _margin.left,</span></span>
+<span id="L212"><span class="lineNum">     212</span> <span class="tlaGNC">          84 :       _margin.bottom,</span></span>
+<span id="L213"><span class="lineNum">     213</span> <span class="tlaGNC">         336 :       pageFormat.width - _margin.horizontal,</span></span>
+<span id="L214"><span class="lineNum">     214</span> <span class="tlaGNC">         336 :       pageFormat.height - _margin.vertical,</span></span>
 <span id="L215"><span class="lineNum">     215</span>              :     );</span>
-<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">         126 :     if (pageTheme.clip) {</span></span>
-<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">           3 :       context.canvas</span></span>
-<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           3 :         ..saveContext()</span></span>
-<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          15 :         ..drawRect(box.x, box.y, box.width, box.height)</span></span>
-<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           3 :         ..clipPath();</span></span>
+<span id="L216"><span class="lineNum">     216</span> <span class="tlaGNC">         168 :     if (pageTheme.clip) {</span></span>
+<span id="L217"><span class="lineNum">     217</span> <span class="tlaGNC">           4 :       context.canvas</span></span>
+<span id="L218"><span class="lineNum">     218</span> <span class="tlaGNC">           4 :         ..saveContext()</span></span>
+<span id="L219"><span class="lineNum">     219</span> <span class="tlaGNC">          20 :         ..drawRect(box.x, box.y, box.width, box.height)</span></span>
+<span id="L220"><span class="lineNum">     220</span> <span class="tlaGNC">           4 :         ..clipPath();</span></span>
 <span id="L221"><span class="lineNum">     221</span>              :     }</span>
 <span id="L222"><span class="lineNum">     222</span>              : </span>
-<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">         189 :     if (pageTheme.textDirection == TextDirection.rtl) {</span></span>
-<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           6 :       child.box = PdfRect(</span></span>
-<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          18 :         ((mustRotate ? box.height : box.width) - child.box!.width) +</span></span>
-<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           6 :             child.box!.x,</span></span>
-<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           6 :         child.box!.y,</span></span>
-<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">           6 :         child.box!.width,</span></span>
-<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">           6 :         child.box!.height,</span></span>
+<span id="L223"><span class="lineNum">     223</span> <span class="tlaGNC">         252 :     if (pageTheme.textDirection == TextDirection.rtl) {</span></span>
+<span id="L224"><span class="lineNum">     224</span> <span class="tlaGNC">           8 :       child.box = PdfRect(</span></span>
+<span id="L225"><span class="lineNum">     225</span> <span class="tlaGNC">          24 :         ((mustRotate ? box.height : box.width) - child.box!.width) +</span></span>
+<span id="L226"><span class="lineNum">     226</span> <span class="tlaGNC">           8 :             child.box!.x,</span></span>
+<span id="L227"><span class="lineNum">     227</span> <span class="tlaGNC">           8 :         child.box!.y,</span></span>
+<span id="L228"><span class="lineNum">     228</span> <span class="tlaGNC">           8 :         child.box!.width,</span></span>
+<span id="L229"><span class="lineNum">     229</span> <span class="tlaGNC">           8 :         child.box!.height,</span></span>
 <span id="L230"><span class="lineNum">     230</span>              :       );</span>
 <span id="L231"><span class="lineNum">     231</span>              :     }</span>
 <span id="L232"><span class="lineNum">     232</span>              : </span>
-<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          63 :     if (mustRotate) {</span></span>
-<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">           3 :       final _margin = resolvedMargin!;</span></span>
-<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           3 :       context.canvas</span></span>
-<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           3 :         ..saveContext()</span></span>
-<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">           6 :         ..setTransform(Matrix4.identity()</span></span>
-<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">           9 :           ..rotateZ(-math.pi / 2)</span></span>
-<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">           3 :           ..translate(</span></span>
-<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">          21 :             -pageFormat.height - _margin.left + _margin.top,</span></span>
-<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          30 :             -pageFormat.height + pageFormat.width + _margin.top - _margin.right,</span></span>
+<span id="L233"><span class="lineNum">     233</span> <span class="tlaGNC">          84 :     if (mustRotate) {</span></span>
+<span id="L234"><span class="lineNum">     234</span> <span class="tlaGNC">           4 :       final _margin = resolvedMargin!;</span></span>
+<span id="L235"><span class="lineNum">     235</span> <span class="tlaGNC">           4 :       context.canvas</span></span>
+<span id="L236"><span class="lineNum">     236</span> <span class="tlaGNC">           4 :         ..saveContext()</span></span>
+<span id="L237"><span class="lineNum">     237</span> <span class="tlaGNC">           8 :         ..setTransform(Matrix4.identity()</span></span>
+<span id="L238"><span class="lineNum">     238</span> <span class="tlaGNC">          12 :           ..rotateZ(-math.pi / 2)</span></span>
+<span id="L239"><span class="lineNum">     239</span> <span class="tlaGNC">           4 :           ..translate(</span></span>
+<span id="L240"><span class="lineNum">     240</span> <span class="tlaGNC">          28 :             -pageFormat.height - _margin.left + _margin.top,</span></span>
+<span id="L241"><span class="lineNum">     241</span> <span class="tlaGNC">          40 :             -pageFormat.height + pageFormat.width + _margin.top - _margin.right,</span></span>
 <span id="L242"><span class="lineNum">     242</span>              :           ));</span>
-<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           3 :       child.paint(context);</span></span>
-<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           6 :       context.canvas.restoreContext();</span></span>
+<span id="L243"><span class="lineNum">     243</span> <span class="tlaGNC">           4 :       child.paint(context);</span></span>
+<span id="L244"><span class="lineNum">     244</span> <span class="tlaGNC">           8 :       context.canvas.restoreContext();</span></span>
 <span id="L245"><span class="lineNum">     245</span>              :     } else {</span>
-<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          63 :       child.paint(context);</span></span>
+<span id="L246"><span class="lineNum">     246</span> <span class="tlaGNC">          84 :       child.paint(context);</span></span>
 <span id="L247"><span class="lineNum">     247</span>              :     }</span>
 <span id="L248"><span class="lineNum">     248</span>              : </span>
-<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">         126 :     if (pageTheme.clip) {</span></span>
-<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">           6 :       context.canvas.restoreContext();</span></span>
+<span id="L249"><span class="lineNum">     249</span> <span class="tlaGNC">         168 :     if (pageTheme.clip) {</span></span>
+<span id="L250"><span class="lineNum">     250</span> <span class="tlaGNC">           8 :       context.canvas.restoreContext();</span></span>
 <span id="L251"><span class="lineNum">     251</span>              :     }</span>
 <span id="L252"><span class="lineNum">     252</span>              :   }</span>
 <span id="L253"><span class="lineNum">     253</span>              : }</span>

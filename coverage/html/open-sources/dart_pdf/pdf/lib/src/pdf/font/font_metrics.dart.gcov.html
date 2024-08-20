@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -87,7 +87,7 @@
 <span id="L25"><span class="lineNum">      25</span>              : @immutable</span>
 <span id="L26"><span class="lineNum">      26</span>              : class PdfFontMetrics {</span>
 <span id="L27"><span class="lineNum">      27</span>              :   /// Create a PdfFontMetrics object</span>
-<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC tlaBgGNC">         177 :   const PdfFontMetrics({</span></span>
+<span id="L28"><span class="lineNum">      28</span> <span class="tlaGNC tlaBgGNC">         236 :   const PdfFontMetrics({</span></span>
 <span id="L29"><span class="lineNum">      29</span>              :     required this.left,</span>
 <span id="L30"><span class="lineNum">      30</span>              :     required this.top,</span>
 <span id="L31"><span class="lineNum">      31</span>              :     required this.right,</span>
@@ -98,15 +98,15 @@
 <span id="L36"><span class="lineNum">      36</span>              :     double? leftBearing,</span>
 <span id="L37"><span class="lineNum">      37</span>              :   })  : ascent = ascent ?? bottom,</span>
 <span id="L38"><span class="lineNum">      38</span>              :         descent = descent ?? top,</span>
-<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">          66 :         advanceWidth = advanceWidth ?? right - left,</span></span>
+<span id="L39"><span class="lineNum">      39</span> <span class="tlaGNC">          88 :         advanceWidth = advanceWidth ?? right - left,</span></span>
 <span id="L40"><span class="lineNum">      40</span>              :         leftBearing = leftBearing ?? left;</span>
 <span id="L41"><span class="lineNum">      41</span>              : </span>
 <span id="L42"><span class="lineNum">      42</span>              :   /// Add another metric</span>
-<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          66 :   factory PdfFontMetrics.append(</span></span>
+<span id="L43"><span class="lineNum">      43</span> <span class="tlaGNC">          88 :   factory PdfFontMetrics.append(</span></span>
 <span id="L44"><span class="lineNum">      44</span>              :     Iterable&lt;PdfFontMetrics&gt; metrics, {</span>
 <span id="L45"><span class="lineNum">      45</span>              :     double letterSpacing = 0,</span>
 <span id="L46"><span class="lineNum">      46</span>              :   }) {</span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          66 :     if (metrics.isEmpty) {</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          88 :     if (metrics.isEmpty) {</span></span>
 <span id="L48"><span class="lineNum">      48</span>              :       return PdfFontMetrics.zero;</span>
 <span id="L49"><span class="lineNum">      49</span>              :     }</span>
 <span id="L50"><span class="lineNum">      50</span>              : </span>
@@ -120,27 +120,27 @@
 <span id="L58"><span class="lineNum">      58</span>              :     double? firstBearing;</span>
 <span id="L59"><span class="lineNum">      59</span>              :     late double spacing;</span>
 <span id="L60"><span class="lineNum">      60</span>              : </span>
-<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         132 :     for (final metric in metrics) {</span></span>
-<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">          66 :       firstBearing ??= metric.leftBearing;</span></span>
-<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          66 :       left ??= metric.left;</span></span>
-<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         132 :       spacing = metric.advanceWidth &gt; 0 ? letterSpacing : 0.0;</span></span>
-<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">         198 :       right += metric.advanceWidth + spacing;</span></span>
-<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          66 :       lastBearing = metric.rightBearing;</span></span>
+<span id="L61"><span class="lineNum">      61</span> <span class="tlaGNC">         176 :     for (final metric in metrics) {</span></span>
+<span id="L62"><span class="lineNum">      62</span> <span class="tlaGNC">          88 :       firstBearing ??= metric.leftBearing;</span></span>
+<span id="L63"><span class="lineNum">      63</span> <span class="tlaGNC">          88 :       left ??= metric.left;</span></span>
+<span id="L64"><span class="lineNum">      64</span> <span class="tlaGNC">         176 :       spacing = metric.advanceWidth &gt; 0 ? letterSpacing : 0.0;</span></span>
+<span id="L65"><span class="lineNum">      65</span> <span class="tlaGNC">         264 :       right += metric.advanceWidth + spacing;</span></span>
+<span id="L66"><span class="lineNum">      66</span> <span class="tlaGNC">          88 :       lastBearing = metric.rightBearing;</span></span>
 <span id="L67"><span class="lineNum">      67</span>              : </span>
-<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         198 :       top = math.min(top ?? metric.top, metric.top);</span></span>
-<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">         198 :       bottom = math.max(bottom ?? metric.bottom, metric.bottom);</span></span>
-<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         198 :       descent = math.min(descent ?? metric.descent, metric.descent);</span></span>
-<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         198 :       ascent = math.max(ascent ?? metric.ascent, metric.ascent);</span></span>
+<span id="L68"><span class="lineNum">      68</span> <span class="tlaGNC">         264 :       top = math.min(top ?? metric.top, metric.top);</span></span>
+<span id="L69"><span class="lineNum">      69</span> <span class="tlaGNC">         264 :       bottom = math.max(bottom ?? metric.bottom, metric.bottom);</span></span>
+<span id="L70"><span class="lineNum">      70</span> <span class="tlaGNC">         264 :       descent = math.min(descent ?? metric.descent, metric.descent);</span></span>
+<span id="L71"><span class="lineNum">      71</span> <span class="tlaGNC">         264 :       ascent = math.max(ascent ?? metric.ascent, metric.ascent);</span></span>
 <span id="L72"><span class="lineNum">      72</span>              :     }</span>
 <span id="L73"><span class="lineNum">      73</span>              : </span>
-<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          66 :     return PdfFontMetrics(</span></span>
+<span id="L74"><span class="lineNum">      74</span> <span class="tlaGNC">          88 :     return PdfFontMetrics(</span></span>
 <span id="L75"><span class="lineNum">      75</span>              :       left: left!,</span>
 <span id="L76"><span class="lineNum">      76</span>              :       top: top!,</span>
-<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         132 :       right: right - lastBearing - spacing,</span></span>
+<span id="L77"><span class="lineNum">      77</span> <span class="tlaGNC">         176 :       right: right - lastBearing - spacing,</span></span>
 <span id="L78"><span class="lineNum">      78</span>              :       bottom: bottom!,</span>
 <span id="L79"><span class="lineNum">      79</span>              :       ascent: ascent,</span>
 <span id="L80"><span class="lineNum">      80</span>              :       descent: descent,</span>
-<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          66 :       advanceWidth: right - spacing,</span></span>
+<span id="L81"><span class="lineNum">      81</span> <span class="tlaGNC">          88 :       advanceWidth: right - spacing,</span></span>
 <span id="L82"><span class="lineNum">      82</span>              :       leftBearing: firstBearing,</span>
 <span id="L83"><span class="lineNum">      83</span>              :     );</span>
 <span id="L84"><span class="lineNum">      84</span>              :   }</span>
@@ -172,17 +172,17 @@
 <span id="L110"><span class="lineNum">     110</span>              :   final double advanceWidth;</span>
 <span id="L111"><span class="lineNum">     111</span>              : </span>
 <span id="L112"><span class="lineNum">     112</span>              :   /// Width of the glyph</span>
-<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">         264 :   double get width =&gt; right - left;</span></span>
+<span id="L113"><span class="lineNum">     113</span> <span class="tlaGNC">         352 :   double get width =&gt; right - left;</span></span>
 <span id="L114"><span class="lineNum">     114</span>              : </span>
 <span id="L115"><span class="lineNum">     115</span>              :   /// Height of the glyph</span>
-<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         240 :   double get height =&gt; bottom - top;</span></span>
+<span id="L116"><span class="lineNum">     116</span> <span class="tlaGNC">         320 :   double get height =&gt; bottom - top;</span></span>
 <span id="L117"><span class="lineNum">     117</span>              : </span>
 <span id="L118"><span class="lineNum">     118</span>              :   /// Maximum Width any glyph from this font can have</span>
 <span id="L119"><span class="lineNum">     119</span> <span class="tlaUNC tlaBgUNC">           0 :   double get maxWidth =&gt;</span></span>
 <span id="L120"><span class="lineNum">     120</span> <span class="tlaUNC">           0 :       math.max(advanceWidth, right) + math.max(-leftBearing, 0.0);</span></span>
 <span id="L121"><span class="lineNum">     121</span>              : </span>
 <span id="L122"><span class="lineNum">     122</span>              :   /// Maximum Height any glyph from this font can have</span>
-<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC tlaBgGNC">         240 :   double get maxHeight =&gt; ascent - descent;</span></span>
+<span id="L123"><span class="lineNum">     123</span> <span class="tlaGNC tlaBgGNC">         320 :   double get maxHeight =&gt; ascent - descent;</span></span>
 <span id="L124"><span class="lineNum">     124</span>              : </span>
 <span id="L125"><span class="lineNum">     125</span>              :   /// Real left position. The glyph may overflow on the left</span>
 <span id="L126"><span class="lineNum">     126</span> <span class="tlaUNC tlaBgUNC">           0 :   double get effectiveLeft =&gt; math.min(leftBearing, 0);</span></span>
@@ -191,7 +191,7 @@
 <span id="L129"><span class="lineNum">     129</span>              :   final double leftBearing;</span>
 <span id="L130"><span class="lineNum">     130</span>              : </span>
 <span id="L131"><span class="lineNum">     131</span>              :   /// Ending point</span>
-<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC tlaBgGNC">         264 :   double get rightBearing =&gt; advanceWidth - right;</span></span>
+<span id="L132"><span class="lineNum">     132</span> <span class="tlaGNC tlaBgGNC">         352 :   double get rightBearing =&gt; advanceWidth - right;</span></span>
 <span id="L133"><span class="lineNum">     133</span>              : </span>
 <span id="L134"><span class="lineNum">     134</span>              :   /// Get the unit size of this string</span>
 <span id="L135"><span class="lineNum">     135</span> <span class="tlaUNC tlaBgUNC">           0 :   PdfPoint get size =&gt; PdfPoint(width, height);</span></span>
@@ -201,7 +201,7 @@
 <span id="L139"><span class="lineNum">     139</span> <span class="tlaUNC">           0 :       'PdfFontMetrics(left:$left, top:$top, right:$right, bottom:$bottom, ascent:$ascent, descent:$descent, advanceWidth:$advanceWidth, leftBearing:$leftBearing, rightBearing:$rightBearing)';</span></span>
 <span id="L140"><span class="lineNum">     140</span>              : </span>
 <span id="L141"><span class="lineNum">     141</span>              :   /// Make a copy of this object</span>
-<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC tlaBgGNC">          66 :   PdfFontMetrics copyWith({</span></span>
+<span id="L142"><span class="lineNum">     142</span> <span class="tlaGNC tlaBgGNC">          88 :   PdfFontMetrics copyWith({</span></span>
 <span id="L143"><span class="lineNum">     143</span>              :     double? left,</span>
 <span id="L144"><span class="lineNum">     144</span>              :     double? top,</span>
 <span id="L145"><span class="lineNum">     145</span>              :     double? right,</span>
@@ -211,7 +211,7 @@
 <span id="L149"><span class="lineNum">     149</span>              :     double? advanceWidth,</span>
 <span id="L150"><span class="lineNum">     150</span>              :     double? leftBearing,</span>
 <span id="L151"><span class="lineNum">     151</span>              :   }) {</span>
-<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          66 :     return PdfFontMetrics(</span></span>
+<span id="L152"><span class="lineNum">     152</span> <span class="tlaGNC">          88 :     return PdfFontMetrics(</span></span>
 <span id="L153"><span class="lineNum">     153</span> <span class="tlaUNC tlaBgUNC">           0 :       left: left ?? this.left,</span></span>
 <span id="L154"><span class="lineNum">     154</span> <span class="tlaUNC">           0 :       top: top ?? this.top,</span></span>
 <span id="L155"><span class="lineNum">     155</span> <span class="tlaUNC">           0 :       right: right ?? this.right,</span></span>
@@ -224,16 +224,16 @@
 <span id="L162"><span class="lineNum">     162</span>              :   }</span>
 <span id="L163"><span class="lineNum">     163</span>              : </span>
 <span id="L164"><span class="lineNum">     164</span>              :   /// Multiply this metrics object with a font size</span>
-<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC tlaBgGNC">          66 :   PdfFontMetrics operator *(double factor) {</span></span>
-<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          66 :     return copyWith(</span></span>
-<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         132 :       left: left * factor,</span></span>
-<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         132 :       top: top * factor,</span></span>
-<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">         132 :       right: right * factor,</span></span>
-<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">         132 :       bottom: bottom * factor,</span></span>
-<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">         132 :       ascent: ascent * factor,</span></span>
-<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         132 :       descent: descent * factor,</span></span>
-<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         132 :       advanceWidth: advanceWidth * factor,</span></span>
-<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">         132 :       leftBearing: leftBearing * factor,</span></span>
+<span id="L165"><span class="lineNum">     165</span> <span class="tlaGNC tlaBgGNC">          88 :   PdfFontMetrics operator *(double factor) {</span></span>
+<span id="L166"><span class="lineNum">     166</span> <span class="tlaGNC">          88 :     return copyWith(</span></span>
+<span id="L167"><span class="lineNum">     167</span> <span class="tlaGNC">         176 :       left: left * factor,</span></span>
+<span id="L168"><span class="lineNum">     168</span> <span class="tlaGNC">         176 :       top: top * factor,</span></span>
+<span id="L169"><span class="lineNum">     169</span> <span class="tlaGNC">         176 :       right: right * factor,</span></span>
+<span id="L170"><span class="lineNum">     170</span> <span class="tlaGNC">         176 :       bottom: bottom * factor,</span></span>
+<span id="L171"><span class="lineNum">     171</span> <span class="tlaGNC">         176 :       ascent: ascent * factor,</span></span>
+<span id="L172"><span class="lineNum">     172</span> <span class="tlaGNC">         176 :       descent: descent * factor,</span></span>
+<span id="L173"><span class="lineNum">     173</span> <span class="tlaGNC">         176 :       advanceWidth: advanceWidth * factor,</span></span>
+<span id="L174"><span class="lineNum">     174</span> <span class="tlaGNC">         176 :       leftBearing: leftBearing * factor,</span></span>
 <span id="L175"><span class="lineNum">     175</span>              :     );</span>
 <span id="L176"><span class="lineNum">     176</span>              :   }</span>
 <span id="L177"><span class="lineNum">     177</span>              : </span>

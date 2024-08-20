@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -86,14 +86,14 @@
 <span id="L24"><span class="lineNum">      24</span>              : const kIndentSize = 2;</span>
 <span id="L25"><span class="lineNum">      25</span>              : </span>
 <span id="L26"><span class="lineNum">      26</span>              : abstract class PdfDataType {</span>
-<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">        2442 :   const PdfDataType();</span></span>
+<span id="L27"><span class="lineNum">      27</span> <span class="tlaGNC tlaBgGNC">        3256 :   const PdfDataType();</span></span>
 <span id="L28"><span class="lineNum">      28</span>              : </span>
 <span id="L29"><span class="lineNum">      29</span>              :   void output(PdfObjectBase o, PdfStream s, [int? indent]);</span>
 <span id="L30"><span class="lineNum">      30</span>              : </span>
-<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           3 :   PdfStream _toStream([int? indent]) {</span></span>
-<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           3 :     final s = PdfStream();</span></span>
-<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           3 :     output(</span></span>
-<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           3 :       PdfObjectBase(</span></span>
+<span id="L31"><span class="lineNum">      31</span> <span class="tlaGNC">           4 :   PdfStream _toStream([int? indent]) {</span></span>
+<span id="L32"><span class="lineNum">      32</span> <span class="tlaGNC">           4 :     final s = PdfStream();</span></span>
+<span id="L33"><span class="lineNum">      33</span> <span class="tlaGNC">           4 :     output(</span></span>
+<span id="L34"><span class="lineNum">      34</span> <span class="tlaGNC">           4 :       PdfObjectBase(</span></span>
 <span id="L35"><span class="lineNum">      35</span>              :         objser: 0,</span>
 <span id="L36"><span class="lineNum">      36</span>              :         params: this,</span>
 <span id="L37"><span class="lineNum">      37</span>              :         settings: const PdfSettings(),</span>
@@ -104,14 +104,14 @@
 <span id="L42"><span class="lineNum">      42</span>              :     return s;</span>
 <span id="L43"><span class="lineNum">      43</span>              :   }</span>
 <span id="L44"><span class="lineNum">      44</span>              : </span>
-<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           3 :   @override</span></span>
+<span id="L45"><span class="lineNum">      45</span> <span class="tlaGNC">           4 :   @override</span></span>
 <span id="L46"><span class="lineNum">      46</span>              :   String toString([int? indent]) {</span>
-<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">           9 :     return String.fromCharCodes(_toStream(indent).output());</span></span>
+<span id="L47"><span class="lineNum">      47</span> <span class="tlaGNC">          12 :     return String.fromCharCodes(_toStream(indent).output());</span></span>
 <span id="L48"><span class="lineNum">      48</span>              :   }</span>
 <span id="L49"><span class="lineNum">      49</span>              : </span>
-<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           3 :   @visibleForTesting</span></span>
+<span id="L50"><span class="lineNum">      50</span> <span class="tlaGNC">           4 :   @visibleForTesting</span></span>
 <span id="L51"><span class="lineNum">      51</span>              :   Uint8List toList() {</span>
-<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           6 :     return _toStream().output();</span></span>
+<span id="L52"><span class="lineNum">      52</span> <span class="tlaGNC">           8 :     return _toStream().output();</span></span>
 <span id="L53"><span class="lineNum">      53</span>              :   }</span>
 <span id="L54"><span class="lineNum">      54</span>              : }</span>
         </pre>

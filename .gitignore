@@ -80,3 +80,4 @@ trained_models/*.pkl
 trained_models/*.h5
 trained_models/
 back/
+coverage/

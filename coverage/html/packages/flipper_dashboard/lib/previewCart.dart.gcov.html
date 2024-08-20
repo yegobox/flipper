@@ -37,7 +37,7 @@
           </tr>
           <tr>
             <td class="headerItem">Test Date:</td>
-            <td class="headerValue">2024-08-20 06:52:17</td>
+            <td class="headerValue">2024-08-20 07:14:22</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntryHi">-</td>
@@ -427,13 +427,13 @@
 <span id="L365"><span class="lineNum">     365</span>              :         '0';</span>
 <span id="L366"><span class="lineNum">     366</span>              :   }</span>
 <span id="L367"><span class="lineNum">     367</span>              : </span>
-<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC tlaBgGNC">           3 :   double getSumOfItems() {</span></span>
+<span id="L368"><span class="lineNum">     368</span> <span class="tlaGNC tlaBgGNC">           4 :   double getSumOfItems() {</span></span>
 <span id="L369"><span class="lineNum">     369</span>              :     final transactionItems =</span>
-<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">          12 :         ref.watch(transactionItemsProvider((isExpense: false)));</span></span>
+<span id="L370"><span class="lineNum">     370</span> <span class="tlaGNC">          16 :         ref.watch(transactionItemsProvider((isExpense: false)));</span></span>
 <span id="L371"><span class="lineNum">     371</span>              : </span>
 <span id="L372"><span class="lineNum">     372</span>              :     // Check if the AsyncValue is in a data state (has data)</span>
-<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">           3 :     if (transactionItems.hasValue) {</span></span>
-<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           6 :       return transactionItems.value!.fold(</span></span>
+<span id="L373"><span class="lineNum">     373</span> <span class="tlaGNC">           4 :     if (transactionItems.hasValue) {</span></span>
+<span id="L374"><span class="lineNum">     374</span> <span class="tlaGNC">           8 :       return transactionItems.value!.fold(</span></span>
 <span id="L375"><span class="lineNum">     375</span>              :         0,</span>
 <span id="L376"><span class="lineNum">     376</span> <span class="tlaUNC tlaBgUNC">           0 :         (sum, item) =&gt; sum + (item.price * item.qty),</span></span>
 <span id="L377"><span class="lineNum">     377</span>              :       );</span>
