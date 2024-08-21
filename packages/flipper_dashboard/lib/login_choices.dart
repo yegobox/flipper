@@ -19,13 +19,14 @@ class LoginChoices extends StatefulHookConsumerWidget {
   const LoginChoices({Key? key}) : super(key: key);
 
   @override
-  _AppleInspiredLoginFlowState createState() => _AppleInspiredLoginFlowState();
+  _LoginChoicesState createState() => _LoginChoicesState();
 }
 
-class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
+class _LoginChoicesState extends ConsumerState<LoginChoices> {
   bool _isSelectingBranch = false;
-  Business? _selectedBusiness; // Define selectedBusiness here
-  String? _loadingItemId; // New state to track which item is loading
+  Business? _selectedBusiness;
+  bool _isLoading = false;
+  String? _loadingItemId;
 
   final _routerService = locator<RouterService>();
   final talker = Talker();
@@ -33,77 +34,82 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder.nonReactive(
-        viewModelBuilder: () => CoreViewModel(),
-        onViewModelReady: (viewModel) {
-          ref.refresh(businessesProvider);
-          ref.refresh(branchesProvider);
-        },
-        builder: (context, viewModel, child) {
-          final branches = ref.watch(branchesProvider);
-          final businesses = ref.watch(businessesProvider);
+      viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (_) {
+        ref.refresh(businessesProvider);
+        ref.refresh(branchesProvider);
+      },
+      builder: (context, viewModel, child) {
+        final branches = ref.watch(branchesProvider);
+        final businesses = ref.watch(businessesProvider);
 
-          return Scaffold(
-            backgroundColor: Colors.white,
-            body: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0, vertical: 40.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _isSelectingBranch
-                          ? 'Choose a Branch'
-                          : 'Choose a Business',
-                      style: TextStyle(
-                        fontSize: 32.0,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              child: !_isLoading
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _isSelectingBranch
+                              ? 'Choose a Branch'
+                              : 'Choose a Business',
+                          style: const TextStyle(
+                            fontSize: 32.0,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                          _isSelectingBranch
+                              ? 'Select the branch you want to access'
+                              : 'Select the business you want to log into',
+                          style: TextStyle(
+                            fontSize: 16.0,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 32.0),
+                        Expanded(
+                          child: _isSelectingBranch
+                              ? _buildBranchList(branches: branches)
+                              : _buildBusinessList(businesses: businesses),
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.black),
+                          strokeWidth: 3,
+                          backgroundColor: Colors.grey.shade300,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      _isSelectingBranch
-                          ? 'Select the branch you want to access'
-                          : 'Select the business you want to log into',
-                      style: TextStyle(
-                        fontSize: 16.0,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 32.0),
-                    Expanded(
-                      child: _isSelectingBranch
-                          ? _buildBranchList(branches: branches)
-                          : _buildBusinessList(businesses: businesses),
-                    ),
-                  ],
-                ),
-              ),
             ),
-          );
-        });
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildBusinessList({required List<Business> businesses}) {
     return ListView.separated(
       itemCount: businesses.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 24.0),
+      separatorBuilder: (_, __) => const SizedBox(height: 24.0),
       itemBuilder: (context, index) {
         final business = businesses[index];
         return _buildSelectionTile(
           title: business.name!,
           isSelected: business == _selectedBusiness,
-          onTap: () async {
-            setState(() {
-              _selectedBusiness = business;
-              _loadingItemId = business.serverId?.toString();
-            });
-            await chooseBusiness(business: business);
-            setState(() {
-              _loadingItemId = null;
-            });
-          },
+          onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
           isLoading: _loadingItemId == business.serverId?.toString(),
         );
@@ -114,21 +120,13 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
   Widget _buildBranchList({required List<Branch> branches}) {
     return ListView.separated(
       itemCount: branches.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 24.0),
+      separatorBuilder: (_, __) => const SizedBox(height: 24.0),
       itemBuilder: (context, index) {
         final branch = branches[index];
         return _buildSelectionTile(
           title: branch.name!,
           isSelected: branch.isDefault,
-          onTap: () async {
-            setState(() {
-              _loadingItemId = branch.serverId?.toString();
-            });
-            await chooseBranch(branch: branch);
-            setState(() {
-              _loadingItemId = null;
-            });
-          },
+          onTap: () => _handleBranchSelection(branch),
           icon: Icons.location_on,
           isLoading: _loadingItemId == branch.serverId?.toString(),
         );
@@ -156,23 +154,23 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
               color: isSelected ? Colors.blue : Colors.transparent,
               width: 2.0,
             ),
-            boxShadow: [
-              if (isSelected)
-                BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8.0),
-            ],
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                        color: Colors.blue.withOpacity(0.3), blurRadius: 8.0)
+                  ]
+                : null,
           ),
           child: Row(
             children: [
-              if (isLoading)
-                const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
-                )
-              else
-                Icon(icon, color: isSelected ? Colors.blue : Colors.grey[600]),
+              isLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(icon,
+                      color: isSelected ? Colors.blue : Colors.grey[600]),
               const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
@@ -195,139 +193,137 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
     );
   }
 
-  Future<void> setDefaultBusiness({required Business business}) async {
+  void _handleBusinessSelection(Business business) async {
+    setState(() {
+      _selectedBusiness = business;
+      _loadingItemId = business.serverId?.toString();
+    });
+
+    try {
+      await _setDefaultBusiness(business);
+      if (ProxyService.local.businesses().length == 1) {
+        _navigateToBranchSelection();
+      }
+    } finally {
+      setState(() {
+        _loadingItemId = null;
+      });
+    }
+  }
+
+  void _handleBranchSelection(Branch branch) async {
+    setState(() {
+      _loadingItemId = branch.serverId?.toString();
+    });
+
+    try {
+      await _setDefaultBranch(branch);
+      _completeAuthenticationFlow();
+    } finally {
+      setState(() {
+        _loadingItemId = null;
+      });
+    }
+  }
+
+  Future<void> _setDefaultBusiness(Business business) async {
     ref.read(businessSelectionProvider.notifier).setLoading(true);
 
     try {
-      final businesses = ProxyService.local.businesses();
-      for (Business business in businesses) {
-        ProxyService.local.localRealm!.write(() {
-          business.active = false;
-          business.isDefault = false;
-        });
-      }
-
-      ProxyService.local.localRealm!.write(() {
-        business.isDefault = true;
-        business.active = true;
-      });
-      if (ProxyService.local.localRealm == null ||
-          ProxyService.realm.realm == null) {
-        await ProxyService.local.login(
-            userPhone: ProxyService.box.getUserPhone()!,
-            skipDefaultAppSetup: false,
-            flipperHttpClient: ProxyService.http);
-      }
-
-      ProxyService.box.writeInt(key: 'businessId', value: business.serverId!);
-      ProxyService.box
-          .writeString(key: 'bhfId', value: ProxyService.box.bhfId() ?? "00");
-      ProxyService.box.writeInt(key: 'tin', value: business.tinNumber ?? 0);
-
-      ProxyService.box
-          .writeString(key: 'encryptionKey', value: business.encryptionKey!);
-
-      ref.refresh(businessesProvider);
-      ref.refresh(branchesProvider);
+      _updateAllBusinessesInactive();
+      await _updateBusinessActive(business);
+      _updateBusinessPreferences(business);
+      _refreshBusinessAndBranchProviders();
     } catch (e) {
       log(e.toString());
     } finally {
-      ref.refresh(businessesProvider);
-      ref.refresh(branchesProvider);
       ref.read(businessSelectionProvider.notifier).setLoading(false);
     }
   }
 
-  Future<void> chooseBusiness({required Business business}) async {
+  Future<void> _setDefaultBranch(Branch branch) async {
+    ref.read(branchSelectionProvider.notifier).setLoading(true);
+
     try {
-      ref.read(businessSelectionProvider.notifier).setLoading(true);
-
-      await setDefaultBusiness(business: business);
-
-      // Check if there is only one business
-      List<Business> businesses = ProxyService.local.businesses();
-      if (businesses.length == 1) {
-        // Automatically proceed to branch selection
-        await _navigateToBranchSelection();
-      } else {
-        // Wait for a while before navigating, if needed
-        await Future.delayed(Duration(seconds: 3));
-      }
-    } catch (e, s) {
-      log(e.toString());
-      log(s.toString());
-    } finally {
-      ref.read(businessSelectionProvider.notifier).setLoading(false);
-    }
-  }
-
-  Future<void> _navigateToBranchSelection() async {
-    // Ensure branches are loaded
-    final branches = ref.watch(branchesProvider);
-
-    // Check if there are branches available
-    if (branches.isNotEmpty) {
+      await _updateAllBranchesInactive();
+      await _updateBranchActive(branch);
+      await _syncBranchWithDatabase(branch);
       setState(() {
-        _isSelectingBranch = true; // Change state to select branch
+        _isLoading = true;
       });
-    } else {
-      // Handle case where no branches are available, if needed
-      // For example, show a message or handle error
-    }
-  }
-
-  Future<void> setDefaultBranch({required Branch branch}) async {
-    talker.warning("The choosen branch:${branch.serverId}");
-    await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
-    try {
-      final branches = ProxyService.local
-          .branches(businessId: ProxyService.box.getBusinessId());
-
-      for (Branch branch in branches) {
-        ProxyService.local.localRealm!.write(() {
-          branch.active = false;
-          branch.isDefault = false;
-        });
-      }
-
-      ProxyService.local.localRealm!.write(() {
-        branch.isDefault = true;
-        branch.active = true;
-      });
-      ref.refresh(businessesProvider);
-      ref.refresh(branchesProvider);
-
-      /// re-sync with database to get the data required for the choosen branch/business
-      await ProxyService.realm.configure(
-        useInMemoryDb: false,
-        useFallBack: false,
-        branchId: ProxyService.box.getBranchId(),
-        userId: ProxyService.box.getUserId(),
-        businessId: ProxyService.box.getBusinessId(),
-        encryptionKey: ProxyService.box.encryptionKey(),
-        localRealm: ProxyService.local.localRealm,
-      );
-
-      ref.refresh(businessesProvider);
-      ref.refresh(branchesProvider);
+      _refreshBusinessAndBranchProviders();
     } catch (e, s) {
       log(e.toString());
       log(s.toString());
     } finally {
-      ref.refresh(businessesProvider);
-      ref.refresh(branchesProvider);
       ref.read(branchSelectionProvider.notifier).setLoading(false);
     }
   }
 
-  Future<void> chooseBranch({required Branch branch}) async {
-    ref.read(branchSelectionProvider.notifier).setLoading(true);
+  void _updateAllBusinessesInactive() {
+    final businesses = ProxyService.local.businesses();
+    for (final business in businesses) {
+      ProxyService.local.localRealm!.write(() {
+        business.active = false;
+        business.isDefault = false;
+      });
+    }
+  }
 
-    await setDefaultBranch(branch: branch);
+  Future<void> _updateBusinessActive(Business business) async {
+    ProxyService.local.localRealm!.write(() {
+      business.isDefault = true;
+      business.active = true;
+    });
+    if (ProxyService.local.localRealm == null ||
+        ProxyService.realm.realm == null) {
+      await ProxyService.local.login(
+        userPhone: ProxyService.box.getUserPhone()!,
+        skipDefaultAppSetup: false,
+        flipperHttpClient: ProxyService.http,
+      );
+    }
+  }
 
-    /// This help when we restart the app do not come to auth flow for second time
-    ProxyService.box.writeBool(key: "authComplete", value: true);
+  void _updateBusinessPreferences(Business business) {
+    ProxyService.box
+      ..writeInt(key: 'businessId', value: business.serverId!)
+      ..writeString(key: 'bhfId', value: ProxyService.box.bhfId() ?? "00")
+      ..writeInt(key: 'tin', value: business.tinNumber ?? 0)
+      ..writeString(key: 'encryptionKey', value: business.encryptionKey!);
+  }
 
+  Future<void> _updateAllBranchesInactive() async {
+    final branches = ProxyService.local
+        .branches(businessId: ProxyService.box.getBusinessId());
+    for (final branch in branches) {
+      ProxyService.local.localRealm!.write(() {
+        branch.active = false;
+        branch.isDefault = false;
+      });
+    }
+  }
+
+  Future<void> _updateBranchActive(Branch branch) async {
+    ProxyService.local.localRealm!.write(() {
+      branch.isDefault = true;
+      branch.active = true;
+    });
+  }
+
+  Future<void> _syncBranchWithDatabase(Branch branch) async {
+    talker.warning("The chosen branch: ${branch.serverId}");
+    await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+  }
+
+  void _navigateToBranchSelection() {
+    setState(() {
+      _isSelectingBranch = true;
+    });
+    ref.refresh(branchesProvider);
+  }
+
+  void _completeAuthenticationFlow() {
     if (ProxyService.local.isDrawerOpen(
         cashierId: ProxyService.box.getUserId()!,
         branchId: ProxyService.box.getBranchId()!)) {
@@ -349,5 +345,10 @@ class _AppleInspiredLoginFlowState extends ConsumerState<LoginChoices> {
       _routerService
           .navigateTo(DrawerScreenRoute(open: "open", drawer: drawer));
     }
+  }
+
+  void _refreshBusinessAndBranchProviders() {
+    ref.refresh(businessesProvider);
+    ref.refresh(branchesProvider);
   }
 }

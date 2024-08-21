@@ -543,6 +543,7 @@ class App {}
 /// https://pub.dev/packages/mrx_charts
 /// 
 /// TODO: something we can steal
+/// https://ente.io/ (flipper home page)
 /// https://gitlab.com/wolfenrain/okane
 /// https://pub.dev/packages/flutter_nearby_connections
 /// https://github.com/AOSSIE-Org/OpenPeerChat-flutter/blob/main/pubspec.yaml
