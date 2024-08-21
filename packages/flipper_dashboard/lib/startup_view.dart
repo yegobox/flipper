@@ -3,7 +3,6 @@ library flipper_dashboard;
 import 'package:flipper_dashboard/CustomProviderContainer.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +24,6 @@ class _StartUpViewState extends State<StartUpView> {
       viewModelBuilder: () => StartupViewModel(),
       onViewModelReady: (viewModel) {
         final container = ProviderContainer();
-
         // Invalidate all providers before starting the app
         invalidateAllProviders(container, allProviders);
         SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
@@ -39,38 +37,50 @@ class _StartUpViewState extends State<StartUpView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Logo/Title with a subtle scaling animation
                 AnimatedContainer(
-                  duration: Duration(seconds: 1),
+                  duration: const Duration(seconds: 2),
                   curve: Curves.easeInOut,
+                  transform: Matrix4.identity()..scale(1.1),
                   child: Text(
                     'Flipper',
                     style: GoogleFonts.poppins(
-                      color: Colors.black,
-                      fontSize: 40,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
+                      color: Colors.black87,
+                      fontSize: 42,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2.5,
                     ),
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Text(
-                      'A revolutionary business software ...',
-                      style: TextStyle(
-                        fontSize: 16,
+                const SizedBox(height: 20),
+                // Loading description with a fade-in effect
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(seconds: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'A revolutionary business software...',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
-                    ),
-                    horizontalSpaceSmall,
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        color: Colors.black,
-                        strokeWidth: 6,
+                      const SizedBox(width: 10),
+                      // Customized CircularProgressIndicator with animation
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.black.withOpacity(0.7)),
+                          strokeWidth: 3,
+                          backgroundColor: Colors.grey.shade300,
+                        ),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
