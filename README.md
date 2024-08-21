@@ -75,6 +75,6 @@ connect with the community.
 
 If you believe you have found a security vulnerability, please responsibly
 disclose it by emailing yegobox@gmail.com or [using this
-link](https://github.com/Flipper-io/Flipper/security/advisories/new) instead of
+link](https://github.com/yegobox/flipper/security/advisories/new) instead of
 opening a public issue. We will investigate all legitimate reports. To know
 more, please see our [security policy](SECURITY.md).
