@@ -16,7 +16,7 @@ F-Droid / Web / Linux / macOS / Windows) for both the products (and more planned
 future ones!), and the server that powers them.
 
 
-Learn more at [ente.io](https://ente.io).
+Learn more at [flipper.rw](https://flipper.rw).
 
 
 
