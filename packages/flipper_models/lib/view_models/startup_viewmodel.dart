@@ -1,5 +1,3 @@
-library flipper_models;
-
 import 'dart:developer';
 import 'dart:io';
 
@@ -24,98 +22,103 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     required bool refreshCredentials,
   }) async {
     final talker = TalkerFlutter.init();
-    // await ProxyService.realm.logOut();
-    try {
-      /// there is cases where when app re-start and then for some reason the realm is closed
-      /// this ensure that we first check if realm is closed and re-open a realm instance to avoid issues
-      /// or the app start and and module service init the db with in-memory because we don't want
-      /// then we are are forced here when app start to re-open the realm with useInMemoryDb false
-      /// for performance this is supposed to take a time to configure the db and get data in sync
-      /// but we might find solution soon to pass a flag to default to a fallback which use the non-direct sync
-      /// which sync data later...i.e not wait for synchronizations
 
-      /// an event should be triggered from mobile not desktop as desktop is anonmous and login() func might have been called.
+    try {
+      // Handle authentication refreshing.
       if (refreshCredentials) {
-        log("refreshCredentials");
         await appService.isLoggedIn();
         await appService.appInit();
       }
+      // Ensure realm is initialized before proceeding.
+      await _ensureRealmInitialized();
 
-      /// this code should bellow refresh credential as if is mobile then we need to first login
-      /// before initiating the database access.
-      if (ProxyService.box.encryptionKey().isNotEmpty &&
-          ProxyService.realm.realm == null) {
-        talker.info("In startupFile we are re-init the realm db:) ");
-        await ProxyService.realm.configure(
-          useInMemoryDb: false,
-          useFallBack: false,
-          localRealm: ProxyService.local.localRealm,
-          branchId: ProxyService.box.getBranchId()!,
-          userId: ProxyService.box.getUserId()!,
-          businessId: ProxyService.box.getBusinessId()!,
-          encryptionKey: ProxyService.box.encryptionKey(),
-        );
-      }
-
-      int userId = ProxyService.box.getUserId()!;
-      //if we reached this far then it means we have a default business/branch make sence to check drawer
+      // Handle navigation based on user state and app settings.
       if (ProxyService.local.isDrawerOpen(
-          cashierId: userId, branchId: ProxyService.box.getBranchId()!)) {
-        /// if there is missing initial data, this is the right time to add them
-        /// this is the case when a user login to a different device and the data does not exist there
-        /// or has not been synced! though we don't expect this scenario to happen mostly because
-        /// we are now using realm, but for the essence that we migrated from non sync db
-        /// then this method is required!
-        ProxyService.forceDateEntry.dataBootstrapper();
-        if (ProxyService.box.getDefaultApp() == 2) {
-          _routerService.navigateTo(SocialHomeViewRoute());
-        } else {
-          _routerService.navigateTo(FlipperAppRoute());
-        }
-        return;
+          cashierId: ProxyService.box.getUserId()!,
+          branchId: ProxyService.box.getBranchId()!)) {
+        // Drawer should be open - handle data bootstrapping and navigation.
+        _handleDrawerOpen();
       } else {
-        /// if there is missing initial data, this is the right time to add them
-        /// this is the case when a user login to a different device and the data does not exist there
-        /// or has not been synced! though we don't expect this scenario to happen mostly because
-        /// we are now using realm, but for the essence that we migrated from non sync db
-        /// then this method is required!
-        ProxyService.forceDateEntry.dataBootstrapper();
-        if (ProxyService.box.getDefaultApp() == 2) {
-          _routerService.navigateTo(SocialHomeViewRoute());
-        } else {
-          openDrawer();
-        }
+        // Drawer should be closed - handle data bootstrapping and navigation.
+        _handleDrawerClosed();
       }
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
-      if (e is LoginChoicesException) {
-        _routerService.navigateTo(LoginChoicesRoute());
-      } else if (e is SessionException || e is PinError) {
-        log(stackTrace.toString(), name: 'runStartupLogic');
-        await logOut();
-        _routerService.clearStackAndShow(LoginViewRoute());
-      } else if (e is BusinessNotFoundException) {
-        if (Platform.isWindows) {
-          /// we are supposed to come to desktop when business is registered
-          /// therefore why we logout first if we find no related business
-          /// then go to login again to force the user to login with the right
-          /// credential, this is likely to not happen in real environment.
-
-          ProxyService.notie.sendData(
-              'Could not login business with user ${ProxyService.box.getUserId()} not found!');
-          await logOut();
-          _routerService.clearStackAndShow(LoginViewRoute());
-        } else {
-          _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
-        }
-      } else {
-        // log(e.toString(), name: 'runStartupLogic');
-        // log(stackTrace.toString(), name: 'runStartupLogic');
-        await logOut();
-        //remove startup view from the stack
-        _routerService.clearStackAndShow(LoginViewRoute());
-      }
+      await _handleStartupError(e, stackTrace);
     }
+  }
+
+  /// Ensures that the Realm database is initialized and ready to use.
+  Future<void> _ensureRealmInitialized() async {
+    if (ProxyService.box.encryptionKey().isNotEmpty &&
+        ProxyService.realm.realm == null) {
+      await ProxyService.realm.configure(
+        useInMemoryDb: false,
+        useFallBack: false,
+        localRealm: ProxyService.local.localRealm,
+        branchId: ProxyService.box.getBranchId()!,
+        userId: ProxyService.box.getUserId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+        encryptionKey: ProxyService.box.encryptionKey(),
+      );
+    }
+  }
+
+  /// Handles the scenario where the drawer should be open.
+  void _handleDrawerOpen() {
+    // Bootstrap initial data if required.
+    ProxyService.forceDateEntry.dataBootstrapper();
+
+    // Navigate to the appropriate home view based on app settings.
+    if (ProxyService.box.getDefaultApp() == 2) {
+      _routerService.navigateTo(SocialHomeViewRoute());
+    } else {
+      _routerService.navigateTo(FlipperAppRoute());
+    }
+  }
+
+  /// Handles the scenario where the drawer should be closed.
+  void _handleDrawerClosed() {
+    // Bootstrap initial data if required.
+    ProxyService.forceDateEntry.dataBootstrapper();
+
+    // Navigate to the appropriate home view based on app settings.
+    if (ProxyService.box.getDefaultApp() == 2) {
+      _routerService.navigateTo(SocialHomeViewRoute());
+    } else {
+      openDrawer();
+    }
+  }
+
+  /// Handles different error scenarios during startup.
+  Future<void> _handleStartupError(Object e, StackTrace stackTrace) async {
+    if (e is LoginChoicesException) {
+      _routerService.navigateTo(LoginChoicesRoute());
+    } else if (e is SessionException || e is PinError) {
+      log(stackTrace.toString(), name: 'runStartupLogic');
+      await logOut();
+      _routerService.clearStackAndShow(LoginViewRoute());
+    } else if (e is BusinessNotFoundException) {
+      if (Platform.isWindows) {
+        // Handle BusinessNotFoundException for desktop.
+        _handleBusinessNotFoundForDesktop();
+      } else {
+        // Handle BusinessNotFoundException for mobile.
+        _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
+      }
+    } else {
+      // Handle other unexpected errors.
+      await logOut();
+      _routerService.clearStackAndShow(LoginViewRoute());
+    }
+  }
+
+  /// Handles BusinessNotFoundException specifically for the desktop platform.
+  void _handleBusinessNotFoundForDesktop() {
+    ProxyService.notie.sendData(
+        'Could not login business with user ${ProxyService.box.getUserId()} not found!');
+    logOut();
+    _routerService.clearStackAndShow(LoginViewRoute());
   }
 }
