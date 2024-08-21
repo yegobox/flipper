@@ -74,7 +74,7 @@ connect with the community.
 ## Security
 
 If you believe you have found a security vulnerability, please responsibly
-disclose it by emailing security@ente.io or [using this
+disclose it by emailing yegobox@gmail.com or [using this
 link](https://github.com/ente-io/ente/security/advisories/new) instead of
 opening a public issue. We will investigate all legitimate reports. To know
 more, please see our [security policy](SECURITY.md).
