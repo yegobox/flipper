@@ -41,11 +41,11 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     /// shoping to main warehouse
 
     try {
-      final isOrdering = ref.watch(isOrderingProvider);
+      final iOrdering = ProxyService.box.isOrdering()!;
       final transactionType =
-          isOrdering ? TransactionType.cashOut : TransactionType.sale;
+          iOrdering ? TransactionType.cashOut : TransactionType.sale;
       final transaction = ref.watch(pendingTransactionProvider(
-          (mode: transactionType, isExpense: isOrdering)));
+          (mode: transactionType, isExpense: iOrdering)));
 
       final items = ProxyService.realm.transactionItems(
         branchId: ProxyService.box.getBranchId()!,

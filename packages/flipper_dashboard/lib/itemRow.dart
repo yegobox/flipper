@@ -180,16 +180,16 @@ class _RowItemState extends ConsumerState<RowItem> {
   Future<void> onTapItem(
       {required CoreViewModel model, required isOrdering}) async {
     try {
-      var pendingTransaction = null;
+      ITransaction? pendingTransaction = null;
       if (isOrdering) {
         /// update is ordering to true
-        ref.read(isOrderingProvider.notifier).startOrdering();
-        pendingTransaction = ref.watch(pendingTransactionProvider(
+        ProxyService.box.writeBool(key: 'isOrdering',value: true);
+        pendingTransaction = ref.watch(pendingTransactionProviderNonStream(
             (mode: TransactionType.cashOut, isExpense: true)));
       } else {
         /// update is ordering to true
-        ref.read(isOrderingProvider.notifier).stopOrdering();
-        pendingTransaction = ref.watch(pendingTransactionProvider(
+        ProxyService.box.writeBool(key: 'isOrdering',value: false);
+        pendingTransaction = ref.watch(pendingTransactionProviderNonStream(
             (mode: TransactionType.sale, isExpense: false)));
       }
 
@@ -214,17 +214,14 @@ class _RowItemState extends ConsumerState<RowItem> {
             amountTotal: variant.retailPrice,
             customItem: false,
             currentStock: stock!.currentStock,
-            pendingTransaction: pendingTransaction.value!,
+            pendingTransaction: pendingTransaction!,
             partOfComposite: true,
             compositePrice: composite.actualPrice,
           );
         }
 
         await Future.delayed(Duration(microseconds: 1000));
-        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
-
-        await Future.delayed(Duration(microseconds: 200));
-        ref.refresh(transactionItemsProvider(pendingTransaction.value?.id));
+        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       } else {
         double stockQty = 0;
         if (!widget.isOrdering) {
@@ -239,14 +236,11 @@ class _RowItemState extends ConsumerState<RowItem> {
           amountTotal: widget.variant?.retailPrice ?? 0,
           customItem: false,
           currentStock: stockQty,
-          pendingTransaction: pendingTransaction.value!,
+          pendingTransaction: pendingTransaction!,
           partOfComposite: false,
         );
 
         await Future.delayed(Duration(microseconds: 1000));
-        ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
-
-        await Future.delayed(Duration(microseconds: 200));
         ref.refresh(transactionItemsProvider((isExpense: isOrdering)));
       }
     } catch (e, s) {

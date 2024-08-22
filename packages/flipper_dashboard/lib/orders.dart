@@ -1,5 +1,6 @@
 import 'package:flipper_models/realm/schemas.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/ProductList.dart';
@@ -20,10 +21,10 @@ class Orders extends HookConsumerWidget {
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
         if (didPop) return;
-        ref.read(isOrderingProvider.notifier).toggleOrdering();
+        ProxyService.box.writeBool(key: 'isOrdering', value: false);
         onWillPop(
           context: context,
-          navigationPurpose: NavigationPurpose.back,
+          navigationPurpose: NavigationPurpose.home,
           message: 'Done shopping?',
         );
       },
@@ -146,7 +147,7 @@ class Orders extends HookConsumerWidget {
       onPressed: selectedSupplier == null
           ? null
           : () {
-              ref.read(isOrderingProvider.notifier).startOrdering();
+              ProxyService.box.writeBool(key: 'isOrdering', value: true);
               Navigator.push(
                 context,
                 MaterialPageRoute(

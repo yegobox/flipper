@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -180,7 +181,7 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   void _handleReceiveOrderToggle() {
     final deviceType = _getDeviceType(context);
-
+    ProxyService.box.writeBool(key: 'isOrdering', value: true);
     if (deviceType == 'Phone' || deviceType == 'Phablet') {
       _routerService.navigateTo(OrdersRoute());
     } else {

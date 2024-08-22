@@ -46,4 +46,5 @@ abstract class LocalStorage {
   bool? isPosDefault();
   bool? isOrdersDefault();
   int? itemPerPage();
+  bool? isOrdering();
 }

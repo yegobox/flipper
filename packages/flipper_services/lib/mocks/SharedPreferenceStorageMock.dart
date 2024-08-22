@@ -202,4 +202,9 @@ class SharedPreferenceStorageMock implements LocalStorage {
   int? itemPerPage() {
     return 20; // Sample items per page
   }
+
+  @override
+  bool? isOrdering() {
+    return null;
+  }
 }

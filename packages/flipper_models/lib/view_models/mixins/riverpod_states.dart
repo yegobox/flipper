@@ -151,6 +151,23 @@ class PaginatedVariantsNotifier
   }
 }
 
+final pendingTransactionProviderNonStream =
+    Provider.autoDispose.family<ITransaction, ({String mode, bool isExpense})>(
+  (ref, params) {
+    final (:mode, :isExpense) = params;
+
+    // Access ProxyService to get the branch ID
+    final branchId = ProxyService.box.getBranchId()!;
+
+    // Return the result of manageTransaction directly
+    return ProxyService.realm.manageTransaction(
+      transactionType: mode,
+      isExpense: isExpense,
+      branchId: branchId,
+    );
+  },
+);
+
 final pendingTransactionProvider = StreamProvider.autoDispose
     .family<ITransaction, ({String mode, bool isExpense})>(
   (ref, params) {
@@ -194,14 +211,14 @@ final transactionItemsProvider = StateNotifierProvider.autoDispose.family<
     ({bool isExpense})>(
   (ref, params) {
     final (:isExpense) = params;
-    final transaction = ref.watch(pendingTransactionProvider((isExpense
+    final transaction = ref.watch(pendingTransactionProviderNonStream((isExpense
         ? (mode: TransactionType.cashOut, isExpense: true)
         : (mode: TransactionType.sale, isExpense: false))));
 
     return TransactionItemsNotifier(
       getTransactionId: () {
         try {
-          return transaction.value?.id;
+          return transaction.id;
         } catch (e) {
           talker.error("Error accessing transaction ID: $e");
           return null;
@@ -903,26 +920,6 @@ class IsProcessingNotifier extends StateNotifier<bool> {
   }
 
   void toggleProcessing() {
-    state = !state;
-  }
-}
-
-final isOrderingProvider = StateNotifierProvider<IsOrderingNotifier, bool>(
-  (ref) => IsOrderingNotifier(),
-);
-
-class IsOrderingNotifier extends StateNotifier<bool> {
-  IsOrderingNotifier() : super(false);
-
-  void startOrdering() {
-    state = true;
-  }
-
-  void stopOrdering() {
-    state = false;
-  }
-
-  void toggleOrdering() {
     state = !state;
   }
 }

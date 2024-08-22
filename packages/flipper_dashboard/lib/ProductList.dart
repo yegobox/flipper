@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -31,15 +32,16 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(productFromSupplier);
-    final isOrdering = ref.watch(isOrderingProvider);
+    final isOrdering = ProxyService.box.isOrdering()!;
+    talker.warning("isOrdering: ${isOrdering}");
     final orders = ref
-            .watch(transactionItemsProvider((isExpense: isOrdering)))
-            .value
-            ?.length ??
-        0;
+        .watch(transactionItemsProvider((isExpense: isOrdering)))
+        .value!
+        .length;
 
     return ViewModelBuilder.nonReactive(
         viewModelBuilder: () => ProductViewModel(),
+        onViewModelReady: (model) {},
         builder: (context, model, child) {
           return Scaffold(
             body: items.when(
