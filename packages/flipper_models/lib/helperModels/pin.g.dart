@@ -7,12 +7,12 @@ part of 'pin.dart';
 // **************************************************************************
 
 IPin _$IPinFromJson(Map<String, dynamic> json) => IPin(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       userId: json['userId'] as String,
       phoneNumber: json['phoneNumber'] as String,
-      pin: (json['pin'] as num).toInt(),
-      branchId: (json['branchId'] as num).toInt(),
-      businessId: (json['businessId'] as num).toInt(),
+      pin: json['pin'] as int,
+      branchId: json['branchId'] as int,
+      businessId: json['businessId'] as int,
     );
 
 Map<String, dynamic> _$IPinToJson(IPin instance) => <String, dynamic>{

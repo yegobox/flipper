@@ -7,21 +7,21 @@ part of 'receipt.dart';
 // **************************************************************************
 
 Receipt _$ReceiptFromJson(Map<String, dynamic> json) => Receipt(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       resultCd: json['resultCd'] as String,
-      branchId: (json['branchId'] as num).toInt(),
+      branchId: json['branchId'] as int,
       resultMsg: json['resultMsg'] as String,
       resultDt: json['resultDt'] as String,
-      rcptNo: (json['rcptNo'] as num).toInt(),
+      rcptNo: json['rcptNo'] as int,
       intrlData: json['intrlData'] as String,
       rcptSign: json['rcptSign'] as String,
-      totRcptNo: (json['totRcptNo'] as num).toInt(),
+      totRcptNo: json['totRcptNo'] as int,
       vsdcRcptPbctDate: json['vsdcRcptPbctDate'] as String,
       sdcId: json['sdcId'] as String,
       mrcNo: json['mrcNo'] as String,
       qrCode: json['qrCode'] as String,
       receiptType: json['receiptType'] as String,
-      transactionId: (json['transactionId'] as num).toInt(),
+      transactionId: json['transactionId'] as int,
       lastTouched: json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String),

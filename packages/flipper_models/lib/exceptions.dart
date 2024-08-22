@@ -85,3 +85,16 @@ class UnknownError implements Exception {
 
   UnknownError({required this.term});
 }
+
+class SubscriptionError implements Exception {
+  String term;
+
+  String errMsg() => 'Subscription Error: $term';
+
+  SubscriptionError({required this.term});
+}
+
+class CustomerNotFoundException implements Exception {
+  final String message;
+  CustomerNotFoundException(this.message);
+}

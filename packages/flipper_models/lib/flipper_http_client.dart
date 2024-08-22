@@ -26,7 +26,12 @@ class FlipperHttpClient implements HttpClientInterface {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    request.headers.addAll(await _getHeaders());
+    // request.headers.addAll(await _getHeaders());
+    Map<String, String> defaultHeaders = await _getHeaders();
+    request.headers.addAll({
+      ...defaultHeaders,
+      ...request.headers,
+    });
 
     const retries = 3;
     var retryClient = RetryClient(_inner, retries: retries);
@@ -77,7 +82,12 @@ class FlipperHttpClient implements HttpClientInterface {
       [Object? body, Encoding? encoding]) async {
     var request = http.Request(method, url);
 
-    if (headers != null) request.headers.addAll(headers);
+    Map<String, String> defaultHeaders = await _getHeaders();
+    request.headers.addAll({
+      ...defaultHeaders,
+      ...?headers,
+    });
+
     if (encoding != null) request.encoding = encoding;
     if (body != null) {
       if (body is String) {

@@ -208,3 +208,12 @@ extension PercentageFormatter on double {
     return formatter.format(this / 100); // Divide by 100 before formatting
   }
 }
+
+extension StringExtension on String {
+  String toFlipperEmail() {
+    if (this.contains('@')) {
+      return this;
+    }
+    return this.replaceFirst('+', '') + '@flipper.rw';
+  }
+}

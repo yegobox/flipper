@@ -7,9 +7,9 @@ part of 'permission.dart';
 // **************************************************************************
 
 IPermission _$IPermissionFromJson(Map<String, dynamic> json) => IPermission(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       name: json['name'] as String,
-      userId: (json['userId'] as num).toInt(),
+      userId: json['userId'] as int,
     );
 
 Map<String, dynamic> _$IPermissionToJson(IPermission instance) =>

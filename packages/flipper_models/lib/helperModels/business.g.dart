@@ -7,7 +7,7 @@ part of 'business.dart';
 // **************************************************************************
 
 IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       action: json['action'] as String,
       encryptionKey: json['encryptionKey'] as String,
       name: json['name'] as String?,
@@ -15,7 +15,7 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       categoryId: json['categoryId'] as String? ?? "1",
       latitude: json['latitude'] as String?,
       longitude: json['longitude'] as String?,
-      userId: (json['userId'] as num?)?.toInt(),
+      userId: json['userId'] as int?,
       timeZone: json['timeZone'] as String?,
       channels: (json['channels'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -27,7 +27,7 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       type: json['type'] as String?,
       active: json['active'] as bool? ?? false,
       metadata: json['metadata'] as String?,
-      lastSeen: (json['lastSeen'] as num?)?.toInt(),
+      lastSeen: json['lastSeen'] as int?,
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       deviceToken: json['deviceToken'] as String?,
@@ -43,14 +43,14 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       lastDbBackup: json['lastDbBackup'] as String?,
       fullName: json['fullName'] as String?,
       role: json['role'] as String?,
-      tinNumber: (json['tinNumber'] as num?)?.toInt(),
+      tinNumber: json['tinNumber'] as int?,
       bhfId: json['bhfId'] as String?,
       dvcSrlNo: json['dvcSrlNo'] as String?,
       adrs: json['adrs'] as String?,
       taxEnabled: json['taxEnabled'] as bool?,
       taxServerUrl: json['taxServerUrl'] as String?,
       isDefault: json['isDefault'] as bool?,
-      businessTypeId: (json['businessTypeId'] as num?)?.toInt(),
+      businessTypeId: json['businessTypeId'] as int?,
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),

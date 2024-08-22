@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flipper_models/Subcriptions.dart';
+import 'package:flipper_models/helperModels/paystack_customer.dart';
 import 'package:flipper_models/helper_models.dart' as extensions;
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:path/path.dart' as p;
@@ -1703,30 +1704,6 @@ class RealmAPI<M extends IJsonSerializable>
   }
 
   @override
-  bool subscribe(
-      {required String feature,
-      required int businessId,
-      required int agentCode}) {
-    // TODO: implement subscribe
-    throw UnimplementedError();
-  }
-
-  @override
-  bool suggestRestore() {
-    // TODO: implement suggestRestore
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> syncProduct(
-      {required Product product,
-      required Variant variant,
-      required Stock stock}) {
-    // TODO: implement syncProduct
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<Tenant>> tenants({int? businessId}) async {
     if (businessId != null) {
       return realm!.query<Tenant>(r'businessId == $0', [businessId]).toList();
@@ -3410,5 +3387,169 @@ class RealmAPI<M extends IJsonSerializable>
       RequestStatus.pending,
       RequestStatus.partiallyApproved
     ]).toList();
+  }
+
+  Future<PayStackCustomer> _getCustomer(
+      String customerCodeOrEmail, HttpClientInterface flipperHttpClient) async {
+    try {
+      final response = await flipperHttpClient.get(
+          Uri.parse('https://api.paystack.co/customer/$customerCodeOrEmail'),
+          headers: {'Authorization': 'Bearer ${AppSecrets.payStackApiKey}'});
+
+      if (response.statusCode == 200) {
+        final customerData = json.decode(response.body);
+        return PayStackCustomer.fromJson(customerData);
+      } else {
+        final errorData = json.decode(response.body);
+        throw CustomerNotFoundException(errorData['message']);
+      }
+    } catch (e) {
+      if (e is CustomerNotFoundException) {
+        rethrow;
+      }
+      throw Exception('Error fetching customer: $e');
+    }
+  }
+
+  Future<PayStackCustomer> _createCustomer(
+      {required String email,
+      required String firstName,
+      required String lastName,
+      required String phone,
+      required HttpClientInterface flipperHttpClient}) async {
+    final url = Uri.parse('https://api.paystack.co/customer');
+    final headers = {
+      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
+      'Content-Type': 'application/json',
+    };
+    final body = json.encode({
+      'email': email,
+      'first_name': firstName,
+      'last_name': lastName,
+      'phone': phone,
+    });
+
+    try {
+      final response =
+          await flipperHttpClient.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final customerData = json.decode(response.body);
+        return PayStackCustomer.fromJson(customerData);
+      } else {
+        throw Exception('Failed to create customer: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error creating customer: $e');
+    }
+  }
+
+  Future<String> _sendPaymentRequest(
+      {required String customerCode,
+      required int amount,
+      required String dueDate,
+      required HttpClientInterface flipperHttpClient}) async {
+    final url = Uri.parse('https://api.paystack.co/paymentrequest');
+    final headers = {
+      'Authorization': 'Bearer ${AppSecrets.payStackApiKey}',
+      'Content-Type': 'application/json',
+    };
+    final body = json.encode({
+      "description": "Flipper Subscription",
+      "line_items": [
+        {"name": "Flipper Subscription", "amount": amount}
+      ],
+      "customer": customerCode,
+      "due_date": dueDate
+    });
+
+    try {
+      final response =
+          await flipperHttpClient.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final requestCode = responseData['data']['request_code'] as String;
+        return requestCode;
+      } else {
+        throw Exception(
+            'Failed to send payment request: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error sending payment request: $e');
+    }
+  }
+
+  String getDueDate() {
+    final now = DateTime.now();
+    final dueDate = now.add(Duration(days: 30));
+    return dueDate.toIso8601String().split('T')[0];
+  }
+
+  @override
+  Future<String> subscribe({
+    required int businessId,
+    required int agentCode,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    String? renderableLink;
+
+    // Get the user identifier (assumed to be the phone number)
+    String userIdentifier = "250783054870";
+    // String userIdentifier = ProxyService.box.getUserPhone()!;
+
+    try {
+      // Attempt to retrieve an existing PayStack customer
+      PayStackCustomer customer =
+          await _getCustomer(userIdentifier, flipperHttpClient);
+      // Customer found, proceed to initiate a payment request
+      renderableLink =
+          await _initiatePayment(flipperHttpClient, customer.data.customerCode);
+    } on CustomerNotFoundException {
+      // Customer not found, create a new customer
+      Business business = ProxyService.local.getBusiness();
+      PayStackCustomer newCustomer = await _createCustomer(
+        flipperHttpClient: flipperHttpClient,
+        email: userIdentifier.toFlipperEmail(),
+        firstName: business.name!,
+        lastName: business.name!,
+        phone: userIdentifier.replaceAll("+", ""),
+      );
+      // New customer created, initiate a payment request
+      renderableLink = await _initiatePayment(
+          flipperHttpClient, newCustomer.data.customerCode);
+    } catch (e) {
+      print('Error: $e');
+      // Handle any other errors
+    }
+
+    return renderableLink!;
+  }
+
+  Future<String> _initiatePayment(
+      HttpClientInterface flipperHttpClient, String customerCode) async {
+    int amount = 100000; // Amount in kobo
+    String dueDate = getDueDate();
+    try {
+      String paymentRequestResult = await _sendPaymentRequest(
+        flipperHttpClient: flipperHttpClient,
+        customerCode: customerCode,
+        amount: amount,
+        dueDate: dueDate,
+      );
+      talker.warning("Renderable $paymentRequestResult");
+      return paymentRequestResult;
+    } catch (e) {
+      print('Payment Error: $e');
+      throw e; // Re-throw to be caught in the parent function
+    }
+  }
+
+  @override
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient}) async {
+    throw SubscriptionError(
+        term: "Please update the payment as payment has failed");
   }
 }

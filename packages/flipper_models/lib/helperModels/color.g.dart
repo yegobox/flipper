@@ -7,11 +7,11 @@ part of 'color.dart';
 // **************************************************************************
 
 PColor _$PColorFromJson(Map<String, dynamic> json) => PColor(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       name: json['name'] as String?,
       colors:
           (json['colors'] as List<dynamic>?)?.map((e) => e as String).toList(),
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as int?,
       active: json['active'] as bool,
       lastTouched: json['lastTouched'] == null
           ? null

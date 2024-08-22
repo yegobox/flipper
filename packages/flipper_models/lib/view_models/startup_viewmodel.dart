@@ -31,6 +31,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       }
       // Ensure realm is initialized before proceeding.
       await _ensureRealmInitialized();
+      await _hasActiveSubscription();
 
       // Handle navigation based on user state and app settings.
       if (ProxyService.local.isDrawerOpen(
@@ -107,6 +108,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         // Handle BusinessNotFoundException for mobile.
         _routerService.navigateTo(SignUpViewRoute(countryNm: "Rwanda"));
       }
+    } else if (e is SubscriptionError) {
+      _routerService.navigateTo(PaymentPlanRoute());
     } else {
       // Handle other unexpected errors.
       await logOut();
@@ -120,5 +123,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         'Could not login business with user ${ProxyService.box.getUserId()} not found!');
     logOut();
     _routerService.clearStackAndShow(LoginViewRoute());
+  }
+
+  Future<void> _hasActiveSubscription() async {
+    await ProxyService.realm.hasActiveSubscription(
+        businessId: ProxyService.box.getBusinessId()!,
+        flipperHttpClient: ProxyService.http);
   }
 }

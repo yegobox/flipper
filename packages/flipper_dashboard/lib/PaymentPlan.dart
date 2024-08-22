@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 class PaymentPlan extends StatefulWidget {
@@ -48,7 +49,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
           key: Key('Scrollable'),
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 300.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,11 +69,11 @@ class _PaymentPlanState extends State<PaymentPlan> {
             ),
             Expanded(
               child: GridView.count(
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: 300.0),
                 crossAxisCount: 2,
                 childAspectRatio: 1.1,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 5,
                 children: [
                   _buildPlanCard(
                       'Mobile',
@@ -102,7 +103,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 300.0),
               child: Column(
                 children: [
                   if (_selectedPlan == 'More than 3 Devices')
@@ -211,7 +212,7 @@ class _PaymentPlanState extends State<PaymentPlan> {
           ],
         ),
         child: Padding(
-          padding: EdgeInsets.all(12),
+          padding: EdgeInsets.all(4),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -316,8 +317,10 @@ class _PaymentPlanState extends State<PaymentPlan> {
 
   Widget _buildProceedButton() {
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
         // Proceed to payment action
+        await ProxyService.realm.subscribe(
+            businessId: 1, agentCode: 1, flipperHttpClient: ProxyService.http);
       },
       child: Text('Proceed to Payment',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),

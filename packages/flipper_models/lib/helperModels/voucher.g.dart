@@ -7,12 +7,12 @@ part of 'voucher.dart';
 // **************************************************************************
 
 Voucher _$VoucherFromJson(Map<String, dynamic> json) => Voucher(
-      id: (json['id'] as num?)?.toInt(),
-      value: (json['value'] as num?)?.toInt(),
-      interval: (json['interval'] as num?)?.toInt(),
+      id: json['id'] as int?,
+      value: json['value'] as int?,
+      interval: json['interval'] as int?,
       used: json['used'] as bool?,
-      createdAt: (json['createdAt'] as num?)?.toInt(),
-      usedAt: (json['usedAt'] as num?)?.toInt(),
+      createdAt: json['createdAt'] as int?,
+      usedAt: json['usedAt'] as int?,
       descriptor: json['descriptor'] as String?,
     );
 

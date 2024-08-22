@@ -7,11 +7,11 @@ part of 'subscription.dart';
 // **************************************************************************
 
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
-      id: (json['id'] as num?)?.toInt(),
-      interval: (json['interval'] as num).toInt(),
+      id: json['id'] as int?,
+      interval: json['interval'] as int,
       lastBillingDate: json['lastBillingDate'] as String,
       nextBillingDate: json['nextBillingDate'] as String,
-      userId: (json['userId'] as num).toInt(),
+      userId: json['userId'] as int,
       recurring: (json['recurring'] as num).toDouble(),
       descriptor: json['descriptor'] as String,
     );

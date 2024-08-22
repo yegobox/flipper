@@ -120,34 +120,52 @@ class CheckOutState extends ConsumerState<CheckOut>
       builder: (context, constraints) {
         return Stack(
           children: [
-            Card(
-              color: Colors.white,
-              surfaceTintColor: Colors.white,
-              child: Container(
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildIconRow(),
-                      const SizedBox(height: 60.0),
-                      if (ProxyService.box.isPosDefault()!)
-                        _buildPosDefaultContent(transaction, model),
-                      // Text('POS!'),
-                      if (ProxyService.box.isOrdersDefault()!)
-                        const IncomingOrdersWidget(),
-                    ],
+            Padding(
+              padding: const EdgeInsets.only(top: 160.0),
+              child: Card(
+                color: Colors.white,
+                surfaceTintColor: Colors.white,
+                child: Container(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  child: FadeTransition(
+                    opacity: _animation,
+                    child: (ProxyService.box.isPosDefault()!)
+                        ? _buildPosDefaultContent(transaction, model)
+                        : SizedBox.shrink(),
                   ),
                 ),
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.only(top: 160.0),
+              child: Card(
+                elevation: 0,
+                color: Colors.white,
+                surfaceTintColor: Colors.white,
+                child: FadeTransition(
+                  opacity: _animation,
+                  child: (ProxyService.box.isOrdersDefault()!)
+                      ? SingleChildScrollView(
+                          child: const IncomingOrdersWidget())
+                      : SizedBox.shrink(),
+                ),
+              ),
+            ),
             Positioned(
-              top: 92.0,
+              top: 5.0,
               left: 5.0,
               right: 8.0,
-              child: SearchInputWithDropdown(transaction: transaction),
+              child: Card(
+                color: Colors.white,
+                surfaceTintColor: Colors.white,
+                child: Column(
+                  children: [
+                    _buildIconRow(),
+                    SearchInputWithDropdown(transaction: transaction)
+                  ],
+                ),
+              ),
             ),
           ],
         );

@@ -230,7 +230,6 @@ abstract class RealmApiInterface {
       required bool partOfComposite});
 
   void emptySentMessageQueue();
-  bool suggestRestore();
 
   Future<int> userNameAvailable(
       {required String name, required HttpClientInterface flipperHttpClient});
@@ -240,16 +239,8 @@ abstract class RealmApiInterface {
 
   Future<Tenant?> getTenantBYPin({required int pin});
 
-  Future<void> syncProduct(
-      {required Product product,
-      required Variant variant,
-      required Stock stock});
   bool isSubscribed({required String feature, required int businessId});
-  bool subscribe({
-    required String feature,
-    required int businessId,
-    required int agentCode,
-  });
+
   Future<bool> checkIn({required String? checkInCode});
   Future<bool> enableAttendance(
       {required int businessId, required String email});
@@ -461,4 +452,13 @@ abstract class RealmApiInterface {
   Stream<List<StockRequest>> requestsStream({required int branchId});
   List<StockRequest> requests({required int branchId});
   Tenant getTenant({required int userId});
+
+  Future<String> subscribe(
+      {required int businessId,
+      required int agentCode,
+      required HttpClientInterface flipperHttpClient});
+
+  Future<bool> hasActiveSubscription(
+      {required int businessId,
+      required HttpClientInterface flipperHttpClient});
 }

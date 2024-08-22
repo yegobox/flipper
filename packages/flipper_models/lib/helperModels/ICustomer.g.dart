@@ -7,12 +7,12 @@ part of 'ICustomer.dart';
 // **************************************************************************
 
 ICustomer _$ICustomerFromJson(Map<String, dynamic> json) => ICustomer(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       custNm: json['custNm'] as String?,
       email: json['email'] as String?,
       telNo: json['telNo'] as String?,
       adrs: json['adrs'] as String?,
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as int?,
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
@@ -30,7 +30,7 @@ ICustomer _$ICustomerFromJson(Map<String, dynamic> json) => ICustomer(
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String),
-      tin: (json['tin'] as num?)?.toInt(),
+      tin: json['tin'] as int?,
       bhfId: json['bhfId'] as String?,
       useYn: json['useYn'] as String?,
       customerType: json['customerType'] as String?,

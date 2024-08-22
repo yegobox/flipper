@@ -14,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flipper_models/states/productListProvider.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 
 class ProductListScreen extends StatefulHookConsumerWidget {

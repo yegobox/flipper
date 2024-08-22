@@ -102,11 +102,11 @@ class SettingViewModel extends CoreViewModel {
       callback(isSubscribed);
     } else {
       /// subscribe to the feature
-      isSubscribed = ProxyService.realm.subscribe(
-        businessId: businessId,
-        feature: feature,
-        agentCode: agentCode,
-      );
+      // isSubscribed = ProxyService.realm.subscribe(
+      //   businessId: businessId,
+      //   feature: feature,
+      //   agentCode: agentCode,
+      // );
       callback(isSubscribed);
     }
   }

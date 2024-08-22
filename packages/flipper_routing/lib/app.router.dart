@@ -605,6 +605,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    PaymentPlanRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.PaymentPlan(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -820,6 +828,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           QuickSellingViewRoute.name,
           path: '/quick-selling-view',
+        ),
+        _i4.RouteConfig(
+          PaymentPlanRoute.name,
+          path: '/payment-plan',
         ),
       ];
 }
@@ -2291,6 +2303,18 @@ class QuickSellingViewArgs {
   }
 }
 
+/// generated route for
+/// [_i1.PaymentPlan]
+class PaymentPlanRoute extends _i4.PageRouteInfo<void> {
+  const PaymentPlanRoute()
+      : super(
+          PaymentPlanRoute.name,
+          path: '/payment-plan',
+        );
+
+  static const String name = 'PaymentPlan';
+}
+
 extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i5.Key? key,
@@ -2969,6 +2993,14 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToPaymentPlan(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const PaymentPlanRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
     _i5.Key? key,
     bool? invokeLogin,
@@ -3642,6 +3674,14 @@ extension RouterStateExtension on _i3.RouterService {
         customerPhoneNumberController: customerPhoneNumberController,
         paymentTypeController: paymentTypeController,
       ),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPaymentPlan(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const PaymentPlanRoute(),
       onFailure: onFailure,
     );
   }

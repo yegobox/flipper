@@ -8,10 +8,10 @@ part of 'ITransactionItem.dart';
 
 ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
     ITransactionItem(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as int?,
       name: json['name'] as String?,
-      transactionId: (json['transactionId'] as num?)?.toInt(),
-      variantId: (json['variantId'] as num?)?.toInt(),
+      transactionId: json['transactionId'] as int?,
+      variantId: json['variantId'] as int?,
       qty: (json['qty'] as num?)?.toDouble() ?? 0.0,
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       discount: (json['discount'] as num?)?.toDouble() ?? 0.0,
@@ -46,7 +46,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
       itemNm: json['itemNm'] as String?,
       prc: (json['prc'] as num?)?.toDouble() ?? 0.0,
       splyAmt: (json['splyAmt'] as num?)?.toDouble() ?? 0.0,
-      tin: (json['tin'] as num?)?.toInt(),
+      tin: json['tin'] as int?,
       bhfId: json['bhfId'] as String?,
       dftPrc: (json['dftPrc'] as num?)?.toDouble(),
       addInfo: json['addInfo'] as String?,
@@ -63,7 +63,7 @@ ITransactionItem _$ITransactionItemFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['deletedAt'] as String),
       action: json['action'] as String?,
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as int?,
     );
 
 Map<String, dynamic> _$ITransactionItemToJson(ITransactionItem instance) =>

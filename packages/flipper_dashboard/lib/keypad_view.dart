@@ -11,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:intl/intl.dart';
 
 class KeyPadView extends StatefulHookConsumerWidget {
   final CoreViewModel model;
@@ -50,13 +49,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final keypad = ref.watch(keypadProvider);
 
     return Container(
-      decoration: BoxDecoration(
-          // gradient: LinearGradient(
-          //   begin: Alignment.topCenter,
-          //   end: Alignment.bottomCenter,
-          //   colors: [Colors.blue[50]!, Colors.blue[100]!],
-          // ),
-          ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -97,7 +89,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     return Column(
       children: [
         Text(
-          "${NumberFormat('#,###').format(double.parse(keypad))} RWF",
+          double.parse(keypad).toRwf(),
           style: GoogleFonts.poppins(
             fontSize: 40,
             fontWeight: FontWeight.w600,
@@ -128,7 +120,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
   Widget _buildStandardDisplay(String keypad) {
     return Text(
-      "${NumberFormat('#,###').format(double.tryParse(keypad) ?? 0.0)} RWF",
+      (double.tryParse(keypad) ?? 0.0).toRwf(),
       style: GoogleFonts.poppins(
         fontSize: 40,
         fontWeight: FontWeight.w600,
@@ -147,7 +139,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     ];
 
     return Container(
-      padding: EdgeInsets.all(16),
       child: Column(
         children: keys.map((row) => _buildKeyPadRow(keys: row)).toList(),
       ),
@@ -168,27 +159,22 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final textColor = isSpecialKey ? Colors.white : Colors.blue[700];
 
     return Expanded(
-      child: Padding(
-        padding: EdgeInsets.all(8),
-        child: Material(
-          color: backgroundColor,
-          elevation: 4,
-          borderRadius: BorderRadius.circular(4),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(4),
-            onTap: () => _handleKeyPress(key),
-            child: Center(
-              child: key == 'Confirm'
-                  ? Icon(Icons.check, color: textColor, size: 32)
-                  : Text(
-                      key,
-                      style: GoogleFonts.poppins(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
-                        color: textColor,
-                      ),
+      child: Material(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(4),
+        child: InkWell(
+          onTap: () => _handleKeyPress(key),
+          child: Center(
+            child: key == 'Confirm'
+                ? Icon(Icons.check, color: textColor, size: 32)
+                : Text(
+                    key,
+                    style: GoogleFonts.poppins(
+                      fontSize: 42,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
                     ),
-            ),
+                  ),
           ),
         ),
       ),

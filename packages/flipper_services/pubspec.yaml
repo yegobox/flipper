@@ -89,7 +89,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   injectable_generator: ^2.6.0
-  build_runner: ^2.4.8
+  build_runner: ^2.4.12
   test:
 flutter:
   # The following line ensures that the Material Icons font is
