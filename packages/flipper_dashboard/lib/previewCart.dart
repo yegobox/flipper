@@ -27,9 +27,11 @@ import 'package:realm/realm.dart';
 
 mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, TransactionMixin, TextEditingControllersMixin {
-  Future<void> previewCart({bool isShopingFromWareHouse = true}) async {
-    ref.read(toggleBetweenProductViewAndQuickSale.notifier).state =
-        !ref.read(toggleBetweenProductViewAndQuickSale.notifier).state;
+  /// this mthod will either preview or completeOrder
+  Future<void> previewOrOrder(
+      {bool isShopingFromWareHouse = true,
+      required ITransaction transaction}) async {
+    ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
 
     if (!isShopingFromWareHouse) {
       /// here we just navigate to Quick setting to preview what's on cart
@@ -41,28 +43,23 @@ mixin PreviewcartMixin<T extends ConsumerStatefulWidget>
     /// shoping to main warehouse
 
     try {
-      final iOrdering = ProxyService.box.isOrdering()!;
-      final transactionType =
-          iOrdering ? TransactionType.cashOut : TransactionType.sale;
-      final transaction = ref.watch(pendingTransactionProvider(
-          (mode: transactionType, isExpense: iOrdering)));
-
       final items = ProxyService.realm.transactionItems(
         branchId: ProxyService.box.getBranchId()!,
-        transactionId: transaction.value!.id!,
+        transactionId: transaction.id!,
         doneWithTransaction: false,
         active: true,
       );
 
-      if (items.isEmpty) {
-        ref.read(toggleProvider.notifier).state = false;
+      /// previewingCart start with state false then if is true then we are previewing stop completing the order
+      if (items.isEmpty || ref.read(previewingCart)) {
+        // ref.read(toggleProvider.notifier).state = false;
         return;
       }
 
       await _createStockRequest(items);
-      await _markItemsAsDone(items, transaction.value!);
-      _changeTransactionStatus(transaction: transaction.value!);
-      await _refreshTransactionItems(transaction.value?.id);
+      await _markItemsAsDone(items, transaction);
+      _changeTransactionStatus(transaction: transaction);
+      await _refreshTransactionItems(transaction.id);
 
       print("Order placed with ${items.length} items in basket");
     } catch (e, s) {

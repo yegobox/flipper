@@ -22,6 +22,7 @@ class Orders extends HookConsumerWidget {
       onPopInvokedWithResult: (bool didPop, dynamic other) {
         if (didPop) return;
         ProxyService.box.writeBool(key: 'isOrdering', value: false);
+        ref.read(previewingCart.notifier).state = false;
         onWillPop(
           context: context,
           navigationPurpose: NavigationPurpose.home,

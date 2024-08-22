@@ -294,7 +294,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return Scaffold(
       appBar: CustomAppBar(
         onPop: () async {
-          ref.read(toggleBetweenProductViewAndQuickSale.notifier).state = false;
+          ref.read(previewingCart.notifier).state = false;
         },
         multi: 3,
         bottomSpacer: 88.99,
@@ -307,7 +307,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           transactionAsyncValue.whenData((ITransaction transaction) {
             handleCompleteTransaction(transaction, model);
           });
-          ref.read(toggleBetweenProductViewAndQuickSale.notifier).state = false;
+          ref.read(previewingCart.notifier).state = false;
         },
         ref: ref,
         model: model,

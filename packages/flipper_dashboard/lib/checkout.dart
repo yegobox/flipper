@@ -98,9 +98,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
     return widget.isBigScreen
         ? _buildBigScreenLayout(transaction,
-            showCart: ref.watch(toggleBetweenProductViewAndQuickSale))
+            showCart: ref.watch(previewingCart))
         : _buildSmallScreenLayout(transaction,
-            showCart: ref.watch(toggleBetweenProductViewAndQuickSale));
+            showCart: ref.watch(previewingCart));
   }
 
   Widget _buildBigScreenLayout(ITransaction transaction,
@@ -242,7 +242,9 @@ class CheckOutState extends ConsumerState<CheckOut>
                               handleTicketNavigation(transaction),
                           previewCart: () {
                             talker.warning("Show Quick Sell: ${showCart}");
-                            previewCart(isShopingFromWareHouse: false);
+                            previewOrOrder(
+                                isShopingFromWareHouse: false,
+                                transaction: transaction);
                           },
                         ),
                       ),

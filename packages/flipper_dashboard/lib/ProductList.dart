@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/previewCart.dart';
 import 'package:flipper_models/realm_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter/material.dart';
@@ -49,7 +50,7 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
                 if (products.isEmpty) {
                   return Center(child: Text('No products available'));
                 }
-                return !ref.watch(toggleBetweenProductViewAndQuickSale)
+                return !ref.watch(previewingCart)
                     ? GridView.builder(
                         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 200,
@@ -86,16 +87,27 @@ class ProductListScreenState extends ConsumerState<ProductListScreen>
             floatingActionButton: SizedBox(
               width: 200,
               child: PreviewSaleButton(
-                wording: ref.watch(toggleBetweenProductViewAndQuickSale)
+                wording: ref.watch(previewingCart)
                     ? "Place order"
                     : "Preview Cart  (${orders})",
                 mode: SellingMode.forOrdering,
                 previewCart: () async {
-                  if (orders > 0) {
-                    previewCart();
-                  } else {
-                    toast("Please add item in basket first");
-                  }
+                  final transaction = ref.watch(
+                      pendingTransactionProviderNonStream((isOrdering
+                          ? (mode: TransactionType.cashOut, isExpense: true)
+                          : (mode: TransactionType.sale, isExpense: false))));
+
+                  /// now if we are not previewing we can place order
+                  await previewOrOrder(transaction: transaction);
+
+                  await Future.delayed(Duration(microseconds: 600));
+
+                  /// refresh
+                  ref.refresh(pendingTransactionProviderNonStream((isOrdering
+                      ? (mode: TransactionType.cashOut, isExpense: true)
+                      : (mode: TransactionType.sale, isExpense: false))));
+                  ref.refresh(
+                      transactionItemsProvider((isExpense: isOrdering)));
                 },
               ),
             ),

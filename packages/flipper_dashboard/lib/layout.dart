@@ -38,6 +38,9 @@ class AppLayoutDrawerState extends ConsumerState<AppLayoutDrawer> {
     final isScanningMode = ref.watch(scanningModeProvider);
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
+      onViewModelReady: (model) {
+        ref.read(previewingCart.notifier).state = false;
+      },
       builder: (context, model, child) {
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {

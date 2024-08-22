@@ -182,6 +182,7 @@ class SearchFieldState extends ConsumerState<SearchField>
   void _handleReceiveOrderToggle() {
     final deviceType = _getDeviceType(context);
     ProxyService.box.writeBool(key: 'isOrdering', value: true);
+
     if (deviceType == 'Phone' || deviceType == 'Phablet') {
       _routerService.navigateTo(OrdersRoute());
     } else {
