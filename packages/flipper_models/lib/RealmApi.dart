@@ -3495,13 +3495,13 @@ class RealmAPI<M extends IJsonSerializable>
     String? renderableLink;
 
     // Get the user identifier (assumed to be the phone number)
-    String userIdentifier = "250783054870";
+    String userIdentifier = "250783054888";
     // String userIdentifier = ProxyService.box.getUserPhone()!;
 
     try {
       // Attempt to retrieve an existing PayStack customer
-      PayStackCustomer customer =
-          await _getCustomer(userIdentifier, flipperHttpClient);
+      PayStackCustomer customer = await _getCustomer(
+          userIdentifier.toFlipperEmail(), flipperHttpClient);
       // Customer found, proceed to initiate a payment request
       renderableLink =
           await _initiatePayment(flipperHttpClient, customer.data.customerCode);
@@ -3523,7 +3523,7 @@ class RealmAPI<M extends IJsonSerializable>
       // Handle any other errors
     }
 
-    return renderableLink!;
+    return "https://paystack.com/pay/${renderableLink}";
   }
 
   Future<String> _initiatePayment(
@@ -3551,5 +3551,58 @@ class RealmAPI<M extends IJsonSerializable>
       required HttpClientInterface flipperHttpClient}) async {
     throw SubscriptionError(
         term: "Please update the payment as payment has failed");
+  }
+
+  @override
+  PaymentPlan saveOrUpdatePaymentPlan({
+    required int businessId,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+  }) {
+    try {
+      // Find the existing PaymentPlan or create a new one
+      PaymentPlan paymentPlan = realm!.query<PaymentPlan>(
+              r'businessId == $0', [businessId]).firstOrNull ??
+          PaymentPlan(
+            ObjectId(),
+            businessId: businessId,
+            selectedPlan: selectedPlan,
+            additionalDevices: additionalDevices,
+            isYearlyPlan: isYearlyPlan,
+            totalPrice: totalPrice,
+            createdAt: DateTime.now(),
+            id: randomNumber(),
+          );
+
+      // If the paymentPlan already exists, update its fields with the new values
+      realm!.write(() {
+        paymentPlan.selectedPlan = selectedPlan;
+        paymentPlan.additionalDevices = additionalDevices;
+        paymentPlan.isYearlyPlan = isYearlyPlan;
+        paymentPlan.totalPrice = totalPrice;
+
+        // Save or update the payment plan in the Realm database
+        realm!.add<PaymentPlan>(paymentPlan, update: true);
+      });
+
+      // For debugging or confirmation
+      print('Saved PaymentPlan: $selectedPlan');
+      print('Additional Devices: $additionalDevices');
+      print('Is Yearly Plan: $isYearlyPlan');
+      print('Total Price: $totalPrice RWF');
+
+      // Return the PaymentPlan
+      return realm!.query<PaymentPlan>(r'businessId == $0', [businessId]).first;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  PaymentPlan? getPaymentPlan({required int businessId}) {
+    return realm!
+        .query<PaymentPlan>(r'businessId == $0', [businessId]).firstOrNull;
   }
 }

@@ -1017,3 +1017,23 @@ class _Access {
   DateTime? expiresAt; // Optional expiration date
   String? status; // e.g., 'active', 'pending', 'revoked'
 }
+
+@RealmModel()
+class _PaymentPlan {
+  int? id;
+
+  @PrimaryKey()
+  @MapTo('_id')
+  late ObjectId realmId;
+
+  int? businessId;
+
+  // Add your new fields
+   String?
+      selectedPlan; // Stores the chosen plan (e.g., 'Mobile', 'Mobile + Desktop', etc.)
+   int?
+      additionalDevices; // Number of additional devices (relevant for 'More than 3 Devices')
+   bool? isYearlyPlan; // Indicates whether the user chose a yearly plan
+   double? totalPrice; // The total price based on selected options
+  DateTime? createdAt;
+}

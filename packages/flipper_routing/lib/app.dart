@@ -68,6 +68,7 @@ import 'all_routes.dart';
     CustomRoute(page: AddBranch),
     CustomRoute(page: QuickSellingView),
     CustomRoute(page: PaymentPlan),
+    CustomRoute(page: PaymentFinalize),
   ],
   dependencies: [
     LazySingleton(classType: BottomSheetService),

@@ -461,4 +461,13 @@ abstract class RealmApiInterface {
   Future<bool> hasActiveSubscription(
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
+
+  PaymentPlan saveOrUpdatePaymentPlan({
+    required int businessId,
+    required String selectedPlan,
+    required int additionalDevices,
+    required bool isYearlyPlan,
+    required double totalPrice,
+  });
+  PaymentPlan? getPaymentPlan({required int businessId});
 }

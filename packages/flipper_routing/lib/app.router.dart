@@ -613,6 +613,14 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         barrierDismissible: false,
       );
     },
+    PaymentFinalizeRoute.name: (routeData) {
+      return _i4.CustomPage<dynamic>(
+        routeData: routeData,
+        child: _i1.PaymentFinalize(),
+        opaque: true,
+        barrierDismissible: false,
+      );
+    },
   };
 
   @override
@@ -832,6 +840,10 @@ class StackedRouterWeb extends _i4.RootStackRouter {
         _i4.RouteConfig(
           PaymentPlanRoute.name,
           path: '/payment-plan',
+        ),
+        _i4.RouteConfig(
+          PaymentFinalizeRoute.name,
+          path: '/payment-finalize',
         ),
       ];
 }
@@ -2315,6 +2327,18 @@ class PaymentPlanRoute extends _i4.PageRouteInfo<void> {
   static const String name = 'PaymentPlan';
 }
 
+/// generated route for
+/// [_i1.PaymentFinalize]
+class PaymentFinalizeRoute extends _i4.PageRouteInfo<void> {
+  const PaymentFinalizeRoute()
+      : super(
+          PaymentFinalizeRoute.name,
+          path: '/payment-finalize',
+        );
+
+  static const String name = 'PaymentFinalize';
+}
+
 extension RouterStateExtension on _i3.RouterService {
   Future<dynamic> navigateToStartUpView({
     _i5.Key? key,
@@ -3001,6 +3025,14 @@ extension RouterStateExtension on _i3.RouterService {
     );
   }
 
+  Future<dynamic> navigateToPaymentFinalize(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return navigateTo(
+      const PaymentFinalizeRoute(),
+      onFailure: onFailure,
+    );
+  }
+
   Future<dynamic> replaceWithStartUpView({
     _i5.Key? key,
     bool? invokeLogin,
@@ -3682,6 +3714,14 @@ extension RouterStateExtension on _i3.RouterService {
       {void Function(_i4.NavigationFailure)? onFailure}) async {
     return replaceWith(
       const PaymentPlanRoute(),
+      onFailure: onFailure,
+    );
+  }
+
+  Future<dynamic> replaceWithPaymentFinalize(
+      {void Function(_i4.NavigationFailure)? onFailure}) async {
+    return replaceWith(
+      const PaymentFinalizeRoute(),
       onFailure: onFailure,
     );
   }

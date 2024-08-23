@@ -36,10 +36,10 @@ CustomerData _$CustomerDataFromJson(Map<String, dynamic> json) => CustomerData(
       integration: json['integration'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      totalTransactions: json['total_transactions'] as int,
-      totalTransactionValue: json['total_transaction_value'] as List<dynamic>,
+      totalTransactions: json['total_transactions'] as int?,
+      totalTransactionValue: json['total_transaction_value'] as List<dynamic>?,
       dedicatedAccount: json['dedicated_account'],
-      dedicatedAccounts: json['dedicated_accounts'] as List<dynamic>,
+      dedicatedAccounts: json['dedicated_accounts'] as List<dynamic>?,
       identified: json['identified'] as bool,
       identifications: json['identifications'],
     );

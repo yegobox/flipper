@@ -19,6 +19,7 @@ export 'package:flipper_dashboard/create/color_tile.dart';
 export 'package:flipper_dashboard/create/list_categories.dart';
 export 'package:flipper_dashboard/create/list_units.dart';
 export 'package:flipper_dashboard/PaymentPlan.dart';
+export 'package:flipper_dashboard/PaymentFinalize.dart';
 
 export 'package:flipper_dashboard/AdminControl.dart';
 //

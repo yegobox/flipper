@@ -7929,3 +7929,146 @@ class Access extends _Access with RealmEntity, RealmObjectBase, RealmObject {
   @override
   SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
 }
+
+class PaymentPlan extends _PaymentPlan
+    with RealmEntity, RealmObjectBase, RealmObject {
+  PaymentPlan(
+    ObjectId realmId, {
+    int? id,
+    int? businessId,
+    String? selectedPlan,
+    int? additionalDevices,
+    bool? isYearlyPlan,
+    double? totalPrice,
+    DateTime? createdAt,
+  }) {
+    RealmObjectBase.set(this, 'id', id);
+    RealmObjectBase.set(this, '_id', realmId);
+    RealmObjectBase.set(this, 'businessId', businessId);
+    RealmObjectBase.set(this, 'selectedPlan', selectedPlan);
+    RealmObjectBase.set(this, 'additionalDevices', additionalDevices);
+    RealmObjectBase.set(this, 'isYearlyPlan', isYearlyPlan);
+    RealmObjectBase.set(this, 'totalPrice', totalPrice);
+    RealmObjectBase.set(this, 'createdAt', createdAt);
+  }
+
+  PaymentPlan._();
+
+  @override
+  int? get id => RealmObjectBase.get<int>(this, 'id') as int?;
+  @override
+  set id(int? value) => RealmObjectBase.set(this, 'id', value);
+
+  @override
+  ObjectId get realmId =>
+      RealmObjectBase.get<ObjectId>(this, '_id') as ObjectId;
+  @override
+  set realmId(ObjectId value) => RealmObjectBase.set(this, '_id', value);
+
+  @override
+  int? get businessId => RealmObjectBase.get<int>(this, 'businessId') as int?;
+  @override
+  set businessId(int? value) => RealmObjectBase.set(this, 'businessId', value);
+
+  @override
+  String? get selectedPlan =>
+      RealmObjectBase.get<String>(this, 'selectedPlan') as String?;
+  @override
+  set selectedPlan(String? value) =>
+      RealmObjectBase.set(this, 'selectedPlan', value);
+
+  @override
+  int? get additionalDevices =>
+      RealmObjectBase.get<int>(this, 'additionalDevices') as int?;
+  @override
+  set additionalDevices(int? value) =>
+      RealmObjectBase.set(this, 'additionalDevices', value);
+
+  @override
+  bool? get isYearlyPlan =>
+      RealmObjectBase.get<bool>(this, 'isYearlyPlan') as bool?;
+  @override
+  set isYearlyPlan(bool? value) =>
+      RealmObjectBase.set(this, 'isYearlyPlan', value);
+
+  @override
+  double? get totalPrice =>
+      RealmObjectBase.get<double>(this, 'totalPrice') as double?;
+  @override
+  set totalPrice(double? value) =>
+      RealmObjectBase.set(this, 'totalPrice', value);
+
+  @override
+  DateTime? get createdAt =>
+      RealmObjectBase.get<DateTime>(this, 'createdAt') as DateTime?;
+  @override
+  set createdAt(DateTime? value) =>
+      RealmObjectBase.set(this, 'createdAt', value);
+
+  @override
+  Stream<RealmObjectChanges<PaymentPlan>> get changes =>
+      RealmObjectBase.getChanges<PaymentPlan>(this);
+
+  @override
+  Stream<RealmObjectChanges<PaymentPlan>> changesFor(
+          [List<String>? keyPaths]) =>
+      RealmObjectBase.getChangesFor<PaymentPlan>(this, keyPaths);
+
+  @override
+  PaymentPlan freeze() => RealmObjectBase.freezeObject<PaymentPlan>(this);
+
+  EJsonValue toEJson() {
+    return <String, dynamic>{
+      'id': id.toEJson(),
+      '_id': realmId.toEJson(),
+      'businessId': businessId.toEJson(),
+      'selectedPlan': selectedPlan.toEJson(),
+      'additionalDevices': additionalDevices.toEJson(),
+      'isYearlyPlan': isYearlyPlan.toEJson(),
+      'totalPrice': totalPrice.toEJson(),
+      'createdAt': createdAt.toEJson(),
+    };
+  }
+
+  static EJsonValue _toEJson(PaymentPlan value) => value.toEJson();
+  static PaymentPlan _fromEJson(EJsonValue ejson) {
+    if (ejson is! Map<String, dynamic>) return raiseInvalidEJson(ejson);
+    return switch (ejson) {
+      {
+        '_id': EJsonValue realmId,
+      } =>
+        PaymentPlan(
+          fromEJson(realmId),
+          id: fromEJson(ejson['id']),
+          businessId: fromEJson(ejson['businessId']),
+          selectedPlan: fromEJson(ejson['selectedPlan']),
+          additionalDevices: fromEJson(ejson['additionalDevices']),
+          isYearlyPlan: fromEJson(ejson['isYearlyPlan']),
+          totalPrice: fromEJson(ejson['totalPrice']),
+          createdAt: fromEJson(ejson['createdAt']),
+        ),
+      _ => raiseInvalidEJson(ejson),
+    };
+  }
+
+  static final schema = () {
+    RealmObjectBase.registerFactory(PaymentPlan._);
+    register(_toEJson, _fromEJson);
+    return const SchemaObject(
+        ObjectType.realmObject, PaymentPlan, 'PaymentPlan', [
+      SchemaProperty('id', RealmPropertyType.int, optional: true),
+      SchemaProperty('realmId', RealmPropertyType.objectid,
+          mapTo: '_id', primaryKey: true),
+      SchemaProperty('businessId', RealmPropertyType.int, optional: true),
+      SchemaProperty('selectedPlan', RealmPropertyType.string, optional: true),
+      SchemaProperty('additionalDevices', RealmPropertyType.int,
+          optional: true),
+      SchemaProperty('isYearlyPlan', RealmPropertyType.bool, optional: true),
+      SchemaProperty('totalPrice', RealmPropertyType.double, optional: true),
+      SchemaProperty('createdAt', RealmPropertyType.timestamp, optional: true),
+    ]);
+  }();
+
+  @override
+  SchemaObject get objectSchema => RealmObjectBase.getSchema(this) ?? schema;
+}

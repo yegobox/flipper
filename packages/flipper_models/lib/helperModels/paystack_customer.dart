@@ -44,15 +44,15 @@ class CustomerData {
   @JsonKey(name: 'updatedAt')
   final DateTime updatedAt;
   @JsonKey(name: 'total_transactions')
-  final int totalTransactions;
+  final int? totalTransactions;  // Nullable
   @JsonKey(name: 'total_transaction_value')
-  final List<dynamic> totalTransactionValue;
+  final List<dynamic>? totalTransactionValue;  // Nullable
   @JsonKey(name: 'dedicated_account')
-  final dynamic dedicatedAccount;
+  final dynamic dedicatedAccount;  // Nullable
   @JsonKey(name: 'dedicated_accounts')
-  final List<dynamic> dedicatedAccounts;
+  final List<dynamic>? dedicatedAccounts;  // Nullable
   final bool identified;
-  final dynamic identifications;
+  final dynamic identifications;  // Nullable
 
   CustomerData({
     required this.transactions,
@@ -70,10 +70,10 @@ class CustomerData {
     required this.integration,
     required this.createdAt,
     required this.updatedAt,
-    required this.totalTransactions,
-    required this.totalTransactionValue,
+    this.totalTransactions,
+    this.totalTransactionValue,
     this.dedicatedAccount,
-    required this.dedicatedAccounts,
+    this.dedicatedAccounts,
     required this.identified,
     this.identifications,
   });

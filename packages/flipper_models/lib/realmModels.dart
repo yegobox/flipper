@@ -32,6 +32,7 @@ final realmModels = [
   Computed.schema,
   Access.schema,
   StockRequest.schema,
+  PaymentPlan.schema,
 ];
 
 /// for local db
@@ -42,4 +43,5 @@ final localModels = [
   UnversalProduct.schema,
   AppNotification.schema,
   Drawers.schema,
+  PaymentPlan.schema,
 ];

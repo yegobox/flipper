@@ -1,5 +1,12 @@
+import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class PaymentPlan extends StatefulWidget {
   @override
@@ -318,9 +325,31 @@ class _PaymentPlanState extends State<PaymentPlan> {
   Widget _buildProceedButton() {
     return ElevatedButton(
       onPressed: () async {
+        String selectedPlan = _selectedPlan;
+        int additionalDevices =
+            _selectedPlan == 'More than 3 Devices' ? _additionalDevices : 0;
+        bool isYearlyPlan = _isYearlyPlan;
+        double totalPrice = _totalPrice;
+
+        // Use the values as needed
+        print('Selected Plan: $selectedPlan');
+        print('Additional Devices: $additionalDevices');
+        print('Is Yearly Plan: $isYearlyPlan');
+        print('Total Price: $totalPrice RWF');
+
+        try {
+          ProxyService.realm.saveOrUpdatePaymentPlan(
+              businessId: ProxyService.box.getBusinessId()!,
+              selectedPlan: selectedPlan,
+              additionalDevices: additionalDevices,
+              isYearlyPlan: isYearlyPlan,
+              totalPrice: totalPrice);
+          locator<RouterService>().navigateTo(PaymentFinalizeRoute());
+        } catch (e, s) {
+          talker.error(e);
+          talker.error(s);
+        }
         // Proceed to payment action
-        await ProxyService.realm.subscribe(
-            businessId: 1, agentCode: 1, flipperHttpClient: ProxyService.http);
       },
       child: Text('Proceed to Payment',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),

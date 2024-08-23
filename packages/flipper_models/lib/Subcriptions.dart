@@ -73,6 +73,8 @@ mixin Subscriptions {
           realm.query<Access>(r'businessId == $0', [businessId]),
       'requests-$branchId': realm.query<StockRequest>(
           r'mainBranchId == $0 || subBranchId == $1', [branchId, branchId]),
+      'plans-$branchId':
+          realm.query<PaymentPlan>(r'businessId == $0 ', [businessId]),
     };
 
     // Update subscriptions
