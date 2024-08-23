@@ -76,7 +76,12 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
                 ),
                 Spacer(),
                 isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.black.withOpacity(0.7)),
+                          strokeWidth: 3,
+                          backgroundColor: Colors.grey.shade300,
+                        ))
                     : ElevatedButton(
                         child: Text('Complete Payment'),
                         style: ElevatedButton.styleFrom(
@@ -119,6 +124,9 @@ class _PaymentFinalizeState extends State<PaymentFinalize> {
         throw Exception('Could not launch $_url');
       }
     } else {
+      setState(() {
+        isLoading = false;
+      });
       toast("Mobile Money payment coming soon, choose card payment");
     }
   }
